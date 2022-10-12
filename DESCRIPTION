@@ -1,0 +1,29 @@
+Package: bage
+Type: Package
+Title: Bayesian Estimation and Forecasting of Age-Specific Rates
+Version: 0.1.0
+Authors@R: 
+    c(person(given = "John",
+             family = "Bryant",
+             role = c("aut", "cre"),
+             email = "john@bayesiandemography.com"),
+      person(given = "Junni",
+             family = "Zhang",
+             role = "aut",
+             email = "junni@bayesiandemography.com"))
+Description: Bayesian estimation and forecasting of age-specific
+    rates, probabilities, and means. Uses singular value
+    decompositions and the package TMB (Template Model Builder),
+    to make the estimation and forecasting scalable and fast.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 3.5.0)
+Imports:
+    checkmate,
+    stats
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.2.1
