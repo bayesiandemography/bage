@@ -108,7 +108,7 @@ credible_intervals <- function(classif_vars, measure_var, width = 0.95,
         }
         ans[[i]] <- cbind(classif_vars_ans,
                           w_i,
-                          lower_i
+                          lower_i,
                           median,
                           upper_i)
     }
