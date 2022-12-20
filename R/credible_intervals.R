@@ -11,8 +11,8 @@
 #' \code{credible_intervals} is less flexible but faster
 #' than \code{point_interval}.
 #'
-#' \code{length(measure_var}} should equal
-#' \code{nrow(classif_vars}}. 
+#' \code{length(measure_var)} should equal
+#' \code{nrow(classif_vars)}. 
 #' \code{classif_vars} should contain multiple
 #' copies of each combination of the classifying
 #' variables. Each copy typically represents a
@@ -26,7 +26,8 @@
 #' variable(s).
 #' @param measure_var A numeric vector with measurements.
 #' @param width Width(s) of credible interval(s).
-#' A numeric vector, with values in \code{(0,1]}.
+#' A numeric vector, with values greater than 0
+#' and less than or equal to 1.
 #' @param na_rm Whether to remove \code{NA}s
 #' from \code{measure_var} before calculating
 #' quantiles.
@@ -69,10 +70,10 @@ credible_intervals <- function(classif_vars, measure_var, width = 0.95,
                       "measure_var", "na_rm", FALSE),
              call. = FALSE)
     measure_name <- 
-        counts_comb <- aggregate(x = rep(1L, nrow_classif),
-                                 by = classif_vars,
-                                 FUN = unique,
-                                 simplify = FALSE)
+        counts_comb <- stats::aggregate(x = rep(1L, nrow_classif),
+                                        by = classif_vars,
+                                        FUN = unique,
+                                        simplify = FALSE)
     classif_vars_ans <- counts_comb[seq_len(ncol_classif)]
     row_nums <- counts_comb[[ncol_classif + 1L]]
     if (nrow(ans) > 1L) {
