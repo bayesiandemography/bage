@@ -5,13 +5,13 @@ test_that("'make_age_effect' works with single age effect", {
     terms <- list(rnorm(4))
     dim <- integer()
     mappings <- list(integer())
-    b <- 1:10
+    b <- as.double(1:10)
     X <- matrix(rnorm(40), nrow = 10)
     ans_obtained <- make_age_effect(terms = terms,
-                                        dim = dim,
-                                        mappings = mappings,
-                                        b = b,
-                                        X = X)
+                                    dim = dim,
+                                    mappings = mappings,
+                                    b = b,
+                                    X = X)
     ans_expected <- array(X %*% terms[[1L]] + b, dim = 10)
     expect_equal(ans_obtained, ans_expected)
 })
@@ -20,13 +20,13 @@ test_that("'make_age_effect' works with age effect and two-way interaction", {
     terms <- list(rnorm(4), rnorm(12))
     dim <- 3L
     mappings <- list(integer(), 0L)
-    b <- 1:10
+    b <- as.double(1:10)
     X <- matrix(rnorm(40), nrow = 10)
     ans_obtained <- make_age_effect(terms = terms,
-                                        dim = dim,
-                                        mappings = mappings,
-                                        b = b,
-                                        X = X)
+                                    dim = dim,
+                                    mappings = mappings,
+                                    b = b,
+                                    X = X)
     age_effect <- X %*% terms[[1L]]
     age_interact <- cbind(X %*% matrix(terms[[2]], nr = 4)[,1],
                           X %*% matrix(terms[[2]], nr = 4)[,2],
@@ -39,7 +39,7 @@ test_that("'make_age_effect' works with age effect and two two-way interactions"
     terms <- list(rnorm(4), rnorm(12), rnorm(20))
     dim <- c(3L, 5L)
     mappings <- list(integer(), 0L, 1L)
-    b <- 1:10
+    b <- as.double(1:10)
     X <- matrix(rnorm(40), nrow = 10)
     ans_obtained <- make_age_effect(terms = terms,
                                         dim = dim,
@@ -64,7 +64,7 @@ test_that("'make_age_effect' works with age effect and a two-way interaction and
     terms <- list(rnorm(4), rnorm(12), rnorm(24))
     dim <- c(3L, 2L)
     mappings <- list(integer(), 0L, 0:1)
-    b <- 1:10
+    b <- as.double(1:10)
     X <- matrix(rnorm(40), nrow = 10)
     ans_obtained <- make_age_effect(terms = terms,
                                         dim = dim,

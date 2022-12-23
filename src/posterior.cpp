@@ -1,5 +1,8 @@
-#include <Rcpp.h>
-using namespace Rcpp;
+#include <cpp11.hpp>
+#include <cpp11/matrix.hpp>
+#include <cpp11/doubles.hpp>
+using namespace cpp11;
+namespace writable = cpp11::writable;
 
 // HAS_TESTS
 //' Assemble effects involving age for a single
@@ -50,12 +53,12 @@ using namespace Rcpp;
 //' of which is age or age-sex.
 //'
 //' @export
-// [[Rcpp::export]]
-NumericVector make_age_effect(List terms,
-			      IntegerVector dim,
-			      List mappings,
-			      NumericVector b,
-			      NumericMatrix X) {
+[[cpp11::register]]
+doubles make_age_effect(list terms,
+			integers dim,
+			list mappings,
+			doubles b,
+			cpp11::doubles_matrix<> X) {
   // extract information on inputs and outputs
   int n_term = terms.size();
   int n_dim = dim.size();
@@ -65,16 +68,23 @@ NumericVector make_age_effect(List terms,
   for (int i_dim = 0; i_dim < n_dim; i_dim++)
     n_nonage *= dim[i_dim];
   // return value, initially filled with 0s
-  NumericMatrix ans(n_age, n_nonage);
+  writable::doubles ans(n_age * n_nonage);
+  for (int i_ans = 0; i_ans < ans.size(); i_ans++)
+    ans[i_ans] = 0;
   // step through (conceptual, not actual)
   // array formed by non-age dimensions
-  IntegerVector pos_array(n_dim); 
+  writable::integers pos_array(n_dim);
+  for (int i_dim = 0; i_dim < n_dim; i_dim++)
+    pos_array[i_dim] = 0;
+  int offset_ans = 0;
   for (int i_nonage = 0; i_nonage < n_nonage; i_nonage++) {
     // assemble 'beta'
-    NumericVector beta(n_comp);
+    writable::doubles beta(n_comp);
+    for (int i_comp = 0; i_comp < n_comp; i_comp++)
+      beta[i_comp] = 0;
     for (int i_term = 0; i_term < n_term; i_term++) {
-      NumericVector term = terms[i_term];
-      IntegerVector map = mappings[i_term];
+      doubles term = terms[i_term];
+      integers map = mappings[i_term];
       int n_map = map.size();
       int offset_term = 0;
       if (n_map > 0) { 
@@ -85,18 +95,20 @@ NumericVector make_age_effect(List terms,
 	  mult *= dim[i_dim];
 	}
       }
-      for (int i_comp = 0; i_comp < n_comp; i_comp++)
-	beta[i_comp] += term[offset_term + i_comp];
-    }
-    // insert 'X' %*% 'beta' into column 'i_nonage' of 'ans'
-    for (int i_age = 0; i_age < n_age; i_age++) {
       for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-	ans(i_age, i_nonage) += X(i_age, i_comp) * beta[i_comp];
+	beta[i_comp] += term[offset_term + i_comp];
       }
     }
-    // add 'b' to column 'i_nonage' of 'ans'
+    // record 'X' %*% 'beta' for 'i_nonage'th
+    // combination of non-age variables
+    for (int i_age = 0; i_age < n_age; i_age++) {
+      for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+	ans[offset_ans + i_age] += X(i_age, i_comp) * beta[i_comp];
+      }
+    }
+    // add 'b' to column 'i_nonage'th  of 'ans'
     for (int i_age = 0; i_age < n_age; i_age++)
-      ans(i_age, i_nonage) += b[i_age];
+      ans[offset_ans + i_age] += b[i_age];
     // update position along the non-age dimensions
     for (int i_dim = 0; i_dim < n_dim; i_dim++) {
       if (pos_array[i_dim] < dim[i_dim] - 1) {
@@ -105,9 +117,10 @@ NumericVector make_age_effect(List terms,
       }
       pos_array[i_dim] = 0;
     }
+    offset_ans += n_age;
   }
   // convert to array and return
-  IntegerVector dim_ans(n_dim + 1);
+  writable::integers dim_ans(n_dim + 1);
   dim_ans[0] = n_age;
   for (int i = 1; i <= n_dim; i++)
     dim_ans[i] = dim[i - 1];
@@ -145,10 +158,10 @@ NumericVector make_age_effect(List terms,
 //' specified by \code{dim}.
 //'
 //' @export
-// [[Rcpp::export]]
-NumericVector make_linear_pred(List terms,
-			       IntegerVector dim,
-			       List mappings) {
+[[cpp11::register]]
+doubles make_linear_pred(list terms,
+			 integers dim,
+			 list mappings) {
   // extract information on inputs and outputs
   int n_term = terms.size();
   int n_dim = dim.size();
@@ -156,14 +169,20 @@ NumericVector make_linear_pred(List terms,
   for (int i_dim = 0; i_dim < n_dim; i_dim++) {
     n_ans *= dim[i_dim];
   }
-  NumericVector ans(n_ans);
-  IntegerVector pos_ans(n_dim);
+  writable::doubles ans(n_ans);
+  for (int i_ans = 0; i_ans < n_ans; i_ans++) {
+    ans[i_ans] = 0;
+  }
+  writable::integers pos_ans(n_dim);
+  for (int i_dim = 0; i_dim < n_dim; i_dim++) {
+    pos_ans[i_dim] = 0;
+  }
   // step through 'ans'
   for (int i_ans = 0; i_ans < n_ans; i_ans++) {
     // add contribution from each element of 'terms'
     for (int i_term = 0; i_term < n_term; i_term++) {
-      NumericVector term = terms[i_term];
-      IntegerVector map = mappings[i_term];
+      doubles term = terms[i_term];
+      integers map = mappings[i_term];
       int n_map = map.size();
       int offset_term = 0;
       if (n_map > 0) {
