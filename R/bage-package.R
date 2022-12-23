@@ -5,7 +5,6 @@
 "_PACKAGE"
 
 ## usethis namespace: start
-#' @importFrom Rcpp sourceCpp
 #' @useDynLib bage, .registration = TRUE
 ## usethis namespace: end
 NULL
