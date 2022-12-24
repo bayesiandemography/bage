@@ -23,10 +23,11 @@ Depends:
 Imports:
     checkmate,
     matrixStats,
-    stats
+    stats,
+    TMB
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
-LinkingTo: cpp11
+LinkingTo: cpp11, TMB, RcppEigen
 SystemRequirements: C++11
