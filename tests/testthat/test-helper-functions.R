@@ -1,0 +1,130 @@
+
+
+## 'make_map_matrices' --------------------------------------------------------
+
+test_that("'make_map_matrices' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1
+    y <- xtabs(deaths ~ age + sex + time, data = data)
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_map_matrices(formula = formula, y = y)
+    ans_expected <- list("(Intercept)" = as(matrix(integer(), nr = 0), "sparseMatrix"),
+                         "time" = as(matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
+                                     "sparseMatrix"),
+                         "age:sex" = as(rbind(diag(6), diag(6)), "sparseMatrix"))
+    expect_identical(ans_obtained, ans_expected)
+})
+                                        
+    
+## 'make_map_matrix' ----------------------------------------------------------
+
+test_that("'make_map_matrix' works with one-dimensional term and 3-dimensional array", {
+    dim <- 2:4
+    ## 1
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(TRUE, FALSE, FALSE))
+    beta <- rnorm(2)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[,,] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+    ## 2
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(FALSE, TRUE, FALSE))
+    beta <- rnorm(3)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[1,,1] <- beta
+    ans_expected[2,,1] <- beta
+    ans_expected[1,,2] <- beta
+    ans_expected[2,,2] <- beta
+    ans_expected[1,,3] <- beta
+    ans_expected[2,,3] <- beta
+    ans_expected[1,,4] <- beta
+    ans_expected[2,,4] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+    ## 3
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(FALSE, FALSE, TRUE))
+    beta <- rnorm(4)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[1,1,] <- beta
+    ans_expected[2,1,] <- beta
+    ans_expected[1,2,] <- beta
+    ans_expected[2,2,] <- beta
+    ans_expected[1,3,] <- beta
+    ans_expected[2,3,] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+})
+
+test_that("'make_map_matrix' works with two-dimensional term and 3-dimensional array", {
+    dim <- 2:4
+    ## 1 and 2
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(TRUE, TRUE, FALSE))
+    beta <- rnorm(6)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[,,] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+    ## 1 and 3
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(TRUE, FALSE, TRUE))
+    beta <- rnorm(8)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[,1,] <- beta
+    ans_expected[,2,] <- beta
+    ans_expected[,3,] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+    ## 2 and 3
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(FALSE, TRUE, TRUE))
+    beta <- rnorm(12)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[1,,] <- beta
+    ans_expected[2,,] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+})
+
+test_that("'make_map_matrix' works with 3-dimensional term and 3-dimensional array", {
+    dim <- 2:4
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(TRUE, TRUE, TRUE))
+    beta <- rnorm(24)
+    ans_obtained <- m %*% beta
+    ans_expected <- array(dim = dim)
+    ans_expected[,,] <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+})
+
+test_that("'make_map_matrix' works with one-dimensional term and one-dimensional array", {
+    dim <- 4
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = TRUE)
+    beta <- rnorm(4)
+    ans_obtained <- m %*% beta
+    ans_expected <- beta
+    expect_identical(as.numeric(ans_obtained),
+                     as.numeric(ans_expected))
+})
+
+test_that("'make_map_matrix' creates sparse matrix", {
+    dim <- 2:4
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(TRUE, FALSE, FALSE))
+    expect_s4_class(m, "sparseMatrix")
+    dim <- 2:4
+    m <- make_map_matrix(dim = dim,
+                         is_in_term = c(TRUE, FALSE, TRUE))
+    expect_s4_class(m, "sparseMatrix")
+})
