@@ -59,3 +59,73 @@ check_formula_vnames_in_data <- function(formula, data) {
     invisible(TRUE)
 }
 
+
+## HAS_TESTS
+#' Check offset occurs in 'data'
+#'
+#' @param vname_offset The name of the variable being
+#' used as an offset
+#' @param nm_offset The name used to refer to the
+#' offset in user-visible functions
+#' @param data A data frame
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_offset_in_data <- function(vname_offset, nm_offset, data) {
+    nms_data <- names(data)
+    if (!(vname_offset %in% nms_data))
+        stop(gettextf("%s variable [%s] not found in '%s'",
+                      nm_offset,
+                      vname_offset,
+                      "data"),
+             call. = FALSE)
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that offset variable has no
+#' negative values
+#'
+#' @param vname_offset The name of the variable being
+#' used as an offset
+#' @param nm_offset The name used to refer to the
+#' offset in user-visible functions
+#' @param data A data frame
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_offset_nonneg <- function(vname_offset, nm_offset, data) {
+    offset <- data[[vname_offset]]
+    if (any(offset < 0, na.rm = TRUE))
+        stop(gettextf("%s variable [%s] has negative values",
+                      nm_offset,
+                      vname_offset),
+             call. = FALSE)
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that response variable has no
+#' negative values
+#'
+#' @param formula A formula
+#' @param data A data frame
+#' @param nm_distn Name of the disribution (eg "pois")
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_response_nonneg <- function(formula, data, nm_distn) {
+    nm_response <- deparse(formula[[2L]])
+    response <- data[[nm_response]]
+    if (any(response < 0, na.rm = TRUE))
+        stop(gettextf("distribution is \"%s\" but response variable [%s] has negative values",
+                      nm_distn,
+                      nm_response),
+             call. = FALSE)
+    invisible(TRUE)
+}
