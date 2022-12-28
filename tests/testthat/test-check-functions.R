@@ -46,6 +46,57 @@ test_that("'check_formula_vnames_in_data' returns correct error with invalid inp
 })
 
 
+## 'check_offset_in_data' -----------------------------------------------------
+
+test_that("'check_offset_in_data' returns TRUE with valid inputs", {
+    expect_true(check_offset_in_data(vname_offset = "popn",
+                                     nm_offset = "exposure",
+                                     data = data.frame(deaths = 1, popn = 2)))
+})
+
+test_that("'check_offset_in_data' returns correct error with invalid inputs", {
+    expect_error(check_offset_in_data(vname_offset = "popn",
+                                      nm_offset = "exposure",
+                                      data = data.frame(deaths = 1, wrong = 2)),
+                 "exposure variable \\[popn\\] not found in 'data'")
+})
+
+
+## 'check_offset_nonneg' ----------------------------------------------------
+
+test_that("'check_offset_nonneg' returns TRUE with valid inputs", {
+    expect_true(check_offset_nonneg(vname_offset = "popn",
+                                    nm_offset = "exposure",
+                                    data = data.frame(sex = 1:2,
+                                                      popn = c(0, 1.1),
+                                                      deaths = 0:1)))
+})
+
+test_that("'check_offset_nonneg' returns correct error with invalid inputs", {
+    expect_error(check_offset_nonneg(vname_offset = "popn",
+                                    nm_offset = "exposure",
+                                    data = data.frame(sex = 1:2,
+                                                      popn = c(-1, 1),
+                                                      deaths = 0:1)),
+                 "exposure variable \\[popn\\] has negative values")
+})
+
+
+## 'check_response_nonneg' ----------------------------------------------------
+
+test_that("'check_response_nonneg' returns TRUE with valid inputs", {
+    expect_true(check_response_nonneg(formula = deaths ~ sex,
+                                      data = data.frame(sex = 1:2, deaths = 0:1),
+                                      nm_distn = "pois"))
+})
+
+test_that("'check_response_nonneg' returns correct error with invalid inputs", {
+    expect_error(check_response_nonneg(formula = deaths ~ sex,
+                                       data.frame(sex = 1:2, deaths = c(-1, 1)),
+                                       nm_distn = "pois"),
+                 "distribution is \"pois\" but response variable \\[deaths\\] has negative values")
+})
+
 
 
 

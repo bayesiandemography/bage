@@ -2,7 +2,7 @@
 
 
 mod_pois <- function(formula, data, exposure) {
-    nm_distn <- "pois",
+    nm_distn <- "pois"
     exposure <- deparse1(substitute(exposure))
     is_mod_with_offset <- !identical(exposure, "1")
     if (is_mod_with_offset) {
@@ -66,7 +66,8 @@ bage_sysmod <- function(formula,
                                  data = data)
     if (is_distn_response_nonneg)
         check_response_nonneg(formula = formula,
-                              data = data)
+                              data = data,
+                              nm_distn)
     if (is_mod_with_offset) {
         check_offset_in_data(vname_offset = vname_offset,
                              nm_offset = nm_offset,

@@ -5,7 +5,7 @@
 ## TODO - set_data_source()
 
 
-set_prior(mod, formula) {
+set_prior <- function(mod, formula) {
     check_valid_prior_formula(formula)
     nm_response <- as.character(formula[[2L]])
     prior <- tryCatch(eval(formula[[3L]]),
