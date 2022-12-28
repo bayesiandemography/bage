@@ -5,9 +5,9 @@
 test_that("'make_map_matrices' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- 1
-    y <- xtabs(deaths ~ age + sex + time, data = data)
+    outcome <- xtabs(deaths ~ age + sex + time, data = data)
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_map_matrices(formula = formula, y = y)
+    ans_obtained <- make_map_matrices(formula = formula, outcome = outcome)
     ans_expected <- list("(Intercept)" = as(matrix(integer(), nr = 0), "sparseMatrix"),
                          "time" = as(matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
                                      "sparseMatrix"),
@@ -127,4 +127,21 @@ test_that("'make_map_matrix' creates sparse matrix", {
     m <- make_map_matrix(dim = dim,
                          is_in_term = c(TRUE, FALSE, TRUE))
     expect_s4_class(m, "sparseMatrix")
+})
+
+
+## 'make_outcome' -------------------------------------------------------------
+
+test_that("'make_outcome' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1L
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome(formula = formula,
+                                 data = data)
+    ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
+    ans_expected <- array(1 * ans_expected,
+                          dim = dim(ans_expected),
+                          dimnames = dimnames(ans_expected))
+    expect_identical(ans_obtained, ans_expected)
+    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
 })
