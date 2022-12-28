@@ -8,21 +8,21 @@
 #' linear predictor.)
 #' 
 #' @param formula Formula specifying terms
-#' @param y Array holding values for response
+#' @param outcome Array holding values for response
 #' variable
 #'
 #' @returns A named list
 #'
 #' @noRd
-make_map_matrices <- function(formula, y) {
+make_map_matrices <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, ] ## exclude reponse
     factors <- factors > 0L
-    dim_y <- dim(y)
+    dim_outcome <- dim(outcome)
     ans <- apply(factors,
                  MARGIN = 2L,
                  FUN = make_map_matrix,
-                 dim = dim_y,
+                 dim = dim_outcome,
                  simplify = FALSE)
     names(ans) <- colnames(factors)
     has_intercept <- attr(stats::terms(formula), "intercept")
@@ -65,21 +65,26 @@ make_map_matrix <- function(dim, is_in_term) {
     ans
 }
 
-
-make_params <- function(formula, y) {
+make_index_par <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, ] ## exclude reponse
     factors <- factors > 0L
-    dim_y <- dim(y)
-    dn_y <- dimnames(y)
-    make_param <- function(i)
-        array(0, dim = dim_y[i], dimnames = dn_y[i])
-    ans <- apply(factors, 2L, make_param, simplify = FALSE)
-    names(ans) <- colnames(factors)
+    dim_outcome <- dim(outcome)
+    lengths <- vapply(factors, function(i) prod(dim_outcome[i]), 0L)
+    ans <- colnames(factors)
     has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept)
-        ans <- c(list("(Intercept)" = 0), ans)
+    if (has_intercept) {
+        lengths <- c(1L, lengths)
+        ans <- c("(Intercept)", ans)
+    }
+    ans <- rep(ans, times = lengths)
+    ans <- factor(ans, levels = unique(ans))
     ans
+}
+
+make_par <- function(index_par) {
+    tab <- table(index_par)
+    lapply(tab, function(n) rep(0, times = n))
 }
 
 make_priors <- function(formula) {
@@ -94,9 +99,30 @@ make_priors <- function(formula) {
     ans
 }
 
+make_index_hyper <- function(priors) {
+    lengths <- vapply(priors, get_n_hyper, 0L)
+    ans <- names(priors)
+    ans <- rep(priors, times = lengths)
+    ans <- factor(ans, levels = unique(ans))
+    ans
+}
+ 
+make_hyper <- function(index_hyper) {
+    tab <- table(index_hyper)
+    lapply(tab, function(n) rep(0, times = n))
+}
 
-
-make_y <- function(formula, data) {
+## HAS_TESTS
+#' Make array holding outcome variable
+#' cross-classified by predictors
+#'
+#' @param formula Formula specifying terms
+#' @param data A data frame
+#'
+#' @returns An array (with named dimnames)
+#'
+#' @noRd
+make_outcome <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     nms_vars <- rownames(factors)
     formula_xtabs <- paste0(nms_vars[[1L]], "~", paste(nms_vars[-1L], collapse = "+"))
