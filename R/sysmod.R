@@ -48,12 +48,22 @@ mod_norm <- function(formula, data) {
                 nm_offset = nm_offset)
 }
 
+#' par, index_par, matrices_par are all fixed by 'data',
+#' and do not change. These are therefore all
+#' part of the 'mod' object.
+#'
+#' priors, and hence index_priors, hyper, and index_hyper
+#' can change via 'set_prior'. Only 'priors' is held
+#' in the 'mod' object - all the other quantities
+#' that depend on them are derived on the fly
+#' within function 'fit'.
+#' 
 new_bage_sysmod <- function(formula,
-                        data,
-                        nm_distn,
-                        is_mod_with_offset,
-                        vname_offset,
-                        nm_offset) {
+                            data,
+                            nm_distn,
+                            is_mod_with_offset,
+                            vname_offset,
+                            nm_offset) {
     distns_response_nonneg <- c("pois", "binom")
     is_distn_response_nonneg <- nm_distn %in% distns_response_nonneg
     ## check individual inputs
@@ -88,9 +98,7 @@ new_bage_sysmod <- function(formula,
                                 outcome = outcome)
     par <- make_par(index_par)
     priors <- make_priors(formula)
-    index_hyper <- make_index_hyper(priors)
-    hyper <- make_hyper(index_hyper)
-    map_matrices <- make_map_matrices(formula = formula,
+    matrices_par <- make_matrices_par(formula = formula,
                                       outcome = outcome)
     means <- NULL
     cov <- NULL
@@ -102,12 +110,9 @@ new_bage_sysmod <- function(formula,
                 offset = offset,
                 nm_offset = nm_offset,
                 priors = priors,
-                index_par = index_par,
-                index_hyper = index_hyper,
-                index_prior = index_prior,
-                map_matrices = map_matrices,
                 par = par,
-                hyper = hyper,
+                index_par = index_par,
+                matrices_par = matrices_par,
                 means = means,
                 cov = cov)
     class(ans) <- "bage_sysmod"

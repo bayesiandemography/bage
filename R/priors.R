@@ -1,6 +1,7 @@
 
 ## User-visible constructors --------------------------------------------------
 
+## HAS_TESTS
 #' Normal prior
 #'
 #' Prior in which units are drawn independently from a normal
@@ -38,6 +39,7 @@ N <- function(scale = 1) {
     scale <- check_and_tidy_scale(scale) 
     new_bage_prior_norm(scale = scale)
 }
+
 
 RW <- function(scale = 1) {
     scale <- check_and_tidy_scale(scale)
