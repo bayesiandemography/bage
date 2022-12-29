@@ -1,4 +1,63 @@
 
+#' Make vector identifying components of 'hyper'
+#'
+#' Make factor the same length as 'hyper',
+#' giving the index (0-based) of the prior
+#' that the each element belongs to.
+#'
+#' We generate this on the fly within function 'fit',
+#' to avoid having to update it when 'hyper' changes
+#' (eg via 'set_prior').
+#'
+#' @param priors Named list of objects
+#' of class 'bage_prior'.
+#'
+#' @returns An integer vector.
+#'
+#' @noRd
+make_index_hyper <- function(priors) {
+    ans <- seq.int(from = 0L, along.with = priors)
+    lengths <- vapply(priors, get_n_hyper, 0L)
+    ans <- rep(ans, times = lengths)
+    ans
+}
+
+#' Make 'hyper'
+#'
+#' Make vector to hold hyper-parameters
+#' for priors.
+#'
+#' @param priors Named list of objects
+#' of class 'bage_prior'.
+#'
+#' @returns A vector of zeros, of type 'double'.
+#'
+#' @noRd
+make_hyper <- function(index_hyper) {
+    make_hyper_one_prior <- function(pr)
+        rep(0, times = get_n_hyper(pr))
+    ans <- lapply(priors, make_hyper_one_prior)
+    ans <- unlist(ans)
+    ans
+}
+
+make_index_par <- function(formula, outcome) {
+    factors <- attr(stats::terms(formula), "factors")
+    factors <- factors[-1L, ] ## exclude reponse
+    factors <- factors > 0L
+    dim_outcome <- dim(outcome)
+    lengths <- vapply(factors, function(i) prod(dim_outcome[i]), 0L)
+    ans <- colnames(factors)
+    has_intercept <- attr(stats::terms(formula), "intercept")
+    if (has_intercept) {
+        lengths <- c(1L, lengths)
+        ans <- c("(Intercept)", ans)
+    }
+    ans <- rep(ans, times = lengths)
+    ans <- factor(ans, levels = unique(ans))
+    ans
+}
+
 ## HAS_TESTS
 #' Make list of matrices mapping terms to full array
 #'
@@ -14,14 +73,14 @@
 #' @returns A named list
 #'
 #' @noRd
-make_map_matrices <- function(formula, outcome) {
+make_matrices_par <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, ] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
     ans <- apply(factors,
                  MARGIN = 2L,
-                 FUN = make_map_matrix,
+                 FUN = make_matrix_par,
                  dim = dim_outcome,
                  simplify = FALSE)
     names(ans) <- colnames(factors)
@@ -50,7 +109,7 @@ make_map_matrices <- function(formula, outcome) {
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_map_matrix <- function(dim, is_in_term) {
+make_matrix_par <- function(dim, is_in_term) {
     make_submatrix <- function(d, is_in) {
         if (is_in) diag(d) else matrix(1L, nrow = d, ncol = 1L)
     }
@@ -62,23 +121,6 @@ make_map_matrix <- function(dim, is_in_term) {
     submatrices <- rev(submatrices)
     ans <- Reduce(kronecker, submatrices)
     ans <- methods::as(ans, "sparseMatrix")
-    ans
-}
-
-make_index_par <- function(formula, outcome) {
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, ] ## exclude reponse
-    factors <- factors > 0L
-    dim_outcome <- dim(outcome)
-    lengths <- vapply(factors, function(i) prod(dim_outcome[i]), 0L)
-    ans <- colnames(factors)
-    has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept) {
-        lengths <- c(1L, lengths)
-        ans <- c("(Intercept)", ans)
-    }
-    ans <- rep(ans, times = lengths)
-    ans <- factor(ans, levels = unique(ans))
     ans
 }
 
@@ -99,18 +141,6 @@ make_priors <- function(formula) {
     ans
 }
 
-make_index_hyper <- function(priors) {
-    lengths <- vapply(priors, get_n_hyper, 0L)
-    ans <- names(priors)
-    ans <- rep(priors, times = lengths)
-    ans <- factor(ans, levels = unique(ans))
-    ans
-}
- 
-make_hyper <- function(index_hyper) {
-    tab <- table(index_hyper)
-    lapply(tab, function(n) rep(0, times = n))
-}
 
 ## HAS_TESTS
 #' Make array holding outcome variable

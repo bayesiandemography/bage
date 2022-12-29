@@ -3,17 +3,19 @@
 ## TODO - simulate()
     
 fit <- function(mod) {
+    priors <- mod$priors
+    i_prior <- make_i_prior(priors)
+    hyper <- make_hyper(priors)
+    index_hyper <- make_index_hyper(priors)
+    random <- names(priors)
     data <- list(outcome = mod$outcome,
                  offset = mod$offset,
                  index_par = mod$index_par,
-                 index_hyper = mod$index_hyper,
-                 index_prior = mod$index_prior,
-                 map_matrices = mod$map_matrices)
-    par <- unlist(par, use.names = FALSE)
-    hyper <- unlist(hyper, use.names = FALSE)
-    parameters <- list(par = par,
+                 matrices_par = mod$matrices_par,
+                 i_prior = i_prior,
+                 index_hyper = index_hyper)
+    parameters <- list(par = mod$par,
                        hyper = hyper)
-    random <- levels(indices_par)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
                         DLL = "bage",
