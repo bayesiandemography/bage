@@ -1,4 +1,29 @@
 
+## HAS_TESTS
+#' Check and tidy scale
+#'
+#' Check that 'scale' is a positive
+#' finite number, and coerce to double.
+#'
+#' @param scale A number
+#'
+#' @return The parameter, as a double.
+#'
+#' @noRd
+check_and_tidy_scale <- function(scale) {
+    checkmate::assert_number(scale,
+                             lower = 0,
+                             finite = TRUE)
+    scale <- as.double(scale)
+    if (isTRUE(all.equal(scale, 0)))
+        stop(gettextf("'%s' equals %d",
+                      "scale",
+                      0L),
+             call. = FALSE)
+    scale
+}
+
+
 
 ## HAS_TESTS
 #' Check 'formula' has predictors

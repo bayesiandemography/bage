@@ -2,7 +2,7 @@
 % Please edit documentation in R/svd.R
 \name{prepare_svd_probs}
 \alias{prepare_svd_probs}
-\title{Prepare a matrix of probabilities for 
+\title{Prepare a matrix of probabilities for
 a singular value decomposition}
 \usage{
 prepare_svd_probs(x)
