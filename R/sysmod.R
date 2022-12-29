@@ -48,7 +48,7 @@ mod_norm <- function(formula, data) {
                 nm_offset = nm_offset)
 }
 
-bage_sysmod <- function(formula,
+new_bage_sysmod <- function(formula,
                         data,
                         nm_distn,
                         is_mod_with_offset,

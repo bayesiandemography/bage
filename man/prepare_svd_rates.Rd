@@ -2,7 +2,7 @@
 % Please edit documentation in R/svd.R
 \name{prepare_svd_rates}
 \alias{prepare_svd_rates}
-\title{Prepare a matrix of rates for 
+\title{Prepare a matrix of rates for
 a singular value decomposition}
 \usage{
 prepare_svd_rates(x)

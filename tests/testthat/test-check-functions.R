@@ -1,4 +1,20 @@
 
+## 'check_and_tidy_scale' -----------------------------------------------------
+
+test_that("'check_and_tidy_scale' returns double with valid inputs", {
+    expect_identical(check_and_tidy_scale(1L),
+                     as.double(1L))
+    expect_identical(check_and_tidy_scale(0.001),
+                     0.001)
+})
+
+test_that("'check_and_tidy_scale' returns correct error with invalid inputs", {
+    expect_error(check_and_tidy_scale(0),
+                 "'scale' equals 0")
+    expect_error(check_and_tidy_scale(Inf))
+})
+
+
 ## 'check_formula_has_predictors' -----------------------------------------------
 
 test_that("'check_formula_has_predictors' returns TRUE with valid inputs", {
