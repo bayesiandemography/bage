@@ -1,13 +1,56 @@
 
+## HAS_TESTS
+#' Extract 'n_hyper' attribute from
+#' object of class 'bage_prior'
+#'
+#' 'n_hyper' is the number of hyper-parameters.
+#'
+#' @param prior An object of class 'bage_prior'.
+#'
+#' @returns An integer.
+#'
+#' @noRd
+get_n_hyper <- function(prior) {
+    prior$n_hyper
+}
+
+
+## HAS_TESTS
+#' Make 'hyper'
+#'
+#' Make vector to hold hyper-parameters
+#' for priors.
+#'
+#' We generate 'hyper' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_sysmod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#' 
+#' @param priors Named list of objects
+#' of class 'bage_prior'.
+#'
+#' @returns A vector of zeros, of type 'double'.
+#'
+#' @noRd
+make_hyper <- function(priors) {
+    ans <- rep(0, times = length(priors))
+    lengths <- vapply(priors, get_n_hyper, 0L)
+    ans <- rep(ans, times = lengths)
+    ans
+}
+
+
+## HAS_TESTS
 #' Make vector identifying components of 'hyper'
 #'
-#' Make factor the same length as 'hyper',
+#' Make integer vector the same length as 'hyper',
 #' giving the index (0-based) of the prior
 #' that the each element belongs to.
 #'
-#' We generate this on the fly within function 'fit',
-#' to avoid having to update it when 'hyper' changes
-#' (eg via 'set_prior').
+#' We generate 'index_hyper' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_sysmod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
 #'
 #' @param priors Named list of objects
 #' of class 'bage_prior'.
@@ -22,41 +65,40 @@ make_index_hyper <- function(priors) {
     ans
 }
 
-#' Make 'hyper'
+
+## HAS_TESTS
+#' Make vector identifying components of 'par'
 #'
-#' Make vector to hold hyper-parameters
-#' for priors.
+#' Make integer vector the same length as 'par',
+#' giving the index (0-based) of the term
+#' that the each element belongs to.
 #'
-#' @param priors Named list of objects
-#' of class 'bage_prior'.
+#' We generate 'index_par' when the 'bage_sysmod'
+#' object is first created, since the number
+#' and lengths of the terms is fixed from that
+#' point.
 #'
-#' @returns A vector of zeros, of type 'double'.
+#' @param formula Formula specifying terms
+#' @param outcome Array holding values for response
+#' variable
+#'
+#' @returns An integer vector.
 #'
 #' @noRd
-make_hyper <- function(index_hyper) {
-    make_hyper_one_prior <- function(pr)
-        rep(0, times = get_n_hyper(pr))
-    ans <- lapply(priors, make_hyper_one_prior)
-    ans <- unlist(ans)
-    ans
-}
-
 make_index_par <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, ] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
-    lengths <- vapply(factors, function(i) prod(dim_outcome[i]), 0L)
-    ans <- colnames(factors)
+    lengths <- apply(factors, 2L, function(i) prod(dim_outcome[i]))
     has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept) {
+    if (has_intercept)
         lengths <- c(1L, lengths)
-        ans <- c("(Intercept)", ans)
-    }
+    ans <- seq.int(from = 0L, along.with = lengths)
     ans <- rep(ans, times = lengths)
-    ans <- factor(ans, levels = unique(ans))
     ans
 }
+
 
 ## HAS_TESTS
 #' Make list of matrices mapping terms to full array
@@ -124,23 +166,6 @@ make_matrix_par <- function(dim, is_in_term) {
     ans
 }
 
-make_par <- function(index_par) {
-    tab <- table(index_par)
-    lapply(tab, function(n) rep(0, times = n))
-}
-
-make_priors <- function(formula) {
-    scale_intercept <- 10
-    nms <- attr(stats::term(formula), "term.labels")
-    ans <- rep(list(new_bage_prior_norm()), times = length(nms))
-    has_intercept <- attr(stats::term(formula), "intercept")
-    if (has_intercept) {
-        prior_intercept <- new_bage_prior_norm(scale = scale_intercept)
-        ans <- c(list("(Intercept)" = prior_intercept), ans)
-    }
-    ans
-}
-
 
 ## HAS_TESTS
 #' Make array holding outcome variable
@@ -148,11 +173,13 @@ make_priors <- function(formula) {
 #'
 #' @param formula Formula specifying terms
 #' @param data A data frame
+#' @param nm_distn Name of distribution:
+#' "pois", "binom", or "norm".
 #'
 #' @returns An array (with named dimnames)
 #'
 #' @noRd
-make_outcome <- function(formula, data) {
+make_outcome <- function(formula, data, nm_distn) {
     factors <- attr(stats::terms(formula), "factors")
     nms_vars <- rownames(factors)
     formula_xtabs <- paste0(nms_vars[[1L]], "~", paste(nms_vars[-1L], collapse = "+"))
@@ -161,5 +188,35 @@ make_outcome <- function(formula, data) {
     ans <- array(as.double(ans),
                  dim = dim(ans),
                  dimnames = dimnames(ans))
+    standardise <- identical(nm_distn, "norm") && (sum(!is.na(ans)) >= 2L)
+    if (standardise)
+        ans <- (ans - mean(ans, na.rm = TRUE)) / sd(ans, na.rm = TRUE)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make default priors
+#'
+#' Make named list holding default priors.
+#' Default prior is standard normal for
+#' all terms expect intercept, where it
+#' is N(0, 10^2).
+#'
+#' @param formula Formula specifying terms
+#'
+#' @returns Named list.
+#'
+#' @noRd
+make_priors <- function(formula) {
+    scale_intercept <- 10
+    nms <- attr(stats::terms(formula), "term.labels")
+    ans <- rep(list(new_bage_prior_norm()), times = length(nms))
+    names(ans) <- nms
+    has_intercept <- attr(stats::terms(formula), "intercept")
+    if (has_intercept) {
+        prior_intercept <- new_bage_prior_norm(scale = scale_intercept)
+        ans <- c(list("(Intercept)" = prior_intercept), ans)
+    }
     ans
 }

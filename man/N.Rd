@@ -40,6 +40,5 @@ N()
 N(scale = 0.5)
 }
 \seealso{
-\code{N()} is usually called inside
-a call to \code{\link[=set_prior]{set_prior()}}.
+\code{N()} is usually called within \code{\link[=set_prior]{set_prior()}}.
 }

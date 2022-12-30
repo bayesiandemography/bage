@@ -88,7 +88,8 @@ new_bage_sysmod <- function(formula,
     }
     ## make components
     outcome <- make_outcome(formula = formula,
-                            data = data)
+                            data = data,
+                            nm_distn = nm_distn)
     if (is_mod_with_offset)
         offset <- make_offset(vname_offset = vname_offset,
                               data = data)
@@ -96,12 +97,12 @@ new_bage_sysmod <- function(formula,
         offset <- NULL
     index_par <- make_index_par(formula = formula,
                                 outcome = outcome)
-    par <- make_par(index_par)
+    par <- rep(0.0, times = length(index_par))
     priors <- make_priors(formula)
     matrices_par <- make_matrices_par(formula = formula,
                                       outcome = outcome)
     means <- NULL
-    cov <- NULL
+    prec <- NULL
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -114,7 +115,7 @@ new_bage_sysmod <- function(formula,
                 index_par = index_par,
                 matrices_par = matrices_par,
                 means = means,
-                cov = cov)
+                prec = prec)
     class(ans) <- "bage_sysmod"
     ans    
 }
