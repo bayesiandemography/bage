@@ -98,6 +98,22 @@ test_that("'check_offset_nonneg' returns correct error with invalid inputs", {
 })
 
 
+## 'check_offset_not_in_formula' ----------------------------------------------
+
+test_that("'check_offset_not_in_formula' returns TRUE with valid inputs", {
+    expect_true(check_offset_not_in_formula(vname_offset = "popn",
+                                            nm_offset = "exposure",
+                                            formula = deaths ~ age + time))
+})
+
+test_that("'check_offset_not_in_formula' returns correct error with invalid inputs", {
+    expect_error(check_offset_not_in_formula(vname_offset = "popn",
+                                             nm_offset = "exposure",
+                                             formula = popn ~ age + time),
+                 "exposure variable \\[popn\\] included in formula 'popn ~ age \\+ time'")
+})
+
+
 ## 'check_response_nonneg' ----------------------------------------------------
 
 test_that("'check_response_nonneg' returns TRUE with valid inputs", {

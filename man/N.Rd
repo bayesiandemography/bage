@@ -18,12 +18,14 @@ distribution. The default prior for most terms.
 }
 \details{
 The normal distribution has mean \code{0} and standard
-deviation \code{s}. Standard deviation \code{s} is drawn from a
-half-normal distribution,
+deviation \code{s}.
 
-\deqn{x \sim N(0, s^2)}
+\deqn{x \sim \text{N}(0, s^2)}
 
-\deqn{s \sim N^+(0, \text{scale}^2)}
+Standard deviation \code{s} is drawn from a half-normal
+distribution,
+
+\deqn{s \sim \text{N}^+(0, \text{scale}^2)}
 
 (A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative
@@ -41,4 +43,5 @@ N(scale = 0.5)
 }
 \seealso{
 \code{N()} is usually called within \code{\link[=set_prior]{set_prior()}}.
+Other priors are \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}.
 }

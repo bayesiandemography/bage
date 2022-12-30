@@ -34,7 +34,7 @@ mod_binom <- function(formula, data, size) {
                 nm_offset = nm_offset)
 }
 
-## TODO - normal distribution, scale response (so we can keep using scale = 1 as default)
+
 mod_norm <- function(formula, data) {
     nm_distn <- "norm"
     is_mod_with_offset <- FALSE
@@ -48,25 +48,51 @@ mod_norm <- function(formula, data) {
                 nm_offset = nm_offset)
 }
 
-#' par, index_par, matrices_par are all fixed by 'data',
-#' and do not change. These are therefore all
-#' part of the 'mod' object.
+
+## HAS_TESTS
+#' Create new object of class 'bage_sysmod'
 #'
-#' priors, and hence index_priors, hyper, and index_hyper
-#' can change via 'set_prior'. Only 'priors' is held
-#' in the 'mod' object - all the other quantities
-#' that depend on them are derived on the fly
-#' within function 'fit'.
-#' 
+#' Create object holding information about
+#' a system model (ie a model of demographic rates.)
+#'
+#' `new_bage_sysmod()` creates components
+#' `par`, `index_par`, `matrices_par`
+#' and stores them in the model object. These
+#' components can all be determined from `formula`
+#' and `data`, and do not subsequently change.
+#' and do not subsequently change.
+#'
+#' `new_bage_sysmod()` does not create components
+#' `index_priors`, `hyper`, or `index_hyper`,
+#' since these depend on `priors` which can
+#' subsequently change via a call to `set_prior()`.
+#' Instead, these components are all derived by
+#' function `fit()`, just before the model is fitted.
+#'
+#' @param formula Formula for the model terms
+#' @param data Data frame holding data used to
+#' create `outcome` and `offset`.
+#' @param nm_distn Name of distribution:
+#' "pois", "binom", or "norm".
+#' @param is_mod_with_offset Does the model
+#' contain some sort of offset.
+#' @param vname_offset The name of the variable
+#' in `data` used to calculate the offset.
+#' @param nm_offset The name used to refer to the
+#' offset by user-visible functions: "exposure"
+#' or "size".
+#'
+#' @returns An object of class `bage_sysmod`.
+#'
+#' @noRd
 new_bage_sysmod <- function(formula,
                             data,
                             nm_distn,
                             is_mod_with_offset,
                             vname_offset,
                             nm_offset) {
-    distns_response_nonneg <- c("pois", "binom")
-    is_distn_response_nonneg <- nm_distn %in% distns_response_nonneg
-    ## check individual inputs
+    is_distn_response_nonneg <- nm_distn %in% c("pois", "binom")
+    ## check individual inputs supplied by user
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
     check_formula_has_predictors(formula)
@@ -77,7 +103,7 @@ new_bage_sysmod <- function(formula,
     if (is_distn_response_nonneg)
         check_response_nonneg(formula = formula,
                               data = data,
-                              nm_distn)
+                              nm_distn = nm_distn)
     if (is_mod_with_offset) {
         check_offset_in_data(vname_offset = vname_offset,
                              nm_offset = nm_offset,
@@ -91,7 +117,8 @@ new_bage_sysmod <- function(formula,
                             data = data,
                             nm_distn = nm_distn)
     if (is_mod_with_offset)
-        offset <- make_offset(vname_offset = vname_offset,
+        offset <- make_offset(formula = formula,
+                              vname_offset = vname_offset,
                               data = data)
     else
         offset <- NULL

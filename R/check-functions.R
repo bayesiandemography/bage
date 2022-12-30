@@ -134,6 +134,30 @@ check_offset_nonneg <- function(vname_offset, nm_offset, data) {
 
 
 ## HAS_TESTS
+#' Check offset not in formula
+#'
+#' @param vname_offset The name of the variable being
+#' used as an offset
+#' @param nm_offset The name used to refer to the
+#' offset in user-visible functions
+#' @param formula Formula specifying model
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
+    nms_formula <- rownames(attr(stats::terms(formula), "factors"))
+    if (vname_offset %in% nms_formula)
+        stop(gettextf("%s variable [%s] included in formula '%s'",
+                      nm_offset,
+                      vname_offset,
+                      deparse(formula)),
+             call. = FALSE)
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that response variable has no
 #' negative values
 #'

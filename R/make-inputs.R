@@ -78,7 +78,7 @@ make_index_hyper <- function(priors) {
 #' and lengths of the terms is fixed from that
 #' point.
 #'
-#' @param formula Formula specifying terms
+#' @param formula Formula specifying model
 #' @param outcome Array holding values for response
 #' variable
 #'
@@ -108,7 +108,7 @@ make_index_par <- function(formula, outcome) {
 #' equivalently, the outcome variable, or the
 #' linear predictor.)
 #' 
-#' @param formula Formula specifying terms
+#' @param formula Formula specifying model
 #' @param outcome Array holding values for response
 #' variable
 #'
@@ -168,10 +168,49 @@ make_matrix_par <- function(dim, is_in_term) {
 
 
 ## HAS_TESTS
+#' Make array holding offset variable
+#' cross-classified by predictors
+#'
+#' Unlike in `xtabs()`, NAs are not converted
+#' to 0s.
+#' 
+#' @param formula Formula specifying model
+#' @param vname_offset Name of the offset variable.
+#' @param data A data frame
+#'
+#' @returns An array (with named dimnames)
+#'
+#' @noRd
+make_offset <- function(formula, vname_offset, data) {
+    factors <- attr(stats::terms(formula), "factors")
+    nms_vars <- rownames(factors)
+    formula_xtabs <- paste0(vname_offset,
+                            "~",
+                            paste(nms_vars[-1L], collapse = "+"))
+    formula_xtabs <- as.formula(formula_xtabs)
+    ans <- stats::xtabs(formula_xtabs, data = data)
+    ans <- array(as.double(ans),
+                 dim = dim(ans),
+                 dimnames = dimnames(ans))
+    formula_na <- paste0("is.na(",
+                         vname_offset,
+                         ")~",
+                         paste(nms_vars[-1L], collapse = "+"))
+    formula_na <- as.formula(formula_na)
+    is_na <- stats::xtabs(formula_na, data = data) > 0L
+    ans[is_na] <- NA_real_
+    ans
+}
+
+
+## HAS_TESTS
 #' Make array holding outcome variable
 #' cross-classified by predictors
 #'
-#' @param formula Formula specifying terms
+#' Unlike in `xtabs()`, NAs are not converted
+#' to 0s.
+#'
+#' @param formula Formula specifying model
 #' @param data A data frame
 #' @param nm_distn Name of distribution:
 #' "pois", "binom", or "norm".
@@ -182,12 +221,21 @@ make_matrix_par <- function(dim, is_in_term) {
 make_outcome <- function(formula, data, nm_distn) {
     factors <- attr(stats::terms(formula), "factors")
     nms_vars <- rownames(factors)
-    formula_xtabs <- paste0(nms_vars[[1L]], "~", paste(nms_vars[-1L], collapse = "+"))
+    formula_xtabs <- paste0(nms_vars[[1L]],
+                            "~",
+                            paste(nms_vars[-1L], collapse = "+"))
     formula_xtabs <- as.formula(formula_xtabs)
     ans <- stats::xtabs(formula_xtabs, data = data)
     ans <- array(as.double(ans),
                  dim = dim(ans),
                  dimnames = dimnames(ans))
+    formula_na <- paste0("is.na(",
+                         nms_vars[[1L]],
+                         ")~",
+                         paste(nms_vars[-1L], collapse = "+"))
+    formula_na <- as.formula(formula_na)
+    is_na <- stats::xtabs(formula_na, data = data) > 0L
+    ans[is_na] <- NA_real_
     standardise <- identical(nm_distn, "norm") && (sum(!is.na(ans)) >= 2L)
     if (standardise)
         ans <- (ans - mean(ans, na.rm = TRUE)) / sd(ans, na.rm = TRUE)
@@ -203,7 +251,7 @@ make_outcome <- function(formula, data, nm_distn) {
 #' all terms expect intercept, where it
 #' is N(0, 10^2).
 #'
-#' @param formula Formula specifying terms
+#' @param formula Formula specifying model
 #'
 #' @returns Named list.
 #'
