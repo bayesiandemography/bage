@@ -8,12 +8,14 @@
 #' distribution. The default prior for most terms.
 #'
 #' The normal distribution has mean `0` and standard
-#' deviation `s`. Standard deviation `s` is drawn from a
-#' half-normal distribution,
+#' deviation `s`.
 #' 
-#' \deqn{x \sim N(0, s^2)}
+#' \deqn{x \sim \text{N}(0, s^2)}
 #'
-#' \deqn{s \sim N^+(0, \text{scale}^2)}
+#' Standard deviation `s` is drawn from a half-normal
+#' distribution,
+#'
+#' \deqn{s \sim \text{N}^+(0, \text{scale}^2)}
 #'
 #' (A half-normal distribution has the same shape as a normal
 #' distribution, but is defined only for non-negative
@@ -30,6 +32,7 @@
 #' @returns An object of class `bage_prior_norm`.
 #'
 #' @seealso `N()` is usually called within [set_prior()].
+#' Other priors are [RW()], [RW2()].
 #'
 #' @examples
 #' N()
@@ -41,11 +44,56 @@ N <- function(scale = 1) {
 }
 
 
+## HAS_TESTS
+#' One-dimensional random walk priors
+#'
+#' Priors in which units follow a one-dimensional
+#' random walk or random walk with drift.
+#' 
+#' With `RW()`, increments between neighbouring
+#' `x`s are normally distibuted,
+#'
+#' \deqn{x_i - x_{i-1} \sim \text{N}(0, s^2)}
+#'
+#' With `RW2()`, increments in increments
+#' are normally distributed,
+#' #'
+#' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, s^2)}
+#' 
+#' In both cases, standard deviation `s` is drawn from a
+#' half-normal distribution,
+#' 
+#' \deqn{s \sim \text{N}^+(0, \text{scale}^2)}
+#'
+#' (A half-normal distribution has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' The scale for the half-normal distribution defaults
+#' to 1, but can be set to other values. Lower values
+#' for `scale` lead to smoother series of `x`s, and
+#' higher values lead to rougher series.
+#'
+#' @param scale A positive, finite number.
+#'
+#' @returns An object of class `bage_prior_rw`
+#' or `bage_prior_rw2`.
+#'
+#' @seealso `RW()` or `RW2()` are usually called within
+#' [set_prior()]. Other priors are [N()].
+#'
+#' @examples
+#' RW()
+#' RW(scale = 0.5)
+#' RW2()
+#' @export
 RW <- function(scale = 1) {
     scale <- check_and_tidy_scale(scale)
     new_bage_prior_rw(scale = scale)
 }
 
+#' @export
+#' @rdname RW
 RW2 <- function(scale = 1) {
     scale <- check_and_tidy_scale(scale)
     new_bage_prior_rw2(scale = scale)
