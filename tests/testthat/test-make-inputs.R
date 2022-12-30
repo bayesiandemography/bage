@@ -1,5 +1,45 @@
 
 
+## 'get_n_hyper' --------------------------------------------------------------
+
+test_that("'get_n_hyper' works with valid inputs", {
+    prior <- N()
+    expect_identical(get_n_hyper(prior), 1L)
+})
+
+
+## 'make_hyper' ---------------------------------------------------------------
+
+test_that("'make_hyper' works with valid inputs", {
+    ans_obtained <- make_hyper(list(a = N(), b = RW(), c = N()))
+    ans_expected <- rep(0, 3L)
+    expect_true(is.double(ans_expected))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_index_hyper' ---------------------------------------------------------
+
+test_that("'make_index_hyper' works with valid inputs", {
+    ans_obtained <- make_index_hyper(list(a = N(), b = RW(), c = N()))
+    ans_expected <- 0:2
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_index_par' -----------------------------------------------------------
+
+test_that("'make_index_par' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1
+    outcome <- xtabs(deaths ~ age + sex + time, data = data)
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_index_par(formula = formula, outcome = outcome)
+    ans_expected <- rep(0:2, times = c(1, 2, 6))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_matrices_par' --------------------------------------------------------
 
 test_that("'make_matrices_par' works with valid inputs", {
@@ -130,14 +170,35 @@ test_that("'make_matrix_par' creates sparse matrix", {
 })
 
 
+## 'make_priors' --------------------------------------------------------------
+
+test_that("'make_priors' works with valid inputs - has intercept", {
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_priors(formula)
+    ans_expected <- list("(Intercept)" = N(scale = 10),
+                         time = N(),
+                         "age:sex" = N())
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_priors' works with valid inputs - no intercept", {
+    formula <- deaths ~ age:sex + time - 1
+    ans_obtained <- make_priors(formula)
+    ans_expected <- list(time = N(),
+                         "age:sex" = N())
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_outcome' -------------------------------------------------------------
 
-test_that("'make_outcome' works with valid inputs", {
+test_that("'make_outcome' works with valid inputs - nm_distn not 'norm'", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- 1L
+    data$deaths <- seq_len(nrow(data))
     formula <- deaths ~ age:sex + time
     ans_obtained <- make_outcome(formula = formula,
-                                 data = data)
+                                 data = data,
+                                 nm_distn = "pois")
     ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
     ans_expected <- array(1 * ans_expected,
                           dim = dim(ans_expected),
@@ -145,3 +206,22 @@ test_that("'make_outcome' works with valid inputs", {
     expect_identical(ans_obtained, ans_expected)
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
 })
+
+test_that("'make_outcome' works with valid inputs - nm_distn is 'norm'", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome(formula = formula,
+                                 data = data,
+                                 nm_distn = "norm")
+    ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
+    ans_expected <- array(1 * ans_expected,
+                          dim = dim(ans_expected),
+                          dimnames = dimnames(ans_expected))
+    ans_expected <- (ans_expected - mean(ans_expected)) / sd(ans_expected)
+    expect_identical(ans_obtained, ans_expected)
+    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
+    expect_equal(mean(ans_expected), 0)
+    expect_equal(sd(ans_expected), 1)
+})
+
