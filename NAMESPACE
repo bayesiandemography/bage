@@ -3,6 +3,8 @@
 export(N)
 export(RW)
 export(RW2)
+export(fit)
+export(mod_pois)
 export(prepare_svd_probs)
 export(prepare_svd_rates)
 useDynLib(bage, .registration = TRUE)

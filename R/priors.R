@@ -106,9 +106,13 @@ RW2 <- function(scale = 1) {
 
 ## Internal constructors ------------------------------------------------------
 
+## Need to ensure that the values for 'i_prior' are
+## consistent with the values used by function
+## 'logpost' in src/bage.cpp
+
 new_bage_prior_norm <- function(scale = 1) {
-    ans <- list(scale = scale,
-                n_hyper = 1L,
+    ans <- list(n_hyper = 1L,
+                consts = scale,
                 i_prior = 1L)
     class(ans) <- c("bage_prior_norm", "bage_prior")
     ans
@@ -117,6 +121,7 @@ new_bage_prior_norm <- function(scale = 1) {
 new_bage_prior_rw <- function(scale = 1) {
     ans <- list(scale = scale,
                 n_hyper = 1L,
+                consts = scale,
                 i_prior = 2L)
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
@@ -125,6 +130,7 @@ new_bage_prior_rw <- function(scale = 1) {
 new_bage_prior_rw2 <- function(scale = 1) {
     ans <- list(scale = scale,
                 n_hyper = 1L,
+                consts = scale,
                 i_prior = 3L)
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans

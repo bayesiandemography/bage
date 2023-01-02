@@ -16,6 +16,7 @@ test_that("'new_bage_prior_norm' works", {
     expect_s3_class(obj, "bage_prior_norm")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$n_hyper, 1L)
+    expect_identical(obj$consts, 1.0)
     expect_identical(obj$i_prior, 1L)
 })
 
@@ -24,6 +25,7 @@ test_that("'new_bage_prior_rw' works", {
     expect_s3_class(obj, "bage_prior_rw")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$n_hyper, 1L)
+    expect_identical(obj$consts, 1.0)
     expect_identical(obj$i_prior, 2L)
 })
 
@@ -32,6 +34,7 @@ test_that("'new_bage_prior_rw2' works", {
     expect_s3_class(obj, "bage_prior_rw2")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$n_hyper, 1L)
+    expect_identical(obj$consts, 1.0)
     expect_identical(obj$i_prior, 3L)
 })
 

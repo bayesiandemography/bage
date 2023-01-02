@@ -16,6 +16,30 @@ get_n_hyper <- function(prior) {
 
 
 ## HAS_TESTS
+#' Make 'consts'
+#'
+#' Make vector to hold constants for priors.
+#'
+#' We generate 'consts' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_sysmod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#' 
+#' @param priors Named list of objects
+#' of class 'bage_prior'.
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_consts <- function(priors) {
+    vapply(priors,
+           FUN = function(x) x$consts,
+           FUN.VALUE = 0.0,
+           USE.NAMES = FALSE)
+}
+
+
+## HAS_TESTS
 #' Make 'hyper'
 #'
 #' Make vector to hold hyper-parameters
@@ -41,62 +65,25 @@ make_hyper <- function(priors) {
 
 
 ## HAS_TESTS
-#' Make vector identifying components of 'hyper'
+#' Make 'i_prior'
 #'
-#' Make integer vector the same length as 'hyper',
-#' giving the index (0-based) of the prior
-#' that the each element belongs to.
+#' Make 'i_prior' a vector of integers used to
+#' choose appropriate 'logprior' function
+#' in the TMB template
 #'
-#' We generate 'index_hyper' when function 'fit'
+#' We generate 'i_prior' when function 'fit'
 #' is called, rather than storing it in the
 #' 'bage_sysmod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
-#'
+#' 
 #' @param priors Named list of objects
 #' of class 'bage_prior'.
 #'
-#' @returns An integer vector.
+#' @returns An named integer vector.
 #'
 #' @noRd
-make_index_hyper <- function(priors) {
-    ans <- seq.int(from = 0L, along.with = priors)
-    lengths <- vapply(priors, get_n_hyper, 0L)
-    ans <- rep(ans, times = lengths)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector identifying components of 'par'
-#'
-#' Make integer vector the same length as 'par',
-#' giving the index (0-based) of the term
-#' that the each element belongs to.
-#'
-#' We generate 'index_par' when the 'bage_sysmod'
-#' object is first created, since the number
-#' and lengths of the terms is fixed from that
-#' point.
-#'
-#' @param formula Formula specifying model
-#' @param outcome Array holding values for response
-#' variable
-#'
-#' @returns An integer vector.
-#'
-#' @noRd
-make_index_par <- function(formula, outcome) {
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, ] ## exclude reponse
-    factors <- factors > 0L
-    dim_outcome <- dim(outcome)
-    lengths <- apply(factors, 2L, function(i) prod(dim_outcome[i]))
-    has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept)
-        lengths <- c(1L, lengths)
-    ans <- seq.int(from = 0L, along.with = lengths)
-    ans <- rep(ans, times = lengths)
-    ans
+make_i_prior <- function(priors) {
+    vapply(priors, function(x) x$i_prior, 0L)
 }
 
 
@@ -117,7 +104,7 @@ make_index_par <- function(formula, outcome) {
 #' @noRd
 make_matrices_par <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, ] ## exclude reponse
+    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
     ans <- apply(factors,
@@ -204,6 +191,22 @@ make_offset <- function(formula, vname_offset, data) {
 
 
 ## HAS_TESTS
+#' Make offset consisting entirely of 1s,
+#' the same size as outcome
+#'
+#' @param outcome Array holding outcome.
+#'
+#' @returns An array (with named dimnames)
+#'
+#' @noRd
+make_offset_ones <- function(outcome) {
+    ans <- outcome
+    ans[] <- 1.0
+    ans
+}
+
+
+## HAS_TESTS
 #' Make array holding outcome variable
 #' cross-classified by predictors
 #'
@@ -268,3 +271,100 @@ make_priors <- function(formula) {
     }
     ans
 }
+
+
+## HAS_TESTS
+#' Make factor identifying components of 'consts'
+#'
+#' Make factor the same length as 'consts',
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' We generate 'term_consts' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_sysmod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#'
+#' @param priors Named list of objects
+#' of class 'bage_prior'.
+#'
+#' @returns A factor, the same length
+#' as 'consts'.
+#'
+#' @noRd
+make_term_consts <- function(priors) {
+    nms_terms <- names(priors)
+    lengths <- vapply(priors, function(x) length(x$consts), 0L)
+    ans <- rep(nms_terms, times = lengths)
+    ans <- factor(ans, levels = nms_terms)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make factor identifying components of 'hyper'
+#'
+#' Make factor the same length as 'hyper',
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' We generate 'term_hyper' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_sysmod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#'
+#' @param priors Named list of objects
+#' of class 'bage_prior'.
+#'
+#' @returns A factor, the same length
+#' as 'hyper'.
+#'
+#' @noRd
+make_term_hyper <- function(priors) {
+    nms_terms <- names(priors)
+    lengths <- vapply(priors, get_n_hyper, 0L)
+    ans <- rep(nms_terms, times = lengths)
+    ans <- factor(ans, levels = nms_terms)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make factor identifying components of 'par'
+#'
+#' Make factor vector the same length as 'par',
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' We generate 'term_par' when the 'bage_sysmod'
+#' object is first created, since the number
+#' and lengths of the terms is fixed from that
+#' point.
+#'
+#' @param formula Formula specifying model
+#' @param outcome Array holding values for response
+#' variable
+#'
+#' @returns A factor.
+#'
+#' @noRd
+make_term_par <- function(formula, outcome) {
+    factors <- attr(stats::terms(formula), "factors")
+    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
+    factors <- factors > 0L
+    nms_terms <- colnames(factors)
+    dim_outcome <- dim(outcome)
+    lengths <- apply(factors, 2L, function(i) prod(dim_outcome[i]))
+    has_intercept <- attr(stats::terms(formula), "intercept")
+    if (has_intercept) {
+        lengths <- c(1L, lengths)
+        nms_terms <- c("(Intercept)", nms_terms)
+    }
+    ans <- rep(nms_terms, times = lengths)
+    ans <- factor(ans, levels = nms_terms)
+    ans
+}
+
+
+
+    

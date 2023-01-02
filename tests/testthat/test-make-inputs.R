@@ -8,34 +8,31 @@ test_that("'get_n_hyper' works with valid inputs", {
 })
 
 
+## 'make_consts' ---------------------------------------------------------------
+
+test_that("'make_consts' works with valid inputs", {
+    ans_obtained <- make_consts(list(a = N(), b = RW(), c = N()))
+    ans_expected <- rep(1.0, 3L)
+    expect_identical(ans_obtained, ans_expected)
+    expect_true(is.double(ans_expected))
+})
+
+
 ## 'make_hyper' ---------------------------------------------------------------
 
 test_that("'make_hyper' works with valid inputs", {
     ans_obtained <- make_hyper(list(a = N(), b = RW(), c = N()))
     ans_expected <- rep(0, 3L)
+    expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
-    expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_index_hyper' ---------------------------------------------------------
+## 'make_i_prior' ---------------------------------------------------------------
 
-test_that("'make_index_hyper' works with valid inputs", {
-    ans_obtained <- make_index_hyper(list(a = N(), b = RW(), c = N()))
-    ans_expected <- 0:2
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_index_par' -----------------------------------------------------------
-
-test_that("'make_index_par' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- 1
-    outcome <- xtabs(deaths ~ age + sex + time, data = data)
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_index_par(formula = formula, outcome = outcome)
-    ans_expected <- rep(0:2, times = c(1, 2, 6))
+test_that("'make_i_prior' works with valid inputs", {
+    ans_obtained <- make_i_prior(list(a = N(), b = RW(), c = N()))
+    ans_expected <- c(a = 1L, b = 2L, c = 1L)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -225,6 +222,16 @@ test_that("'make_offset' works with valid inputs - has NA", {
 })
 
 
+## 'make_offset' --------------------------------------------------------------
+
+test_that("'make_offset_ones' works with valid inputs", {
+    outcome <- array(1:12, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
+    ans_obtained <- make_offset_ones(outcome)
+    ans_expected <- array(1.0, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_outcome' -------------------------------------------------------------
 
 test_that("'make_outcome' works with valid inputs - nm_distn not 'norm', no NA", {
@@ -298,3 +305,35 @@ test_that("'make_outcome' works with valid inputs - nm_distn is 'norm', no NA", 
     expect_equal(sd(ans_expected, na.rm = TRUE), 1)
 })
 
+
+## 'make_term_consts' ---------------------------------------------------------
+
+test_that("'make_term_consts' works with valid inputs", {
+    ans_obtained <- make_term_consts(list(a = N(), b = RW(), c = N()))
+    ans_expected <- factor(c("a", "b", "c"))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_term_hyper' ----------------------------------------------------------
+
+test_that("'make_term_hyper' works with valid inputs", {
+    ans_obtained <- make_term_hyper(list(a = N(), b = RW(), c = N()))
+    ans_expected <- factor(c("a", "b", "c"))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_term_par' ------------------------------------------------------------
+
+test_that("'make_term_par' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1
+    outcome <- xtabs(deaths ~ age + sex + time, data = data)
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_term_par(formula = formula, outcome = outcome)
+    ans_expected <- factor(rep(c("(Intercept)", "time", "age:sex"),
+                               times = c(1, 2, 6)),
+                           levels = c("(Intercept)", "time", "age:sex"))
+    expect_identical(ans_obtained, ans_expected)
+})

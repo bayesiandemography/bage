@@ -1,4 +1,37 @@
 
+
+## 'mod_pois' -----------------------------------------------------------------
+
+test_that("'new_bage_sysmod' works with valid inputs - has exposure", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- mod_pois(formula = formula,
+                             data = data,
+                             exposure = popn)
+    expect_s3_class(ans_obtained, "bage_sysmod")
+    ans_noquote <- mod_pois(formula = formula,
+                            data = data,
+                            exposure = popn)
+    ans_withquote <- mod_pois(formula = formula,
+                              data = data,
+                              exposure = "popn")
+    expect_identical(ans_noquote, ans_withquote)
+})
+
+test_that("'new_bage_sysmod' works with valid inputs - no exposure", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- mod_pois(formula = formula,
+                             data = data,
+                             exposure = 1)
+    expect_s3_class(ans_obtained, "bage_sysmod")
+})
+
+
 ## 'new_bage_sysmod' ----------------------------------------------------------
 
 test_that("'new_bage_sysmod' works with valid inputs - has offset", {
