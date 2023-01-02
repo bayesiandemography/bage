@@ -4,11 +4,11 @@
 
 #' Fit a model
 #'
-#' @param An object of class `bage_sysmod`,
+#' @param An object of class `bage_mod`,
 #' typically created by a call to [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
-#' @returns An object of class `bage_sysmod`
+#' @returns An object of class `bage_mod`
 #'
 #' @export    
 fit <- function(mod) {
@@ -32,13 +32,16 @@ fit <- function(mod) {
                         parameters = parameters,
                         DLL = "bage",
                         random = "par",
-                        silent = FALSE)
+                        silent = TRUE)
     fit <- stats::nlminb(start = f$par,
                          objective = f$fn,
                          gradient = f$gr,
-                         silent = FALSE)
-    sdreport <- TMB::sdreport(f, getJointPrecision = TRUE)
-    mod$means <- as.list(sdreport, what = "Est")
+                         silent = TRUE)
+    sdreport <- TMB::sdreport(f,
+                              bias.correct = TRUE,
+                              getJointPrecision = TRUE)
+    mod$est <- as.list(sdreport, what = "Est")
+    mod$std <- as.list(sdreport, what = "Std")
     mod$prec <- sdreport$jointPrecision
     mod
 }

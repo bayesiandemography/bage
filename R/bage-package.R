@@ -5,6 +5,7 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom tibble tibble
 #' @useDynLib bage, .registration = TRUE
 ## usethis namespace: end
 NULL

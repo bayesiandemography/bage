@@ -7,12 +7,12 @@
 fit(mod)
 }
 \arguments{
-\item{An}{object of class \code{bage_sysmod},
+\item{An}{object of class \code{bage_mod},
 typically created by a call to \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 }
 \value{
-An object of class \code{bage_sysmod}
+An object of class \code{bage_mod}
 }
 \description{
 Fit a model
