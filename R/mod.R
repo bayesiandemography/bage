@@ -36,7 +36,7 @@
 #' @param exposure Name of the exposure variable,
 #' or a `1` for a model with no exposure.
 #'
-#' @returns An object of class `bage_sysmod`. 
+#' @returns An object of class `bage_mod`. 
 #'
 #' @seealso
 #' - [mod_binom()] and [mod_norm()] for specification
@@ -69,7 +69,7 @@ mod_pois <- function(formula, data, exposure) {
         vname_offset <- NULL
         nm_offset <- NULL
     }
-    new_bage_sysmod(formula = formula,
+    new_bage_mod(formula = formula,
                     data = data,
                     nm_distn = nm_distn,
                     is_mod_with_offset = is_mod_with_offset,
@@ -82,7 +82,7 @@ mod_binom <- function(formula, data, size) {
     is_mod_with_offset <- TRUE
     vname_offset <- deparse1(substitute(size))
     nm_offset <- "size"    
-    new_bage_sysmod(formula = formula,
+    new_bage_mod(formula = formula,
                     data = data,
                     nm_distn = nm_distn,
                     is_mod_with_offset = is_mod_with_offset,
@@ -96,7 +96,7 @@ mod_norm <- function(formula, data) {
     is_mod_with_offset <- FALSE
     vname_offset <- NULL
     nm_offset <- NULL   
-    new_bage_sysmod(formula = formula,
+    new_bage_mod(formula = formula,
                     data = data,
                     nm_distn = nm_distn,
                     is_mod_with_offset = is_mod_with_offset,
@@ -106,19 +106,19 @@ mod_norm <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Create new object of class 'bage_sysmod'
+#' Create new object of class 'bage_mod'
 #'
 #' Create object holding information about
 #' a system model (ie a model of demographic rates.)
 #'
-#' `new_bage_sysmod()` creates components
+#' `new_bage_mod()` creates components
 #' `par`, `term_par`, `matrices_par`
 #' and stores them in the model object. These
 #' components can all be determined from `formula`
 #' and `data`, and do not subsequently change.
 #' and do not subsequently change.
 #'
-#' `new_bage_sysmod()` does not create components
+#' `new_bage_mod()` does not create components
 #' `index_priors`, `hyper`, `term_hyper`,
 #' `consts`, or `term_consts`, 
 #' since these depend on `priors` which can
@@ -139,10 +139,10 @@ mod_norm <- function(formula, data) {
 #' offset by user-visible functions: "exposure"
 #' or "size".
 #'
-#' @returns An object of class `bage_sysmod`.
+#' @returns An object of class `bage_mod`.
 #'
 #' @noRd
-new_bage_sysmod <- function(formula,
+new_bage_mod <- function(formula,
                             data,
                             nm_distn,
                             is_mod_with_offset,
@@ -200,6 +200,6 @@ new_bage_sysmod <- function(formula,
                 matrices_par = matrices_par,
                 means = means,
                 prec = prec)
-    class(ans) <- "bage_sysmod"
+    class(ans) <- "bage_mod"
     ans    
 }

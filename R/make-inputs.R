@@ -22,7 +22,7 @@ get_n_hyper <- function(prior) {
 #'
 #' We generate 'consts' when function 'fit'
 #' is called, rather than storing it in the
-#' 'bage_sysmod' object, to avoid having to update
+#' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #' 
 #' @param priors Named list of objects
@@ -47,7 +47,7 @@ make_consts <- function(priors) {
 #'
 #' We generate 'hyper' when function 'fit'
 #' is called, rather than storing it in the
-#' 'bage_sysmod' object, to avoid having to update
+#' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #' 
 #' @param priors Named list of objects
@@ -73,7 +73,7 @@ make_hyper <- function(priors) {
 #'
 #' We generate 'i_prior' when function 'fit'
 #' is called, rather than storing it in the
-#' 'bage_sysmod' object, to avoid having to update
+#' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #' 
 #' @param priors Named list of objects
@@ -140,7 +140,9 @@ make_matrices_par <- function(formula, outcome) {
 #' @noRd
 make_matrix_par <- function(dim, is_in_term) {
     make_submatrix <- function(d, is_in) {
-        if (is_in) diag(d) else matrix(1L, nrow = d, ncol = 1L)
+        i <- seq_len(d)
+        j <- if (is_in) i else rep.int(1L, times = d)
+        Matrix::sparseMatrix(i = i, j = j)
     }
     submatrices <- mapply(make_submatrix,
                           d = as.list(dim),
@@ -148,8 +150,7 @@ make_matrix_par <- function(dim, is_in_term) {
                           SIMPLIFY = FALSE,
                           USE.NAMES = FALSE)
     submatrices <- rev(submatrices)
-    ans <- Reduce(kronecker, submatrices)
-    ans <- methods::as(ans, "sparseMatrix")
+    ans <- Reduce(Matrix::kronecker, submatrices)
     ans
 }
 
@@ -282,7 +283,7 @@ make_priors <- function(formula) {
 #'
 #' We generate 'term_consts' when function 'fit'
 #' is called, rather than storing it in the
-#' 'bage_sysmod' object, to avoid having to update
+#' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #'
 #' @param priors Named list of objects
@@ -310,7 +311,7 @@ make_term_consts <- function(priors) {
 #'
 #' We generate 'term_hyper' when function 'fit'
 #' is called, rather than storing it in the
-#' 'bage_sysmod' object, to avoid having to update
+#' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #'
 #' @param priors Named list of objects
@@ -336,7 +337,7 @@ make_term_hyper <- function(priors) {
 #' giving the name of the term
 #' that the each element belongs to.
 #'
-#' We generate 'term_par' when the 'bage_sysmod'
+#' We generate 'term_par' when the 'bage_mod'
 #' object is first created, since the number
 #' and lengths of the terms is fixed from that
 #' point.

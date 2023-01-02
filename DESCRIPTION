@@ -22,9 +22,11 @@ Depends:
     R (>= 3.5.0)
 Imports:
     checkmate,
+    generics,
     Matrix,
     matrixStats,
     stats,
+    tibble,
     TMB
 Suggests: 
     testthat (>= 3.0.0)
