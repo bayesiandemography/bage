@@ -14,7 +14,7 @@ specifying the outcome and predictors.}
 predictors, and, optionally, exposure.}
 
 \item{exposure}{Name of the exposure variable,
-or a \code{1} for a model with no exposure.}
+or a \code{1}.}
 }
 \value{
 An object of class \code{bage_mod}.
@@ -26,14 +26,13 @@ a Poisson distribution.
 \details{
 \itemize{
 \item \code{formula} is a standard R \link[stats:formula]{formula},
-specifying
-the outcome variable and predictors, including interactions
+specifying the outcome and predictors, including interactions
 between predictors.
-\item \code{data} holds the outcome variable, the predictors,
-and, optionally, an exposure term.
-\item \code{exposure} is the name (bare or quoted) of a variable
-in \code{data}, or, if the model does not contain an
-exposure term, a \code{1}.
+\item \code{data} holds the outcome, the predictors, and,
+optionally, exposure.
+\item \code{exposure} is the name (bare or quoted) of the variable
+in \code{data} used to measure exposure, or, if the
+model does include exposure, a \code{1}.
 }
 
 If the model includes exposure, then the

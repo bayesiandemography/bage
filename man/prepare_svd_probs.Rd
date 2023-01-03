@@ -25,10 +25,6 @@ valdity checking, replacing any
 zeros and ones with modelled values,
 and then transforming to a logit scale.
 }
-\examples{
-lfpr <- bage::lfpr_oecd
-logit_lfpr <- prepare_svd_probs(lfpr)
-}
 \seealso{
 \code{\link{scaled_svd}},
 \code{\link{prepare_svd_probs}}

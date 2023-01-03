@@ -169,13 +169,13 @@ make_matrix_par <- function(dim, is_in_term) {
 #' @returns An array (with named dimnames)
 #'
 #' @noRd
-make_offset <- function(formula, vname_offset, data) {
+make_offset <- function(formula, vname_offset, data, nm_distn) {
     factors <- attr(stats::terms(formula), "factors")
     nms_vars <- rownames(factors)
     formula_xtabs <- paste0(vname_offset,
                             "~",
                             paste(nms_vars[-1L], collapse = "+"))
-    formula_xtabs <- as.formula(formula_xtabs)
+    formula_xtabs <- stats::as.formula(formula_xtabs)
     ans <- stats::xtabs(formula_xtabs, data = data)
     ans <- array(as.double(ans),
                  dim = dim(ans),
@@ -184,9 +184,12 @@ make_offset <- function(formula, vname_offset, data) {
                          vname_offset,
                          ")~",
                          paste(nms_vars[-1L], collapse = "+"))
-    formula_na <- as.formula(formula_na)
+    formula_na <- stats::as.formula(formula_na)
     is_na <- stats::xtabs(formula_na, data = data) > 0L
     ans[is_na] <- NA_real_
+    standardise <- identical(nm_distn, "norm") && (sum(!is.na(ans)) >= 1L)
+    if (standardise)
+        ans <- ans / mean(ans, na.rm = TRUE)
     ans
 }
 
@@ -228,7 +231,7 @@ make_outcome <- function(formula, data, nm_distn) {
     formula_xtabs <- paste0(nms_vars[[1L]],
                             "~",
                             paste(nms_vars[-1L], collapse = "+"))
-    formula_xtabs <- as.formula(formula_xtabs)
+    formula_xtabs <- stats::as.formula(formula_xtabs)
     ans <- stats::xtabs(formula_xtabs, data = data)
     ans <- array(as.double(ans),
                  dim = dim(ans),
@@ -237,12 +240,12 @@ make_outcome <- function(formula, data, nm_distn) {
                          nms_vars[[1L]],
                          ")~",
                          paste(nms_vars[-1L], collapse = "+"))
-    formula_na <- as.formula(formula_na)
+    formula_na <- stats::as.formula(formula_na)
     is_na <- stats::xtabs(formula_na, data = data) > 0L
     ans[is_na] <- NA_real_
     standardise <- identical(nm_distn, "norm") && (sum(!is.na(ans)) >= 2L)
     if (standardise)
-        ans <- (ans - mean(ans, na.rm = TRUE)) / sd(ans, na.rm = TRUE)
+        ans <- (ans - mean(ans, na.rm = TRUE)) / stats::sd(ans, na.rm = TRUE)
     ans
 }
 

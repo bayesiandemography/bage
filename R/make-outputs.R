@@ -13,9 +13,15 @@ make_terms_est <- function(mod) {
     split(est, term_par)
 }
 
+make_terms_std <- function(mod) {
+    term_par <- mod$term_par
+    std <- mod$std$par
+    split(std, term_par)
+}
 
-make_linear_pred <- function(mod) {
-    terms_est <- make_tests_est(mod)
+
+make_linear_pred_mean <- function(mod) {
+    terms_est <- make_terms_est(mod)
     matrices_par <- mod$matrices_par
     outcome <- mod$outcome
     ans <- double(length = length(outcome))
@@ -30,8 +36,22 @@ make_linear_pred <- function(mod) {
     ans
 }
 
-
-
+make_linear_pred_var <- function(mod) {
+    terms_std <- make_terms_std(mod)
+    matrices_par <- mod$matrices_par
+    outcome <- mod$outcome
+    ans <- double(length = length(outcome))
+    for (i_term in seq_along(terms_std)) {
+        m <- matrices_par[[i_term]]
+        s <- terms_std[[i_term]]
+        s_sq <- s^2
+        if (length(m) > 0L)
+            ans <- ans + m %*% s_sq ## m consists entirely of 0s and 1s
+        else
+            ans <- ans + s_sq
+    }
+    ans
+}
 
 
 

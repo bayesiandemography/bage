@@ -189,13 +189,14 @@ test_that("'make_priors' works with valid inputs - no intercept", {
 
 ## 'make_offset' --------------------------------------------------------------
 
-test_that("'make_offset' works with valid inputs - no NA", {
+test_that("'make_offset' works with valid inputs - no NA, no standardise", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     formula <- popn ~ age:sex + time
     ans_obtained <- make_offset(formula = formula,
                                 vname_offset = "popn",
-                                data = data)
+                                data = data,
+                                nm_distn = "pois")
     ans_expected <- xtabs(popn ~ age + sex + time, data = data)
     ans_expected <- array(1 * ans_expected,
                           dim = dim(ans_expected),
@@ -204,14 +205,15 @@ test_that("'make_offset' works with valid inputs - no NA", {
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
 })
 
-test_that("'make_offset' works with valid inputs - has NA", {
+test_that("'make_offset' works with valid inputs - has NA, no standardise", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$popn[3] <- NA
     formula <- popn ~ age:sex + time
     ans_obtained <- make_offset(formula = formula,
                                 vname_offset = "popn",
-                                data = data)
+                                data = data,
+                                nm_distn = "pois")
     ans_expected <- xtabs(popn ~ age + sex + time, data = data)
     ans_expected[3] <- NA
     ans_expected <- array(1 * ans_expected,
@@ -219,6 +221,44 @@ test_that("'make_offset' works with valid inputs - has NA", {
                           dimnames = dimnames(ans_expected))
     expect_identical(ans_obtained, ans_expected)
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
+})
+
+test_that("'make_offset' works with valid inputs - no NA, no standardise", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$wt <- seq_len(nrow(data))
+    formula <- wt ~ age:sex + time
+    ans_obtained <- make_offset(formula = formula,
+                                vname_offset = "wt",
+                                data = data,
+                                nm_distn = "norm")
+    ans_expected <- xtabs(wt ~ age + sex + time, data = data)
+    ans_expected <- array(1 * ans_expected,
+                          dim = dim(ans_expected),
+                          dimnames = dimnames(ans_expected))
+    ans_expected <- ans_expected / mean(ans_expected)
+    expect_identical(ans_obtained, ans_expected)
+    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
+    expect_equal(mean(ans_obtained, na.rm = TRUE), 1)
+})
+
+test_that("'make_offset' works with valid inputs - has NA, standardise", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$wt <- seq_len(nrow(data))
+    data$wt[3] <- NA
+    formula <- wt ~ age:sex + time
+    ans_obtained <- make_offset(formula = formula,
+                                vname_offset = "wt",
+                                data = data,
+                                nm_distn = "norm")
+    ans_expected <- xtabs(wt ~ age + sex + time, data = data)
+    ans_expected[3] <- NA
+    ans_expected <- array(1 * ans_expected,
+                          dim = dim(ans_expected),
+                          dimnames = dimnames(ans_expected))
+    ans_expected <- ans_expected / mean(ans_expected, na.rm = TRUE)
+    expect_identical(ans_obtained, ans_expected)
+    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
+    expect_equal(mean(ans_obtained, na.rm = TRUE), 1)
 })
 
 

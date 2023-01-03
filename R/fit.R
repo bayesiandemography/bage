@@ -4,7 +4,7 @@
 
 #' Fit a model
 #'
-#' @param An object of class `bage_mod`,
+#' @param mod An object of class `bage_mod`,
 #' typically created by a call to [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
@@ -18,7 +18,8 @@ fit <- function(mod) {
     term_hyper <- make_term_hyper(priors)
     consts <- make_consts(priors)
     term_consts <- make_term_consts(priors)
-    data <- list(outcome = mod$outcome,
+    data <- list(nm_distn = mod$nm_distn,
+                 outcome = mod$outcome,
                  offset = mod$offset,
                  term_par = mod$term_par,
                  matrices_par = mod$matrices_par,
@@ -40,8 +41,12 @@ fit <- function(mod) {
     sdreport <- TMB::sdreport(f,
                               bias.correct = TRUE,
                               getJointPrecision = TRUE)
-    mod$est <- as.list(sdreport, what = "Est")
-    mod$std <- as.list(sdreport, what = "Std")
+    est <- as.list(sdreport, what = "Est")
+    std <- as.list(sdreport, what = "Std")
+    attr(est, "what") <- NULL
+    attr(std, "what") <- NULL
+    mod$est <- est
+    mod$std <- std
     mod$prec <- sdreport$jointPrecision
     mod
 }

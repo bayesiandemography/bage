@@ -1,6 +1,7 @@
 
 #define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
 #include <TMB.hpp>
+#include "init.h"
 
 using namespace Eigen;
 using namespace tmbutils;
@@ -106,6 +107,7 @@ Type objective_function<Type>::operator() ()
 
   // inputs
 
+  DATA_STRING(nm_distn);
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
   DATA_FACTOR(term_par);       
@@ -155,9 +157,29 @@ Type objective_function<Type>::operator() ()
   }
 
   // contribution to log posterior from data
-  for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-    Type rate = exp(linear_pred[i_outcome]);
-    ans -= dpois(outcome[i_outcome], rate * offset[i_outcome], true);
+  if (nm_distn == "pois") {
+    for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
+      Type rate = exp(linear_pred[i_outcome]);
+      ans -= dpois(outcome[i_outcome],
+		   rate * offset[i_outcome],
+		   true);
+    }
+  }
+  else if (nm_distn == "binom") {
+    for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
+      ans -= dbinom_robust(outcome[i_outcome],
+			   offset[i_outcome],
+			   linear_pred[i_outcome],
+			   true);
+    }
+  }
+  else { // norm
+    for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
+      ans -= dnorm(outcome[i_outcome],
+		   linear_pred[i_outcome],
+		   1 / offset[i_outcome],
+		   true);
+    }
   }
 
   return ans;

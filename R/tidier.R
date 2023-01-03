@@ -28,6 +28,6 @@ tidy.bage_mod <- function(x, ...) {
     terms_est <- make_terms_est(x)
     term <- names(terms_est)
     df <- vapply(terms_est, length, 0L)
-    std.dev <- vapply(terms_est, sd, 0)
+    std.dev <- vapply(terms_est, stats::sd, 0)
     tibble::tibble(term, df, std.dev)
 }
