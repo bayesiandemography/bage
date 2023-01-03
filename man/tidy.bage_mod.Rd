@@ -4,7 +4,7 @@
 \alias{tidy.bage_mod}
 \title{Summarise model output via 'tidy'}
 \usage{
-tidy.bage_mod(x, ...)
+\method{tidy}{bage_mod}(x, ...)
 }
 \arguments{
 \item{x}{A \code{bage_sysmod} object.}
@@ -20,11 +20,10 @@ overall performance, and individual-level
 terms.
 }
 \examples{
-mod <- mod_pois(injuries ~ age + sex + time,
+mod <- mod_pois(injuries ~ age + sex + year,
                 data = injuries,
-                exposure = popn) \%>\%
-  fit()
-
+                exposure = popn)
+mod <- fit(mod)
 tidy(mod)
 }
 \seealso{

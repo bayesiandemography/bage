@@ -18,10 +18,6 @@
 #'
 #' @seealso \code{\link{scaled_svd}},
 #' \code{\link{prepare_svd_probs}}
-#'
-#' @examples
-#' mx <- bage::mx_hmd
-#' log_mx <- prepare_svd_rates(mx)
 #' @export
 prepare_svd_rates <- function(x) {
     checkmate::assert_matrix(x,
@@ -57,10 +53,6 @@ prepare_svd_rates <- function(x) {
 #'
 #' @seealso \code{\link{scaled_svd}},
 #' \code{\link{prepare_svd_probs}}
-#'
-#' @examples
-#' lfpr <- bage::lfpr_oecd
-#' logit_lfpr <- prepare_svd_probs(lfpr)
 #' @export
 prepare_svd_probs <- function(x) {
     checkmate::assert_matrix(x,

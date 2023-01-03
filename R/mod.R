@@ -4,17 +4,16 @@
 #' Specify a Poisson model
 #'
 #' Specify a model where the outcome is drawn from
-#' a Poisson distribution. 
+#' a Poisson distribution.
 #'
 #' - `formula` is a standard R [formula][stats::formula()],
-#' specifying
-#' the outcome variable and predictors, including interactions
+#' specifying the outcome and predictors, including interactions
 #' between predictors.
-#' - `data` holds the outcome variable, the predictors,
-#' and, optionally, an exposure term.
-#' - `exposure` is the name (bare or quoted) of a variable
-#' in `data`, or, if the model does not contain an
-#' exposure term, a `1`.
+#' - `data` holds the outcome, the predictors, and,
+#' optionally, exposure.
+#' - `exposure` is the name (bare or quoted) of the variable
+#' in `data` used to measure exposure, or, if the
+#' model does include exposure, a `1`.
 #'
 #' If the model includes exposure, then the
 #' the first level of the model is
@@ -34,9 +33,9 @@
 #' @param data A data frame containing the outcome,
 #' predictors, and, optionally, exposure.
 #' @param exposure Name of the exposure variable,
-#' or a `1` for a model with no exposure.
+#' or a `1`.
 #'
-#' @returns An object of class `bage_mod`. 
+#' @returns An object of class `bage_mod`.
 #'
 #' @seealso
 #' - [mod_binom()] and [mod_norm()] for specification
@@ -77,11 +76,57 @@ mod_pois <- function(formula, data, exposure) {
                     nm_offset = nm_offset)
 }
 
+
+## HAS_TESTS
+#' Specify a binomial model
+#'
+#' Specify a model where the outcome is drawn from
+#' a binomial distribution.
+#'
+#' - `formula` is a standard R [formula][stats::formula()],
+#' specifying the outcome and predictors,
+#' including interactions between predictors.
+#' - `data` A data frame holding the outcome, the predictors,
+#' and number of trials.
+#' - `size` is the name (bare or quoted) of the variable
+#' in `data` measuring the number of trials.
+#'
+#' The first level of the model is
+#'
+#' \deqn{y \sim \text{binom}(n, \pi)}
+#'
+#' where \eqn{\pi} is the sucess probability,
+#' and \eqn{n} is the number of trials.
+#'
+#' TODO - Include error term once specification finalised.
+#'
+#' @param formula An R [formula][stats::formula()],
+#' specifying the outcome and predictors.
+#' @param data A data frame containing the outcome,
+#' predictors, and, number of trials
+#' @param size Name of the variable describing
+#' the number of trials.
+#'
+#' @returns An object of class `bage_mod`.
+#'
+#' @seealso
+#' - [mod_pois()] and [mod_norm()] for specification
+#' of Poisson and normal models
+#' - [fit()] to fit a model
+#' - [simulate()] to create simulated data
+#' - [set_prior()] to specify non-default priors
+#'
+#' @examples
+#' mod <- mod_binom(oneperson ~ age:region + age:year,
+#'                  data = households,
+#'                  size = total)
+#' @export
 mod_binom <- function(formula, data, size) {
     nm_distn <- "binom"
     is_mod_with_offset <- TRUE
     vname_offset <- deparse1(substitute(size))
-    nm_offset <- "size"    
+    vname_offset <- gsub("^\\\"|\\\"$", "", vname_offset)
+    nm_offset <- "size"
     new_bage_mod(formula = formula,
                     data = data,
                     nm_distn = nm_distn,
@@ -91,17 +136,77 @@ mod_binom <- function(formula, data, size) {
 }
 
 
-mod_norm <- function(formula, data) {
+## HAS_TESTS
+#' Specify a normal model
+#'
+#' Specify a model where the outcome is drawn from
+#' a normal distribution.
+#'
+#' - `formula` is a standard R [formula][stats::formula()],
+#' specifying the outcome and predictors, including interactions
+#' between predictors.
+#' - `data` holds the outcome, the predictors, and,
+#' optionally, weights.
+#' - `weights` is the name (bare or quoted) of the variable
+#' in `data` used as weights, or, if the
+#' model does include weights, a `1`.
+#'
+#' If the model includes weights, then the
+#' the first level of the model is
+#'
+#' \deqn{y \sim \text{norm}(\mu, \sigma^2 / w)}
+#'
+#' where \eqn{\mu} is the underlying rate, and
+#' \eqn{w} is weights. If the model does not
+#' include weights, then the first level is
+#'
+#' \deqn{y \sim \text{norm}(\mu, \sigma^2)}
+#'
+#' TODO - Include error term once specification finalised.
+#'
+#' @param formula An R [formula][stats::formula()],
+#' specifying the outcome and predictors.
+#' @param data A data frame containing the outcome,
+#' predictors, and, optionally, weights.
+#' @param weights Name of the weights variable,
+#' or a `1`.
+#'
+#' Internally, outcome scaled to have mean 0 and sd 1;
+#' weights scaled to have mean 1.
+#'
+#' @returns An object of class `bage_mod`.
+#'
+#' @seealso
+#' - [mod_pois()] and [mod_binom()] for specification
+#' of Poisson and binomial models
+#' - [fit()] to fit a model
+#' - [simulate()] to create simulated data
+#' - [set_prior()] to specify non-default priors
+#'
+#' @examples
+#' mod <- mod_norm(value ~ diag:age + year,
+#'                 data = expenditure,
+#'                 weights = 1)
+#' @export
+mod_norm <- function(formula, data, weights) {
     nm_distn <- "norm"
-    is_mod_with_offset <- FALSE
-    vname_offset <- NULL
-    nm_offset <- NULL   
+    weights <- deparse1(substitute(weights))
+    weights <- gsub("^\\\"|\\\"$", "", weights)
+    is_mod_with_offset <- !identical(weights, "1")
+    if (is_mod_with_offset) {
+        vname_offset <- weights
+        nm_offset <- "weights"
+    }
+    else {
+        vname_offset <- NULL
+        nm_offset <- NULL
+    }
     new_bage_mod(formula = formula,
-                    data = data,
-                    nm_distn = nm_distn,
-                    is_mod_with_offset = is_mod_with_offset,
-                    vname_offset = vname_offset,
-                    nm_offset = nm_offset)
+                 data = data,
+                 nm_distn = nm_distn,
+                 is_mod_with_offset = is_mod_with_offset,
+                 vname_offset = vname_offset,
+                 nm_offset = nm_offset)
 }
 
 
@@ -120,7 +225,7 @@ mod_norm <- function(formula, data) {
 #'
 #' `new_bage_mod()` does not create components
 #' `index_priors`, `hyper`, `term_hyper`,
-#' `consts`, or `term_consts`, 
+#' `consts`, or `term_consts`,
 #' since these depend on `priors` which can
 #' subsequently change via a call to `set_prior()`.
 #' Instead, these components are all derived by
@@ -176,7 +281,8 @@ new_bage_mod <- function(formula,
     if (is_mod_with_offset)
         offset <- make_offset(formula = formula,
                               vname_offset = vname_offset,
-                              data = data)
+                              data = data,
+                              nm_distn = nm_distn)
     else
         offset <- make_offset_ones(outcome)
     term_par <- make_term_par(formula = formula,
@@ -185,7 +291,8 @@ new_bage_mod <- function(formula,
     priors <- make_priors(formula)
     matrices_par <- make_matrices_par(formula = formula,
                                       outcome = outcome)
-    means <- NULL
+    est <- NULL
+    std <- NULL
     prec <- NULL
     ## create object and return
     ans <- list(formula = formula,
@@ -198,8 +305,9 @@ new_bage_mod <- function(formula,
                 par = par,
                 term_par = term_par,
                 matrices_par = matrices_par,
-                means = means,
+                est = est,
+                std = std,
                 prec = prec)
     class(ans) <- "bage_mod"
-    ans    
+    ans
 }

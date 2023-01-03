@@ -23,10 +23,6 @@ valdity checking, replacing any
 zeros with small modelled values,
 and then taking logs.
 }
-\examples{
-mx <- bage::mx_hmd
-log_mx <- prepare_svd_rates(mx)
-}
 \seealso{
 \code{\link{scaled_svd}},
 \code{\link{prepare_svd_probs}}

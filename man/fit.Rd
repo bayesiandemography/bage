@@ -7,7 +7,7 @@
 fit(mod)
 }
 \arguments{
-\item{An}{object of class \code{bage_mod},
+\item{mod}{An object of class \code{bage_mod},
 typically created by a call to \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 }
