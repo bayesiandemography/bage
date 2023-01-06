@@ -3,6 +3,7 @@
 ## 'fit' -----------------------------------------------------------------
 
 test_that("'fit' works with valid inputs - pois", {
+    set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -15,6 +16,7 @@ test_that("'fit' works with valid inputs - pois", {
 })
 
 test_that("'fit' works with valid inputs - binom", {
+    set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
@@ -27,10 +29,11 @@ test_that("'fit' works with valid inputs - binom", {
 })
 
 test_that("'fit' works with valid inputs - norm", {
+    set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$wt <- rpois(n = nrow(data), lambda = 100)
-    data$val <- rnorm(n = nrow(data), mean = 0, sd = 3)
-    formula <- val ~ age + sex + time
+    data$val <- rnorm(n = nrow(data), mean = as.integer(data$age), sd = 1)
+    formula <- val ~ age * sex + time
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = wt)

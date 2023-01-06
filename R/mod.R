@@ -6,14 +6,18 @@
 #' Specify a model where the outcome is drawn from
 #' a Poisson distribution.
 #'
-#' - `formula` is a standard R [formula][stats::formula()],
-#' specifying the outcome and predictors, including interactions
-#' between predictors.
+#' - `formula` specifies the outcome and predictors,
+#' including interactions between predictors.
+#' It follows standard R [formula][stats::formula()]
+#' conventions, except that it cannot include
+#' transformations (e.g. `sqrt(deaths)`).
 #' - `data` holds the outcome, the predictors, and,
 #' optionally, exposure.
 #' - `exposure` is the name (bare or quoted) of the variable
 #' in `data` used to measure exposure, or, if the
 #' model does include exposure, a `1`.
+#'
+#' 
 #'
 #' If the model includes exposure, then the
 #' the first level of the model is
@@ -43,6 +47,7 @@
 #' - [fit()] to fit a model
 #' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
+#' - [set_covariate()] to add covariates
 #'
 #' @examples
 #' ## model with exposure
@@ -83,9 +88,11 @@ mod_pois <- function(formula, data, exposure) {
 #' Specify a model where the outcome is drawn from
 #' a binomial distribution.
 #'
-#' - `formula` is a standard R [formula][stats::formula()],
-#' specifying the outcome and predictors,
+#' - `formula` specifies the outcome and predictors,
 #' including interactions between predictors.
+#' It follows standard R [formula][stats::formula()]
+#' conventions, except that it cannot include
+#' transformations (e.g. `sqrt(deaths)`).
 #' - `data` A data frame holding the outcome, the predictors,
 #' and number of trials.
 #' - `size` is the name (bare or quoted) of the variable
@@ -115,6 +122,7 @@ mod_pois <- function(formula, data, exposure) {
 #' - [fit()] to fit a model
 #' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
+#' - [set_covariate()] to add covariates
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
@@ -142,9 +150,11 @@ mod_binom <- function(formula, data, size) {
 #' Specify a model where the outcome is drawn from
 #' a normal distribution.
 #'
-#' - `formula` is a standard R [formula][stats::formula()],
-#' specifying the outcome and predictors, including interactions
-#' between predictors.
+#' - `formula` specifies the outcome and predictors,
+#' including interactions between predictors.
+#' It follows standard R [formula][stats::formula()]
+#' conventions, except that it cannot include
+#' transformations (e.g. `sqrt(deaths)`).
 #' - `data` holds the outcome, the predictors, and,
 #' optionally, weights.
 #' - `weights` is the name (bare or quoted) of the variable
@@ -182,6 +192,7 @@ mod_binom <- function(formula, data, size) {
 #' - [fit()] to fit a model
 #' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
+#' - [set_covariate()] to add covariates
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,
@@ -248,11 +259,11 @@ mod_norm <- function(formula, data, weights) {
 #'
 #' @noRd
 new_bage_mod <- function(formula,
-                            data,
-                            nm_distn,
-                            is_mod_with_offset,
-                            vname_offset,
-                            nm_offset) {
+                         data,
+                         nm_distn,
+                         is_mod_with_offset,
+                         vname_offset,
+                         nm_offset) {
     is_distn_response_nonneg <- nm_distn %in% c("pois", "binom")
     ## check individual inputs supplied by user
     checkmate::assert_formula(formula)
@@ -284,13 +295,16 @@ new_bage_mod <- function(formula,
                               data = data,
                               nm_distn = nm_distn)
     else
-        offset <- make_offset_ones(outcome)
+        offset <- make_offset_ones(outcome = outcome,
+                                   nm_distn = nm_distn)
     term_par <- make_term_par(formula = formula,
-                                outcome = outcome)
+                              outcome = outcome)
     par <- rep(0.0, times = length(term_par))
     priors <- make_priors(formula)
     matrices_par <- make_matrices_par(formula = formula,
-                                      outcome = outcome)
+                                      data = data,
+                                      outcome = outcome,
+                                      nm_distn = nm_distn)
     est <- NULL
     std <- NULL
     prec <- NULL
