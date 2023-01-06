@@ -36,7 +36,7 @@ make_linear_pred_mean <- function(mod) {
     ans
 }
 
-make_linear_pred_var <- function(mod) {
+make_linear_pred_sd <- function(mod) {
     terms_std <- make_terms_std(mod)
     matrices_par <- mod$matrices_par
     outcome <- mod$outcome
@@ -50,8 +50,32 @@ make_linear_pred_var <- function(mod) {
         else
             ans <- ans + s_sq
     }
+    ans <- sqrt(ans)
     ans
 }
+
+make_fitted_point <- function(mod) {
+    nm_distn <- mod$nm_distn
+    linear_pred_mean <- make_linear_pred_mean(mod)
+    if (nm_distn == "pois")
+        exp(linear_pred_mean)
+    else if (nm_distn == "binom")
+        invlogit(linear_pred_mean)
+    else
+        linear_pred_mean
+}
+
+make_lower_upper <- function(mod, interval) {
+     nm_distn <- mod$nm_distn
+    linear_pred_mean <- make_linear_pred_mean(mod)
+    if (nm_distn == "pois")
+        exp(linear_pred_mean)
+    else if (nm_distn == "binom")
+        invlogit(linear_pred_mean)
+    else
+        linear_pred_mean
+}   
+    
 
 
 

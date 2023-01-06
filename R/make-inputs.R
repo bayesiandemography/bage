@@ -87,6 +87,34 @@ make_i_prior <- function(priors) {
 }
 
 
+
+## HAS_TESTS
+#' Make list of matrices mapping terms to outcome
+#' array or vector
+#'
+#' Make list of matrices mapping main effects or
+#' interactions to array or vector holding outcome
+#' (or, equivalently, the linear predictor.)
+#' 
+#' @param formula Formula specifying model
+#' @param data Data frame
+#' @param outcome Array holding outcome
+#' @param nm_distn Name of distribution.
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_matrices_par <- function(formula, data, outcome, nm_distn) {
+    if (identical(nm_distn, "norm"))
+        make_matrices_par_vec(formula = formula,
+                              data = data)
+    else
+        make_matrices_par_array(formula = formula,
+                                outcome = outcome)
+}                              
+
+
+
 ## HAS_TESTS
 #' Make list of matrices mapping terms to full array
 #'
@@ -102,24 +130,69 @@ make_i_prior <- function(priors) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_par <- function(formula, outcome) {
+make_matrices_par_array <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
     ans <- apply(factors,
                  MARGIN = 2L,
-                 FUN = make_matrix_par,
+                 FUN = make_matrix_par_array,
                  dim = dim_outcome,
                  simplify = FALSE)
     names(ans) <- colnames(factors)
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept) {
-        m <- matrix(integer(), nrow = 0L, ncol = 0L)
-        m <- methods::as(m, "sparseMatrix")
+        m <- Matrix::sparseMatrix(i = integer(), j = integer(), x = integer())
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans
+}
+
+
+## HAS_TESTS
+#' Make list of matrices mapping terms to outcome vector
+#'
+#' Make list of matrices mapping main effects or
+#' interactions to vector holding outcome
+#' (or, equivalently, the linear predictor.)
+#' 
+#' @param formula Formula specifying model
+#' @param data Data frame
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_matrices_par_vec <- function(formula, data) {
+    factors <- attr(terms(formula), "factors")
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans <- vector(mode = "list", length = length(nms_terms))
+    for (i_term in seq_along(nms_terms)) {
+        nms_vars_term <- nms_vars[factors[, i_term]]
+        data_term <- data[nms_vars_term]
+        data_term[] <- lapply(data_term, factor)
+        contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
+        nm_term <- nms_terms[[i_term]]
+        formula_term <- paste0("~", nm_term, "-1")
+        formula_term <- as.formula(formula_term)
+        m_term <- Matrix::sparse.model.matrix(formula_term,
+                                              data = data_term,
+                                              contrasts.arg = contrasts_term,
+                                              row.names = FALSE)
+        attr(m_term, "Dimnames")[2L] <- list(NULL)
+        ans[[i_term]] <- m_term
+    }
+    names(ans) <- nms_terms
+    has_intercept <- attr(terms(formula), "intercept")
+    if (has_intercept) {
+        n <- nrow(data)
+        m <- Matrix::sparseMatrix(i = integer(), j = integer(), x = integer())
+        ans <- c(list("(Intercept)" = m), ans)
+    }
+    ans        
 }
 
 
@@ -138,7 +211,7 @@ make_matrices_par <- function(formula, outcome) {
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_par <- function(dim, is_in_term) {
+make_matrix_par_array <- function(dim, is_in_term) {
     make_submatrix <- function(d, is_in) {
         i <- seq_len(d)
         j <- if (is_in) i else rep.int(1L, times = d)
@@ -156,6 +229,66 @@ make_matrix_par <- function(dim, is_in_term) {
 
 
 ## HAS_TESTS
+#' Make matrix mapping term to outcome vector
+#'
+#' Make sparse matrix mapping the elements of a
+#' main effect or interaction to an array holding
+#' the full rates (or equivalently, the outcome
+#' variable, or the linear predictor.)
+#'
+#' @param dim `dim` attribute of array holding rates.
+#' @param is_in_term Whether the term includes
+#' the dimension.
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_matrix_par_vec <- function() {
+    make_submatrix <- function(d, is_in) {
+        i <- seq_len(d)
+        j <- if (is_in) i else rep.int(1L, times = d)
+        Matrix::sparseMatrix(i = i, j = j)
+    }
+    submatrices <- mapply(make_submatrix,
+                          d = as.list(dim),
+                          is_in = as.list(is_in_term),
+                          SIMPLIFY = FALSE,
+                          USE.NAMES = FALSE)
+    submatrices <- rev(submatrices)
+    ans <- Reduce(Matrix::kronecker, submatrices)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make offset, which can be an array or vector
+#'
+#' Unlike in `xtabs()`, NAs are not converted
+#' to 0s.
+#' 
+#' @param formula Formula specifying model
+#' @param vname_offset Name of the offset variable.
+#' @param data A data frame.
+#' @param nm_distn Name of the distribution.
+#'
+#' @returns Array or vector.
+#'
+#' @noRd
+make_offset <- function(formula,
+                        vname_offset,
+                        data,
+                        nm_distn) {
+    if (nm_distn %in% c("pois", "binom"))
+        make_offset_array(formula = formula,
+                          vname_offset = vname_offset,
+                          data = data)
+    else
+        make_offset_vec(vname_offset = vname_offset,
+                        data = data)
+}
+
+
+## HAS_TESTS
 #' Make array holding offset variable
 #' cross-classified by predictors
 #'
@@ -164,12 +297,12 @@ make_matrix_par <- function(dim, is_in_term) {
 #' 
 #' @param formula Formula specifying model
 #' @param vname_offset Name of the offset variable.
-#' @param data A data frame
+#' @param data A data frame.
 #'
 #' @returns An array (with named dimnames)
 #'
 #' @noRd
-make_offset <- function(formula, vname_offset, data, nm_distn) {
+make_offset_array <- function(formula, vname_offset, data) {
     factors <- attr(stats::terms(formula), "factors")
     nms_vars <- rownames(factors)
     formula_xtabs <- paste0(vname_offset,
@@ -187,10 +320,47 @@ make_offset <- function(formula, vname_offset, data, nm_distn) {
     formula_na <- stats::as.formula(formula_na)
     is_na <- stats::xtabs(formula_na, data = data) > 0L
     ans[is_na] <- NA_real_
-    standardise <- identical(nm_distn, "norm") && (sum(!is.na(ans)) >= 1L)
-    if (standardise)
-        ans <- ans / mean(ans, na.rm = TRUE)
     ans
+}
+
+
+## HAS_TESTS
+#' Make vector holding offset variable
+#'
+#' The offset is standardised to have mean 1.
+#' 
+#' @param vname_offset Name of the offset variable.
+#' @param data A data frame
+#'
+#' @returns An vector of doubles.
+#'
+#' @noRd
+make_offset_vec <- function(vname_offset, data) {
+    nms_data <- names(data)
+    ans <- data[[match(vname_offset, nms_data)]]
+    n_obs <- sum(!is.na(ans))
+    if (n_obs >= 1L)
+        ans <- ans / mean(ans, na.rm = TRUE)
+    ans <- as.double(ans)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make offset consisting entirely of 1s,
+#' the same size as outcome
+#'
+#' @param outcome Array or vector holding outcome.
+#' @param nm_distn Name of the distribution.
+#' 
+#' @returns An array or vector.
+#'
+#' @noRd
+make_offset_ones <- function(outcome, nm_distn) {
+    if (nm_distn %in% c("pois", "binom"))
+        make_offset_ones_array(outcome)
+    else
+        make_offset_ones_vec(outcome)
 }
 
 
@@ -203,10 +373,49 @@ make_offset <- function(formula, vname_offset, data, nm_distn) {
 #' @returns An array (with named dimnames)
 #'
 #' @noRd
-make_offset_ones <- function(outcome) {
+make_offset_ones_array <- function(outcome) {
     ans <- outcome
     ans[] <- 1.0
     ans
+}
+
+
+## HAS_TESTS
+#' Make offset consisting entirely of 1s,
+#' the same length as outcome
+#'
+#' @param outcome Vector holding outcome.
+#'
+#' @returns Vector of doubles.
+#'
+#' @noRd
+make_offset_ones_vec <- function(outcome) {
+    rep(1.0, times = length(outcome))
+}
+
+
+## HAS_TESTS
+#' Make array or vector holding outcome variable
+#'
+#' Unlike in `xtabs()`, NAs are not converted
+#' to 0s.
+#'
+#' @param formula Formula specifying model
+#' @param data A data frame
+#' @param nm_distn Name of distribution.
+#'
+#' @returns An array or vector
+#'
+#' @noRd
+make_outcome <- function(formula,
+                         data,
+                         nm_distn) {
+    if (nm_distn %in% c("pois", "binom"))
+        make_outcome_array(formula = formula,
+                           data = data)
+    else
+        make_outcome_vec(formula = formula,
+                         data = data)
 }
 
 
@@ -219,13 +428,11 @@ make_offset_ones <- function(outcome) {
 #'
 #' @param formula Formula specifying model
 #' @param data A data frame
-#' @param nm_distn Name of distribution:
-#' "pois", "binom", or "norm".
 #'
 #' @returns An array (with named dimnames)
 #'
 #' @noRd
-make_outcome <- function(formula, data, nm_distn) {
+make_outcome_array <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     nms_vars <- rownames(factors)
     formula_xtabs <- paste0(nms_vars[[1L]],
@@ -243,9 +450,36 @@ make_outcome <- function(formula, data, nm_distn) {
     formula_na <- stats::as.formula(formula_na)
     is_na <- stats::xtabs(formula_na, data = data) > 0L
     ans[is_na] <- NA_real_
-    standardise <- identical(nm_distn, "norm") && (sum(!is.na(ans)) >= 2L)
-    if (standardise)
-        ans <- (ans - mean(ans, na.rm = TRUE)) / stats::sd(ans, na.rm = TRUE)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make vector holding outcome variable
+#'
+#' Extracts the outcome variable from 'data',
+#' and standardises to have mean of 0 and
+#' sd of 1.
+#'
+#' @param formula Formula specifying model
+#' @param data A data frame
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_outcome_vec <- function(formula, data) {
+    nm_response <- as.character(formula[[2L]])
+    nms_data <- names(data)
+    ans <- data[[match(nm_response, nms_data)]]
+    n_obs <- sum(!is.na(ans))
+    if (n_obs >= 1L)
+        ans <- ans - mean(ans, na.rm = TRUE)
+    if (n_obs >= 2L) {
+        sd <- sd(ans, na.rm = TRUE)
+        if (sd > 0)
+            ans <- ans / sd
+    }
+    ans <- as.double(ans)
     ans
 }
 

@@ -1,5 +1,4 @@
 
-
 ## 'get_n_hyper' --------------------------------------------------------------
 
 test_that("'get_n_hyper' works with valid inputs", {
@@ -40,25 +39,67 @@ test_that("'make_i_prior' works with valid inputs", {
 ## 'make_matrices_par' --------------------------------------------------------
 
 test_that("'make_matrices_par' works with valid inputs", {
+    data <- expand.grid(age = 0:2, sex = 1:2, time = 2000:2001)
+    data$deaths <- 1
+    outcome <- xtabs(deaths ~ age + sex + time, data = data)
+    formula <- deaths ~ age:sex + time
+    ans_array <- make_matrices_par_array(formula = formula, outcome = outcome)
+    ans_vec <- make_matrices_par_vec(formula = formula, data = data)
+    ans_generic <- make_matrices_par(formula = formula,
+                                     data = data,
+                                     outcome = outcome,
+                                     nm_distn = "pois")
+    expect_identical(lapply(ans_array, as.matrix),
+                     lapply(ans_vec, as.matrix))
+    expect_identical(ans_generic, ans_array)
+})
+
+
+## 'make_matrices_par_vec' ----------------------------------------------------
+
+test_that("'make_matrices_par_vec' works with valid inputs", {
+    data <- expand.grid(age = 0:5, time = 2000:2001, sex = 1:2)
+    data$val <- 1
+    data <- data[-c(3, 5), ]
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_matrices_par_vec(formula = formula, data = data)
+    data_fac <- data[1:3]
+    data_fac[] <- lapply(data_fac, factor)
+    ans_expected <- Matrix::sparse.model.matrix(~age:sex + time,
+                                                data = data_fac,
+                                                contrasts.arg = lapply(data_fac,
+                                                                       contrasts,
+                                                                       contrast = FALSE),
+                                                row.names = FALSE)
+    v <- rnorm(n = ncol(ans_expected) - 1)
+    expect_equal(do.call(cbind, ans_obtained[-1]) %*% v,
+                 ans_expected[, -1] %*% v)
+    expect_identical(names(ans_obtained), c("(Intercept)", "time", "age:sex"))
+})
+
+
+## 'make_matrices_par_array' --------------------------------------------------
+
+test_that("'make_matrices_par_array' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- 1
     outcome <- xtabs(deaths ~ age + sex + time, data = data)
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_matrices_par(formula = formula, outcome = outcome)
-    ans_expected <- list("(Intercept)" = as(matrix(integer(), nr = 0), "sparseMatrix"),
-                         "time" = as(matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
-                                     "sparseMatrix"),
-                         "age:sex" = as(rbind(diag(6), diag(6)), "sparseMatrix"))
-    expect_identical(ans_obtained, ans_expected)
+    ans_obtained <- make_matrices_par_array(formula = formula, outcome = outcome)
+    ans_expected <- list("(Intercept)" = matrix(integer(), nr = 0),
+                         "time" = matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
+                         "age:sex" = rbind(diag(6), diag(6)))
+    expect_equal(lapply(ans_obtained, as.matrix), ans_expected)
+    expect_true(all(sapply(ans_obtained, is, "sparseMatrix")))
 })
-                                        
-    
-## 'make_matrix_par' ----------------------------------------------------------
 
-test_that("'make_matrix_par' works with one-dimensional term and 3-dimensional array", {
+
+## 'make_matrix_par_array' ----------------------------------------------------
+
+test_that("'make_matrix_par_array' works with one-dimensional term and 3-dimensional array", {
     dim <- 2:4
     ## 1
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, FALSE, FALSE))
     beta <- rnorm(2)
     ans_obtained <- m %*% beta
@@ -67,7 +108,7 @@ test_that("'make_matrix_par' works with one-dimensional term and 3-dimensional a
     expect_identical(as.numeric(ans_obtained),
                      as.numeric(ans_expected))
     ## 2
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(FALSE, TRUE, FALSE))
     beta <- rnorm(3)
     ans_obtained <- m %*% beta
@@ -83,7 +124,7 @@ test_that("'make_matrix_par' works with one-dimensional term and 3-dimensional a
     expect_identical(as.numeric(ans_obtained),
                      as.numeric(ans_expected))
     ## 3
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(FALSE, FALSE, TRUE))
     beta <- rnorm(4)
     ans_obtained <- m %*% beta
@@ -98,10 +139,10 @@ test_that("'make_matrix_par' works with one-dimensional term and 3-dimensional a
                      as.numeric(ans_expected))
 })
 
-test_that("'make_matrix_par' works with two-dimensional term and 3-dimensional array", {
+test_that("'make_matrix_par_array' works with two-dimensional term and 3-dimensional array", {
     dim <- 2:4
     ## 1 and 2
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, TRUE, FALSE))
     beta <- rnorm(6)
     ans_obtained <- m %*% beta
@@ -110,7 +151,7 @@ test_that("'make_matrix_par' works with two-dimensional term and 3-dimensional a
     expect_identical(as.numeric(ans_obtained),
                      as.numeric(ans_expected))
     ## 1 and 3
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, FALSE, TRUE))
     beta <- rnorm(8)
     ans_obtained <- m %*% beta
@@ -121,7 +162,7 @@ test_that("'make_matrix_par' works with two-dimensional term and 3-dimensional a
     expect_identical(as.numeric(ans_obtained),
                      as.numeric(ans_expected))
     ## 2 and 3
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(FALSE, TRUE, TRUE))
     beta <- rnorm(12)
     ans_obtained <- m %*% beta
@@ -132,9 +173,9 @@ test_that("'make_matrix_par' works with two-dimensional term and 3-dimensional a
                      as.numeric(ans_expected))
 })
 
-test_that("'make_matrix_par' works with 3-dimensional term and 3-dimensional array", {
+test_that("'make_matrix_par_array' works with 3-dimensional term and 3-dimensional array", {
     dim <- 2:4
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, TRUE, TRUE))
     beta <- rnorm(24)
     ans_obtained <- m %*% beta
@@ -144,9 +185,9 @@ test_that("'make_matrix_par' works with 3-dimensional term and 3-dimensional arr
                      as.numeric(ans_expected))
 })
 
-test_that("'make_matrix_par' works with one-dimensional term and one-dimensional array", {
+test_that("'make_matrix_par_array' works with one-dimensional term and one-dimensional array", {
     dim <- 4
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = TRUE)
     beta <- rnorm(4)
     ans_obtained <- m %*% beta
@@ -155,13 +196,13 @@ test_that("'make_matrix_par' works with one-dimensional term and one-dimensional
                      as.numeric(ans_expected))
 })
 
-test_that("'make_matrix_par' creates sparse matrix", {
+test_that("'make_matrix_par_array' creates sparse matrix", {
     dim <- 2:4
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, FALSE, FALSE))
     expect_s4_class(m, "sparseMatrix")
     dim <- 2:4
-    m <- make_matrix_par(dim = dim,
+    m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, FALSE, TRUE))
     expect_s4_class(m, "sparseMatrix")
 })
@@ -189,7 +230,7 @@ test_that("'make_priors' works with valid inputs - no intercept", {
 
 ## 'make_offset' --------------------------------------------------------------
 
-test_that("'make_offset' works with valid inputs - no NA, no standardise", {
+test_that("'make_offset' works with array", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     formula <- popn ~ age:sex + time
@@ -197,6 +238,35 @@ test_that("'make_offset' works with valid inputs - no NA, no standardise", {
                                 vname_offset = "popn",
                                 data = data,
                                 nm_distn = "pois")
+    ans_expected <- make_offset_array(formula = formula,
+                                      vname_offset = "popn",
+                                      data = data)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset' works with vector", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$wt <- seq_len(nrow(data))
+    formula <- popn ~ age:sex + time
+    ans_obtained <- make_offset(formula = formula,
+                                vname_offset = "wt",
+                                data = data,
+                                nm_distn = "norm")
+    ans_expected <- make_offset_vec(vname_offset = "wt",
+                                    data = data)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_offset_array' --------------------------------------------------------
+
+test_that("'make_offset_array' works with valid inputs - no NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    formula <- popn ~ age:sex + time
+    ans_obtained <- make_offset_array(formula = formula,
+                                      vname_offset = "popn",
+                                      data = data)
     ans_expected <- xtabs(popn ~ age + sex + time, data = data)
     ans_expected <- array(1 * ans_expected,
                           dim = dim(ans_expected),
@@ -205,15 +275,14 @@ test_that("'make_offset' works with valid inputs - no NA, no standardise", {
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
 })
 
-test_that("'make_offset' works with valid inputs - has NA, no standardise", {
+test_that("'make_offset_array' works with valid inputs - has NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$popn[3] <- NA
     formula <- popn ~ age:sex + time
-    ans_obtained <- make_offset(formula = formula,
-                                vname_offset = "popn",
-                                data = data,
-                                nm_distn = "pois")
+    ans_obtained <- make_offset_array(formula = formula,
+                                      vname_offset = "popn",
+                                      data = data)
     ans_expected <- xtabs(popn ~ age + sex + time, data = data)
     ans_expected[3] <- NA
     ans_expected <- array(1 * ans_expected,
@@ -223,64 +292,109 @@ test_that("'make_offset' works with valid inputs - has NA, no standardise", {
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
 })
 
-test_that("'make_offset' works with valid inputs - no NA, no standardise", {
+
+## 'make_offset_vec' ----------------------------------------------------------
+
+test_that("'make_offset_vec' works with valid inputs - no NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$wt <- seq_len(nrow(data))
-    formula <- wt ~ age:sex + time
-    ans_obtained <- make_offset(formula = formula,
-                                vname_offset = "wt",
-                                data = data,
-                                nm_distn = "norm")
-    ans_expected <- xtabs(wt ~ age + sex + time, data = data)
-    ans_expected <- array(1 * ans_expected,
-                          dim = dim(ans_expected),
-                          dimnames = dimnames(ans_expected))
+    ans_obtained <- make_offset_vec(vname_offset = "wt",
+                                    data = data)
+    ans_expected <- as.double(data$wt)
     ans_expected <- ans_expected / mean(ans_expected)
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
-    expect_equal(mean(ans_obtained, na.rm = TRUE), 1)
+    expect_equal(mean(ans_obtained), 1)
 })
 
-test_that("'make_offset' works with valid inputs - has NA, standardise", {
+test_that("'make_offset_vec' works with valid inputs - has NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$wt <- seq_len(nrow(data))
     data$wt[3] <- NA
-    formula <- wt ~ age:sex + time
-    ans_obtained <- make_offset(formula = formula,
-                                vname_offset = "wt",
-                                data = data,
-                                nm_distn = "norm")
+    ans_obtained <- make_offset_vec(vname_offset = "wt",
+                                    data = data)
     ans_expected <- xtabs(wt ~ age + sex + time, data = data)
     ans_expected[3] <- NA
-    ans_expected <- array(1 * ans_expected,
-                          dim = dim(ans_expected),
-                          dimnames = dimnames(ans_expected))
+    ans_expected <- data$wt
     ans_expected <- ans_expected / mean(ans_expected, na.rm = TRUE)
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
     expect_equal(mean(ans_obtained, na.rm = TRUE), 1)
 })
 
 
-## 'make_offset' --------------------------------------------------------------
+## 'make_offset_ones' ---------------------------------------------------
 
-test_that("'make_offset_ones' works with valid inputs", {
+test_that("'make_offset_ones' works with array", {
     outcome <- array(1:12, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
-    ans_obtained <- make_offset_ones(outcome)
+    ans_obtained <- make_offset_ones(outcome,
+                                     nm_distn = "pois")
+    ans_expected <- make_offset_ones_array(outcome)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset_ones' works with vector", {
+    outcome <- 1:10
+    ans_obtained <- make_offset_ones(outcome,
+                                     nm_distn = "norm")
+    ans_expected <- make_offset_ones_vec(outcome)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_offset_ones_array' ---------------------------------------------------
+
+test_that("'make_offset_ones_array' works with valid inputs", {
+    outcome <- array(1:12, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
+    ans_obtained <- make_offset_ones_array(outcome)
     ans_expected <- array(1.0, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_outcome' -------------------------------------------------------------
+## 'make_offset_ones_vec' -----------------------------------------------------
 
-test_that("'make_outcome' works with valid inputs - nm_distn not 'norm', no NA", {
+test_that("'make_offset_ones_vec' works with valid inputs", {
+    outcome <- rnorm(10)
+    ans_obtained <- make_offset_ones_vec(outcome)
+    ans_expected <- rep(1.0, times = 10)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_outcome' -------------------------------------------------------
+
+test_that("'make_outcome' works with array", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- seq_len(nrow(data))
     formula <- deaths ~ age:sex + time
     ans_obtained <- make_outcome(formula = formula,
                                  data = data,
                                  nm_distn = "pois")
+    ans_expected <- make_outcome_array(formula = formula,
+                                       data = data)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome' works with vector", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome(formula = formula,
+                                 data = data,
+                                 nm_distn = "norm")
+    ans_expected <- make_outcome_vec(formula = formula,
+                                     data = data)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_outcome_array' -------------------------------------------------------
+
+test_that("'make_outcome_array' works with valid inputs, no NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome_array(formula = formula,
+                                       data = data)
     ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
     ans_expected <- array(1 * ans_expected,
                           dim = dim(ans_expected),
@@ -289,58 +403,87 @@ test_that("'make_outcome' works with valid inputs - nm_distn not 'norm', no NA",
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
 })
 
-test_that("'make_outcome' works with valid inputs - nm_distn is 'norm', no NA", {
+test_that("'make_outcome_array' works with valid inputs, has NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- seq_len(nrow(data))
+    data$deaths[3] <- NA
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome(formula = formula,
-                                 data = data,
-                                 nm_distn = "norm")
+    ans_obtained <- make_outcome_array(formula = formula,
+                                       data = data)
     ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
+    ans_expected[3] <- NA
     ans_expected <- array(1 * ans_expected,
                           dim = dim(ans_expected),
                           dimnames = dimnames(ans_expected))
-    ans_expected <- (ans_expected - mean(ans_expected)) / sd(ans_expected)
     expect_identical(ans_obtained, ans_expected)
     expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
+})
+
+
+## 'make_outcome_vec' ---------------------------------------------------------
+
+test_that("'make_outcome_vec' works with valid inputs, no NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome_vec(formula = formula,
+                                     data = data)
+    ans_expected <- data$deaths
+    ans_expected <- (ans_expected - mean(ans_expected)) / sd(ans_expected)
+    expect_identical(ans_obtained, ans_expected)
     expect_equal(mean(ans_expected), 0)
     expect_equal(sd(ans_expected), 1)
 })
 
-test_that("'make_outcome' works with valid inputs - nm_distn not 'norm', has NA", {
+test_that("'make_outcome_vec' works with valid inputs, has NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- seq_len(nrow(data))
     data$deaths[3] <- NA
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome(formula = formula,
-                                 data = data,
-                                 nm_distn = "pois")
-    ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
+    ans_obtained <- make_outcome_vec(formula = formula,
+                                     data = data)
+    ans_expected <- data$deaths
     ans_expected[3] <- NA
-    ans_expected <- array(1 * ans_expected,
-                          dim = dim(ans_expected),
-                          dimnames = dimnames(ans_expected))
-    expect_identical(ans_obtained, ans_expected)
-    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
-})
-
-test_that("'make_outcome' works with valid inputs - nm_distn is 'norm', no NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    data$deaths[3] <- NA
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome(formula = formula,
-                                 data = data,
-                                 nm_distn = "norm")
-    ans_expected <- xtabs(deaths ~ age + sex + time, data = data)
-    ans_expected[3] <- NA
-    ans_expected <- array(1 * ans_expected,
-                          dim = dim(ans_expected),
-                          dimnames = dimnames(ans_expected))
     ans_expected <- (ans_expected - mean(ans_expected, na.rm = TRUE)) /
         sd(ans_expected, na.rm = TRUE)
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(names(dimnames(ans_obtained)), c("age", "sex", "time"))
+    expect_equal(mean(ans_expected, na.rm = TRUE), 0)
+    expect_equal(sd(ans_expected, na.rm = TRUE), 1)
+})
+
+test_that("'make_outcome_vec' works with valid inputs, all NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- NA_real_
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome_vec(formula = formula,
+                                     data = data)
+    ans_expected <- data$deaths
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome_vec' works with valid inputs, one non-NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    data$deaths[-3] <- NA
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome_vec(formula = formula,
+                                     data = data)
+    ans_expected <- data$deaths
+    ans_expected[3] <- 0
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome_vec' works with valid inputs, two non-NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- seq_len(nrow(data))
+    data$deaths[-(3:4)] <- NA
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_outcome_vec(formula = formula,
+                                     data = data)
+    ans_expected <- data$deaths
+    ans_expected <- (ans_expected - mean(ans_expected, na.rm = TRUE)) /
+        sd(ans_expected, na.rm = TRUE)
+    expect_identical(ans_obtained, ans_expected)
     expect_equal(mean(ans_expected, na.rm = TRUE), 0)
     expect_equal(sd(ans_expected, na.rm = TRUE), 1)
 })
