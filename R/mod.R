@@ -298,7 +298,7 @@ new_bage_mod <- function(formula,
         offset <- make_offset_ones(outcome = outcome,
                                    nm_distn = nm_distn)
     term_par <- make_term_par(formula = formula,
-                              outcome = outcome)
+                              data = data)
     par <- rep(0.0, times = length(term_par))
     priors <- make_priors(formula)
     matrices_par <- make_matrices_par(formula = formula,

@@ -1,17 +1,26 @@
 
-
+## HAS_TESTS
+#' Get inverse tranformation associated
+#' with distribution
+#'
+#' @param nm_distn "pois", "binom", or "norm"
+#'
+#' @returns A function
+#'
+#' @noRd
 get_inv_transform <- function(nm_distn) {
     if (nm_distn == "pois")
         exp
     else if (nm_distn == "binom")
-        function(x) if_else(x > 0, 1 / (1 + exp(-x)), exp(x) / (1 + exp(x)))
-    else if (nm_disn == "norm")
+        function(x) ifelse(x > 0, 1 / (1 + exp(-x)), exp(x) / (1 + exp(x)))
+    else if (nm_distn == "norm")
         function(x) x
     else
-        stop(gettextf("invalid value for 'nm_distn' : %s",
+        stop(gettextf("invalid value for 'nm_distn' : \"%s\"",
                       nm_distn),
              call. = FALSE)
 }
+
 
 ## HAS_TESTS
 #' Extract point estimates for terms
@@ -27,6 +36,15 @@ make_terms_est <- function(mod) {
     split(est, term_par)
 }
 
+
+## HAS_TESTS
+#' Extract standard errors for terms
+#'
+#' @param mod A fitted model
+#'
+#' @returns A named list.
+#'
+#' @noRd
 make_terms_std <- function(mod) {
     term_par <- mod$term_par
     std <- mod$std$par
@@ -34,6 +52,15 @@ make_terms_std <- function(mod) {
 }
 
 
+## HAS_TESTS
+#' Get the mean value for the linear predictor
+#' formed from the main effects and interactions
+#'
+#' @param mod A fitted model
+#'
+#' @returns A vector of doubles
+#'
+#' @noRd
 make_linear_pred_mean <- function(mod) {
     terms_est <- make_terms_est(mod)
     matrices_par <- mod$matrices_par
@@ -42,15 +69,26 @@ make_linear_pred_mean <- function(mod) {
     for (i_term in seq_along(terms_est)) {
         m <- matrices_par[[i_term]]
         b <- terms_est[[i_term]]
-        if (length(m) > 0L)
-            ans <- ans + m %*% b
-        else
+        is_intercept <- length(m) == 0L
+        if (is_intercept)
             ans <- ans + b
+        else
+            ans <- ans + as.double(m %*% b)
     }
     ans
 }
 
-make_linear_pred_sd <- function(mod) {
+
+## HAS_TESTS
+#' Get the mean value for the linear predictor
+#' formed from the main effects and interactions
+#'
+#' @param mod A fitted model
+#'
+#' @returns A vector of doubles
+#'
+#' @noRd
+make_linear_pred_std <- function(mod) {
     terms_std <- make_terms_std(mod)
     matrices_par <- mod$matrices_par
     outcome <- mod$outcome
@@ -59,14 +97,22 @@ make_linear_pred_sd <- function(mod) {
         m <- matrices_par[[i_term]]
         s <- terms_std[[i_term]]
         s_sq <- s^2
-        if (length(m) > 0L)
-            ans <- ans + m %*% s_sq ## m consists entirely of 0s and 1s
+        is_intercept <- length(m) == 0L
+        if (is_intercept)
+            ans <- ans + s_sq            
         else
-            ans <- ans + s_sq
+            ans <- ans + as.double(m %*% s_sq) ## m consists entirely of 0s and 1s
+
     }
     ans <- sqrt(ans)
     ans
 }
+
+
+#' Make point estimates for rates
+#'
+#' Make point estimates rates/probabilities/means,
+#' by back-transforming mean of linear predictor.
 
 make_fitted_point <- function(mod) {
     nm_distn <- mod$nm_distn

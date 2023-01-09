@@ -512,9 +512,8 @@ test_that("'make_term_hyper' works with valid inputs", {
 test_that("'make_term_par' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- 1
-    outcome <- xtabs(deaths ~ age + sex + time, data = data)
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_term_par(formula = formula, outcome = outcome)
+    ans_obtained <- make_term_par(formula = formula, data = data)
     ans_expected <- factor(rep(c("(Intercept)", "time", "age:sex"),
                                times = c(1, 2, 6)),
                            levels = c("(Intercept)", "time", "age:sex"))
