@@ -50,13 +50,3 @@ fit <- function(mod) {
     mod$prec <- sdreport$jointPrecision
     mod
 }
-    
-    
-    
-
-
-
-
-
-    
-    

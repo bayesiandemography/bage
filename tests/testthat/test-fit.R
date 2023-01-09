@@ -29,16 +29,18 @@ test_that("'fit' works with valid inputs - binom", {
 })
 
 test_that("'fit' works with valid inputs - norm", {
-    set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data[] <- lapply(data, factor)
     data$wt <- rpois(n = nrow(data), lambda = 100)
-    data$val <- rnorm(n = nrow(data), mean = as.integer(data$age), sd = 1)
-    formula <- val ~ age * sex + time
+    data$val <- rnorm(n = nrow(data), mean = (data$sex == "F"))
+    formula <- val ~ age + sex + time
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = wt)
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
+
+
 
 

@@ -25,6 +25,10 @@ generics::tidy
 #' tidy(mod)
 #' @export
 tidy.bage_mod <- function(x, ...) {
+    is_fitted <- !is.null(mod$est)
+    if (!is_fitted)
+        stop(gettext("model has not been fitted yet : need to call function 'fit'?"),
+             call. = FALSE)                     
     terms_est <- make_terms_est(x)
     term <- names(terms_est)
     df <- vapply(terms_est, length, 0L)

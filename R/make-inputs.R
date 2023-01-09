@@ -586,13 +586,14 @@ make_term_hyper <- function(priors) {
 #' @returns A factor.
 #'
 #' @noRd
-make_term_par <- function(formula, outcome) {
+make_term_par <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
+    nms_dims <- rownames(factors)
     nms_terms <- colnames(factors)
-    dim_outcome <- dim(outcome)
-    lengths <- apply(factors, 2L, function(i) prod(dim_outcome[i]))
+    dim <- vapply(nms_dims, function(nm) length(unique(data[[nm]])), 0L)
+    lengths <- apply(factors, 2L, function(i) prod(dim[i]))
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept) {
         lengths <- c(1L, lengths)
