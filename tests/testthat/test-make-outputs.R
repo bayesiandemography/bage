@@ -38,9 +38,9 @@ test_that("'make_terms_est', 'make_terms_std' work with valid inputs", {
                      as.numeric(unlist(mod$std$par)))
 })
 
-## 'make_linear_pred_mean', 'make_linear_pred_std' ----------------------------
+## 'make_linear_pred_mean' ----------------------------------------------------
 
-test_that("'make_linear_pred_mean', 'make_linear_pred_std' work with valid inputs", {
+test_that("'make_linear_pred_mean' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -54,11 +54,6 @@ test_that("'make_linear_pred_mean', 'make_linear_pred_std' work with valid input
     ans_expected <- mod$est$par[1L] +
         rep(mod$est$par[2:7], each = 20) +
         mod$est$par[8:27]
-    expect_identical(ans_obtained, ans_expected)
-    ans_obtained <- make_linear_pred_std(mod)
-    ans_expected <- sqrt(mod$std$par[1L]^2 +
-        rep(mod$std$par[2:7], each = 20)^2 +
-        mod$std$par[8:27]^2)
     expect_identical(ans_obtained, ans_expected)
 })
 

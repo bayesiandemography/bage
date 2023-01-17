@@ -52,6 +52,7 @@ make_terms_std <- function(mod) {
 }
 
 
+## IS THIS STILL NEEDED???
 ## HAS_TESTS
 #' Get the mean value for the linear predictor
 #' formed from the main effects and interactions
@@ -69,44 +70,16 @@ make_linear_pred_mean <- function(mod) {
     for (i_term in seq_along(terms_est)) {
         m <- matrices_par[[i_term]]
         b <- terms_est[[i_term]]
-        is_intercept <- length(m) == 0L
-        if (is_intercept)
-            ans <- ans + b
-        else
-            ans <- ans + as.double(m %*% b)
+        ans <- ans + as.double(m %*% b)
     }
     ans
 }
 
-
-## HAS_TESTS
-#' Get the standard deviation of the linear predictor
-#' formed from the main effects and interactions
-#'
-#' @param mod A fitted model
-#'
-#' @returns A vector of doubles
-#'
-#' @noRd
-make_linear_pred_std <- function(mod) {
-    terms_std <- make_terms_std(mod)
-    matrices_par <- mod$matrices_par
-    outcome <- mod$outcome
-    ans <- double(length = length(outcome))
-    for (i_term in seq_along(terms_std)) {
-        m <- matrices_par[[i_term]]
-        s <- terms_std[[i_term]]
-        s_sq <- s^2
-        is_intercept <- length(m) == 0L
-        if (is_intercept)
-            ans <- ans + s_sq            
-        else
-            ans <- ans + as.double(m %*% s_sq) ## m consists entirely of 0s and 1s
-
-    }
-    ans <- sqrt(ans)
-    ans
-}
+## make_combined_matrix_par <- function(mod) {
+##     matrices_par <- mod$matrices_par
+##     has_intercept <- length(matrices_par[[1L]]) == 0L
+##     if (has_intercept) {
+##         ans <- do.call(
 
 
 ## HAS_TESTS
@@ -143,6 +116,30 @@ make_fitted_point <- function(mod) {
     }
     ans    
 }
+
+
+make_draws_par <- function(mod) {
+    est <- mod$est
+    prec <- mod$prec
+    n_iter <- mod$n_iter
+    mean <- unlist(est, use.names = FALSE)
+    chol <- chol(prec)
+    sd <- backsolve(prec)
+    ans <- matrix(nrow = n_iter, ncol = length(est))
+    for (i_iter in seq_len(n_iter)) {
+        z <- rnorm(n = n_iter)
+        ans[i_iter, ] <- mean + sd %*% z
+    }
+    ans
+}
+
+
+## make_draws_linear_pred <- function(mod) {
+##     draws_par <- make_draws_par(mod)
+##     ans <- 
+    
+    
+    
 
 
 ## HAS_TESTS

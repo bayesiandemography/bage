@@ -28,9 +28,11 @@ a normal distribution.
 }
 \details{
 \itemize{
-\item \code{formula} is a standard R \link[stats:formula]{formula},
-specifying the outcome and predictors, including interactions
-between predictors.
+\item \code{formula} specifies the outcome and predictors,
+including interactions between predictors.
+It follows standard R \link[stats:formula]{formula}
+conventions, except that it cannot include
+transformations (e.g. \code{sqrt(deaths)}).
 \item \code{data} holds the outcome, the predictors, and,
 optionally, weights.
 \item \code{weights} is the name (bare or quoted) of the variable
@@ -63,5 +65,6 @@ of Poisson and binomial models
 \item \code{\link[=fit]{fit()}} to fit a model
 \item \code{\link[=simulate]{simulate()}} to create simulated data
 \item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
+\item \code{\link[=set_covariate]{set_covariate()}} to add covariates
 }
 }

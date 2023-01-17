@@ -2,22 +2,20 @@
 % Please edit documentation in R/tidier.R
 \name{tidy.bage_mod}
 \alias{tidy.bage_mod}
-\title{Summarise model output via 'tidy'}
+\title{Components from a fitted model}
 \usage{
 \method{tidy}{bage_mod}(x, ...)
 }
 \arguments{
-\item{x}{A \code{bage_sysmod} object.}
+\item{x}{A fitted \code{bage_mod} object.}
 
-\item{...}{Unused, included for generic consistency only.}
+\item{...}{Unused. Included for generic consistency only.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Provide information on a model, including
-overall performance, and individual-level
-terms.
+Components from a fitted model
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,

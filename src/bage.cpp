@@ -134,12 +134,7 @@ Type objective_function<Type>::operator() ()
   for (int i_term = 0; i_term < n_term; i_term++) {
     SparseMatrix<Type> matrix_term = matrices_par[i_term];
     vector<Type> par_term = par_split[i_term];
-    if (matrix_term.size() > 0) {
-      linear_pred = linear_pred + matrix_term * par_term;
-    }
-    else {
-      linear_pred = linear_pred + par_term[0];
-    }
+    linear_pred = linear_pred + matrix_term * par_term;
   }
 
 

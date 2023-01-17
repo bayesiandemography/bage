@@ -143,7 +143,13 @@ make_matrices_par_array <- function(formula, outcome) {
     names(ans) <- colnames(factors)
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept) {
-        m <- Matrix::sparseMatrix(i = integer(), j = integer(), x = integer())
+        n_outcome <- length(outcome)
+        i <- seq_len(n_outcome)
+        j <- rep.int(1L, times = n_outcome)
+        x <- rep.int(1L, times = n_outcome)
+        m <- Matrix::sparseMatrix(i = i, 
+                                  j = j,
+                                  x = x)
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans
@@ -188,8 +194,13 @@ make_matrices_par_vec <- function(formula, data) {
     names(ans) <- nms_terms
     has_intercept <- attr(terms(formula), "intercept")
     if (has_intercept) {
-        n <- nrow(data)
-        m <- Matrix::sparseMatrix(i = integer(), j = integer(), x = integer())
+        n_data <- nrow(data)
+        i <- seq_len(n_data)
+        j <- rep.int(1L, times = n_data)
+        x <- rep.int(1L, times = n_data)
+        m <- Matrix::sparseMatrix(i = i,
+                                  j = j,
+                                  x = x)
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans        
