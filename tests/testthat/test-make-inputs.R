@@ -55,6 +55,22 @@ test_that("'make_matrices_par' works with valid inputs", {
 })
 
 
+## 'make_matrices_par_array' --------------------------------------------------
+
+test_that("'make_matrices_par_array' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1
+    outcome <- xtabs(deaths ~ age + sex + time, data = data)
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_matrices_par_array(formula = formula, outcome = outcome)
+    ans_expected <- list("(Intercept)" = matrix(1L, nr = 12, ncol = 1),
+                         "time" = matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
+                         "age:sex" = rbind(diag(6), diag(6)))
+    expect_equal(lapply(ans_obtained, as.matrix), ans_expected)
+    expect_true(all(sapply(ans_obtained, is, "sparseMatrix")))
+})
+
+
 ## 'make_matrices_par_vec' ----------------------------------------------------
 
 test_that("'make_matrices_par_vec' works with valid inputs", {
@@ -71,26 +87,10 @@ test_that("'make_matrices_par_vec' works with valid inputs", {
                                                                        contrasts,
                                                                        contrast = FALSE),
                                                 row.names = FALSE)
-    v <- rnorm(n = ncol(ans_expected) - 1)
-    expect_equal(do.call(cbind, ans_obtained[-1]) %*% v,
-                 ans_expected[, -1] %*% v)
+    v <- rnorm(n = ncol(ans_expected))
+    expect_equal(do.call(cbind, ans_obtained) %*% v,
+                 ans_expected %*% v)
     expect_identical(names(ans_obtained), c("(Intercept)", "time", "age:sex"))
-})
-
-
-## 'make_matrices_par_array' --------------------------------------------------
-
-test_that("'make_matrices_par_array' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- 1
-    outcome <- xtabs(deaths ~ age + sex + time, data = data)
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_matrices_par_array(formula = formula, outcome = outcome)
-    ans_expected <- list("(Intercept)" = matrix(integer(), nr = 0),
-                         "time" = matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
-                         "age:sex" = rbind(diag(6), diag(6)))
-    expect_equal(lapply(ans_obtained, as.matrix), ans_expected)
-    expect_true(all(sapply(ans_obtained, is, "sparseMatrix")))
 })
 
 
