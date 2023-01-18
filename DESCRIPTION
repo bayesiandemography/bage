@@ -24,6 +24,7 @@ Imports:
     checkmate,
     generics,
     Matrix,
+    matrixStats,
     stats,
     tibble,
     TMB

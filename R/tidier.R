@@ -12,21 +12,37 @@ generics::augment
 #' The method here will be updated to match the new interface.
 #' 
 #' @param x A fitted `bage_mod` object.
-#' @param interval Width of credible interval.
 #' @param ... Unused. Included for generic consistency only.
 #'
 #' @returns A [tibble][tibble::tibble-package],
-#' consisting of the data, plus extra columns.
+#' consisting of the original `data` argument,
+#' to the original model function (eg [mod_pois()])
+#' plus four new columns:
+#' - `.fitted` Point estimates (posterior medians) of
+#' the rate, probability, or mean.
+#' - `.lower`, `.upper` Lower and upper bounds of
+#' 95% credible intervals for the rate, probability,
+#' or mean.
+#' - `.observed` Direct estimates of the rate,
+#' probability, or mean.
 #'
 #' @examples
-#' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
-#'                 exposure = popn)
-#' mod <- fit(mod)
-#' tidy(mod)
+#' mod_pois(injuries ~ age + sex + year,
+#'          data = injuries,
+#'          exposure = popn) |>
+#'   fit() |>
+#'   augment()
 #' @export
-augment <- function(x, interval, ...) {
-    NULL
+augment.bage_mod <- function(x, ...) {
+    data <- x$data
+    draws <- make_draws_fitted(x)
+    quantiles <- matrixStats::rowQuantiles(draws,
+                                           probs = c(0.025, 0.5, 0.975))
+    data$.fitted <- quantiles[, 2L]
+    data$.lower <- quantiles[, 1L]
+    data$.upper <- quantiles[, 3L]
+    data$.observed <- make_observed(x)
+    data
 }
 
 
@@ -53,7 +69,7 @@ generics::tidy
 #' tidy(mod)
 #' @export
 tidy.bage_mod <- function(x, ...) {
-    is_fitted <- !is.null(mod$est)
+    is_fitted <- !is.null(x$est)
     if (!is_fitted)
         stop(gettext("model has not been fitted yet : need to call function 'fit'?"),
              call. = FALSE)                     

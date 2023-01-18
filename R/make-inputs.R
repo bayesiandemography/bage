@@ -170,7 +170,7 @@ make_matrices_par_array <- function(formula, outcome) {
 #'
 #' @noRd
 make_matrices_par_vec <- function(formula, data) {
-    factors <- attr(terms(formula), "factors")
+    factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
     nms_vars <- rownames(factors)
@@ -183,7 +183,7 @@ make_matrices_par_vec <- function(formula, data) {
         contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
         nm_term <- nms_terms[[i_term]]
         formula_term <- paste0("~", nm_term, "-1")
-        formula_term <- as.formula(formula_term)
+        formula_term <- stats::as.formula(formula_term)
         m_term <- Matrix::sparse.model.matrix(formula_term,
                                               data = data_term,
                                               contrasts.arg = contrasts_term,
@@ -192,7 +192,7 @@ make_matrices_par_vec <- function(formula, data) {
         ans[[i_term]] <- m_term
     }
     names(ans) <- nms_terms
-    has_intercept <- attr(terms(formula), "intercept")
+    has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept) {
         n_data <- nrow(data)
         i <- seq_len(n_data)
@@ -254,7 +254,7 @@ make_matrix_par_array <- function(dim, is_in_term) {
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_par_vec <- function() {
+make_matrix_par_vec <- function(dim, is_in_term) {
     make_submatrix <- function(d, is_in) {
         i <- seq_len(d)
         j <- if (is_in) i else rep.int(1L, times = d)

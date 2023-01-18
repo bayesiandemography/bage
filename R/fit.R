@@ -4,11 +4,11 @@
 
 #' Fit a model
 #'
-#' @param mod An object of class `bage_mod`,
-#' typically created by a call to [mod_pois()],
+#' @param mod A `bage_mod` object,
+#' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #'
-#' @returns An object of class `bage_mod`
+#' @returns A `bage_mod` object
 #'
 #' @export    
 fit <- function(mod) {
