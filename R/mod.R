@@ -74,11 +74,11 @@ mod_pois <- function(formula, data, exposure) {
         nm_offset <- NULL
     }
     new_bage_mod(formula = formula,
-                    data = data,
-                    nm_distn = nm_distn,
-                    is_mod_with_offset = is_mod_with_offset,
-                    vname_offset = vname_offset,
-                    nm_offset = nm_offset)
+                 data = data,
+                 nm_distn = nm_distn,
+                 is_mod_with_offset = is_mod_with_offset,
+                 vname_offset = vname_offset,
+                 nm_offset = nm_offset)
 }
 
 
@@ -264,6 +264,7 @@ new_bage_mod <- function(formula,
                          is_mod_with_offset,
                          vname_offset,
                          nm_offset) {
+    n_draw <- 1000L
     is_distn_response_nonneg <- nm_distn %in% c("pois", "binom")
     ## check individual inputs supplied by user
     checkmate::assert_formula(formula)
@@ -321,7 +322,19 @@ new_bage_mod <- function(formula,
                 matrices_par = matrices_par,
                 est = est,
                 std = std,
-                prec = prec)
+                prec = prec,
+                n_draw = n_draw)
     class(ans) <- "bage_mod"
     ans
+}
+
+#' @export
+print.bage_mod <- function(x, ...) {
+    cat("Object of class \"bage_mod\"\n\n")
+    if (is.null(x$est))
+        cat("<not yet fitted>\n")
+    else
+        cat("<has been fitted>\n")
+    cat(sprintf("n_draw: %d\n\n", x$n_draw))
+    invisible(x)
 }
