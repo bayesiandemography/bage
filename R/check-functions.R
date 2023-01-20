@@ -24,6 +24,24 @@ check_and_tidy_scale <- function(scale) {
 }
 
 
+## HAS_TESTS
+#' Check that formula for prior meets basic
+#' formatting requirements
+#'
+#' @param A formula
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_format_prior_formula <- function(formula) {
+    checkmate::assert_formula(formula)
+    if (length(formula) < 3L)
+        stop(gettextf("prior formula '%s' has too few elements",
+                      deparse1(formula)),
+             call. = FALSE)
+    invisible(TRUE)
+}
+
 
 ## HAS_TESTS
 #' Check 'formula' has predictors
@@ -37,7 +55,7 @@ check_formula_has_predictors <- function(formula) {
     has_predictors <- is.matrix(attr(stats::terms(formula), "factors"))
     if (!has_predictors)
         stop(gettextf("formula '%s' does not have any predictors",
-                      deparse(formula)),
+                      deparse1(formula)),
              call. = FALSE)
     invisible(TRUE)
 }
@@ -55,7 +73,7 @@ check_formula_has_response <- function(formula) {
     has_response <- attr(stats::terms(formula), "response") > 0L
     if (!has_response)
         stop(gettextf("formula '%s' does not have a response variable",
-                      deparse(formula)),
+                      deparse1(formula)),
              call. = FALSE)
     invisible(TRUE)
 }
@@ -78,7 +96,7 @@ check_formula_vnames_in_data <- function(formula, data) {
     if (i_not_in_data > 0L)
         stop(gettextf("variable '%s' from formula '%s' not found in '%s'",
                       nms_formula[[i_not_in_data]],
-                      deparse(formula),
+                      deparse1(formula),
                       "data"),
              call. = FALSE)
     invisible(TRUE)
@@ -151,7 +169,7 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
         stop(gettextf("%s variable [%s] included in formula '%s'",
                       nm_offset,
                       vname_offset,
-                      deparse(formula)),
+                      deparse1(formula)),
              call. = FALSE)
     invisible(TRUE)
 }
@@ -169,7 +187,7 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
 #'
 #' @noRd
 check_response_nonneg <- function(formula, data, nm_distn) {
-    nm_response <- deparse(formula[[2L]])
+    nm_response <- deparse1(formula[[2L]])
     response <- data[[nm_response]]
     if (any(response < 0, na.rm = TRUE))
         stop(gettextf("distribution is \"%s\" but response variable [%s] has negative values",
@@ -178,3 +196,10 @@ check_response_nonneg <- function(formula, data, nm_distn) {
              call. = FALSE)
     invisible(TRUE)
 }
+
+
+
+
+
+        
+    

@@ -479,7 +479,7 @@ make_outcome_array <- function(formula, data) {
 #'
 #' @noRd
 make_outcome_vec <- function(formula, data) {
-    nm_response <- as.character(formula[[2L]])
+    nm_response <- deparse1(formula[[2L]])
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
     n_obs <- sum(!is.na(ans))

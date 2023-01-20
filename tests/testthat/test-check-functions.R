@@ -15,6 +15,20 @@ test_that("'check_and_tidy_scale' returns correct error with invalid inputs", {
 })
 
 
+## 'check_format_prior_formula' -----------------------------------------------
+
+test_that("'check_format_prior_formula' returns TRUE with valid inputs", {
+    expect_true(check_format_prior_formula(age ~ N()))
+    expect_true(check_format_prior_formula(time:sex~RW()))
+})
+
+test_that("'check_format_prior_formula' returns correct error with invalid inputs", {
+    expect_error(check_format_prior_formula("age~N()"))
+    expect_error(check_format_prior_formula(~N()),
+                 "prior formula '~N\\(\\)' has too few elements")
+})
+
+
 ## 'check_formula_has_predictors' -----------------------------------------------
 
 test_that("'check_formula_has_predictors' returns TRUE with valid inputs", {

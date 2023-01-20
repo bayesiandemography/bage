@@ -13,7 +13,7 @@
 #' `n_draw` value of 1000. Higher values
 #' may be appropriate for characterising
 #' the tails of distributions, or for
-#' publication-quality graphics or summaries.
+#' publication-quality graphics and summaries.
 #'
 #' The value of `n_draw` does not affect
 #' model fitting: it only affects posterior
@@ -47,25 +47,52 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 }
 
 
-
-
+## HAS_TESTS
+#' Change the prior for a model term
+#'
+#' Specify a non-default prior distribution
+#' for a main effect or interaction.
+#'
+#' `formula` gives the name of a main
+#' effect or interaction, and a function
+#' specifying a prior, eg
+#' `age ~ RW2()`.
+#'
+#' @param mod A `bage_mod` object, created with
+#' [mod_pois()], [mod_binom()], or [mod_norm()].
+#' @param formula A formula giving the term
+#' and a function for creating a prior.
+#'
+#' @returns A `bage_mod` object.
+#'
+#' @seealso [N()], [RW()], [RW2()]
+#'
+#' @examples
+#' mod <- mod_pois(injuries ~ age + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#' mod
+#' mod |> set_prior(age ~ RW2())
+#' @export
 set_prior <- function(mod, formula) {
-    check_valid_prior_formula(formula)
-    nm_response <- as.character(formula[[2L]])
+    check_format_prior_formula(formula)
+    nm_response <- deparse1(formula[[2L]])
+    nms_terms <- names(mod$priors)
+    i <- match(nm_response, nms_terms, nomatch = 0L)
+    if (i == 0L)
+        stop(gettextf(paste("response in prior formula '%s' not a",
+                            "valid term from model formula '%s' :",
+                            "valid terms are %s"),
+                      deparse1(formula),
+                      deparse1(mod$formula),
+                      paste(sprintf("'%s'", nms_terms), collapse = ", ")),
+             call. = FALSE)
     prior <- tryCatch(eval(formula[[3L]]),
                       error = function(e) e)
     if (inherits(prior, "error"))
-        stop(gettextf("prior '%s' invalid : %s",
-                      nm_response,
+        stop(gettextf("prior formula '%s' invalid : %s",
+                      deparse1(formula),
                       prior$message),
-             call. = FALSE)
-    nms_priors <- names(mod$priors)
-    i <- match(nm_response, nms_priors, nomatch = 0L)
-    if (i == 0L)
-        stop(gettextf("'%s' is not a valid for formula '%s' : valid terms are %s",
-                      nm_response,
-                      mod$formula,
-                      paste(nms_priors, collapse = ", ")),
              call. = FALSE)
     mod$priors[[i]] <- prior
     mod
