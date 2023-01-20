@@ -6,7 +6,7 @@
 \alias{bage-package}
 \title{Bayesian estimation and forecasting of age-specific rates}
 \description{
-Bayesian estimation and forecasting of age-specific rates, probabilities, and means. Uses singular value decompositions and the package TMB (Template Model Builder), to make the estimation and forecasting scalable and fast.
+Fast Bayesian estimation and forecasting of age-specific rates, probabilities, and means, based on Template Model Builder.
 }
 \author{
 \strong{Maintainer}: John Bryant \email{john@bayesiandemography.com}
