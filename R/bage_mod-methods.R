@@ -34,15 +34,72 @@ generics::augment
 #'   augment()
 #' @export
 augment.bage_mod <- function(x, ...) {
-    data <- x$data
+    ans <- x$data
     draws <- make_draws_fitted(x)
     quantiles <- matrixStats::rowQuantiles(draws,
                                            probs = c(0.025, 0.5, 0.975))
-    data$.fitted <- quantiles[, 2L]
-    data$.lower <- quantiles[, 1L]
-    data$.upper <- quantiles[, 3L]
-    data$.observed <- make_observed(x)
-    data
+    ans$.fitted <- quantiles[, 2L]
+    ans$.lower <- quantiles[, 1L]
+    ans$.upper <- quantiles[, 3L]
+    ans$.observed <- make_observed(x)
+    ans
+}
+
+
+#' @importFrom generics fit
+#' @export
+generics::fit
+
+#' Fit a model
+#'
+#' ## TODO - catch errors, warnings
+#' 
+#' @param object A `bage_mod` object,
+#' typically created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param ... Not currently used.
+#'
+#' @returns A `bage_mod` object
+#'
+#' @export    
+fit.bage_mod <- function(object, ...) {
+    priors <- object$priors
+    i_prior <- make_i_prior(priors)
+    hyper <- make_hyper(priors)
+    term_hyper <- make_term_hyper(priors)
+    consts <- make_consts(priors)
+    term_consts <- make_term_consts(priors)
+    data <- list(nm_distn = object$nm_distn,
+                 outcome = object$outcome,
+                 offset = object$offset,
+                 term_par = object$term_par,
+                 matrices_par = object$matrices_par,
+                 i_prior = i_prior,
+                 term_hyper = term_hyper,
+                 consts = consts,
+                 term_consts = term_consts)
+    parameters <- list(par = object$par,
+                       hyper = hyper)
+    f <- TMB::MakeADFun(data = data,
+                        parameters = parameters,
+                        DLL = "bage",
+                        random = "par",
+                        silent = TRUE)
+    fit <- stats::nlminb(start = f$par,
+                         objective = f$fn,
+                         gradient = f$gr,
+                         silent = TRUE)
+    sdreport <- TMB::sdreport(f,
+                              bias.correct = TRUE,
+                              getJointPrecision = TRUE)
+    est <- as.list(sdreport, what = "Est")
+    std <- as.list(sdreport, what = "Std")
+    attr(est, "what") <- NULL
+    attr(std, "what") <- NULL
+    object$est <- est
+    object$std <- std
+    object$prec <- sdreport$jointPrecision
+    object
 }
 
 
