@@ -1,4 +1,62 @@
 
+svd_transform <- function(x, scale = c("log", "logit", "none")) {
+    scale <- match.arg(scale)
+    checkmate::assert_data_frame(x,
+                                 any.missing = FALSE,
+                                 min.cols = 4L)
+    nms <- names(x)
+    for (nm in c("age", "sex", "value")) {
+        if (!(nm %in% nms))
+            stop(gettextf("'%s' does not have a variable called \"%s\"",
+                          "x", nm),
+                 call. = FALSE)
+    }
+    value <- x$value
+    checkmate::assert_numeric(value,
+                              lower = 0,
+                              finite = TRUE,
+                              any.missing = FALSE)
+    nms_popn <- setdiff(nms, c("age", "sex", "value"))
+    x$popn <- do.call(x[nms_popn], paste)
+    x <- x[c("sex", "age", "popn", "value")]
+    is_dup <- duplicated(x[c("age", "sex", "popn")])
+    i_dup <- match(TRUE, is_dup, nomatch = 0L)
+    if (i_dup > 0L)
+        stop(gettextf("'%s' has duplicate combination of classification variables : %s",
+                      "x",
+                      paste(x[ , -4L], collapse = " ")),
+             call. = FALSE)
+    levels <- lapply(x[c("sex", "age", "popn")], unique)
+    classif_expected <- do.call(paste, expand.grid(levels))
+    classif_actual <- do.call(paste, x[c("sex", "age", "popn")])
+    is_found <- match(classif_expected, classif_actual, nomatch = 0L) > 0L
+    i_not_found <- match(FALSE, is_found, nomatch = 0L)
+    if (i_not_found > 0L)
+        stop(gettextf("'%s' is missing combination of classification variables : %s",
+                      "x",
+                      classif_expected[[i_not_found]]),
+             call. = FALSE)
+    x <- x[order(x$sex, x$age), ]
+    x$sex_age <- paste(x$sex, x$age)
+    ans_concat <- xtabs(value ~ sex_age + popn, data = x)
+    make_ans_one_sex <- function(x) xtabs(value ~ age, data = x, subset = sex == s)
+    ans_single <- lapply(unique(x$sex), make_ans_one_sex)
+    ans <- c(list(Concat = ans_concat), ans_single)
+    ans <- lapply(ans, function(m) matrix(m, dim = dim(m), dimnames = dimnames(m)))
+    if (scale == "log") {
+        ans <- lapply(ans, replace_zeros)
+        ans <- lapply(ans, log)
+    }
+    if (scale == "logit") {
+        logit <- function(x) log(1 / (1 - x))
+        ans <- lapply(ans, replace_zeros_ones)
+        ans <- lapply(ans, logit)
+    }
+    ans <- lapply(ans, scaled_svd)
+    ans
+}
+
+
 ## HAS_TESTS
 #' Prepare a matrix of rates for 
 #' a singular value decomposition
@@ -86,12 +144,12 @@ scaled_svd <- function(x, n_component) {
     D <- diag(svd$d[s])
     V <- svd$v
     mean_V <- colMeans(V)
-    mean <- as.numeric(U %*% D %*% mean_V)
+    translate <- as.numeric(U %*% D %*% mean_V)
     sd_V <- apply(V, MARGIN = 2L, FUN = stats::sd)
     sd_V <- diag(sd_V)
-    components <- U %*% D %*% sd_V
-    list(mean = mean,
-         components = components)
+    transform <- U %*% D %*% sd_V
+    list(translate = translate,
+         transform = transform)
 }
     
 
