@@ -1,48 +1,106 @@
 
-svd_transform <- function(x, scale = c("log", "logit", "none")) {
-    scale <- match.arg(scale)
+#' Construct transformations based on SVD
+#' of age-sex-specific rates
+#'
+#' Apply the [Singular Value Decomposition][base::svd()]
+#' (SVD) to a dataset of ages-sex-specific rates,
+#' probabilities, or means, and use the results
+#' to construct transformations that allow
+#' age-sex profiles to be represented more
+#' parsimoniously.
+#'
+#' Data frame `x` must have columns named
+#' `"age`", `"sex"`, plus at least one
+#' more column of classification variables.
+#' It must also have a column called `"value"`
+#' holding the rates, probabilities, or means.
+#'
+#' The number of components used by the SVD
+#' is governed by argument `n`. 
+#'
+#' Rates are typically transformed to the
+#' log scale, and probabilities to the logit scale,
+#' before the SVD is applied. The type of
+#' transformation is specified through the
+#' `scale` argument (which defaults to `"log"`.)
+#'
+#' When a log or logit scale is used, `svd_transform`
+#' converts zeros in the `value` column to
+#' values just above zero before transforming.
+#' When a logit scale is used, `svd_transform`
+#' also converts ones to values just
+#' below one. The substitute
+#' values are calculated by fitting a main-effects
+#' model to the data, and then shifting the predicted
+#' value down slightly (in the case of zeros),
+#' or up slightly (in the case of ones.)
+#'
+#' @param x A data frame with rates, probabilities,
+#' or means classified by age, sex, and other
+#' variables.
+#' @param n Number of components of SVD.
+#' @param scale `"log"`, `"logit"`, or `"none"`.
+#' Defaults to `"log"`.
+#'
+#' @returns A named list, each element of which
+#' consists of a vector and a matrix.
+#'
+#' @export
+svd_transform <- function(x, n, scale = c("log", "logit", "none")) {
+    ## check inputs
     checkmate::assert_data_frame(x,
                                  any.missing = FALSE,
                                  min.cols = 4L)
-    nms <- names(x)
-    for (nm in c("age", "sex", "value")) {
-        if (!(nm %in% nms))
-            stop(gettextf("'%s' does not have a variable called \"%s\"",
-                          "x", nm),
-                 call. = FALSE)
-    }
+    nms_x <- names(x)
+    nms_req <- c("age", "sex", "value")
+    is_nm_found <- nms_req %in% nms_x
+    i_nm_not_found <- match(FALSE, is_nm_found, nomatch = 0L)
+    if (i_nm_not_found > 0L)
+        stop(gettextf("'%s' does not have a variable called \"%s\"",
+                      "x",
+                      nms_req[[i_nm_not_found]]),
+             call. = FALSE)
     value <- x$value
     checkmate::assert_numeric(value,
                               lower = 0,
                               finite = TRUE,
                               any.missing = FALSE)
-    nms_popn <- setdiff(nms, c("age", "sex", "value"))
-    x$popn <- do.call(x[nms_popn], paste)
-    x <- x[c("sex", "age", "popn", "value")]
-    is_dup <- duplicated(x[c("age", "sex", "popn")])
+    nms_classif <- setdiff(nms, c("age", "sex", "value"))
+    x$classif <- do.call(x[nms_classif], paste)
+    x <- x[c("sex", "age", "classif", "value")]
+    is_dup <- duplicated(x[c("age", "sex", "classif")])
     i_dup <- match(TRUE, is_dup, nomatch = 0L)
     if (i_dup > 0L)
         stop(gettextf("'%s' has duplicate combination of classification variables : %s",
                       "x",
-                      paste(x[ , -4L], collapse = " ")),
+                      paste(x[c("age", "sex", "classif")], collapse = " ")),
              call. = FALSE)
-    levels <- lapply(x[c("sex", "age", "popn")], unique)
+    levels <- lapply(x[c("sex", "age", "classif")], unique)
     classif_expected <- do.call(paste, expand.grid(levels))
-    classif_actual <- do.call(paste, x[c("sex", "age", "popn")])
-    is_found <- match(classif_expected, classif_actual, nomatch = 0L) > 0L
-    i_not_found <- match(FALSE, is_found, nomatch = 0L)
-    if (i_not_found > 0L)
-        stop(gettextf("'%s' is missing combination of classification variables : %s",
+    classif_actual <- do.call(paste, x[c("sex", "age", "classif")])
+    is_cl_found <- classif_expected %in% classif_actual
+    i_cl_not_found <- match(FALSE, is_cl_found, nomatch = 0L)
+    if (i_cl_not_found > 0L)
+        stop(gettextf("'%s' missing combination of classification variables : %s",
                       "x",
-                      classif_expected[[i_not_found]]),
+                      classif_expected[[i_cl_not_found]]),
              call. = FALSE)
+    n <- checkmate::assert_count(n,
+                                 positive = TRUE,
+                                 coerce = TRUE)
+    scale <- match.arg(scale)
+    ## create matrices from the data
     x <- x[order(x$sex, x$age), ]
     x$sex_age <- paste(x$sex, x$age)
-    ans_concat <- xtabs(value ~ sex_age + popn, data = x)
-    make_ans_one_sex <- function(x) xtabs(value ~ age, data = x, subset = sex == s)
+    ans_concat <- xtabs(value ~ sex_age + classif, data = x)
+    make_ans_one_sex <- function(x)
+        xtabs(value ~ age, data = x, subset = sex == s)
     ans_single <- lapply(unique(x$sex), make_ans_one_sex)
     ans <- c(list(Concat = ans_concat), ans_single)
-    ans <- lapply(ans, function(m) matrix(m, dim = dim(m), dimnames = dimnames(m)))
+    coerce_to_matrix <- function(m)
+        matrix(m, dim = dim(m), dimnames = dimnames(m)) 
+    ans <- lapply(ans, coerce_to_matrix)
+    ## transform to log or logit scale if necessary
     if (scale == "log") {
         ans <- lapply(ans, replace_zeros)
         ans <- lapply(ans, log)
@@ -52,7 +110,9 @@ svd_transform <- function(x, scale = c("log", "logit", "none")) {
         ans <- lapply(ans, replace_zeros_ones)
         ans <- lapply(ans, logit)
     }
-    ans <- lapply(ans, scaled_svd)
+    ## apply svd
+    ans <- lapply(ans, scaled_svd, n = n)
+    ## return
     ans
 }
 
@@ -125,22 +185,24 @@ prepare_svd_probs <- function(x) {
 }
 
 
-
-
-scaled_svd <- function(x, n_component) {
-    checkmate::assert_matrix(x,
-                             min.rows = 1L,
-                             min.cols = 1L)
-    checkmate::assert_numeric(x,
-                              finite = TRUE,
-                              any.missing = FALSE)
-    checkmate::assert_count(n_component,
-                            positive = TRUE)
+#' Given a matrix of rates, calculate
+#' transform using SVD
+#'
+#' @param x Matrix of rates,
+#' probabilities, or means
+#' @param n Number of components
+#'
+#' @returns A named list with two
+#' elements: a vector called 'translate',
+#' and a matrix called 'transform'.
+#'
+#' @noRd
+scaled_svd <- function(x, n) {
     svd <- svd(x = x,
-               nu = n_component,
-               nv = n_component)
+               nu = n,
+               nv = n)
     U <- svd$u
-    s <- seq_len(n_component)
+    s <- seq_len(n)
     D <- diag(svd$d[s])
     V <- svd$v
     mean_V <- colMeans(V)
