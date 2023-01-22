@@ -47,4 +47,11 @@ test_that("'replace_zeros_ones' performs correctly with valid inputs", {
 })
 
 
+## 'scaled_svd' ---------------------------------------------------------------
+
+test_that("'scaled_svd' performs correctly with valid inputs", {
+    
+
+
+
             
