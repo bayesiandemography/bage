@@ -2,7 +2,7 @@
 title: "svd"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{svd}
+  %\VignetteIndexEntry{vig_3_svd}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
