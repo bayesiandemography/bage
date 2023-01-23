@@ -47,7 +47,6 @@
 #' - [fit()] to fit a model
 #' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
-#' - [set_covariate()] to add covariates
 #'
 #' @examples
 #' ## model with exposure
@@ -122,7 +121,6 @@ mod_pois <- function(formula, data, exposure) {
 #' - [fit()] to fit a model
 #' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
-#' - [set_covariate()] to add covariates
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
@@ -192,7 +190,6 @@ mod_binom <- function(formula, data, size) {
 #' - [fit()] to fit a model
 #' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
-#' - [set_covariate()] to add covariates
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,

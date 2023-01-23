@@ -84,15 +84,17 @@ and male rates.
 }
 \examples{
 set.seed(0)
-x <- expand.grid(age = c("0-4", "5-9", "10+"),
+x <- expand.grid(age = 0:10,
                  gender = c("Female", "Male", "Total"),
                  year = 2020:2021,
                  country = LETTERS)
-x$value <- rgamma(n = 468, rate = 0.2)
+x$value <- rgamma(n = nrow(x), shape = 0.2)
 
 ## "Female", "Male", and "Total"
-svd_transform(x)
+tr <- svd_transform(x)
+str(tr)
 
 ## "Female", "Male", "Total", and "concat"
-svd_transform(x, concat = c("Female", "Male"))
+tr_concat <- svd_transform(x, concat = c("Female", "Male"))
+str(tr_concat)
 }

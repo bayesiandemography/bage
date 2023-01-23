@@ -68,6 +68,5 @@ of binomial and normal models
 \item \code{\link[=fit]{fit()}} to fit a model
 \item \code{\link[=simulate]{simulate()}} to create simulated data
 \item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
-\item \code{\link[=set_covariate]{set_covariate()}} to add covariates
 }
 }

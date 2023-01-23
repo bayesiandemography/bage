@@ -17,6 +17,5 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 A \code{bage_mod} object
 }
 \description{
-\subsection{TODO - catch errors, warnings}{
-}
+Fit a model
 }
