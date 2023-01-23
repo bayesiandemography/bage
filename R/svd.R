@@ -1,40 +1,5 @@
 
 ## HAS_TESTS
-#' Prepare a matrix of rates for 
-#' a singular value decomposition
-#'
-#' Prepare a matrix of rates, \code{x},
-#' for a singular value decomposition,
-#' typically via function \code{\link{scaled_svd}}.
-#' The preparation consists of
-#' valdity checking, replacing any
-#' zeros with small modelled values,
-#' and then taking logs.
-#'
-#' @param x A matrix of rates.
-#'
-#' @return A modified version
-#' of \code{x}.
-#'
-#' @seealso \code{\link{scaled_svd}},
-#' \code{\link{prepare_svd_probs}}
-#' @export
-prepare_svd_rates <- function(x) {
-    checkmate::assert_matrix(x,
-                             min.rows = 1L,
-                             min.cols = 1L)
-    checkmate::assert_numeric(x,
-                              lower = 0,
-                              finite = TRUE,
-                              any.missing = FALSE)
-    x <- replace_zeros(x)
-    log(x)
-}
-
-
-    
-
-## HAS_TESTS
 #' Replace zeros in a matrix 'x' of
 #' estimated rates
 #'
@@ -64,6 +29,7 @@ replace_zeros <- function(x) {
     }
     x
 }
+
 
 ## HAS_TESTS
 #' Replace zeros and ones in a matrix 'x' of
@@ -124,6 +90,11 @@ scaled_svd <- function(x, n) {
     S <- diag(apply(V, MARGIN = 2L, FUN = stats::sd))
     transform <- U %*% D %*% S
     translate <- as.numeric(U %*% D %*% m)
+    dn <- dimnames(x)
+    if (!is.null(dn[[1L]])) {
+        dimnames(transform) <- c(dn[1L], list(component = seq_len(n)))
+        names(translate) <- dn[[1L]]
+    }
     list(transform = transform,
          translate = translate)
 }
@@ -201,17 +172,19 @@ scaled_svd <- function(x, n) {
 #'
 #' @examples
 #' set.seed(0)
-#' x <- expand.grid(age = c("0-4", "5-9", "10+"),
+#' x <- expand.grid(age = 0:10,
 #'                  gender = c("Female", "Male", "Total"),
 #'                  year = 2020:2021,
 #'                  country = LETTERS)
-#' x$value <- rgamma(n = 468, rate = 0.2)
+#' x$value <- rgamma(n = nrow(x), shape = 0.2)
 #'
 #' ## "Female", "Male", and "Total"
-#' svd_transform(x)
+#' tr <- svd_transform(x)
+#' str(tr)
 #'
 #' ## "Female", "Male", "Total", and "concat"
-#' svd_transform(x, concat = c("Female", "Male"))
+#' tr_concat <- svd_transform(x, concat = c("Female", "Male"))
+#' str(tr_concat)
 #' @export
 svd_transform <- function(x,
                           n = 5,
@@ -268,6 +241,13 @@ svd_transform <- function(x,
     n <- checkmate::assert_count(n,
                                  positive = TRUE,
                                  coerce = TRUE)
+    n_age <- length(unique(x[[2L]]))
+    if (n > n_age)
+        stop(gettextf("value for '%s' [%d] greater than number of distinct age groups [%d]",
+                      "n",
+                      n,
+                      n_age),
+             .call = FALSE)
     scale <- match.arg(scale)
     levels_sexgender <- unique(x[[1L]])
     has_concat <- length(concat) > 0L
@@ -307,15 +287,16 @@ svd_transform <- function(x,
     make_ans_one_sexgender <- function(level_sexgender) {
         x_tmp <- x[x[[1L]] == level_sexgender, , drop = FALSE]
         x_tmp <- droplevels(x_tmp)
-        tapply(x_tmp[[4L]], x_tmp[2:3], function(y) y)
+        tapply(x_tmp[[4L]], x_tmp[2:3], sum)
     }
     ans <- lapply(levels_sexgender, make_ans_one_sexgender)
     names(ans) <- levels_sexgender
     if (has_concat) {
         x_tmp <- x[x[[1L]] %in% concat, , drop = FALSE]
         x_tmp <- droplevels(x_tmp)
-        x_tmp[[2L]] <- paste(x_tmp[[1L]], x_tmp[[2L]])
-        ans_concat <- tapply(x_tmp[[4L]], x_tmp[2:3], function(y) y)
+        x_tmp <- x[order(match(x_tmp[[1L]], concat)), , drop = FALSE]
+        x_tmp[[2L]] <- paste(x_tmp[[1L]], x_tmp[[2L]], sep = ".")
+        ans_concat <- tapply(x_tmp[[4L]], x_tmp[2:3], sum)
         ans <- c(ans, list(concat = ans_concat))
     }
     ## transform to log or logit scale if necessary

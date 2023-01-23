@@ -52,8 +52,6 @@ generics::fit
 
 #' Fit a model
 #'
-#' ## TODO - catch errors, warnings
-#' 
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
