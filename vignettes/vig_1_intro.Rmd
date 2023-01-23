@@ -1,0 +1,72 @@
+---
+title: "vig_1_intro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{vig_1_intro}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bage)
+library(dplyr)
+library(ggplot2)
+library(ggdist)
+library(poputils)
+```
+
+```{r}
+inj <- droplevels(filter(injuries, age != "60+"))
+mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
+                data = inj,
+                exposure = popn)
+mod
+```
+Current model:
+\begin{align}
+y & \sim \text{Poisson}(\mu w) \\
+\log \mu & = X \beta \\
+\beta & \sim N(\pmb{0}, \pmb{\Sigma})
+\end{align}
+
+(Currently every $\beta$ has a normal prior)
+
+I suggest we add an error term, using the set-up from [Dan Simpson blog entry](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html)
+\begin{align}
+y & \sim \text{Poisson}(\mu u w) \\
+\log \mu & = X \beta \\
+\beta & \sim N(\pmb{0}, \pmb{\Sigma}) \\
+u & \sim \text{Gamma}(\alpha^{-1}, \alpha^{-1})
+\end{align}
+(which can be converted to a negative binomial model).
+
+```{r}
+mod <- mod %>%
+  fit()
+mod
+```
+```{r}
+tidy(mod)
+```
+```{r}
+augment(mod) %>%
+  head()
+```
+
+```{r}
+theme_set(theme_ggdist())
+augment(mod) %>%
+  filter(year == 2018) %>%
+  ggplot(aes(x = age_mid(age), y = .fitted)) +
+  facet_grid(vars(ethnicity), vars(sex)) +
+  geom_lineribbon(aes(ymin = .lower, ymax = .upper)) +
+  geom_point(aes(y = .observed))
+```
+

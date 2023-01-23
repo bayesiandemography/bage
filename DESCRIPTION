@@ -27,6 +27,9 @@ Imports:
     tibble,
     TMB
 Suggests: 
+    dplyr,
+    ggdist,
+    ggplot2,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
