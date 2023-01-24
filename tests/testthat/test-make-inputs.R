@@ -325,28 +325,48 @@ test_that("'make_offset_vec' works with valid inputs - has NA", {
 ## 'make_offset_ones' ---------------------------------------------------
 
 test_that("'make_offset_ones' works with array", {
-    outcome <- array(1:12, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
-    ans_obtained <- make_offset_ones(outcome,
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1:12
+    formula = deaths ~ age + sex + time
+    ans_obtained <- make_offset_ones(formula = formula,
+                                     data = data,
                                      nm_distn = "pois")
-    ans_expected <- make_offset_ones_array(outcome)
+    ans_expected <- make_offset_ones_array(formula = formula,
+                                           data = data)
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_offset_ones' works with vector", {
-    outcome <- 1:10
-    ans_obtained <- make_offset_ones(outcome,
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1:12
+    formula = deaths ~ age + sex + time
+    ans_obtained <- make_offset_ones(formula = formula,
+                                     data = data,
                                      nm_distn = "norm")
-    ans_expected <- make_offset_ones_vec(outcome)
+    ans_expected <- make_offset_ones_vec(data)
     expect_identical(ans_obtained, ans_expected)
 })
 
 
 ## 'make_offset_ones_array' ---------------------------------------------------
 
-test_that("'make_offset_ones_array' works with valid inputs", {
-    outcome <- array(1:12, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
-    ans_obtained <- make_offset_ones_array(outcome)
-    ans_expected <- array(1.0, dim = 3:4, dimnames = list(reg = 1:3, time = 1:4))
+test_that("'make_offset_ones_array' works with valid inputs, all combin present in data", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1:12
+    formula = deaths ~ age + sex + time
+    ans_obtained <- make_offset_ones_array(formula = formula, data = data)
+    ans_expected <- array(1.0, dim = c(3, 2, 2), dimnames = list(age = 0:2, sex = 1:2, time = 2000:2001))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset_ones_array' works with valid inputs, some combin not present in data", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1:12
+    data <- data[-c(3, 11), ]
+    formula = deaths ~ age + sex + time
+    ans_obtained <- make_offset_ones_array(formula = formula, data = data)
+    ans_expected <- array(1.0, dim = c(3, 2, 2), dimnames = list(age = 0:2, sex = 1:2, time = 2000:2001))
+    ans_expected[c(3, 11)] <- 0
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -354,9 +374,10 @@ test_that("'make_offset_ones_array' works with valid inputs", {
 ## 'make_offset_ones_vec' -----------------------------------------------------
 
 test_that("'make_offset_ones_vec' works with valid inputs", {
-    outcome <- rnorm(10)
-    ans_obtained <- make_offset_ones_vec(outcome)
-    ans_expected <- rep(1.0, times = 10)
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- 1:12
+    ans_obtained <- make_offset_ones_vec(data)
+    ans_expected <- rep(1.0, times = 12)
     expect_identical(ans_obtained, ans_expected)
 })
 
