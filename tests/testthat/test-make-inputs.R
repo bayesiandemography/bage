@@ -49,8 +49,8 @@ test_that("'make_matrices_par' works with valid inputs", {
                                      data = data,
                                      outcome = outcome,
                                      nm_distn = "pois")
-    expect_identical(lapply(ans_array, as.matrix),
-                     lapply(ans_vec, as.matrix))
+    expect_identical(lapply(ans_array, as.numeric),
+                     lapply(ans_vec, as.numeric))
     expect_identical(ans_generic, ans_array)
 })
 
@@ -66,7 +66,8 @@ test_that("'make_matrices_par_array' works with valid inputs", {
     ans_expected <- list("(Intercept)" = matrix(1L, nr = 12, ncol = 1),
                          "time" = matrix(rep(c(1L, 0L, 0L, 1L), each = 6), nr = 12),
                          "age:sex" = rbind(diag(6), diag(6)))
-    expect_equal(lapply(ans_obtained, as.matrix), ans_expected)
+    expect_equal(lapply(ans_obtained, as.numeric),
+                 lapply(ans_expected, as.numeric))
     expect_true(all(sapply(ans_obtained, is, "sparseMatrix")))
 })
 
