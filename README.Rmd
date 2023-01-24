@@ -24,10 +24,8 @@ Fast Bayesian estimation and forecasting of age-specific rates.
 
 ## Installation
 
-You can install the development version of bage like so:
-
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+devtools::install_github("bayesiandemography/bage")
 ```
 
 ## Example
