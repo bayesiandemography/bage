@@ -358,35 +358,53 @@ make_offset_vec <- function(vname_offset, data) {
 
 
 ## HAS_TESTS
-#' Make offset consisting entirely of 1s,
+#' Make offset consisting 1s, and possibly 0s,
 #' the same size as outcome
 #'
-#' @param outcome Array or vector holding outcome.
+#' If the return value is an array, then it
+#' contains 0s for combinations of classifying
+#' variables not found in the data.
+#'
+#' @param formula Formula specifying model
+#' @param data A data frame
 #' @param nm_distn Name of the distribution.
 #' 
 #' @returns An array or vector.
 #'
 #' @noRd
-make_offset_ones <- function(outcome, nm_distn) {
+make_offset_ones <- function(formula, data, nm_distn) {
     if (nm_distn %in% c("pois", "binom"))
-        make_offset_ones_array(outcome)
+        make_offset_ones_array(formula = formula,
+                               data = data)
     else
-        make_offset_ones_vec(outcome)
+        make_offset_ones_vec(data)
 }
 
 
 ## HAS_TESTS
-#' Make offset consisting entirely of 1s,
+#' Make offset consisting of 1s and 0s,
 #' the same size as outcome
 #'
-#' @param outcome Array holding outcome.
+#' The return value contains 0s for
+#' combinations of classifying
+#' variables not found in the data.
+#'
+#' @param formula Formula specifying model
+#' @param data A data frame
 #'
 #' @returns An array (with named dimnames)
 #'
 #' @noRd
-make_offset_ones_array <- function(outcome) {
-    ans <- outcome
-    ans[] <- 1.0
+make_offset_ones_array <- function(formula, data) {
+    factors <- attr(stats::terms(formula), "factors")
+    nms_vars <- rownames(factors)
+    formula_xtabs <- paste0("~", paste(nms_vars[-1L], collapse = "+"))
+    formula_xtabs <- stats::as.formula(formula_xtabs)
+    ans <- stats::xtabs(formula_xtabs, data = data)
+    ans <- array(as.double(ans),
+                 dim = dim(ans),
+                 dimnames = dimnames(ans))
+    ans <- 1.0 * (ans > 0)
     ans
 }
 
@@ -395,13 +413,13 @@ make_offset_ones_array <- function(outcome) {
 #' Make offset consisting entirely of 1s,
 #' the same length as outcome
 #'
-#' @param outcome Vector holding outcome.
+#' @param data Data frame
 #'
 #' @returns Vector of doubles.
 #'
 #' @noRd
-make_offset_ones_vec <- function(outcome) {
-    rep(1.0, times = length(outcome))
+make_offset_ones_vec <- function(data) {
+    rep(1.0, times = nrow(data))
 }
 
 

@@ -293,7 +293,8 @@ new_bage_mod <- function(formula,
                               data = data,
                               nm_distn = nm_distn)
     else
-        offset <- make_offset_ones(outcome = outcome,
+        offset <- make_offset_ones(formula = formula,
+                                   data = data,
                                    nm_distn = nm_distn)
     term_par <- make_term_par(formula = formula,
                               data = data)
