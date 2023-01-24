@@ -1,5 +1,5 @@
 ---
-title: "svd"
+title: "vig_3_svd"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{vig_3_svd}
