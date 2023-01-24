@@ -27,6 +27,7 @@ Imports:
     tibble,
     TMB
 Suggests: 
+    covr,
     dplyr,
     ggdist,
     ggplot2,
