@@ -43,10 +43,9 @@
 #' ethnicity, and year, plus estimates of the population
 #' at risk.
 #'
-#' @format A data frame with 988 rows and the
+#' @format A data frame with 912 rows and the
 #' following variables:
-#' - `age`: Age, in 5-year age groups, with open age
-#'    group of 60+
+#' - `age`: Age, in 5-year age groups, up to age 55-59.
 #' - `sex`: `"Female"` or `"Male"`
 #' - `ethnicity`: `"Maori"` or `"Non Maori"`
 #' - `year`: Calendar year

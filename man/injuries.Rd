@@ -5,11 +5,10 @@
 \alias{injuries}
 \title{Fatal injuries in New Zealand}
 \format{
-A data frame with 988 rows and the
+A data frame with 912 rows and the
 following variables:
 \itemize{
-\item \code{age}: Age, in 5-year age groups, with open age
-group of 60+
+\item \code{age}: Age, in 5-year age groups, up to age 55-59.
 \item \code{sex}: \code{"Female"} or \code{"Male"}
 \item \code{ethnicity}: \code{"Maori"} or \code{"Non Maori"}
 \item \code{year}: Calendar year
