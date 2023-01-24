@@ -56,7 +56,9 @@ popn <- inner_join(popn_maori, popn_total, by = c("age", "sex", "year")) %>%
 injuries <- inner_join(injuries_all, popn, by = c("age", "sex", "year", "ethnicity")) %>%
     arrange(year, ethnicity, sex, age) %>%
     mutate(injuries = as.integer(injuries),
-           popn = as.integer(popn))
+           popn = as.integer(popn)) %>%
+    filter(age_upper(age) <= 60) %>%
+    droplevels()
 
 save(injuries,
      file = "../data/injuries.rda",

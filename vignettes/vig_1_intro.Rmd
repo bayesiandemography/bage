@@ -19,13 +19,11 @@ library(bage)
 library(dplyr)
 library(ggplot2)
 library(ggdist)
-library(poputils)
 ```
 
 ```{r}
-inj <- droplevels(filter(injuries, age != "60+"))
 mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
-                data = inj,
+                data = injuries,
                 exposure = popn)
 mod
 ```
@@ -64,9 +62,22 @@ augment(mod) %>%
 theme_set(theme_ggdist())
 augment(mod) %>%
   filter(year == 2018) %>%
-  ggplot(aes(x = age_mid(age), y = .fitted)) +
+  ggplot(aes(x = age, y = .fitted)) +
   facet_grid(vars(ethnicity), vars(sex)) +
-  geom_lineribbon(aes(ymin = .lower, ymax = .upper)) +
-  geom_point(aes(y = .observed))
+  geom_point(aes(y = .observed), col = "grey") +
+  geom_pointinterval(aes(ymin = .lower, ymax = .upper), col = "red")
 ```
 
+
+
+
+```{r}
+augment(mod) %>%
+  filter(sex == "Female", 
+         ethnicity == "Maori",
+         age %in% c("0-4", "20-24", "40-44")) %>%
+  ggplot(aes(x = year, y = .fitted)) +
+  facet_grid(vars(age)) +
+  geom_point(aes(y = .observed), col = "grey") +
+  geom_pointinterval(aes(ymin = .lower, ymax = .upper), col = "red")
+```
