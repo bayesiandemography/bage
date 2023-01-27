@@ -14,6 +14,13 @@ using namespace tmbutils;
 // Assume inputs all valid (checking done in R).
 
 template <class Type>
+Type logpost_known(vector<Type> par,
+	 	   vector<Type> hyper,
+		   vector<Type> consts) {
+  return 0;
+}
+
+template <class Type>
 Type logpost_norm(vector<Type> par,
 		  vector<Type> hyper,
 		  vector<Type> consts) {
@@ -67,6 +74,9 @@ Type logpost(vector<Type> par,
 	     int i_prior) {
   Type ans = 0;
   switch(i_prior) {
+  case 0:
+    ans = logpost_known(par, hyper, consts);
+    break;
   case 1:
     ans = logpost_norm(par, hyper, consts);
     break;
@@ -110,12 +120,12 @@ Type objective_function<Type>::operator() ()
   DATA_STRING(nm_distn);
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
-  DATA_FACTOR(term_par);       
+  DATA_FACTOR(terms_par);       
   DATA_STRUCT(matrices_par, LIST_SM_t); 
   DATA_IVECTOR(i_prior);        
-  DATA_FACTOR(term_hyper);
+  DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
-  DATA_FACTOR(term_consts);
+  DATA_FACTOR(terms_consts);
 
   PARAMETER_VECTOR(par);        
   PARAMETER_VECTOR(hyper);
@@ -125,9 +135,9 @@ Type objective_function<Type>::operator() ()
 
   int n_outcome = outcome.size();
   int n_term = i_prior.size();
-  vector<vector<Type> > par_split = split(par, term_par);       
-  vector<vector<Type> > hyper_split = split(hyper, term_hyper); 
-  vector<vector<Type> > consts_split = split(consts, term_consts); 
+  vector<vector<Type> > par_split = split(par, terms_par);       
+  vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
+  vector<vector<Type> > consts_split = split(consts, terms_consts); 
 
   vector<Type> linear_pred(n_outcome);
   linear_pred.fill(0);

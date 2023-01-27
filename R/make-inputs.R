@@ -1,21 +1,5 @@
 
 ## HAS_TESTS
-#' Extract 'n_hyper' attribute from
-#' object of class 'bage_prior'
-#'
-#' 'n_hyper' is the number of hyper-parameters.
-#'
-#' @param prior An object of class 'bage_prior'.
-#'
-#' @returns An integer.
-#'
-#' @noRd
-get_n_hyper <- function(prior) {
-    prior$n_hyper
-}
-
-
-## HAS_TESTS
 #' Make 'consts'
 #'
 #' Make vector to hold constants for priors.
@@ -32,10 +16,9 @@ get_n_hyper <- function(prior) {
 #'
 #' @noRd
 make_consts <- function(priors) {
-    vapply(priors,
-           FUN = function(x) x$consts,
-           FUN.VALUE = 0.0,
-           USE.NAMES = FALSE)
+    ans <- lapply(priors, function(x) x$consts)
+    ans <- unlist(ans, use.names = FALSE)
+    ans
 }
 
 
@@ -58,7 +41,7 @@ make_consts <- function(priors) {
 #' @noRd
 make_hyper <- function(priors) {
     ans <- rep(0, times = length(priors))
-    lengths <- vapply(priors, get_n_hyper, 0L)
+    lengths <- vapply(priors, function(x) x$n_hyper, 0L)
     ans <- rep(ans, times = lengths)
     ans
 }
@@ -87,6 +70,47 @@ make_i_prior <- function(priors) {
 }
 
 
+#' Make mapping used by MakeADFun
+#'
+#' Make 'map' argument to be passed to
+#' MakeADFun. Normally just NULL,
+#' but consists of a single factor
+#' if one or more terms is being treated
+#' as known.
+#'
+#' @param priors A named list of priors.
+#' @param terms_par Factor identifying
+#' which term each element of 'par' the
+#' parameter belongs to.
+#'
+#' @returns NULL or a list with
+#' a single element called 'par'.
+#'
+#' @noRd
+make_map <- function(priors, terms_par) {
+    n <- length(terms_par)
+    map_par <- rep(0, times = n)
+    map_par <- split(map_par, terms_par)
+    for (i_term in seq_along(priors)) {
+        prior <- priors[[i_term]]
+        is_known <- inherits(prior, "bage_prior_known")
+        if (is_known)
+            map_par[[i_term]][] <- NA
+    }
+    map_par <- unlist(map_par, use.names = FALSE)
+    is_na <- is.na(map_par)
+    n_na <- sum(is_na)
+    if (n_na == 0L)
+        ans <- NULL
+    else {
+        map_par[!is_na] <- seq_len(n - n_na)
+        map_par <- factor(map_par)
+        ans <- list(par = map_par)
+    }
+    ans
+}   
+
+
 
 ## HAS_TESTS
 #' Make list of matrices mapping terms to outcome
@@ -112,7 +136,6 @@ make_matrices_par <- function(formula, data, outcome, nm_distn) {
         make_matrices_par_array(formula = formula,
                                 outcome = outcome)
 }                              
-
 
 
 ## HAS_TESTS
@@ -514,6 +537,38 @@ make_outcome_vec <- function(formula, data) {
 
 
 ## HAS_TESTS
+#' Make vector containing parameters for
+#' intercept, main effects, and interactions
+#'
+#' Return value is 0 where a parameter is being estimated,
+#' and potentially non-zero where a parameter is
+#' being treated as known.
+#'
+#' @param priors A named list of priors.
+#' @param terms_par Factor identifying
+#' which term each element of 'par' the
+#' parameter belongs to.
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_par <- function(priors, terms_par) {
+    ans <- rep(0, times = length(terms_par))
+    ans <- split(ans, terms_par)
+    for (i_term in seq_along(priors)) {
+        prior <- priors[[i_term]]
+        is_known <- inherits(prior, "bage_prior_known")
+        if (is_known) {
+            values <- prior$specific$values
+            ans[[i_term]] <- values
+        }
+    }
+    ans <- unlist(ans, use.names = FALSE)
+    ans
+}
+
+
+## HAS_TESTS
 #' Make default priors
 #'
 #' Make named list holding default priors.
@@ -529,7 +584,7 @@ make_outcome_vec <- function(formula, data) {
 make_priors <- function(formula) {
     scale_intercept <- 10
     nms <- attr(stats::terms(formula), "term.labels")
-    ans <- rep(list(new_bage_prior_norm()), times = length(nms))
+    ans <- rep(list(N()), times = length(nms))
     names(ans) <- nms
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept) {
@@ -546,8 +601,11 @@ make_priors <- function(formula) {
 #' Make factor the same length as 'consts',
 #' giving the name of the term
 #' that the each element belongs to.
+#' Note that the levels of the factor
+#' includes all priors, not just those
+#' with constants.
 #'
-#' We generate 'term_consts' when function 'fit'
+#' We generate 'terms_consts' when function 'fit'
 #' is called, rather than storing it in the
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
@@ -559,7 +617,7 @@ make_priors <- function(formula) {
 #' as 'consts'.
 #'
 #' @noRd
-make_term_consts <- function(priors) {
+make_terms_consts <- function(priors) {
     nms_terms <- names(priors)
     lengths <- vapply(priors, function(x) length(x$consts), 0L)
     ans <- rep(nms_terms, times = lengths)
@@ -574,8 +632,11 @@ make_term_consts <- function(priors) {
 #' Make factor the same length as 'hyper',
 #' giving the name of the term
 #' that the each element belongs to.
+#' Note that the levels of the factor
+#' includes all priors, not just those
+#' with constants.
 #'
-#' We generate 'term_hyper' when function 'fit'
+#' We generate 'terms_hyper' when function 'fit'
 #' is called, rather than storing it in the
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
@@ -587,9 +648,9 @@ make_term_consts <- function(priors) {
 #' as 'hyper'.
 #'
 #' @noRd
-make_term_hyper <- function(priors) {
+make_terms_hyper <- function(priors) {
     nms_terms <- names(priors)
-    lengths <- vapply(priors, get_n_hyper, 0L)
+    lengths <- vapply(priors, function(x) x$n_hyper, 0L)
     ans <- rep(nms_terms, times = lengths)
     ans <- factor(ans, levels = nms_terms)
     ans
@@ -603,7 +664,7 @@ make_term_hyper <- function(priors) {
 #' giving the name of the term
 #' that the each element belongs to.
 #'
-#' We generate 'term_par' when the 'bage_mod'
+#' We generate 'terms_par' when the 'bage_mod'
 #' object is first created, since the number
 #' and lengths of the terms is fixed from that
 #' point.
@@ -615,7 +676,7 @@ make_term_hyper <- function(priors) {
 #' @returns A factor.
 #'
 #' @noRd
-make_term_par <- function(formula, data) {
+make_terms_par <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
@@ -635,4 +696,9 @@ make_term_par <- function(formula, data) {
 
 
 
+   
+                   
+                   
+    
+    
     

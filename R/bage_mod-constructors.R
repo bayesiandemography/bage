@@ -225,15 +225,15 @@ mod_norm <- function(formula, data, weights) {
 #' a system model (ie a model of demographic rates.)
 #'
 #' `new_bage_mod()` creates components
-#' `par`, `term_par`, `matrices_par`
+#' `terms_par` and `matrices_par`
 #' and stores them in the model object. These
 #' components can all be determined from `formula`
 #' and `data`, and do not subsequently change.
 #' and do not subsequently change.
 #'
 #' `new_bage_mod()` does not create components
-#' `index_priors`, `hyper`, `term_hyper`,
-#' `consts`, or `term_consts`,
+#' `index_priors`, `par, `hyper`, `terms_hyper`,
+#' `consts`, or `terms_consts`,
 #' since these depend on `priors` which can
 #' subsequently change via a call to `set_prior()`.
 #' Instead, these components are all derived by
@@ -296,9 +296,8 @@ new_bage_mod <- function(formula,
         offset <- make_offset_ones(formula = formula,
                                    data = data,
                                    nm_distn = nm_distn)
-    term_par <- make_term_par(formula = formula,
+    terms_par <- make_terms_par(formula = formula,
                               data = data)
-    par <- rep(0.0, times = length(term_par))
     priors <- make_priors(formula)
     matrices_par <- make_matrices_par(formula = formula,
                                       data = data,
@@ -316,7 +315,7 @@ new_bage_mod <- function(formula,
                 nm_offset = nm_offset,
                 priors = priors,
                 par = par,
-                term_par = term_par,
+                terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
                 std = std,

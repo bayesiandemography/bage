@@ -73,7 +73,7 @@ test_that("'make_combined_matrix_par' works with valid inputs", {
                     exposure = popn)
     ans_obtained <- make_combined_matrix_par(mod)
     expect_identical(nrow(ans_obtained), nrow(data))
-    expect_identical(ncol(ans_obtained), length(mod$par))
+    expect_identical(ncol(ans_obtained), length(mod$terms_par))
 })
 
 
@@ -93,7 +93,7 @@ test_that("'make_draws_par', 'make_draws_linear_pred', 'make_draws_fitted', 'mak
     ## 'make_draws_par'
     set.seed(1)
     draws_par <- make_draws_par(mod)
-    expect_identical(dim(draws_par), c(length(mod$par), mod$n_draw))
+    expect_identical(dim(draws_par), c(length(mod$terms_par), mod$n_draw))
     expect_equal(rowMeans(draws_par), unlist(mod$est$par), tolerance = 0.1)
     ## 'make_draws_linear_pred'
     set.seed(1)
