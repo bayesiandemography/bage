@@ -1,12 +1,4 @@
 
-## 'get_n_hyper' --------------------------------------------------------------
-
-test_that("'get_n_hyper' works with valid inputs", {
-    prior <- N()
-    expect_identical(get_n_hyper(prior), 1L)
-})
-
-
 ## 'make_consts' ---------------------------------------------------------------
 
 test_that("'make_consts' works with valid inputs", {
@@ -32,6 +24,25 @@ test_that("'make_hyper' works with valid inputs", {
 test_that("'make_i_prior' works with valid inputs", {
     ans_obtained <- make_i_prior(list(a = N(), b = RW(), c = N()))
     ans_expected <- c(a = 1L, b = 2L, c = 1L)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_map' -----------------------------------------------------------------
+
+test_that("'make_map' works with no parameters treated as known", {
+    priors <- list(N(), N())
+    terms_par <- factor(c(1, 2, 2, 2))
+    ans_obtained <- make_map(priors = priors, terms_par = terms_par)
+    ans_expected <- NULL
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_map' works with some parameters treated as known", {
+    priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
+    terms_par <- factor(c(1, 2, 2, 2, 3, 3, 4, 4, 4))
+    ans_obtained <- make_map(priors = priors, terms_par = terms_par)
+    ans_expected <- list(par = factor(c(NA, 1:3, NA, NA, 4:6)))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -511,31 +522,42 @@ test_that("'make_outcome_vec' works with valid inputs, two non-NA", {
 })
 
 
-## 'make_term_consts' ---------------------------------------------------------
+## 'make_par' -----------------------------------------------------------------
 
-test_that("'make_term_consts' works with valid inputs", {
-    ans_obtained <- make_term_consts(list(a = N(), b = RW(), c = N()))
+test_that("'make_par' works with valid inputs", {
+    priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
+    terms_par <- factor(c(1, 2, 2, 2, 3, 3, 4, 4, 4))
+    ans_obtained <- make_par(priors = priors, terms_par = terms_par)
+    ans_expected <- c(-3, 0, 0, 0, 0.1, -0.1, 0, 0, 0)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_terms_consts' --------------------------------------------------------
+
+test_that("'make_terms_consts' works with valid inputs", {
+    ans_obtained <- make_terms_consts(list(a = N(), b = RW(), c = Known(1:3), d = N()))
+    ans_expected <- factor(c("a", "b", "d"), levels = c("a", "b", "c", "d"))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_terms_hyper' ---------------------------------------------------------
+
+test_that("'make_terms_hyper' works with valid inputs", {
+    ans_obtained <- make_terms_hyper(list(a = N(), b = RW(), c = N()))
     ans_expected <- factor(c("a", "b", "c"))
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_term_hyper' ----------------------------------------------------------
+## 'make_terms_par' -----------------------------------------------------------
 
-test_that("'make_term_hyper' works with valid inputs", {
-    ans_obtained <- make_term_hyper(list(a = N(), b = RW(), c = N()))
-    ans_expected <- factor(c("a", "b", "c"))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_term_par' ------------------------------------------------------------
-
-test_that("'make_term_par' works with valid inputs", {
+test_that("'make_terms_par' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- 1
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_term_par(formula = formula, data = data)
+    ans_obtained <- make_terms_par(formula = formula, data = data)
     ans_expected <- factor(rep(c("(Intercept)", "time", "age:sex"),
                                times = c(1, 2, 6)),
                            levels = c("(Intercept)", "time", "age:sex"))

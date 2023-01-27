@@ -62,31 +62,37 @@ generics::fit
 #' @export    
 fit.bage_mod <- function(object, ...) {
     priors <- object$priors
+    terms_par <- object$terms_par
     i_prior <- make_i_prior(priors)
-    hyper <- make_hyper(priors)
-    term_hyper <- make_term_hyper(priors)
     consts <- make_consts(priors)
-    term_consts <- make_term_consts(priors)
+    terms_consts <- make_terms_consts(priors)
+    hyper <- make_hyper(priors)
+    terms_hyper <- make_terms_hyper(priors)
+    par <- make_par(priors = priors,
+                    terms_par = terms_par)
     data <- list(nm_distn = object$nm_distn,
                  outcome = object$outcome,
                  offset = object$offset,
-                 term_par = object$term_par,
+                 terms_par = object$terms_par,
                  matrices_par = object$matrices_par,
                  i_prior = i_prior,
-                 term_hyper = term_hyper,
+                 terms_hyper = terms_hyper,
                  consts = consts,
-                 term_consts = term_consts)
-    parameters <- list(par = object$par,
+                 terms_consts = terms_consts)
+    parameters <- list(par = par,
                        hyper = hyper)
+    map <- make_map(priors = priors,
+                    terms_par = terms_par)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
+                        map = map,
                         DLL = "bage",
                         random = "par",
                         silent = TRUE)
-    fit <- stats::nlminb(start = f$par,
-                         objective = f$fn,
-                         gradient = f$gr,
-                         silent = TRUE)
+    stats::nlminb(start = f$par,
+                  objective = f$fn,
+                  gradient = f$gr,
+                  silent = TRUE)
     sdreport <- TMB::sdreport(f,
                               bias.correct = TRUE,
                               getJointPrecision = TRUE)

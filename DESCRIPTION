@@ -40,5 +40,4 @@ LinkingTo:
     TMB,
     RcppEigen
 Roxygen: list(markdown = TRUE)
-SystemRequirements: C++11
 VignetteBuilder: knitr

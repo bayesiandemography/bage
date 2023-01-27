@@ -80,9 +80,9 @@ get_inv_transform <- function(mod) {
 #'
 #' @noRd
 make_terms_est <- function(mod) {
-    term_par <- mod$term_par
+    terms_par <- mod$terms_par
     est <- mod$est$par
-    split(est, term_par)
+    split(est, terms_par)
 }
 
 
@@ -95,9 +95,9 @@ make_terms_est <- function(mod) {
 #'
 #' @noRd
 make_terms_std <- function(mod) {
-    term_par <- mod$term_par
+    terms_par <- mod$terms_par
     std <- mod$std$par
-    split(std, term_par)
+    split(std, terms_par)
 }
 
 
