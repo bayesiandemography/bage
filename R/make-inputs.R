@@ -93,7 +93,7 @@ make_map <- function(priors, terms_par) {
     map_par <- split(map_par, terms_par)
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
-        is_known <- inherits(prior, "bage_prior_known")
+        is_known <- is_known(prior)
         if (is_known)
             map_par[[i_term]][] <- NA
     }
@@ -557,9 +557,9 @@ make_par <- function(priors, terms_par) {
     ans <- split(ans, terms_par)
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
-        is_known <- inherits(prior, "bage_prior_known")
+        is_known <- is_known(prior)
         if (is_known) {
-            values <- prior$specific$values
+            values <- values_known(prior)
             ans[[i_term]] <- values
         }
     }
