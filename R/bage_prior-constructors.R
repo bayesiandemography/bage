@@ -21,7 +21,8 @@
 Known <- function(values) {
     values <- checkmate::assert_numeric(values,
                                         finite = TRUE,
-                                        any.missing = FALSE)
+                                        any.missing = FALSE,
+                                        min.len = 1L)
     values <- as.double(values)
     new_bage_prior_known(values = values)
 }
