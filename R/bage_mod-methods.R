@@ -130,15 +130,19 @@ generics::tidy
 #' tidy(mod)
 #' @export
 tidy.bage_mod <- function(x, ...) {
-    is_fitted <- !is.null(x$est)
-    if (!is_fitted)
-        stop(gettext("model has not been fitted yet : need to call function 'fit'?"),
-             call. = FALSE)                     
-    terms_est <- make_terms_est(x)
-    term <- names(terms_est)
-    df <- vapply(terms_est, length, 0L)
-    std.dev <- vapply(terms_est, stats::sd, 0)
-    tibble::tibble(term, df, std.dev)
+    terms_est <- x$est$par
+    terms_par <- x$terms_par
+    priors <- x$priors
+    term <- names(priors)
+    spec <- vapply(priors, str_call_prior, "")
+    n <- as.integer(table(terms_par))
+    ans <- tibble::tibble(term, spec, n)
+    is_fitted <- !is.null(terms_est)
+    if (is_fitted) {
+        terms_est <- split(terms_est, terms_par)
+        ans$sd <- vapply(terms_est, stats::sd, 0)
+    }
+    ans
 }
 
 

@@ -96,6 +96,57 @@ is_known.bage_prior <- function(prior) FALSE
 is_known.bage_prior_known <- function(prior) TRUE
 
 
+## 'str_call_prior' -----------------------------------------------------------
+
+str_call_prior <- function(prior) {
+    UseMethod("str_call_prior")
+}
+
+#' @export
+str_call_prior.bage_prior_known <- function(prior) {
+    values <- values_known(prior)
+    n <- length(values)
+    if (n == 1L)
+        inner <- sprintf("%s", values)
+    else if (n <= 5)
+        inner <- sprintf("c(%s)", paste(values, collapse = ","))
+    else
+        inner <- sprintf("c(%s,...,%s)", values[[1L]], values[[n]])
+    sprintf("Known(%s)", inner)
+}
+
+
+#' @export
+str_call_prior.bage_prior_norm <- function(prior) {
+    scale <- prior$specific$scale
+    if (isTRUE(all.equal(scale, 1)))
+        "N()"
+    else
+        sprintf("N(scale=%s)", scale)
+}
+
+#' @export
+str_call_prior.bage_prior_rw <- function(prior) {
+    scale <- prior$specific$scale
+    if (isTRUE(all.equal(scale, 1)))
+        "RW()"
+    else
+        sprintf("RW(scale=%s)", scale)
+}
+
+#' @export
+str_call_prior.bage_prior_rw2 <- function(prior) {
+    scale <- prior$specific$scale
+    if (isTRUE(all.equal(scale, 1)))
+        "RW2()"
+    else
+        sprintf("RW2(scale=%s)", scale)
+}
+
+
+
+
+
 ## 'values_known' -------------------------------------------------------------
 
 #' Given a prior that treats a term as known,
