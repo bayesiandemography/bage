@@ -12,13 +12,8 @@ using namespace tmbutils;
 // Functions to calculation log-density of priors
 // for main effects and interactions.
 // Assume inputs all valid (checking done in R).
-
-template <class Type>
-Type logpost_known(vector<Type> par,
-	 	   vector<Type> hyper,
-		   vector<Type> consts) {
-  return 0;
-}
+// Note that the 'Known' prior does not have
+// an associated 'logpost' function.
 
 template <class Type>
 Type logpost_norm(vector<Type> par,
@@ -74,9 +69,6 @@ Type logpost(vector<Type> par,
 	     int i_prior) {
   Type ans = 0;
   switch(i_prior) {
-  case 0:
-    ans = logpost_known(par, hyper, consts);
-    break;
   case 1:
     ans = logpost_norm(par, hyper, consts);
     break;
@@ -154,11 +146,13 @@ Type objective_function<Type>::operator() ()
 
   // contribution to log posterior from priors
   for (int i_term = 0; i_term < n_term; i_term++) {
-    vector<Type> par_term = par_split[i_term];
-    vector<Type> hyper_term = hyper_split[i_term];
-    vector<Type> consts_term = consts_split[i_term];
     int i_prior_term = i_prior[i_term];
-    ans -= logpost(par_term, hyper_term, consts_term, i_prior_term);
+    if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
+      vector<Type> par_term = par_split[i_term];
+      vector<Type> hyper_term = hyper_split[i_term];
+      vector<Type> consts_term = consts_split[i_term];
+      ans -= logpost(par_term, hyper_term, consts_term, i_prior_term);
+    }
   }
 
   // contribution to log posterior from data

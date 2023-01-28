@@ -87,21 +87,6 @@ make_terms_est <- function(mod) {
 
 
 ## HAS_TESTS
-#' Extract standard errors for terms
-#'
-#' @param mod A fitted model
-#'
-#' @returns A named list.
-#'
-#' @noRd
-make_terms_std <- function(mod) {
-    terms_par <- mod$terms_par
-    std <- mod$std$par
-    split(std, terms_par)
-}
-
-
-## HAS_TESTS
 #' Combine map matrices for individual terms
 #'
 #' Combine map matrices for individual terms to
@@ -127,6 +112,10 @@ make_combined_matrix_par <- function(mod) {
 #' and interactions, but not hyper-parameters.
 #' Number of draws governed by 'n_draw'.
 #'
+#' Need to allow the fact that, if Known
+#' priors used, some parameters are treated
+#' as fixed and known.
+#'
 #' @param mod A fitted object of class 'bage_mod'.
 #'
 #' @returns A tibble with 'n_draw' columns.
@@ -136,13 +125,37 @@ make_draws_par <- function(mod) {
     mean_par <- mod$est$par
     prec <- mod$prec
     n_draw <- mod$n_draw
-    mean_par <- unlist(mean_par, use.names = FALSE)
-    n_par <- length(mean_par)
-    s_par <- seq_len(n_par)
-    prec_par <- prec[s_par, s_par, drop = FALSE]
-    rmvn(n = n_draw,
-         mean = mean_par,
-         prec = prec_par)
+    priors <- mod$priors
+    terms_par <- mod$terms_par
+    is_known <- vapply(priors, is_known, FALSE)
+    mean_par <- split(mean_par, terms_par)
+    mean_par_unknown <- mean_par[!is_known]
+    mean_par_unknown <- unlist(mean_par_unknown, use.names = FALSE)
+    n_par_unknown <- length(mean_par_unknown)
+    s_par_unknown <- seq_len(n_par_unknown)
+    V1 <- prec[s_par_unknown, s_par_unknown, drop = FALSE]
+    V2 <- prec[-s_par_unknown, -s_par_unknown, drop = FALSE]
+    R <- prec[-s_par_unknown, s_par_unknown, drop = FALSE]
+    prec_par_unknown <- V1 - Matrix::crossprod(R, Matrix::solve(V2, R))
+    ans <- rmvn(n = n_draw,
+                mean = mean_par_unknown,
+                prec = prec_par_unknown)
+    if (any(is_known)) {
+        par_known <- unlist(mean_par[is_known], use.names = FALSE)
+        ans_known <- matrix(par_known,
+                            nrow = length(par_known),
+                            ncol = n_draw)
+        ans <- rbind(ans, ans_known)
+        n_ans <- nrow(ans)
+        i_current <- seq_len(n_ans)
+        i_current <- split(i_current, terms_par)
+        i_current <- c(i_current[!is_known], i_current[is_known])
+        i_current <- unlist(i_current, use.names = FALSE)
+        i_target <- seq_len(n_ans)
+        row <- match(i_target, i_current)
+        ans <- ans[row, ]
+    }
+    ans    
 }
 
 

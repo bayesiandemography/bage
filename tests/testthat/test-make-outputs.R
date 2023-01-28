@@ -116,10 +116,38 @@ test_that("'make_draws_par', 'make_draws_linear_pred', 'make_draws_fitted', 'mak
     expect_equal(observed, obs_exp)
 })
 
+test_that("'make_draws_par' works with Known priors", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, `(Intercept)` ~ Known(-1))
+    mod <- set_prior(mod, sex ~ Known(c(-0.1, 0.1)))    
+    mod <- fit(mod)
+    mod <- set_n_draw(mod, n_draw = 100L)
+    set.seed(1)
+    ans_obtained <- make_draws_par(mod)
+    set.seed(1)
+    mean <- mod$est$par[2:11]
+    V1 <- mod$prec[1:10, 1:10]
+    V2 <- mod$prec[11, 11]
+    R <- as.double(mod$prec[11, 1:10])
+    prec <- V1 - outer(R, R) / V2
+    ans_expected <- rmvn(n = 100, mean = mean, prec = prec)
+    ans_expected <- rbind(rep(mod$est$par[1], 100),
+                          ans_expected,
+                          matrix(mod$est$par[12:13], nr = 2, nc = 100))
+    expect_equal(ans_obtained, ans_expected, tolerance = 0.02)
+})
 
-## 'make_terms_est', 'make_terms_std' -----------------------------------------
 
-test_that("'make_terms_est', 'make_terms_std' work with valid inputs", {
+## 'make_terms_est' -----------------------------------------------------------
+
+test_that("'make_terms_est' work with valid inputs", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -133,67 +161,10 @@ test_that("'make_terms_est', 'make_terms_std' work with valid inputs", {
     expect_identical(names(ans_obtained), names(mod$priors))
     expect_identical(as.numeric(unlist(ans_obtained)),
                      as.numeric(unlist(mod$est$par)))
-    ans_obtained <- make_terms_std(mod)
-    expect_identical(names(ans_obtained), names(mod$priors))
-    expect_identical(as.numeric(unlist(ans_obtained)),
-                     as.numeric(unlist(mod$std$par)))
 })
 
-## ## 'make_linear_pred_mean' ----------------------------------------------------
 
-## test_that("'make_linear_pred_mean' works with valid inputs", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age:sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- fit(mod)
-##     ans_obtained <- make_linear_pred_mean(mod)
-##     ans_expected <- mod$est$par[1L] +
-##         rep(mod$est$par[2:7], each = 20) +
-##         mod$est$par[8:27]
-##     expect_identical(ans_obtained, ans_expected)
-## })
-
-
-## 'make_fitted_point', 'make_lower_upper' ------------------------------------
-
-## test_that("'make_fitted_point', 'make_lower_upper' work with valid inputs", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age:sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- fit(mod)
-##     ## make_fitted_point
-##     ans_obtained <- make_fitted_point(mod)
-##     log_mean <- mod$est$par[1L] +
-##         rep(mod$est$par[2:7], each = 20) +
-##         mod$est$par[8:27]
-##     log_mean <- as.double(aperm(array(log_mean, dim = c(10, 2, 6)),
-##                                 perm = c(1, 3, 2)))
-##     ans_expected <- exp(log_mean)
-##     expect_identical(ans_obtained, ans_expected)
-##     ## make_lower_upper
-##     ans_obtained <- make_lower_upper(mod, interval = 0.9)
-##     log_sd <- sqrt(mod$std$par[1L]^2 +
-##                    rep(mod$std$par[2:7], each = 20)^2 +
-##                    mod$std$par[8:27]^2)
-##     log_sd <- as.double(aperm(array(log_sd, dim = c(10, 2, 6)),
-##                               perm = c(1, 3, 2)))
-##     lower_tr <- qnorm(0.05, mean = log_mean, sd = log_sd)
-##     upper_tr <- qnorm(0.95, mean = log_mean, sd = log_sd)
-##     ans_expected <- list(lower = exp(lower_tr),
-##                          upper = exp(upper_tr))
-##     expect_identical(ans_obtained, ans_expected)
-## })
-
+## 'rmvn' ---------------------------------------------------------------------
 
 test_that("'rmvn' gives correct answer with valid inputs", {
     set.seed(0)
