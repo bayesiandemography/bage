@@ -54,8 +54,7 @@ mod <- mod_binom(oneperson ~ age:region + age:year,
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_norm]{mod_norm()}} for specification
 of Poisson and normal models
-\item \code{\link[=fit]{fit()}} to fit a model
-\item \code{\link[=simulate]{simulate()}} to create simulated data
 \item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
+\item \code{\link[=fit]{fit()}} to fit a model
 }
 }

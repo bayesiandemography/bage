@@ -62,8 +62,7 @@ mod <- mod_norm(value ~ diag:age + year,
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}} for specification
 of Poisson and binomial models
-\item \code{\link[=fit]{fit()}} to fit a model
-\item \code{\link[=simulate]{simulate()}} to create simulated data
 \item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
+\item \code{\link[=fit]{fit()}} to fit a model
 }
 }

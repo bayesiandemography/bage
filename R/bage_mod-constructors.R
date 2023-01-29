@@ -39,14 +39,13 @@
 #' @param exposure Name of the exposure variable,
 #' or a `1`.
 #'
-#' @returns An object of class `bage_mod`.
+#' @returns An object of class `bage_mod_pois`.
 #'
 #' @seealso
 #' - [mod_binom()] and [mod_norm()] for specification
 #' of binomial and normal models
-#' - [fit()] to fit a model
-#' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
+#' - [fit()] to fit a model
 #'
 #' @examples
 #' ## model with exposure
@@ -60,24 +59,62 @@
 #'                 exposure = 1)
 #' @export
 mod_pois <- function(formula, data, exposure) {
-    nm_distn <- "pois"
+    ## check individual inputs
+    checkmate::assert_formula(formula)
+    check_formula_has_response(formula)
+    check_formula_has_predictors(formula)
+    checkmate::assert_data_frame(data)
+    ## process 'exposure'
     exposure <- deparse1(substitute(exposure))
     exposure <- gsub("^\\\"|\\\"$", "", exposure)
-    is_mod_with_offset <- !identical(exposure, "1")
-    if (is_mod_with_offset) {
-        vname_offset <- exposure
-        nm_offset <- "exposure"
+    is_offset_specified <- !identical(exposure, "1")
+    vname_offset <- if (is_offset_specified) exposure else NULL
+    ## check consistency between inputs
+    check_formula_vnames_in_data(formula = formula,
+                                 data = data)
+    check_response_nonneg(formula = formula,
+                          data = data,
+                          nm_distn = "pois")
+    if (is_offset_specified) {
+        check_offset_in_data(vname_offset = vname_offset,
+                             nm_offset = nm_offset,
+                             data = data)
+        check_offset_nonneg(vname_offset = vname_offset,
+                            nm_offset = nm_offset,
+                            data = data)
     }
-    else {
-        vname_offset <- NULL
-        nm_offset <- NULL
-    }
-    new_bage_mod(formula = formula,
-                 data = data,
-                 nm_distn = nm_distn,
-                 is_mod_with_offset = is_mod_with_offset,
-                 vname_offset = vname_offset,
-                 nm_offset = nm_offset)
+    ## process inputs
+    outcome <- make_outcome_array(formula = formula,
+                                  data = data)
+    if (is_offset_specified)
+        offset <- make_offset_array(formula = formula,
+                                    vname_offset = vname_offset,
+                                    data = data)
+    else
+        offset <- make_offset_ones_array(formula = formula,
+                                         data = data)
+    priors <- make_priors(formula)
+    terms_par <- make_terms_par(formula = formula,
+                                data = data)
+    matrices_par <- make_matrices_par_array(formula = formula,
+                                            outcome = outcome)
+    ## create object and return
+    est <- NULL
+    prec <- NULL
+    n_draw <- 1000L
+    ans <- list(formula = formula,
+                data = data,
+                outcome = outcome,
+                offset = offset,
+                vname_offset = vname_offset,
+                priors = priors,
+                terms_par = terms_par,
+                matrices_par = matrices_par,
+                est = est,
+                prec = prec,
+                n_draw = n_draw)
+    class(ans) <- c("bage_mod_pois", "bage_mod")
+    ans
 }
 
 
@@ -118,9 +155,8 @@ mod_pois <- function(formula, data, exposure) {
 #' @seealso
 #' - [mod_pois()] and [mod_norm()] for specification
 #' of Poisson and normal models
-#' - [fit()] to fit a model
-#' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
+#' - [fit()] to fit a model
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
@@ -128,18 +164,57 @@ mod_pois <- function(formula, data, exposure) {
 #'                  size = total)
 #' @export
 mod_binom <- function(formula, data, size) {
-    nm_distn <- "binom"
-    is_mod_with_offset <- TRUE
-    vname_offset <- deparse1(substitute(size))
-    vname_offset <- gsub("^\\\"|\\\"$", "", vname_offset)
-    nm_offset <- "size"
-    new_bage_mod(formula = formula,
-                    data = data,
-                    nm_distn = nm_distn,
-                    is_mod_with_offset = is_mod_with_offset,
-                    vname_offset = vname_offset,
-                    nm_offset = nm_offset)
+    ## check individual inputs
+    checkmate::assert_formula(formula)
+    check_formula_has_response(formula)
+    check_formula_has_predictors(formula)
+    checkmate::assert_data_frame(data)
+    ## process 'size'
+    size <- deparse1(substitute(size))
+    size <- gsub("^\\\"|\\\"$", "", size)
+    vname_offset <- size
+    ## check consistency between inputs
+    check_formula_vnames_in_data(formula = formula,
+                                 data = data)
+    check_response_nonneg(formula = formula,
+                          data = data,
+                          nm_distn = "binom")
+    check_offset_in_data(vname_offset = vname_offset,
+                         nm_offset = nm_offset,
+                         data = data)
+    check_offset_nonneg(vname_offset = vname_offset,
+                        nm_offset = nm_offset,
+                        data = data)
+    ## process inputs
+    outcome <- make_outcome_array(formula = formula,
+                                  data = data)
+    offset <- make_offset_array(formula = formula,
+                                vname_offset = vname_offset,
+                                data = data)
+    terms_par <- make_terms_par(formula = formula,
+                                data = data)
+    priors <- make_priors(formula)
+    matrices_par <- make_matrices_par_array(formula = formula,
+                                            outcome = outcome)
+    ## create object and return
+    est <- NULL
+    prec <- NULL
+    n_draw <- 1000L
+    ans <- list(formula = formula,
+                data = data,
+                outcome = outcome,
+                offset = offset,
+                vname_offset = vname_offset,
+                priors = priors,
+                terms_par = terms_par,
+                matrices_par = matrices_par,
+                est = est,
+                prec = prec,
+                n_draw = n_draw)
+    class(ans) <- c("bage_mod_binom", "bage_mod")
+    ans
 }
+
 
 
 ## HAS_TESTS
@@ -187,9 +262,8 @@ mod_binom <- function(formula, data, size) {
 #' @seealso
 #' - [mod_pois()] and [mod_binom()] for specification
 #' of Poisson and binomial models
-#' - [fit()] to fit a model
-#' - [simulate()] to create simulated data
 #' - [set_prior()] to specify non-default priors
+#' - [fit()] to fit a model
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,
@@ -197,85 +271,20 @@ mod_binom <- function(formula, data, size) {
 #'                 weights = 1)
 #' @export
 mod_norm <- function(formula, data, weights) {
-    nm_distn <- "norm"
-    weights <- deparse1(substitute(weights))
-    weights <- gsub("^\\\"|\\\"$", "", weights)
-    is_mod_with_offset <- !identical(weights, "1")
-    if (is_mod_with_offset) {
-        vname_offset <- weights
-        nm_offset <- "weights"
-    }
-    else {
-        vname_offset <- NULL
-        nm_offset <- NULL
-    }
-    new_bage_mod(formula = formula,
-                 data = data,
-                 nm_distn = nm_distn,
-                 is_mod_with_offset = is_mod_with_offset,
-                 vname_offset = vname_offset,
-                 nm_offset = nm_offset)
-}
-
-
-## HAS_TESTS
-#' Create new object of class 'bage_mod'
-#'
-#' Create object holding information about
-#' a system model (ie a model of demographic rates.)
-#'
-#' `new_bage_mod()` creates components
-#' `terms_par` and `matrices_par`
-#' and stores them in the model object. These
-#' components can all be determined from `formula`
-#' and `data`, and do not subsequently change.
-#' and do not subsequently change.
-#'
-#' `new_bage_mod()` does not create components
-#' `index_priors`, `par, `hyper`, `terms_hyper`,
-#' `consts`, or `terms_consts`,
-#' since these depend on `priors` which can
-#' subsequently change via a call to `set_prior()`.
-#' Instead, these components are all derived by
-#' function `fit()`, just before the model is fitted.
-#'
-#' @param formula Formula for the model terms
-#' @param data Data frame holding data used to
-#' create `outcome` and `offset`.
-#' @param nm_distn Name of distribution:
-#' "pois", "binom", or "norm".
-#' @param is_mod_with_offset Does the model
-#' contain some sort of offset.
-#' @param vname_offset The name of the variable
-#' in `data` used to calculate the offset.
-#' @param nm_offset The name used to refer to the
-#' offset by user-visible functions: "exposure"
-#' or "size".
-#'
-#' @returns An object of class `bage_mod`.
-#'
-#' @noRd
-new_bage_mod <- function(formula,
-                         data,
-                         nm_distn,
-                         is_mod_with_offset,
-                         vname_offset,
-                         nm_offset) {
-    n_draw <- 1000L
-    is_distn_response_nonneg <- nm_distn %in% c("pois", "binom")
-    ## check individual inputs supplied by user
+    ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
     check_formula_has_predictors(formula)
     checkmate::assert_data_frame(data)
+    ## process 'weights'
+    weights <- deparse1(substitute(weights))
+    weights <- gsub("^\\\"|\\\"$", "", weights)
+    is_offset_specified <- !identical(weights, "1")
+    vname_offset <- if (is_offset_specified) weights else NULL
     ## check consistency between inputs
     check_formula_vnames_in_data(formula = formula,
                                  data = data)
-    if (is_distn_response_nonneg)
-        check_response_nonneg(formula = formula,
-                              data = data,
-                              nm_distn = nm_distn)
-    if (is_mod_with_offset) {
+    if (is_offset_specified) {
         check_offset_in_data(vname_offset = vname_offset,
                              nm_offset = nm_offset,
                              data = data)
@@ -283,54 +292,38 @@ new_bage_mod <- function(formula,
                             nm_offset = nm_offset,
                             data = data)
     }
-    ## make components
-    outcome <- make_outcome(formula = formula,
-                            data = data,
-                            nm_distn = nm_distn)
-    if (is_mod_with_offset)
-        offset <- make_offset(formula = formula,
-                              vname_offset = vname_offset,
-                              data = data,
-                              nm_distn = nm_distn)
+    ## process inputs
+    outcome <- make_outcome_vec(formula = formula,
+                                data = data)
+    if (is_offset_specified)
+        offset <- make_offset_vec(vname_offset = vname_offset,
+                                  data = data)
     else
-        offset <- make_offset_ones(formula = formula,
-                                   data = data,
-                                   nm_distn = nm_distn)
-    terms_par <- make_terms_par(formula = formula,
-                              data = data)
+        offset <- make_offset_ones_vec(data)
     priors <- make_priors(formula)
-    matrices_par <- make_matrices_par(formula = formula,
-                                      data = data,
-                                      outcome = outcome,
-                                      nm_distn = nm_distn)
-    est <- NULL
-    std <- NULL
-    prec <- NULL
+    terms_par <- make_terms_par(formula = formula,
+                                data = data)
+    matrices_par <- make_matrices_par_vec(formula = formula,
+                                          data = data)
     ## create object and return
+    est <- NULL
+    prec <- NULL
+    n_draw <- 1000L
     ans <- list(formula = formula,
                 data = data,
-                nm_distn = nm_distn,
                 outcome = outcome,
                 offset = offset,
-                nm_offset = nm_offset,
+                vname_offset = vname_offset,
                 priors = priors,
                 terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
-                std = std,
                 prec = prec,
                 n_draw = n_draw)
-    class(ans) <- "bage_mod"
+    class(ans) <- c("bage_mod_norm", "bage_mod")
     ans
 }
 
-#' @export
-print.bage_mod <- function(x, ...) {
-    cat("Object of class \"bage_mod\"\n\n")
-    if (is.null(x$est))
-        cat("<not yet fitted>\n")
-    else
-        cat("<has been fitted>\n")
-    cat(sprintf("n_draw: %d\n\n", x$n_draw))
-    invisible(x)
-}
+
+
+

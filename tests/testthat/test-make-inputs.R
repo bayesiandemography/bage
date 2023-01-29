@@ -47,25 +47,6 @@ test_that("'make_map' works with some parameters treated as known", {
 })
 
 
-## 'make_matrices_par' --------------------------------------------------------
-
-test_that("'make_matrices_par' works with valid inputs", {
-    data <- expand.grid(age = 0:2, sex = 1:2, time = 2000:2001)
-    data$deaths <- 1
-    outcome <- xtabs(deaths ~ age + sex + time, data = data)
-    formula <- deaths ~ age:sex + time
-    ans_array <- make_matrices_par_array(formula = formula, outcome = outcome)
-    ans_vec <- make_matrices_par_vec(formula = formula, data = data)
-    ans_generic <- make_matrices_par(formula = formula,
-                                     data = data,
-                                     outcome = outcome,
-                                     nm_distn = "pois")
-    expect_identical(lapply(ans_array, as.numeric),
-                     lapply(ans_vec, as.numeric))
-    expect_identical(ans_generic, ans_array)
-})
-
-
 ## 'make_matrices_par_array' --------------------------------------------------
 
 test_that("'make_matrices_par_array' works with valid inputs", {
@@ -240,36 +221,6 @@ test_that("'make_priors' works with valid inputs - no intercept", {
 })
 
 
-## 'make_offset' --------------------------------------------------------------
-
-test_that("'make_offset' works with array", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    formula <- popn ~ age:sex + time
-    ans_obtained <- make_offset(formula = formula,
-                                vname_offset = "popn",
-                                data = data,
-                                nm_distn = "pois")
-    ans_expected <- make_offset_array(formula = formula,
-                                      vname_offset = "popn",
-                                      data = data)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_offset' works with vector", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$wt <- seq_len(nrow(data))
-    formula <- popn ~ age:sex + time
-    ans_obtained <- make_offset(formula = formula,
-                                vname_offset = "wt",
-                                data = data,
-                                nm_distn = "norm")
-    ans_expected <- make_offset_vec(vname_offset = "wt",
-                                    data = data)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_offset_array' --------------------------------------------------------
 
 test_that("'make_offset_array' works with valid inputs - no NA", {
@@ -333,32 +284,6 @@ test_that("'make_offset_vec' works with valid inputs - has NA", {
 })
 
 
-## 'make_offset_ones' ---------------------------------------------------
-
-test_that("'make_offset_ones' works with array", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- 1:12
-    formula = deaths ~ age + sex + time
-    ans_obtained <- make_offset_ones(formula = formula,
-                                     data = data,
-                                     nm_distn = "pois")
-    ans_expected <- make_offset_ones_array(formula = formula,
-                                           data = data)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_offset_ones' works with vector", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- 1:12
-    formula = deaths ~ age + sex + time
-    ans_obtained <- make_offset_ones(formula = formula,
-                                     data = data,
-                                     nm_distn = "norm")
-    ans_expected <- make_offset_ones_vec(data)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_offset_ones_array' ---------------------------------------------------
 
 test_that("'make_offset_ones_array' works with valid inputs, all combin present in data", {
@@ -389,33 +314,6 @@ test_that("'make_offset_ones_vec' works with valid inputs", {
     data$deaths <- 1:12
     ans_obtained <- make_offset_ones_vec(data)
     ans_expected <- rep(1.0, times = 12)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_outcome' -------------------------------------------------------
-
-test_that("'make_outcome' works with array", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome(formula = formula,
-                                 data = data,
-                                 nm_distn = "pois")
-    ans_expected <- make_outcome_array(formula = formula,
-                                       data = data)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_outcome' works with vector", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome(formula = formula,
-                                 data = data,
-                                 nm_distn = "norm")
-    ans_expected <- make_outcome_vec(formula = formula,
-                                     data = data)
     expect_identical(ans_obtained, ans_expected)
 })
 
