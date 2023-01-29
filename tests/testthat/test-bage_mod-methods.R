@@ -60,7 +60,15 @@ test_that("'fit' works with known intercept and sex effect", {
 
 
 
+## 'get_fun_inv_transform' ----------------------------------------------------
 
-
+test_that("'get_fun_inv_transform' works with valid inputs", {
+    set.seed(0)
+    x <- runif(100)
+    logit <- function(x) log(x) - log(1 - x)
+    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_pois"))(log(x)), x)
+    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_binom"))(logit(x)), x)
+    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_norm"))(x), x)
+})
 
 

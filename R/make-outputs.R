@@ -15,7 +15,7 @@
 #' @returns A function
 #' 
 #' @noRd
-get_align_to_data <- function(mod) {
+get_fun_align_to_data <- function(mod) {
     outcome <- mod$outcome
     if (is.array(outcome)) {
         data <- mod$data
@@ -45,29 +45,6 @@ get_align_to_data <- function(mod) {
     else
         ans <- function(x) x
     ans
-}
-
-
-## HAS_TESTS
-#' Get function to calculate inverse tranformation
-#'
-#' @param mod An object of class 'bage_mod'
-#'
-#' @returns A function
-#'
-#' @noRd
-get_inv_transform <- function(mod) {
-    nm_distn <- mod$nm_distn
-    if (nm_distn == "pois")
-        exp
-    else if (nm_distn == "binom")
-        function(x) ifelse(x > 0, 1 / (1 + exp(-x)), exp(x) / (1 + exp(x)))
-    else if (nm_distn == "norm")
-        function(x) x
-    else
-        stop(gettextf("invalid value for 'nm_distn' : \"%s\"",
-                      nm_distn),
-             call. = FALSE)
 }
 
 
@@ -188,10 +165,10 @@ make_draws_linear_pred <- function(mod) {
 #' @noRd
 make_draws_fitted <- function(mod) {
     draws_linear_pred <- make_draws_linear_pred(mod)
-    inv_transform_fun <- get_inv_transform(mod)
-    align_to_data_fun <- get_align_to_data(mod)
-    ans <- inv_transform_fun(draws_linear_pred)
-    ans <- align_to_data_fun(ans)
+    inv_transform <- get_fun_inv_transform(mod)
+    align_to_data <- get_fun_align_to_data(mod)
+    ans <- inv_transform(draws_linear_pred)
+    ans <- align_to_data(ans)
     ans
 }
 
@@ -206,7 +183,7 @@ make_draws_fitted <- function(mod) {
 make_observed <- function(mod) {
     outcome <- mod$outcome
     offset <- mod$offset
-    align_to_data <- get_align_to_data(mod)
+    align_to_data <- get_fun_align_to_data(mod)
     ans <- as.double(outcome / offset)
     ans <- align_to_data(ans)
     ans

@@ -111,33 +111,6 @@ make_map <- function(priors, terms_par) {
 }   
 
 
-
-## HAS_TESTS
-#' Make list of matrices mapping terms to outcome
-#' array or vector
-#'
-#' Make list of matrices mapping main effects or
-#' interactions to array or vector holding outcome
-#' (or, equivalently, the linear predictor.)
-#' 
-#' @param formula Formula specifying model
-#' @param data Data frame
-#' @param outcome Array holding outcome
-#' @param nm_distn Name of distribution.
-#'
-#' @returns A named list
-#'
-#' @noRd
-make_matrices_par <- function(formula, data, outcome, nm_distn) {
-    if (identical(nm_distn, "norm"))
-        make_matrices_par_vec(formula = formula,
-                              data = data)
-    else
-        make_matrices_par_array(formula = formula,
-                                outcome = outcome)
-}                              
-
-
 ## HAS_TESTS
 #' Make list of matrices mapping terms to full array
 #'
@@ -295,34 +268,6 @@ make_matrix_par_vec <- function(dim, is_in_term) {
 
 
 ## HAS_TESTS
-#' Make offset, which can be an array or vector
-#'
-#' Unlike in `xtabs()`, NAs are not converted
-#' to 0s.
-#' 
-#' @param formula Formula specifying model
-#' @param vname_offset Name of the offset variable.
-#' @param data A data frame.
-#' @param nm_distn Name of the distribution.
-#'
-#' @returns Array or vector.
-#'
-#' @noRd
-make_offset <- function(formula,
-                        vname_offset,
-                        data,
-                        nm_distn) {
-    if (nm_distn %in% c("pois", "binom"))
-        make_offset_array(formula = formula,
-                          vname_offset = vname_offset,
-                          data = data)
-    else
-        make_offset_vec(vname_offset = vname_offset,
-                        data = data)
-}
-
-
-## HAS_TESTS
 #' Make array holding offset variable
 #' cross-classified by predictors
 #'
@@ -381,30 +326,6 @@ make_offset_vec <- function(vname_offset, data) {
 
 
 ## HAS_TESTS
-#' Make offset consisting 1s, and possibly 0s,
-#' the same size as outcome
-#'
-#' If the return value is an array, then it
-#' contains 0s for combinations of classifying
-#' variables not found in the data.
-#'
-#' @param formula Formula specifying model
-#' @param data A data frame
-#' @param nm_distn Name of the distribution.
-#' 
-#' @returns An array or vector.
-#'
-#' @noRd
-make_offset_ones <- function(formula, data, nm_distn) {
-    if (nm_distn %in% c("pois", "binom"))
-        make_offset_ones_array(formula = formula,
-                               data = data)
-    else
-        make_offset_ones_vec(data)
-}
-
-
-## HAS_TESTS
 #' Make offset consisting of 1s and 0s,
 #' the same size as outcome
 #'
@@ -443,31 +364,6 @@ make_offset_ones_array <- function(formula, data) {
 #' @noRd
 make_offset_ones_vec <- function(data) {
     rep(1.0, times = nrow(data))
-}
-
-
-## HAS_TESTS
-#' Make array or vector holding outcome variable
-#'
-#' Unlike in `xtabs()`, NAs are not converted
-#' to 0s.
-#'
-#' @param formula Formula specifying model
-#' @param data A data frame
-#' @param nm_distn Name of distribution.
-#'
-#' @returns An array or vector
-#'
-#' @noRd
-make_outcome <- function(formula,
-                         data,
-                         nm_distn) {
-    if (nm_distn %in% c("pois", "binom"))
-        make_outcome_array(formula = formula,
-                           data = data)
-    else
-        make_outcome_vec(formula = formula,
-                         data = data)
 }
 
 

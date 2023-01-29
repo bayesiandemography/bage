@@ -17,7 +17,7 @@ predictors, and, optionally, exposure.}
 or a \code{1}.}
 }
 \value{
-An object of class \code{bage_mod}.
+An object of class \code{bage_mod_pois}.
 }
 \description{
 Specify a model where the outcome is drawn from
@@ -65,8 +65,7 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 \itemize{
 \item \code{\link[=mod_binom]{mod_binom()}} and \code{\link[=mod_norm]{mod_norm()}} for specification
 of binomial and normal models
-\item \code{\link[=fit]{fit()}} to fit a model
-\item \code{\link[=simulate]{simulate()}} to create simulated data
 \item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
+\item \code{\link[=fit]{fit()}} to fit a model
 }
 }
