@@ -1,6 +1,63 @@
 
 ## User-visible constructors --------------------------------------------------
 
+#' AR1 prior
+#'
+#' Autoregression prior.
+#'
+#' The model is
+#' \deqn{x_0 \sim \text{N}(0, \sigma^2)}
+#' \deqn{x_i = \phi x_{i-1} + \sqrt{1 - \phi^2}\epsilon_i}
+#' \deqn{\epsilon \sim \text{N}(0, \sigma^2)}
+#'
+#' \eqn{\sigma} is drawn from a half-normal distribition
+#' with scale set by the `scale` parameter.
+#'
+#' Correlation parameter \eqn{\phi} is constrained
+#' to lie in the interval `(a, b)`,
+#' where \eqn{a} = `min` and \eqn{b} = `max`.
+#' The prior distribution is for \eqn{\phi}
+#' is
+#' \deqn{\phi = (b - a) \phi' - a}
+#' where
+#' \deqn{\phi' \sim \text{beta}(2, 2)}.
+#'
+#' @param min,max Minimum and maximum values
+#' for autocorrelation parameter (\eqn{\phi}).
+#' Default to 0.8 and 0.98.
+#' @param scale Scale of half-normal prior for
+#' standard deviation (\eqn{\sigma}).
+#' Defaults to 1.
+#'
+#' @returns An object of class `bage_prior_ar1`.
+#'
+#' @seealso [N()], [RW()], [RW2()], [Known()].
+#' The values for `min` and `max` are based on the
+#' defaults for function `forecast::ets()`.
+#'
+#' @references TMB documentation of
+#' [AR1](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details)
+#'
+#' @examples
+#' AR1()
+#' AR1(min = 0, max = 1, scale = 2.4)
+#' @export
+AR1 <- function(min = 0.8, max = 0.98, scale = 1) {
+    scale <- check_and_tidy_scale(scale) 
+    checkmate::assert_number(min, lower = 0, upper = 1)
+    checkmate::assert_number(max, lower = 0, upper = 1)
+    if (min >= max)
+        stop(gettextf("'%s' [%s] greater than or equal to '%s' [%s]",
+                      "min", min, "max", max),
+             call. = FALSE)
+    min <- as.double(min)
+    max <- as.double(max)
+    new_bage_prior_ar1(min = min,
+                       max = max,
+                       scale = scale)
+}
+
+
 ## HAS_TESTS
 #' Treat a model term as known
 #'
@@ -153,6 +210,23 @@ RW2 <- function(scale = 1) {
 ## but that may be used by other functions,
 ## eg for printing.
 
+## HAS_TESTS
+new_bage_prior_ar1 <- function(scale, min, max) {
+    shape1 <- 2.0
+    shape2 <- 2.0
+    ans <- list(i_prior = 4L,
+                consts = c(shape1, shape2, min, max, scale),
+                n_hyper = 2L, ## logit_coef, log_sd
+                specific = list(shape1 = shape1,
+                                shape2 = shape2,
+                                min = min,
+                                max = max,
+                                scale = scale))
+    class(ans) <- c("bage_prior_ar1", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
 new_bage_prior_known <- function(values) {
     ans <- list(i_prior = 0L,
                 consts = double(),
@@ -162,33 +236,39 @@ new_bage_prior_known <- function(values) {
     ans
 }
 
-
+## HAS_TESTS
 new_bage_prior_norm <- function(scale) {
     ans <- list(i_prior = 1L,
                 consts = scale,
-                n_hyper = 1L,
+                n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_norm", "bage_prior")
     ans
 }
 
+## HAS_TESTS
 new_bage_prior_rw <- function(scale) {
     ans <- list(i_prior = 2L,
                 consts = scale,
-                n_hyper = 1L,
+                n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
 }
 
+## HAS_TESTS
 new_bage_prior_rw2 <- function(scale) {
     ans <- list(i_prior = 3L,
                 consts = scale,
-                n_hyper = 1L,
+                n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
+
+
+                
+    
 
 
 

@@ -57,6 +57,20 @@ test_that("'fit' works with known intercept and sex effect", {
     expect_equal(ans_obtained$est$par[mod$terms_par == "sex"], c(-0.1, 0.1))
 })
 
+test_that("'fit' works with AR1", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, time ~ AR1())
+    ans_obtained <- fit(mod)
+})
+
+
 
 
 
