@@ -1,8 +1,8 @@
 ---
-title: "vig_3_svd"
+title: "Dimension reduction and the modelling of age effects"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vig_3_svd}
+  %\VignetteIndexEntry{vig_4_age}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
