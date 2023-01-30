@@ -3,6 +3,7 @@
 #include <TMB.hpp>
 #include "init.h"
 
+using namespace density;
 using namespace Eigen;
 using namespace tmbutils;
 
@@ -19,8 +20,8 @@ template <class Type>
 Type logpost_norm(vector<Type> par,
 		  vector<Type> hyper,
 		  vector<Type> consts) {
-  Type log_sd = hyper[0];
   Type scale = consts[0];
+  Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
@@ -32,8 +33,8 @@ template <class Type>
 Type logpost_rw(vector<Type> par,
 		vector<Type> hyper,
 		vector<Type> consts) {
-  Type log_sd = hyper[0];
   Type scale = consts[0];
+  Type log_sd = hyper[0];
   int n = par.size();
   Type sd = exp(log_sd);
   Type ans = 0;
@@ -49,8 +50,8 @@ template <class Type>
 Type logpost_rw2(vector<Type> par,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
-  Type log_sd = hyper[0];
   Type scale = consts[0];
+  Type log_sd = hyper[0];
   int n = par.size();
   Type sd = exp(log_sd);
   Type ans = 0;
@@ -59,6 +60,28 @@ Type logpost_rw2(vector<Type> par,
     Type diff = par[i] - 2 * par[i - 1] + par[i - 2];
     ans += dnorm(diff, Type(0), sd, true);
   }
+  return ans;
+}
+
+template <class Type>
+Type logpost_ar1(vector<Type> par,
+		 vector<Type> hyper,
+		 vector<Type> consts) {
+  Type shape1 = consts[0];
+  Type shape2 = consts[1];
+  Type min = consts[2];
+  Type max = consts[3];
+  Type scale = consts[4];
+  Type logit_coef = hyper[0];
+  Type log_sd = hyper[1];
+  Type coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  Type coef = (max - min) * coef_raw + min;
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dbeta(coef_raw, shape1, shape2, true)
+    + log(coef_raw) + log(1 - coef_raw);
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans -= SCALE(AR1(coef), sd)(par); // AR1 returns neg log-lik
   return ans;
 }
 
@@ -77,6 +100,9 @@ Type logpost(vector<Type> par,
     break;
   case 3:
     ans = logpost_rw2(par, hyper, consts);
+    break;
+  case 4:
+    ans = logpost_ar1(par, hyper, consts);
     break;
   default:
     error("function 'logpost' cannot handle i_prior = %d", i_prior);

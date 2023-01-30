@@ -103,6 +103,24 @@ str_call_prior <- function(prior) {
 }
 
 #' @export
+str_call_prior.bage_prior_ar1 <- function(prior) {
+    min <- prior$specific$min
+    max <- prior$specific$max
+    scale <- prior$specific$scale
+    args <- character(3)
+    if (min != 0.8)
+        args[[1L]] <- sprintf("min=%s", min)
+    if (max != 0.98)
+        args[[2L]] <- sprintf("max=%s", max)
+    if (scale != 1)
+        args[[3L]] <- sprintf("scale=%s", scale)
+    args <- args[nzchar(args)]
+    args <- paste(args, collapse = ", ")
+    sprintf("AR1(%s)", args)
+}
+
+
+#' @export
 str_call_prior.bage_prior_known <- function(prior) {
     values <- values_known(prior)
     n <- length(values)
