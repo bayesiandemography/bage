@@ -199,7 +199,7 @@ RW2 <- function(scale = 1) {
 ## consistent with value used by function
 ## 'logpost' in src/bage.cpp
 ##
-## 'consts' is a vector of doubles holding constants
+## 'const' is a vector of doubles holding constants
 ## used in calculation of log-posterior.
 ##
 ## 'n_hyper' is the number of elements in the 'hyper'
@@ -215,7 +215,7 @@ new_bage_prior_ar1 <- function(scale, min, max) {
     shape1 <- 2.0
     shape2 <- 2.0
     ans <- list(i_prior = 4L,
-                consts = c(shape1, shape2, min, max, scale),
+                const = c(shape1, shape2, min, max, scale),
                 n_hyper = 2L, ## logit_coef, log_sd
                 specific = list(shape1 = shape1,
                                 shape2 = shape2,
@@ -229,7 +229,7 @@ new_bage_prior_ar1 <- function(scale, min, max) {
 ## HAS_TESTS
 new_bage_prior_known <- function(values) {
     ans <- list(i_prior = 0L,
-                consts = double(),
+                const = double(),
                 n_hyper = 0L,
                 specific = list(values = values))
     class(ans) <- c("bage_prior_known", "bage_prior")
@@ -239,7 +239,7 @@ new_bage_prior_known <- function(values) {
 ## HAS_TESTS
 new_bage_prior_norm <- function(scale) {
     ans <- list(i_prior = 1L,
-                consts = scale,
+                const = scale,
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_norm", "bage_prior")
@@ -249,7 +249,7 @@ new_bage_prior_norm <- function(scale) {
 ## HAS_TESTS
 new_bage_prior_rw <- function(scale) {
     ans <- list(i_prior = 2L,
-                consts = scale,
+                const = scale,
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw", "bage_prior")
@@ -259,7 +259,7 @@ new_bage_prior_rw <- function(scale) {
 ## HAS_TESTS
 new_bage_prior_rw2 <- function(scale) {
     ans <- list(i_prior = 3L,
-                consts = scale,
+                const = scale,
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
@@ -280,7 +280,7 @@ validate_bage_prior <- function(prior) {
                               lower = 0L,
                               len = 1L,
                               any.missing = FALSE)
-    checkmate::assert_double(prior@consts,
+    checkmate::assert_double(prior@const,
                              any.missing = FALSE)
     checkmate::assert_integer(prior@n_hyper,
                               lower = 0L,

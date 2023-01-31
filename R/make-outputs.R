@@ -1,4 +1,58 @@
-    
+
+
+## 'components_hyper' -----------------------------------------------------------
+
+#' Create data data frame holding hyper-parameters
+#'
+#' Helper function for 'components'
+#'
+#' @param mod A fitted 'bage_mod' object
+#'
+#' @returns A tibble
+#'
+#' @noRd
+components_hyper <- function(mod) {
+    hyper_trans <- mod$est$hyper
+    priors <- mod$priors
+    terms <- make_terms_hyper(priors)
+    transforms <- lapply(priors, transform_hyper)
+    transforms <- unlist(transforms)
+    hyper <- double(length = length(hyper_trans))
+    for (i in seq_along(hyper))
+        hyper[[i]] <- transforms[[i]](hyper_trans[[i]])
+    levels <- lapply(priors, levels_hyper)
+    levels <- unlist(levels, use.names = FALSE)
+    terms <- as.character(terms)
+    tibble::tibble(term = terms,
+                   level = levels,
+                   .fitted = hyper)
+}
+
+
+## 'components_par' -----------------------------------------------------------
+
+#' Create data data frame holding parameters
+#'
+#' Helper function for 'components'
+#'
+#' @param mod A fitted 'bage_mod' object
+#'
+#' @returns A tibble
+#'
+#' @noRd
+components_par <- function(mod) {
+    par <- mod$est$par
+    terms_par <- mod$terms_par
+    levels_par <- make_levels_par(mod)
+    terms_par <- as.character(terms_par)
+    tibble::tibble(term = terms_par,
+                   level = levels_par,
+                   .fitted = par)
+}
+
+
+
+
 ## HAS_TESTS
 #' Get function to align vector or matrix to data
 #'
@@ -45,21 +99,6 @@ get_fun_align_to_data <- function(mod) {
     else
         ans <- function(x) x
     ans
-}
-
-
-## HAS_TESTS
-#' Extract point estimates for terms
-#'
-#' @param mod A fitted model
-#'
-#' @returns A named list.
-#'
-#' @noRd
-make_terms_est <- function(mod) {
-    terms_par <- mod$terms_par
-    est <- mod$est$par
-    split(est, terms_par)
 }
 
 
@@ -171,6 +210,54 @@ make_draws_fitted <- function(mod) {
     ans <- align_to_data(ans)
     ans
 }
+
+
+#' Make levels associated with each element of 'par'
+#'
+#' Make levels for each term, eg ages, times.
+#' 'make_levels_par' works with the matrices
+#' used to map levels to the outcome, to
+#' ensure that the levels are correct (rather than
+#' relying on undocumented properties of 'xtabs' etc),
+#' though this makes the function a bit complicated.
+#'
+#' @param mod A fitted object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_par <- function(mod) {
+    formula <- mod$formula
+    matrices_par <- mod$matrices_par
+    outcome <- mod$outcome
+    data <- mod$data
+    nms <- names(matrices_par)
+    n <- length(nms)
+    factors <- attr(stats::terms(formula), "factors")
+    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
+    factors <- factors > 0L
+    if (is.array(outcome))
+        dim_levels <- expand.grid(dimnames(outcome))
+    else
+        dim_levels <- data[rownames(factors)]
+    ans <- vector(mode = "list", length = n)
+    for (i in seq_len(n)) {
+        nm <- nms[[i]]
+        if (nm == "(Intercept)")
+            ans[[i]] <- "(Intercept)"
+        else {
+            i_dim <- factors[, nm, drop = TRUE]
+            paste_dot <- function(...) paste(..., sep = ".")
+            term_levels <- do.call(paste_dot, dim_levels[i_dim])
+            matrix_par <- matrices_par[[i]]
+            i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
+            ans[[i]] <- term_levels[i_term_level]
+        }
+    }
+    ans <- unlist(ans, use.names = FALSE)
+    ans
+}
+
 
 ## HAS_TESTS
 #' Make direct estimates

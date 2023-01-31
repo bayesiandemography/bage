@@ -24,26 +24,10 @@ library(ggdist)
 ```{r}
 mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
                 data = injuries,
-                exposure = popn)
+                exposure = popn) %>%
+  set_prior(year ~ AR1())
 mod
 ```
-Current model:
-\begin{align}
-y & \sim \text{Poisson}(\mu w) \\
-\log \mu & = X \beta \\
-\beta & \sim N(\pmb{0}, \pmb{\Sigma})
-\end{align}
-
-(Currently every $\beta$ has a normal prior)
-
-I suggest we add an error term, using the set-up from [Dan Simpson blog entry](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html)
-\begin{align}
-y & \sim \text{Poisson}(\mu u w) \\
-\log \mu & = X \beta \\
-\beta & \sim N(\pmb{0}, \pmb{\Sigma}) \\
-u & \sim \text{Gamma}(\alpha^{-1}, \alpha^{-1})
-\end{align}
-(which can be converted to a negative binomial model).
 
 ```{r}
 mod <- mod %>%
@@ -68,9 +52,6 @@ augment(mod) %>%
   geom_pointinterval(aes(ymin = .lower, ymax = .upper), col = "red")
 ```
 
-
-
-
 ```{r}
 augment(mod) %>%
   filter(sex == "Female", 
@@ -81,3 +62,33 @@ augment(mod) %>%
   geom_point(aes(y = .observed), col = "grey") +
   geom_pointinterval(aes(ymin = .lower, ymax = .upper), col = "red")
 ```
+
+
+```{r}
+components(mod, type = "par")
+```
+
+
+```{r}
+components(mod, type = "hyper")
+```
+
+
+# Model
+
+\begin{align}
+y & \sim \text{Poisson}(\mu w) \\
+\log \mu & = X \beta \\
+\beta & \sim N(\pmb{0}, \pmb{\Sigma})
+\end{align}
+
+(Currently every $\beta$ has a normal prior)
+
+I suggest we add an error term, using the set-up from [Dan Simpson blog entry](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html)
+\begin{align}
+y & \sim \text{Poisson}(\mu u w) \\
+\log \mu & = X \beta \\
+\beta & \sim N(\pmb{0}, \pmb{\Sigma}) \\
+u & \sim \text{Gamma}(\alpha^{-1}, \alpha^{-1})
+\end{align}
+(which can be converted to a negative binomial model).
