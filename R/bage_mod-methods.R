@@ -56,6 +56,46 @@ augment.bage_mod <- function(x, ...) {
 }
 
 
+## 'components' ---------------------------------------------------------------
+
+#' @importFrom generics components
+#' @export
+generics::components
+
+#' Extract components from a fitted model
+#'
+#' Extract components froma fitted object
+#' of class `bage_mod`.
+#'
+#' The component extracted depends on the `type` argument:
+#' - `"par"` Intercept, main effects, and interactions
+#' - `"hyper"` Hyper-parameters from priors for intercept,
+#' main effects, and interactions
+#'
+#' @param object An fitted model.
+#' @param type Type of component to extract.
+#' `"par"` or `"hyper"`.
+#' @param ... Not currently used.
+#'
+#' @returns A tibble
+#'
+#' @seealso [augment()], [tidy()]
+#'
+#' @examples
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn) |>
+#'   fit()
+#' mod |> components("par")
+#' mod |> components("hyper")
+#' @export
+components.bage_mod <- function(object, type = c("par", "hyper"), ...) {
+    type <- match.arg(type)
+    switch(type,
+           par = components_par(object),
+           hyper = components_hyper(object))
+}
+    
 
 ## 'fit' ----------------------------------------------------------------------
 
@@ -78,8 +118,8 @@ fit.bage_mod <- function(object, ...) {
     terms_par <- object$terms_par
     nm_distn <- nm_distn(object)
     i_prior <- make_i_prior(priors)
-    consts <- make_consts(priors)
-    terms_consts <- make_terms_consts(priors)
+    const <- make_const(priors)
+    terms_const <- make_terms_const(priors)
     hyper <- make_hyper(priors)
     terms_hyper <- make_terms_hyper(priors)
     par <- make_par(priors = priors,
@@ -91,9 +131,9 @@ fit.bage_mod <- function(object, ...) {
                  matrices_par = object$matrices_par,
                  i_prior = i_prior,
                  terms_hyper = terms_hyper,
-                 consts = consts,
-                 terms_consts = terms_consts)
-    parameters <- list(par = par,
+                 consts = const,             ## in TMB template refer to 'consts', 
+                 terms_consts = terms_const) ## not 'const', because 'const' is a 
+    parameters <- list(par = par,            ## reserved word
                        hyper = hyper)
     map <- make_map(priors = priors,
                     terms_par = terms_par)

@@ -1,10 +1,10 @@
 
 ## HAS_TESTS
-#' Make 'consts'
+#' Make 'const'
 #'
 #' Make vector to hold constants for priors.
 #'
-#' We generate 'consts' when function 'fit'
+#' We generate 'const' when function 'fit'
 #' is called, rather than storing it in the
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
@@ -15,8 +15,8 @@
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_consts <- function(priors) {
-    ans <- lapply(priors, function(x) x$consts)
+make_const <- function(priors) {
+    ans <- lapply(priors, function(x) x$const)
     ans <- unlist(ans, use.names = FALSE)
     ans
 }
@@ -492,16 +492,16 @@ make_priors <- function(formula) {
 
 
 ## HAS_TESTS
-#' Make factor identifying components of 'consts'
+#' Make factor identifying components of 'const'
 #'
-#' Make factor the same length as 'consts',
+#' Make factor the same length as 'const',
 #' giving the name of the term
 #' that the each element belongs to.
 #' Note that the levels of the factor
 #' includes all priors, not just those
 #' with constants.
 #'
-#' We generate 'terms_consts' when function 'fit'
+#' We generate 'terms_const' when function 'fit'
 #' is called, rather than storing it in the
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
@@ -510,12 +510,12 @@ make_priors <- function(formula) {
 #' of class 'bage_prior'.
 #'
 #' @returns A factor, the same length
-#' as 'consts'.
+#' as 'const'.
 #'
 #' @noRd
-make_terms_consts <- function(priors) {
+make_terms_const <- function(priors) {
     nms_terms <- names(priors)
-    lengths <- vapply(priors, function(x) length(x$consts), 0L)
+    lengths <- vapply(priors, function(x) length(x$const), 0L)
     ans <- rep(nms_terms, times = lengths)
     ans <- factor(ans, levels = nms_terms)
     ans

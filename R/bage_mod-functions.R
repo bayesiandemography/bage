@@ -1,7 +1,5 @@
 
-## Functions closely associated with 'bage_mod' classes
-## that are not strictly methods
-
+## User-visible functions that look a bit like methods, but are not
 
 ## 'set_n_draw' ---------------------------------------------------------------
 

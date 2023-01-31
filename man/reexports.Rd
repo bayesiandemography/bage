@@ -4,6 +4,7 @@
 \name{reexports}
 \alias{reexports}
 \alias{augment}
+\alias{components}
 \alias{fit}
 \alias{tidy}
 \title{Objects exported from other packages}
@@ -13,6 +14,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{augment}}, \code{\link[generics]{fit}}, \code{\link[generics]{tidy}}}
+  \item{generics}{\code{\link[generics]{augment}}, \code{\link[generics]{components}}, \code{\link[generics]{fit}}, \code{\link[generics]{tidy}}}
 }}
 

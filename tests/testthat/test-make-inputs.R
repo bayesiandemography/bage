@@ -1,8 +1,8 @@
 
-## 'make_consts' ---------------------------------------------------------------
+## 'make_const' --------------------------------------------------------------- 
 
-test_that("'make_consts' works with valid inputs", {
-    ans_obtained <- make_consts(list(a = N(), b = RW(), c = N()))
+test_that("'make_const' works with valid inputs", {
+    ans_obtained <- make_const(list(a = N(), b = RW(), c = N()))
     ans_expected <- rep(1.0, 3L)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
@@ -431,10 +431,10 @@ test_that("'make_par' works with valid inputs", {
 })
 
 
-## 'make_terms_consts' --------------------------------------------------------
+## 'make_terms_const' ---------------------------------------------------------
 
-test_that("'make_terms_consts' works with valid inputs", {
-    ans_obtained <- make_terms_consts(list(a = N(), b = RW(), c = Known(1:3), d = N()))
+test_that("'make_terms_const' works with valid inputs", {
+    ans_obtained <- make_terms_const(list(a = N(), b = RW(), c = Known(1:3), d = N()))
     ans_expected <- factor(c("a", "b", "d"), levels = c("a", "b", "c", "d"))
     expect_identical(ans_obtained, ans_expected)
 })

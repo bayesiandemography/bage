@@ -96,6 +96,45 @@ is_known.bage_prior <- function(prior) FALSE
 is_known.bage_prior_known <- function(prior) TRUE
 
 
+## 'levels_hyper' --------------------------------------------------------
+
+#' Names of hyper-parameters
+#'
+#' @param prior An object of class 'bage_prior'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+levels_hyper <- function(prior) {
+    UseMethod("levels_hyper")
+}
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_ar1 <- function(prior)
+    c("coef", "sd")
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_known <- function(prior)
+    character()
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_norm <- function(prior)
+    "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rw <- function(prior)
+    "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rw2 <- function(prior)
+    "sd"
+
+
 ## 'str_call_prior' -----------------------------------------------------------
 
 str_call_prior <- function(prior) {
@@ -162,7 +201,45 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
 }
 
 
+## 'transform_hyper' ----------------------------------------------------------
 
+#' Transform to convert working TMB version
+#' of parameter back to original units
+#'
+#' @param prior An object of class 'bage_prior'.
+#'
+#' @returns A list of functions.
+#'
+#' @noRd
+transform_hyper <- function(prior) {
+    UseMethod("transform_hyper")
+}
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_ar1 <- function(prior)
+    list(function(x) ifelse(x > 0, 1 / (1 + exp(-x)), exp(x) / (exp(x) + 1)),
+         exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_known <- function(prior)
+    list()
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_norm <- function(prior)
+    list(exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rw <- function(prior)
+    list(exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rw2 <- function(prior)
+    list(exp)
 
 
 ## 'values_known' -------------------------------------------------------------

@@ -1,4 +1,32 @@
 
+## 'components_par', 'components_hyper', 'components_const' -------------------
+
+test_that("'components_par', 'components_hyper', 'components_const' work with valid data", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex:time + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, time ~ AR1())
+    mod <- fit(mod)
+    ## components_par
+    ans_par <- components_par(mod)
+    expect_true(is.data.frame(ans_par))
+    expect_identical(nrow(ans_par), length(mod$est$par))
+    ## components_hyper
+    ans_hyper <- components_hyper(mod)
+    expect_true(is.data.frame(ans_hyper))
+    expect_identical(nrow(ans_hyper), length(mod$est$hyper))
+    ## ## components_const
+    ## ans_const <- components_const(mod)
+    ## expect_true(is.data.frame(ans_const))
+    ## expect_identical(nrow(ans_const), length(make_const(mod$priors)))
+})
+
+
 ## 'get_fun_align_to_data' ----------------------------------------------------
 
 test_that("'get_fun_align_to_data' works with 2 dimensions, 'data' and 'outcome' have same values", {
@@ -128,22 +156,71 @@ test_that("'make_draws_par' works with Known priors", {
 })
 
 
-## 'make_terms_est' -----------------------------------------------------------
+## 'make_levels_par' ----------------------------------------------------------
 
-test_that("'make_terms_est' work with valid inputs", {
+test_that("'make_levels_par' works with valid inputs - pois, complete levels", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
+    formula <- deaths ~ age * sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
-    ans_obtained <- make_terms_est(mod)
-    expect_identical(names(ans_obtained), names(mod$priors))
-    expect_identical(as.numeric(unlist(ans_obtained)),
-                     as.numeric(unlist(mod$est$par)))
+    ans_obtained <- make_levels_par(mod)
+    ans_expected <- c("(Intercept)",
+                      0:9,
+                      c("F", "M"),
+                      2000:2005,
+                      paste(rep(0:9, times = 2),
+                            rep(c("F", "M"), each = 10),
+                            sep = "."))
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+## TODO - FIX 'fit'
+## test_that("'make_levels_par' works with valid inputs - pois, incomplete levels", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     data <- data[-3, ]
+##     formula <- deaths ~ age * sex + time
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn)
+##     mod <- fit(mod)
+##     ans_obtained <- make_levels_par(mod)
+##     ans_expected <- c("(Intercept)",
+##                       0:9,
+##                       c("F", "M"),
+##                       2000:2005,
+##                       paste(rep(0:9, times = 2),
+##                             rep(c("F", "M"), each = 10),
+##                             sep = "."))
+##     expect_identical(ans_obtained, ans_expected)                      
+## })
+
+test_that("'make_levels_par' works with valid inputs - norm", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$income <- rnorm(n = nrow(data))
+    formula <- income ~ age * sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = popn)
+    mod <- fit(mod)
+    ans_obtained <- make_levels_par(mod)
+    ans_expected <- c("(Intercept)",
+                      0:9,
+                      c("F", "M"),
+                      2000:2005,
+                      paste(rep(0:9, times = 2),
+                            rep(c("F", "M"), each = 10),
+                            sep = "."))
+    expect_identical(ans_obtained, ans_expected)                      
 })
 
 
