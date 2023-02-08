@@ -21,6 +21,12 @@ Specify a non-default prior distribution
 for a main effect or interaction.
 }
 \details{
+If the \code{mod} argument to \code{set_prior} is
+a fitted model, then \code{set_prior} 'unfits'
+\code{mod}, ie \code{set_prior} deletes existing
+estimates and returns \code{mod} to an
+unfitted state.
+
 \code{formula} gives the name of a main
 effect or interaction, and a function
 specifying a prior, eg
@@ -34,5 +40,5 @@ mod
 mod |> set_prior(age ~ RW2())
 }
 \seealso{
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}
+\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=AR1]{AR1()}}, \code{\link[=Known]{Known()}}
 }

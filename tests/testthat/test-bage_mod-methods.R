@@ -73,8 +73,6 @@ test_that("'fit' works with AR1", {
 
 
 
-
-
 ## 'get_fun_inv_transform' ----------------------------------------------------
 
 test_that("'get_fun_inv_transform' works with valid inputs", {
