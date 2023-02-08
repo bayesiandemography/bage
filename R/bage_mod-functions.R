@@ -1,5 +1,5 @@
 
-## User-visible functions that look a bit like methods, but are not
+## User-visible functions that look a bit like methods, but technically are not
 
 ## 'set_n_draw' ---------------------------------------------------------------
 
@@ -53,6 +53,12 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' Specify a non-default prior distribution
 #' for a main effect or interaction.
 #'
+#' If the `mod` argument to `set_prior` is
+#' a fitted model, then `set_prior` 'unfits'
+#' `mod`, ie `set_prior` deletes existing
+#' estimates and returns `mod` to an
+#' unfitted state.
+#'
 #' `formula` gives the name of a main
 #' effect or interaction, and a function
 #' specifying a prior, eg
@@ -65,7 +71,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #'
 #' @returns A `bage_mod` object.
 #'
-#' @seealso [N()], [RW()], [RW2()], [Known()]
+#' @seealso [N()], [RW()], [RW2()], [AR1()], [Known()]
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + year,
@@ -95,6 +101,8 @@ set_prior <- function(mod, formula) {
                       prior$message),
              call. = FALSE)
     mod$priors[[i]] <- prior
+    mod["est"] <- list(NULL)
+    mod["prec"] <- list(NULL)
     mod
 }
 

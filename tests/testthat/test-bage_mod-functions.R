@@ -52,4 +52,20 @@ test_that("'set_prior' throws correct error with invalid prior function", {
                        "could not find function \"Wrong\""))
 })
 
+test_that("'set_prior' unfits a fitted model", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    expect_false(is.null(mod$est))
+    mod <- set_prior(mod, time ~ RW())
+    expect_true(is.null(mod$est))
+    expect_true("est" %in% names(mod))
+})
+
+
 
