@@ -5,7 +5,8 @@ output: github_document
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
+library(knitr)
+opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
@@ -31,15 +32,22 @@ devtools::install_github("bayesiandemography/bage")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Fit Poisson model to data on injuries.
 
 ```{r example}
 library(bage)
-## basic example code
+library(dplyr, warn.conflicts = FALSE)
+mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+                data = injuries,
+		        exposure = popn) %>%
+  fit()
+mod
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Extract model-based and direct estimates.
 
-```{r cars}
-summary(cars)
+```{r augment}
+augment(mod)
 ```
+
+

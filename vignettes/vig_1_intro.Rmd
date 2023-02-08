@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 library(bage)
 library(dplyr)
 library(ggplot2)
-library(ggdist)
 ```
 
 ```{r}
@@ -34,35 +33,30 @@ mod <- mod %>%
   fit()
 mod
 ```
+
 ```{r}
 tidy(mod)
 ```
-```{r}
-augment(mod) %>%
-  head()
-```
 
 ```{r}
-theme_set(theme_ggdist())
-augment(mod) %>%
-  filter(year == 2018) %>%
+augment(mod)
+```
+
+
+Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>).
+
+```{r fig, fig.width = 7, fig.height = 5}
+mod %>%
+  augment() %>%
+  filter(year >= 2017) %>%
   ggplot(aes(x = age, y = .fitted)) +
-  facet_grid(vars(ethnicity), vars(sex)) +
-  geom_point(aes(y = .observed), col = "grey") +
-  geom_pointinterval(aes(ymin = .lower, ymax = .upper), col = "red")
+  facet_grid(vars(sex), vars(year)) +
+  geom_point(aes(y = .observed), 
+             col = "darkorange") +
+  geom_pointrange(aes(ymin = .lower, ymax = .upper),
+                  fatten = 0.5,
+                  color = "darkblue")
 ```
-
-```{r}
-augment(mod) %>%
-  filter(sex == "Female", 
-         ethnicity == "Maori",
-         age %in% c("0-4", "20-24", "40-44")) %>%
-  ggplot(aes(x = year, y = .fitted)) +
-  facet_grid(vars(age)) +
-  geom_point(aes(y = .observed), col = "grey") +
-  geom_pointinterval(aes(ymin = .lower, ymax = .upper), col = "red")
-```
-
 
 ```{r}
 components(mod, type = "par")
@@ -84,11 +78,14 @@ y & \sim \text{Poisson}(\mu w) \\
 
 (Currently every $\beta$ has a normal prior)
 
-I suggest we add an error term, using the set-up from [Dan Simpson blog entry](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html)
-\begin{align}
-y & \sim \text{Poisson}(\mu u w) \\
-\log \mu & = X \beta \\
-\beta & \sim N(\pmb{0}, \pmb{\Sigma}) \\
-u & \sim \text{Gamma}(\alpha^{-1}, \alpha^{-1})
-\end{align}
-(which can be converted to a negative binomial model).
+<!-- I suggest we add an error term, using the set-up from [Dan Simpson blog entry](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html) -->
+<!-- \begin{align} -->
+<!-- y & \sim \text{Poisson}(\mu u w) \\ -->
+<!-- \log \mu & = X \beta \\ -->
+<!-- \beta & \sim N(\pmb{0}, \pmb{\Sigma}) \\ -->
+<!-- u & \sim \text{Gamma}(\alpha^{-1}, \alpha^{-1}) -->
+<!-- \end{align} -->
+<!-- (which can be converted to a negative binomial model). -->
+
+
+
