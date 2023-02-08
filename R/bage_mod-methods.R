@@ -239,7 +239,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 
 #' @export
 print.bage_mod <- function(x, ...) {
-    nchar_data <- 10
+    nchar_offset <- 10
     ## calculations
     formula <- x$formula
     priors <- x$priors
@@ -262,7 +262,7 @@ print.bage_mod <- function(x, ...) {
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
         nm_offset <- nm_offset(x)
-        nm_offset <- sprintf("% *s", nchar_data, nm_offset)
+        nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
         str_offset <- sprintf("%s: %s", nm_offset, vname_offset)
     }
     ## printing
@@ -277,13 +277,8 @@ print.bage_mod <- function(x, ...) {
         cat(str_offset)
         cat("\n")
     }
-    cat(sprintf("% *s: %s",
-                nchar_data,
-                "data",
-                paste(names(data), collapse = ", ")))
-    cat("\n")
     cat(sprintf("% *s: %d",
-                nchar_data,
+                nchar_offset,
                 "n_draw",
                 n_draw))
     cat("\n")
