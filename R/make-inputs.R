@@ -70,6 +70,25 @@ make_i_prior <- function(priors) {
 }
 
 
+## HAS_TESTS
+#' Make vector of indicators showing whether
+#' cell contributes to likelihood
+#'
+#' @param outcome Outcome array or vector.
+#' @param offset Offset array or vector.
+#'
+#' @returns A vector of 1Ls and 0Ls.
+#'
+#' @noRd
+make_is_in_lik <- function(outcome, offset) {
+    ans <- (!is.na(outcome)
+        & !is.na(offset)
+        & (offset > 0))
+    as.integer(ans)
+}
+
+
+## HAS_TESTS
 #' Make mapping used by MakeADFun
 #'
 #' Make 'map' argument to be passed to
@@ -304,28 +323,6 @@ make_offset_array <- function(formula, vname_offset, data) {
 
 
 ## HAS_TESTS
-#' Make vector holding offset variable
-#'
-#' The offset is standardised to have mean 1.
-#' 
-#' @param vname_offset Name of the offset variable.
-#' @param data A data frame
-#'
-#' @returns An vector of doubles.
-#'
-#' @noRd
-make_offset_vec <- function(vname_offset, data) {
-    nms_data <- names(data)
-    ans <- data[[match(vname_offset, nms_data)]]
-    n_obs <- sum(!is.na(ans))
-    if (n_obs >= 1L)
-        ans <- ans / mean(ans, na.rm = TRUE)
-    ans <- as.double(ans)
-    ans
-}
-
-
-## HAS_TESTS
 #' Make offset consisting of 1s and 0s,
 #' the same size as outcome
 #'
@@ -336,7 +333,8 @@ make_offset_vec <- function(vname_offset, data) {
 #' @param formula Formula specifying model
 #' @param data A data frame
 #'
-#' @returns An array (with named dimnames)
+#' @returns An array of 1.0s and 0.0s
+#' (with named dimnames)
 #'
 #' @noRd
 make_offset_ones_array <- function(formula, data) {
@@ -364,6 +362,28 @@ make_offset_ones_array <- function(formula, data) {
 #' @noRd
 make_offset_ones_vec <- function(data) {
     rep(1.0, times = nrow(data))
+}
+
+
+## HAS_TESTS
+#' Make vector holding offset variable
+#'
+#' The offset is standardised to have mean 1.
+#' 
+#' @param vname_offset Name of the offset variable.
+#' @param data A data frame
+#'
+#' @returns An vector of doubles.
+#'
+#' @noRd
+make_offset_vec <- function(vname_offset, data) {
+    nms_data <- names(data)
+    ans <- data[[match(vname_offset, nms_data)]]
+    n_obs <- sum(!is.na(ans))
+    if (n_obs >= 1L)
+        ans <- ans / mean(ans, na.rm = TRUE)
+    ans <- as.double(ans)
+    ans
 }
 
 

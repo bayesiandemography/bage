@@ -138,6 +138,7 @@ Type objective_function<Type>::operator() ()
   DATA_STRING(nm_distn);
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
+  DATA_IVECTOR(is_in_lik);
   DATA_FACTOR(terms_par);       
   DATA_STRUCT(matrices_par, LIST_SM_t); 
   DATA_IVECTOR(i_prior);        
@@ -184,26 +185,32 @@ Type objective_function<Type>::operator() ()
   // contribution to log posterior from data
   if (nm_distn == "pois") {
     for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-      Type rate = exp(linear_pred[i_outcome]);
-      ans -= dpois(outcome[i_outcome],
-		   rate * offset[i_outcome],
-		   true);
+      if (is_in_lik[i_outcome]) {
+	Type rate = exp(linear_pred[i_outcome]);
+	ans -= dpois(outcome[i_outcome],
+		     rate * offset[i_outcome],
+		     true);
+      }
     }
   }
   else if (nm_distn == "binom") {
     for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-      ans -= dbinom_robust(outcome[i_outcome],
-			   offset[i_outcome],
-			   linear_pred[i_outcome],
-			   true);
+      if (is_in_lik[i_outcome]) {
+	ans -= dbinom_robust(outcome[i_outcome],
+			     offset[i_outcome],
+			     linear_pred[i_outcome],
+			     true);
+      }
     }
   }
   else { // norm
     for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-      ans -= dnorm(outcome[i_outcome],
-		   linear_pred[i_outcome],
-		   1 / offset[i_outcome],
-		   true);
+      if (is_in_lik[i_outcome]) {
+	ans -= dnorm(outcome[i_outcome],
+		     linear_pred[i_outcome],
+		     1 / offset[i_outcome],
+		     true);
+      }
     }
   }
 

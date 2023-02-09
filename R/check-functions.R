@@ -176,6 +176,41 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
 
 
 ## HAS_TESTS
+#' Check that response variable always zero when
+#' offset variable is zero
+#'
+#' @param formula A formula
+#' @param vname_offset The name of the variable being
+#' used as an offset
+#' @param nm_offset The name used to refer to the
+#' offset in user-visible functions
+#' @param data A data frame
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_resp_zero_if_offset_zero <- function(formula,
+                                           vname_offset,
+                                           data) {
+    nm_response <- deparse1(formula[[2L]])
+    response <- data[[nm_response]]
+    offset <- data[[vname_offset]]
+    response_pos <- response > 0
+    offset_pos <- offset > 0
+    is_pos_nonpos <- !is.na(response) & !is.na(offset) & response_pos & !offset_pos
+    i_pos_nonpos <- match(TRUE, is_pos_nonpos, nomatch = 0L)
+    if (i_pos_nonpos > 0L) {
+        stop(gettextf("'%s' is non-zero [%s] but '%s' is zero",
+                      nm_response,
+                      response[[i_pos_nonpos]],
+                      vname_offset),
+             call. = FALSE)
+    }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that response variable has no
 #' negative values
 #'

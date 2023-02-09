@@ -82,8 +82,12 @@ mod_pois <- function(formula, data, exposure) {
         check_offset_nonneg(vname_offset = vname_offset,
                             nm_offset = nm_offset,
                             data = data)
+        check_resp_zero_if_offset_zero(formula = formula,
+                                       vname_offset = vname_offset,
+                                       data = data)                                       
     }
     ## process inputs
+    data <- tibble(data)
     outcome <- make_outcome_array(formula = formula,
                                   data = data)
     if (is_offset_specified)
@@ -185,7 +189,11 @@ mod_binom <- function(formula, data, size) {
     check_offset_nonneg(vname_offset = vname_offset,
                         nm_offset = nm_offset,
                         data = data)
+    check_resp_zero_if_offset_zero(formula = formula,
+                                   vname_offset = vname_offset,
+                                   data = data)                                       
     ## process inputs
+    data <- tibble(data)
     outcome <- make_outcome_array(formula = formula,
                                   data = data)
     offset <- make_offset_array(formula = formula,
@@ -293,6 +301,7 @@ mod_norm <- function(formula, data, weights) {
                             data = data)
     }
     ## process inputs
+    data <- tibble(data)
     outcome <- make_outcome_vec(formula = formula,
                                 data = data)
     if (is_offset_specified)
