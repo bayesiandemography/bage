@@ -191,7 +191,10 @@ mod_binom <- function(formula, data, size) {
                         data = data)
     check_resp_zero_if_offset_zero(formula = formula,
                                    vname_offset = vname_offset,
-                                   data = data)                                       
+                                   data = data)
+    check_resp_le_offset(formula = formula,
+                         vname_offset = vname_offset,
+                         data = data)
     ## process inputs
     data <- tibble(data)
     outcome <- make_outcome_array(formula = formula,
@@ -222,7 +225,6 @@ mod_binom <- function(formula, data, size) {
     class(ans) <- c("bage_mod_binom", "bage_mod")
     ans
 }
-
 
 
 ## HAS_TESTS
