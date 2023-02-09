@@ -128,6 +128,28 @@ test_that("'check_offset_not_in_formula' returns correct error with invalid inpu
 })
 
 
+## 'check_resp_zero_if_offset_zero' -------------------------------------------
+
+test_that("'check_resp_zero_if_offset_zero' returns TRUE with valid inputs", {
+    data <- data.frame(deaths = c(0, 1, NA, 0,  NA),
+                       sex = rep("F", 5),
+                       popn =   c(0, 1, 2,  NA, NA))
+    expect_true(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
+                                               vname_offset = "popn",
+                                               data = data))
+})
+
+test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid inputs", {
+    data <- data.frame(deaths = c(0, 1, NA, 0,  1),
+                       sex = rep("F", 5),
+                       popn =   c(0, 1, 2,  NA, 0))
+    expect_error(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
+                                               vname_offset = "popn",
+                                               data = data),
+                 "'deaths' is non-zero \\[1\\] but 'popn' is zero")
+})
+
+
 ## 'check_response_nonneg' ----------------------------------------------------
 
 test_that("'check_response_nonneg' returns TRUE with valid inputs", {

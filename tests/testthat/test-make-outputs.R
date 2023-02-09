@@ -179,28 +179,27 @@ test_that("'make_levels_par' works with valid inputs - pois, complete levels", {
     expect_identical(ans_obtained, ans_expected)                      
 })
 
-## TODO - FIX 'fit'
-## test_that("'make_levels_par' works with valid inputs - pois, incomplete levels", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     data <- data[-3, ]
-##     formula <- deaths ~ age * sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- fit(mod)
-##     ans_obtained <- make_levels_par(mod)
-##     ans_expected <- c("(Intercept)",
-##                       0:9,
-##                       c("F", "M"),
-##                       2000:2005,
-##                       paste(rep(0:9, times = 2),
-##                             rep(c("F", "M"), each = 10),
-##                             sep = "."))
-##     expect_identical(ans_obtained, ans_expected)                      
-## })
+test_that("'make_levels_par' works with valid inputs - pois, incomplete levels", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data <- data[-3, ]
+    formula <- deaths ~ age * sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    ans_obtained <- make_levels_par(mod)
+    ans_expected <- c("(Intercept)",
+                      0:9,
+                      c("F", "M"),
+                      2000:2005,
+                      paste(rep(0:9, times = 2),
+                            rep(c("F", "M"), each = 10),
+                            sep = "."))
+    expect_identical(ans_obtained, ans_expected)                      
+})
 
 test_that("'make_levels_par' works with valid inputs - norm", {
     set.seed(0)

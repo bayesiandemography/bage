@@ -52,6 +52,7 @@ augment.bage_mod <- function(x, ...) {
         ans$.upper <- quantiles[, 3L]
     }
     ans$.observed <- make_observed(x)
+    ans <- tibble(ans)
     ans
 }
 
@@ -77,7 +78,7 @@ generics::components
 #' `"par"` or `"hyper"`.
 #' @param ... Not currently used.
 #'
-#' @returns A tibble
+#' @returns A [tibble][tibble::tibble-package].
 #'
 #' @seealso [augment()], [tidy()]
 #'
@@ -116,7 +117,11 @@ generics::fit
 fit.bage_mod <- function(object, ...) {
     priors <- object$priors
     terms_par <- object$terms_par
+    outcome <- object$outcome
+    offset <- object$offset
     nm_distn <- nm_distn(object)
+    is_in_lik <- make_is_in_lik(outcome = outcome,
+                                offset = offset)
     i_prior <- make_i_prior(priors)
     const <- make_const(priors)
     terms_const <- make_terms_const(priors)
@@ -125,8 +130,9 @@ fit.bage_mod <- function(object, ...) {
     par <- make_par(priors = priors,
                     terms_par = terms_par)
     data <- list(nm_distn = nm_distn,
-                 outcome = object$outcome,
-                 offset = object$offset,
+                 outcome = outcome,
+                 offset = offset,
+                 is_in_lik = is_in_lik,
                  terms_par = object$terms_par,
                  matrices_par = object$matrices_par,
                  i_prior = i_prior,
@@ -323,6 +329,7 @@ tidy.bage_mod <- function(x, ...) {
         terms_est <- split(terms_est, terms_par)
         ans$sd <- vapply(terms_est, stats::sd, 0)
     }
+    ans <- tibble(ans)
     ans
 }
 

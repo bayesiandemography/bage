@@ -28,6 +28,23 @@ test_that("'make_i_prior' works with valid inputs", {
 })
 
 
+## 'make_is_in_lik' -----------------------------------------------------------
+
+test_that("'make_is_in_lik' works with no NAs", {
+    ans_obtained <- make_is_in_lik(outcome = c(0, 1, 5),
+                                   offset = c(1, 0, 3))
+    ans_expected <- c(1L, 0L, 1L)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_is_in_lik' works with NAs", {
+    ans_obtained <- make_is_in_lik(outcome = c(0, 1, NA, 7),
+                                   offset = c(1, 0, 3, NA))
+    ans_expected <- c(1L, 0L, 0L, 0L)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_map' -----------------------------------------------------------------
 
 test_that("'make_map' works with no parameters treated as known", {

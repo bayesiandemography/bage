@@ -15,7 +15,7 @@
 \item{...}{Not currently used.}
 }
 \value{
-A tibble
+A \link[tibble:tibble-package]{tibble}.
 }
 \description{
 Extract components froma fitted object

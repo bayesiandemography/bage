@@ -71,6 +71,33 @@ test_that("'fit' works with AR1", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' gives the same imputed rate when outcome is NA and offset is NA", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:4, time = 2000:2002, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + age:time + time
+    ## outcome NA
+    set.seed(0)
+    data_outcome <- data
+    data_outcome$deaths[5] <- NA
+    mod_outcome <- mod_pois(formula = formula,
+                            data = data_outcome,
+                            exposure = popn)
+    mod_outcome <- fit(mod_outcome)
+    ans_outcome <- augment(mod_outcome)$.fitted[5]
+    ## offset NA
+    set.seed(0)
+    data_offset <- data
+    data_offset$popn[5] <- NA
+    mod_offset <- mod_pois(formula = formula,
+                           data = data_offset,
+                           exposure = popn)
+    mod_offset <- fit(mod_offset)
+    ans_offset <- augment(mod_offset)$.fitted[5]
+    ## compare
+    expect_equal(ans_outcome, ans_offset)
+})
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
