@@ -220,9 +220,9 @@ test_that("'make_matrix_par_array' creates sparse matrix", {
 
 ## 'make_priors' --------------------------------------------------------------
 
-test_that("'make_priors' works with valid inputs - has intercept", {
+test_that("'make_priors' works with valid inputs - has intercept, scale = 1", {
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_priors(formula)
+    ans_obtained <- make_priors(formula, scale = 1)
     ans_expected <- list("(Intercept)" = N(scale = 10),
                          time = N(),
                          "age:sex" = N())
@@ -231,9 +231,26 @@ test_that("'make_priors' works with valid inputs - has intercept", {
 
 test_that("'make_priors' works with valid inputs - no intercept", {
     formula <- deaths ~ age:sex + time - 1
-    ans_obtained <- make_priors(formula)
+    ans_obtained <- make_priors(formula, scale = 1)
     ans_expected <- list(time = N(),
                          "age:sex" = N())
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_priors' works with valid inputs - has intercept, scale = 2", {
+    formula <- deaths ~ age:sex + time
+    ans_obtained <- make_priors(formula, scale = 2)
+    ans_expected <- list("(Intercept)" = N(scale = 20),
+                         time = N(scale = 2),
+                         "age:sex" = N(scale = 2))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_priors' works with valid inputs - no intercept, scale = 2", {
+    formula <- deaths ~ age:sex + time - 1
+    ans_obtained <- make_priors(formula, scale = 2)
+    ans_expected <- list(time = N(scale = 2),
+                         "age:sex" = N(scale = 2))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -370,70 +387,15 @@ test_that("'make_outcome_array' works with valid inputs, has NA", {
 
 ## 'make_outcome_vec' ---------------------------------------------------------
 
-test_that("'make_outcome_vec' works with valid inputs, no NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome_vec(formula = formula,
-                                     data = data)
-    ans_expected <- data$deaths
-    ans_expected <- (ans_expected - mean(ans_expected)) / sd(ans_expected)
-    expect_identical(ans_obtained, ans_expected)
-    expect_equal(mean(ans_expected), 0)
-    expect_equal(sd(ans_expected), 1)
-})
-
-test_that("'make_outcome_vec' works with valid inputs, has NA", {
+test_that("'make_outcome_vec' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$deaths <- seq_len(nrow(data))
     data$deaths[3] <- NA
     formula <- deaths ~ age:sex + time
     ans_obtained <- make_outcome_vec(formula = formula,
                                      data = data)
-    ans_expected <- data$deaths
-    ans_expected[3] <- NA
-    ans_expected <- (ans_expected - mean(ans_expected, na.rm = TRUE)) /
-        sd(ans_expected, na.rm = TRUE)
+    ans_expected <- as.double(data$deaths)
     expect_identical(ans_obtained, ans_expected)
-    expect_equal(mean(ans_expected, na.rm = TRUE), 0)
-    expect_equal(sd(ans_expected, na.rm = TRUE), 1)
-})
-
-test_that("'make_outcome_vec' works with valid inputs, all NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- NA_real_
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome_vec(formula = formula,
-                                     data = data)
-    ans_expected <- data$deaths
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_outcome_vec' works with valid inputs, one non-NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    data$deaths[-3] <- NA
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome_vec(formula = formula,
-                                     data = data)
-    ans_expected <- data$deaths
-    ans_expected[3] <- 0
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_outcome_vec' works with valid inputs, two non-NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- seq_len(nrow(data))
-    data$deaths[-(3:4)] <- NA
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_outcome_vec(formula = formula,
-                                     data = data)
-    ans_expected <- data$deaths
-    ans_expected <- (ans_expected - mean(ans_expected, na.rm = TRUE)) /
-        sd(ans_expected, na.rm = TRUE)
-    expect_identical(ans_obtained, ans_expected)
-    expect_equal(mean(ans_expected, na.rm = TRUE), 0)
-    expect_equal(sd(ans_expected, na.rm = TRUE), 1)
 })
 
 
@@ -445,6 +407,26 @@ test_that("'make_par' works with valid inputs", {
     ans_obtained <- make_par(priors = priors, terms_par = terms_par)
     ans_expected <- c(-3, 0, 0, 0, 0.1, -0.1, 0, 0, 0)
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_scale_outcome' -------------------------------------------------------
+
+test_that("'make_scale_outcome' works with valid inputs, no NA", {
+    outcome <- c(1:10, NA)
+    ans_obtained <- make_scale_outcome(outcome)
+    ans_expected <- signif(sd(outcome[-11]), 2)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_scale_outcome' works with valid inputs, all NA", {
+    expect_identical(make_scale_outcome(c(NA, NA)),
+                     NA_real_)
+})
+
+test_that("'make_scale_outcome' works with valid inputs, one non-NA", {
+    expect_identical(make_scale_outcome(c(NA, 3L, NA)),
+                     3.0)
 })
 
 

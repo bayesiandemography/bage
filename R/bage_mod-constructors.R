@@ -59,6 +59,7 @@
 #'                 exposure = 1)
 #' @export
 mod_pois <- function(formula, data, exposure) {
+    n_draw <- 1000L
     ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
@@ -97,7 +98,8 @@ mod_pois <- function(formula, data, exposure) {
     else
         offset <- make_offset_ones_array(formula = formula,
                                          data = data)
-    priors <- make_priors(formula)
+    priors <- make_priors(formula = formula,
+                          scale = 1)
     terms_par <- make_terms_par(formula = formula,
                                 data = data)
     matrices_par <- make_matrices_par_array(formula = formula,
@@ -105,7 +107,6 @@ mod_pois <- function(formula, data, exposure) {
     ## create object and return
     est <- NULL
     prec <- NULL
-    n_draw <- 1000L
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,
@@ -168,6 +169,7 @@ mod_pois <- function(formula, data, exposure) {
 #'                  size = total)
 #' @export
 mod_binom <- function(formula, data, size) {
+    n_draw <- 1000L
     ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
@@ -204,13 +206,13 @@ mod_binom <- function(formula, data, size) {
                                 data = data)
     terms_par <- make_terms_par(formula = formula,
                                 data = data)
-    priors <- make_priors(formula)
+    priors <- make_priors(formula = formula,
+                          scale = 1)
     matrices_par <- make_matrices_par_array(formula = formula,
                                             outcome = outcome)
     ## create object and return
     est <- NULL
     prec <- NULL
-    n_draw <- 1000L
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,
@@ -281,6 +283,7 @@ mod_binom <- function(formula, data, size) {
 #'                 weights = 1)
 #' @export
 mod_norm <- function(formula, data, weights) {
+    n_draw <- 1000L
     ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
@@ -311,7 +314,9 @@ mod_norm <- function(formula, data, weights) {
                                   data = data)
     else
         offset <- make_offset_ones_vec(data)
-    priors <- make_priors(formula)
+    scale_outcome <- make_scale_outcome(outcome)
+    priors <- make_priors(formula = formula,
+                          scale = scale_outcome)
     terms_par <- make_terms_par(formula = formula,
                                 data = data)
     matrices_par <- make_matrices_par_vec(formula = formula,
@@ -319,7 +324,6 @@ mod_norm <- function(formula, data, weights) {
     ## create object and return
     est <- NULL
     prec <- NULL
-    n_draw <- 1000L
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,

@@ -425,9 +425,7 @@ make_outcome_array <- function(formula, data) {
 ## HAS_TESTS
 #' Make vector holding outcome variable
 #'
-#' Extracts the outcome variable from 'data',
-#' and standardises to have mean of 0 and
-#' sd of 1.
+#' Extracts the outcome variable from 'data'.
 #'
 #' @param formula Formula specifying model
 #' @param data A data frame
@@ -439,14 +437,6 @@ make_outcome_vec <- function(formula, data) {
     nm_response <- deparse1(formula[[2L]])
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
-    n_obs <- sum(!is.na(ans))
-    if (n_obs >= 1L)
-        ans <- ans - mean(ans, na.rm = TRUE)
-    if (n_obs >= 2L) {
-        sd <- sd(ans, na.rm = TRUE)
-        if (sd > 0)
-            ans <- ans / sd
-    }
     ans <- as.double(ans)
     ans
 }
@@ -497,16 +487,49 @@ make_par <- function(priors, terms_par) {
 #' @returns Named list.
 #'
 #' @noRd
-make_priors <- function(formula) {
-    scale_intercept <- 10
+make_priors <- function(formula, scale) {
+    mult_intercept <- 10
     nms <- attr(stats::terms(formula), "term.labels")
-    ans <- rep(list(N()), times = length(nms))
+    ans <- rep(list(new_bage_prior_norm(scale = scale)), times = length(nms))
     names(ans) <- nms
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept) {
-        prior_intercept <- new_bage_prior_norm(scale = scale_intercept)
+        prior_intercept <- new_bage_prior_norm(scale = mult_intercept * scale)
         ans <- c(list("(Intercept)" = prior_intercept), ans)
     }
+    ans
+}
+
+
+## HAS_TESTS
+#' Calculate the scale of variation
+#' in the outcome variable
+#'
+#' If at least 2 observations, use the
+#' standard deviation; if only 1, use
+#' the single value; otherwise return NA.
+#'
+#' Round to two significant figures.
+#' (This makes printing nicer, and avoids
+#' spurious precision.)
+#'
+#' @param outcome A vector or array holding outcomes.
+#'
+#' @returns A double.
+#'
+#' @noRd
+make_scale_outcome <- function(outcome) {
+    digits <- 2L
+    obs <- outcome[!is.na(outcome)]
+    n_obs <- length(obs)
+    if (n_obs == 0L)
+        ans <- NA_real_
+    else if (n_obs == 1L)
+        ans <- obs
+    else
+        ans <- stats::sd(obs)
+    ans <- signif(ans, digits = digits)
+    ans <- as.double(ans)
     ans
 }
 
