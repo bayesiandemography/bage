@@ -407,10 +407,10 @@ make_outcome_array <- function(formula, data) {
                             "~",
                             paste(nms_vars[-1L], collapse = "+"))
     formula_xtabs <- stats::as.formula(formula_xtabs)
-    ans <- stats::xtabs(formula_xtabs, data = data)
-    ans <- array(as.double(ans),
-                 dim = dim(ans),
-                 dimnames = dimnames(ans))
+    ans <- stats::xtabs(formula_xtabs, data = data, addNA = TRUE)
+    dim_ans <- dim(ans)
+    dn_ans <- dimnames(ans)
+    ans <- as.double(ans)
     formula_na <- paste0("is.na(",
                          nms_vars[[1L]],
                          ")~",
@@ -418,6 +418,7 @@ make_outcome_array <- function(formula, data) {
     formula_na <- stats::as.formula(formula_na)
     is_na <- stats::xtabs(formula_na, data = data) > 0L
     ans[is_na] <- NA_real_
+    ans <- array(ans, dim = dim_ans, dimnames = dn_ans)
     ans
 }
 
