@@ -23,6 +23,7 @@ Imports:
     generics,
     Matrix,
     matrixStats,
+    methods,
     stats,
     tibble,
     TMB

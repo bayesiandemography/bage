@@ -117,11 +117,8 @@ test_that("'fit' works when single dimension", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_false(is.null(mod_fitted$est))
+    expect_identical(length(mod_fitted$est$par), nrow(data) + 1L)
 })
-
-
-
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
