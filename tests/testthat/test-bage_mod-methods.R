@@ -110,6 +110,17 @@ test_that("'fit' works when all observed values for one year are NA", {
     expect_false(is.null(mod_fitted$est))
 })
 
+test_that("'fit' works when single dimension", {
+    data <- data.frame(deaths = 1:10,
+                       time = 2001:2010)
+    mod <- mod_pois(deaths ~ time,
+                    data = data,
+                    exposure = 1)
+    mod_fitted <- fit(mod)
+    expect_false(is.null(mod_fitted$est))
+})
+
+
 
 
 
