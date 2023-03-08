@@ -1,4 +1,18 @@
 
+infer_name_age <- function(names) {
+    p_valid_age <- "^age$|^agegroup$|^agegp$|^ageyear$|^ageyears$|^ageinterval$"
+    names_cleaned <- tolower(names)
+    names_cleaned <- gsub("[^a-z]", "", names_cleaned)
+    i <- grep(p_valid_age, names_cleaned)
+    if (identical(length(i), 1L))
+        names[[i]]
+    else
+        NULL
+}
+                   
+    
+
+
 ## HAS_TESTS
 #' Make 'const'
 #'
