@@ -243,13 +243,13 @@ make_matrix_par_array <- function(dim, is_in_term) {
         j <- if (is_in) i else rep.int(1L, times = d)
         Matrix::sparseMatrix(i = i, j = j)
     }
-    submatrices <- mapply(make_submatrix,
-                          d = as.list(dim),
-                          is_in = as.list(is_in_term),
-                          SIMPLIFY = FALSE,
-                          USE.NAMES = FALSE)
+    submatrices <- .mapply(make_submatrix,
+                           dots = list(d = as.list(dim),
+                                       is_in = as.list(is_in_term)),
+                           MoreArgs = list())
     submatrices <- rev(submatrices)
     ans <- Reduce(Matrix::kronecker, submatrices)
+    ans <- methods::as(ans, "dMatrix")
     ans
 }
 
@@ -275,13 +275,13 @@ make_matrix_par_vec <- function(dim, is_in_term) {
         j <- if (is_in) i else rep.int(1L, times = d)
         Matrix::sparseMatrix(i = i, j = j)
     }
-    submatrices <- mapply(make_submatrix,
-                          d = as.list(dim),
-                          is_in = as.list(is_in_term),
-                          SIMPLIFY = FALSE,
-                          USE.NAMES = FALSE)
+    submatrices <- .mapply(make_submatrix,
+                           dots = list(d = as.list(dim),
+                                       is_in = as.list(is_in_term)),
+                           MoreArgs = list())
     submatrices <- rev(submatrices)
     ans <- Reduce(Matrix::kronecker, submatrices)
+    ans <- methods::as(ans, "dMatrix")
     ans
 }
 
