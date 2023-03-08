@@ -98,6 +98,19 @@ test_that("'fit' gives the same imputed rate when outcome is NA and offset is NA
     ## compare
     expect_equal(ans_outcome, ans_offset)
 })
+    
+test_that("'fit' works when all observed values for one year are NA", {
+    data <- data.frame(deaths = c(NA, 2:10),
+                       age = rep(1:2, each = 5),
+                       time = 2001:2010)
+    mod <- mod_pois(deaths ~ age + time,
+                    data = data,
+                    exposure = 1)
+    mod_fitted <- fit(mod)
+    expect_false(is.null(mod_fitted$est))
+})
+
+
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
