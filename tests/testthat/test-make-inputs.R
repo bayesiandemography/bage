@@ -1,4 +1,39 @@
 
+## 'infer_name_age' -----------------------------------------------------------
+
+test_that("'infer_name_age' returns name when single valid answer", {
+    expect_identical(infer_name_age(c("age", "sex", "time")),
+                     "age")
+    expect_identical(infer_name_age(c("Age", "sex", "time")),
+                     "Age")
+    expect_identical(infer_name_age(c("sex", "time", "AGE_GROUP")),
+                     "AGE_GROUP")
+    expect_identical(infer_name_age(c("sex", "time", "age  group")),
+                     "age  group")
+    expect_identical(infer_name_age(c("sex", "time", " age [interval]")),
+                     " age [interval]")
+    expect_identical(infer_name_age(c("sex", "time", "age.years")),
+                     "age.years")
+    expect_identical(infer_name_age(c("sex", "time", "age.year")),
+                     "age.year")
+})
+
+test_that("'infer_name_age' returns NULL when not single valid answer", {
+    expect_identical(infer_name_age(c("age", "sex", "age", "time")),
+                     NULL)
+    expect_identical(infer_name_age(c("xAge", "sex", "time")),
+                     NULL)
+    expect_identical(infer_name_age(c("sex", "time", "AGE_GROUPx")),
+                     NULL)
+    expect_identical(infer_name_age(c("sex", "time", "age--x  group")),
+                     NULL)
+    expect_identical(infer_name_age(c("sex", "time", " age age")),
+                     NULL)
+    expect_identical(infer_name_age(c("sex", "time", "age.yearss")),
+                     NULL)
+})
+
+
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
