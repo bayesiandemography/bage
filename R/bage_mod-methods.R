@@ -252,6 +252,8 @@ print.bage_mod <- function(x, ...) {
     n_draw <- x$n_draw
     data <- x$data
     vname_offset <- x$vname_offset
+    age_var <- x$age_var
+    time_var <- x$time_var
     is_fitted <- !is.null(x$est)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -261,6 +263,8 @@ print.bage_mod <- function(x, ...) {
     nchar_max <- max(nchar(nms_priors), nchar_response)
     padding_formula <- paste(rep(" ", nchar_max - nchar_response),
                              collapse = "")
+    str_age_var <- if (is.null(age_var)) "<not detected>" else age_var
+    str_time_var <- if (is.null(time_var)) "<not detected>" else time_var
     nms_priors <- sprintf("% *s", nchar_max, nms_priors)
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
@@ -283,6 +287,16 @@ print.bage_mod <- function(x, ...) {
         cat(str_offset)
         cat("\n")
     }
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "age_var",
+                str_age_var))
+    cat("\n")
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "time_var",
+                str_time_var))
+    cat("\n")
     cat(sprintf("% *s: %d",
                 nchar_offset,
                 "n_draw",
