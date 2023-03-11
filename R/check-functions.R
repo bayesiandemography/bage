@@ -80,6 +80,30 @@ check_formula_has_response <- function(formula) {
 
 
 ## HAS_TESTS
+#' Check that formula has a variable
+#'
+#' Check that 'formula' contains the variable 'name'
+#' (as a main effect or interaction, or both)
+#'
+#' @param name A string
+#' @param formula A formula
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_formula_has_variable <- function(name, formula) {
+    factors <- attr(stats::terms(formula), "factors")
+    varnames <- rownames(factors)[-1L]
+    if (!(name %in% varnames))
+        stop(gettextf("formula '%s' does not have variable \"%s\"",
+                      deparse1(formula),
+                      name),
+             call. = FALSE)
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check variables used in 'formula' occur in 'data'
 #'
 #' @param formula A formula.

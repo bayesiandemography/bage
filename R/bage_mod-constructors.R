@@ -1,4 +1,3 @@
-## TODO - mod_fert, mod_mort, mod_mig_in, mod_mig_out, mod_lfp, mod_marr
 
 ## HAS_TESTS
 #' Specify a Poisson model
@@ -98,8 +97,12 @@ mod_pois <- function(formula, data, exposure) {
     else
         offset <- make_offset_ones_array(formula = formula,
                                          data = data)
+    age_var <- infer_age_var(formula)
+    time_var <- infer_time_var(formula)
     priors <- make_priors(formula = formula,
-                          scale = 1)
+                          scale = 1,
+                          age_var = age_var,
+                          time_var = time_var)
     terms_par <- make_terms_par(formula = formula,
                                 data = data)
     matrices_par <- make_matrices_par_array(formula = formula,
@@ -113,6 +116,8 @@ mod_pois <- function(formula, data, exposure) {
                 offset = offset,
                 vname_offset = vname_offset,
                 priors = priors,
+                age_var = age_var,
+                time_var = time_var,
                 terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
@@ -204,10 +209,14 @@ mod_binom <- function(formula, data, size) {
     offset <- make_offset_array(formula = formula,
                                 vname_offset = vname_offset,
                                 data = data)
+    age_var <- infer_age_var(formula)
+    time_var <- infer_time_var(formula)
+    priors <- make_priors(formula = formula,
+                          scale = 1,
+                          age_var = age_var,
+                          time_var = time_var)
     terms_par <- make_terms_par(formula = formula,
                                 data = data)
-    priors <- make_priors(formula = formula,
-                          scale = 1)
     matrices_par <- make_matrices_par_array(formula = formula,
                                             outcome = outcome)
     ## create object and return
@@ -219,6 +228,8 @@ mod_binom <- function(formula, data, size) {
                 offset = offset,
                 vname_offset = vname_offset,
                 priors = priors,
+                age_var = age_var,
+                time_var = time_var,
                 terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
@@ -315,8 +326,12 @@ mod_norm <- function(formula, data, weights) {
     else
         offset <- make_offset_ones_vec(data)
     scale_outcome <- make_scale_outcome(outcome)
+    age_var <- infer_age_var(formula)
+    time_var <- infer_time_var(formula)
     priors <- make_priors(formula = formula,
-                          scale = scale_outcome)
+                          scale = scale_outcome,
+                          age_var = age_var,
+                          time_var = time_var)
     terms_par <- make_terms_par(formula = formula,
                                 data = data)
     matrices_par <- make_matrices_par_vec(formula = formula,
@@ -330,6 +345,8 @@ mod_norm <- function(formula, data, weights) {
                 offset = offset,
                 vname_offset = vname_offset,
                 priors = priors,
+                age_var = age_var,
+                time_var = time_var,
                 terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,

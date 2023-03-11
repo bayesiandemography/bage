@@ -1,36 +1,79 @@
 
-## 'infer_name_age' -----------------------------------------------------------
+## 'infer_age_var' ------------------------------------------------------------
 
-test_that("'infer_name_age' returns name when single valid answer", {
-    expect_identical(infer_name_age(c("age", "sex", "time")),
+test_that("'infer_age_var' returns name when single valid answer", {
+    expect_identical(infer_age_var(deaths ~ age * sex + time),
                      "age")
-    expect_identical(infer_name_age(c("Age", "sex", "time")),
+    expect_identical(infer_age_var(deaths ~ age * sex + time + age),
+                     "age")
+    expect_identical(infer_age_var(deaths ~ Age * sex + time),
                      "Age")
-    expect_identical(infer_name_age(c("sex", "time", "AGE_GROUP")),
+    expect_identical(infer_age_var(deaths ~ AGE_GROUP * sex + time),
                      "AGE_GROUP")
-    expect_identical(infer_name_age(c("sex", "time", "age  group")),
-                     "age  group")
-    expect_identical(infer_name_age(c("sex", "time", " age [interval]")),
-                     " age [interval]")
-    expect_identical(infer_name_age(c("sex", "time", "age.years")),
+    expect_identical(infer_age_var(deaths ~ agegroup * sex + time),
+                     "agegroup")
+    expect_identical(infer_age_var(deaths ~ ageinterval * sex + time),
+                     "ageinterval")
+    expect_identical(infer_age_var(deaths ~ age.years * sex + time),
                      "age.years")
-    expect_identical(infer_name_age(c("sex", "time", "age.year")),
+    expect_identical(infer_age_var(deaths ~ age.year * sex + time),
                      "age.year")
 })
 
-test_that("'infer_name_age' returns NULL when not single valid answer", {
-    expect_identical(infer_name_age(c("age", "sex", "age", "time")),
+test_that("'infer_age_var' returns NULL when not single valid answer", {
+    expect_identical(infer_age_var(deaths ~ agex * sex + time),
                      NULL)
-    expect_identical(infer_name_age(c("xAge", "sex", "time")),
+    expect_identical(infer_age_var(deaths ~ sex + time),
                      NULL)
-    expect_identical(infer_name_age(c("sex", "time", "AGE_GROUPx")),
+    expect_identical(infer_age_var(deaths ~ 1),
                      NULL)
-    expect_identical(infer_name_age(c("sex", "time", "age--x  group")),
+})
+
+
+## 'infer_time_var' -----------------------------------------------------------
+
+test_that("'infer_time_var' returns name when single valid answer", {
+    expect_identical(infer_time_var(deaths ~ time * sex + age),
+                     "time")
+    expect_identical(infer_time_var(deaths ~ Time * sex + age),
+                     "Time")
+    expect_identical(infer_time_var(deaths ~ PERIOD * sex + age),
+                     "PERIOD")
+    expect_identical(infer_time_var(deaths ~ QUARters * sex + age),
+                     "QUARters")
+    expect_identical(infer_time_var(deaths ~ month * sex + age),
+                     "month")
+    expect_identical(infer_time_var(deaths ~ years * sex + age),
+                     "years")
+    expect_identical(infer_time_var(deaths ~ year * sex + age),
+                     "year")
+    expect_identical(infer_time_var(deaths ~ sex + month_year),
+                     "month_year")
+    expect_identical(infer_time_var(deaths ~ sex + year_quarter),
+                     "year_quarter")
+    expect_identical(infer_time_var(deaths ~ sex + quarter_year),
+                     "quarter_year")
+})
+
+test_that("'infer_time_var' returns NULL when not single valid answer", {
+    expect_identical(infer_time_var(deaths ~ xTime + sex + age),
                      NULL)
-    expect_identical(infer_name_age(c("sex", "time", " age age")),
+    expect_identical(infer_time_var(deaths ~ time * sex + year_month),
                      NULL)
-    expect_identical(infer_name_age(c("sex", "time", "age.yearss")),
+    expect_identical(infer_time_var(deaths ~ age * sex + PERIODX),
                      NULL)
+})
+
+
+## 'is_main_effect' -----------------------------------------------------------
+
+test_that("'is_main_effect' works with valid inputs", {
+    expect_true(is_main_effect(name = "age",
+                               formula = deaths ~ age*sex + time))
+    expect_false(is_main_effect(name = "age",
+                                formula = deaths ~ age:sex + time))
+    expect_false(is_main_effect(name = "region",
+                                formula = deaths ~ age:sex + time))
 })
 
 
@@ -257,34 +300,45 @@ test_that("'make_matrix_par_array' creates sparse matrix", {
 
 test_that("'make_priors' works with valid inputs - has intercept, scale = 1", {
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_priors(formula, scale = 1)
+    ans_obtained <- make_priors(formula,
+                                scale = 1, age_var = "age",
+                                time_var = "time")
     ans_expected <- list("(Intercept)" = N(scale = 10),
-                         time = N(),
+                         time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_priors' works with valid inputs - no intercept", {
     formula <- deaths ~ age:sex + time - 1
-    ans_obtained <- make_priors(formula, scale = 1)
-    ans_expected <- list(time = N(),
+    ans_obtained <- make_priors(formula,
+                                scale = 1,
+                                age_var = "age",
+                                time_var = "time")
+    ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_priors' works with valid inputs - has intercept, scale = 2", {
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_priors(formula, scale = 2)
+    formula <- deaths ~ age:sex + region
+    ans_obtained <- make_priors(formula,
+                                scale = 2,
+                                age_var = "age",
+                                time_var = "time")
     ans_expected <- list("(Intercept)" = N(scale = 20),
-                         time = N(scale = 2),
+                         region = N(scale = 2),
                          "age:sex" = N(scale = 2))
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_priors' works with valid inputs - no intercept, scale = 2", {
     formula <- deaths ~ age:sex + time - 1
-    ans_obtained <- make_priors(formula, scale = 2)
-    ans_expected <- list(time = N(scale = 2),
+    ans_obtained <- make_priors(formula,
+                                scale = 2,
+                                age_var = "age",
+                                time_var = "time")
+    ans_expected <- list(time = RW(scale = 2),
                          "age:sex" = N(scale = 2))
     expect_identical(ans_obtained, ans_expected)
 })

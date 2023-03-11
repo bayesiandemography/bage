@@ -1,6 +1,18 @@
 
-infer_name_age <- function(names) {
+## HAS_TESTS
+#' Infer the name of the age variable
+#'
+#' Given a formula, guess which term, if
+#' any, is the age variable.
+#'
+#' @param formula Model formula
+#'
+#' @returns A string or NULL.
+#' 
+#' @noRd
+infer_age_var <- function(formula) {
     p_valid_age <- "^age$|^agegroup$|^agegp$|^ageyear$|^ageyears$|^ageinterval$"
+    names <- attr(stats::terms(formula), "term.labels")
     names_cleaned <- tolower(names)
     names_cleaned <- gsub("[^a-z]", "", names_cleaned)
     i <- grep(p_valid_age, names_cleaned)
@@ -9,8 +21,55 @@ infer_name_age <- function(names) {
     else
         NULL
 }
-                   
-    
+
+
+## HAS_TESTS
+#' Infer the name of the time variable
+#'
+#' Given a formula, guess which term, if
+#' any, is the time variable.
+#'
+#' @param formula Model formula
+#'
+#' @returns A string or NULL.
+#' 
+#' @noRd
+infer_time_var <- function(formula) {
+    p_valid_time <- paste0("^time$|^period$|^year$|^month$|^quarter$|",
+                           "^times$|^periods$|^years$|^months$|^quarters$|",
+                           "^yearmonth$|^monthyear$|^yearquarter$|^quarteryear$")
+    names <- attr(stats::terms(formula), "term.labels")
+    names_cleaned <- tolower(names)
+    names_cleaned <- gsub("[^a-z]", "", names_cleaned)
+    i <- grep(p_valid_time, names_cleaned)
+    if (identical(length(i), 1L))
+        names[[i]]
+    else
+        NULL
+}
+
+
+## HAS_TESTS
+#' Check for presence of main effect
+#'
+#' Check whether 'formula' includes a main effect
+#' called 'name'
+#'
+#' @param name A string
+#' @param formula A formula
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_main_effect <- function(name, formula) {
+    term_names <- attr(stats::terms(formula), "term.labels")
+    term_orders <- attr(stats::terms(formula), "order")
+    i_name <- match(name, term_names, nomatch = 0L)
+    if (i_name == 0L)
+        FALSE
+    else
+        term_orders[[i_name]] == 1L
+}
 
 
 ## HAS_TESTS
@@ -494,16 +553,22 @@ make_par <- function(priors, terms_par) {
 #' Make default priors
 #'
 #' Make named list holding default priors.
-#' Default prior is standard normal for
-#' all terms expect intercept, where it
-#' is N(0, 10^2).
+#' Default prior is N(0, scale^2) for
+#' all terms except
+#' - intercept, where it is N(0, (10*scale)^2),
+#' - age variable, where it is RW(scale)
+#' - time variable, where it is RW(scale)
 #'
 #' @param formula Formula specifying model
+#' @param scale A number
+#' @param age_var Name of age variable, or NULL
+#' @param time_var Name of time variable, or NULL
 #'
-#' @returns Named list.
+#' @returns Named list of objects with class
+#' 'bage_prior'.
 #'
 #' @noRd
-make_priors <- function(formula, scale) {
+make_priors <- function(formula, scale, age_var, time_var) {
     mult_intercept <- 10
     nms <- attr(stats::terms(formula), "term.labels")
     ans <- rep(list(new_bage_prior_norm(scale = scale)), times = length(nms))
@@ -512,6 +577,20 @@ make_priors <- function(formula, scale) {
     if (has_intercept) {
         prior_intercept <- new_bage_prior_norm(scale = mult_intercept * scale)
         ans <- c(list("(Intercept)" = prior_intercept), ans)
+    }
+    has_age_var <- !is.null(age_var)
+    if (has_age_var) {
+        has_age_main_effect <- is_main_effect(name = age_var,
+                                              formula = formula)
+        if (has_age_main_effect)
+            ans[[age_var]] <- RW(scale = scale)
+    }
+    has_time_var <- !is.null(time_var)
+    if (has_time_var) {
+        has_time_main_effect <- is_main_effect(name = time_var,
+                                               formula = formula)
+        if (has_time_main_effect)
+            ans[[time_var]] <- RW(scale = scale)
     }
     ans
 }

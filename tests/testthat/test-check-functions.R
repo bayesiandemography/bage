@@ -58,6 +58,24 @@ test_that("'check_formula_has_response' returns correct error with invalid input
 })
 
 
+## 'check_formula_as_variable' ------------------------------------------------
+
+test_that("'check_formula_has_variable' returns TRUE with valid inputs", {
+    expect_true(check_formula_has_variable(name = "age",
+                                           formula = deaths ~ age*sex + time))
+    expect_true(check_formula_has_variable(name = "age",
+                                           formula = deaths ~ age:sex + time))
+    expect_true(check_formula_has_variable(name = "time",
+                                           formula = deaths ~ age*sex + time))
+})
+
+test_that("'check_formula_has_variable' returns correct error with invalid inputs", {
+    expect_error(check_formula_has_variable(name = "wrong",
+                                            formula = deaths ~ age*sex + time),
+                 "formula 'deaths ~ age \\* sex \\+ time' does not have variable \"wrong\"")
+})
+
+
 ## 'check_formula_vnames_in_data' ---------------------------------------------
 
 test_that("'check_formula_vnames_in_data' returns TRUE with valid inputs", {

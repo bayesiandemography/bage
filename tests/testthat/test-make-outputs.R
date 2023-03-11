@@ -100,7 +100,7 @@ test_that("'make_draws_par', 'make_draws_linear_pred', 'make_draws_fitted', 'mak
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
-    mod <- set_n_draw(mod, n_draw = 100L)
+    mod <- set_n_draw(mod, n_draw = 10000L)
     ## 'make_draws_par'
     set.seed(1)
     draws_par <- make_draws_par(mod)
