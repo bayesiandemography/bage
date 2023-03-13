@@ -7,20 +7,21 @@
 #'
 #' Specify which variable (if any) represents age.
 #' Functions [mod_pois()], [mod_binom()],
-#' and [mod_norm()] try to infer the age variable,
-#' based on variable names, but do not always get it right.
+#' and [mod_norm()] try to infer the age variable
+#' from variable names, but do not always get it right.
 #'
 #' In an R \code{\link{formula}}, a 'variable' is different
 #' from a 'term'. For instance,
 #' 
 #' `~ age + region + age:region`
 #'
-#' has variables `age` and `region`,
+#' contains variables `age` and `region`,
 #' and terms `age`, `region`, and `age:region`.
 #'
 #' By default, an age main effect has a random walk
-#' ([RW()]) prior. Calling `set_age_prior()` can
-#' affect priors: see below for an example.
+#' ([RW()]) prior. Changing the age variable
+#' via `set_age_prior()` can change priors:
+#' see below for an example.
 #' 
 #' @param mod A `bage_mod` object, typically
 #' created with [mod_pois()],
@@ -34,7 +35,7 @@
 #' @examples
 #' ## rename 'age' variable to something unusual
 #' injuries2 <- injuries
-#' injuries2$age_last_birthday <- age
+#' injuries2$age_last_birthday <- injuries2$age
 #'
 #' ## mod_pois does not recognize age variable
 #' mod <- mod_pois(injuries ~ age_last_birthday * ethnicity + year,
@@ -43,46 +44,16 @@
 #' mod
 #'
 #' ## so we set the age variable explicitly
-#' ## (which changes the prior on
+#' ## (which, as a side effect, changes the prior on
 #' ## the age main effect)
 #' mod |>
 #'   set_age(name = "age_last_birthday")
 #' @export
 set_age_var <- function(mod, name) {
-    checkmate::assert_class(mod, "bage_mod")
-    ## extract values
-    formula <- mod$formula
-    priors <- mod$priors
-    age_var_old <- mod$age_var
-    time_var <- mod$time_var
-    has_age_var_old <- !is.null(age_var_old)
-    has_time_var <- !is.null(time_var)
-    names_priors <- names(priors)
-    ## check 'name'
-    checkmate::assert_string(name, min.chars = 1L)
-    check_formula_has_variable(name = name, formula = formula)
-    if (has_time_var) {
-        if (identical(name, time_var))
-            stop(gettextf("age variable and time variable have same name [\"%s\"]",
-                          name),
-                 call. = FALSE)
-    }
-    ## reset priors if appropriate
-    has_age_main_effect <- is_main_effect(name = name,
-                                          formula = formula)
-    if (has_age_main_effect)
-        priors[[name]] <- RW()
-    if (has_age_var_old) {
-        had_age_main_effect <- is_main_effect(name = age_var_old,
-                                              formula = formula)
-        if (had_age_main_effect)
-            priors[[age_var_old]] <- N()
-    }
-    ## modify model object and return
-    mod$priors <- priors
-    mod$age_var <- name
-    mod
-}    
+    set_var_inner(mod = mod,
+                  name = name,
+                  var = "age")
+}
 
 
 ## 'set_n_draw' ---------------------------------------------------------------
@@ -128,8 +99,6 @@ set_n_draw <- function(mod, n_draw = 1000L) {
     mod$n_draw <- n_draw
     mod
 }
-
-
 
 
 ## 'set_prior' ----------------------------------------------------------------
@@ -195,6 +164,60 @@ set_prior <- function(mod, formula) {
 }
 
 
+## 'set_time_var' --------------------------------------------------------------
+
+## HAS_TESTS
+#' Set the time variable
+#'
+#' Specify which variable (if any) represents time.
+#' Functions [mod_pois()], [mod_binom()],
+#' and [mod_norm()] try to infer the time variable
+#' from variable names, but do not always get it right.
+#'
+#' In an R \code{\link{formula}}, a 'variable' is different
+#' from a 'term'. For instance,
+#' 
+#' `~ time + region + time:region`
+#'
+#' contains variables `time` and `region`,
+#' and terms `time`, `region`, and `time:region`.
+#'
+#' By default, an time main effect has a random walk
+#' ([RW()]) prior. Changing the time variable
+#' via `set_time_prior()` can change priors:
+#' see below for an example.
+#' 
+#' @param mod A `bage_mod` object, typically
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param name The name of the time variable.
+#'
+#' @returns A `bage_mod` object
+#'
+#' @seealso [set_time_var()]
+#' 
+#' @examples
+#' ## rename time variable to something unusual
+#' injuries2 <- injuries
+#' injuries2$calendar_year <- injuries2$year
+#'
+#' ## mod_pois does not recognize time variable
+#' mod <- mod_pois(injuries ~ age * ethnicity + calendar_year,
+#'                 data = injuries2,
+#'                 exposure = popn)
+#' mod
+#'
+#' ## so we set the time variable explicitly
+#' ## (which, as a side effect, changes the prior on
+#' ## the time main effect)
+#' mod |>
+#'   set_time(name = "calendar_year")
+#' @export
+set_time_var <- function(mod, name) {
+    set_var_inner(mod = mod,
+                  name = name,
+                  var = "time")
+}
 
 
 ## generate.bage_mod <- function(x, known = "(Intercept)", ...) {
@@ -217,3 +240,61 @@ set_prior <- function(mod, formula) {
 ## fit.bage_mod_sim <- function(x) {
 ##     NULL
 ## }
+
+
+## HAS_TESTS
+#' Set age_var or time_var
+#'
+#' Can include resetting priors.
+#' Called by user-visible functions
+#' 'set_age_var' and 'set_time_var'.
+#' 
+#' @param mod A `bage_mod` object.
+#' @param name The name of the time variable.
+#' @param var "age" or "time"
+#'
+#' @returns A `bage_mod` object
+#'
+#' @noRd
+set_var_inner <- function(mod, name, var) {
+    choices <- c("age", "time")
+    checkmate::assert_class(mod, "bage_mod")
+    checkmate::assert_choice(var, choices = choices)
+    var_oth <- setdiff(choices, var)
+    attr_name <- paste0(var, "_var")
+    attr_name_oth <- paste0(var_oth, "_var")
+    ## extract values
+    formula <- mod$formula
+    priors <- mod$priors
+    name_old <- mod[[attr_name]]
+    name_oth <- mod[[attr_name_oth]]
+    has_name_old <- !is.null(name_old)
+    has_name_oth <- !is.null(name_oth)
+    names_priors <- names(priors)
+    ## check 'name'
+    checkmate::assert_string(name, min.chars = 1L)
+    check_formula_has_variable(name = name, formula = formula)
+    if (has_name_oth) {
+        if (identical(name, name_oth))
+            stop(gettextf("%s variable and %s variable have same name [\"%s\"]",
+                          choices[[1L]],
+                          choices[[2L]], 
+                          name),
+                 call. = FALSE)
+    }
+    ## reset priors if appropriate
+    has_main_effect <- is_main_effect(name = name,
+                                      formula = formula)
+    if (has_main_effect)
+        priors[[name]] <- RW()
+    if (has_name_old) {
+        had_main_effect <- is_main_effect(name = name_old,
+                                          formula = formula)
+        if (had_main_effect)
+            priors[[name_old]] <- N()
+    }
+    ## modify model object and return
+    mod$priors <- priors
+    mod[[attr_name]] <- name
+    mod
+}
