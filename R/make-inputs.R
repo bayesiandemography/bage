@@ -736,3 +736,28 @@ make_terms_par <- function(formula, data) {
     
     
     
+
+## n <- 10
+## D <- matrix(0, nrow = n-1, ncol = n)
+## diag(D) <- -1
+## D[col(D) == row(D) + 1] <- 1
+
+## L <- matrix(0, n, n-1)
+## L[row(L) > col(L)] <- 1
+
+## C <- diag(n) - matrix(1/n, n, n)
+
+## A <- C %*% L
+
+## Q <- A %*% t(A)
+
+## d <- c(rep(0, 4), -1, 1, rep(0, 4))
+
+## t(d) %*% Q %*% d
+
+## ans <- replicate(n = 1000000, as.numeric(A %*% rnorm(9)))
+## summary(rowMeans(ans))
+## summary(apply(ans, 2, function(x) sd(diff(x))))
+
+
+
