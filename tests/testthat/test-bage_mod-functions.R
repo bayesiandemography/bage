@@ -1,7 +1,7 @@
 
-## 'set_age_var' --------------------------------------------------------------
+## 'set_var_age' --------------------------------------------------------------
 
-test_that("'set_age_var' works with valid inputs - no existing age var", {
+test_that("'set_var_age' works with valid inputs - no existing age var", {
     data <- expand.grid(oldness = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
@@ -9,13 +9,13 @@ test_that("'set_age_var' works with valid inputs - no existing age var", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$age_var, NULL)
-    mod <- set_age_var(mod, name = "oldness")
-    expect_identical(mod$age_var, "oldness")
+    expect_identical(mod$var_age, NULL)
+    mod <- set_var_age(mod, name = "oldness")
+    expect_identical(mod$var_age, "oldness")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
 })
 
-test_that("'set_age_var' works with valid inputs - has existing age var", {
+test_that("'set_var_age' works with valid inputs - has existing age var", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2, oldness = 1:3)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
@@ -23,11 +23,11 @@ test_that("'set_age_var' works with valid inputs - has existing age var", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$age_var, "age")
+    expect_identical(mod$var_age, "age")
     expect_s3_class(mod$priors[["age"]], "bage_prior_rw")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_norm")
-    mod <- set_age_var(mod, name = "oldness")
-    expect_identical(mod$age_var, "oldness")
+    mod <- set_var_age(mod, name = "oldness")
+    expect_identical(mod$var_age, "oldness")
     expect_s3_class(mod$priors[["age"]], "bage_prior_norm")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
 })
@@ -109,9 +109,9 @@ test_that("'set_prior' unfits a fitted model", {
 })
 
 
-## 'set_time_var' --------------------------------------------------------------
+## 'set_var_time' --------------------------------------------------------------
 
-test_that("'set_time_var' works with valid inputs", {
+test_that("'set_var_time' works with valid inputs", {
     data <- expand.grid(age = 0:2, timex = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
@@ -119,9 +119,9 @@ test_that("'set_time_var' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$time_var, NULL)
-    mod <- set_time_var(mod, name = "timex")
-    expect_identical(mod$time_var, "timex")
+    expect_identical(mod$var_time, NULL)
+    mod <- set_var_time(mod, name = "timex")
+    expect_identical(mod$var_time, "timex")
     expect_s3_class(mod$priors[["timex"]], "bage_prior_rw")
 })
 
@@ -136,9 +136,9 @@ test_that("'set_var_inner' works with valid inputs - no existing var", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$age_var, NULL)
+    expect_identical(mod$var_age, NULL)
     mod <- set_var_inner(mod, name = "oldness", var = "age")
-    expect_identical(mod$age_var, "oldness")
+    expect_identical(mod$var_age, "oldness")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
 })
 
@@ -150,11 +150,11 @@ test_that("'set_var_inner' works with valid inputs - has existing var", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$age_var, "age")
+    expect_identical(mod$var_age, "age")
     expect_s3_class(mod$priors[["age"]], "bage_prior_rw")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_norm")
     mod <- set_var_inner(mod, name = "oldness", var = "age")
-    expect_identical(mod$age_var, "oldness")
+    expect_identical(mod$var_age, "oldness")
     expect_s3_class(mod$priors[["age"]], "bage_prior_norm")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
 })

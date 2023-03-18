@@ -10,7 +10,7 @@
 #' @returns A string or NULL.
 #' 
 #' @noRd
-infer_age_var <- function(formula) {
+infer_var_age <- function(formula) {
     p_valid_age <- "^age$|^agegroup$|^agegp$|^ageyear$|^ageyears$|^ageinterval$"
     factors <- attr(stats::terms(formula), "factors")
     has_no_terms <- identical(factors, integer())
@@ -39,7 +39,7 @@ infer_age_var <- function(formula) {
 #' @returns A string or NULL.
 #' 
 #' @noRd
-infer_time_var <- function(formula) {
+infer_var_time <- function(formula) {
     p_valid_time <- paste0("^time$|^period$|^year$|^month$|^quarter$|",
                            "^times$|^periods$|^years$|^months$|^quarters$|",
                            "^yearmonth$|^monthyear$|^yearquarter$|^quarteryear$")
@@ -686,7 +686,7 @@ make_parfree <- function(mod) {
         }
     }
     ans <- unlist(ans)
-    names(ans) <- names(priors)
+    names(ans) <- rep(names(priors), times = lengths_parfree)
     ans
 }
 
@@ -703,14 +703,14 @@ make_parfree <- function(mod) {
 #'
 #' @param formula Formula specifying model
 #' @param scale A number
-#' @param age_var Name of age variable, or NULL
-#' @param time_var Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_time Name of time variable, or NULL
 #'
 #' @returns Named list of objects with class
 #' 'bage_prior'.
 #'
 #' @noRd
-make_priors <- function(formula, scale, age_var, time_var) {
+make_priors <- function(formula, scale, var_age, var_time) {
     mult_intercept <- 10
     nms <- attr(stats::terms(formula), "term.labels")
     ans <- rep(list(new_bage_prior_norm(scale = scale)), times = length(nms))
@@ -720,19 +720,19 @@ make_priors <- function(formula, scale, age_var, time_var) {
         prior_intercept <- new_bage_prior_norm(scale = mult_intercept * scale)
         ans <- c(list("(Intercept)" = prior_intercept), ans)
     }
-    has_age_var <- !is.null(age_var)
-    if (has_age_var) {
-        has_age_main_effect <- is_main_effect(name = age_var,
+    has_var_age <- !is.null(var_age)
+    if (has_var_age) {
+        has_age_main_effect <- is_main_effect(name = var_age,
                                               formula = formula)
         if (has_age_main_effect)
-            ans[[age_var]] <- RW(scale = scale)
+            ans[[var_age]] <- RW(scale = scale)
     }
-    has_time_var <- !is.null(time_var)
-    if (has_time_var) {
-        has_time_main_effect <- is_main_effect(name = time_var,
+    has_var_time <- !is.null(var_time)
+    if (has_var_time) {
+        has_time_main_effect <- is_main_effect(name = var_time,
                                                formula = formula)
         if (has_time_main_effect)
-            ans[[time_var]] <- RW(scale = scale)
+            ans[[var_time]] <- RW(scale = scale)
     }
     ans
 }
@@ -828,6 +828,30 @@ make_terms_hyper <- function(mod) {
     nms_terms <- names(priors)
     lengths <- vapply(priors, function(x) x$n_hyper, 0L)
     ans <- rep(nms_terms, times = lengths)
+    ans <- factor(ans, levels = nms_terms)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make factor identifying components of 'par'
+#'
+#' Make factor the same length as 'par',
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor, the same length
+#' as 'par'.
+#'
+#' @noRd
+make_terms_par <- function(mod) {
+    priors <- mod$priors
+    matrices_par <- mod$matrices_par
+    lengths_par <- vapply(matrices_par, ncol, 1L)
+    nms_terms <- names(priors)
+    ans <- rep(nms_terms, times = lengths_par)
     ans <- factor(ans, levels = nms_terms)
     ans
 }

@@ -1,8 +1,34 @@
 
+## 'components_const' -----------------------------------------------------------
+
+## HAS_TESTS
+#' Create data frame holding constants
+#'
+#' Helper function for 'components'
+#'
+#' @param mod A fitted 'bage_mod' object
+#'
+#' @returns A tibble
+#'
+#' @noRd
+components_const <- function(mod) {
+    priors <- mod$priors
+    const <- make_const(mod)
+    terms <- make_terms_const(mod)
+    levels <- lapply(priors, levels_const)
+    levels <- unlist(levels, use.names = FALSE)
+    terms <- as.character(terms)
+    tibble::tibble(component = "const",
+                   term = terms,
+                   level = levels,
+                   value = const)
+}
+
 
 ## 'components_hyper' -----------------------------------------------------------
 
-#' Create data data frame holding hyper-parameters
+## HAS_TESTS
+#' Create data frame holding hyper-parameters
 #'
 #' Helper function for 'components'
 #'
@@ -14,7 +40,7 @@
 components_hyper <- function(mod) {
     hyper_trans <- mod$est$hyper
     priors <- mod$priors
-    terms <- make_terms_hyper(priors)
+    terms <- make_terms_hyper(mod)
     transforms <- lapply(priors, transform_hyper)
     transforms <- unlist(transforms)
     hyper <- double(length = length(hyper_trans))
@@ -23,14 +49,16 @@ components_hyper <- function(mod) {
     levels <- lapply(priors, levels_hyper)
     levels <- unlist(levels, use.names = FALSE)
     terms <- as.character(terms)
-    tibble::tibble(term = terms,
+    tibble::tibble(component = "hyper",
+                   term = terms,
                    level = levels,
-                   .fitted = hyper)
+                   value = hyper)
 }
 
 
 ## 'components_par' -----------------------------------------------------------
 
+## HAS_TESTS
 #' Create data data frame holding parameters
 #'
 #' Helper function for 'components'
@@ -41,16 +69,24 @@ components_hyper <- function(mod) {
 #'
 #' @noRd
 components_par <- function(mod) {
-    par <- mod$est$par
-    terms_par <- mod$terms_par
+    parfree <- mod$est$parfree
+    matrices_parfree <- make_matrices_parfree(mod)
+    terms_parfree <- make_terms_parfree(mod)
+    parfree <- split(parfree, terms_parfree)
+    par <- .mapply("%*%",
+                  dots = list(x = matrices_parfree,
+                              y = parfree),
+                  MoreArgs = list())
+    par <- lapply(par, as.numeric)
+    par <- unlist(par)
+    terms_par <- make_terms_par(mod)
     levels_par <- make_levels_par(mod)
     terms_par <- as.character(terms_par)
-    tibble::tibble(term = terms_par,
+    tibble::tibble(component = "par",
+                   term = terms_par,
                    level = levels_par,
-                   .fitted = par)
+                   value = par)
 }
-
-
 
 
 ## HAS_TESTS
@@ -107,16 +143,16 @@ get_fun_align_to_data <- function(mod) {
 #'
 #' Combine map matrices for individual terms to
 #' create a matrix that maps all elements of
-#' 'par' to 'outcome'.
+#' 'parfree' to 'outcome'.
 #'
 #' @param An object of class 'bage_mod'
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_combined_matrix_par <- function(mod) {
-    matrices_par <- mod$matrices_par
-    Reduce(Matrix::cbind2, matrices_par)
+make_combined_matrix_terms <- function(mod) {
+    matrices_terms <- make_matrices_terms(mod)
+    Reduce(Matrix::cbind2, matrices_terms)
 }
 
 
@@ -128,50 +164,48 @@ make_combined_matrix_par <- function(mod) {
 #' and interactions, but not hyper-parameters.
 #' Number of draws governed by 'n_draw'.
 #'
-#' Need to allow the fact that, if Known
-#' priors used, some parameters are treated
-#' as fixed and known.
-#'
 #' @param mod A fitted object of class 'bage_mod'.
 #'
 #' @returns A tibble with 'n_draw' columns.
 #'
 #' @noRd
-make_draws_par <- function(mod) {
-    mean_par <- mod$est$par
-    prec <- mod$prec
+make_draws_parfree <- function(mod) {
+    mean_parfree <- mod$est$parfree
+    prec_all <- mod$prec ## includes known, hyper
     n_draw <- mod$n_draw
     priors <- mod$priors
-    terms_par <- mod$terms_par
+    terms_parfree <- make_terms_parfree(mod)
     is_known <- vapply(priors, is_known, FALSE)
-    mean_par <- split(mean_par, terms_par)
-    mean_par_unknown <- mean_par[!is_known]
-    mean_par_unknown <- unlist(mean_par_unknown, use.names = FALSE)
-    n_par_unknown <- length(mean_par_unknown)
-    s_par_unknown <- seq_len(n_par_unknown)
-    V1 <- prec[s_par_unknown, s_par_unknown, drop = FALSE]
-    V2 <- prec[-s_par_unknown, -s_par_unknown, drop = FALSE]
-    R <- prec[-s_par_unknown, s_par_unknown, drop = FALSE]
-    prec_par_unknown <- V1 - Matrix::crossprod(R, Matrix::solve(V2, R))
+    mean_parfree <- split(mean_parfree, terms_parfree)
+    mean_parfree_unknown <- mean_parfree[!is_known]
+    mean_parfree_unknown <- unlist(mean_parfree_unknown, use.names = FALSE)
+    n_unknown <- length(mean_parfree_unknown)
+    s_unknown <- seq_len(n_unknown)
+    V1 <- prec_all[s_unknown, s_unknown, drop = FALSE]
+    V2 <- prec_all[-s_unknown, -s_unknown, drop = FALSE]
+    R <- prec_all[-s_unknown, s_unknown, drop = FALSE]
+    prec_parfree_unknown <- V1 - Matrix::crossprod(R, Matrix::solve(V2, R))
     ans <- rmvn(n = n_draw,
-                mean = mean_par_unknown,
-                prec = prec_par_unknown)
+                mean = mean_parfree_unknown,
+                prec = prec_parfree_unknown)
     if (any(is_known)) {
-        par_known <- unlist(mean_par[is_known], use.names = FALSE)
-        ans_known <- matrix(par_known,
-                            nrow = length(par_known),
+        parfree_known <- unlist(mean_parfree[is_known], use.names = FALSE)
+        ans_known <- matrix(parfree_known,
+                            nrow = length(parfree_known),
                             ncol = n_draw)
         ans <- rbind(ans, ans_known)
         n_ans <- nrow(ans)
         i_current <- seq_len(n_ans)
-        i_current <- split(i_current, terms_par)
+        i_current <- split(i_current, terms_parfree)
         i_current <- c(i_current[!is_known], i_current[is_known])
         i_current <- unlist(i_current, use.names = FALSE)
         i_target <- seq_len(n_ans)
         row <- match(i_target, i_current)
         ans <- ans[row, ]
     }
-    ans    
+    dimnames(ans) <- list(term = terms_parfree,
+                          draw = seq_len(n_draw))
+    ans
 }
 
 
@@ -185,9 +219,9 @@ make_draws_par <- function(mod) {
 #'
 #' @noRd
 make_draws_linear_pred <- function(mod) {
-    draws_par <- make_draws_par(mod)
-    matrix_par <- make_combined_matrix_par(mod)
-    ans <- matrix_par %*% draws_par
+    draws_parfree <- make_draws_parfree(mod)
+    matrix_terms <- make_combined_matrix_terms(mod)
+    ans <- matrix_terms %*% draws_parfree
     ans <- matrix(as.double(ans), nrow = nrow(ans))
     ans
 }
@@ -212,6 +246,7 @@ make_draws_fitted <- function(mod) {
 }
 
 
+## HAS_TESTS
 #' Make levels associated with each element of 'par'
 #'
 #' Make levels for each term, eg ages, times.

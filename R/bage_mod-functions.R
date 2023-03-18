@@ -1,7 +1,7 @@
 
 ## User-visible functions that look like methods, but technically are not
 
-## 'set_age_var' --------------------------------------------------------------
+## 'set_var_age' --------------------------------------------------------------
 
 #' Set the age variable
 #'
@@ -20,7 +20,7 @@
 #'
 #' By default, an age main effect has a random walk
 #' ([RW()]) prior. Changing the age variable
-#' via `set_age_prior()` can change priors:
+#' via `set_var_age()` can change priors:
 #' see below for an example.
 #' 
 #' @param mod A `bage_mod` object, typically
@@ -30,7 +30,7 @@
 #'
 #' @returns A `bage_mod` object
 #'
-#' @seealso [set_time_var()]
+#' @seealso [set_var_time()]
 #' 
 #' @examples
 #' ## rename 'age' variable to something unusual
@@ -47,9 +47,9 @@
 #' ## (which, as a side effect, changes the prior on
 #' ## the age main effect)
 #' mod |>
-#'   set_age(name = "age_last_birthday")
+#'   set_var_age(name = "age_last_birthday")
 #' @export
-set_age_var <- function(mod, name) {
+set_var_age <- function(mod, name) {
     set_var_inner(mod = mod,
                   name = name,
                   var = "age")
@@ -164,7 +164,7 @@ set_prior <- function(mod, formula) {
 }
 
 
-## 'set_time_var' --------------------------------------------------------------
+## 'set_var_time' --------------------------------------------------------------
 
 ## HAS_TESTS
 #' Set the time variable
@@ -184,7 +184,7 @@ set_prior <- function(mod, formula) {
 #'
 #' By default, an time main effect has a random walk
 #' ([RW()]) prior. Changing the time variable
-#' via `set_time_prior()` can change priors:
+#' via `set_var_time()` can change priors:
 #' see below for an example.
 #' 
 #' @param mod A `bage_mod` object, typically
@@ -194,7 +194,7 @@ set_prior <- function(mod, formula) {
 #'
 #' @returns A `bage_mod` object
 #'
-#' @seealso [set_time_var()]
+#' @seealso [set_var_time()]
 #' 
 #' @examples
 #' ## rename time variable to something unusual
@@ -211,9 +211,9 @@ set_prior <- function(mod, formula) {
 #' ## (which, as a side effect, changes the prior on
 #' ## the time main effect)
 #' mod |>
-#'   set_time(name = "calendar_year")
+#'   set_var_time(name = "calendar_year")
 #' @export
-set_time_var <- function(mod, name) {
+set_var_time <- function(mod, name) {
     set_var_inner(mod = mod,
                   name = name,
                   var = "time")
@@ -243,11 +243,11 @@ set_time_var <- function(mod, name) {
 
 
 ## HAS_TESTS
-#' Set age_var or time_var
+#' Set var_age or var_time
 #'
 #' Can include resetting priors.
 #' Called by user-visible functions
-#' 'set_age_var' and 'set_time_var'.
+#' 'set_var_age' and 'set_var_time'.
 #' 
 #' @param mod A `bage_mod` object.
 #' @param name The name of the time variable.
@@ -261,8 +261,8 @@ set_var_inner <- function(mod, name, var) {
     checkmate::assert_class(mod, "bage_mod")
     checkmate::assert_choice(var, choices = choices)
     var_oth <- setdiff(choices, var)
-    attr_name <- paste0(var, "_var")
-    attr_name_oth <- paste0(var_oth, "_var")
+    attr_name <- paste0("var_", var)
+    attr_name_oth <- paste0("var_", var_oth)
     ## extract values
     formula <- mod$formula
     priors <- mod$priors
