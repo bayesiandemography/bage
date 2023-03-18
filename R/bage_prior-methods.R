@@ -96,7 +96,41 @@ is_known.bage_prior <- function(prior) FALSE
 is_known.bage_prior_known <- function(prior) TRUE
 
 
-## 'levels_hyper' --------------------------------------------------------
+## 'length_parfree' -----------------------------------------------------------
+
+#' Length of vector with free parameters for main effect,
+#' interaction, or intercept
+#'
+#' @param prior An object of class 'bage_prior'.
+#' @param length_par Length of main effect, interaction, or intercept
+#'
+#' @returns An integer
+#'
+#' @noRd
+length_parfree <- function(prior, length_par) {
+    UseMethod("length_parfree")
+}
+
+## HAS_TESTS
+#' @export
+length_parfree.bage_prior <- function(prior, length_par) {
+    length_par
+}
+
+## HAS_TESTS
+#' @export
+length_parfree.bage_prior_rw <- function(prior, length_par) {
+    length_par - 1L
+}
+
+## HAS_TESTS
+#' @export
+length_parfree.bage_prior_rw2 <- function(prior, length_par) {
+    length_par - 2L
+}
+
+
+## 'levels_hyper' -------------------------------------------------------------
 
 #' Names of hyper-parameters
 #'
@@ -135,8 +169,63 @@ levels_hyper.bage_prior_rw2 <- function(prior)
     "sd"
 
 
+## 'make_matrix_parfree' ------------------------------------------------------
+
+#' Make matrix going from 'parfree' to 'par'
+#'
+#' Make a matrix that takes a vector of
+#' free parameters and terms them into
+#' a main effect, interaction, or intercept.
+#'
+#' @param prior An object of class "bage_prior"
+#' @param length_par The length of the main effect,
+#' interaction, or intercept.
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_matrix_parfree <- function(prior, length_par) {
+    UseMethod("make_matrix_parfree")
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_parfree.bage_prior <- function(prior, length_par) {
+    make_m_identity(length_par)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_parfree.bage_prior_rw <- function(prior, length_par) {
+    m_accum <- make_m_accum(length_par - 1L)
+    m_centre <- make_m_centre(length_par)
+    m_centre %*% m_accum
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_parfree.bage_prior_rw2 <- function(prior, length_par) {
+    m_accum_1 <- make_m_accum(length_par - 2L)
+    m_centre_1 <- make_m_centre(length_par - 1L)
+    m_accum_2 <- make_m_accum(length_par - 1L)
+    m_centre_2 <- make_m_centre(length_par)
+    m_centre_2 %*% m_accum_2 %*% m_centre_1 %*% m_accum_1
+}
+
+
 ## 'str_call_prior' -----------------------------------------------------------
 
+#' Create string describing prior
+#'
+#' Create string describing prior that
+#' (inspired by printing of objects in Python)
+#' looks like a call to the constructor function
+#'
+#' @param prior An object of class "bage_prior"
+#'
+#' @returns A string
+#'
+#' @noRd
 str_call_prior <- function(prior) {
     UseMethod("str_call_prior")
 }

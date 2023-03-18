@@ -116,38 +116,36 @@ generics::fit
 #' @export    
 fit.bage_mod <- function(object, ...) {
     priors <- object$priors
-    terms_par <- object$terms_par
     outcome <- object$outcome
     offset <- object$offset
     nm_distn <- nm_distn(object)
-    is_in_lik <- make_is_in_lik(outcome = outcome,
-                                offset = offset)
-    i_prior <- make_i_prior(priors)
-    const <- make_const(priors)
-    terms_const <- make_terms_const(priors)
-    hyper <- make_hyper(priors)
-    terms_hyper <- make_terms_hyper(priors)
-    par <- make_par(priors = priors,
-                    terms_par = terms_par)
+    is_in_lik <- make_is_in_lik(object)
+    i_prior <- make_i_prior(object)
+    const <- make_const(object)
+    terms_const <- make_terms_const(object)
+    hyper <- make_hyper(object)
+    terms_hyper <- make_terms_hyper(object)
+    terms_parfree <- make_terms_parfree(object)
+    matrices_terms <- make_matrices_terms(object)
+    parfree <- make_parfree(object)
+    map <- make_map(object)
     data <- list(nm_distn = nm_distn,
                  outcome = outcome,
                  offset = offset,
                  is_in_lik = is_in_lik,
-                 terms_par = object$terms_par,
-                 matrices_par = object$matrices_par,
+                 terms_parfree = terms_parfree,
+                 matrices_terms = matrices_terms,
                  i_prior = i_prior,
                  terms_hyper = terms_hyper,
                  consts = const,             ## in TMB template refer to 'consts', 
                  terms_consts = terms_const) ## not 'const', because 'const' is a 
-    parameters <- list(par = par,            ## reserved word
+    parameters <- list(parfree = parfree,    ## reserved word
                        hyper = hyper)
-    map <- make_map(priors = priors,
-                    terms_par = terms_par)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
                         map = map,
                         DLL = "bage",
-                        random = "par",
+                        random = "parfree",
                         silent = TRUE)
     stats::nlminb(start = f$par,
                   objective = f$fn,
@@ -343,7 +341,7 @@ tidy.bage_mod <- function(x, ...) {
         terms_est <- split(terms_est, terms_par)
         ans$sd <- vapply(terms_est, stats::sd, 0)
     }
-    ans <- tibble(ans)
+    ans <- tibble::tibble(ans)
     ans
 }
 

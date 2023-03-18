@@ -12,7 +12,12 @@
 #' @noRd
 infer_age_var <- function(formula) {
     p_valid_age <- "^age$|^agegroup$|^agegp$|^ageyear$|^ageyears$|^ageinterval$"
-    names <- attr(stats::terms(formula), "term.labels")
+    factors <- attr(stats::terms(formula), "factors")
+    has_no_terms <- identical(factors, integer())
+    if (has_no_terms)
+        return(NULL)
+    factors <- factors[-1L, , drop = FALSE]
+    names <- rownames(factors)
     names_cleaned <- tolower(names)
     names_cleaned <- gsub("[^a-z]", "", names_cleaned)
     i <- grep(p_valid_age, names_cleaned)
@@ -82,13 +87,13 @@ is_main_effect <- function(name, formula) {
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #' 
-#' @param priors Named list of objects
-#' of class 'bage_prior'.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_const <- function(priors) {
+make_const <- function(mod) {
+    priors <- mod$priors
     ans <- lapply(priors, function(x) x$const)
     ans <- unlist(ans, use.names = FALSE)
     ans
@@ -106,13 +111,13 @@ make_const <- function(priors) {
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #' 
-#' @param priors Named list of objects
-#' of class 'bage_prior'.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns A vector of zeros, of type 'double'.
 #'
 #' @noRd
-make_hyper <- function(priors) {
+make_hyper <- function(mod) {
+    priors <- mod$priors
     ans <- rep(0, times = length(priors))
     lengths <- vapply(priors, function(x) x$n_hyper, 0L)
     ans <- rep(ans, times = lengths)
@@ -132,13 +137,13 @@ make_hyper <- function(priors) {
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #' 
-#' @param priors Named list of objects
-#' of class 'bage_prior'.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns An named integer vector.
 #'
 #' @noRd
-make_i_prior <- function(priors) {
+make_i_prior <- function(mod) {
+    priors <- mod$priors
     vapply(priors, function(x) x$i_prior, 0L)
 }
 
@@ -147,17 +152,108 @@ make_i_prior <- function(priors) {
 #' Make vector of indicators showing whether
 #' cell contributes to likelihood
 #'
-#' @param outcome Outcome array or vector.
-#' @param offset Offset array or vector.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns A vector of 1Ls and 0Ls.
 #'
 #' @noRd
-make_is_in_lik <- function(outcome, offset) {
+make_is_in_lik <- function(mod) {
+    outcome <- mod$outcome
+    offset <- mod$offset
     ans <- (!is.na(outcome)
         & !is.na(offset)
         & (offset > 0))
     as.integer(ans)
+}
+
+
+## HAS_TESTS
+#' Lengths of vectors of free parameters
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named integer vector.
+#'
+#' @noRd
+make_lengths_parfree <- function(mod) {
+    priors <- mod$priors
+    matrices_par <- mod$matrices_par
+    lengths_par <- vapply(matrices_par, ncol, 1L)
+    ans <- .mapply(length_parfree,
+                   dots = list(prior = priors,
+                               length_par = lengths_par),
+                   MoreArgs = list())
+    ans <- unlist(ans)
+    names(ans) <- names(priors)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make matrix that accumulates values
+#' from a vector
+#'
+#' Make a sparse matrix that adds
+#' up along a vector - eg as part of the
+#' process of creating a random walk.
+#' The first element of the result
+#' is 0.
+#'
+#' @param n The length of the vector
+#' to be accumulated.
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_m_accum <- function(n) {
+    i <- lapply(seq.int(from = 2L, to = n + 1L),
+                function(x) seq.int(from = x, to = n + 1L))
+    j <- lapply(seq.int(from = 1L, to = n),
+                function(x) rep(x, times = n + 1L - x))
+    i <- unlist(i, use.names = FALSE)
+    j <- unlist(j, use.names = FALSE)
+    Matrix::sparseMatrix(i = i, j = j, x = 1L)
+}
+
+
+## HAS_TESTS
+#' Make matrix that centers a vector
+#'
+#' Make a sparse matrix centers a vector,
+#' ie subtracts the mean from all elements.
+#'
+#' @param n The length of the vector
+#' to be accumulated.
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_m_centre <- function(n) {
+    i <- lapply(seq.int(from = 1L, to = n),
+                function(x) seq.int(from = x, to = n))
+    j <- lapply(seq.int(from = 1L, to = n),
+                function(x) rep.int(x, times = n + 1L - x))
+    i <- unlist(i, use.names = FALSE)
+    j <- unlist(j, use.names = FALSE)
+    x <- ifelse(i == j, (n - 1) / n, -1 / n)
+    Matrix::sparseMatrix(i = i, j = j, x = x, symmetric = TRUE)
+}
+
+
+## HAS_TESTS
+#' Make matrix that centers a vector
+#'
+#' Make a sparse matrix centers a vector,
+#' ie subtracts the mean from all elements.
+#'
+#' @param n The length of the vector
+#' to be accumulated.
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_m_identity <- function(n) {
+    Matrix::Diagonal(n = n, x = 1L)
 }
 
 
@@ -170,34 +266,32 @@ make_is_in_lik <- function(outcome, offset) {
 #' if one or more terms is being treated
 #' as known.
 #'
-#' @param priors A named list of priors.
-#' @param terms_par Factor identifying
-#' which term each element of 'par' the
-#' parameter belongs to.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns NULL or a list with
-#' a single element called 'par'.
+#' a single element called 'parfree'.
 #'
 #' @noRd
-make_map <- function(priors, terms_par) {
-    n <- length(terms_par)
-    map_par <- rep(0, times = n)
-    map_par <- split(map_par, terms_par)
+make_map <- function(mod) {
+    priors <- mod$priors
+    lengths_parfree <- make_lengths_parfree(mod)
+    map_parfree <- lapply(lengths_parfree, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
         if (is_known)
-            map_par[[i_term]][] <- NA
+            map_parfree[[i_term]][] <- NA
     }
-    map_par <- unlist(map_par, use.names = FALSE)
-    is_na <- is.na(map_par)
+    map_parfree <- unlist(map_parfree, use.names = FALSE)
+    n <- length(map_parfree)
+    is_na <- is.na(map_parfree)
     n_na <- sum(is_na)
     if (n_na == 0L)
         ans <- NULL
     else {
-        map_par[!is_na] <- seq_len(n - n_na)
-        map_par <- factor(map_par)
-        ans <- list(par = map_par)
+        map_parfree[!is_na] <- seq_len(n - n_na)
+        map_parfree <- factor(map_parfree)
+        ans <- list(parfree = map_parfree)
     }
     ans
 }   
@@ -292,6 +386,55 @@ make_matrices_par_vec <- function(formula, data) {
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans        
+}
+
+
+## HAS_TESTS
+#' Make list of matrices mapping free parameters
+#' to main effects, interactions, intercept
+#'
+#' Make list of matrices mapping unconstrained
+#' parameter vectors to constrainted vectors
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_matrices_parfree <- function(mod) {
+    matrices_par <- mod$matrices_par
+    priors <- mod$priors
+    lengths_par <- vapply(matrices_par, ncol, 1L)
+    ans <- .mapply(make_matrix_parfree,
+                   dots = list(prior = priors,
+                               length_par = lengths_par),
+                   MoreArgs = list())
+    names(ans) <- names(priors)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make list of matrices mapping free parameters
+#' to outcome
+#'
+#' Make list of matrices mapping unconstrained
+#' parameter vectors to outcome vector or array
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_matrices_terms <- function(mod) {
+    matrices_par <- mod$matrices_par
+    matrices_parfree <- make_matrices_parfree(mod)
+    ans <- .mapply("%*%",
+                   dots = list(x = matrices_par,
+                               y = matrices_parfree),
+                   MoreArgs = list())
+    names(ans) <- names(matrices_parfree)
+    ans
 }
 
 
@@ -518,24 +661,22 @@ make_outcome_vec <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Make vector containing parameters for
+#' Make vector containing free parameters for
 #' intercept, main effects, and interactions
 #'
 #' Return value is 0 where a parameter is being estimated,
 #' and potentially non-zero where a parameter is
 #' being treated as known.
 #'
-#' @param priors A named list of priors.
-#' @param terms_par Factor identifying
-#' which term each element of 'par' the
-#' parameter belongs to.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_par <- function(priors, terms_par) {
-    ans <- rep(0, times = length(terms_par))
-    ans <- split(ans, terms_par)
+make_parfree <- function(mod) {
+    priors <- mod$priors
+    lengths_parfree <- make_lengths_parfree(mod)
+    ans <- lapply(lengths_parfree, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
@@ -544,7 +685,8 @@ make_par <- function(priors, terms_par) {
             ans[[i_term]] <- values
         }
     }
-    ans <- unlist(ans, use.names = FALSE)
+    ans <- unlist(ans)
+    names(ans) <- names(priors)
     ans
 }
 
@@ -644,14 +786,14 @@ make_scale_outcome <- function(outcome) {
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #'
-#' @param priors Named list of objects
-#' of class 'bage_prior'.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns A factor, the same length
 #' as 'const'.
 #'
 #' @noRd
-make_terms_const <- function(priors) {
+make_terms_const <- function(mod) {
+    priors <- mod$priors
     nms_terms <- names(priors)
     lengths <- vapply(priors, function(x) length(x$const), 0L)
     ans <- rep(nms_terms, times = lengths)
@@ -675,14 +817,14 @@ make_terms_const <- function(priors) {
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
 #'
-#' @param priors Named list of objects
-#' of class 'bage_prior'.
+#' @param mod Object of class "bage_mod"
 #'
 #' @returns A factor, the same length
 #' as 'hyper'.
 #'
 #' @noRd
-make_terms_hyper <- function(priors) {
+make_terms_hyper <- function(mod) {
+    priors <- mod$priors
     nms_terms <- names(priors)
     lengths <- vapply(priors, function(x) x$n_hyper, 0L)
     ans <- rep(nms_terms, times = lengths)
@@ -692,72 +834,27 @@ make_terms_hyper <- function(priors) {
 
 
 ## HAS_TESTS
-#' Make factor identifying components of 'par'
+#' Make factor identifying components of 'parfree'
 #'
-#' Make factor vector the same length as 'par',
+#' Make factor the same length as 'parfree',
 #' giving the name of the term
 #' that the each element belongs to.
 #'
-#' We generate 'terms_par' when the 'bage_mod'
-#' object is first created, since the number
-#' and lengths of the terms is fixed from that
-#' point.
+#' We generate 'terms_parfree' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
 #'
-#' @param formula Formula specifying model
-#' @param outcome Array holding values for response
-#' variable
+#' @param mod Object of class "bage_mod"
 #'
-#' @returns A factor.
+#' @returns A factor, the same length
+#' as 'parfree'.
 #'
 #' @noRd
-make_terms_par <- function(formula, data) {
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
-    factors <- factors > 0L
-    nms_dims <- rownames(factors)
-    nms_terms <- colnames(factors)
-    dim <- vapply(nms_dims, function(nm) length(unique(data[[nm]])), 0L)
-    lengths <- apply(factors, 2L, function(i) prod(dim[i]))
-    has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept) {
-        lengths <- c(1L, lengths)
-        nms_terms <- c("(Intercept)", nms_terms)
-    }
-    ans <- rep(nms_terms, times = lengths)
+make_terms_parfree <- function(mod) {
+    lengths_parfree <- make_lengths_parfree(mod)
+    nms_terms <- names(lengths_parfree)
+    ans <- rep(nms_terms, times = lengths_parfree)
     ans <- factor(ans, levels = nms_terms)
     ans
 }
-
-
-
-   
-                   
-                   
-    
-    
-    
-
-## n <- 10
-## D <- matrix(0, nrow = n-1, ncol = n)
-## diag(D) <- -1
-## D[col(D) == row(D) + 1] <- 1
-
-## L <- matrix(0, n, n-1)
-## L[row(L) > col(L)] <- 1
-
-## C <- diag(n) - matrix(1/n, n, n)
-
-## A <- C %*% L
-
-## Q <- A %*% t(A)
-
-## d <- c(rep(0, 4), -1, 1, rep(0, 4))
-
-## t(d) %*% Q %*% d
-
-## ans <- replicate(n = 1000000, as.numeric(A %*% rnorm(9)))
-## summary(rowMeans(ans))
-## summary(apply(ans, 2, function(x) sd(diff(x))))
-
-
-

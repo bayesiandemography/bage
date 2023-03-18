@@ -17,7 +17,7 @@ using namespace tmbutils;
 // an associated 'logpost' function.
 
 template <class Type>
-Type logpost_norm(vector<Type> par,
+Type logpost_norm(vector<Type> parfree,
 		  vector<Type> hyper,
 		  vector<Type> consts) {
   Type scale = consts[0];
@@ -25,46 +25,26 @@ Type logpost_norm(vector<Type> par,
   Type sd = exp(log_sd);
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(par, Type(0), sd, true).sum();
+  ans += dnorm(parfree, Type(0), sd, true).sum();
   return ans;
 }
 
 template <class Type>
-Type logpost_rw(vector<Type> par,
+Type logpost_rw(vector<Type> parfree,
 		vector<Type> hyper,
 		vector<Type> consts) {
-  Type scale = consts[0];
-  Type log_sd = hyper[0];
-  int n = par.size();
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i = 1; i < n; i++) {
-    Type diff = par[i] - par[i - 1];
-    ans += dnorm(diff, Type(0), sd, true);
-  }
-  return ans;
+  return logpost_norm(parfree, hyper, consts);
 }
 
 template <class Type>
-Type logpost_rw2(vector<Type> par,
+Type logpost_rw2(vector<Type> parfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
-  Type scale = consts[0];
-  Type log_sd = hyper[0];
-  int n = par.size();
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i = 2; i < n; i++) {
-    Type diff = par[i] - 2 * par[i - 1] + par[i - 2];
-    ans += dnorm(diff, Type(0), sd, true);
-  }
-  return ans;
+  return logpost_norm(parfree, hyper, consts);
 }
 
 template <class Type>
-Type logpost_ar1(vector<Type> par,
+Type logpost_ar1(vector<Type> parfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
   Type shape1 = consts[0];
@@ -81,28 +61,28 @@ Type logpost_ar1(vector<Type> par,
   ans += dbeta(coef_raw, shape1, shape2, true)
     + log(coef_raw) + log(1 - coef_raw);
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(AR1(coef), sd)(par); // AR1 returns neg log-lik
+  ans -= SCALE(AR1(coef), sd)(parfree); // AR1 returns neg log-lik
   return ans;
 }
 
 template <class Type>
-Type logpost(vector<Type> par,
+Type logpost(vector<Type> parfree,
 	     vector<Type> hyper,
 	     vector<Type> consts,
 	     int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 1:
-    ans = logpost_norm(par, hyper, consts);
+    ans = logpost_norm(parfree, hyper, consts);
     break;
   case 2:
-    ans = logpost_rw(par, hyper, consts);
+    ans = logpost_rw(parfree, hyper, consts);
     break;
   case 3:
-    ans = logpost_rw2(par, hyper, consts);
+    ans = logpost_rw2(parfree, hyper, consts);
     break;
   case 4:
-    ans = logpost_ar1(par, hyper, consts);
+    ans = logpost_ar1(parfree, hyper, consts);
     break;
   default:
     error("function 'logpost' cannot handle i_prior = %d", i_prior);
@@ -139,14 +119,14 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
   DATA_IVECTOR(is_in_lik);
-  DATA_FACTOR(terms_par);       
-  DATA_STRUCT(matrices_par, LIST_SM_t); 
+  DATA_FACTOR(terms_parfree);       
+  DATA_STRUCT(matrices_terms, LIST_SM_t); 
   DATA_IVECTOR(i_prior);        
   DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
 
-  PARAMETER_VECTOR(par);        
+  PARAMETER_VECTOR(parfree);        
   PARAMETER_VECTOR(hyper);
   
 
@@ -154,16 +134,16 @@ Type objective_function<Type>::operator() ()
 
   int n_outcome = outcome.size();
   int n_term = i_prior.size();
-  vector<vector<Type> > par_split = split(par, terms_par);       
+  vector<vector<Type> > parfree_split = split(parfree, terms_parfree);       
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
   vector<vector<Type> > consts_split = split(consts, terms_consts); 
 
   vector<Type> linear_pred(n_outcome);
   linear_pred.fill(0);
   for (int i_term = 0; i_term < n_term; i_term++) {
-    SparseMatrix<Type> matrix_term = matrices_par[i_term];
-    vector<Type> par_term = par_split[i_term];
-    linear_pred = linear_pred + matrix_term * par_term;
+    SparseMatrix<Type> matrix_term = matrices_terms[i_term];
+    vector<Type> parfree_term = parfree_split[i_term];
+    linear_pred = linear_pred + matrix_term * parfree_term;
   }
 
 
@@ -175,10 +155,10 @@ Type objective_function<Type>::operator() ()
   for (int i_term = 0; i_term < n_term; i_term++) {
     int i_prior_term = i_prior[i_term];
     if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
-      vector<Type> par_term = par_split[i_term];
+      vector<Type> parfree_term = parfree_split[i_term];
       vector<Type> hyper_term = hyper_split[i_term];
       vector<Type> consts_term = consts_split[i_term];
-      ans -= logpost(par_term, hyper_term, consts_term, i_prior_term);
+      ans -= logpost(parfree_term, hyper_term, consts_term, i_prior_term);
     }
   }
 
