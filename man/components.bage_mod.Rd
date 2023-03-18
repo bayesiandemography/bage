@@ -4,29 +4,38 @@
 \alias{components.bage_mod}
 \title{Extract components from a fitted model}
 \usage{
-\method{components}{bage_mod}(object, type = c("par", "hyper"), ...)
+\method{components}{bage_mod}(object, ...)
 }
 \arguments{
 \item{object}{An fitted model.}
 
-\item{type}{Type of component to extract.
-\code{"par"} or \code{"hyper"}.}
-
 \item{...}{Not currently used.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A \link[tibble:tibble-package]{tibble} with
+variables \code{component}, \code{term}, \code{level}, and \code{value}.
 }
 \description{
-Extract components froma fitted object
+Extract components from a fitted object
 of class \code{bage_mod}.
 }
 \details{
-The component extracted depends on the \code{type} argument:
+There are three types of component:
 \itemize{
-\item \code{"par"} Intercept, main effects, and interactions
+\item \code{"par"} Intercept, main effects, and interactions.
 \item \code{"hyper"} Hyper-parameters from priors for intercept,
-main effects, and interactions
+main effects, and interactions.
+\item \code{"const"} Constants from priors for intercept,
+main effects, and interactions.
+}
+
+For each component, \code{components()} returns three things:
+\itemize{
+\item \code{term} Name of the intercept, main effect, or interaction
+\item \code{level} Element of term
+\item \code{value} For \code{"par"} and \code{"hyper"}, a point estimate
+(the posterior median); for \code{"const"}, a fixed value
+used by the prior.
 }
 }
 \examples{
@@ -34,8 +43,8 @@ mod <- mod_pois(injuries ~ age + sex + year,
                 data = injuries,
                 exposure = popn) |>
   fit()
-mod |> components("par")
-mod |> components("hyper")
+mod
+components(mod)
 }
 \seealso{
 \code{\link[=augment]{augment()}}, \code{\link[=tidy]{tidy()}}

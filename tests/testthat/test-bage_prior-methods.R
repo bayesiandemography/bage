@@ -22,6 +22,29 @@ test_that("'length_parfree' works with 'bage_prior_norm'", {
 })
 
 
+## levels_const ---------------------------------------------------------------
+
+test_that("'levels_const' works with 'bage_prior_ar1'", {
+    expect_identical(levels_const(AR1()), c("shape1", "shape2", "min", "max", "scale"))
+})
+
+test_that("'levels_const' works with 'bage_prior_known'", {
+    expect_identical(levels_const(Known(1)), character())
+})
+
+test_that("'levels_const' works with 'bage_prior_norm'", {
+    expect_identical(levels_const(N()), "scale")
+})
+
+test_that("'levels_const' works with 'bage_prior_rw'", {
+    expect_identical(levels_const(RW()), "scale")
+})
+
+test_that("'levels_const' works with 'bage_prior_rw2'", {
+    expect_identical(levels_const(RW2()), "scale")
+})
+
+
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar1'", {

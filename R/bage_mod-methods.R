@@ -10,6 +10,7 @@
 #' @export
 generics::augment
 
+## HAS_TESTS
 #' Data and values from a fitted model
 #'
 #' @section Warning:
@@ -63,22 +64,31 @@ augment.bage_mod <- function(x, ...) {
 #' @export
 generics::components
 
+## HAS_TESTS
 #' Extract components from a fitted model
 #'
-#' Extract components froma fitted object
+#' Extract components from a fitted object
 #' of class `bage_mod`.
 #'
-#' The component extracted depends on the `type` argument:
-#' - `"par"` Intercept, main effects, and interactions
+#' There are three types of component:
+#' - `"par"` Intercept, main effects, and interactions.
 #' - `"hyper"` Hyper-parameters from priors for intercept,
-#' main effects, and interactions
+#' main effects, and interactions.
+#' - `"const"` Constants from priors for intercept,
+#' main effects, and interactions.
+#'
+#' For each component, `components()` returns three things:
+#' - `term` Name of the intercept, main effect, or interaction
+#' - `level` Element of term
+#' - `value` For `"par"` and `"hyper"`, a point estimate
+#' (the posterior median); for `"const"`, a fixed value
+#' used by the prior.
 #'
 #' @param object An fitted model.
-#' @param type Type of component to extract.
-#' `"par"` or `"hyper"`.
 #' @param ... Not currently used.
 #'
-#' @returns A [tibble][tibble::tibble-package].
+#' @returns A [tibble][tibble::tibble-package] with
+#' variables `component`, `term`, `level`, and `value`.
 #'
 #' @seealso [augment()], [tidy()]
 #'
@@ -87,14 +97,17 @@ generics::components
 #'                 data = injuries,
 #'                 exposure = popn) |>
 #'   fit()
-#' mod |> components("par")
-#' mod |> components("hyper")
+#' mod
+#' components(mod)
 #' @export
-components.bage_mod <- function(object, type = c("par", "hyper"), ...) {
-    type <- match.arg(type)
-    switch(type,
-           par = components_par(object),
-           hyper = components_hyper(object))
+components.bage_mod <- function(object, ...) {
+    is_fitted <- !is.null(object$est)
+    if (is_fitted)
+        rbind(components_par(object),
+              components_hyper(object),
+              components_const(object))
+    else
+        NULL
 }
     
 
@@ -104,6 +117,7 @@ components.bage_mod <- function(object, type = c("par", "hyper"), ...) {
 #' @export
 generics::fit
 
+## HAS_TESTS
 #' Fit a model
 #'
 #' @param object A `bage_mod` object,
@@ -162,7 +176,8 @@ fit.bage_mod <- function(object, ...) {
 }
 
 
-## HAS_TESTS
+## 'get_fun_inv_transform' ----------------------------------------------------
+
 #' Get function to calculate inverse tranformation
 #'
 #' @param mod An object of class 'bage_mod'
@@ -190,51 +205,80 @@ get_fun_inv_transform.bage_mod_norm <- function(mod)
     function(x) x
 
 
-
 ## 'model_descr' -----------------------------------------------------------------
 
+#' Name of distribution used in printing
+#'
+#' @param mod An object of class 'bage_mod'
+#'
+#' @returns A string
+#'
+#' @noRd
 model_descr <- function(mod) {
     UseMethod("model_descr")
 }
 
+## HAS_TESTS
 #' @export
 model_descr.bage_mod_pois <- function(mod) "Poisson"
 
+## HAS_TESTS
 #' @export
 model_descr.bage_mod_binom <- function(mod) "binomial"
 
+## HAS_TESTS
 #' @export
 model_descr.bage_mod_norm <- function(mod) "normal"
 
 
 ## 'nm_distn' -----------------------------------------------------------------
 
+#' Name of distribution used internally
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A string
+#'
+#' @noRd
 nm_distn <- function(mod) {
     UseMethod("nm_distn")
 }
 
+## HAS_TESTS
 #' @export
 nm_distn.bage_mod_pois <- function(mod) "pois"
 
+## HAS_TESTS
 #' @export
 nm_distn.bage_mod_binom <- function(mod) "binom"
 
+## HAS_TESTS
 #' @export
 nm_distn.bage_mod_norm <- function(mod) "norm"
 
 
 ## 'nm_distn' -----------------------------------------------------------------
 
+#' Name of offset used in printing
+#'
+#' @param mod An object of class 'bage_mod'
+#'
+#' @returns A string
+#'
+#' @noRd
 nm_offset <- function(mod) {
     UseMethod("nm_offset")
 }
 
+## HAS_TESTS
 #' @export
 nm_offset.bage_mod_pois <- function(mod) "exposure"
 
+## HAS_TESTS
 #' @export
 nm_offset.bage_mod_binom <- function(mod) "size"
 
+## HAS_TESTS
 #' @export
 nm_offset.bage_mod_norm <- function(mod) "weights"
 
@@ -250,8 +294,8 @@ print.bage_mod <- function(x, ...) {
     n_draw <- x$n_draw
     data <- x$data
     vname_offset <- x$vname_offset
-    age_var <- x$age_var
-    time_var <- x$time_var
+    var_age <- x$var_age
+    var_time <- x$var_time
     is_fitted <- !is.null(x$est)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -261,8 +305,8 @@ print.bage_mod <- function(x, ...) {
     nchar_max <- max(nchar(nms_priors), nchar_response)
     padding_formula <- paste(rep(" ", nchar_max - nchar_response),
                              collapse = "")
-    str_age_var <- if (is.null(age_var)) "<not detected>" else age_var
-    str_time_var <- if (is.null(time_var)) "<not detected>" else time_var
+    str_var_age <- if (is.null(var_age)) "<not detected>" else var_age
+    str_var_time <- if (is.null(var_time)) "<not detected>" else var_time
     nms_priors <- sprintf("% *s", nchar_max, nms_priors)
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
@@ -287,13 +331,13 @@ print.bage_mod <- function(x, ...) {
     }
     cat(sprintf("% *s: %s",
                 nchar_offset,
-                "age_var",
-                str_age_var))
+                "var_age",
+                str_var_age))
     cat("\n")
     cat(sprintf("% *s: %s",
                 nchar_offset,
-                "time_var",
-                str_time_var))
+                "var_time",
+                str_var_time))
     cat("\n")
     cat(sprintf("% *s: %d",
                 nchar_offset,
@@ -311,7 +355,8 @@ print.bage_mod <- function(x, ...) {
 #' @export
 generics::tidy
 
-#' Components from a fitted model
+## HAS_TESTS
+#' Main effects and interactions from a fitted model
 #'
 #' @param x A fitted `bage_mod` object.
 #' @param ... Unused. Included for generic consistency only.
@@ -329,17 +374,23 @@ generics::tidy
 #' tidy(mod)
 #' @export
 tidy.bage_mod <- function(x, ...) {
-    terms_est <- x$est$par
-    terms_par <- x$terms_par
     priors <- x$priors
+    matrices_par <- x$matrices_par
     term <- names(priors)
     spec <- vapply(priors, str_call_prior, "")
-    n <- as.integer(table(terms_par))
+    n <- vapply(matrices_par, ncol, 1L)
     ans <- tibble::tibble(term, spec, n)
-    is_fitted <- !is.null(terms_est)
+    is_fitted <- !is.null(x$est)
     if (is_fitted) {
-        terms_est <- split(terms_est, terms_par)
-        ans$sd <- vapply(terms_est, stats::sd, 0)
+        parfree <- x$est$parfree
+        matrices_parfree <- make_matrices_parfree(x)
+        terms_parfree <- make_terms_parfree(x)
+        parfree <- split(parfree, terms_parfree)
+        par <- .mapply("%*%",
+                       dots = list(x = matrices_parfree,
+                                   y = parfree),
+                       MoreArgs = list())
+        ans$sd <- vapply(par, stats::sd, 0)
     }
     ans <- tibble::tibble(ans)
     ans

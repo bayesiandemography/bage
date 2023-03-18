@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{tidy.bage_mod}
 \alias{tidy.bage_mod}
-\title{Components from a fitted model}
+\title{Main effects and interactions from a fitted model}
 \usage{
 \method{tidy}{bage_mod}(x, ...)
 }
@@ -15,7 +15,7 @@
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Components from a fitted model
+Main effects and interactions from a fitted model
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,

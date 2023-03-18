@@ -97,12 +97,12 @@ mod_pois <- function(formula, data, exposure) {
     else
         offset <- make_offset_ones_array(formula = formula,
                                          data = data)
-    age_var <- infer_age_var(formula)
-    time_var <- infer_time_var(formula)
+    var_age <- infer_var_age(formula)
+    var_time <- infer_var_time(formula)
     priors <- make_priors(formula = formula,
                           scale = 1,
-                          age_var = age_var,
-                          time_var = time_var)
+                          var_age = var_age,
+                          var_time = var_time)
     matrices_par <- make_matrices_par_array(formula = formula,
                                             outcome = outcome)
     ## create object and return
@@ -114,8 +114,8 @@ mod_pois <- function(formula, data, exposure) {
                 offset = offset,
                 vname_offset = vname_offset,
                 priors = priors,
-                age_var = age_var,
-                time_var = time_var,
+                var_age = var_age,
+                var_time = var_time,
                 matrices_par = matrices_par,
                 est = est,
                 prec = prec,
@@ -206,12 +206,12 @@ mod_binom <- function(formula, data, size) {
     offset <- make_offset_array(formula = formula,
                                 vname_offset = vname_offset,
                                 data = data)
-    age_var <- infer_age_var(formula)
-    time_var <- infer_time_var(formula)
+    var_age <- infer_var_age(formula)
+    var_time <- infer_var_time(formula)
     priors <- make_priors(formula = formula,
                           scale = 1,
-                          age_var = age_var,
-                          time_var = time_var)
+                          var_age = var_age,
+                          var_time = var_time)
     matrices_par <- make_matrices_par_array(formula = formula,
                                             outcome = outcome)
     ## create object and return
@@ -223,8 +223,8 @@ mod_binom <- function(formula, data, size) {
                 offset = offset,
                 vname_offset = vname_offset,
                 priors = priors,
-                age_var = age_var,
-                time_var = time_var,
+                var_age = var_age,
+                var_time = var_time,
                 matrices_par = matrices_par,
                 est = est,
                 prec = prec,
@@ -320,12 +320,12 @@ mod_norm <- function(formula, data, weights) {
     else
         offset <- make_offset_ones_vec(data)
     scale_outcome <- make_scale_outcome(outcome)
-    age_var <- infer_age_var(formula)
-    time_var <- infer_time_var(formula)
+    var_age <- infer_var_age(formula)
+    var_time <- infer_var_time(formula)
     priors <- make_priors(formula = formula,
                           scale = scale_outcome,
-                          age_var = age_var,
-                          time_var = time_var)
+                          var_age = var_age,
+                          var_time = var_time)
     matrices_par <- make_matrices_par_vec(formula = formula,
                                           data = data)
     ## create object and return
@@ -337,8 +337,8 @@ mod_norm <- function(formula, data, weights) {
                 offset = offset,
                 vname_offset = vname_offset,
                 priors = priors,
-                age_var = age_var,
-                time_var = time_var,
+                var_age = var_age,
+                var_time = var_time,
                 matrices_par = matrices_par,
                 est = est,
                 prec = prec,

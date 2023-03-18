@@ -1,4 +1,43 @@
 
+## 'augment' ---------------------------------------------------------------
+
+test_that("'augment' works with valid inputs", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(augment(mod), tibble(data, .observed = make_observed(mod)))
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".fitted", ".lower", ".upper", ".observed")))
+})
+
+
+## 'components' ---------------------------------------------------------------
+
+test_that("'components' works with valid inputs", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(components(mod), NULL)
+    mod_fitted <- fit(mod)
+    ans <- components(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(unique(ans$component), c("par", "hyper", "const"))
+})
+
 
 ## 'fit' -----------------------------------------------------------------
 
@@ -54,7 +93,7 @@ test_that("'fit' works with known intercept and sex effect", {
     mod <- set_prior(mod, sex ~ Known(values = c(-0.1, 0.1)))
     ans_obtained <- fit(mod)
     expect_equal(ans_obtained$est$parfree[[1L]], -2)
-    expect_equal(ans_obtained$est$parfree[11:12], c(-0.1, 0.1))
+    expect_equal(ans_obtained$est$parfree[11:12], c(sex = -0.1, sex = 0.1))
 })
 
 test_that("'fit' works with AR1", {
@@ -117,7 +156,7 @@ test_that("'fit' works when single dimension", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_identical(length(mod_fitted$est$par), nrow(data) + 1L)
+    expect_identical(length(mod_fitted$est$parfree), nrow(data))
 })
 
 
@@ -133,3 +172,49 @@ test_that("'get_fun_inv_transform' works with valid inputs", {
 })
 
 
+## 'model_descr' --------------------------------------------------------------
+
+test_that("'model_descr' works with valid inputs", {
+    expect_identical(model_descr(structure(1, class = "bage_mod_pois")), "Poisson")
+    expect_identical(model_descr(structure(1, class = "bage_mod_binom")), "binomial")
+    expect_identical(model_descr(structure(1, class = "bage_mod_norm")), "normal")
+})
+
+
+## 'nm_distn' -----------------------------------------------------------------
+
+test_that("'nm_distn' works with valid inputs", {
+    expect_identical(nm_distn(structure(1, class = "bage_mod_pois")), "pois")
+    expect_identical(nm_distn(structure(1, class = "bage_mod_binom")), "binom")
+    expect_identical(nm_distn(structure(1, class = "bage_mod_norm")), "norm")
+})
+
+
+## 'nm_offset' ----------------------------------------------------------------
+
+test_that("'nm_offset' works with valid inputs", {
+    expect_identical(nm_offset(structure(1, class = "bage_mod_pois")), "exposure")
+    expect_identical(nm_offset(structure(1, class = "bage_mod_binom")), "size")
+    expect_identical(nm_offset(structure(1, class = "bage_mod_norm")), "weights")
+})
+
+
+## 'tidy' ---------------------------------------------------------------------
+
+test_that("'tidy' works with valid inputs", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+    formula <- deaths ~ age + sex
+    mod <- mod_binom(formula = formula,
+                    data = data,
+                    size = popn)
+    ans_unfit <- tidy(mod)
+    expect_true(is.data.frame(ans_unfit))
+    expect_identical(names(ans_unfit), c("term", "spec", "n"))
+    mod_fitted <- fit(mod)
+    ans_fitted <- tidy(mod_fitted)
+    expect_true(is.data.frame(ans_fitted))
+    expect_identical(names(ans_fitted), c("term", "spec", "n", "sd"))
+})
