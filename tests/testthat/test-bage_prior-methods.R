@@ -7,6 +7,21 @@ test_that("'is_known' works with valid inputs", {
 })
 
 
+## length_parfree ---------------------------------------------------------------
+
+test_that("'length_parfree' works with 'bage_prior_norm'", {
+    expect_identical(length_parfree(N(), 10L), 10L)
+})
+
+test_that("'length_parfree' works with 'bage_prior_norm'", {
+    expect_identical(length_parfree(RW(), 10L), 9L)
+})
+
+test_that("'length_parfree' works with 'bage_prior_norm'", {
+    expect_identical(length_parfree(RW2(), 10L), 8L)
+})
+
+
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar1'", {
@@ -28,6 +43,30 @@ test_that("'levels_hyper' works with 'bage_prior_rw'", {
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
     expect_identical(levels_hyper(RW2()), "sd")
 })
+
+
+## make_matrix_parfree --------------------------------------------------------
+
+test_that("'make_matrix_parfree' works with 'bage_prior_norm'", {
+    expect_identical(make_matrix_parfree(N(), 3),
+                     Matrix::Diagonal(n = 3, x = 1L))
+})
+
+test_that("'make_matrix_parfree' works with 'bage_prior_rw'", {
+    m <- make_matrix_parfree(RW(), length_par = 6)
+    expect_identical(dim(m), 6:5)
+    expect_equal(sum(m %*% (1:5)), 0)
+    expect_equal(diff(as.numeric(m %*% (1:5))), 1:5)
+})
+
+test_that("'make_matrix_parfree' works with 'bage_prior_rw2'", {
+    m <- make_matrix_parfree(RW2(), length_par = 6)
+    expect_identical(dim(m), c(6L, 4L))
+    expect_equal(sum(m %*% (1:4)), 0)
+    expect_equal(sum(diff(as.numeric(m %*% (1:4)))), 0)
+    expect_equal(diff(as.numeric(m %*% (1:4)), differences = 2), 1:4)
+})
+
 
 
 ## transform_hyper ------------------------------------------------------------

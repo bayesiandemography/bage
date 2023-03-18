@@ -80,7 +80,8 @@ test_that("'is_main_effect' works with valid inputs", {
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
-    ans_obtained <- make_const(list(a = N(), b = RW(), c = N()))
+    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    ans_obtained <- make_const(mod)
     ans_expected <- rep(1.0, 3L)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
@@ -90,7 +91,8 @@ test_that("'make_const' works with valid inputs", {
 ## 'make_hyper' ---------------------------------------------------------------
 
 test_that("'make_hyper' works with valid inputs", {
-    ans_obtained <- make_hyper(list(a = N(), b = RW(), c = N()))
+    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    ans_obtained <- make_hyper(mod)
     ans_expected <- rep(0, 3L)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
@@ -100,7 +102,8 @@ test_that("'make_hyper' works with valid inputs", {
 ## 'make_i_prior' ---------------------------------------------------------------
 
 test_that("'make_i_prior' works with valid inputs", {
-    ans_obtained <- make_i_prior(list(a = N(), b = RW(), c = N()))
+    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    ans_obtained <- make_i_prior(mod)
     ans_expected <- c(a = 1L, b = 2L, c = 1L)
     expect_identical(ans_obtained, ans_expected)
 })
@@ -109,17 +112,71 @@ test_that("'make_i_prior' works with valid inputs", {
 ## 'make_is_in_lik' -----------------------------------------------------------
 
 test_that("'make_is_in_lik' works with no NAs", {
-    ans_obtained <- make_is_in_lik(outcome = c(0, 1, 5),
-                                   offset = c(1, 0, 3))
+    mod <- list(outcome = c(0, 1, 5),
+                offset = c(1, 0, 3))
+    ans_obtained <- make_is_in_lik(mod)
     ans_expected <- c(1L, 0L, 1L)
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_is_in_lik' works with NAs", {
-    ans_obtained <- make_is_in_lik(outcome = c(0, 1, NA, 7),
-                                   offset = c(1, 0, 3, NA))
+    mod <- list(outcome = c(0, 1, NA, 7),
+                offset = c(1, 0, 3, NA))
+    ans_obtained <- make_is_in_lik(mod)
     ans_expected <- c(1L, 0L, 0L, 0L)
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_lengths_parfree' -------------------------------------------------------
+
+test_that("'make_lengths_parfree' works with valid inputs", {
+    mod <- list(priors = list(a = N(), b = RW(), c = N()),
+                matrices_par = list(matrix(nr = 100, nc = 1),
+                                    matrix(nr = 100, nc = 5),
+                                    matrix(nr = 100, nc = 5)))
+    ans_obtained <- make_lengths_parfree(mod)
+    ans_expected <- c(a = 1L, b = 4L, c = 5L)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_m_accum' -------------------------------------------------------------
+
+test_that("'make_m_accum' works with valid inputs", {
+    m <- make_m_accum(5)
+    ans_obtained <- as.numeric(m %*% (1:5))
+    ans_expected <- c(0, cumsum(1:5))
+    expect_equal(ans_obtained, ans_expected)
+    mm <- as.matrix(m)
+    expect_true(all(mm[row(mm) > col(mm)] == 1))
+    expect_true(all(mm[row(mm) <= col(mm)] == 0))
+})
+
+
+## 'make_m_centre' -------------------------------------------------------------
+
+test_that("'make_m_centre' works with valid inputs", {
+    m <- make_m_centre(5)
+    ans_obtained <- as.numeric(m %*% (1:5))
+    ans_expected <- (1:5) - 3
+    expect_equal(ans_obtained, ans_expected)
+    mm <- as.matrix(m)
+    expect_true(all(diag(mm) == 0.8))
+    expect_true(all(mm[row(mm) != col(mm)] == -0.2))
+})
+
+
+## 'make_m_identity' ----------------------------------------------------------
+
+test_that("'make_m_identity' works with valid inputs", {
+    m <- make_m_identity(5)
+    ans_obtained <- as.numeric(m %*% (1:5))
+    ans_expected <- as.numeric(1:5)
+    expect_equal(ans_obtained, ans_expected)
+    mm <- as.matrix(m)
+    expect_true(all(diag(mm) == 1))
+    expect_true(all(mm[row(mm) != col(mm)] == 0))
 })
 
 
@@ -127,17 +184,23 @@ test_that("'make_is_in_lik' works with NAs", {
 
 test_that("'make_map' works with no parameters treated as known", {
     priors <- list(N(), N())
-    terms_par <- factor(c(1, 2, 2, 2))
-    ans_obtained <- make_map(priors = priors, terms_par = terms_par)
+    matrices_par <- list(matrix(nr = 10, nc = 1),
+                         matrix(nr = 10, nc = 3))
+    mod <- list(priors = priors, matrices_par = matrices_par)
+    ans_obtained <- make_map(mod)
     ans_expected <- NULL
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_map' works with some parameters treated as known", {
     priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
-    terms_par <- factor(c(1, 2, 2, 2, 3, 3, 4, 4, 4))
-    ans_obtained <- make_map(priors = priors, terms_par = terms_par)
-    ans_expected <- list(par = factor(c(NA, 1:3, NA, NA, 4:6)))
+    matrices_par <- list(matrix(nr = 10, nc = 1),
+                         matrix(nr = 10, nc = 3),
+                         matrix(nr = 10, nc = 2),
+                         matrix(nr = 10, nc = 3))
+    mod <- list(priors = priors, matrices_par = matrices_par)
+    ans_obtained <- make_map(mod)
+    ans_expected <- list(parfree = factor(c(NA, 1:3, NA, NA, 4:6)))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -293,6 +356,42 @@ test_that("'make_matrix_par_array' creates sparse matrix", {
     m <- make_matrix_par_array(dim = dim,
                          is_in_term = c(TRUE, FALSE, TRUE))
     expect_s4_class(m, "sparseMatrix")
+})
+
+
+## 'make_matrices_parfree' ----------------------------------------------------
+
+test_that("'make_matrices_parfree' works with valid inputs", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans <- make_matrices_parfree(mod)
+    expect_identical(names(ans), c("(Intercept)", "age", "sex", "time"))
+    expect_identical(sapply(unname(ans), ncol), c(1L, 9L, 2L, 5L))
+    expect_identical(sapply(unname(ans), nrow), c(1L, 10L, 2L, 6L))
+})
+
+
+## 'make_matrices_terms' ----------------------------------------------------
+
+test_that("'make_matrices_terms' works with valid inputs", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans <- make_matrices_terms(mod)
+    expect_identical(names(ans), c("(Intercept)", "age", "sex", "time"))
+    expect_identical(sapply(unname(ans), ncol), c(1L, 9L, 2L, 5L))
+    expect_identical(sapply(unname(ans), nrow), rep(length(mod$outcome), 4L))
 })
 
 
@@ -488,12 +587,17 @@ test_that("'make_outcome_vec' works with valid inputs", {
 })
 
 
-## 'make_par' -----------------------------------------------------------------
+## 'make_parfree' -------------------------------------------------------------
 
-test_that("'make_par' works with valid inputs", {
+test_that("'make_parfree' works with valid inputs", {
     priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
-    terms_par <- factor(c(1, 2, 2, 2, 3, 3, 4, 4, 4))
-    ans_obtained <- make_par(priors = priors, terms_par = terms_par)
+    matrices_par <- list(matrix(nr = 100, ncol = 1),
+                         matrix(nr = 100, ncol = 3),
+                         matrix(nr = 100, ncol = 2),
+                         matrix(nr = 100, ncol = 3))
+    mod <- list(priors = priors, matrices_par = matrices_par)
+    mod <- list(priors = priors, matrices_par = matrices_par)
+    ans_obtained <- make_parfree(mod)
     ans_expected <- c(-3, 0, 0, 0, 0.1, -0.1, 0, 0, 0)
     expect_identical(ans_obtained, ans_expected)
 })
@@ -522,7 +626,8 @@ test_that("'make_scale_outcome' works with valid inputs, one non-NA", {
 ## 'make_terms_const' ---------------------------------------------------------
 
 test_that("'make_terms_const' works with valid inputs", {
-    ans_obtained <- make_terms_const(list(a = N(), b = RW(), c = Known(1:3), d = N()))
+    mod <- list(priors = list(a = N(), b = RW(), c = Known(1:3), d = N()))
+    ans_obtained <- make_terms_const(mod)
     ans_expected <- factor(c("a", "b", "d"), levels = c("a", "b", "c", "d"))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -531,21 +636,22 @@ test_that("'make_terms_const' works with valid inputs", {
 ## 'make_terms_hyper' ---------------------------------------------------------
 
 test_that("'make_terms_hyper' works with valid inputs", {
-    ans_obtained <- make_terms_hyper(list(a = N(), b = RW(), c = N()))
+    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    ans_obtained <- make_terms_hyper(mod)
     ans_expected <- factor(c("a", "b", "c"))
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_terms_par' -----------------------------------------------------------
+## 'make_terms_parfree' -------------------------------------------------------
 
-test_that("'make_terms_par' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$deaths <- 1
-    formula <- deaths ~ age:sex + time
-    ans_obtained <- make_terms_par(formula = formula, data = data)
-    ans_expected <- factor(rep(c("(Intercept)", "time", "age:sex"),
-                               times = c(1, 2, 6)),
-                           levels = c("(Intercept)", "time", "age:sex"))
+test_that("'make_terms_parfree' works with valid inputs", {
+    mod <- list(priors = list(a = N(), b = RW(), c = N()),
+                matrices_par = list(matrix(nr = 100, nc = 1),
+                                    matrix(nr = 100, nc = 5),
+                                    matrix(nr = 100, nc = 5)))
+    ans_obtained <- make_terms_parfree(mod)
+    ans_expected <- factor(rep(c("a", "b", "c"),
+                               times = c(1, 4, 5)))
     expect_identical(ans_obtained, ans_expected)
 })

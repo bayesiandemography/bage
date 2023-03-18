@@ -103,8 +103,6 @@ mod_pois <- function(formula, data, exposure) {
                           scale = 1,
                           age_var = age_var,
                           time_var = time_var)
-    terms_par <- make_terms_par(formula = formula,
-                                data = data)
     matrices_par <- make_matrices_par_array(formula = formula,
                                             outcome = outcome)
     ## create object and return
@@ -118,7 +116,6 @@ mod_pois <- function(formula, data, exposure) {
                 priors = priors,
                 age_var = age_var,
                 time_var = time_var,
-                terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
                 prec = prec,
@@ -215,8 +212,6 @@ mod_binom <- function(formula, data, size) {
                           scale = 1,
                           age_var = age_var,
                           time_var = time_var)
-    terms_par <- make_terms_par(formula = formula,
-                                data = data)
     matrices_par <- make_matrices_par_array(formula = formula,
                                             outcome = outcome)
     ## create object and return
@@ -230,7 +225,6 @@ mod_binom <- function(formula, data, size) {
                 priors = priors,
                 age_var = age_var,
                 time_var = time_var,
-                terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
                 prec = prec,
@@ -332,8 +326,6 @@ mod_norm <- function(formula, data, weights) {
                           scale = scale_outcome,
                           age_var = age_var,
                           time_var = time_var)
-    terms_par <- make_terms_par(formula = formula,
-                                data = data)
     matrices_par <- make_matrices_par_vec(formula = formula,
                                           data = data)
     ## create object and return
@@ -347,7 +339,6 @@ mod_norm <- function(formula, data, weights) {
                 priors = priors,
                 age_var = age_var,
                 time_var = time_var,
-                terms_par = terms_par,
                 matrices_par = matrices_par,
                 est = est,
                 prec = prec,
