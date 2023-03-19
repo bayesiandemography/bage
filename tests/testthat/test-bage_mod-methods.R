@@ -41,7 +41,7 @@ test_that("'components' works with valid inputs", {
 
 ## 'fit' -----------------------------------------------------------------
 
-test_that("'fit' works with valid inputs - pois", {
+test_that("'fit' works with valid inputs - pois has exposure", {
     set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -53,6 +53,20 @@ test_that("'fit' works with valid inputs - pois", {
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
+
+
+test_that("'fit' works with valid inputs - pois has exposure", {
+    set.seed(0)    
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$deaths <- rpois(n = nrow(data), lambda = 10000)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = 1)
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
 
 test_that("'fit' works with valid inputs - binom", {
     set.seed(0)    
