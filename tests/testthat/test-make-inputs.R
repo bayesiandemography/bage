@@ -605,21 +605,38 @@ test_that("'make_parfree' works with valid inputs", {
 
 ## 'make_scale_outcome' -------------------------------------------------------
 
-test_that("'make_scale_outcome' works with valid inputs, no NA", {
+test_that("'make_scale_outcome' works with valid inputs, no NA, log = FALSE", {
     outcome <- c(1:10, NA)
-    ans_obtained <- make_scale_outcome(outcome)
+    ans_obtained <- make_scale_outcome(outcome, log = FALSE)
     ans_expected <- signif(sd(outcome[-11]), 2)
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_scale_outcome' works with valid inputs, all NA", {
-    expect_identical(make_scale_outcome(c(NA, NA)),
+test_that("'make_scale_outcome' works with valid inputs, all NA, log = FALSE", {
+    expect_identical(make_scale_outcome(c(NA, NA), log = FALSE),
                      NA_real_)
 })
 
-test_that("'make_scale_outcome' works with valid inputs, one non-NA", {
-    expect_identical(make_scale_outcome(c(NA, 3L, NA)),
+test_that("'make_scale_outcome' works with valid inputs, one non-NA, log = FALSE", {
+    expect_identical(make_scale_outcome(c(NA, 3L, NA), log = FALSE),
                      3.0)
+})
+
+test_that("'make_scale_outcome' works with valid inputs, no NA, log = TRUE", {
+    outcome <- c(1:10, NA)
+    ans_obtained <- make_scale_outcome(outcome, log = TRUE)
+    ans_expected <- signif(log(sd(outcome[-11])), 2)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_scale_outcome' works with valid inputs, all NA, log = TRUE", {
+    expect_identical(make_scale_outcome(c(NA, NA), log = TRUE),
+                     NA_real_)
+})
+
+test_that("'make_scale_outcome' works with valid inputs, one non-NA, log = TRUE", {
+    expect_identical(make_scale_outcome(c(NA, 3L, NA), log = TRUE),
+                     signif(log(3.0), 2))
 })
 
 
