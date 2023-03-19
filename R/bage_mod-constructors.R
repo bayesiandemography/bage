@@ -99,8 +99,12 @@ mod_pois <- function(formula, data, exposure) {
                                          data = data)
     var_age <- infer_var_age(formula)
     var_time <- infer_var_time(formula)
+    if (is_offset_specified)
+        scale <- 1
+    else
+        scale <- make_scale_outcome(outcome, log = TRUE)
     priors <- make_priors(formula = formula,
-                          scale = 1,
+                          scale = scale,
                           var_age = var_age,
                           var_time = var_time)
     matrices_par <- make_matrices_par_array(formula = formula,
@@ -319,7 +323,7 @@ mod_norm <- function(formula, data, weights) {
                                   data = data)
     else
         offset <- make_offset_ones_vec(data)
-    scale_outcome <- make_scale_outcome(outcome)
+    scale_outcome <- make_scale_outcome(outcome, log = FALSE)
     var_age <- infer_var_age(formula)
     var_time <- infer_var_time(formula)
     priors <- make_priors(formula = formula,
