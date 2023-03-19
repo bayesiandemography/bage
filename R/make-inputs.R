@@ -746,16 +746,19 @@ make_priors <- function(formula, scale, var_age, var_time) {
 #' standard deviation; if only 1, use
 #' the single value; otherwise return NA.
 #'
+#' If 'log' is TRUE, then take tthe log.
+#'
 #' Round to two significant figures.
 #' (This makes printing nicer, and avoids
 #' spurious precision.)
 #'
 #' @param outcome A vector or array holding outcomes.
+#' @param log TRUE or FALSE
 #'
 #' @returns A double.
 #'
 #' @noRd
-make_scale_outcome <- function(outcome) {
+make_scale_outcome <- function(outcome, log) {
     digits <- 2L
     obs <- outcome[!is.na(outcome)]
     n_obs <- length(obs)
@@ -765,6 +768,8 @@ make_scale_outcome <- function(outcome) {
         ans <- obs
     else
         ans <- stats::sd(obs)
+    if (log)
+        ans <- log(ans)
     ans <- signif(ans, digits = digits)
     ans <- as.double(ans)
     ans
