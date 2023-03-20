@@ -1,4 +1,49 @@
 
+## 'default_prior' ------------------------------------------------------------
+
+test_that("'default_prior' works with ordinary term", {
+    expect_identical(default_prior(nm_term = "x",
+                                   scale = 2,
+                                   var_age = "age",
+                                   var_time = "time"),
+                     N(scale = 2))
+})
+
+test_that("'default_prior' works with intercept", {
+    expect_identical(default_prior(nm_term = "(Intercept)",
+                                   scale = 2,
+                                   var_age = "age",
+                                   var_time = "time"),
+                     N(scale = 20))
+})
+
+test_that("'default_prior' works with age term", {
+    expect_identical(default_prior(nm_term = "AgeGroup",
+                                   scale = 2,
+                                   var_age = "AgeGroup",
+                                   var_time = "time"),
+                     RW(scale = 2))
+    expect_identical(default_prior(nm_term = "AgeGroup",
+                                   scale = 2,
+                                   var_age = "AgeGroup",
+                                   var_time = NULL),
+                     RW(scale = 2))
+    expect_identical(default_prior(nm_term = "AgeGroup",
+                                   scale = 2,
+                                   var_age = NULL,
+                                   var_time = NULL),
+                     N(scale = 2))
+})
+
+test_that("'default_prior' works with time term", {
+    expect_identical(default_prior(nm_term = "year",
+                                   scale = 2,
+                                   var_age = "AgeGroup",
+                                   var_time = "year"),
+                     RW(scale = 2))
+})
+
+
 ## 'infer_var_age' ------------------------------------------------------------
 
 test_that("'infer_var_age' returns name when single valid answer", {
@@ -26,6 +71,25 @@ test_that("'infer_var_age' returns NULL when not single valid answer", {
     expect_identical(infer_var_age(deaths ~ sex + time),
                      NULL)
     expect_identical(infer_var_age(deaths ~ 1),
+                     NULL)
+})
+
+
+## 'infer_var_sexgender' ------------------------------------------------------------
+
+test_that("'infer_var_sexgender' returns name when single valid answer", {
+    expect_identical(infer_var_sexgender(deaths ~ age * sex + time),
+                     "sex")
+    expect_identical(infer_var_sexgender(deaths ~ age:gender + time + age),
+                     "gender")
+})
+
+test_that("'infer_var_sexgender' returns NULL when not single valid answer", {
+    expect_identical(infer_var_sexgender(deaths ~ age * sex + gender),
+                     NULL)
+    expect_identical(infer_var_sexgender(deaths ~ age + time),
+                     NULL)
+    expect_identical(infer_var_sexgender(deaths ~ 1),
                      NULL)
 })
 
@@ -62,18 +126,6 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
                      NULL)
     expect_identical(infer_var_time(deaths ~ age * sex + PERIODX),
                      NULL)
-})
-
-
-## 'is_main_effect' -----------------------------------------------------------
-
-test_that("'is_main_effect' works with valid inputs", {
-    expect_true(is_main_effect(name = "age",
-                               formula = deaths ~ age*sex + time))
-    expect_false(is_main_effect(name = "age",
-                                formula = deaths ~ age:sex + time))
-    expect_false(is_main_effect(name = "region",
-                                formula = deaths ~ age:sex + time))
 })
 
 

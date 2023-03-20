@@ -54,5 +54,9 @@ mod |>
   set_var_time(name = "calendar_year")
 }
 \seealso{
-\code{\link[=set_var_time]{set_var_time()}}
+\itemize{
+\item \code{\link[=set_var_age]{set_var_age()}} sets the age variable
+\item \code{\link[=set_var_sexgender]{set_var_sexgender()}} sets the sex or gender
+\item internally, \code{bage} uses \code{\link[=find_time]{find_time()}} to locate time variables
+}
 }

@@ -147,7 +147,7 @@ Type objective_function<Type>::operator() ()
   }
 
 
-  // log posterior
+  // negative log posterior
   
   Type ans = 0;
 
