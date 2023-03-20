@@ -1,38 +1,4 @@
 
-## 'set_var_age' --------------------------------------------------------------
-
-test_that("'set_var_age' works with valid inputs - no existing age var", {
-    data <- expand.grid(oldness = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ oldness*sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_identical(mod$var_age, NULL)
-    mod <- set_var_age(mod, name = "oldness")
-    expect_identical(mod$var_age, "oldness")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
-})
-
-test_that("'set_var_age' works with valid inputs - has existing age var", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2, oldness = 1:3)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ oldness*sex + time + age
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_identical(mod$var_age, "age")
-    expect_s3_class(mod$priors[["age"]], "bage_prior_rw")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_norm")
-    mod <- set_var_age(mod, name = "oldness")
-    expect_identical(mod$var_age, "oldness")
-    expect_s3_class(mod$priors[["age"]], "bage_prior_norm")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
-})
-
-
 ## 'set_n_draw' ---------------------------------------------------------------
 
 test_that("'set_n_draw' works with valid inputs", {
@@ -109,6 +75,73 @@ test_that("'set_prior' unfits a fitted model", {
 })
 
 
+## 'set_var_age' --------------------------------------------------------------
+
+test_that("'set_var_age' works with valid inputs - no existing age var", {
+    data <- expand.grid(oldness = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ oldness*sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(mod$var_age, NULL)
+    mod <- set_var_age(mod, name = "oldness")
+    expect_identical(mod$var_age, "oldness")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
+})
+
+test_that("'set_var_age' works with valid inputs - has existing age var", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2, oldness = 1:3)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ oldness*sex + time + age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(mod$var_age, "age")
+    expect_s3_class(mod$priors[["age"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_norm")
+    mod <- set_var_age(mod, name = "oldness")
+    expect_identical(mod$var_age, "oldness")
+    expect_s3_class(mod$priors[["age"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
+})
+
+
+## 'set_var_sexgender' --------------------------------------------------------------
+
+test_that("'set_var_sexgender' works with valid inputs - no existing sexgender var", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sexx = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age*sexx + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(mod$var_sexgender, NULL)
+    mod <- set_var_sexgender(mod, name = "sexx")
+    expect_identical(mod$var_sexgender, "sexx")
+    expect_s3_class(mod$priors[["sexx"]], "bage_prior_norm")
+})
+
+test_that("'set_var_sexgender' works with valid inputs - has existing sexgender var", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2, gend = 1:3)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ gend*sex + time + age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(mod$var_sexgender, "sex")
+    expect_s3_class(mod$priors[["sex"]], "bage_prior_norm")
+    mod <- set_var_sexgender(mod, name = "gend")
+    expect_identical(mod$var_sexgender, "gend")
+    expect_s3_class(mod$priors[["gend"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sex"]], "bage_prior_norm")
+})
+
+
 ## 'set_var_time' --------------------------------------------------------------
 
 test_that("'set_var_time' works with valid inputs", {
@@ -168,7 +201,7 @@ test_that("'set_var_inner' gives correct errors with invalid inputs", {
                     data = data,
                     exposure = popn)
     expect_error(set_var_inner(mod = mod,
-                  name = "age",
-                  var = "time"),
-                 "age variable and time variable have same name \\[\"age\"\\]")
+                               name = "age",
+                               var = "time"),
+                 "time variable and age variable have same name \\[\"age\"\\]")
 })
