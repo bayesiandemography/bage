@@ -18,6 +18,10 @@ test_that("'mod_pois' works with valid inputs - with exposure", {
                               data = data,
                               exposure = "popn")
     expect_identical(ans_noquote, ans_withquote)
+    ans_squote <- mod_pois(formula = formula,
+                           data = data,
+                           exposure = 'popn')
+    expect_identical(ans_noquote, ans_squote)
 })
 
 test_that("'mod_pois' works with valid inputs - no exposure", {
