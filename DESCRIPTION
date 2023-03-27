@@ -24,8 +24,10 @@ Imports:
     Matrix,
     matrixStats,
     methods,
+    rlang,
     stats,
     tibble,
+    tidyselect,
     TMB
 Suggests: 
     covr,

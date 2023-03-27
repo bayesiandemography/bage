@@ -2,99 +2,91 @@
 % Please edit documentation in R/svd.R
 \name{svd_transform}
 \alias{svd_transform}
-\title{Construct transformations based on SVD
-of age-sex-specific rates}
+\title{Construct parsimonious representations of rates based on SVD}
 \usage{
-svd_transform(x, n = 5, scale = c("log", "logit", "none"), concat = NULL)
+svd_transform(x, n = 5, scale = c("log", "logit", "none"))
 }
 \arguments{
-\item{x}{A data frame with rates, probabilities,
-or means classified by age, sex/gender, and other
-variables.}
+\item{x}{A matrix with value such as rates,
+probabilities, or means.}
 
-\item{n}{Number of components of SVD.}
+\item{n}{Number of components of the SVD to use.
+Defaults to 5.}
 
 \item{scale}{\code{"log"}, \code{"logit"}, or \code{"none"}.
 Defaults to \code{"log"}.}
-
-\item{concat}{Levels of the sex/gender
-variable to use for a \code{"concat"}
-transformation.}
 }
 \value{
-A named list, with one element
-for each level of the sex/gender variable,
-plus one more element if a value for
-\code{concat} is supplied.
-Each element in the return value
-is itself a named list,
-holding a matrix called \code{"transform"}
-and a vector called \code{"translate"}.
+A named list with two elements:
+\itemize{
+\item \code{transform}, a numeric matrix
+\item \code{translate}, a numeric vector
+}
 }
 \description{
-Apply the \link[base:svd]{Singular Value Decomposition}
-(SVD) to a dataset of ages-sex-specific rates,
-probabilities, or means, and use the results
-to construct transformations that allow
-age-sex profiles to be represented more
-parsimoniously.
+Use the \link[base:svd]{Singular Value Decomposition}
+(SVD) to construct a parsimonious representation
+of a set of rates, probabilities, means, or
+other values.
 }
 \details{
-Data frame \code{x} must have
+`svd_transform() typically proceeds as follows:
 \itemize{
-\item a column named \verb{"age}"
-\item a column named \code{"sex"} or \code{"gender"}
-\item one or more columns containing additional
-classifying variables
-\item a column called \code{"value"} holding the rates,
-probabilities, or means.
+\item transform values in matrix \code{x} (eg take logs)
+\item carry out a SVD on the transformed version of \code{x}
+\item centre and scale the results from the SVD to produce
+matrix \code{transform} and vector \code{translate}.
 }
+
+If
+\itemize{
+\item \eqn{X} is a the matrix of transformed values
+of \code{x}
+\item \eqn{A} is the matrix called \code{transform},
+\item \eqn{b} is the vector called \code{translate}, and
+\item \eqn{\beta} is a vector of standard normal variates,
+}
+
+and
+
+\deqn{v = A \beta + b}
+
+then \eqn{v} should look like a randomly-selected
+column from \eqn{X}.
+
+Matrix \code{x} typically has age along the rows,
+and some combination of classification variables,
+such as country and time, along the columns.
+One exception is when the SVD is used to capture
+the relationship between female and male rates,
+in which case rows are formed by interacting
+sex and age. See below for an example.
 
 The number of components used by the SVD
-is governed by argument \code{n}, which defaults
-to 5.
+(and hence the number of columns of the
+\code{tranform} matrix) is governed by
+argument \code{n}. The default is 5.
 
-Rates are typically transformed to the
-log scale, and probabilities to the logit scale,
-before the SVD is applied. The type of
-transformation is specified through the
-\code{scale} argument (which defaults to \code{"log"}.)
-
-When a log or logit scale is used, \code{svd_transform}
-converts zeros in the \code{value} column to
-values just above zero before transforming.
-When a logit scale is used, \code{svd_transform}
-also converts ones to values just
-below one. The substitute
-values are calculated by fitting a main-effects
-model to the data, and then shifting the predicted
-value down slightly (in the case of zeros),
-or up slightly (in the case of ones.)
-
-By default, \code{svd_transform} creates a
-transformation for each level of the sex/gender
-variable. If a value is supplied for the
-\code{concat} argument, then \code{svd_transform}
-also creates a transformation that concatenates
-age levels for each sex/gender included
-in the value supplied for \code{concat}. See below for
-an example. Concatenated transforms are useful,
-for instance, when jointly modelling female
-and male rates.
+When \code{scale} is \code{"log"} or \code{"logit"},
+\code{svd_transform()} converts any \code{0}s in
+\code{x} to values just above \code{0} before
+applying the log or logit function.
+When \code{scale} is \code{"logit"},
+\verb{svd_transform() also converts any }1\verb{s to values just below }1`.
 }
 \examples{
-set.seed(0)
-x <- expand.grid(age = 0:10,
-                 gender = c("Female", "Male", "Total"),
-                 year = 2020:2021,
-                 country = LETTERS)
-x$value <- rgamma(n = nrow(x), shape = 0.2)
-
-## "Female", "Male", and "Total"
-tr <- svd_transform(x)
-str(tr)
-
-## "Female", "Male", "Total", and "concat"
-tr_concat <- svd_transform(x, concat = c("Female", "Male"))
-str(tr_concat)
+x <- matrix(rgamma(n = 50, shape = 1), nrow = 5, ncol = 10)
+x
+svd_transform(x, n = 3)
+svd_transform(x, n = 3, scale = "none")
+## TODO - AN EXAMPLE COMBINING FEMALE AND MALE
+}
+\seealso{
+\itemize{
+\item \code{\link[=to_matrix]{to_matrix()}} can create matrices to
+supply to \code{svd_transform}
+\item \if{html}{\out{<name of vignette>}} has mathematical details
+\item example of use of \code{svd_transform}:
+href{https://github.com/bayesiandemography/svd_mortality}{svd_mortality}
+}
 }
