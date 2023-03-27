@@ -59,6 +59,8 @@
 #' @export
 mod_pois <- function(formula, data, exposure) {
     n_draw <- 1000L
+    nm_distn <- "pois"
+    nm_offset <- "exposure"
     ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
@@ -74,7 +76,7 @@ mod_pois <- function(formula, data, exposure) {
                                  data = data)
     check_response_nonneg(formula = formula,
                           data = data,
-                          nm_distn = "pois")
+                          nm_distn = nm_distn)
     if (is_offset_specified) {
         check_offset_in_data(vname_offset = vname_offset,
                              nm_offset = nm_offset,
@@ -180,6 +182,8 @@ mod_pois <- function(formula, data, exposure) {
 mod_binom <- function(formula, data, size) {
     n_draw <- 1000L
     scale_prior <- 1
+    nm_distn <- "binom"
+    nm_offset <- "size"
     ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)
@@ -194,7 +198,7 @@ mod_binom <- function(formula, data, size) {
                                  data = data)
     check_response_nonneg(formula = formula,
                           data = data,
-                          nm_distn = "binom")
+                          nm_distn = nm_distn)
     check_offset_in_data(vname_offset = vname_offset,
                          nm_offset = nm_offset,
                          data = data)
@@ -300,6 +304,7 @@ mod_binom <- function(formula, data, size) {
 #' @export
 mod_norm <- function(formula, data, weights) {
     n_draw <- 1000L
+    nm_offset <- "weights"
     ## check individual inputs
     checkmate::assert_formula(formula)
     check_formula_has_response(formula)

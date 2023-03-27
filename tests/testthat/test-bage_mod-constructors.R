@@ -18,6 +18,10 @@ test_that("'mod_pois' works with valid inputs - with exposure", {
                               data = data,
                               exposure = "popn")
     expect_identical(ans_noquote, ans_withquote)
+    ans_squote <- mod_pois(formula = formula,
+                           data = data,
+                           exposure = 'popn')
+    expect_identical(ans_noquote, ans_squote)
 })
 
 test_that("'mod_pois' works with valid inputs - no exposure", {
@@ -30,6 +34,29 @@ test_that("'mod_pois' works with valid inputs - no exposure", {
                              exposure = 1)
     expect_s3_class(ans_obtained, "bage_mod_pois")
 })
+
+test_that("'mod_pois' gives correct error when offset not in data", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    expect_error(mod_pois(formula = formula,
+                          data = data,
+                          exposure = wrong),
+                 "exposure variable \\[wrong\\] not found in 'data'")
+})
+
+test_that("'mod_pois' gives correct error when offset negative", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$popn[2] <- -1
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    expect_error(mod_pois(formula = formula,
+                          data = data,
+                          exposure = popn),
+                 "exposure variable \\[popn\\] has negative values")
+})    
 
 
 ## 'mod_binom' ----------------------------------------------------------------

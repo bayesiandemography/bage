@@ -1,14 +1,14 @@
 
 ## HAS_TESTS
-#' Replace zeros in a matrix 'x' of
+#' Replace zeros in a matrix of
 #' estimated rates
 #'
 #' Based on a simple main effects model,
-#' replace zeros in \code{x}, a matrix of
+#' replace zeros in `x`, a matrix of
 #' estimated rates. The replacement values
 #' should typically be near 0.
 #'
-#' Assume that \code{x} is a valid numeric
+#' Assume that `x` is a valid numeric
 #' matrix of rates with no NAs, no negative values,
 #' and no infinite values.
 #'
@@ -70,6 +70,8 @@ replace_zeros_ones <- function(x) {
 #' Given a matrix of rates, calculate
 #' transform using SVD
 #'
+#' Assume 'x' is has been checked and is valid
+#'
 #' @param x Matrix of rates,
 #' probabilities, or means
 #' @param n Number of components
@@ -101,216 +103,145 @@ scaled_svd <- function(x, n) {
 
 
 
-#' Construct transformations based on SVD
-#' of age-sex-specific rates
+#' Construct parsimonious representations of rates based on SVD
 #'
-#' Apply the [Singular Value Decomposition][base::svd()]
-#' (SVD) to a dataset of ages-sex-specific rates,
-#' probabilities, or means, and use the results
-#' to construct transformations that allow
-#' age-sex profiles to be represented more
-#' parsimoniously.
+#' Use the [Singular Value Decomposition][base::svd()]
+#' (SVD) to construct a parsimonious representation
+#' of a set of rates, probabilities, means, or
+#' other values.
 #'
-#' Data frame `x` must have
-#' - a column named `"age`"
-#' - a column named `"sex"` or `"gender"`
-#' - one or more columns containing additional
-#' classifying variables
-#' - a column called `"value"` holding the rates,
-#' probabilities, or means.
+#' `svd_transform() typically proceeds as follows:
+#' - transform values in matrix `x` (eg take logs)
+#' - carry out a SVD on the transformed version of `x`
+#' - centre and scale the results from the SVD to produce
+#' matrix `transform` and vector `translate`.
+#'
+#' If 
+#' - \eqn{X} is a the matrix of transformed values
+#' of `x`
+#' - \eqn{A} is the matrix called `transform`,
+#' - \eqn{b} is the vector called `translate`, and
+#' - \eqn{\beta} is a vector of standard normal variates,
+#'
+#' and
+#'
+#' \deqn{v = A \beta + b}
+#'
+#' then \eqn{v} should look like a randomly-selected
+#' column from \eqn{X}.
+#'
+#' Matrix `x` typically has age along the rows,
+#' and some combination of classification variables,
+#' such as country and time, along the columns.
+#' One exception is when the SVD is used to capture
+#' the relationship between female and male rates,
+#' in which case rows are formed by interacting
+#' sex and age. See below for an example.
 #'
 #' The number of components used by the SVD
-#' is governed by argument `n`, which defaults
-#' to 5.
+#' (and hence the number of columns of the
+#' `tranform` matrix) is governed by
+#' argument `n`. The default is 5.
 #'
-#' Rates are typically transformed to the
-#' log scale, and probabilities to the logit scale,
-#' before the SVD is applied. The type of
-#' transformation is specified through the
-#' `scale` argument (which defaults to `"log"`.)
+#' When `scale` is `"log"` or `"logit"`,
+#' `svd_transform()` converts any `0`s in
+#' `x` to values just above `0` before
+#' applying the log or logit function.
+#' When `scale` is `"logit"`,
+#' `svd_transform() also converts any
+#' `1`s to values just below `1`.
 #'
-#' When a log or logit scale is used, `svd_transform`
-#' converts zeros in the `value` column to
-#' values just above zero before transforming.
-#' When a logit scale is used, `svd_transform`
-#' also converts ones to values just
-#' below one. The substitute
-#' values are calculated by fitting a main-effects
-#' model to the data, and then shifting the predicted
-#' value down slightly (in the case of zeros),
-#' or up slightly (in the case of ones.)
-#'
-#' By default, `svd_transform` creates a
-#' transformation for each level of the sex/gender
-#' variable. If a value is supplied for the
-#' `concat` argument, then `svd_transform`
-#' also creates a transformation that concatenates
-#' age levels for each sex/gender included
-#' in the value supplied for `concat`. See below for
-#' an example. Concatenated transforms are useful,
-#' for instance, when jointly modelling female
-#' and male rates.
-#'
-#' @param x A data frame with rates, probabilities,
-#' or means classified by age, sex/gender, and other
-#' variables.
-#' @param n Number of components of SVD.
+#' @param x A matrix with value such as rates,
+#' probabilities, or means.
+#' @param n Number of components of the SVD to use.
+#' Defaults to 5.
 #' @param scale `"log"`, `"logit"`, or `"none"`.
 #' Defaults to `"log"`.
-#' @param concat Levels of the sex/gender
-#' variable to use for a `"concat"`
-#' transformation.
 #'
-#' @returns A named list, with one element
-#' for each level of the sex/gender variable,
-#' plus one more element if a value for
-#' `concat` is supplied.
-#' Each element in the return value
-#' is itself a named list,
-#' holding a matrix called `"transform"`
-#' and a vector called `"translate"`.
+#' @returns A named list with two elements:
+#' - `transform`, a numeric matrix
+#' - `translate`, a numeric vector
 #'
+#' @seealso
+#' - [to_matrix()] can create matrices to
+#' supply to `svd_transform`
+#' - <name of vignette> has mathematical details
+#' - example of use of `svd_transform`:
+#' href{https://github.com/bayesiandemography/svd_mortality}{svd_mortality}
+#' 
 #' @examples
-#' set.seed(0)
-#' x <- expand.grid(age = 0:10,
-#'                  gender = c("Female", "Male", "Total"),
-#'                  year = 2020:2021,
-#'                  country = LETTERS)
-#' x$value <- rgamma(n = nrow(x), shape = 0.2)
-#'
-#' ## "Female", "Male", and "Total"
-#' tr <- svd_transform(x)
-#' str(tr)
-#'
-#' ## "Female", "Male", "Total", and "concat"
-#' tr_concat <- svd_transform(x, concat = c("Female", "Male"))
-#' str(tr_concat)
+#' x <- matrix(rgamma(n = 50, shape = 1), nrow = 5, ncol = 10)
+#' x
+#' svd_transform(x, n = 3)
+#' svd_transform(x, n = 3, scale = "none")
+#' ## TODO - AN EXAMPLE COMBINING FEMALE AND MALE
 #' @export
 svd_transform <- function(x,
                           n = 5,
-                          scale = c("log", "logit", "none"),
-                          concat = NULL) {
-    ## check inputs and rearrange variables in 'x'
-    checkmate::assert_data_frame(x,
-                                 any.missing = FALSE,
-                                 min.cols = 4L)
-    nms_x <- names(x)
-    i_age <- grep("age", nms_x, ignore.case = TRUE)
-    i_sexgender <- grep("sex|gender", nms_x, ignore.case = TRUE)
-    i_value <- grep("value", nms_x, ignore.case = TRUE)
-    if (length(i_age) == 0L)
-        stop(gettextf("'%s' does not have an \"%s\" variable",
-                      "x", "age"),
-             call. = FALSE)
-    if (length(i_sexgender) == 0L)
-        stop(gettextf("'%s' does not have a \"%s\" variable or a \"%s\" variable",
-                      "x", "sex", "gender"),
-             call. = FALSE)
-    if (length(i_sexgender) == 2L)
-        stop(gettextf("'%s' has a sex \"%s\" and a \"%s\" variable",
-                      "x", "sex", "gender"),
-             call. = FALSE)
-    if (length(i_value) == 0L)
-        stop(gettextf("'%s' does not have a \"%s\" variable",
-                      "x", "value"),
-             call. = FALSE)
-    value <- x$value
-    checkmate::assert_numeric(value,
-                              finite = TRUE,
-                              any.missing = FALSE)
-    i_classif <- setdiff(seq_along(x), c(i_age, i_sexgender, i_value))
-    classif <- do.call(paste, x[i_classif])
-    x <- cbind(x[c(i_sexgender, i_age)], classif, x[i_value])
-    is_dup <- duplicated(x[1:3])
-    i_dup <- match(TRUE, is_dup, nomatch = 0L)
-    if (i_dup > 0L)
-        stop(gettextf("'%s' has a duplicate combination of the classifying variables : %s",
-                      "x",
-                      paste(x[1:3], collapse = " ")),
-             call. = FALSE)
-    levels <- lapply(x[1:3], unique)
-    classif_expected <- do.call(paste, expand.grid(levels))
-    classif_actual <- do.call(paste, x[1:3])
-    is_cl_found <- classif_expected %in% classif_actual
-    i_cl_not_found <- match(FALSE, is_cl_found, nomatch = 0L)
-    if (i_cl_not_found > 0L)
-        stop(gettextf("'%s' is missing a combination of the classifying variables : %s",
-                      "x",
-                      classif_expected[[i_cl_not_found]]),
-             call. = FALSE)
+                          scale = c("log", "logit", "none")) {
+    ## check 'n'
     n <- checkmate::assert_count(n,
                                  positive = TRUE,
                                  coerce = TRUE)
-    n_age <- length(unique(x[[2L]]))
-    if (n > n_age)
-        stop(gettextf("value for '%s' [%d] greater than number of distinct age groups [%d]",
+    ## check 'x'
+    checkmate::assert_matrix(x,
+                             mode = "numeric",
+                             any.missing = FALSE,
+                             min.rows = 1L,
+                             min.cols = 1L)
+    if (ncol(x) < n)
+        stop(gettextf("number of columns in '%s' [%d] less than '%s' [%d]",
+                      "x",
+                      ncol(x),
                       "n",
-                      n,
-                      n_age),
-             .call = FALSE)
+                      n),
+             call. = FALSE)
+    ## check 'scale'
     scale <- match.arg(scale)
-    levels_sexgender <- unique(x[[1L]])
-    has_concat <- length(concat) > 0L
-    if (has_concat) {
-        checkmate::assert_character(concat,
-                                    min.chars = 1L,
-                                    any.missing = FALSE,
-                                    unique = TRUE)
-        is_con_found <- concat %in% levels_sexgender
-        i_con_not_found <- match(FALSE, is_con_found, nomatch = 0L)
-        if (i_con_not_found > 0L)
-            stop(gettextf("value \"%s\" in '%s' not found in variable '%s' : valid values are %s",
-                          concat[[i_con_not_found]],
-                          "concat",
-                          nms_x[[i_sexgender]],
-                          paste(sprintf("\"%s\"", levels_sexgender), collapse = ", ")),
-                 call. = FALSE)
-    }
     if (scale %in% c("log", "logit")) {
-        if (any(x$value < 0))
+        if (any(x < 0))
             stop(gettextf("'%s' is \"%s\" but '%s' has negative values",
                           "scale",
                           scale,
-                          "value"),
+                          "x"),
                  call. = FALSE)
     }
     if (scale  == "logit") {
-        if (any(x$value > 1))
+        if (any(x > 1))
             stop(gettextf("'%s' is \"%s\" but '%s' has values greater than 1",
                           "scale",
                           scale,
-                          "value"),
+                          "x"),
                  call. = FALSE)
-    }
-    ## create matrices from the data
-    x <- x[order(x[[1L]], x[[2L]]), , drop = FALSE]
-    make_ans_one_sexgender <- function(level_sexgender) {
-        x_tmp <- x[x[[1L]] == level_sexgender, , drop = FALSE]
-        x_tmp <- droplevels(x_tmp)
-        tapply(x_tmp[[4L]], x_tmp[2:3], sum)
-    }
-    ans <- lapply(levels_sexgender, make_ans_one_sexgender)
-    names(ans) <- levels_sexgender
-    if (has_concat) {
-        x_tmp <- x[x[[1L]] %in% concat, , drop = FALSE]
-        x_tmp <- droplevels(x_tmp)
-        x_tmp <- x[order(match(x_tmp[[1L]], concat)), , drop = FALSE]
-        x_tmp[[2L]] <- paste(x_tmp[[1L]], x_tmp[[2L]], sep = ".")
-        ans_concat <- tapply(x_tmp[[4L]], x_tmp[2:3], sum)
-        ans <- c(ans, list(concat = ans_concat))
     }
     ## transform to log or logit scale if necessary
     if (scale == "log") {
-        ans <- lapply(ans, replace_zeros)
-        ans <- lapply(ans, log)
+        x <- replace_zeros(x)
+        x <- log(x)
     }
     if (scale == "logit") {
-        logit <- function(x) log(1 / (1 - x))
-        ans <- lapply(ans, replace_zeros_ones)
-        ans <- lapply(ans, logit)
+        x <- replace_zeros_ones(x)
+        x <- log(1 / (1 - x))
     }
     ## apply svd
-    ans <- lapply(ans, scaled_svd, n = n)
+    svd <- svd(x = x,
+               nu = n,
+               nv = n)
+    U <- svd$u
+    D <- diag(svd$d[seq_len(n)])
+    V <- svd$v
+    ## standardise
+    m <- colMeans(V)
+    S <- diag(apply(V, MARGIN = 2L, FUN = stats::sd))
+    transform <- U %*% D %*% S
+    translate <- as.numeric(U %*% D %*% m)
+    ## add names
+    dn <- dimnames(x)
+    if (!is.null(dn[[1L]])) {
+        dimnames(transform) <- c(dn[1L], list(component = seq_len(n)))
+        names(translate) <- dn[[1L]]
+    }
     ## return
-    ans
+    list(transform = transform,
+         translate = translate)
 }
