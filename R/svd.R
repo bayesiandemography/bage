@@ -133,7 +133,7 @@ scaled_svd <- function(x, n) {
 #' Matrix `x` typically has age along the rows,
 #' and some combination of classification variables,
 #' such as country and time, along the columns.
-#' One exception is when the SVD is to capture
+#' One exception is when the SVD is used to capture
 #' the relationship between female and male rates,
 #' in which case rows are formed by interacting
 #' sex and age. See below for an example.
@@ -170,10 +170,11 @@ scaled_svd <- function(x, n) {
 #' href{https://github.com/bayesiandemography/svd_mortality}{svd_mortality}
 #' 
 #' @examples
-#' x <- matrix(rgamma(n = 50), nrow = 5, ncol = 10)
+#' x <- matrix(rgamma(n = 50, shape = 1), nrow = 5, ncol = 10)
 #' x
 #' svd_transform(x, n = 3)
-#' svd_transform(x, n = 3, scale = "none") 
+#' svd_transform(x, n = 3, scale = "none")
+#' ## TODO - AN EXAMPLE COMBINING FEMALE AND MALE
 #' @export
 svd_transform <- function(x,
                           n = 5,

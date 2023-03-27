@@ -195,10 +195,12 @@ find_inner <- function(nms, p_valid) {
 #' dimnames(m2)
 #'
 #' ## cells not uniquely identified
-#' try(to_matrix(injuries,
-#'               rows = age,
-#'               cols = sex,
-#'               measure = injuries))
+#' try(
+#' to_matrix(injuries,
+#'           rows = age,
+#'           cols = sex,
+#'           measure = injuries)
+#' )
 #' @export
 to_matrix <- function(x, rows, cols, measure) {
     ## check 'x'

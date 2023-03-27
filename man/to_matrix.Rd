@@ -47,8 +47,10 @@ m2[1:5, 1:5]
 dimnames(m2)
 
 ## cells not uniquely identified
-try(to_matrix(injuries,
-              rows = age,
-              cols = sex,
-              measure = injuries))
+try(
+to_matrix(injuries,
+          rows = age,
+          cols = sex,
+          measure = injuries)
+)
 }
