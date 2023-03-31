@@ -102,7 +102,7 @@ scaled_svd <- function(x, n) {
 }
 
 
-
+## HAS_TESTS
 #' Construct parsimonious representations of rates based on SVD
 #'
 #' Use the [Singular Value Decomposition][base::svd()]

@@ -24,7 +24,7 @@ A matrix
 \description{
 Build a matrix where the elements are values of
 a measure variable, and the rows and columns
-are formed by interactions between classification
+are formed by observed combinations of classification
 variables. The classification variables picked
 out by \code{rows} and \code{cols} must uniquely identify
 cells. \code{to_matrix()}, unlike \code{stats::xtabs()},
