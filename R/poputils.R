@@ -162,7 +162,7 @@ find_inner <- function(nms, p_valid) {
 #'
 #' Build a matrix where the elements are values of
 #' a measure variable, and the rows and columns
-#' are formed by interactions between classification
+#' are formed by observed combinations of classification
 #' variables. The classification variables picked
 #' out by `rows` and `cols` must uniquely identify
 #' cells. `to_matrix()`, unlike `stats::xtabs()`,
@@ -269,10 +269,11 @@ to_matrix <- function(x, rows, cols, measure) {
              call. = FALSE)
     }
     ## form interactions
-    var_rows <- interaction(x[i_rows], lex.order = TRUE)
-    var_cols <- interaction(x[i_cols], lex.order = TRUE)
-    levels_rows <- levels(var_rows)
-    levels_cols <- levels(var_cols)
+    paste_dot <- function(...) paste(..., sep = ".")
+    var_rows <- do.call(paste_dot, x[i_rows])
+    var_cols <- do.call(paste_dot, x[i_cols])
+    levels_rows <- unique(var_rows)
+    levels_cols <- unique(var_cols)
     ## construct matrix and return
     ans <- matrix(NA,
                   nrow = length(levels_rows),
