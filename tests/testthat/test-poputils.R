@@ -158,11 +158,13 @@ test_that("'to_matrix' works with missing levels inputs", {
                       b = LETTERS[1:4],
                       c = letters[1:5],
                       KEEP.OUT.ATTRS = FALSE)
+    df <- df[-(58:60), ]
     df$a <- factor(df$a, levels = letters[1:4])
     df$z <- seq_len(nrow(df))
     ans <- to_matrix(df, rows = a, cols = c(c, b), measure = z)
-    expect_identical(nrow(ans), 4L)
-    expect_identical(sum(is.na(ans)), ncol(ans))
+    expect_identical(nrow(ans), 3L)
+    expect_identical(ncol(ans), nrow(unique(df[c("b", "c")])))
+    expect_identical(sum(is.na(ans)), 0L)
     expect_true(is.matrix(ans))
     ans_quoted <- to_matrix(df, measure = z, rows = "a", cols = c("c", "b"))
     expect_identical(ans, ans_quoted)
