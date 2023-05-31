@@ -250,6 +250,31 @@ make_m_centre <- function(n) {
 
 
 ## HAS_TESTS
+#' Make matrix that diffs a vector
+#'
+#' Make a sparse matrix that calculates
+#' first-order differences in vector.
+#' 
+#' @param n Number of elements of vector.
+#'
+#' @returns Sparse matrix with dim c(n-1, n)
+#'
+#' @noRd
+make_m_diff <- function(n) {
+    m <- matrix(0L, nrow = n - 1L, ncol = n)
+    row <- row(m)
+    col <- col(m)
+    m[row == col] <- -1L
+    m[row == col - 1L] <- 1L
+    is_non_zero <- m != 0L
+    i <- row[is_non_zero]
+    j <- col[is_non_zero]
+    x <- m[is_non_zero]
+    Matrix::sparseMatrix(i = i, j = j, x = x)
+}
+
+
+## HAS_TESTS
 #' Make matrix that centers a vector
 #'
 #' Make a sparse matrix centers a vector,
