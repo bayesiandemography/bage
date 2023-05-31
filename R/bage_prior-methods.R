@@ -236,19 +236,19 @@ make_matrix_parfree.bage_prior <- function(prior, length_par) {
 ## HAS_TESTS
 #' @export
 make_matrix_parfree.bage_prior_rw <- function(prior, length_par) {
-    m_accum <- make_m_accum(length_par - 1L)
-    m_centre <- make_m_centre(length_par)
-    m_centre %*% m_accum
+    D <- make_m_diff(n = length_par)
+    DD <- Matrix::tcrossprod(D)
+    DD_inv <- Matrix::solve(DD)
+    Matrix::crossprod(D, DD_inv)
 }
 
 ## HAS_TESTS
 #' @export
 make_matrix_parfree.bage_prior_rw2 <- function(prior, length_par) {
-    m_accum_1 <- make_m_accum(length_par - 2L)
-    m_centre_1 <- make_m_centre(length_par - 1L)
-    m_accum_2 <- make_m_accum(length_par - 1L)
-    m_centre_2 <- make_m_centre(length_par)
-    m_centre_2 %*% m_accum_2 %*% m_centre_1 %*% m_accum_1
+    D <- make_m_diff(length_par - 1L) %*% make_m_diff(length_par)
+    DD <- Matrix::tcrossprod(D)
+    DD_inv <- Matrix::solve(DD)
+    Matrix::crossprod(D, DD_inv)
 }
 
 
