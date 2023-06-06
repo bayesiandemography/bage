@@ -1,10 +1,14 @@
 ---
 title: "vig_2_models"
 output:
-  rmarkdown::html_vignette:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: yes
     toc: true
     toc_depth: 3
     number_sections: true
+pkgdown:
+  as_is: true
 vignette: >
   %\VignetteIndexEntry{vig_2_models}
   %\VignetteEngine{knitr::rmarkdown}
@@ -23,267 +27,275 @@ knitr::opts_chunk$set(
 library(bage)
 ```
 
-
-
 # Introduction
 
-Describes conceptual model - model seen by users.
+Specification document. Aims to give complete mathematical description of models used by bage.
 
-Also decribes estimation model - mathematically equivalent reformulation of model seen by TMB.
+Note: this is describing the models we want to get to soon, not the ones we currently implement.
 
+# Likelihood
 
-Note: this is describing the models we want to get to, not the ones we currently implement.
+## Poisson
 
-# Specification visible to users
-
-## Likelihood
-
-### Poisson
-
-
-Let $y_i$ be a count of events (eg births) in cell $i = 1, \cdots, n$ and $w_i$ the corresponding exposure measure (with the possibility that $w_i \equiv 1). Then our Poisson model
+Let $y_i$ be a count of events in cell $i = 1, \cdots, n$ and let $w_i$ be the corresponding exposure measure, with the possibility that $w_i \equiv 1$. The likelihood under the Poisson model is then
 \begin{align}
-  y_i & \sim \text{Poisson}(\gamma_i w_i) \\
-  \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right)
+  y_i & \sim \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-1) \\
+  \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-2)
 \end{align}
-where the Gamma distribution has a shape-rate parameterisation. Parameter $\xi$ governs dispersion:
+where the Gamma distribution has a shape-rate parameterisation. Parameter $\xi$ governs dispersion, with
 \begin{equation}
-  \text{var}(y_i \mid \mu_i, \xi, w_i) = \mu_i w_i (1 + \xi \mu_i w_i ).
+  \text{var}(\gamma_i \mid \mu_i, \xi) = \xi \mu_i^2
+\end{equation}
+and
+\begin{equation}
+  \text{var}(y_i \mid \mu_i, \xi, w_i) = (1 + \xi \mu_i w_i ) \times \mu_i w_i.
 \end{equation}
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
   y_i \sim \text{Poisson}(\mu_i w_i).
 \end{equation}
 
+For $\xi > 0$, Equations \@ref(eq:lik-pois-1) and \@ref(eq:lik-pois-1) are equivalent to
+\begin{equation}
+  y_i \sim \text{NegBinom}\left(\xi^{-1}, (1 + \mu_i w_i \xi)^{-1}\right),
+\end{equation}
+[@norton2018sampling; @simpson2022priors].
+This is the format we use internally, for estimation. When values for $\gamma_i$ are needed, we generate them on the fly, using the fact that, for known values of $\mu_i, \xi_i$,
+\begin{equation}
+  \gamma_i \sim \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
+\end{equation}
 
-### Binomial
 
+## Binomial
 
+The likelihood under the binomial model is
 \begin{align}
-  y_i & \sim \text{Binomial}(w_i, \gamma_i) \\
-  \gamma_i & \sim \text{Beta}\left((1-\xi)\xi^{-1}\mu_i, (1-\xi)\xi^{-1}(1 - \mu_i)\right)
+  y_i & \sim \text{Binomial}(w_i, \gamma_i) (\#eq:lik-binom-1) \\
+  \gamma_i & \sim \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). (\#eq:lik-binom-2)
 \end{align}
-Parameter $\xi$ in this case governs intra-class correlation, which is closely related to dispersion [@enwiki:1140557862].
+Parameter $\xi$ again governs dispersion, with
+\begin{equation}
+  \text{var}(\gamma_i \mid \mu_i, \xi) =  \frac{\xi}{1 + \xi} \times \mu_i (1 -\mu_i)
+\end{equation}
+and
+\begin{equation}
+  \text{var}(y_i \mid \mu_i, \xi, w_i) =  \frac{\xi w_i + 1}{\xi + 1} \times w_i \mu_i (1 - \mu_i).
+\end{equation}
 
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
   y_i \sim \text{Binom}(w_i, \mu_i).
 \end{equation}
+For $\xi > 0$, Equations \@ref(eq:lik-binom-1) and \@ref(eq:lik-binom-1) are equivalent to
+\begin{equation}
+  y_i \sim \text{BetaBinom}\left(w_i, (1-\xi)\xi^{-1}\mu_i, (1-\xi)\xi^{-1}(1 - \mu_i)\right),
+\end{equation}
+which is what we use internally. Values for $\gamma_i$ can be generated using
+\begin{equation}
+  \gamma_i \sim \text{Beta}\left(y_i + (1-\xi)\xi^{-1}\mu_i, w_i - y_i + (1-\xi)\xi^{-1}(1-\mu_i)\right).
+\end{equation}
 
 
-### Normal
+## Normal
 
 \begin{equation}
   y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2).
 \end{equation}
 
-### Log-Normal
+## Log-Normal
 
 \begin{equation}
   y_i \sim \text{LogNorm}(\mu_i, w_i^{-1}\xi^2).
 \end{equation}
 
 
-## Model for means
+# Model for means
 
-Let $\beta^{(m)}$, $m=1,\cdots,M$, denote a main effect or interaction, and let $\beta^{(0)}$ denote an intercept. Let $J_m$ denote the number of elements of $\beta^{(m)}$. Let $U^{(m)}$ be an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\beta^{m}$ to use with cell $i$.
+Let $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$, denote a main effect or interaction with $J_m$ elements, and let $\beta^{(0)}$ denote an intercept. Let $U^{(m)}$ be an $n \times J_m$ matrix of 1s and 0s, in which row $i$ picks out the element of $\beta^{m}$ that are used with cell $i$.
 
-Let $g$ denote the log function in the case of Poisson models, the logit function in the case of binomial models, and the identity function in the case of normal models.
-
-Our model for means is then
+Let $g$ denote the log function in Poisson models, the logit function in binomial models, and the identity function in normal and log-normal models. The model for means is then
 
 \begin{equation}
-  g(\mu) = \sum_{m=0}^{M} U^{(m)} \beta^{(m)}
+  g(\mu) = \sum_{m=0}^{M} U^{(m)} \pmb{\beta}^{(m)}.
 \end{equation}
 
 
-## Prior for intercept
+# Generic scale term
+
+When specifying default values for priors, we frequently use a generic scale term $s$. This term equals 1 in Poisson, binomial, and log-normal models, and equals the standard deviation of $y_i$ in normal models. In all parts of the model, we give users the option of replacing $s$ with an alternative value.
+
+# Prior for intercept
 
 \begin{equation}
   \beta^{(0)} \sim \text{N}(0, (10s)^2)
 \end{equation}
 
-The $s$ here is a scale term that occurs throughout our models. It defined equals 1 in Poisson, binomial, and log-normal models, and equals the standard deviation of $y_i$ in the normal model.
 
-## Priors for main effects
+# Priors for main effects, other than age
 
-### Overall structure
+Priors for age main effects can have a special structure, so we begin by discussing priors for all other terms.
 
+In all priors for non-age main effects, we require, for identifiability, that $\text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0$. In the case of random walk priors, we strengthen this requirement to $\sum_{j=1}^{J_m} \beta_j^{(m)} = 0$.
+
+We assign default prior variances to priors for non-age main effects in a way that is consistent across priors. The priors all have the form
 \begin{equation}
-  \beta^{(m)} = V \alpha^{(m)} + v
+  \text{<value>} = \text{<linear trend>} + \text{<error>}
 \end{equation}
-where $V$ is a known $K^{(m)} \times J^{(m)}$ matrix, $K^{(m)} \le J^{(m)}$, and $v$ is a known vector with $J^{(m)}$ elements. $V$ can be the identical matrix, and $v$ can be composed entirely of 0s.
+where the linear trend may be set to 0. We treat the normal prior (described in Section \@ref(sec:pr-norm)) as a baseline. We require that, after subtracting any linear trend, a randomly chosen element $\beta_j^{(m)}$ of a prior has the same expected marginal variance as a randomly chosen element from a normal prior. This entails that
+\begin{equation}
+  \sum_{j=1}^{J_m} \text{var}(\beta_j^{(m)}) = J_m \tau_m^2. (\#eq:constraint-var)
+\end{equation}
+In all priors for non-age main effects, we assign a half-normal prior to $\tau_m$,
+\begin{equation}
+  \tau_m \sim \text{N}^+(s^2).
+\end{equation}
 
 
-### Options for $V$, $v$
-
-#### Spline
-
-
-### Human Mortality Database
-
-
-### Human Fertility Database
-
-
-### Fractional Polynomials
-
-
-### Options for $\alpha^{(m)}$
-
-#### Normal
+## Normal prior {#sec:pr-norm}
 
 \begin{align}
-  \alpha_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right) \\
+  \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right) \\
   \tau_m & \sim \text{N}^+(s^2)
 \end{align}
 
-
-#### First-order random walk
+## First-order random walk prior {#sec:pr-rw}
 
 \begin{align}
-  \alpha_j^{(m)} & = \alpha_{j-1}^{(m)} + \epsilon_j^{(m)} \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \pmb{\beta}^{(m)} & = \pmb{D}^{\top} (\pmb{D} \pmb{D}^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
+  \pmb{\epsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m - 1}\right) \\ (\#eq:pr-rw-eps)
   \tau_m & \sim \text{N}^+(s^2)
 \end{align}
-subject to $\sum_{j=1}^{J_m}{\alpha_j^{(m)}} = 0$.
+where $\pmb{D}$ is a $(J_m - 1) \times J_m$ first-order difference matrix of the form
+\begin{equation}
+  \begin{bmatrix} -1 & 1 & 0 & 0 \\
+                  0 & -1 & 1 & 0 \\
+		  0 & 0 & -1 & 1 \end{bmatrix},
+\end{equation}
+and $\pmb{I}_{J_m - 1}$ is a $(J_m - 1) \times (J_m - 1)$ identity matrix.
 
+Note that $\pmb{D} \pmb{\beta}^{(m)} =  \pmb{D} \pmb{D}^{\top} (\pmb{D} \pmb{D}^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and that $\pmb{1}^{\top} \pmb{\beta}^{(m)} =  \pmb{1}^{\top} \pmb{D}^{\top} (\pmb{D} \pmb{D}^{\top})^{-1} \pmb{\epsilon}^{(m)} = 0$.
 
-#### Second-order random walk
+The $k_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}^{\top} (\pmb{D} \pmb{D}^{\top})^{-1} ((\pmb{D} \pmb{D}^{\top})^{-1})^{\top} \pmb{D})\right)^{-1}$.
+
+## Second-order random walk prior {#sec:pr-rw2}
 
 \begin{align}
-  (\alpha_j^{(m)} - \alpha_{j-1}^{(m)}) & = (\alpha_{j-1}^{(m)} - \alpha_{j-2}^{(m)}) + \epsilon_j^{(m)} \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \pmb{\beta}^{(m)} & = \pmb{D}_2^{\top} (\pmb{D}_2 \pmb{D}_2^{\top})^{-1} \pmb{\epsilon}^{(m)} + \lambda_m \pmb{z}^{(m)} \\
+  \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m - 2}) (\#eq:pr-rw2-eps) \\
+  \lambda_m & \sim \text{N}(0, s^2) \\
   \tau_m & \sim \text{N}^+(s^2)
 \end{align}
-subject to $\sum_{j=1}^{J_m}{\alpha_j^{(m)}} = 0$.
+where $\pmb{D}_2$ is a second-order difference matrix formed by multiplying two first-order difference matrices, and $\pmb{z}^{(m)}$ is a vector, the $j$th element of which is
+\begin{equation}
+  z_j^{(m)}  = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j.
+\end{equation}
+The $\lambda_m \pmb{z}^{(m)}$ term is needed because the columns of $\pmb{D}_2^{\top} (\pmb{D}_2 \pmb{D}_2^{\top})^{-1}$ do not span the space defined by $\sum_{j=1}^{J_m}{\beta_j^{(m)}} = 0$. See, for instance, @currie2002flexible [336].
 
-#### AR1
+Analogously to the first-order random walk, $\pmb{D}_2 \pmb{\beta}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
+
+The $k_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_2^{\top} (\pmb{D}_2 \pmb{D}_2^{\top})^{-1} ((\pmb{D}_2 \pmb{D}_2^{\top})^{-1})^{\top} \pmb{D}_2)\right)^{-1}$.
+
+## AR1 prior
 
 \begin{align}
-  \alpha_j^{(m)} & \sim \phi_m \alpha_{j-1}^{(m)} + \epsilon_j^{(m)} \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \phi_m & = a_m + (b_m - a_m) \lambda_m \\
+  \beta_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \beta_j^{(m)} & \sim \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
+  \epsilon_j^{(m)} & \sim \text{N}\left(0,  k_m \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \lambda_m \\
   \lambda_m & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \text{N}^+(s^2)
 \end{align}
-
-By default $a_m = 0.8$ and $b_m = 0.98$.
-
-#### Linear
-
-\begin{align}
-  \alpha_j^{(m)} & \sim \lambda^{(m)} \tilde{j} + \epsilon_j^{(m)} \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \lambda^{(m)} & \sim \text{N}(0, s^2) \\
-  \tau_m & \sim \text{N}^+(s^2)
-\end{align}
-where $\tilde{j} = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j$.
+where $k_m = (1 - \phi_m^2)$. This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). By default $a_{0,m} = 0.8$ and $a_{1,m} = 0.98$, which is adapted from the defaults for function `ets()` in package **forecast** [@hyndman2008automatic].
 
 
-#### LinearAR1
+## Linear
 
 \begin{align}
-  \alpha_j^{(m)} & \sim \lambda^{(m)} \tilde{j} + \epsilon_j^{(m)} \\
-  \epsilon_j^{(m)} & \sim \phi_m \epsilon_{j-1}^{(m)} \\
-  \phi_m & \sim \text{Beta}(2, 2) \\
+  \pmb{\beta}^{(m)} & = \lambda_m \pmb{z}^{(m)} + \pmb{\epsilon}^{(m)} \\
+  \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, \tau_m^2 \pmb{I}_{J_m}) \\
+  \lambda_m & \sim \text{N}(0, s^2) \\
   \tau_m & \sim \text{N}^+(s^2)
 \end{align}
-where $\tilde{j} = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j$.
+where $\pmb{z}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
+
+
+## LinearAR1
+
+\begin{align}
+  \beta_j^{(m)} & \sim \lambda^{(m)} \tilde{j} + \epsilon_j^{(m)} \\
+  \epsilon_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \epsilon_j^{(m)} & \sim \phi_m \epsilon_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
+  \epsilon_j^{(m)} & \sim \text{N}\left(0,  k_m \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \lambda_m \\
+  \lambda_m & \sim \text{Beta}(2, 2) \\
+  \tau_m & \sim \text{N}^+(s^2)
+\end{align}
+where $k_m = (1 - \phi_m^2)$.
+
+
+## Seasonal effect
+
+Main effects can be extended by adding a seasonal effect. Seasonal effects are modelled by a vector $\pmb{\nu}^{(m)}$ with $S \ge 2$ elements. The seasonal effect in period $j$ is $\nu_{s_j}^{(m)}$ where $s_j = (j \bmod S) + 1$.
+
+We model $\pmb{\nu}^{(m)}$ as a draw from a multivariate normal distribution, constrained to sum to zero,
+\begin{align}
+  \pmb{\nu}^{(m)} & = \pmb{G}_m \pmb{\varepsilon}^{(m)} \\
+  \pmb{\varepsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m-1}\right) (\#eq:pr-sea-eps) \\ 
+  \tau_m & \sim \text{N}^+(s^2)
+\end{align}
+where
+\begin{equation}
+  \pmb{G}_m = \frac{1}{\sqrt{J_m}} 
+  \begin{bmatrix} \pmb{1}^{\top} \\
+                  \pmb{I}_{J_m - 1} - \frac{1}{J_m - 1} \pmb{1} \pmb{1}^{\top} \end{bmatrix}.
+\end{equation}
+
+The $k_m$ in Equation \@ref(eq:pr-sea-eps) equals $J_m / (J_m - 1)$.
 
 
 
+# Priors for dispersion terms
 
-
-
-
-
-
-
-### Spline
-
-
-## Priors for dispersion terms
-
-### Poisson
+## Poisson
 
 \begin{equation}
-  p(\xi) = \frac{s}{2 \sqrt{\xi}}e^{-s \sqrt{\xi}}
+  p(\xi) = \frac{A}{2 \sqrt{\xi}}e^{-A \sqrt{\xi}}
 \end{equation}
-[@simpson2022priors] for some value of $s$. TODO - choice of $s$.
+[@simpson2022priors] for some value of $A$. TODO - choice of $A$.
 
-### Binomial
+## Binomial
 
-$\xi$ is bounded between 0 and 1, so exact form not crucial. 
 \begin{equation}
-  \xi \sim \text{Beta}(2, 2)
+  p(\xi) = \frac{A}{2 \sqrt{\xi}}e^{-A \sqrt{\xi}}
 \end{equation}
-boundary-avoiding prior (@gelman2014bayesian, p317).
+for some value of $A$. TODO - choice of $A$.
 
 
-### Normal
+## Normal
 
 \begin{equation}
   \xi \sim \text{N+(0, s^2)}
 \end{equation}
-TODO - choice of $s$
 
-
-### Log-Normal
+## Log-Normal
 
 \begin{equation}
   \xi \sim \text{N+(0, s^2)}
 \end{equation}
-TODO - choice of $s$
-
-# Specification used internally
-
-To facilitate estimation via TMB
-
-- minimise dimension
-- no explicit constraints on parameters
-- all parameters continuous
 
 
 
-## Likelihood
+# Extensions
 
-### Poisson
+- Data models
 
-For $\xi > 0$, the user-visible model is equivalent to 
-\begin{equation}
-  y_i \sim \text{NegBinom}\left(\xi^{-1}, (1 + \mu_i w_i \xi)^{-1}\right),
-\end{equation}
-[@norton2018sampling; @simpson2022priors]. The $\gamma_i$ have, in effect, been integrated out, which makes the model much more efficient and scalable. When values for $\gamma_i$ are needed, we can generate them on the fly, using the fact that, for known values of $\mu_i, \xi_i$,
-\begin{equation}
-  \gamma_i \sim \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
-\end{equation}
+- Forecasts
 
+- WAIC
 
+- Tree structure for models
 
-### Binomial
-
-For $\xi > 0$, the user-visible model is equivalent to
-\begin{equation}
-  y_i \sim \text{BetaBinom}\left(w_i, (1-\xi)\xi^{-1}\mu_i, (1-\xi)\xi^{-1}(1 - \mu_i)\right).
-\end{equation}
-As with the Poisson model, we are able to integrate out the $\gamma_i$. Values for $\gamma_i$ can be generated using
-\begin{equation}
-  \gamma_i \sim \text{Beta}\left(y_i + (1-\xi)\xi^{-1}\mu_i, w_i - y_i + (1-\xi)\xi^{-1}(1-\mu_i)\right).
-\end{equation}
-
-
-### Normal
-
-Same as user-visible model.
-
-### Log-Normal
-
-Same as user-visible model.
-
-
-## Higher levels
-
+- Regularised horseshoe prior for $\beta$
 
 
 
@@ -292,20 +304,67 @@ Same as user-visible model.
 
 | Quantity | Definition                                          |
 |:---------|:----------------------------------------------------|
-| $n$      | Number of cells in classification.                   |
 | $i$      | Index for cell, $i = 1, \cdots, n$.
-| $y_i$    | Value of outcome variable.              |
+| $y_i$    | Value for outcome variable.              |
 | $w_i$    | Exposure, number of trials, or weight. |
-| $\gamma_i$ | Super-population rate or probability. |
-| $\mu_i$ | Cell means in prior model. |
-| $\xi$   | Over-dispersion. |
+| $\gamma_i$ | Super-population rate, probability, or mean. |
+| $\mu_i$ | Cell-specific mean in prior model. |
+| $\xi$   | Dispersion parameter. |
 | $s$ | Generic scale term used across model. Equal to 1 or $\text{sd}(y_k)$. |
-| $\beta^{(0)}$ | Intercept |
-| $\beta^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
-| $\beta_j^{(m)}$ | $j$th element of $\beta^{(m)}$. $j = 1, \cdots, J_m$. |
-| $\lambda^{(m)}$ | Parameter specific to main effect or interaction $m$. |
+| $g$ | Log, logit, or identity function. |
+| $\beta^{(0)}$ | Intercept. |
+| $\pmb{\beta}^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
+| $\beta_j^{(m)}$ | $j$th element of $\pmb{\beta}^{(m)}$. $j = 1, \cdots, J_m$. |
+| $\tau_m^2$ | Variance parameter for main effect or interaction. |
+| $\lambda^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
 
 
+# Appendix: Derivation of prior for dispersion term in binomial model
+
+The Kullback-Liebler divergence $KL(f_1 || f_0)$ of two beta distributions is
+
+\begin{equation}
+  \log \frac{\Gamma(\alpha_1 + \beta_1) \Gamma(\alpha_0) \Gamma(\beta_0)}{\Gamma(\alpha_0 + \beta_0) \Gamma(\alpha_1) \Gamma(\beta_1)}  + (\alpha_1 - \alpha_0) \left(\psi(\alpha_1) - \psi(\alpha_1 + \beta_1)\right)
+  + (\beta_1 - \beta_0) \left(\psi(\beta_1) - \psi(\alpha_1 + \beta_1)\right)
+\end{equation}
+https://math.stackexchange.com/questions/257821/kullback-liebler-divergence#comment564291_257821
+
+Using the parameterisation $v = \alpha + \beta$, $\mu = \alpha / (\alpha + \beta)$, this becomes
+\begin{equation}
+  \log \frac{\Gamma(v_1) \Gamma(\mu v_0) \Gamma((1 - \mu) v_0)}{\Gamma(v_0) \Gamma(\mu v_1) \Gamma((1 - \mu) v_1)} + (v_1 - v_0) \mu (\psi(\mu v_1) - \psi(v_1)) + (v_1 - v_0) (1 - \mu) (\psi((1-\mu) v_1) - \psi(v_1))
+\end{equation}
+
+If we substitute the approximation (valid for large $x$) $\log \Gamma(x) \approx (x - \frac{1}{2})\log x - x + \frac{1}{2} \log(2\pi)$
+[https://en.wikipedia.org/wiki/Gamma_function] into the first term we obtain
+
+\begin{align}
+  & \left(v_1 - \frac{1}{2}\right) \log v_1 - v_1 \\
+  & + \left(\mu v_0 - \frac{1}{2}\right) \left(\log \mu + \log v_0 \right) - \mu v_0 \\
+  & + \left((1-\mu) v_0 - \frac{1}{2}\right) \left( \log (1-\mu) + \log v_0 \right) - (1-\mu) v_0 \\
+  & - \left(v_0 - \frac{1}{2}\right) \log v_0 + v_0 \\
+  & - \left(\mu v_1 - \frac{1}{2}\right) \left(\log \mu + \log v_1 \right) + \mu v_1 \\
+  & - \left((1-\mu) v_1 - \frac{1}{2}\right) \left( \log (1-\mu) + \log v_1 \right) + (1-\mu) v_1 \\
+=  & \left(v_1 - \frac{1}{2} - \mu v_1 + \frac{1}{2} - (1-\mu) v_1 + \frac{1}{2} \right) \log v_1 \\
+  & + \left(\mu v_0 - \frac{1}{2} + (1-\mu) v_0 - \frac{1}{2} - v_0 + \frac{1}{2} \right) \log v_0 \\
+  & + \left(\mu v_0 - \frac{1}{2} - \mu v_1 + \frac{1}{2} \right) \log \mu \\
+  & + \left((1 - \mu) v_0 - \frac{1}{2} - (1 - \mu) v_1 + \frac{1}{2} \right) \log (1 - \mu) \\
+  & + \left(-1 + \mu + (1 - \mu) \right) v_1 \\
+  & + \left(-\mu - (1 - \mu) + 1 \right) v_0 \\
+= & \frac{1}{2} \log v_1 - \frac{1}{2} \log v_0 - (v_1 - v_0) \mu \log \mu - (v_1 - v_0) (1 - \mu) \log (1-\mu) \\
+= & \frac{1}{2} \log \frac{v_1}{v_0} - (v_1 - v_0) \left(\mu \log \mu + (1 - \mu) \log (1-\mu) \right)
+\end{align}
+
+
+\begin{equation}
+ (v_1 - v_0) (\mu \psi(\mu v_1) + (1 - \mu) \psi((1 - \mu) v_1) - \psi(v_1))
+\end{equation}
+
+The baseline (binomial) model is obtained by letting $v_0$ go to infinity. When this happens, the first term above goes to zero. The second term goes to infinity, but we are hoping that the $v_0$ will drop out later.
+
+Using the approximation $\psi(x) \approx \log x - \frac{1}{2}x$, the second term becomes
+\begin{equation}
+  (v_1 - v_0) \left(\mu \log \mu + (1 - \mu) \log (1 - \mu) + \mu (1 - \mu) v_1 \right)
+\end{equation}
 
 
 
