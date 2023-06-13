@@ -5,7 +5,7 @@ output:
     base_format: rmarkdown::html_vignette
     fig_caption: yes
     toc: true
-    toc_depth: 3
+    toc_depth: 2
     number_sections: true
 pkgdown:
   as_is: true
@@ -111,45 +111,76 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 
 # Model for means
 
-Let $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$, denote a main effect or interaction with $J_m$ elements, and let $\beta^{(0)}$ denote an intercept. Let $U^{(m)}$ be an $n \times J_m$ matrix of 1s and 0s, in which row $i$ picks out the element of $\beta^{m}$ that are used with cell $i$.
-
-Let $g$ denote the log function in Poisson models, the logit function in binomial models, and the identity function in normal and log-normal models. The model for means is then
-
+Our model for means is
 \begin{equation}
-  g(\mu) = \sum_{m=0}^{M} U^{(m)} \pmb{\beta}^{(m)}.
+  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} + \pmb{o}
+\end{equation}
+where
+
+- $g$ is log in Poisson models, logit in binomial models, and identity in normal and log-normal models;
+- $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$  denote a main effect or interaction with $J_m$ elements;
+- $\pmb{\beta}^{(0)}$ is an intercept;
+- $\pmb{X}^{(m)}$ be an $n \times J_m$ matrix of 1s and 0s, in which row $i$ picks out the element of $\beta^{m}$ that are used with cell $i$;
+- \pmb{Z} is a $n \times P$ matrix of covariates;
+- \pmb{\zeta} is a vector with $P$ elements; and
+- \pmb{o} is an offset of known values.
+
+Priors for the $\pmb{\beta}${(m)}$ are described in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact), and the prior for $\pmb{\zeta} is discussed in Section \@ref(‭sec:pr_cov).
+
+# Scale term
+
+In many places in the model, a parameter $s$ is used as a default value for scale. The value for $s$ depends on the model likelihood:
+\begin{equation}
+  s = \begin{cases} 1 & \text{ with Poisson, binomial, or log-normal likelihoods} \\
+  \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2/(n-1)} & \text{ with normal likelihoods.} \end{cases}  (\#eq:defn-s)
 \end{equation}
 
 
-# Prior for intercept
+
+# Prior for intercept {#sec:pr-int}
 
 \begin{equation}
   \beta^{(0)} \sim \text{N}(0, A_0^2)
 \end{equation}
 
-By default, $A_0 = 10s$, where $s$ is a scale parameter that appears throughout the model. Parameter $s$ equals 1 in Poisson, binomial, and log-normal models, and $\text{sd}(y_i)$ in normal models. 
+By default, $A_0 = 10s$, with $s$ defined in Equation \@ref(eq:defn-s).
 
+# Overall design of priors for main effects {#sec:pr-main-over}
 
-# Priors for main effects
+## Model
 
-Priors for age main effects can have a special structure, so we begin by discussing priors for all other terms.
-
-In all priors for non-age main effects, we require, for identifiability, that $\text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0$. In the case of random walk priors, we strengthen this requirement to $\sum_{j=1}^{J_m} \beta_j^{(m)} = 0$.
+In all priors for  main effects, we require, for identifiability, that $\text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0$. In the case of random walk priors, the easiest way to implement this requirement is to impose the stronger condition that $\sum_{j=1}^{J_m} \beta_j^{(m)} = 0$.
 
 We assign default prior variances to priors for non-age main effects in a way that is consistent across priors. The priors all have the form
 \begin{equation}
   \text{<value>} = \text{<linear trend>} + \text{<error>}
 \end{equation}
-where the linear trend may be set to 0. We treat the independent normal prior (described in Section \@ref(sec:pr-inorm)) as a baseline. We require that, after subtracting any linear trend, a randomly chosen element $\beta_j^{(m)}$ of a prior has the same expected marginal variance as a randomly chosen element from an independent normal prior. This entails that
+where the linear trend is optional. We treat the independent normal prior (described in Section \@ref(sec:pr-inorm)) as a baseline. We require that, after removing any linear trend, the average value for the marginal variance of the $\beta_j^{(m)}$ is the same as it is for the independent normal prior:
 \begin{equation}
-  \sum_{j=1}^{J_m} \text{var}(\beta_j^{(m)}) = J_m \tau_m^2. (\#eq:constraint-var)
+ \frac{1}{J_m} \sum_{j=1}^{J_m} \text{var}(\beta_j^{(m)}) = \tau_m^2. (\#eq:constraint-var)
 \end{equation}
 In all priors for main effects, we assign a half-normal prior to $\tau_m$,
 \begin{equation}
   \tau_m \sim \text{N}^+(A_m^2).
 \end{equation}
-The default for $A_m$ is $s$, but users can always supply their own alternative value.
+The default for $A_m$ is $s$, as defined in Equation \@ref(eq:defn-s). However, users can supply an alternative value.
 
-## Independent normal prior {#sec:pr-inorm}
+
+
+## Code
+
+`set_prior_effect(<effect> ~ <fun>)`
+
+eg
+
+`set_prior_effect(region ~ N())`
+
+`set_prior_effect(time ~ Lin(scale = 0.2))`
+
+
+# Specific priors for main effects {#sec:pr-main-specific}
+
+## Independent normal {#sec:pr-inorm}
 
 ### Model
 
@@ -162,27 +193,27 @@ The default for $A_m$ is $s$, but users can always supply their own alternative 
 
 `N(scale = NULL)`
 
-- `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
+- `scale` is $A_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 
-## Correlated normal prior {#sec:pr-cnorm}
+## Multivariate normal {#sec:pr-cnorm}
 
 ### Model
 
 \begin{align}
-  \beta^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{V}_m \right) \\
+  \beta^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{V}^{(m)} \right) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $\pmb{V}_m$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user, and $k_m = J_m  \left(\text{tr}(\pmb{V}_m)$\right)^{-1}.
+where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user, and $k_m = J_m  \left(\text{tr}(\pmb{V}^{(m)})\right)^{-1}$.
 
 ### code
 
 `MVN(V, scale = NULL)`
 
-- `V` is $\pmb{V}_m$
-- `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
+- `V` is $\pmb{V}^{(m)}$
+- `scale` is $A_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 
 
-## First-order random walk prior {#sec:pr-rw}
+## First-order random walk {#sec:pr-rw}
 
 ### Model
 
@@ -208,26 +239,26 @@ The $k_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_m^
 
 `RW(scale = NULL)`
 
-- `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
+- `scale` is $A_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 
 
-## Second-order random walk prior {#sec:pr-rw2}
+## Second-order random walk {#sec:pr-rw2}
 
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} + \lambda_m \pmb{z}^{(m)} \\
+  \pmb{\beta}^{(m)} & = \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} + \lambda_m \pmb{l}^{(m)} \\
   \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m - 2}) (\#eq:pr-rw2-eps) \\
   \lambda_m & \sim \text{N}(0, A_m^2) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $\pmb{D}_{2m}$ is a second-order difference matrix formed by multiplying two first-order difference matrices, and $\pmb{z}^{(m)}$ is a vector, the $j$th element of which is
+where $\pmb{D}_{2m}$ is a second-order difference matrix formed by multiplying two first-order difference matrices, and $\pmb{l}^{(m)}$ is a vector, the $j$th element of which is
 \begin{equation}
-  z_j^{(m)}  = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j.
+  l_j^{(m)}  = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j.
 \end{equation}
-The $\lambda_m \pmb{z}^{(m)}$ term is needed because the columns of $\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1}$ do not span the space defined by $\sum_{j=1}^{J_m}{\beta_j^{(m)}} = 0$. See, for instance, @currie2002flexible [336].
+The $\lambda_m \pmb{l}^{(m)}$ term is needed because the columns of $\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1}$ do not span the space defined by $\sum_{j=1}^{J_m}{\beta_j^{(m)}} = 0$. See, for instance, @currie2002flexible [336].
 
-We have $\pmb{D}_{2m} \pmb{\beta}^{(m)} =  \pmb{D}_{2m} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} + \lambda_m \pmb{D}_{2m}^{\top} \pmb{z}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
+We have $\pmb{D}_{2m} \pmb{\beta}^{(m)} =  \pmb{D}_{2m} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} + \lambda_m \pmb{D}_{2m}^{\top} \pmb{l}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
 
 The $k_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} ((\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1})^{\top} \pmb{D}_{2m})\right)^{-1}$.
 
@@ -236,10 +267,10 @@ The $k_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{
 
 `RW2(scale = NULL)`
 
-- `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
+- `scale` is $A_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 
 
-## AR1 prior
+## AR1
 
 ### Model
 
@@ -259,33 +290,33 @@ where $k_m = (1 - \phi_m^2)$. This is adapted from the specification used for AR
 
 - `min` is $a_{0m}$
 - `max` is $a_{1m}$
-- `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
+- `scale` is $A_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in package **forecast** [@hyndman2008automatic].
 
 
-## Linear
+## Linear with independent errors
 
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \lambda_m \pmb{z}^{(m)} + \pmb{\epsilon}^{(m)} \\
+  \pmb{\beta}^{(m)} & = \lambda_m \pmb{l}^{(m)} + \pmb{\epsilon}^{(m)} \\
   \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, \tau_m^2 \pmb{I}_{J_m}) \\
   \lambda_m & \sim \text{N}(0, B_m^2) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $\pmb{z}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
+where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 
 
 ### Code
 
-`Linear(sd = NULL, scale = NULL)`
+`Lin(sd = NULL, scale = NULL)`
 
-- `sd` is $B_m$. Defaults to $s$ if user does not supply a value.
+- `sd` is $B_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
 
 
-## LinearAR1
+## Linear with AR1 errors
 
 ### Model
 
@@ -302,27 +333,49 @@ where $k_m = (1 - \phi_m^2)$.
 
 ### Code
 
-`LinearAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)`
+`LinAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)`
 
-- `sd` is $B_m$. Defaults to $s$ if user does not supply a value.
+- `sd` is $B_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `min` is $a_{0m}$.
 - `max` is $a_{1m}$.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
 
 
+## P-Spline
+
+### Model
+
+\begin{equation}
+  \pmb{\beta}^{(m)} = \pmb{X}^{(m)} \pmb{\alpha}^{(m)}
+\end{equation}
+where $\pmb{X}^{(m)} = (\pmb{x}_1^{(m)}(\pmb{j}), \cdots, \pmb{x}_{K_m}^{(m)}(\pmb{j}))$ is a $J_m \times K_m$ matrix of B-splines, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{x}_k^{(m)}(\pmb{j}) = 0$, $k = 1, \cdots K_m$.
+
+$\pmb{\alpha}^{(m)}$ has a second-order random walk prior, as described in Section \@ref(sec:pr-rw2).
+
+### Code
+
+`Spline(df, scale = NULL)`
+
+- `df` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
+- `scale` is the $A_m$ from the second-order random walk prior. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+
 ## SVD
+
+### Model
 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{X}^{(m)} \pmb{\alpha}^{(m)} + \pmb{b}^{(m)} \\
-  \alpha_j^{(m)} & \sim \text{N}(0, 1)
+  \pmb{\alpha}^{(m)} & \sim \text{N}(\pmb{0}, \pmb{I}_{K_m})
 \end{align}
+where $\pmb{X}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{b}^{(m)}$ is a vector with $J_m$ elements, derived by performing an SVD on an external dataset of age-specific values, such as the Human Mortality Database, and then standardizing. The derivation of $\pmb{X}^{(m)}$ and $\pmb{b}^{(m)}$ is described in Appendix \@ref(app:svd-age).
 
-## P-Spline
 
-\begin{equation}
-  \pmb{\beta}^{(m)} = \pmb{X}^{(m)} \pmb{\alpha}^{(m)} + \pmb{b}^{(m)}
-\end{equation}
-where $\pmb{\alpha}^{(m)}$ has a second order random walk prior (Section \@ref(sec:pr-rw2)).
+### Code
+
+`SVD(transform, translate = NULL)`
+
+- `transform` is $\pmb{X}^{(m)}$
+- `translate` is $\pmb{b}^{(m)}$. If no value is provided for `translate`, then it defaults to a vectors of zeros.
 
 
 ## Seasonal effect
@@ -334,32 +387,31 @@ A main effect for time can be extended through the addition of a seasonal effect
 We model $\pmb{\Lambda}$ as a draw from a multivariate normal distribution, constrained to sum to zero,
 \begin{align}
   \pmb{\Lambda} & = \pmb{G}_m \pmb{\varepsilon}^{(m)} \\
-  \pmb{\varepsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m-1}\right) (\#eq:pr-sea-eps) \\ 
+  \pmb{\varepsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m-1}\right) \\ 
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 where
 \begin{equation}
   \pmb{G}_m = \frac{1}{\sqrt{J_m}} 
   \begin{bmatrix} \pmb{1}^{\top} \\
-                  \pmb{I}_{J_m - 1} - \frac{1}{J_m - 1} \pmb{1} \pmb{1}^{\top} \end{bmatrix}.
+                  \pmb{I}_{J_m - 1} - \frac{1}{J_m - 1} \pmb{1} \pmb{1}^{\top} \end{bmatrix},
 \end{equation}
-
-The $k_m$ in Equation \@ref(eq:pr-sea-eps) equals $J_m / (J_m - 1)$.
+and $k_m = J_m / (J_m - 1)$.
 
 ### Code
 
-`set_season(m, scale = NULL)`
+`Season(m, scale = NULL)`
 
 - `m` is the number of seasons, i.e. the number of elements of $\Lambda$
-- `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
-
-# Priors for interactions
-
-## Priors not involving time
+- `scale` is $A_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 
 
-## Priors involving time
+# Priors for interactions {#sec:pr-interact}
 
+
+# Priors for coefficients for covariates {#sec:pr_cov}
+
+Regularised horseshoe prior [@piironen2017hyperprior]
 
 
 # Priors for dispersion terms
@@ -382,32 +434,21 @@ for some value of $A$. TODO - choice of $A$.
 ## Normal
 
 \begin{equation}
-  \xi \sim \text{N+(0, A_m^2)}
+  \xi \sim \text{N}^+(0, A_m^2)
 \end{equation}
 
 ## Log-Normal
 
 \begin{equation}
-  \xi \sim \text{N+(0, A_m^2)}
+  \xi \sim \text{N}^+(0, A_m^2)
 \end{equation}
 
 
 
-# Extensions
 
-- Data models
+# Appendices
 
-- Forecasts
-
-- WAIC
-
-- Tree structure for models
-
-- Regularised horseshoe prior for $\beta$
-
-
-
-# Appendix: Definitions
+## Definitions {#app:defn}
 
 
 | Quantity | Definition                                          |
@@ -427,7 +468,14 @@ for some value of $A$. TODO - choice of $A$.
 | $\lambda^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
 
 
-# Appendix: Derivation of prior for dispersion term in binomial model
+## SVD prior for age  {#app:svd-age}
+
+## SVD prior for age-sex interactions  {#app:svd-agesex}
+
+
+
+## Derivation of prior for dispersion term in binomial model {#app:disp}
+
 
 The Kullback-Liebler divergence $KL(f_1 || f_0)$ of two beta distributions is
 
