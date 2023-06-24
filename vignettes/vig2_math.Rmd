@@ -128,11 +128,12 @@ where
 - $\pmb{\zeta}$ is a vector with $P$ elements; and
 - $\pmb{o}$ is an offset containing known values.
 
-Priors for the $\pmb{\beta}^{(m)}$ are described in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact). Covariate matrix $\pmb{Z}$ and the prior for vector $\pmb{\zeta}$ are discussed in Section \@ref(‭sec:cov).
+Priors for the $\pmb{\beta}^{(m)}$ are described in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact-high). Covariate matrix $\pmb{Z}$ and the prior for vector $\pmb{\zeta}$ are discussed in Section \@ref(‭sec:cov).
+
 
 # Scale term
 
-In many places in the model, a parameter $s$ is used as a default value for scale. The value for $s$ depends on the model likelihood:
+Many priors use a value $s$ as the default for parameters involving. The value for $s$ depends on the likelihood:
 \begin{equation}
   s = \begin{cases} 1 & \text{ with Poisson, binomial, or log-normal likelihoods} \\
   \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2/(n-1)} & \text{ with normal likelihoods.} \end{cases}  (\#eq:defn-s)
@@ -152,13 +153,13 @@ By default, $A_0 = 10s$, with $s$ defined in Equation \@ref(eq:defn-s).
 
 ## Model
 
-In all priors for  main effects, we require, for identifiability, that $\text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0$. In the case of random walk priors, the easiest way to implement this requirement is to impose the stronger condition that $\sum_{j=1}^{J_m} \beta_j^{(m)} = 0$.
+In all priors for  main effects, we require, for identifiability, that $\text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0$. In the case of random walk priors (sections \@ref(sec:pr-rw) and \@ref(sec:pr-rw2)), the easiest way to implement this requirement is to impose the stronger condition that $\sum_{j=1}^{J_m} \beta_j^{(m)} = 0$.
 
-With the exception of the SVD prior (Section \@ref(sec:pr-svd)), we default variances in a way that is consistent across priors. The priors all have the form
+We design the priors so that, under the defaults, the marginal variance of a randomly-chosen element $\beta_j^{(m)}$ is equal to that of our simplest prior, independent normal prior (Section \@ref(sec:pr-inorm)). With the exception of the SVD prior (Section \@ref(sec:pr-svd)), priors all have the form
 \begin{equation}
   \text{<value>} = \text{<optional linear trend>} + \text{<error>}.
 \end{equation}
-We treat the independent normal prior (described in Section \@ref(sec:pr-inorm)) as a baseline. In all priors, after removing any linear trend, the average value for the marginal variance of the $\beta_j^{(m)}$ equals the marginal variance of the $\beta_j^{(m)}$ in the independent normal prior:
+In all priors, after removing any linear trend, the average value for the marginal variance of the $\beta_j^{(m)}$ equals that of the independent normal prior:
 \begin{equation}
  \frac{1}{J_m} \sum_{j=1}^{J_m} \text{var}(\beta_j^{(m)}) = \tau_m^2. (\#eq:constraint-var)
 \end{equation}
@@ -172,13 +173,10 @@ The default for $A_m$ is $s$, as defined in Equation \@ref(eq:defn-s).
 
 All priors can be put into the format
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{H}^{(m)} \pmb{x}^{(m)} \\
-  x_k^{(m)} & \sim \text{N}(0, \sigma_k^{(m)}), \quan k = 1, \dots, K_m
+  \pmb{\beta}^{(m)} & = \pmb{\Phi}^{(m)} \pmb{\alpha}^{(m)} \\
+  \alpha_k^{(m)} & \sim \text{N}(0, (\nu_k^{(m)})^2), \quad k = 1, \dots, K_m
 \end{align}
-
-Matrix $\pmb{H}^{(m)}$ is fixed and known, except in the case of AR1 priors and linear priors with AR1 errors (sections \@ref(sec:pr-ar1) and \@ref(sec:pr-lin-ar1)), where it depends on correlation coefficient $\phi$.
-
-Vector $\pmb{d}^{(m)}$ depends on least one unknown parameter, such as $\tau_m$, except in the case of the SVD prior (Section \@ref(sec:pr-svd)).
+where $\pmb{\Phi}^{(m)}$ is a $J_m \times K_m$ matrix. In AR1 priors (Section \@ref(sec:pr-ar1)) and linear priors with AR1 errors (Section \@ref(sec:pr-lin-ar1)), $\pmb{\Phi}^{(m)}$ depends on correlation coefficient $\phi_m$. In all other priors, $\pmb{\Phi}^{(m)}$ is fixed and known.
 
 
 ## Code
@@ -200,16 +198,18 @@ eg
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} | \tau^2 & \ind \text{N}\left(0, \tau_m^2 \right) \\
+  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \pmb{I}_{J_m} \\
-  \pmb{Q}^{(m)} & = \tau_m^{-2} \pmb{I}_{J_m}
+  \pmb{\Phi}^{(m)} & = \pmb{I}_{J_m} \\
+  K_m & = J_m \\
+  \nu_k^{(m)} & = \tau_m, \quad k = 1, \cdots, J_m
 \end{align}
+where $\pmb{I}_{J_m}$ is a $J_m \times J_m$ identity matrix.
 
 ### Code
 
@@ -222,17 +222,18 @@ eg
 ### Model
 
 \begin{align}
-  \beta^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{V}^{(m)} \right) \\
+  \beta^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{V}^{(m)} \right) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user, and $k_m = J_m  \left(\text{tr}(\pmb{V}^{(m)})\right)^{-1}$.
+where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user, and $c_m = J_m  \left(\text{tr}(\pmb{V}^{(m)})\right)^{-1}$.
 
 
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & =  \pmb{L}^{(m)} \\
-  \pmb{Q}^{(m)} & = k_m^{-1} \tau_m^{-2} I_{J_m}
+  \pmb{\Phi}^{(m)} & =  \pmb{L}^{(m)} \\
+  K_m & = J_m \\
+  \nu_k^{(m)} & = c_m \tau_m, \quad k = 1, \cdots, K_m
 \end{align}
 where $\pmb{L}^{(m)}$ is the lower triangular matrix obtained from a Cholesky decomposition of $\pmb{V}^{(m)}$.
 
@@ -250,26 +251,26 @@ where $\pmb{L}^{(m)}$ is the lower triangular matrix obtained from a Cholesky de
 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
-  \pmb{\epsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m - 1}\right) \\ (\#eq:pr-rw-eps)
+  \pmb{\epsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{I}_{J_m - 1}\right) \\ (\#eq:pr-rw-eps)
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 where $\pmb{D}_m$ is a $(J_m - 1) \times J_m$ first-order difference matrix of the form
 \begin{equation}
   \begin{bmatrix} -1 & 1 & 0 & 0 \\
                   0 & -1 & 1 & 0 \\
-		  0 & 0 & -1 & 1 \end{bmatrix},
+		  0 & 0 & -1 & 1 \end{bmatrix}
 \end{equation}
-and $\pmb{I}_{J_m - 1}$ is a $(J_m - 1) \times (J_m - 1)$ identity matrix.
 
 Note that $\pmb{D}_m \pmb{\beta}^{(m)} =  \pmb{D}_m \pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and that $\pmb{1}^{\top} \pmb{\beta}^{(m)} =  \pmb{1}^{\top} \pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} \pmb{\epsilon}^{(m)} = 0$.
 
-The $k_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} ((\pmb{D}_m \pmb{D}_m^{\top})^{-1})^{\top} \pmb{D}_m)\right)^{-1}$.
+The $c_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} ((\pmb{D}_m \pmb{D}_m^{\top})^{-1})^{\top} \pmb{D}_m)\right)^{-1}$.
 
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} \\
-  \pmb{Q}^{(m)} & = k_m^{-1} \tau_m^{-2} \pmb{I}_{J_m - 1}
+  \pmb{\Phi}^{(m)} & = \pmb{D}_m^{\top} (\pmb{D}_m \pmb{D}_m^{\top})^{-1} \\
+  K_m & = J_m - 1 \\
+  \nu_k^{(m)} & = c_m \tau_m, \quad k = 1, \cdots, K_m
 \end{align}
 
 ### Code
@@ -285,8 +286,8 @@ The $k_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_m^
 
 \begin{align}
   \pmb{\beta}^{(m)} & =  \pmb{l}^{(m)} \lambda_m + \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
-  \lambda_m & \sim \text{N}(0, B_m^2) \\
-  \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m - 2}) (\#eq:pr-rw2-eps) \\
+  \lambda_m & \sim \text{N}(0, L_m^2) \\
+  \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, c_m \tau_m^2 \pmb{I}_{J_m - 2}) (\#eq:pr-rw2-eps) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 where $\pmb{l}^{(m)}$ is a vector, the $j$th element of which is
@@ -298,15 +299,16 @@ The $\pmb{l}^{(m)} \lambda_m$ term is needed because the columns of $\pmb{D}_{2m
 
 We have $\pmb{D}_{2m} \pmb{\beta}^{(m)} =  \pmb{D}_{2m}^{\top} \pmb{l}^{(m)} \lambda_m + \pmb{D}_{2m} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
 
-The $k_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} ((\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1})^{\top} \pmb{D}_{2m})\right)^{-1}$.
+The $c_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} ((\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1})^{\top} \pmb{D}_{2m})\right)^{-1}$.
 
 
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
-  \pmb{Q}^{(m)} & = \begin{bmatrix} B_m^2 & \pmb{0}^{\top} \\
-                                    \pmb{0} & k_m^{-1} \tau_m^{-2} \pmb{I}_{J_m - 2} \end{bmatrix}
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
+  K_m & = J_m - 1 \\
+  \nu_1^{(m)} & = L_m^2 \\
+  \nu_k^{(m)} & = c_m \tau_m, \quad k = 2, \cdots, K_m
 \end{align}
 
 
@@ -315,7 +317,7 @@ The $k_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{
 
 `RW2(sd = NULL, scale = NULL)`
 
-- `sd` is $B_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+- `sd` is $L_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
 
 
@@ -336,10 +338,12 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \pmb{L}^{(m)} \\
-  \pmb{Q}^{(m)} & = \frac{1 - \phi^2}{k_m \tau_m^2} \pmb{T}^{(m)}
+  \pmb{\Phi}^{(m)} & = \pmb{L}^{(m)} \\
+  K_m & = J_m \\
+  \nu_k^{(m)} & =  \tau_m, \quad k = 1, \cdots, K_m
 \end{align}
-where $\pmb{L}^{(m)}$ is the lower triangular matrix from the Cholesky decomposition of 
+where $\pmb{L}^{(m)}$ is the lower triangular matrix from the Cholesky decomposition of
+
 \begin{equation}
   \begin{bmatrix} 1 & \phi & \phi^2 & \phi^3 & \phi^4\\
                   \phi & 1 & \phi & \phi^2 & \phi^3\\
@@ -347,7 +351,9 @@ where $\pmb{L}^{(m)}$ is the lower triangular matrix from the Cholesky decomposi
                   \phi^3 & \phi^2 & \phi & 1 & \phi \\
 		  \phi^4 & \phi^3 & \phi^2 & \phi & 1 \end{bmatrix},
 \end{equation}
-and has the form
+
+[@rue2005gaussian, 2] and has the form
+\begin{equation}
   \begin{bmatrix} 1 & 0 & 0 & 0 & 0 \\
                   \phi & \sqrt(1 - \phi^2) & 0 & 0 & 0 \\
                   \phi^2 & \phi \sqrt(1 - \phi^2) & \sqrt(1 - \phi^2) & 0 & 0 \\
@@ -375,7 +381,7 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{l}^{(m)} \lambda_m + \pmb{\epsilon}^{(m)} \\
   \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \lambda_m & \sim \text{N}(0, B_m^2) \\
+  \lambda_m & \sim \text{N}(0, L_m^2) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
@@ -383,9 +389,10 @@ where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{I}_{J_m} \end{bmatrix} \\
-  \pmb{Q}^{(m)} & = \begin{bmatrix} B_m^2 & \pmb{0}^{\top} \\
-                                    \pmb{0} & k_m^{-1} \tau_m^{-2} \pmb{I}_{J_m} \end{bmatrix}
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{I}_{J_m} \end{bmatrix} \\
+  K_m & = J_m + 1\\
+  \nu_1^{(m)} & =  L_m^2 \\
+  \nu_k^{(m)} & =  \tau_m, \quad k = 2, \cdots, K_m
 \end{align}
 
 
@@ -393,7 +400,7 @@ where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 
 `Lin(sd = NULL, scale = NULL)`
 
-- `sd` is $B_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+- `sd` is $L_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
 
 
@@ -409,31 +416,25 @@ where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $k_m = (1 - \phi_m^2)$ and $-1 < a_{0m} < a_{1m} < 1$.
+where $-1 < a_{0m} < a_{1m} < 1$.
 
 
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{I}_{J_m} \end{bmatrix} \\
-  \pmb{Q}^{(m)} & = \frac{1 - \phi^2}{k_m \tau_m^2} \pmb{T}^{(m)}
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{L}^{(m)} \end{bmatrix} \\
+  K_m & = J_m + 1 \\
+  \nu_1^{(m)} & =  L_m^2 \\
+  \nu_k^{(m)} & =  \tau_m, \quad k = 2, \cdots, K_m
 \end{align}
-where $\pmb{T}^{(m)}$ has the form
-\begin{equation}
-  \begin{bmatrix} 1 & -\phi & 0 & 0 & 0\\
-                  -\phi & 1 + \phi^2 & -\phi & 0 & 0 \\
-                  0 & -\phi & 1 + \phi^2 & -\phi & 0 \\
-                  0 & 0 & -\phi & 1 + \phi^2 & -\phi \\
-		  0 & 0 & 0 & -\phi & 1 \end{bmatrix}.
-\end{equation}
-
+where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2), and $\pmb{L}^{(m)}$ is defined as in Section \@ref(sec:pr-ar1).
 
 
 ### Code
 
 `LinAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)`
 
-- `sd` is $B_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+- `sd` is $L_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `min` is $a_{0m}$.
 - `max` is $a_{1m}$.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
@@ -444,25 +445,32 @@ where $\pmb{T}^{(m)}$ has the form
 ### Model
 
 \begin{equation}
-  \pmb{\beta}^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}^{(m)}
+  \pmb{\beta}^{(m)} = \pmb{B}^{(m)} \pmb{\zeta}^{(m)}
 \end{equation}
-where $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j}))$ is a $J_m \times K_m$ matrix of B-splines, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{j}) = 0$, $k = 1, \cdots, K_m$.
+where $\pmb{B}^{(m)}$ is a $J_m \times G_m$ matrix of B-splines, and $\pmb{\zeta}^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
 
-$\pmb{\alpha}^{(m)}$ has a second-order random walk prior, as described in Section \@ref(sec:pr-rw2).
-
+$\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{G_m}^{(m)}(\pmb{j}))$, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_g^{(m)}(\pmb{j}) = 0$, $g = 1, \cdots, G_m$.
 
 ### Standard format
 
 \begin{align}
-  \pmb{H}^{(m)} & = \begin{bmatrix} \pmb{B}^{(m)} \pmb{l}^{(m)} & \pmb{B}^{(m)} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
-  \pmb{Q}^{(m)} & = \begin{bmatrix} B_m^2 & \pmb{0}^{\top} \\
-                                    \pmb{0} & k_m^{-1} \tau_m^{-2} \pmb{I}_{K_m - 2} \end{bmatrix}
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{B}^{(m)} \pmb{l}^{(m)} & \pmb{B}^{(m)} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
+  K_m & = G_m - 1 \\
+  \nu_1 & = L_m^2 \\
+  \nu_k &  = c_m \tau_m, \quad k = 2, \cdots, K_m,
 \end{align}
-where $\pmb{l}^{(m)}$ is a vector with $K_m$ elements, the $k$th element of which is
+where $\pmb{l}^{(m)}$ is a vector with $G_m$ elements, the $g$th element of which is
 \begin{equation}
-  l_k^{(m)}  = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} k,
+  l_g^{(m)}  = -\frac{G_m + 1}{G_m - 1} + \frac{2}{G_m - 1} g,
 \end{equation}
-and $\pmb{D}_{2m}$ has dimension $(K_m - 2) \times K_m$.
+and $c_m$ is defined as in Section \@ref(sec:pr-rw2).
+
+Matrix $\pmb{\Phi}^{(m)}$ is derived by noting that, when $\pmb{\zeta}^{(m)}$ has a second-order random walk prior,
+\begin{equation}
+  \pmb{B}^{(m)} \pmb{\zeta}^{(m)} = \pmb{B}^{(m)} \begin{bmatrix} \pmb{l}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix}
+  \begin{bmatrix} \lambda_m \\ \pmb{\epsilon}^{(m)} \end{bmatrix}.
+\end{equation}
+
 
 ### Code
 
@@ -475,23 +483,22 @@ and $\pmb{D}_{2m}$ has dimension $(K_m - 2) \times K_m$.
 
 ### Model
 
-The SVD prior is used only for age. The prior is
 \begin{align}
-  \pmb{\beta}^{\text{age}} & = \pmb{F}^{\text{age}} \pmb{\alpha}^{\text{age}} + \pmb{a} \\
-  \alpha_j^{\text{age}} & \sim \text{N}(0, 1)
+  \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\zeta}^{(m)} + \pmb{q}^{(m)} \\
+  \zeta_j^{(m)} & \sim \text{N}(0, 1)
 \end{align}
-where $\pmb{F}^{\text{age}}$ is a $J_{\text{age}} \times K_{\text{age}}$ matrix, and $\pmb{a}$ is a vector with $J_{\text{age}}$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{\text{age}}$ and $\pmb{a}$ is described in Appendix \@ref(app:svd-age). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}$.
+where $\pmb{F}^{(m)}$ is a $J_{(m)} \times K_{(m)}$ matrix, and $\pmb{q}^{(m)}$ is a vector with $J_{(m)}$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{q}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\zeta}$.
 
-Internally, we include $\pmb{a}$ in the offset term $\pmb{o}$ in Equation \@ref(eq:means). The SVD prior without the $\pmb{a}$ has the same format as other main effects priors.
 
 ### Standard format
 
+Internally, we include $\pmb{q}^{(m)}$ in the offset term $\pmb{o}$ in Equation \@ref(eq:means). The SVD prior without $\pmb{q}^{(m)}$ has format
+
 \begin{align}
-  \pmb{H}^{(m)} & = \pmb{F}^{\text{age}} \\
-  \pmb{Q}^{(m)} & = \pmb{I}_{K_m}
+  \pmb{\Phi}^{(m)} & = \pmb{F}^{(m)} \\
+  K_m & = G_m \\
+  \nu_k &  = 1, \quad k = 1, \cdots, K_m
 \end{align}
-
-
 
 ### Code
 
@@ -502,10 +509,14 @@ Internally, we include $\pmb{a}$ in the offset term $\pmb{o}$ in Equation \@ref(
 `SVD_HFD()`
 
 - `transform` is $\pmb{F}^{\text{age}}$
-- `translate` is $\pmb{a}$
+- `translate` is $\pmb{q}^{(m)}$
 - functions such as `SVD_HMD()` and `SVD_HFD()` (for Human Mortality Database and Human Fertility Database) provide pre-packaged values.
 
 ### Combined dimensions
+
+Designed for use with age, but can be used with other dimensions.
+
+Can also combine dimensions by taking Cartesian product of categories, eg age-sex.
 
 
 # Priors for second-order interactions {#sec:pr-interact-2}
@@ -514,9 +525,11 @@ Internally, we include $\pmb{a}$ in the offset term $\pmb{o}$ in Equation \@ref(
 # Priors for higher-order interactions {#sec:pr-interact-high}
 
 
+bla bla bla
+
 # Covariates {#sec:cov}
 
-
+bla bla bla
 
 
 ## Generic covariates
@@ -525,7 +538,7 @@ Regularised horseshoe prior [@piironen2017hyperprior]
 
 
 
-## Seasonal effects
+## Seasonal effects {#sec:season}
 
 ### Model
 
@@ -534,7 +547,7 @@ A main effect for time can be extended through the addition of a seasonal effect
 We model $\pmb{\Lambda}$ as a draw from a multivariate normal distribution, constrained to sum to zero,
 \begin{align}
   \pmb{\Lambda} & = \pmb{G}_m \pmb{\varepsilon}^{(m)} \\
-  \pmb{\varepsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, k_m \tau_m^2 \pmb{I}_{J_m-1}\right) \\ 
+  \pmb{\varepsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{I}_{J_m-1}\right) \\ 
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 where
@@ -543,7 +556,7 @@ where
   \begin{bmatrix} \pmb{1}^{\top} \\
                   \pmb{I}_{J_m - 1} - \frac{1}{J_m - 1} \pmb{1} \pmb{1}^{\top} \end{bmatrix},
 \end{equation}
-and $k_m = J_m / (J_m - 1)$.
+and $c_m = J_m / (J_m - 1)$.
 
 ### Code
 
@@ -600,16 +613,40 @@ for some value of $A$. TODO - choice of $A$.
 | $\gamma_i$ | Super-population rate, probability, or mean. |
 | $\mu_i$ | Cell-specific mean. |
 | $\xi$   | Dispersion parameter. |
-| $s$ | Generic scale term used across model. Equal to 1 or $\text{sd}(y_k)$. |
-| $g$ | Log, logit, or identity function. |
+| $s$ | Generic scale term. Equal to 1 or to $\text{sd}(y_i)$. |
+| $g()$ | Log, logit, or identity function. |
+| $m$ | Index for intercept, main effect, or interaction. $m = 0, \cdots, M$. |
 | $\beta^{(0)}$ | Intercept. |
 | $\pmb{\beta}^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
 | $\beta_j^{(m)}$ | $j$th element of $\pmb{\beta}^{(m)}$. $j = 1, \cdots, J_m$. |
+| $\pmb{X}^{(m)}$ | Matrix mapping $\pmb{\beta}^{(m)}$ to $\pmb{y}$. |
+| $\pmb{Z}^{(m)}$ | Matrix of covariates. |
+| $\pmb{\zeta}^{(m)}$ | Parameter vector for covariates $\pmb{Z}^{(m)}$. |
+| $\pmb{o}$ | Offset |
 | $\tau_m^2$ | Variance parameter for main effect or interaction. |
+| $A_m$ | Scale parameter in half-normal prior for $\tau_m$. |
+| $\pmb{\alpha}^{(m)}$ | Free parameters $\alpha^{(m)}$  |
+| $\alpha_k^{(m)}$ | $k$th element of $\pmb{\alpha}^{(m)}$. $k = 1, \cdots, K_m$. |
+| $\pmb{\Phi}^{(m)}$ | Matrix mapping $\pmb{\alpha}^{(m)}$ to $\pmb{\beta}^{(m)}$. |
+| $\nu_k^{(m)}$ | Standard deviation of $\alpha_k^{(m)}$ in prior for main effect. |
+| $\pmb{I}_n$ | $n \times n$ identity matrix |
+| $\pmb{1}$ | Column vectors of 1s. |
+| $\pmb{0}$ | Column vectors of 0s. |
+| $c_k$ | Scaling factor applied to variance terms in priors. | 
 | $\lambda^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
+| $L_m$ | Standard deviation in normal prior for $\lambda_m$. |
+| $\phi_m$ | Correlation coefficient in AR1 densities. |
+| $a_{0m}$, $a_{1m}$ | Minimum and maximum values for $\phi_m$. |
+| $\pmb{B}^{(m)}$ | B-spline matrix in P-spline prior. |
+| $\pmb{F}^{(m)}$ | Matrix in SVD prior. |
+| $\pmb{q}^{(m)}$ | Offset in SVD prior. |
+| $G_m$ | Number of columns of $\pmb{B}^{(m)}$ or $\pmb{F}^{(m)}$. |
+
+ 
 
 
-## SVD prior for age  {#app:svd-age}
+
+## SVD prior for age  {#app:svd}
 
 Let $\pmb{M}$ be a matrix of age-specific estimates from an international database, transformed to take values in the range $(-\infty, \infty)$. Each column of $\pmb{M}$ represesents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.
 
@@ -627,19 +664,15 @@ is a standardized version of $\pmb{V}$.
 We can rewrite \@ref(eq:svd1) as
 \begin{align}
   \pmb{M} & \approx \pmb{U} \pmb{D} (\text{diag}(\pmb{h}) \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}) \\
-  & = \pmb{F} \tilde{\pmb{V}} + \pmb{a} \pmb{1}^{\top}, (\#eq:svd2)
+  & = \pmb{F} \tilde{\pmb{V}} + \pmb{q} \pmb{1}^{\top}, (\#eq:svd2)
 \end{align}
-where $\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{h})$ and $\pmb{a} = \pmb{U} \pmb{D} \pmb{g}$.
+where $\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{h})$ and $\pmb{q} = \pmb{U} \pmb{D} \pmb{g}$.
 
 Let $\tilde{\pmb{v}}_l$ be a randomly-selected column from $\tilde{\pmb{V}}$. From the construction of $\tilde{\pmb{V}}$, and the orthogonality of the rows of $\pmb{V}$, we have $\text{E}[\tilde{\pmb{v}}_l] = \pmb{0}$ and $\text{var}[\tilde{\pmb{v}}_l] = \pmb{I}$. This implies that if $\pmb{z}$ is a vector of standard normal variables, then
 \begin{equation}
-  \pmb{F} \pmb{z} + \pmb{a}
+  \pmb{F} \pmb{z} + \pmb{q}
 \end{equation}
 looks approximately like a randomly-selected column from the original data matrix $\pmb{M}$.
-
-
-## SVD prior for age-sex interactions  {#app:svd-agesex}
-
 
 
 ## Derivation of prior for dispersion term in binomial model {#app:disp}
