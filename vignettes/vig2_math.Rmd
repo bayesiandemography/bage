@@ -128,7 +128,7 @@ where
 - $\pmb{\zeta}$ is a vector with $P$ elements; and
 - $\pmb{o}$ is an offset containing known values.
 
-Priors for the $\pmb{\beta}^{(m)}$ are described in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact-high). Covariate matrix $\pmb{Z}$ and the prior for vector $\pmb{\zeta}$ are discussed in Section \@ref(‭sec:cov).
+Priors for the $\pmb{\beta}^{(m)}$ are described in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact-high). Covariate matrix $\pmb{Z}$ and the prior for vector $\pmb{\zeta}$ are discussed in Section \@ref(sec:pr-cov).
 
 
 # Scale term
@@ -176,7 +176,7 @@ All priors can be put into the format
   \pmb{\beta}^{(m)} & = \pmb{\Phi}^{(m)} \pmb{\alpha}^{(m)} \\
   \alpha_k^{(m)} & \sim \text{N}(0, (\nu_k^{(m)})^2), \quad k = 1, \dots, K_m
 \end{align}
-where $\pmb{\Phi}^{(m)}$ is a $J_m \times K_m$ matrix. In AR1 priors (Section \@ref(sec:pr-ar1)) and linear priors with AR1 errors (Section \@ref(sec:pr-lin-ar1)), $\pmb{\Phi}^{(m)}$ depends on correlation coefficient $\phi_m$. In all other priors, $\pmb{\Phi}^{(m)}$ is fixed and known.
+where $\pmb{\Phi}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{\alpha}^{(m)}$ is a vector with $K_m$ elements. In AR1 priors (Section \@ref(sec:pr-ar1)) and linear priors with AR1 errors (Section \@ref(sec:pr-lin-ar1)), $\pmb{\Phi}^{(m)}$ depends on correlation coefficient $\phi_m$. In all other priors, $\pmb{\Phi}^{(m)}$ is fixed and known.
 
 
 ## Code
@@ -222,7 +222,7 @@ where $\pmb{I}_{J_m}$ is a $J_m \times J_m$ identity matrix.
 ### Model
 
 \begin{align}
-  \beta^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{V}^{(m)} \right) \\
+  \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{V}^{(m)} \right) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
 where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user, and $c_m = J_m  \left(\text{tr}(\pmb{V}^{(m)})\right)^{-1}$.
@@ -285,19 +285,19 @@ The $c_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_m^
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & =  \pmb{l}^{(m)} \lambda_m + \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
-  \lambda_m & \sim \text{N}(0, L_m^2) \\
+  \pmb{\beta}^{(m)} & =  \pmb{h}^{(m)} \eta_m + \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
+  \eta_m & \sim \text{N}(0, H_m^2) \\
   \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, c_m \tau_m^2 \pmb{I}_{J_m - 2}) (\#eq:pr-rw2-eps) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $\pmb{l}^{(m)}$ is a vector, the $j$th element of which is
+where $\pmb{h}^{(m)}$ is a vector, the $j$th element of which is
 \begin{equation}
   l_j^{(m)}  = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j,
 \end{equation}
 and $\pmb{D}_{2m}$ is a second-order difference matrix formed by multiplying two first-order difference matrices.
-The $\pmb{l}^{(m)} \lambda_m$ term is needed because the columns of $\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1}$ do not span the space defined by $\sum_{j=1}^{J_m}{\beta_j^{(m)}} = 0$. See, for instance, @currie2002flexible [336].
+The $\pmb{h}^{(m)} \eta_m$ term is needed because the columns of $\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1}$ do not span the space defined by $\sum_{j=1}^{J_m}{\beta_j^{(m)}} = 0$. See, for instance, @currie2002flexible [336].
 
-We have $\pmb{D}_{2m} \pmb{\beta}^{(m)} =  \pmb{D}_{2m}^{\top} \pmb{l}^{(m)} \lambda_m + \pmb{D}_{2m} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
+We have $\pmb{D}_{2m} \pmb{\beta}^{(m)} =  \pmb{D}_{2m}^{\top} \pmb{h}^{(m)} \eta_m + \pmb{D}_{2m} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
 
 The $c_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} ((\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1})^{\top} \pmb{D}_{2m})\right)^{-1}$.
 
@@ -305,9 +305,9 @@ The $c_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{
 ### Standard format
 
 \begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{h}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
   K_m & = J_m - 1 \\
-  \nu_1^{(m)} & = L_m^2 \\
+  \nu_1^{(m)} & = H_m^2 \\
   \nu_k^{(m)} & = c_m \tau_m, \quad k = 2, \cdots, K_m
 \end{align}
 
@@ -317,7 +317,7 @@ The $c_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{D}_{
 
 `RW2(sd = NULL, scale = NULL)`
 
-- `sd` is $L_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+- `sd` is $H_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
 
 
@@ -379,19 +379,19 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{l}^{(m)} \lambda_m + \pmb{\epsilon}^{(m)} \\
+  \pmb{\beta}^{(m)} & = \pmb{h}^{(m)} \eta_m + \pmb{\epsilon}^{(m)} \\
   \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \lambda_m & \sim \text{N}(0, L_m^2) \\
+  \eta_m & \sim \text{N}(0, H_m^2) \\
   \tau_m & \sim \text{N}^+(A_m^2)
 \end{align}
-where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
+where $\pmb{h}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 
 ### Standard format
 
 \begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{I}_{J_m} \end{bmatrix} \\
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{h}^{(m)} & \pmb{I}_{J_m} \end{bmatrix} \\
   K_m & = J_m + 1\\
-  \nu_1^{(m)} & =  L_m^2 \\
+  \nu_1^{(m)} & =  H_m^2 \\
   \nu_k^{(m)} & =  \tau_m, \quad k = 2, \cdots, K_m
 \end{align}
 
@@ -400,7 +400,7 @@ where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 
 `Lin(sd = NULL, scale = NULL)`
 
-- `sd` is $L_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+- `sd` is $H_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
 
 
@@ -409,7 +409,7 @@ where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{l}^{(m)} \lambda_m + \pmb{\epsilon}^{(m)} \\
+  \pmb{\beta}^{(m)} & = \pmb{h}^{(m)} \eta_m + \pmb{\epsilon}^{(m)} \\
   \epsilon_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
   \epsilon_j^{(m)} & \sim \phi_m \epsilon_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
@@ -422,19 +422,19 @@ where $-1 < a_{0m} < a_{1m} < 1$.
 ### Standard format
 
 \begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{l}^{(m)} & \pmb{L}^{(m)} \end{bmatrix} \\
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{h}^{(m)} & \pmb{L}^{(m)} \end{bmatrix} \\
   K_m & = J_m + 1 \\
-  \nu_1^{(m)} & =  L_m^2 \\
+  \nu_1^{(m)} & =  H_m^2 \\
   \nu_k^{(m)} & =  \tau_m, \quad k = 2, \cdots, K_m
 \end{align}
-where $\pmb{l}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2), and $\pmb{L}^{(m)}$ is defined as in Section \@ref(sec:pr-ar1).
+where $\pmb{h}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2), and $\pmb{L}^{(m)}$ is defined as in Section \@ref(sec:pr-ar1).
 
 
 ### Code
 
 `LinAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)`
 
-- `sd` is $L_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
+- `sd` is $H_m$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value.
 - `min` is $a_{0m}$.
 - `max` is $a_{1m}$.
 - `scale` is $A_m$. Defaults to $s$ if user does not supply a value.
@@ -454,12 +454,12 @@ $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{G_m}^{(m)}(\pmb{j})
 ### Standard format
 
 \begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{B}^{(m)} \pmb{l}^{(m)} & \pmb{B}^{(m)} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
+  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{B}^{(m)} \pmb{h}^{(m)} & \pmb{B}^{(m)} \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix} \\
   K_m & = G_m - 1 \\
-  \nu_1 & = L_m^2 \\
+  \nu_1 & = H_m^2 \\
   \nu_k &  = c_m \tau_m, \quad k = 2, \cdots, K_m,
 \end{align}
-where $\pmb{l}^{(m)}$ is a vector with $G_m$ elements, the $g$th element of which is
+where $\pmb{h}^{(m)}$ is a vector with $G_m$ elements, the $g$th element of which is
 \begin{equation}
   l_g^{(m)}  = -\frac{G_m + 1}{G_m - 1} + \frac{2}{G_m - 1} g,
 \end{equation}
@@ -467,8 +467,8 @@ and $c_m$ is defined as in Section \@ref(sec:pr-rw2).
 
 Matrix $\pmb{\Phi}^{(m)}$ is derived by noting that, when $\pmb{\zeta}^{(m)}$ has a second-order random walk prior,
 \begin{equation}
-  \pmb{B}^{(m)} \pmb{\zeta}^{(m)} = \pmb{B}^{(m)} \begin{bmatrix} \pmb{l}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix}
-  \begin{bmatrix} \lambda_m \\ \pmb{\epsilon}^{(m)} \end{bmatrix}.
+  \pmb{B}^{(m)} \pmb{\zeta}^{(m)} = \pmb{B}^{(m)} \begin{bmatrix} \pmb{h}^{(m)} & \pmb{D}_{2m}^{\top} (\pmb{D}_{2m} \pmb{D}_{2m}^{\top})^{-1} \end{bmatrix}
+  \begin{bmatrix} \eta_m \\ \pmb{\epsilon}^{(m)} \end{bmatrix}.
 \end{equation}
 
 
@@ -521,13 +521,40 @@ Can also combine dimensions by taking Cartesian product of categories, eg age-se
 
 # Priors for second-order interactions {#sec:pr-interact-2}
 
+- $\pmb{\beta}^{(m)}$ is made up of two dimensions, dimension 1 and dimension 2
+- Redefine $\pmb{\beta}^{(m)}$ to be a $J_1^{(m)} \times J_2^{(m)}$ matrix, where $J_1^{(m)}$ is the number of elements in dimension 1, and $J_2^{(m)}$ is the number of elements of the second.
+- Choose a prior for dimension 1. Let $\Phi_1^{(m)}$ be the matrix from the standard format for this prior. $\Phi_1^{(m)}$ has $J_1^{(m)}$ rows and $K_1^{(m)}$ columns.
+- Let
+\begin{equation}
+  \pmb{\beta}^{(m)} = \pmb{\Phi}_1^{(m)} \pmb{\varsigma}^{(m)} (\#eq:interact-1)
+\end{equation}
+where $\pmb{\varsigma}^{(m)}$ is a $K_1^{(m)} \times J_2^{(m)}$ parameter matrix. The $j$th column of $\pmb{\varsigma}^{(m)}$ contains the coefficients that are used to construct the $j$th column of $\pmb{\beta}^{(m)}$ from the columns of $\pmb{\Phi}_1^{(m)}$.
+- Choose a prior for dimension 2. Let $\Phi_2^{(m)}$ be the matrix from the standard format for this prior. $\Phi_2^{(m)}$ has $J_2^{(m)}$ rows and $K_2^{(m)}$ columns.
+- Let
+\begin{equation}
+  \pmb{\varsigma}^{(m)} = \pmb{\chi}^{(m)} \pmb{\Phi}_2^{(m)\top} (\#eq:interact-2)
+\end{equation}
+where $\pmb{\chi}^{(m)}$ is a $K_1^{(m)} \times K_2^{(m)}$ parameter matrix. The $k$th row of $\pmb{\chi}^{(m)}$ contains the coefficients that are used to construct the $k$th row of $\pmb{\varsigma}^{(m)}$ from the columns of $\pmb{\Phi}_2^{(m)}$ (i.e. the rows of $\pmb{\Phi}_2^{(m)\top}$). Each row of $\pmb{\chi}^{(m)}$ has the same prior distribution,
+\begin{equation}
+  \chi_{k_1,k_2}^{(m)} \sim \text{N}(0, (\nu_{k_2}^{(m)})^2)
+\end{equation}
+where $\nu_{k_2}^{(m)}$ is obtained from the standard format for the prior for the second dimension.
+
+Equations \@ref(eq:interact-1) and \@ref(eq:interact-2) can be combined to give
+\begin{equation}
+  \pmb{\beta}^{(m)} = \pmb{\Phi}_1^{(m)} \pmb{\chi}^{(m)} \pmb{\Phi}_2^{(m)\top}.
+\end{equation}
+
+
 
 # Priors for higher-order interactions {#sec:pr-interact-high}
 
+Apply second-order interactions within combinations of other dimensions
 
-bla bla bla
 
-# Covariates {#sec:cov}
+
+# Covariates {#sec:pr-cov}
+
 
 bla bla bla
 
@@ -536,7 +563,10 @@ bla bla bla
 
 Regularised horseshoe prior [@piironen2017hyperprior]
 
-
+\begin{align}
+  \zeta_p | \kappa_p, \varphi & \ind \text{N}(0, \kappa_p^2 \varphi^2) \\
+  \kappa_p \sim \text{C}^+(1) \\
+\end{align}
 
 ## Seasonal effects {#sec:season}
 
@@ -632,12 +662,14 @@ for some value of $A$. TODO - choice of $A$.
 | $\pmb{I}_n$ | $n \times n$ identity matrix |
 | $\pmb{1}$ | Column vectors of 1s. |
 | $\pmb{0}$ | Column vectors of 0s. |
-| $c_k$ | Scaling factor applied to variance terms in priors. | 
-| $\lambda^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
-| $L_m$ | Standard deviation in normal prior for $\lambda_m$. |
+| $c_m$ | Scaling factor applied to variance terms in priors. |
+| $\pmb{h}^{(m)}$ | Vector for linear covariate |
+| $\eta^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
+| $H_m$ | Standard deviation in normal prior for $\eta_m$. |
 | $\phi_m$ | Correlation coefficient in AR1 densities. |
 | $a_{0m}$, $a_{1m}$ | Minimum and maximum values for $\phi_m$. |
 | $\pmb{B}^{(m)}$ | B-spline matrix in P-spline prior. |
+| $\pmb{b}_g^{(m)}$ | B-spline. $g = 1, \cdots, G_m$. |
 | $\pmb{F}^{(m)}$ | Matrix in SVD prior. |
 | $\pmb{q}^{(m)}$ | Offset in SVD prior. |
 | $G_m$ | Number of columns of $\pmb{B}^{(m)}$ or $\pmb{F}^{(m)}$. |
