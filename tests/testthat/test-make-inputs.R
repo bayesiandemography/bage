@@ -219,6 +219,17 @@ test_that("'make_m_centre' works with valid inputs", {
 })
 
 
+## 'make_m_diff' --------------------------------------------------------------
+
+test_that("'make_m_diff' works", {
+    set.seed(0)
+    n <- 10
+    m <- make_m_diff(n)
+    x <- rnorm(n)
+    expect_equal(as.numeric(m %*% x), diff(x))
+})
+
+
 ## 'make_m_identity' ----------------------------------------------------------
 
 test_that("'make_m_identity' works with valid inputs", {
