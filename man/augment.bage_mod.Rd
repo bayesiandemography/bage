@@ -15,13 +15,10 @@
 A \link[tibble:tibble-package]{tibble},
 consisting of the original \code{data} argument,
 to the original model function (eg \code{\link[=mod_pois]{mod_pois()}})
-plus four new columns:
+plus two new columns:
 \itemize{
-\item \code{.fitted} Point estimates (posterior medians) of
-the rate, probability, or mean.
-\item \code{.lower}, \code{.upper} Lower and upper bounds of
-95\% credible intervals for the rate, probability,
-or mean.
+\item \code{.fitted} An \link[rvec:rvec]{rvec} holding
+draws from the posterior distribution.
 \item \code{.observed} Direct estimates of the rate,
 probability, or mean.
 }
