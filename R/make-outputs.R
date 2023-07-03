@@ -157,6 +157,43 @@ make_combined_matrix_terms <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make draws from posterior distribution of
+#' linear predictor
+#'
+#' @param mod A fitted object of class 'bage_mod'
+#'
+#' @returns A tibble with 'n_draw' columns.
+#'
+#' @noRd
+make_draws_linear_pred <- function(mod) {
+    draws_parfree <- make_draws_parfree(mod)
+    matrix_terms <- make_combined_matrix_terms(mod)
+    ans <- matrix_terms %*% draws_parfree
+    ans <- matrix(as.double(ans), nrow = nrow(ans))
+    ans
+}
+
+
+## HAS_TESTS
+#' Make draws from posterior distribution
+#' of lowest-level rates/probabilities/values
+#'
+#' @param mod A fitted object of class 'bage_mod'
+#'
+#' @returns A tibble with 'n_draw' columns.
+#'
+#' @noRd
+make_draws_fitted <- function(mod) {
+    draws_linear_pred <- make_draws_linear_pred(mod)
+    inv_transform <- get_fun_inv_transform(mod)
+    align_to_data <- get_fun_align_to_data(mod)
+    ans <- inv_transform(draws_linear_pred)
+    ans <- align_to_data(ans)
+    ans
+}
+
+
+## HAS_TESTS
 #' Make draws from posterior distribution
 #' of vector of all terms combined
 #'
@@ -166,7 +203,7 @@ make_combined_matrix_terms <- function(mod) {
 #'
 #' @param mod A fitted object of class 'bage_mod'.
 #'
-#' @returns A tibble with 'n_draw' columns.
+#' @returns A matrix with 'n_draw' columns.
 #'
 #' @noRd
 make_draws_parfree <- function(mod) {
@@ -205,43 +242,6 @@ make_draws_parfree <- function(mod) {
     }
     dimnames(ans) <- list(term = terms_parfree,
                           draw = seq_len(n_draw))
-    ans
-}
-
-
-## HAS_TESTS
-#' Make draws from posterior distribution of
-#' linear predictor
-#'
-#' @param mod A fitted object of class 'bage_mod'
-#'
-#' @returns A tibble with 'n_draw' columns.
-#'
-#' @noRd
-make_draws_linear_pred <- function(mod) {
-    draws_parfree <- make_draws_parfree(mod)
-    matrix_terms <- make_combined_matrix_terms(mod)
-    ans <- matrix_terms %*% draws_parfree
-    ans <- matrix(as.double(ans), nrow = nrow(ans))
-    ans
-}
-
-
-## HAS_TESTS
-#' Make draws from posterior distribution
-#' of lowest-level rates/probabilities/values
-#'
-#' @param mod A fitted object of class 'bage_mod'
-#'
-#' @returns A tibble with 'n_draw' columns.
-#'
-#' @noRd
-make_draws_fitted <- function(mod) {
-    draws_linear_pred <- make_draws_linear_pred(mod)
-    inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans <- inv_transform(draws_linear_pred)
-    ans <- align_to_data(ans)
     ans
 }
 

@@ -87,46 +87,6 @@ test_that("'make_combined_matrix_terms' works with valid inputs", {
 })
 
 
-## 'make_draws_parfree' -----------------------------------------------------------
-
-test_that("'make_draws_parfree' works - ordinary priors", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- fit(mod)
-    mod <- set_n_draw(mod, n_draw = 10000L)
-    ## 'make_draws_parfree'
-    set.seed(1)
-    draws <- make_draws_parfree(mod)
-    expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
-    expect_equal(rowMeans(draws), unlist(mod$est$parfree), tolerance = 0.1)
-})
-
-test_that("'make_draws_parfree' works - has Known priors", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, `(Intercept)` ~ Known(2))
-    mod <- set_prior(mod, sex ~ Known(c(-0.1, 0.1)))
-    mod <- fit(mod)
-    mod <- set_n_draw(mod, n_draw = 10000L)
-    set.seed(1)
-    draws <- make_draws_parfree(mod)
-    expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
-    expect_equal(rowMeans(draws), unlist(mod$est$parfree), tolerance = 0.1)
-})
-
-
 ## 'make_draws_linear_pred' ---------------------------------------------------
 
 test_that("'make_draws_linear_pred' works with valid inputs", {
@@ -174,6 +134,45 @@ test_that("'make_draws_fitted' works", {
     expect_equal(fitted, fit_exp)
 })
 
+
+## 'make_draws_parfree' -----------------------------------------------------------
+
+test_that("'make_draws_parfree' works - ordinary priors", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    mod <- set_n_draw(mod, n_draw = 10000L)
+    ## 'make_draws_parfree'
+    set.seed(1)
+    draws <- make_draws_parfree(mod)
+    expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
+    expect_equal(rowMeans(draws), unlist(mod$est$parfree), tolerance = 0.1)
+})
+
+test_that("'make_draws_parfree' works - has Known priors", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, `(Intercept)` ~ Known(2))
+    mod <- set_prior(mod, sex ~ Known(c(-0.1, 0.1)))
+    mod <- fit(mod)
+    mod <- set_n_draw(mod, n_draw = 10000L)
+    set.seed(1)
+    draws <- make_draws_parfree(mod)
+    expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
+    expect_equal(rowMeans(draws), unlist(mod$est$parfree), tolerance = 0.1)
+})
 
 
 ## 'make_observed' ------------------------------------------------------------
