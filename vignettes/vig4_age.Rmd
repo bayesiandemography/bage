@@ -2,7 +2,7 @@
 title: "Dimension reduction and the modelling of age effects"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vig_4_age}
+  %\VignetteIndexEntry{Dimension reduction and the modelling of age effects}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

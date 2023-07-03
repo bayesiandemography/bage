@@ -428,7 +428,7 @@ make_matrices_par_vec <- function(formula, data) {
 #' to main effects, interactions, intercept
 #'
 #' Make list of matrices mapping unconstrained
-#' parameter vectors to constrainted vectors
+#' parameter vectors to constrained vectors
 #' 
 #' @param mod Object of class "bage_mod"
 #'

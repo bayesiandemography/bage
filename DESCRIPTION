@@ -29,7 +29,8 @@ Imports:
     tibble,
     tidyselect,
     TMB
-Suggests: 
+Suggests:
+    bookdown,
     covr,
     dplyr,
     ggdist,
