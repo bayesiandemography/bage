@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(bage)
+library(rvec)
 library(dplyr)
 library(ggplot2)
 ```
@@ -42,18 +43,29 @@ tidy(mod)
 augment(mod)
 ```
 
+```{r}
+mod %>%
+  augment() %>%
+  mutate(draws_quantile(.fitted)) %>%
+  select(-(1:6))
+```
+
+
 
 Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>).
 
 ```{r fig, fig.width = 7, fig.height = 5}
 mod %>%
   augment() %>%
-  filter(year >= 2017) %>%
-  ggplot(aes(x = age, y = .fitted)) +
+  mutate(draws_quantile(.fitted)) %>%
+  filter(year >= 2017,
+         ethnicity == "Maori") %>%
+  mutate(draws_quantile(.fitted)) %>%  
+  ggplot(aes(x = age, y = .fitted_50)) +
   facet_grid(vars(sex), vars(year)) +
   geom_point(aes(y = .observed), 
              col = "darkorange") +
-  geom_pointrange(aes(ymin = .lower, ymax = .upper),
+  geom_pointrange(aes(ymin = .fitted_2.5, ymax = .fitted_97.5),
                   fatten = 0.5,
                   color = "darkblue")
 ```
@@ -66,26 +78,5 @@ components(mod, type = "par")
 ```{r}
 components(mod, type = "hyper")
 ```
-
-
-# Model
-
-\begin{align}
-y & \sim \text{Poisson}(\mu w) \\
-\log \mu & = X \beta \\
-\beta & \sim N(\pmb{0}, \pmb{\Sigma})
-\end{align}
-
-(Currently every $\beta$ has a normal prior)
-
-<!-- I suggest we add an error term, using the set-up from [Dan Simpson blog entry](https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html) -->
-<!-- \begin{align} -->
-<!-- y & \sim \text{Poisson}(\mu u w) \\ -->
-<!-- \log \mu & = X \beta \\ -->
-<!-- \beta & \sim N(\pmb{0}, \pmb{\Sigma}) \\ -->
-<!-- u & \sim \text{Gamma}(\alpha^{-1}, \alpha^{-1}) -->
-<!-- \end{align} -->
-<!-- (which can be converted to a negative binomial model). -->
-
 
 

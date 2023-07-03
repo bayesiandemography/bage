@@ -25,12 +25,9 @@ generics::augment
 #' @returns A [tibble][tibble::tibble-package],
 #' consisting of the original `data` argument,
 #' to the original model function (eg [mod_pois()])
-#' plus four new columns:
-#' - `.fitted` Point estimates (posterior medians) of
-#' the rate, probability, or mean.
-#' - `.lower`, `.upper` Lower and upper bounds of
-#' 95% credible intervals for the rate, probability,
-#' or mean.
+#' plus two new columns:
+#' - `.fitted` An [rvec][rvec::rvec()] holding
+#' draws from the posterior distribution.
 #' - `.observed` Direct estimates of the rate,
 #' probability, or mean.
 #'
@@ -46,11 +43,7 @@ augment.bage_mod <- function(x, ...) {
     is_fitted <- !is.null(x$est)
     if (is_fitted) {
         draws <- make_draws_fitted(x)
-        quantiles <- matrixStats::rowQuantiles(draws,
-                                               probs = c(0.025, 0.5, 0.975))
-        ans$.fitted <- quantiles[, 2L]
-        ans$.lower <- quantiles[, 1L]
-        ans$.upper <- quantiles[, 3L]
+        ans$.fitted <- rvec::rvec_dbl(draws)
     }
     ans$.observed <- make_observed(x)
     ans <- tibble(ans)
