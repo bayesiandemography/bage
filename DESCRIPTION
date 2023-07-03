@@ -25,6 +25,7 @@ Imports:
     matrixStats,
     methods,
     rlang,
+    rvec,
     stats,
     tibble,
     tidyselect,
@@ -38,6 +39,8 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
+Remotes:
+    bayesiandemography/rvec
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
 LinkingTo: 
