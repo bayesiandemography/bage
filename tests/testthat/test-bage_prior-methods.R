@@ -83,13 +83,14 @@ test_that("'make_matrix_parfree' works with 'bage_prior_rw'", {
 })
 
 test_that("'make_matrix_parfree' works with 'bage_prior_rw2'", {
+    set.seed(0)
     m <- make_matrix_parfree(RW2(), length_par = 6)
     expect_identical(dim(m), c(6L, 4L))
-    expect_equal(sum(m %*% (1:4)), 0)
-    expect_equal(sum(diff(as.numeric(m %*% (1:4)))), 0)
-    expect_equal(diff(as.numeric(m %*% (1:4)), differences = 2), 1:4)
+    x <- rnorm(4)
+    expect_equal(diff(as.numeric(m %*% x), differences = 2), x)
+    expect_equal(sum(m %*% x), 0)
+    expect_false(sum(diff(as.numeric(m %*% x))) == 0)
 })
-
 
 
 ## transform_hyper ------------------------------------------------------------
