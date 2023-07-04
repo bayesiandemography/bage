@@ -40,12 +40,12 @@ generics::augment
 #' @export
 augment.bage_mod <- function(x, ...) {
     ans <- x$data
-    is_fitted <- !is.null(x$est)
+    is_fitted <- is_fitted(x)
     if (is_fitted) {
         draws <- make_draws_fitted(x)
-        ans$.fitted <- rvec::rvec_dbl(draws)
+        ans[[".fitted"]] <- rvec::rvec_dbl(draws)
     }
-    ans$.observed <- make_observed(x)
+    ans[[".observed"]] <- make_observed(x)
     ans <- tibble(ans)
     ans
 }
@@ -63,19 +63,16 @@ generics::components
 #' Extract components from a fitted object
 #' of class `bage_mod`.
 #'
-#' There are three types of component:
+#' There are two types of component:
 #' - `"par"` Intercept, main effects, and interactions.
 #' - `"hyper"` Hyper-parameters from priors for intercept,
-#' main effects, and interactions.
-#' - `"const"` Constants from priors for intercept,
 #' main effects, and interactions.
 #'
 #' For each component, `components()` returns three things:
 #' - `term` Name of the intercept, main effect, or interaction
 #' - `level` Element of term
-#' - `value` For `"par"` and `"hyper"`, a point estimate
-#' (the posterior median); for `"const"`, a fixed value
-#' used by the prior.
+#' - `value` An [rvec][rvec::rvec()] containing
+#' draws from the posterior distribution.
 #'
 #' @param object An fitted model.
 #' @param ... Not currently used.
@@ -94,11 +91,12 @@ generics::components
 #' components(mod)
 #' @export
 components.bage_mod <- function(object, ...) {
-    is_fitted <- !is.null(object$est)
-    if (is_fitted)
-        rbind(components_par(object),
-              components_hyper(object),
-              components_const(object))
+    is_fitted <- is_fitted(object)
+    if (is_fitted) {
+        par <- components_par(object)
+        hyper <- components_hyper(object)
+        vctrs::vec_rbind(par, hyper)
+    }
     else
         NULL
 }
@@ -133,7 +131,7 @@ fit.bage_mod <- function(object, ...) {
     hyper <- make_hyper(object)
     terms_hyper <- make_terms_hyper(object)
     terms_parfree <- make_terms_parfree(object)
-    matrices_terms <- make_matrices_terms(object)
+    matrices_parfree_outcome <- make_matrices_parfree_outcome(object)
     parfree <- make_parfree(object)
     map <- make_map(object)
     data <- list(nm_distn = nm_distn,
@@ -141,7 +139,7 @@ fit.bage_mod <- function(object, ...) {
                  offset = offset,
                  is_in_lik = is_in_lik,
                  terms_parfree = terms_parfree,
-                 matrices_terms = matrices_terms,
+                 matrices_parfree_outcome = matrices_parfree_outcome,
                  i_prior = i_prior,
                  terms_hyper = terms_hyper,
                  consts = const,             ## in TMB template refer to 'consts', 
@@ -196,6 +194,35 @@ get_fun_inv_transform.bage_mod_binom <- function(mod)
 #' @export
 get_fun_inv_transform.bage_mod_norm <- function(mod)
     function(x) x
+
+
+## 'is_fitted' ----------------------------------------------------------------
+
+#' Test whether a model has been fitted
+#'
+#' Test whether [fit()][fit.bage_mod] has been
+#' called on a model object.
+#'
+#' @param x A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @examples
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#' is_fitted(mod)
+#' mod <- fit(mod)
+#' is_fitted(mod)
+#' @export
+is_fitted <- function(x) {
+    UseMethod("is_fitted")
+}
+
+## HAS_TESTS
+#' @export
+is_fitted.bage_mod <- function(x)
+    !is.null(x$est)
 
 
 ## 'model_descr' -----------------------------------------------------------------
@@ -289,7 +316,7 @@ print.bage_mod <- function(x, ...) {
     vname_offset <- x$vname_offset
     var_age <- x$var_age
     var_time <- x$var_time
-    is_fitted <- !is.null(x$est)
+    is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
                          model_descr(x))
@@ -373,17 +400,17 @@ tidy.bage_mod <- function(x, ...) {
     spec <- vapply(priors, str_call_prior, "")
     n <- vapply(matrices_par, ncol, 1L)
     ans <- tibble::tibble(term, spec, n)
-    is_fitted <- !is.null(x$est)
+    is_fitted <- is_fitted(x)
     if (is_fitted) {
         parfree <- x$est$parfree
-        matrices_parfree <- make_matrices_parfree(x)
+        matrices_parfree <- make_matrices_parfree_par(x)
         terms_parfree <- make_terms_parfree(x)
         parfree <- split(parfree, terms_parfree)
         par <- .mapply("%*%",
                        dots = list(x = matrices_parfree,
                                    y = parfree),
                        MoreArgs = list())
-        ans$sd <- vapply(par, stats::sd, 0)
+        ans[["sd"]] <- vapply(par, stats::sd, 0)
     }
     ans <- tibble::tibble(ans)
     ans

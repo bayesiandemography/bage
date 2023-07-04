@@ -43,7 +43,7 @@
 #' AR1(min = 0, max = 1, scale = 2.4)
 #' @export
 AR1 <- function(min = 0.8, max = 0.98, scale = 1) {
-    scale <- check_and_tidy_scale(scale) 
+    scale <- check_and_tidy_scale(scale, x_arg = "scale") 
     checkmate::assert_number(min, lower = 0, upper = 1)
     checkmate::assert_number(max, lower = 0, upper = 1)
     if (min >= max)
@@ -123,10 +123,41 @@ Known <- function(values) {
 #' N(scale = 0.5)
 #' @export
 N <- function(scale = 1) {
-    scale <- check_and_tidy_scale(scale) 
+    scale <- check_and_tidy_scale(scale, x_arg = "scale") 
     new_bage_prior_norm(scale = scale)
 }
 
+
+#' Normal prior with fixed standard deviation
+#'
+#' Normal prior where, in contrast to [N()], the
+#' standard deviation is treated as fixed and known.
+#'
+#' The distribution as mean equal to `0` and
+#' standard deviation `sd`, where `sd` is supplied
+#' by the user.
+#'
+#' \deqn{x \sim \text{N}(0, s^2)}
+#'
+#' `NFixed()` is the default prior for the intercept.
+#'
+#' @param sd Standard deviation.
+#' A positive, finite number.
+#' Default is `1`.
+#'
+#' @returns An object of class `bage_prior_normfixed`.
+#' `NFixed()` is usually called within [set_prior()].
+#' Other priors are [N()], [RW()], [RW2()].
+#'
+#' @examples
+#' NFixed()
+#' NFixed(sd = 10) ## prior used for intercept
+#' @export
+NFixed <- function(sd = 1) {
+    scale <- check_and_tidy_scale(sd, x_arg = "sd") 
+    new_bage_prior_normfixed(sd = sd)
+}
+    
 
 ## HAS_TESTS
 #' One-dimensional random walk priors
@@ -158,6 +189,10 @@ N <- function(scale = 1) {
 #' for `scale` lead to smoother series of `x`s, and
 #' higher values lead to rougher series.
 #'
+#' @section Warning:
+#'
+#' **`RW2()` not working correctly at present. Do not use.**
+#'
 #' @param scale A positive, finite number.
 #'
 #' @returns An object of class `bage_prior_rw`
@@ -172,14 +207,14 @@ N <- function(scale = 1) {
 #' RW2()
 #' @export
 RW <- function(scale = 1) {
-    scale <- check_and_tidy_scale(scale)
+    scale <- check_and_tidy_scale(scale, x_arg = "scale")
     new_bage_prior_rw(scale = scale)
 }
 
 #' @export
 #' @rdname RW
 RW2 <- function(scale = 1) {
-    scale <- check_and_tidy_scale(scale)
+    scale <- check_and_tidy_scale(scale, x_arg = "scale")
     new_bage_prior_rw2(scale = scale)
 }
 
@@ -214,7 +249,7 @@ RW2 <- function(scale = 1) {
 new_bage_prior_ar1 <- function(scale, min, max) {
     shape1 <- 2.0
     shape2 <- 2.0
-    ans <- list(i_prior = 4L,
+    ans <- list(i_prior = 5L,
                 const = c(shape1, shape2, min, max, scale),
                 n_hyper = 2L, ## logit_coef, log_sd
                 specific = list(shape1 = shape1,
@@ -247,8 +282,18 @@ new_bage_prior_norm <- function(scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw <- function(scale) {
+new_bage_prior_normfixed <- function(sd) {
     ans <- list(i_prior = 2L,
+                const = sd,
+                n_hyper = 0L, ## log_sd
+                specific = list(sd = sd))
+    class(ans) <- c("bage_prior_normfixed", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_rw <- function(scale) {
+    ans <- list(i_prior = 3L,
                 const = scale,
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
@@ -258,7 +303,7 @@ new_bage_prior_rw <- function(scale) {
 
 ## HAS_TESTS
 new_bage_prior_rw2 <- function(scale) {
-    ans <- list(i_prior = 3L,
+    ans <- list(i_prior = 4L,
                 const = scale,
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))

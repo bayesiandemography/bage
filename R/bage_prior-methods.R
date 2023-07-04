@@ -7,6 +7,8 @@
 
 ## 'draw_vals_hyper' ----------------------------------------------------------
 
+## Still under construction - possibly to be used for simulation
+
 draw_vals_hyper <- function(prior, n_draw) {
   UseMethod("draw_vals_hyper")
 }
@@ -33,6 +35,7 @@ draw_vals_hyper.bage_prior_rw2 <- function(prior, n_draw) {
 
 ## 'draw_vals_par' ------------------------------------------------------------
 
+## Still under construction - possibly to be used for simulation
 
 draw_vals_par <- function(prior, hyper, length_par) {
   UseMethod("draw_vals_par")
@@ -126,7 +129,7 @@ length_parfree.bage_prior_rw <- function(prior, length_par) {
 ## HAS_TESTS
 #' @export
 length_parfree.bage_prior_rw2 <- function(prior, length_par) {
-    length_par - 2L
+    length_par - 2L  ## THIS NEEDS TO BE UPDATED
 }
 
 
@@ -157,6 +160,11 @@ levels_const.bage_prior_known <- function(prior)
 #' @export
 levels_const.bage_prior_norm <- function(prior)
     "scale"
+
+## HAS_TESTS
+#' @export
+levels_const.bage_prior_normfixed <- function(prior)
+    "sd"
 
 ## HAS_TESTS
 #' @export
@@ -196,6 +204,11 @@ levels_hyper.bage_prior_known <- function(prior)
 #' @export
 levels_hyper.bage_prior_norm <- function(prior)
     "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_normfixed <- function(prior)
+    character()
 
 ## HAS_TESTS
 #' @export
@@ -311,6 +324,15 @@ str_call_prior.bage_prior_norm <- function(prior) {
 }
 
 #' @export
+str_call_prior.bage_prior_normfixed <- function(prior) {
+    sd <- prior$specific$sd
+    if (isTRUE(all.equal(sd, 1)))
+        "NFixed()"
+    else
+        sprintf("NFixed(sd=%s)", sd)
+}
+
+#' @export
 str_call_prior.bage_prior_rw <- function(prior) {
     scale <- prior$specific$scale
     if (isTRUE(all.equal(scale, 1)))
@@ -358,6 +380,11 @@ transform_hyper.bage_prior_known <- function(prior)
 #' @export
 transform_hyper.bage_prior_norm <- function(prior)
     list(exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_normfixed <- function(prior)
+    list()
 
 ## HAS_TESTS
 #' @export

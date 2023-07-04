@@ -45,6 +45,12 @@ to 1, but can be set to other values. Lower values
 for \code{scale} lead to smoother series of \code{x}s, and
 higher values lead to rougher series.
 }
+\section{Warning}{
+
+
+\strong{\code{RW2()} not working correctly at present. Do not use.}
+}
+
 \examples{
 RW()
 RW(scale = 0.5)

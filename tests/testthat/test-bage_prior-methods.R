@@ -36,6 +36,10 @@ test_that("'levels_const' works with 'bage_prior_norm'", {
     expect_identical(levels_const(N()), "scale")
 })
 
+test_that("'levels_const' works with 'bage_prior_normfixed'", {
+    expect_identical(levels_const(NFixed()), "sd")
+})
+
 test_that("'levels_const' works with 'bage_prior_rw'", {
     expect_identical(levels_const(RW()), "scale")
 })
@@ -57,6 +61,10 @@ test_that("'levels_hyper' works with 'bage_prior_known'", {
 
 test_that("'levels_hyper' works with 'bage_prior_norm'", {
     expect_identical(levels_hyper(N()), "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_normfixed'", {
+    expect_identical(levels_hyper(NFixed()), character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw'", {
@@ -110,6 +118,11 @@ test_that("'transform_hyper' works with 'bage_prior_known'", {
 test_that("'transform_hyper' works with 'bage_prior_norm'", {
     l <- transform_hyper(N())
     expect_equal(0.35, l[[1]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_normfixed'", {
+    l <- transform_hyper(NFixed())
+    expect_identical(l, list())
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw'", {

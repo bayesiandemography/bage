@@ -20,6 +20,7 @@ Depends:
     R (>= 3.5.0)
 Imports:
     checkmate,
+    cli,
     generics,
     Matrix,
     matrixStats,
@@ -29,7 +30,8 @@ Imports:
     stats,
     tibble,
     tidyselect,
-    TMB
+    TMB,
+    vctrs
 Suggests:
     bookdown,
     covr,

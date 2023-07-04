@@ -30,6 +30,16 @@ Type logpost_norm(vector<Type> parfree,
 }
 
 template <class Type>
+Type logpost_normfixed(vector<Type> parfree,
+  		       vector<Type> hyper,
+		       vector<Type> consts) {
+  Type sd = consts[0];
+  Type ans = 0;
+  ans += dnorm(parfree, Type(0), sd, true).sum();
+  return ans;
+}
+
+template <class Type>
 Type logpost_rw(vector<Type> parfree,
 		vector<Type> hyper,
 		vector<Type> consts) {
@@ -76,12 +86,15 @@ Type logpost(vector<Type> parfree,
     ans = logpost_norm(parfree, hyper, consts);
     break;
   case 2:
-    ans = logpost_rw(parfree, hyper, consts);
+    ans = logpost_normfixed(parfree, hyper, consts);
     break;
   case 3:
-    ans = logpost_rw2(parfree, hyper, consts);
+    ans = logpost_rw(parfree, hyper, consts);
     break;
   case 4:
+    ans = logpost_rw2(parfree, hyper, consts);
+    break;
+  case 5:
     ans = logpost_ar1(parfree, hyper, consts);
     break;
   default:
@@ -120,7 +133,7 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(offset);
   DATA_IVECTOR(is_in_lik);
   DATA_FACTOR(terms_parfree);       
-  DATA_STRUCT(matrices_terms, LIST_SM_t); 
+  DATA_STRUCT(matrices_parfree_outcome, LIST_SM_t); 
   DATA_IVECTOR(i_prior);        
   DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
@@ -141,9 +154,9 @@ Type objective_function<Type>::operator() ()
   vector<Type> linear_pred(n_outcome);
   linear_pred.fill(0);
   for (int i_term = 0; i_term < n_term; i_term++) {
-    SparseMatrix<Type> matrix_term = matrices_terms[i_term];
+    SparseMatrix<Type> matrix_parfree_outcome = matrices_parfree_outcome[i_term];
     vector<Type> parfree_term = parfree_split[i_term];
-    linear_pred = linear_pred + matrix_term * parfree_term;
+    linear_pred = linear_pred + matrix_parfree_outcome * parfree_term;
   }
 
 

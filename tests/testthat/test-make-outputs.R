@@ -1,7 +1,7 @@
 
-## 'components_par', 'components_hyper', 'components_const' -------------------
+## 'components_par', 'components_hyper' ---------------------------------------
 
-test_that("'components_par', 'components_hyper', 'components_const' work with valid data", {
+test_that("'components_par', 'components_hyper' work with valid data", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -19,10 +19,6 @@ test_that("'components_par', 'components_hyper', 'components_const' work with va
     ans_hyper <- components_hyper(mod)
     expect_true(is.data.frame(ans_hyper))
     expect_identical(nrow(ans_hyper), length(mod$est$hyper))
-    ## components_const
-    ans_const <- components_const(mod)
-    expect_true(is.data.frame(ans_const))
-    expect_identical(nrow(ans_const), length(make_const(mod)))
 })
 
 
@@ -70,9 +66,9 @@ test_that("'get_fun_align_to_data' works with 1 dimension, 'data' has all values
 })
 
 
-## 'make_combined_matrix_terms' -----------------------------------------------
+## 'make_combined_matrix_parfree_outcome' -------------------------------------
 
-test_that("'make_combined_matrix_terms' works with valid inputs", {
+test_that("'make_combined_matrix_parfree_outcome' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -81,8 +77,25 @@ test_that("'make_combined_matrix_terms' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_combined_matrix_terms(mod)
+    ans_obtained <- make_combined_matrix_parfree_outcome(mod)
     expect_identical(nrow(ans_obtained), nrow(data))
+    expect_identical(ncol(ans_obtained), length(make_terms_parfree(mod)))
+})
+
+
+## 'make_combined_matrix_parfree_par' -----------------------------------------
+
+test_that("'make_combined_matrix_parfree_par' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + age * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_combined_matrix_parfree_par(mod)
+    expect_identical(nrow(ans_obtained), length(make_terms_par(mod)))
     expect_identical(ncol(ans_obtained), length(make_terms_parfree(mod)))
 })
 
@@ -102,7 +115,7 @@ test_that("'make_draws_linear_pred' works with valid inputs", {
     mod <- set_n_draw(mod, n_draw = 100L)
     set.seed(1)
     linear_pred <- make_draws_linear_pred(mod)
-    m <- make_combined_matrix_terms(mod)
+    m <- make_combined_matrix_parfree_outcome(mod)
     lp_exp <- matrix(nr = length(mod$outcome), nc = mod$n_draw)
     set.seed(1)
     draws_parfree <- make_draws_parfree(mod)
@@ -135,7 +148,27 @@ test_that("'make_draws_fitted' works", {
 })
 
 
-## 'make_draws_parfree' -----------------------------------------------------------
+## 'make_draws_hyper' ---------------------------------------------------------
+
+test_that("'make_draws_hyper' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    mod <- set_n_draw(mod, n_draw = 10000L)
+    set.seed(1)
+    draws <- make_draws_hyper(mod)
+    expect_identical(dim(draws), c(length(make_terms_hyper(mod)), mod$n_draw))
+    expect_equal(unname(rowMeans(draws)), mod$est$hyper, tolerance = 0.1)
+})
+
+
+## 'make_draws_parfree' -------------------------------------------------------
 
 test_that("'make_draws_parfree' works - ordinary priors", {
     set.seed(0)
@@ -148,7 +181,6 @@ test_that("'make_draws_parfree' works - ordinary priors", {
                     exposure = popn)
     mod <- fit(mod)
     mod <- set_n_draw(mod, n_draw = 10000L)
-    ## 'make_draws_parfree'
     set.seed(1)
     draws <- make_draws_parfree(mod)
     expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
@@ -175,21 +207,21 @@ test_that("'make_draws_parfree' works - has Known priors", {
 })
 
 
-## 'make_observed' ------------------------------------------------------------
+## 'make_levels_hyper' ----------------------------------------------------------
 
-test_that("'make_observed' works", {
+test_that("'make_levels_hyper' works", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
+    formula <- deaths ~ age * sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_observed(mod)
-    align_fun <- get_fun_align_to_data(mod)
-    ans_expected <- align_fun(as.double(mod$outcome / mod$offset))
-    expect_equal(ans_obtained, ans_expected)
+    mod <- fit(mod)
+    ans_obtained <- make_levels_hyper(mod)
+    ans_expected <- c("sd", "sd", "sd", "sd")
+    expect_identical(ans_obtained, ans_expected)                      
 })
 
 
@@ -257,6 +289,24 @@ test_that("'make_levels_par' works with valid inputs - norm", {
                             rep(c("F", "M"), each = 10),
                             sep = "."))
     expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_observed' ------------------------------------------------------------
+
+test_that("'make_observed' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_observed(mod)
+    align_fun <- get_fun_align_to_data(mod)
+    ans_expected <- align_fun(as.double(mod$outcome / mod$offset))
+    expect_equal(ans_obtained, ans_expected)
 })
 
 
