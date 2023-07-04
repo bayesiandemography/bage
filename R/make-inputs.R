@@ -12,7 +12,7 @@
 default_prior <- function(nm_term, scale, var_age, var_time) {
     mult_intercept <- 10
     if (nm_term == "(Intercept)")
-        N(scale = mult_intercept * scale)
+        NFixed(sd = mult_intercept * scale)
     else if (nm_term %in% c(var_age, var_time))
         RW(scale = scale)
     else
@@ -435,7 +435,7 @@ make_matrices_par_vec <- function(formula, data) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_parfree <- function(mod) {
+make_matrices_parfree_par <- function(mod) {
     matrices_par <- mod$matrices_par
     priors <- mod$priors
     lengths_par <- vapply(matrices_par, ncol, 1L)
@@ -460,9 +460,9 @@ make_matrices_parfree <- function(mod) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_terms <- function(mod) {
+make_matrices_parfree_outcome <- function(mod) {
     matrices_par <- mod$matrices_par
-    matrices_parfree <- make_matrices_parfree(mod)
+    matrices_parfree <- make_matrices_parfree_par(mod)
     ans <- .mapply("%*%",
                    dots = list(x = matrices_par,
                                y = matrices_parfree),

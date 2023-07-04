@@ -14,7 +14,7 @@ test_that("'default_prior' works with intercept", {
                                    scale = 2,
                                    var_age = "age",
                                    var_time = "time"),
-                     N(scale = 20))
+                     NFixed(sd = 20))
 })
 
 test_that("'default_prior' works with age term", {
@@ -156,7 +156,7 @@ test_that("'make_hyper' works with valid inputs", {
 test_that("'make_i_prior' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_i_prior(mod)
-    ans_expected <- c(a = 1L, b = 2L, c = 1L)
+    ans_expected <- c(a = 1L, b = 3L, c = 1L)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -422,9 +422,9 @@ test_that("'make_matrix_par_array' creates sparse matrix", {
 })
 
 
-## 'make_matrices_parfree' ----------------------------------------------------
+## 'make_matrices_parfree_par' ------------------------------------------------
 
-test_that("'make_matrices_parfree' works with valid inputs", {
+test_that("'make_matrices_parfree_par' works with valid inputs", {
     set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -433,16 +433,16 @@ test_that("'make_matrices_parfree' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans <- make_matrices_parfree(mod)
+    ans <- make_matrices_parfree_par(mod)
     expect_identical(names(ans), c("(Intercept)", "age", "sex", "time"))
     expect_identical(sapply(unname(ans), ncol), c(1L, 9L, 2L, 5L))
     expect_identical(sapply(unname(ans), nrow), c(1L, 10L, 2L, 6L))
 })
 
 
-## 'make_matrices_terms' ----------------------------------------------------
+## 'make_matrices_parfree_outcome' --------------------------------------------
 
-test_that("'make_matrices_terms' works with valid inputs", {
+test_that("'make_matrices_parfree_outcome' works with valid inputs", {
     set.seed(0)    
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -451,7 +451,7 @@ test_that("'make_matrices_terms' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans <- make_matrices_terms(mod)
+    ans <- make_matrices_parfree_outcome(mod)
     expect_identical(names(ans), c("(Intercept)", "age", "sex", "time"))
     expect_identical(sapply(unname(ans), ncol), c(1L, 9L, 2L, 5L))
     expect_identical(sapply(unname(ans), nrow), rep(length(mod$outcome), 4L))
@@ -465,7 +465,7 @@ test_that("'make_priors' works with valid inputs - has intercept, scale = 1", {
     ans_obtained <- make_priors(formula,
                                 scale = 1, var_age = "age",
                                 var_time = "time")
-    ans_expected <- list("(Intercept)" = N(scale = 10),
+    ans_expected <- list("(Intercept)" = NFixed(sd = 10),
                          time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
@@ -488,7 +488,7 @@ test_that("'make_priors' works with valid inputs - has intercept, scale = 2", {
                                 scale = 2,
                                 var_age = "age",
                                 var_time = "time")
-    ans_expected <- list("(Intercept)" = N(scale = 20),
+    ans_expected <- list("(Intercept)" = NFixed(sd = 20),
                          region = N(scale = 2),
                          "age:sex" = N(scale = 2))
     expect_identical(ans_obtained, ans_expected)

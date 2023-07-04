@@ -20,12 +20,10 @@ Extract components from a fitted object
 of class \code{bage_mod}.
 }
 \details{
-There are three types of component:
+There are two types of component:
 \itemize{
 \item \code{"par"} Intercept, main effects, and interactions.
 \item \code{"hyper"} Hyper-parameters from priors for intercept,
-main effects, and interactions.
-\item \code{"const"} Constants from priors for intercept,
 main effects, and interactions.
 }
 
@@ -33,9 +31,8 @@ For each component, \code{components()} returns three things:
 \itemize{
 \item \code{term} Name of the intercept, main effect, or interaction
 \item \code{level} Element of term
-\item \code{value} For \code{"par"} and \code{"hyper"}, a point estimate
-(the posterior median); for \code{"const"}, a fixed value
-used by the prior.
+\item \code{value} An \link[rvec:rvec]{rvec} containing
+draws from the posterior distribution.
 }
 }
 \examples{

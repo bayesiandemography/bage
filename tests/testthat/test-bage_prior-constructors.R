@@ -20,6 +20,10 @@ test_that("'N' works with valid inputs", {
     expect_identical(N(), new_bage_prior_norm(scale = 1))
 })
 
+test_that("'NFixed' works with valid inputs", {
+    expect_identical(NFixed(), new_bage_prior_normfixed(sd = 1))
+})
+
 test_that("'RW' works with valid inputs", {
     expect_identical(RW(), new_bage_prior_rw(scale = 1))
 })
@@ -35,7 +39,7 @@ test_that("'new_bage_prior_ar1' works", {
     obj <- new_bage_prior_ar1(min = 0.8, max = 0.98, scale = 1.0)
     expect_s3_class(obj, "bage_prior_ar1")
     expect_s3_class(obj, "bage_prior")
-    expect_identical(obj$i_prior, 4L)
+    expect_identical(obj$i_prior, 5L)
     expect_identical(obj$const, c(2, 2, 0.8, 0.98, 1))
     expect_identical(obj$n_hyper, 2L)
     expect_identical(obj$specific, list(shape1 = 2,
@@ -65,11 +69,21 @@ test_that("'new_bage_prior_norm' works", {
     expect_identical(obj$specific, list(scale = 1))
 })
 
+test_that("'new_bage_prior_normfixed' works", {
+    obj <- new_bage_prior_normfixed(sd = 1)
+    expect_s3_class(obj, "bage_prior_normfixed")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 2L)
+    expect_identical(obj$const, 1.0)
+    expect_identical(obj$n_hyper, 0L)
+    expect_identical(obj$specific, list(sd = 1))
+})
+
 test_that("'new_bage_prior_rw' works", {
     obj <- new_bage_prior_rw(scale = 1)
     expect_s3_class(obj, "bage_prior_rw")
     expect_s3_class(obj, "bage_prior")
-    expect_identical(obj$i_prior, 2L)
+    expect_identical(obj$i_prior, 3L)
     expect_identical(obj$const, 1.0)
     expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))
@@ -79,7 +93,7 @@ test_that("'new_bage_prior_rw2' works", {
     obj <- new_bage_prior_rw2(scale = 1)
     expect_s3_class(obj, "bage_prior_rw2")
     expect_s3_class(obj, "bage_prior")
-    expect_identical(obj$i_prior, 3L)
+    expect_identical(obj$i_prior, 4L)
     expect_identical(obj$const, 1.0)
     expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))

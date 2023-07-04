@@ -1,26 +1,32 @@
 
-## HAS_TESTS
-#' Check and tidy scale
+## NO_TESTS
+#' Check and tidy a scale term
 #'
-#' Check that 'scale' is a positive
-#' finite number, and coerce to double.
+#' Check that `x` is a positive
+#' finite scalar, and coerce to double.
 #'
-#' @param scale A number
+#' @param x A positive number.
+#' @param x_arg Name for `x` to be
+#' used in error messages.
 #'
-#' @return The parameter, as a double.
+#' @return `x`, coerced to double.
 #'
 #' @noRd
-check_and_tidy_scale <- function(scale) {
-    checkmate::assert_number(scale,
-                             lower = 0,
-                             finite = TRUE)
-    scale <- as.double(scale)
-    if (isTRUE(all.equal(scale, 0)))
-        stop(gettextf("'%s' equals %d",
-                      "scale",
-                      0L),
-             call. = FALSE)
-    scale
+check_and_tidy_scale <- function(x, x_arg) {
+    if (!is.numeric(x))
+        cli::cli_abort(c("{.arg {x_arg}} is non-numeric.",
+                         i = "{.arg {x_arg}} has class {.cls {class(x)}}."))
+    if (length(x) != 1L)
+        cli::cli_abort(c("{.arg {x_arg}} does not have length 1.",
+                         i = "{.arg {x_arg}} has length {length(x)}."))
+    if (is.na(x))
+        cli::cli_abort("{.arg {x_arg}} is NA.")
+    if (is.infinite(x))
+        cli::cli_abort("{.arg {x_arg}} is infinite.")
+    if (x <= 0)
+        cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
+                         i = "{.arg {x_arg}} equals {x}."))
+    as.double(x)
 }
 
 

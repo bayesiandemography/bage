@@ -1,30 +1,4 @@
 
-## 'components_const' -----------------------------------------------------------
-
-## HAS_TESTS
-#' Create data frame holding constants
-#'
-#' Helper function for 'components'
-#'
-#' @param mod A fitted 'bage_mod' object
-#'
-#' @returns A tibble
-#'
-#' @noRd
-components_const <- function(mod) {
-    priors <- mod$priors
-    const <- make_const(mod)
-    terms <- make_terms_const(mod)
-    levels <- lapply(priors, levels_const)
-    levels <- unlist(levels, use.names = FALSE)
-    terms <- as.character(terms)
-    tibble::tibble(component = "const",
-                   term = terms,
-                   level = levels,
-                   value = const)
-}
-
-
 ## 'components_hyper' -----------------------------------------------------------
 
 ## HAS_TESTS
@@ -38,21 +12,15 @@ components_const <- function(mod) {
 #'
 #' @noRd
 components_hyper <- function(mod) {
-    hyper_trans <- mod$est$hyper
-    priors <- mod$priors
-    terms <- make_terms_hyper(mod)
-    transforms <- lapply(priors, transform_hyper)
-    transforms <- unlist(transforms)
-    hyper <- double(length = length(hyper_trans))
-    for (i in seq_along(hyper))
-        hyper[[i]] <- transforms[[i]](hyper_trans[[i]])
-    levels <- lapply(priors, levels_hyper)
-    levels <- unlist(levels, use.names = FALSE)
-    terms <- as.character(terms)
+    term <- make_terms_hyper(mod)
+    term <- as.character(term)
+    level <- make_levels_hyper(mod)
+    value <- make_draws_hyper(mod)
+    value <- rvec::rvec_dbl(value)
     tibble::tibble(component = "hyper",
-                   term = terms,
-                   level = levels,
-                   value = hyper)
+                   term = term,
+                   level = level,
+                   value = value)
 }
 
 
@@ -69,23 +37,18 @@ components_hyper <- function(mod) {
 #'
 #' @noRd
 components_par <- function(mod) {
-    parfree <- mod$est$parfree
-    matrices_parfree <- make_matrices_parfree(mod)
-    terms_parfree <- make_terms_parfree(mod)
-    parfree <- split(parfree, terms_parfree)
-    par <- .mapply("%*%",
-                  dots = list(x = matrices_parfree,
-                              y = parfree),
-                  MoreArgs = list())
-    par <- lapply(par, as.numeric)
-    par <- unlist(par)
-    terms_par <- make_terms_par(mod)
-    levels_par <- make_levels_par(mod)
-    terms_par <- as.character(terms_par)
+    term <- make_terms_par(mod)
+    term <- as.character(term)    
+    level <- make_levels_par(mod)
+    draws_parfree <- make_draws_parfree(mod)
+    matrix_parfree_par <- make_combined_matrix_parfree_par(mod)
+    value <- matrix_parfree_par %*% draws_parfree
+    value <- matrix(as.double(value), nrow = nrow(value))
+    value <- rvec::rvec_dbl(value)
     tibble::tibble(component = "par",
-                   term = terms_par,
-                   level = levels_par,
-                   value = par)
+                   term = term,
+                   level = level,
+                   value = value)
 }
 
 
@@ -139,9 +102,9 @@ get_fun_align_to_data <- function(mod) {
 
 
 ## HAS_TESTS
-#' Combine map matrices for individual terms
+#' Create combined matrix from parfree to outcome
 #'
-#' Combine map matrices for individual terms to
+#' Combine matrices for individual terms to
 #' create a matrix that maps all elements of
 #' 'parfree' to 'outcome'.
 #'
@@ -150,9 +113,27 @@ get_fun_align_to_data <- function(mod) {
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_combined_matrix_terms <- function(mod) {
-    matrices_terms <- make_matrices_terms(mod)
-    Reduce(Matrix::cbind2, matrices_terms)
+make_combined_matrix_parfree_outcome <- function(mod) {
+    matrices_parfree_outcome <- make_matrices_parfree_outcome(mod)
+    Reduce(Matrix::cbind2, matrices_parfree_outcome)
+}
+
+
+## HAS_TESTS
+#' Create combined matrix from parfree to par
+#'
+#' Combine  matrices for individual terms to
+#' create a matrix that maps all elements of
+#' 'parfree' to 'par'.
+#'
+#' @param An object of class 'bage_mod'
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_combined_matrix_parfree_par <- function(mod) {
+    matrices_parfree_par <- make_matrices_parfree_par(mod)
+    Matrix::.bdiag(matrices_parfree_par)
 }
 
 
@@ -167,8 +148,8 @@ make_combined_matrix_terms <- function(mod) {
 #' @noRd
 make_draws_linear_pred <- function(mod) {
     draws_parfree <- make_draws_parfree(mod)
-    matrix_terms <- make_combined_matrix_terms(mod)
-    ans <- matrix_terms %*% draws_parfree
+    matrix_parfree_outcome <- make_combined_matrix_parfree_outcome(mod)
+    ans <- matrix_parfree_outcome %*% draws_parfree
     ans <- matrix(as.double(ans), nrow = nrow(ans))
     ans
 }
@@ -195,9 +176,44 @@ make_draws_fitted <- function(mod) {
 
 ## HAS_TESTS
 #' Make draws from posterior distribution
-#' of vector of all terms combined
+#' of hyperparameters
 #'
-#' Make draws of intercept, main effects,
+#' Make draws of hyperparameters
+#' of priors for main effects and interactions.
+#' Number of draws governed by 'n_draw'.
+#'
+#' @param mod A fitted object of class 'bage_mod'.
+#'
+#' @returns A matrix with 'n_draw' columns.
+#'
+#' @noRd
+make_draws_hyper <- function(mod) {
+    mean_hyper <- mod$est$hyper
+    prec_all <- mod$prec ## includes par, hyper
+    n_draw <- mod$n_draw
+    terms_hyper <- make_terms_hyper(mod)
+    n_hyper <- length(mean_hyper)
+    n_all <- nrow(prec_all)
+    s_hyper <- seq.int(to = n_all, length.out = n_hyper)
+    V1 <- prec_all[s_hyper, s_hyper, drop = FALSE]
+    V2 <- prec_all[-s_hyper, -s_hyper, drop = FALSE]
+    R <- prec_all[-s_hyper, s_hyper, drop = FALSE]
+    prec_hyper <- V1 - Matrix::crossprod(R, Matrix::solve(V2, R))
+    ans <- rmvn(n = n_draw,
+                mean = mean_hyper,
+                prec = prec_hyper)
+    dimnames(ans) <- list(term = terms_hyper,
+                          draw = seq_len(n_draw))
+    ans
+}
+
+
+## HAS_TESTS
+#' Make draws from posterior distribution
+#' of vector of all free parameters combined
+#'
+#' Make draws of free parameters for
+#' intercept, main effects,
 #' and interactions, but not hyper-parameters.
 #' Number of draws governed by 'n_draw'.
 #'
@@ -213,6 +229,10 @@ make_draws_parfree <- function(mod) {
     priors <- mod$priors
     terms_parfree <- make_terms_parfree(mod)
     is_known <- vapply(priors, is_known, FALSE)
+    ## draw from multivariate normal, which is
+    ## complicated because we have a precision
+    ## matrix, not a variance matrix
+    ## https://www.apps.stat.vt.edu/leman/VTCourses/Precision.pdf
     mean_parfree <- split(mean_parfree, terms_parfree)
     mean_parfree_unknown <- mean_parfree[!is_known]
     mean_parfree_unknown <- unlist(mean_parfree_unknown, use.names = FALSE)
@@ -225,6 +245,7 @@ make_draws_parfree <- function(mod) {
     ans <- rmvn(n = n_draw,
                 mean = mean_parfree_unknown,
                 prec = prec_parfree_unknown)
+    ## insert any known values
     if (any(is_known)) {
         parfree_known <- unlist(mean_parfree[is_known], use.names = FALSE)
         ans_known <- matrix(parfree_known,
@@ -240,8 +261,27 @@ make_draws_parfree <- function(mod) {
         row <- match(i_target, i_current)
         ans <- ans[row, ]
     }
+    ## add dimnames and return
     dimnames(ans) <- list(term = terms_parfree,
                           draw = seq_len(n_draw))
+    ans
+}
+
+
+## HAS_TESTS
+#' Make levels associated with each element of 'hyper'
+#'
+#' Make levels for hyperparameters for each term
+#'
+#' @param mod A fitted object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_hyper <- function(mod) {
+    priors <- mod$priors
+    ans <- lapply(priors, levels_hyper)
+    ans <- unlist(ans, use.names = FALSE)
     ans
 }
 
