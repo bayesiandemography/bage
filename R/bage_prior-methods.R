@@ -26,7 +26,9 @@ draw_vals_hyper.bage_prior_rw <- function(prior, n_draw) {
 }
 
 draw_vals_hyper.bage_prior_rw2 <- function(prior, n_draw) {
+    sd_slope <- prior@sd
     scale <- prior$scale
+    slope <- stats::rnorm(n = n_draw, sd = sd_slope)
     sd <- abs(stats::rnorm(n = n_draw, sd = scale))
     list(sd = sd)
 }
@@ -52,6 +54,7 @@ draw_vals_par.bage_prior_norm <- function(prior, hyper, length_par) {
 draw_vals_par.bage_prior_rw <- function(prior, hyper, length_par) {
     sd <- hyper$sd
     n_draw <- length(sd)
+    ## better to use matrices
     diff <- matrix(stats::rnorm(n = (length_par - 1L) * n_draw, sd = sd),
                    nrow = length_par - 1L,
                    ncol = n_draw)
@@ -64,6 +67,7 @@ draw_vals_par.bage_prior_rw <- function(prior, hyper, length_par) {
 draw_vals_par.bage_prior_rw2 <- function(prior, hyper, length_par) {
     sd <- hyper$sd
     n_draw <- length(sd)
+    ## better to use matrices
     diff2 <- matrix(stats::rnorm(n = (length_par - 2L) * n_draw, sd = sd),
                    nrow = length_par - 2L,
                    ncol = n_draw)
@@ -71,6 +75,7 @@ draw_vals_par.bage_prior_rw2 <- function(prior, hyper, length_par) {
                   matrixStats::colCumsums(diff2))
     ans <- rbind(rep(0, times = n_draw),
                  matrixStats::colCumsums(diff))
+    ## also need slope
     ans <- scale(ans, center = TRUE, scale = FALSE)
     ans
 }
@@ -129,7 +134,7 @@ length_parfree.bage_prior_rw <- function(prior, length_par) {
 ## HAS_TESTS
 #' @export
 length_parfree.bage_prior_rw2 <- function(prior, length_par) {
-    length_par - 2L  ## THIS NEEDS TO BE UPDATED
+    length_par - 1L
 }
 
 
@@ -174,7 +179,7 @@ levels_const.bage_prior_rw <- function(prior)
 ## HAS_TESTS
 #' @export
 levels_const.bage_prior_rw2 <- function(prior)
-    "scale"
+    c("sd", "scale")
 
 
 ## 'levels_hyper' -------------------------------------------------------------
@@ -258,10 +263,16 @@ make_matrix_parfree.bage_prior_rw <- function(prior, length_par) {
 ## HAS_TESTS
 #' @export
 make_matrix_parfree.bage_prior_rw2 <- function(prior, length_par) {
+    ## linear
+    linear <- (-1 * (length_par + 1) / (length_par - 1)
+        + (2 / (length_par - 1)) * seq_len(length_par))
+    ## diff
     D <- make_m_diff(length_par - 1L) %*% make_m_diff(length_par)
     DD <- Matrix::tcrossprod(D)
     DD_inv <- Matrix::solve(DD)
-    Matrix::crossprod(D, DD_inv)
+    diff <- Matrix::crossprod(D, DD_inv)
+    ## combine
+    cbind(linear, diff, deparse.level = 0)
 }
 
 
@@ -282,6 +293,7 @@ str_call_prior <- function(prior) {
     UseMethod("str_call_prior")
 }
 
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_ar1 <- function(prior) {
     min <- prior$specific$min
@@ -299,7 +311,7 @@ str_call_prior.bage_prior_ar1 <- function(prior) {
     sprintf("AR1(%s)", args)
 }
 
-
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_known <- function(prior) {
     values <- values_known(prior)
@@ -313,7 +325,7 @@ str_call_prior.bage_prior_known <- function(prior) {
     sprintf("Known(%s)", inner)
 }
 
-
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_norm <- function(prior) {
     scale <- prior$specific$scale
@@ -323,6 +335,7 @@ str_call_prior.bage_prior_norm <- function(prior) {
         sprintf("N(scale=%s)", scale)
 }
 
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_normfixed <- function(prior) {
     sd <- prior$specific$sd
@@ -332,6 +345,7 @@ str_call_prior.bage_prior_normfixed <- function(prior) {
         sprintf("NFixed(sd=%s)", sd)
 }
 
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw <- function(prior) {
     scale <- prior$specific$scale
@@ -341,13 +355,19 @@ str_call_prior.bage_prior_rw <- function(prior) {
         sprintf("RW(scale=%s)", scale)
 }
 
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2 <- function(prior) {
+    sd <- prior$specific$sd
     scale <- prior$specific$scale
-    if (isTRUE(all.equal(scale, 1)))
-        "RW2()"
-    else
-        sprintf("RW2(scale=%s)", scale)
+    args <- character(2)
+    if (sd != 1)
+        args[[1L]] <- sprintf("sd=%s", sd)
+    if (scale != 1)
+        args[[2L]] <- sprintf("scale=%s", scale)
+    args <- args[nzchar(args)]
+    args <- paste(args, collapse = ", ")
+    sprintf("RW2(%s)", args)
 }
 
 

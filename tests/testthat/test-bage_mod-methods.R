@@ -63,6 +63,7 @@ test_that("'fit' works with valid inputs - pois has exposure", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = 1)
+    mod <- set_prior(mod, age ~ RW2())
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })

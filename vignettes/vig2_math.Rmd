@@ -1053,8 +1053,11 @@ Using the approximation $\psi(x) \approx \log x - \frac{1}{2}x$, the second term
 \frac{1}{2} \log \frac{v_1}{v_0} +  \mu (1 - \mu) v_1 (v_1 - v_0)
 \end{equation}
 
+## Changes 
 
-What next??
+- NFixed prior
+- scale outcome in normal models, and use s = 1 for everything?
+
 
 # References
 
