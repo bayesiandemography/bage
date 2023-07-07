@@ -13,12 +13,12 @@ test_that("'length_parfree' works with 'bage_prior_norm'", {
     expect_identical(length_parfree(N(), 10L), 10L)
 })
 
-test_that("'length_parfree' works with 'bage_prior_norm'", {
+test_that("'length_parfree' works with 'bage_prior_rw'", {
     expect_identical(length_parfree(RW(), 10L), 9L)
 })
 
-test_that("'length_parfree' works with 'bage_prior_norm'", {
-    expect_identical(length_parfree(RW2(), 10L), 8L)
+test_that("'length_parfree' works with 'bage_prior_rw2'", {
+    expect_identical(length_parfree(RW2(), 10L), 9L)
 })
 
 
@@ -45,7 +45,7 @@ test_that("'levels_const' works with 'bage_prior_rw'", {
 })
 
 test_that("'levels_const' works with 'bage_prior_rw2'", {
-    expect_identical(levels_const(RW2()), "scale")
+    expect_identical(levels_const(RW2()), c("sd", "scale"))
 })
 
 
@@ -93,12 +93,52 @@ test_that("'make_matrix_parfree' works with 'bage_prior_rw'", {
 test_that("'make_matrix_parfree' works with 'bage_prior_rw2'", {
     set.seed(0)
     m <- make_matrix_parfree(RW2(), length_par = 6)
-    expect_identical(dim(m), c(6L, 4L))
-    x <- rnorm(4)
-    expect_equal(diff(as.numeric(m %*% x), differences = 2), x)
+    expect_identical(dim(m), c(6L, 5L))
+    x <- rnorm(5)
     expect_equal(sum(m %*% x), 0)
-    expect_false(sum(diff(as.numeric(m %*% x))) == 0)
 })
+
+
+## 'str_call_prior' -----------------------------------------------------------
+
+test_that("'str_call_prior' works with bage_prior_ar1", {
+    expect_identical(str_call_prior(AR1()), "AR1()")
+    expect_identical(str_call_prior(AR1(min = 0.5)), "AR1(min=0.5)")
+    expect_identical(str_call_prior(AR1(max = 0.95)), "AR1(max=0.95)")
+    expect_identical(str_call_prior(AR1(scale = 0.3)), "AR1(scale=0.3)")
+    expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, scale = 0.3)),
+                     "AR1(min=0.5, max=0.95, scale=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_ar1", {
+    expect_identical(str_call_prior(Known(1)), "Known(1)")
+    expect_identical(str_call_prior(Known(c(2, 3, -2, 0))),
+                                    "Known(c(2,3,-2,0))")
+    expect_identical(str_call_prior(Known(c(2, 3, -2, 0,7, 3))),
+                                    "Known(c(2,...,3))")
+})
+
+test_that("'str_call_prior' works with bage_prior_norm", {
+    expect_identical(str_call_prior(N()), "N()")
+    expect_identical(str_call_prior(N(scale = 0.95)), "N(scale=0.95)")
+})
+
+test_that("'str_call_prior' works with bage_prior_normfixed", {
+    expect_identical(str_call_prior(NFixed()), "NFixed()")
+    expect_identical(str_call_prior(NFixed(sd = 0.95)), "NFixed(sd=0.95)")
+})
+
+test_that("'str_call_prior' works with bage_prior_rw", {
+    expect_identical(str_call_prior(RW()), "RW()")
+    expect_identical(str_call_prior(RW(scale = 0.95)), "RW(scale=0.95)")
+})
+
+test_that("'str_call_prior' works with bage_prior_rw", {
+    expect_identical(str_call_prior(RW2()), "RW2()")
+    expect_identical(str_call_prior(RW2(sd = 0.95)), "RW2(sd=0.95)")
+    expect_identical(str_call_prior(RW2(scale = 0.95)), "RW2(scale=0.95)")
+    expect_identical(str_call_prior(RW2(sd = 0.3, scale = 0.95)), "RW2(sd=0.3, scale=0.95)")
+})    
 
 
 ## transform_hyper ------------------------------------------------------------

@@ -142,7 +142,8 @@ set_prior <- function(mod, formula) {
 #' @seealso
 #' - [set_var_sexgender()] sets the sex or gender variable
 #' - [set_var_time()] sets the time variable
-#' - internally, `bage` uses [find_age()] to locate age variables
+#' - internally, `bage` uses [poputils::find_var_age()]
+#'   to locate age variables
 #' 
 #' @examples
 #' ## rename 'age' variable to something unusual
@@ -196,9 +197,12 @@ set_var_age <- function(mod, name) {
 #' @seealso
 #' - [set_var_age()] sets the age variable
 #' - [set_var_time()] sets the time variable
-#' - internally, `bage` uses [find_sexgender()] to locate sex or gender variables
-#' - internally, `bage` uses [find_female()] to locate female categories within a sex or gender variable
-#' - internally, `bage` uses [find_male()] to locate male categories within a sex or gender variable
+#' - internally, `bage` uses [poputils::find_var_sexgender()]
+#'   to locate sex or gender variables
+#' - internally, `bage` uses [poputils::find_label_female()]
+#'   to locate female categories within a sex or gender variable
+#' - internally, `bage` uses [poputils::find_label_male()]
+#'   to locate male categories within a sex or gender variable
 #' 
 #' @examples
 #' ## rename 'sex' variable to something unexpected
@@ -256,7 +260,8 @@ set_var_sexgender <- function(mod, name) {
 #' @seealso
 #' - [set_var_age()] sets the age variable
 #' - [set_var_sexgender()] sets the sex or gender
-#' - internally, `bage` uses [find_time()] to locate time variables
+#' - internally, `bage` uses [poputils::find_var_time()]
+#'   to locate time variables
 #'
 #' @examples
 #' ## rename time variable to something unusual

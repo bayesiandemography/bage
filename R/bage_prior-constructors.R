@@ -172,8 +172,10 @@ NFixed <- function(sd = 1) {
 #'
 #' With `RW2()`, increments in increments
 #' are normally distributed,
-#' #'
+#' 
 #' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, s^2)}
+#'
+#' In addition, there is a linear term TODO - EXPLAIN.
 #' 
 #' In both cases, standard deviation `s` is drawn from a
 #' half-normal distribution,
@@ -189,11 +191,8 @@ NFixed <- function(sd = 1) {
 #' for `scale` lead to smoother series of `x`s, and
 #' higher values lead to rougher series.
 #'
-#' @section Warning:
-#'
-#' **`RW2()` not working correctly at present. Do not use.**
-#'
 #' @param scale A positive, finite number.
+#' @param sd A positive, finite number.
 #'
 #' @returns An object of class `bage_prior_rw`
 #' or `bage_prior_rw2`.
@@ -213,9 +212,11 @@ RW <- function(scale = 1) {
 
 #' @export
 #' @rdname RW
-RW2 <- function(scale = 1) {
+RW2 <- function(sd = 1, scale = 1) {
+    sd  <- check_and_tidy_scale(sd, x_arg = "sd")
     scale <- check_and_tidy_scale(scale, x_arg = "scale")
-    new_bage_prior_rw2(scale = scale)
+    new_bage_prior_rw2(sd = sd,
+                       scale = scale)
 }
 
 
@@ -302,19 +303,14 @@ new_bage_prior_rw <- function(scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale) {
+new_bage_prior_rw2 <- function(sd, scale) {
     ans <- list(i_prior = 4L,
-                const = scale,
+                const = c(sd, scale),
                 n_hyper = 1L, ## log_sd
-                specific = list(scale = scale))
+                specific = list(sd = sd, scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
-
-
-                
-    
-
 
 
 ## Validators -----------------------------------------------------------------

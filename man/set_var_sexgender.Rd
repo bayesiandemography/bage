@@ -50,8 +50,11 @@ mod |>
 \itemize{
 \item \code{\link[=set_var_age]{set_var_age()}} sets the age variable
 \item \code{\link[=set_var_time]{set_var_time()}} sets the time variable
-\item internally, \code{bage} uses \code{\link[=find_sexgender]{find_sexgender()}} to locate sex or gender variables
-\item internally, \code{bage} uses \code{\link[=find_female]{find_female()}} to locate female categories within a sex or gender variable
-\item internally, \code{bage} uses \code{\link[=find_male]{find_male()}} to locate male categories within a sex or gender variable
+\item internally, \code{bage} uses \code{\link[poputils:find_var_sexgender]{poputils::find_var_sexgender()}}
+to locate sex or gender variables
+\item internally, \code{bage} uses \code{\link[poputils:find_label_female]{poputils::find_label_female()}}
+to locate female categories within a sex or gender variable
+\item internally, \code{bage} uses \code{\link[poputils:find_label_male]{poputils::find_label_male()}}
+to locate male categories within a sex or gender variable
 }
 }

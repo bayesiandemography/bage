@@ -38,7 +38,7 @@ infer_var_age <- function(formula) {
         return(NULL)
     factors <- factors[-1L, , drop = FALSE]
     nms <- rownames(factors)
-    find_age(nms)
+    poputils::find_var_age(nms)
 }
 
 
@@ -60,7 +60,7 @@ infer_var_sexgender <- function(formula) {
         return(NULL)
     factors <- factors[-1L, , drop = FALSE]
     nms <- rownames(factors)
-    find_sexgender(nms)
+    poputils::find_var_sexgender(nms)
 }
 
 
@@ -82,7 +82,7 @@ infer_var_time <- function(formula) {
         return(NULL)
     factors <- factors[-1L, , drop = FALSE]
     nms <- rownames(factors)
-    find_time(nms)
+    poputils::find_var_time(nms)
 }
 
 

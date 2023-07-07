@@ -50,7 +50,16 @@ template <class Type>
 Type logpost_rw2(vector<Type> parfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
-  return logpost_norm(parfree, hyper, consts);
+  Type sd_slope = consts[0];
+  Type scale = consts[1];
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dnorm(parfree[0], Type(0), sd_slope, true);
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i = 1; i < parfree.size(); i++)
+    ans += dnorm(parfree[i], Type(0), sd, true);
+  return ans;
 }
 
 template <class Type>

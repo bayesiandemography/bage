@@ -7,10 +7,12 @@
 \usage{
 RW(scale = 1)
 
-RW2(scale = 1)
+RW2(sd = 1, scale = 1)
 }
 \arguments{
 \item{scale}{A positive, finite number.}
+
+\item{sd}{A positive, finite number.}
 }
 \value{
 An object of class \code{bage_prior_rw}
@@ -28,8 +30,10 @@ With \code{RW()}, increments between neighbouring
 
 With \code{RW2()}, increments in increments
 are normally distributed,
-#'
+
 \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, s^2)}
+
+In addition, there is a linear term TODO - EXPLAIN.
 
 In both cases, standard deviation \code{s} is drawn from a
 half-normal distribution,
@@ -45,12 +49,6 @@ to 1, but can be set to other values. Lower values
 for \code{scale} lead to smoother series of \code{x}s, and
 higher values lead to rougher series.
 }
-\section{Warning}{
-
-
-\strong{\code{RW2()} not working correctly at present. Do not use.}
-}
-
 \examples{
 RW()
 RW(scale = 0.5)
