@@ -26,13 +26,10 @@ draw_vals_hyper.bage_prior_rw <- function(prior, n_draw) {
 }
 
 draw_vals_hyper.bage_prior_rw2 <- function(prior, n_draw) {
-    sd_slope <- prior@sd
     scale <- prior$scale
-    slope <- stats::rnorm(n = n_draw, sd = sd_slope)
     sd <- abs(stats::rnorm(n = n_draw, sd = scale))
     list(sd = sd)
 }
-
 
 
 ## 'draw_vals_par' ------------------------------------------------------------
@@ -104,40 +101,6 @@ is_known.bage_prior <- function(prior) FALSE
 is_known.bage_prior_known <- function(prior) TRUE
 
 
-## 'length_parfree' -----------------------------------------------------------
-
-#' Length of vector with free parameters for main effect,
-#' interaction, or intercept
-#'
-#' @param prior An object of class 'bage_prior'.
-#' @param length_par Length of main effect, interaction, or intercept
-#'
-#' @returns An integer
-#'
-#' @noRd
-length_parfree <- function(prior, length_par) {
-    UseMethod("length_parfree")
-}
-
-## HAS_TESTS
-#' @export
-length_parfree.bage_prior <- function(prior, length_par) {
-    length_par
-}
-
-## HAS_TESTS
-#' @export
-length_parfree.bage_prior_rw <- function(prior, length_par) {
-    length_par - 1L
-}
-
-## HAS_TESTS
-#' @export
-length_parfree.bage_prior_rw2 <- function(prior, length_par) {
-    length_par - 1L
-}
-
-
 ## 'levels_const' -------------------------------------------------------------
 
 #' Names of constants
@@ -179,7 +142,7 @@ levels_const.bage_prior_rw <- function(prior)
 ## HAS_TESTS
 #' @export
 levels_const.bage_prior_rw2 <- function(prior)
-    c("sd", "scale")
+    "scale"
 
 
 ## 'levels_hyper' -------------------------------------------------------------
@@ -224,56 +187,6 @@ levels_hyper.bage_prior_rw <- function(prior)
 #' @export
 levels_hyper.bage_prior_rw2 <- function(prior)
     "sd"
-
-
-## 'make_matrix_parfree' ------------------------------------------------------
-
-#' Make matrix going from 'parfree' to 'par'
-#'
-#' Make a matrix that takes a vector of
-#' free parameters and terms them into
-#' a main effect, interaction, or intercept.
-#'
-#' @param prior An object of class "bage_prior"
-#' @param length_par The length of the main effect,
-#' interaction, or intercept.
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_matrix_parfree <- function(prior, length_par) {
-    UseMethod("make_matrix_parfree")
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_parfree.bage_prior <- function(prior, length_par) {
-    make_m_identity(length_par)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_parfree.bage_prior_rw <- function(prior, length_par) {
-    D <- make_m_diff(n = length_par)
-    DD <- Matrix::tcrossprod(D)
-    DD_inv <- Matrix::solve(DD)
-    Matrix::crossprod(D, DD_inv)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_parfree.bage_prior_rw2 <- function(prior, length_par) {
-    ## linear
-    linear <- (-1 * (length_par + 1) / (length_par - 1)
-        + (2 / (length_par - 1)) * seq_len(length_par))
-    ## diff
-    D <- make_m_diff(length_par - 1L) %*% make_m_diff(length_par)
-    DD <- Matrix::tcrossprod(D)
-    DD_inv <- Matrix::solve(DD)
-    diff <- Matrix::crossprod(D, DD_inv)
-    ## combine
-    cbind(linear, diff, deparse.level = 0)
-}
 
 
 ## 'str_call_prior' -----------------------------------------------------------
@@ -358,16 +271,11 @@ str_call_prior.bage_prior_rw <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2 <- function(prior) {
-    sd <- prior$specific$sd
     scale <- prior$specific$scale
-    args <- character(2)
-    if (sd != 1)
-        args[[1L]] <- sprintf("sd=%s", sd)
-    if (scale != 1)
-        args[[2L]] <- sprintf("scale=%s", scale)
-    args <- args[nzchar(args)]
-    args <- paste(args, collapse = ", ")
-    sprintf("RW2(%s)", args)
+    if (isTRUE(all.equal(scale, 1)))
+        "RW2()"
+    else
+        sprintf("RW2(scale=%s)", scale)
 }
 
 

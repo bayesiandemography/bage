@@ -177,117 +177,19 @@ make_is_in_lik <- function(mod) {
 
 
 ## HAS_TESTS
-#' Lengths of vectors of free parameters
+#' Lengths of vectors of parameters
 #' 
 #' @param mod Object of class "bage_mod"
 #'
 #' @returns A named integer vector.
 #'
 #' @noRd
-make_lengths_parfree <- function(mod) {
+make_lengths_par <- function(mod) {
     priors <- mod$priors
-    matrices_par <- mod$matrices_par
-    lengths_par <- vapply(matrices_par, ncol, 1L)
-    ans <- .mapply(length_parfree,
-                   dots = list(prior = priors,
-                               length_par = lengths_par),
-                   MoreArgs = list())
-    ans <- unlist(ans)
+    matrices_par_outcome <- mod$matrices_par_outcome
+    ans <- vapply(matrices_par_outcome, ncol, 1L)
     names(ans) <- names(priors)
     ans
-}
-
-
-## HAS_TESTS
-#' Make matrix that accumulates values
-#' from a vector
-#'
-#' Make a sparse matrix that adds
-#' up along a vector - eg as part of the
-#' process of creating a random walk.
-#' The first element of the result
-#' is 0.
-#'
-#' @param n The length of the vector
-#' to be accumulated.
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_m_accum <- function(n) {
-    i <- lapply(seq.int(from = 2L, to = n + 1L),
-                function(x) seq.int(from = x, to = n + 1L))
-    j <- lapply(seq.int(from = 1L, to = n),
-                function(x) rep(x, times = n + 1L - x))
-    i <- unlist(i, use.names = FALSE)
-    j <- unlist(j, use.names = FALSE)
-    Matrix::sparseMatrix(i = i, j = j, x = 1L)
-}
-
-
-## HAS_TESTS
-#' Make matrix that centers a vector
-#'
-#' Make a sparse matrix centers a vector,
-#' ie subtracts the mean from all elements.
-#'
-#' @param n The length of the vector
-#' to be accumulated.
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_m_centre <- function(n) {
-    i <- lapply(seq.int(from = 1L, to = n),
-                function(x) seq.int(from = x, to = n))
-    j <- lapply(seq.int(from = 1L, to = n),
-                function(x) rep.int(x, times = n + 1L - x))
-    i <- unlist(i, use.names = FALSE)
-    j <- unlist(j, use.names = FALSE)
-    x <- ifelse(i == j, (n - 1) / n, -1 / n)
-    Matrix::sparseMatrix(i = i, j = j, x = x, symmetric = TRUE)
-}
-
-
-## HAS_TESTS
-#' Make matrix that diffs a vector
-#'
-#' Make a sparse matrix that calculates
-#' first-order differences in vector.
-#' 
-#' @param n Number of elements of vector.
-#'
-#' @returns Sparse matrix with dim c(n-1, n)
-#'
-#' @noRd
-make_m_diff <- function(n) {
-    m <- matrix(0L, nrow = n - 1L, ncol = n)
-    row <- row(m)
-    col <- col(m)
-    m[row == col] <- -1L
-    m[row == col - 1L] <- 1L
-    is_non_zero <- m != 0L
-    i <- row[is_non_zero]
-    j <- col[is_non_zero]
-    x <- m[is_non_zero]
-    Matrix::sparseMatrix(i = i, j = j, x = x)
-}
-
-
-## HAS_TESTS
-#' Make matrix that centers a vector
-#'
-#' Make a sparse matrix centers a vector,
-#' ie subtracts the mean from all elements.
-#'
-#' @param n The length of the vector
-#' to be accumulated.
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_m_identity <- function(n) {
-    Matrix::Diagonal(n = n, x = 1L)
 }
 
 
@@ -308,24 +210,24 @@ make_m_identity <- function(n) {
 #' @noRd
 make_map <- function(mod) {
     priors <- mod$priors
-    lengths_parfree <- make_lengths_parfree(mod)
-    map_parfree <- lapply(lengths_parfree, function(n) rep(0, times = n))
+    lengths_par <- make_lengths_par(mod)
+    map_par <- lapply(lengths_par, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
         if (is_known)
-            map_parfree[[i_term]][] <- NA
+            map_par[[i_term]][] <- NA
     }
-    map_parfree <- unlist(map_parfree, use.names = FALSE)
-    n <- length(map_parfree)
-    is_na <- is.na(map_parfree)
+    map_par <- unlist(map_par, use.names = FALSE)
+    n <- length(map_par)
+    is_na <- is.na(map_par)
     n_na <- sum(is_na)
     if (n_na == 0L)
         ans <- NULL
     else {
-        map_parfree[!is_na] <- seq_len(n - n_na)
-        map_parfree <- factor(map_parfree)
-        ans <- list(parfree = map_parfree)
+        map_par[!is_na] <- seq_len(n - n_na)
+        map_par <- factor(map_par)
+        ans <- list(par = map_par)
     }
     ans
 }   
@@ -346,14 +248,14 @@ make_map <- function(mod) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_par_array <- function(formula, outcome) {
+make_matrices_par_outcome_array <- function(formula, outcome) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
     ans <- apply(factors,
                  MARGIN = 2L,
-                 FUN = make_matrix_par_array,
+                 FUN = make_matrix_par_outcome_array,
                  dim = dim_outcome,
                  simplify = FALSE)
     names(ans) <- colnames(factors)
@@ -385,7 +287,7 @@ make_matrices_par_array <- function(formula, outcome) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_par_vec <- function(formula, data) {
+make_matrices_par_outcome_vec <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
@@ -424,55 +326,6 @@ make_matrices_par_vec <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Make list of matrices mapping free parameters
-#' to main effects, interactions, intercept
-#'
-#' Make list of matrices mapping unconstrained
-#' parameter vectors to constrained vectors
-#' 
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A named list
-#'
-#' @noRd
-make_matrices_parfree_par <- function(mod) {
-    matrices_par <- mod$matrices_par
-    priors <- mod$priors
-    lengths_par <- vapply(matrices_par, ncol, 1L)
-    ans <- .mapply(make_matrix_parfree,
-                   dots = list(prior = priors,
-                               length_par = lengths_par),
-                   MoreArgs = list())
-    names(ans) <- names(priors)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make list of matrices mapping free parameters
-#' to outcome
-#'
-#' Make list of matrices mapping unconstrained
-#' parameter vectors to outcome vector or array
-#' 
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A named list
-#'
-#' @noRd
-make_matrices_parfree_outcome <- function(mod) {
-    matrices_par <- mod$matrices_par
-    matrices_parfree <- make_matrices_parfree_par(mod)
-    ans <- .mapply("%*%",
-                   dots = list(x = matrices_par,
-                               y = matrices_parfree),
-                   MoreArgs = list())
-    names(ans) <- names(matrices_parfree)
-    ans
-}
-
-
-## HAS_TESTS
 #' Make matrix mapping term to full array
 #'
 #' Make sparse matrix mapping the elements of a
@@ -487,39 +340,7 @@ make_matrices_parfree_outcome <- function(mod) {
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_par_array <- function(dim, is_in_term) {
-    make_submatrix <- function(d, is_in) {
-        i <- seq_len(d)
-        j <- if (is_in) i else rep.int(1L, times = d)
-        Matrix::sparseMatrix(i = i, j = j)
-    }
-    submatrices <- .mapply(make_submatrix,
-                           dots = list(d = as.list(dim),
-                                       is_in = as.list(is_in_term)),
-                           MoreArgs = list())
-    submatrices <- rev(submatrices)
-    ans <- Reduce(Matrix::kronecker, submatrices)
-    ans <- methods::as(ans, "dMatrix")
-    ans
-}
-
-
-## HAS_TESTS
-#' Make matrix mapping term to outcome vector
-#'
-#' Make sparse matrix mapping the elements of a
-#' main effect or interaction to an array holding
-#' the full rates (or equivalently, the outcome
-#' variable, or the linear predictor.)
-#'
-#' @param dim `dim` attribute of array holding rates.
-#' @param is_in_term Whether the term includes
-#' the dimension.
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_matrix_par_vec <- function(dim, is_in_term) {
+make_matrix_par_outcome_array <- function(dim, is_in_term) {
     make_submatrix <- function(d, is_in) {
         i <- seq_len(d)
         j <- if (is_in) i else rep.int(1L, times = d)
@@ -695,7 +516,7 @@ make_outcome_vec <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Make vector containing free parameters for
+#' Make vector containing parameters for
 #' intercept, main effects, and interactions
 #'
 #' Return value is 0 where a parameter is being estimated,
@@ -707,10 +528,10 @@ make_outcome_vec <- function(formula, data) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_parfree <- function(mod) {
+make_par <- function(mod) {
     priors <- mod$priors
-    lengths_parfree <- make_lengths_parfree(mod)
-    ans <- lapply(lengths_parfree, function(n) rep(0, times = n))
+    lengths_par <- make_lengths_par(mod)
+    ans <- lapply(lengths_par, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
@@ -720,7 +541,7 @@ make_parfree <- function(mod) {
         }
     }
     ans <- unlist(ans)
-    names(ans) <- rep(names(priors), times = lengths_parfree)
+    names(ans) <- rep(names(priors), times = lengths_par)
     ans
 }
 
@@ -878,33 +699,6 @@ make_terms_par <- function(mod) {
     lengths_par <- vapply(matrices_par, ncol, 1L)
     nms_terms <- names(priors)
     ans <- rep(nms_terms, times = lengths_par)
-    ans <- factor(ans, levels = nms_terms)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make factor identifying components of 'parfree'
-#'
-#' Make factor the same length as 'parfree',
-#' giving the name of the term
-#' that the each element belongs to.
-#'
-#' We generate 'terms_parfree' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when priors change  via 'set_prior'.
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor, the same length
-#' as 'parfree'.
-#'
-#' @noRd
-make_terms_parfree <- function(mod) {
-    lengths_parfree <- make_lengths_parfree(mod)
-    nms_terms <- names(lengths_parfree)
-    ans <- rep(nms_terms, times = lengths_parfree)
     ans <- factor(ans, levels = nms_terms)
     ans
 }

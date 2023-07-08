@@ -66,7 +66,7 @@ test_that("'get_fun_align_to_data' works with 1 dimension, 'data' has all values
 })
 
 
-## 'make_combined_matrix_parfree_outcome' -------------------------------------
+## 'make_combined_matrix_par_outcome' -----------------------------------------
 
 test_that("'make_combined_matrix_parfree_outcome' works with valid inputs", {
     set.seed(0)
@@ -77,26 +77,9 @@ test_that("'make_combined_matrix_parfree_outcome' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_combined_matrix_parfree_outcome(mod)
+    ans_obtained <- make_combined_matrix_par_outcome(mod)
     expect_identical(nrow(ans_obtained), nrow(data))
-    expect_identical(ncol(ans_obtained), length(make_terms_parfree(mod)))
-})
-
-
-## 'make_combined_matrix_parfree_par' -----------------------------------------
-
-test_that("'make_combined_matrix_parfree_par' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + age * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_combined_matrix_parfree_par(mod)
-    expect_identical(nrow(ans_obtained), length(make_terms_par(mod)))
-    expect_identical(ncol(ans_obtained), length(make_terms_parfree(mod)))
+    expect_identical(ncol(ans_obtained), length(make_terms_par(mod)))
 })
 
 
@@ -115,12 +98,12 @@ test_that("'make_draws_linear_pred' works with valid inputs", {
     mod <- set_n_draw(mod, n_draw = 100L)
     set.seed(1)
     linear_pred <- make_draws_linear_pred(mod)
-    m <- make_combined_matrix_parfree_outcome(mod)
+    m <- make_combined_matrix_par_outcome(mod)
     lp_exp <- matrix(nr = length(mod$outcome), nc = mod$n_draw)
     set.seed(1)
-    draws_parfree <- make_draws_parfree(mod)
+    draws_par <- make_draws_par(mod)
     for (i in seq_len(mod$n_draw))
-        lp_exp[,i] <- as.double(m %*% draws_parfree[,i])
+        lp_exp[,i] <- as.double(m %*% draws_par[,i])
     expect_equal(Matrix::rowMeans(linear_pred), rowMeans(lp_exp))
 })
 
@@ -168,9 +151,9 @@ test_that("'make_draws_hyper' works", {
 })
 
 
-## 'make_draws_parfree' -------------------------------------------------------
+## 'make_draws_par' -----------------------------------------------------------
 
-test_that("'make_draws_parfree' works - ordinary priors", {
+test_that("'make_draws_par' works - ordinary priors", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -182,12 +165,12 @@ test_that("'make_draws_parfree' works - ordinary priors", {
     mod <- fit(mod)
     mod <- set_n_draw(mod, n_draw = 10000L)
     set.seed(1)
-    draws <- make_draws_parfree(mod)
-    expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
-    expect_equal(rowMeans(draws), unlist(mod$est$parfree), tolerance = 0.1)
+    draws <- make_draws_par(mod)
+    expect_identical(dim(draws), c(length(make_terms_par(mod)), mod$n_draw))
+    expect_equal(rowMeans(draws), unname(unlist(mod$est$par)), tolerance = 0.1)
 })
 
-test_that("'make_draws_parfree' works - has Known priors", {
+test_that("'make_draws_par' works - has Known priors", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -201,9 +184,9 @@ test_that("'make_draws_parfree' works - has Known priors", {
     mod <- fit(mod)
     mod <- set_n_draw(mod, n_draw = 10000L)
     set.seed(1)
-    draws <- make_draws_parfree(mod)
-    expect_identical(dim(draws), c(length(make_terms_parfree(mod)), mod$n_draw))
-    expect_equal(rowMeans(draws), unlist(mod$est$parfree), tolerance = 0.1)
+    draws <- make_draws_par(mod)
+    expect_identical(dim(draws), c(length(make_terms_par(mod)), mod$n_draw))
+    expect_equal(rowMeans(draws), unname(unlist(mod$est$par)), tolerance = 0.1)
 })
 
 

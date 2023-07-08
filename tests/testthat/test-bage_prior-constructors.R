@@ -29,7 +29,7 @@ test_that("'RW' works with valid inputs", {
 })
 
 test_that("'RW2' works with valid inputs", {
-    expect_identical(RW2(), new_bage_prior_rw2(sd = 1, scale = 1))
+    expect_identical(RW2(), new_bage_prior_rw2(scale = 1))
 })
 
 
@@ -90,12 +90,12 @@ test_that("'new_bage_prior_rw' works", {
 })
 
 test_that("'new_bage_prior_rw2' works", {
-    obj <- new_bage_prior_rw2(sd = 1, scale = 1)
+    obj <- new_bage_prior_rw2(scale = 1)
     expect_s3_class(obj, "bage_prior_rw2")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 4L)
-    expect_identical(obj$const, c(1.0, 1.0))
+    expect_identical(obj$const, 1)
     expect_identical(obj$n_hyper, 1L)
-    expect_identical(obj$specific, list(sd = 1, scale = 1))
+    expect_identical(obj$specific, list(scale = 1))
 })
 

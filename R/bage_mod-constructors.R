@@ -110,8 +110,8 @@ mod_pois <- function(formula, data, exposure) {
                           scale = scale_prior,
                           var_age = var_age,
                           var_time = var_time)
-    matrices_par <- make_matrices_par_array(formula = formula,
-                                            outcome = outcome)
+    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
+                                                            outcome = outcome)
     ## create object and return
     est <- NULL
     prec <- NULL
@@ -125,7 +125,7 @@ mod_pois <- function(formula, data, exposure) {
                 var_age = var_age,
                 var_sexgender = var_sexgender,
                 var_time = var_time,
-                matrices_par = matrices_par,
+                matrices_par_outcome = matrices_par_outcome,
                 est = est,
                 prec = prec,
                 n_draw = n_draw)
@@ -225,8 +225,8 @@ mod_binom <- function(formula, data, size) {
                           scale = scale_prior,
                           var_age = var_age,
                           var_time = var_time)
-    matrices_par <- make_matrices_par_array(formula = formula,
-                                            outcome = outcome)
+    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
+                                                            outcome = outcome)
     ## create object and return
     est <- NULL
     prec <- NULL
@@ -240,7 +240,7 @@ mod_binom <- function(formula, data, size) {
                 var_age = var_age,
                 var_sexgender = var_sexgender,
                 var_time = var_time,
-                matrices_par = matrices_par,
+                matrices_par_outcome = matrices_par_outcome,
                 est = est,
                 prec = prec,
                 n_draw = n_draw)
@@ -343,8 +343,8 @@ mod_norm <- function(formula, data, weights) {
                           scale = scale_prior,
                           var_age = var_age,
                           var_time = var_time)
-    matrices_par <- make_matrices_par_vec(formula = formula,
-                                          data = data)
+    matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula,
+                                                          data = data)
     ## create object and return
     est <- NULL
     prec <- NULL
@@ -358,7 +358,7 @@ mod_norm <- function(formula, data, weights) {
                 var_age = var_age,
                 var_sexgender = var_sexgender,
                 var_time = var_time,
-                matrices_par = matrices_par,
+                matrices_par_outcome = matrices_par_outcome,
                 est = est,
                 prec = prec,
                 n_draw = n_draw)
