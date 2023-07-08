@@ -93,7 +93,7 @@ get_fun_align_to_data <- function(mod) {
         }
     }
     else
-        ans <- function(x) x
+        ans <- identity
     ans
 }
 
@@ -140,15 +140,17 @@ make_draws_linear_pred <- function(mod) {
 #'
 #' @param mod A fitted object of class 'bage_mod'
 #'
-#' @returns A tibble with 'n_draw' columns.
+#' @returns A matrix 'n_draw' columns.
 #'
 #' @noRd
 make_draws_fitted <- function(mod) {
     draws_linear_pred <- make_draws_linear_pred(mod)
     inv_transform <- get_fun_inv_transform(mod)
     align_to_data <- get_fun_align_to_data(mod)
+    scale_outcome <- get_fun_scale_outcome(mod)
     ans <- inv_transform(draws_linear_pred)
     ans <- align_to_data(ans)
+    ans <- scale_outcome(ans)
     ans
 }
 

@@ -192,8 +192,38 @@ get_fun_inv_transform.bage_mod_binom <- function(mod)
 
 ## HAS_TESTS
 #' @export
-get_fun_inv_transform.bage_mod_norm <- function(mod)
-    function(x) x
+get_fun_inv_transform.bage_mod_norm <- function(mod) identity
+
+
+## 'get_fun_scale_outcome' ----------------------------------------------------
+
+#' Get function to scale outcome, if necessary
+#'
+#' Get function to scale outcome, if necessary.
+#' The scaling consists of multiplying by the sd
+#' of the original outcome, and then adding the
+#' mean. Applied only to the normal model.
+#' In other cases, the function returned is the
+#' identity function.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+get_fun_scale_outcome <- function(mod) {
+    UseMethod("get_fun_scale_outcome")
+}
+
+#' @export
+get_fun_scale_outcome.bage_mod <- function(mod) identity
+
+#' @export
+get_fun_scale_outcome.bage_mod_norm <- function(mod) {
+    mean <- mod$outcome_mean
+    sd <- mod$outcome_sd
+    function(x) x * sd + mean
+}
 
 
 ## 'is_fitted' ----------------------------------------------------------------

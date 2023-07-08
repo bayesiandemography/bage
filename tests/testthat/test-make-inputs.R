@@ -3,44 +3,38 @@
 
 test_that("'default_prior' works with ordinary term", {
     expect_identical(default_prior(nm_term = "x",
-                                   scale = 2,
                                    var_age = "age",
                                    var_time = "time"),
-                     N(scale = 2))
+                     N())
 })
 
 test_that("'default_prior' works with intercept", {
     expect_identical(default_prior(nm_term = "(Intercept)",
-                                   scale = 2,
                                    var_age = "age",
                                    var_time = "time"),
-                     NFixed(sd = 20))
+                     NFixed(sd = 10))
 })
 
 test_that("'default_prior' works with age term", {
     expect_identical(default_prior(nm_term = "AgeGroup",
-                                   scale = 2,
                                    var_age = "AgeGroup",
                                    var_time = "time"),
-                     RW(scale = 2))
+                     RW())
     expect_identical(default_prior(nm_term = "AgeGroup",
-                                   scale = 2,
                                    var_age = "AgeGroup",
                                    var_time = NULL),
-                     RW(scale = 2))
+                     RW())
     expect_identical(default_prior(nm_term = "AgeGroup",
-                                   scale = 2,
                                    var_age = NULL,
                                    var_time = NULL),
-                     N(scale = 2))
+                     N())
 })
 
 test_that("'default_prior' works with time term", {
     expect_identical(default_prior(nm_term = "year",
-                                   scale = 2,
                                    var_age = "AgeGroup",
                                    var_time = "year"),
-                     RW(scale = 2))
+                     RW())
 })
 
 
@@ -534,10 +528,10 @@ test_that("'make_par' works with valid inputs", {
 
 ## 'make_priors' --------------------------------------------------------------
 
-test_that("'make_priors' works with valid inputs - has intercept, scale = 1", {
+test_that("'make_priors' works with valid inputs - has intercept", {
     formula <- deaths ~ age:sex + time
     ans_obtained <- make_priors(formula,
-                                scale = 1, var_age = "age",
+                                var_age = "age",
                                 var_time = "time")
     ans_expected <- list("(Intercept)" = NFixed(sd = 10),
                          time = RW(),
@@ -548,72 +542,11 @@ test_that("'make_priors' works with valid inputs - has intercept, scale = 1", {
 test_that("'make_priors' works with valid inputs - no intercept", {
     formula <- deaths ~ age:sex + time - 1
     ans_obtained <- make_priors(formula,
-                                scale = 1,
                                 var_age = "age",
                                 var_time = "time")
     ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_priors' works with valid inputs - has intercept, scale = 2", {
-    formula <- deaths ~ age:sex + region
-    ans_obtained <- make_priors(formula,
-                                scale = 2,
-                                var_age = "age",
-                                var_time = "time")
-    ans_expected <- list("(Intercept)" = NFixed(sd = 20),
-                         region = N(scale = 2),
-                         "age:sex" = N(scale = 2))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_priors' works with valid inputs - no intercept, scale = 2", {
-    formula <- deaths ~ age:sex + time - 1
-    ans_obtained <- make_priors(formula,
-                                scale = 2,
-                                var_age = "age",
-                                var_time = "time")
-    ans_expected <- list(time = RW(scale = 2),
-                         "age:sex" = N(scale = 2))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_scale_outcome' -------------------------------------------------------
-
-test_that("'make_scale_outcome' works with valid inputs, no NA, log = FALSE", {
-    outcome <- c(1:10, NA)
-    ans_obtained <- make_scale_outcome(outcome, log = FALSE)
-    ans_expected <- signif(sd(outcome[-11]), 2)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_scale_outcome' works with valid inputs, all NA, log = FALSE", {
-    expect_identical(make_scale_outcome(c(NA, NA), log = FALSE),
-                     NA_real_)
-})
-
-test_that("'make_scale_outcome' works with valid inputs, one non-NA, log = FALSE", {
-    expect_identical(make_scale_outcome(c(NA, 3L, NA), log = FALSE),
-                     3.0)
-})
-
-test_that("'make_scale_outcome' works with valid inputs, no NA, log = TRUE", {
-    outcome <- c(1:10, NA)
-    ans_obtained <- make_scale_outcome(outcome, log = TRUE)
-    ans_expected <- signif(log(sd(outcome[-11])), 2)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_scale_outcome' works with valid inputs, all NA, log = TRUE", {
-    expect_identical(make_scale_outcome(c(NA, NA), log = TRUE),
-                     NA_real_)
-})
-
-test_that("'make_scale_outcome' works with valid inputs, one non-NA, log = TRUE", {
-    expect_identical(make_scale_outcome(c(NA, 3L, NA), log = TRUE),
-                     signif(log(3.0), 2))
 })
 
 
