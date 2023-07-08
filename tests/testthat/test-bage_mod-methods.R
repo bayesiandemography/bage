@@ -187,6 +187,16 @@ test_that("'get_fun_inv_transform' works with valid inputs", {
 })
 
 
+## 'get_fun_scale_outcome' --------------------------------------------------------
+
+test_that("'get_fun_scale_outcome' works with valid inputs", {
+    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_pois", "bage_mod")))(1), 1)
+    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_binom", "bage_mod")))(1), 1)
+    expect_equal(get_fun_scale_outcome(structure(list(outcome_mean = 3, outcome_sd = 2),
+                                                 class = c("bage_mod_norm", "bage_mod")))(1), 5)
+})
+
+
 ## 'is_fitted' ----------------------------------------------------------------
 
 test_that("'is_fitted' works with valid inputs", {

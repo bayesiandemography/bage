@@ -2,21 +2,20 @@
 #' Derive default prior from name of term
 #'
 #' @param nm_term Name of model term
-#' @param scale Scale to be used in prior
 #' @param var_age Name of age variable, or NULL
 #' @param var_time Name of time variable, or NULL
 #'
 #' @returns A list of objects of class "bage_prior"
 #'
 #' @noRd
-default_prior <- function(nm_term, scale, var_age, var_time) {
-    mult_intercept <- 10
+default_prior <- function(nm_term, var_age, var_time) {
+    scale_intercept <- 10
     if (nm_term == "(Intercept)")
-        NFixed(sd = mult_intercept * scale)
+        NFixed(sd = scale_intercept)
     else if (nm_term %in% c(var_age, var_time))
-        RW(scale = scale)
+        RW()
     else
-        N(scale = scale)
+        N()
 }
 
 
@@ -550,14 +549,13 @@ make_par <- function(mod) {
 #' Make default priors
 #'
 #' Make named list holding default priors.
-#' Default prior is N(0, scale^2) for
+#' Default prior is N(0, 1) for
 #' all terms except
-#' - intercept, where it is N(0, (10*scale)^2),
-#' - age variable, where it is RW(scale)
-#' - time variable, where it is RW(scale)
+#' - intercept, where it is N(0, 10^2),
+#' - age variable, where it is RW()
+#' - time variable, where it is RW()
 #'
 #' @param formula Formula specifying model
-#' @param scale A number
 #' @param var_age Name of age variable, or NULL
 #' @param var_time Name of time variable, or NULL
 #'
@@ -565,57 +563,18 @@ make_par <- function(mod) {
 #' 'bage_prior'.
 #'
 #' @noRd
-make_priors <- function(formula, scale, var_age, var_time) {
+make_priors <- function(formula, var_age, var_time) {
     nms_terms <- attr(stats::terms(formula), "term.labels")
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept)
         nms_terms <- c("(Intercept)", nms_terms)
     ans <- lapply(X = nms_terms,
                   FUN = default_prior,
-                  scale = scale,
                   var_age = var_age,
                   var_time = var_time)
     names(ans) <- nms_terms
     ans
 }        
-
-
-## HAS_TESTS
-#' Calculate the scale of variation
-#' in the outcome variable
-#'
-#' If at least 2 observations, use the
-#' standard deviation; if only 1, use
-#' the single value; otherwise return NA.
-#'
-#' If 'log' is TRUE, then take tthe log.
-#'
-#' Round to two significant figures.
-#' (This makes printing nicer, and avoids
-#' spurious precision.)
-#'
-#' @param outcome A vector or array holding outcomes.
-#' @param log TRUE or FALSE
-#'
-#' @returns A double.
-#'
-#' @noRd
-make_scale_outcome <- function(outcome, log) {
-    digits <- 2L
-    obs <- outcome[!is.na(outcome)]
-    n_obs <- length(obs)
-    if (n_obs == 0L)
-        ans <- NA_real_
-    else if (n_obs == 1L)
-        ans <- obs
-    else
-        ans <- stats::sd(obs)
-    if (log)
-        ans <- log(ans)
-    ans <- signif(ans, digits = digits)
-    ans <- as.double(ans)
-    ans
-}
 
 
 ## HAS_TESTS

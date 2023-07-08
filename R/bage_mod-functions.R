@@ -333,7 +333,6 @@ set_var_inner <- function(mod, name, var) {
     attr_names_oth <- paste0("var_", vars_oth)
     ## extract values
     formula <- mod$formula
-    scale_prior <- mod$scale_prior
     priors <- mod$priors
     name_old <- mod[[attr_name]]
     names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
@@ -359,12 +358,10 @@ set_var_inner <- function(mod, name, var) {
     var_age <- mod[["var_age"]]
     var_time <- mod[["var_time"]]
     priors[[name]] <- default_prior(nm_term = name,
-                                    scale = scale_prior,
                                     var_age = var_age,
                                     var_time = var_time)
     if (has_name_old) {
         priors[[name_old]] <- default_prior(nm_term = name_old,
-                                            scale = scale_prior,
                                             var_age = var_age, 
                                             var_time = var_time)
     }

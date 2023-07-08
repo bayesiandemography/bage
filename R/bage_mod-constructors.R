@@ -102,12 +102,7 @@ mod_pois <- function(formula, data, exposure) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    if (is_offset_specified)
-        scale_prior <- 1
-    else
-        scale_prior <- make_scale_outcome(outcome, log = TRUE)
     priors <- make_priors(formula = formula,
-                          scale = scale_prior,
                           var_age = var_age,
                           var_time = var_time)
     matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
@@ -120,7 +115,6 @@ mod_pois <- function(formula, data, exposure) {
                 outcome = outcome,
                 offset = offset,
                 vname_offset = vname_offset,
-                scale_prior = scale_prior,
                 priors = priors,
                 var_age = var_age,
                 var_sexgender = var_sexgender,
@@ -181,7 +175,6 @@ mod_pois <- function(formula, data, exposure) {
 #' @export
 mod_binom <- function(formula, data, size) {
     n_draw <- 1000L
-    scale_prior <- 1
     nm_distn <- "binom"
     nm_offset <- "size"
     ## check individual inputs
@@ -222,7 +215,6 @@ mod_binom <- function(formula, data, size) {
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
     priors <- make_priors(formula = formula,
-                          scale = scale_prior,
                           var_age = var_age,
                           var_time = var_time)
     matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
@@ -235,7 +227,6 @@ mod_binom <- function(formula, data, size) {
                 outcome = outcome,
                 offset = offset,
                 vname_offset = vname_offset,
-                scale_prior = scale_prior,
                 priors = priors,
                 var_age = var_age,
                 var_sexgender = var_sexgender,
@@ -330,17 +321,19 @@ mod_norm <- function(formula, data, weights) {
     data <- tibble(data)
     outcome <- make_outcome_vec(formula = formula,
                                 data = data)
+    outcome_mean <- mean(outcome, na.rm = TRUE)
+    outcome_sd <- stats::sd(outcome, na.rm = TRUE)
+    outcome <- (outcome - outcome_mean) / outcome_sd
     if (is_offset_specified)
         offset <- make_offset_vec(vname_offset = vname_offset,
                                   data = data)
+    
     else
         offset <- make_offset_ones_vec(data)
-    scale_prior <- make_scale_outcome(outcome, log = FALSE)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
     priors <- make_priors(formula = formula,
-                          scale = scale_prior,
                           var_age = var_age,
                           var_time = var_time)
     matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula,
@@ -351,9 +344,10 @@ mod_norm <- function(formula, data, weights) {
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,
+                outcome_mean = outcome_mean,
+                outcome_sd = outcome_sd,
                 offset = offset,
                 vname_offset = vname_offset,
-                scale_prior = scale_prior,
                 priors = priors,
                 var_age = var_age,
                 var_sexgender = var_sexgender,
