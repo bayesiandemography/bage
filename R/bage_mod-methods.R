@@ -123,6 +123,7 @@ fit.bage_mod <- function(object, ...) {
     priors <- object$priors
     outcome <- object$outcome
     offset <- object$offset
+    matrices_par_outcome <- object$matrices_par_outcome
     nm_distn <- nm_distn(object)
     is_in_lik <- make_is_in_lik(object)
     i_prior <- make_i_prior(object)
@@ -130,27 +131,26 @@ fit.bage_mod <- function(object, ...) {
     terms_const <- make_terms_const(object)
     hyper <- make_hyper(object)
     terms_hyper <- make_terms_hyper(object)
-    terms_parfree <- make_terms_parfree(object)
-    matrices_parfree_outcome <- make_matrices_parfree_outcome(object)
-    parfree <- make_parfree(object)
+    terms_par <- make_terms_par(object)
+    par <- make_par(object)
     map <- make_map(object)
     data <- list(nm_distn = nm_distn,
                  outcome = outcome,
                  offset = offset,
                  is_in_lik = is_in_lik,
-                 terms_parfree = terms_parfree,
-                 matrices_parfree_outcome = matrices_parfree_outcome,
+                 terms_par = terms_par,
+                 matrices_par_outcome = matrices_par_outcome,
                  i_prior = i_prior,
                  terms_hyper = terms_hyper,
                  consts = const,             ## in TMB template refer to 'consts', 
                  terms_consts = terms_const) ## not 'const', because 'const' is a 
-    parameters <- list(parfree = parfree,    ## reserved word
+    parameters <- list(par = par,            ## reserved word
                        hyper = hyper)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
                         map = map,
                         DLL = "bage",
-                        random = "parfree",
+                        random = "par",
                         silent = TRUE)
     stats::nlminb(start = f$par,
                   objective = f$fn,
@@ -395,21 +395,15 @@ generics::tidy
 #' @export
 tidy.bage_mod <- function(x, ...) {
     priors <- x$priors
-    matrices_par <- x$matrices_par
     term <- names(priors)
     spec <- vapply(priors, str_call_prior, "")
-    n <- vapply(matrices_par, ncol, 1L)
+    n <- make_lengths_par(x)
     ans <- tibble::tibble(term, spec, n)
     is_fitted <- is_fitted(x)
     if (is_fitted) {
-        parfree <- x$est$parfree
-        matrices_parfree <- make_matrices_parfree_par(x)
-        terms_parfree <- make_terms_parfree(x)
-        parfree <- split(parfree, terms_parfree)
-        par <- .mapply("%*%",
-                       dots = list(x = matrices_parfree,
-                                   y = parfree),
-                       MoreArgs = list())
+        par <- x$est$par
+        terms <- make_terms_par(x)
+        par <- split(par, terms)
         ans[["sd"]] <- vapply(par, stats::sd, 0)
     }
     ans <- tibble::tibble(ans)

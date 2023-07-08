@@ -7,12 +7,10 @@
 \usage{
 RW(scale = 1)
 
-RW2(sd = 1, scale = 1)
+RW2(scale = 1)
 }
 \arguments{
 \item{scale}{A positive, finite number.}
-
-\item{sd}{A positive, finite number.}
 }
 \value{
 An object of class \code{bage_prior_rw}

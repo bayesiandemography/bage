@@ -63,7 +63,7 @@ test_that("'fit' works with valid inputs - pois has exposure", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = 1)
-    mod <- set_prior(mod, age ~ RW2())
+    mod <- set_prior(mod, age ~ RW())
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -107,8 +107,8 @@ test_that("'fit' works with known intercept and sex effect", {
     mod <- set_prior(mod, `(Intercept)` ~ Known(values = -2))
     mod <- set_prior(mod, sex ~ Known(values = c(-0.1, 0.1)))
     ans_obtained <- fit(mod)
-    expect_equal(ans_obtained$est$parfree[[1L]], -2)
-    expect_equal(ans_obtained$est$parfree[11:12], c(sex = -0.1, sex = 0.1))
+    expect_equal(ans_obtained$est$par[[1L]], -2)
+    expect_equal(ans_obtained$est$par[names(ans_obtained$est$par) == "sex"], c(sex = -0.1, sex = 0.1))
 })
 
 test_that("'fit' works with AR1", {
@@ -171,7 +171,7 @@ test_that("'fit' works when single dimension", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_identical(length(mod_fitted$est$parfree), nrow(data))
+    expect_identical(length(mod_fitted$est$par), nrow(data) + 1L)
 })
 
 

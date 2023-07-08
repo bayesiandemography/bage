@@ -192,7 +192,6 @@ NFixed <- function(sd = 1) {
 #' higher values lead to rougher series.
 #'
 #' @param scale A positive, finite number.
-#' @param sd A positive, finite number.
 #'
 #' @returns An object of class `bage_prior_rw`
 #' or `bage_prior_rw2`.
@@ -212,11 +211,9 @@ RW <- function(scale = 1) {
 
 #' @export
 #' @rdname RW
-RW2 <- function(sd = 1, scale = 1) {
-    sd  <- check_and_tidy_scale(sd, x_arg = "sd")
+RW2 <- function(scale = 1) {
     scale <- check_and_tidy_scale(scale, x_arg = "scale")
-    new_bage_prior_rw2(sd = sd,
-                       scale = scale)
+    new_bage_prior_rw2(scale = scale)
 }
 
 
@@ -303,11 +300,11 @@ new_bage_prior_rw <- function(scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(sd, scale) {
+new_bage_prior_rw2 <- function(scale) {
     ans <- list(i_prior = 4L,
-                const = c(sd, scale),
+                const = c(scale),
                 n_hyper = 1L, ## log_sd
-                specific = list(sd = sd, scale = scale))
+                specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }

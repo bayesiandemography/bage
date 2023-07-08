@@ -7,21 +7,6 @@ test_that("'is_known' works with valid inputs", {
 })
 
 
-## length_parfree ---------------------------------------------------------------
-
-test_that("'length_parfree' works with 'bage_prior_norm'", {
-    expect_identical(length_parfree(N(), 10L), 10L)
-})
-
-test_that("'length_parfree' works with 'bage_prior_rw'", {
-    expect_identical(length_parfree(RW(), 10L), 9L)
-})
-
-test_that("'length_parfree' works with 'bage_prior_rw2'", {
-    expect_identical(length_parfree(RW2(), 10L), 9L)
-})
-
-
 ## levels_const ---------------------------------------------------------------
 
 test_that("'levels_const' works with 'bage_prior_ar1'", {
@@ -45,7 +30,7 @@ test_that("'levels_const' works with 'bage_prior_rw'", {
 })
 
 test_that("'levels_const' works with 'bage_prior_rw2'", {
-    expect_identical(levels_const(RW2()), c("sd", "scale"))
+    expect_identical(levels_const(RW2()), "scale")
 })
 
 
@@ -73,29 +58,6 @@ test_that("'levels_hyper' works with 'bage_prior_rw'", {
 
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
     expect_identical(levels_hyper(RW2()), "sd")
-})
-
-
-## make_matrix_parfree --------------------------------------------------------
-
-test_that("'make_matrix_parfree' works with 'bage_prior_norm'", {
-    expect_identical(make_matrix_parfree(N(), 3),
-                     Matrix::Diagonal(n = 3, x = 1L))
-})
-
-test_that("'make_matrix_parfree' works with 'bage_prior_rw'", {
-    m <- make_matrix_parfree(RW(), length_par = 6)
-    expect_identical(dim(m), 6:5)
-    expect_equal(sum(m %*% (1:5)), 0)
-    expect_equal(diff(as.numeric(m %*% (1:5))), 1:5)
-})
-
-test_that("'make_matrix_parfree' works with 'bage_prior_rw2'", {
-    set.seed(0)
-    m <- make_matrix_parfree(RW2(), length_par = 6)
-    expect_identical(dim(m), c(6L, 5L))
-    x <- rnorm(5)
-    expect_equal(sum(m %*% x), 0)
 })
 
 
@@ -135,9 +97,7 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 
 test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(sd = 0.95)), "RW2(sd=0.95)")
     expect_identical(str_call_prior(RW2(scale = 0.95)), "RW2(scale=0.95)")
-    expect_identical(str_call_prior(RW2(sd = 0.3, scale = 0.95)), "RW2(sd=0.3, scale=0.95)")
 })    
 
 
