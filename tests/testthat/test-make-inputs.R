@@ -192,7 +192,7 @@ test_that("'make_lengths_par' works with valid inputs", {
 test_that("'make_map' works with no parameters treated as known", {
     priors <- list(N(), N())
     matrices_par_outcome <- list(matrix(nr = 10, nc = 1),
-                         matrix(nr = 10, nc = 3))
+                                 matrix(nr = 10, nc = 3))
     mod <- list(priors = priors, matrices_par_outcome = matrices_par_outcome)
     ans_obtained <- make_map(mod)
     ans_expected <- NULL
@@ -202,12 +202,12 @@ test_that("'make_map' works with no parameters treated as known", {
 test_that("'make_map' works with some parameters treated as known", {
     priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
     matrices_par_outcome <- list(matrix(nr = 10, nc = 1),
-                         matrix(nr = 10, nc = 3),
-                         matrix(nr = 10, nc = 2),
-                         matrix(nr = 10, nc = 3))
+                                 matrix(nr = 10, nc = 3),
+                                 matrix(nr = 10, nc = 2),
+                                 matrix(nr = 10, nc = 3))
     mod <- list(priors = priors, matrices_par_outcome = matrices_par_outcome)
     ans_obtained <- make_map(mod)
-    ans_expected <- list(par = factor(c(NA, 1:3, NA, NA, 4:6)))
+    ans_expected <- list(parfree = factor(c(NA, 1:3, NA, NA, 4:6)))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -510,17 +510,17 @@ test_that("'make_outcome_vec' works with valid inputs", {
 })
 
 
-## 'make_par' -----------------------------------------------------------------
+## 'make_parfree' -------------------------------------------------------------
 
-test_that("'make_par' works with valid inputs", {
+test_that("'make_parfree' works with valid inputs", {
     priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
-    matrices_par_outcome <- list(matrix(nr = 100, ncol = 1),
+    matrices_parfree_outcome <- list(matrix(nr = 100, ncol = 1),
                          matrix(nr = 100, ncol = 3),
                          matrix(nr = 100, ncol = 2),
                          matrix(nr = 100, ncol = 3))
-    mod <- list(priors = priors, matrices_par_outcome = matrices_par_outcome)
-    mod <- list(priors = priors, matrices_par_outcome = matrices_par_outcome)
-    ans_obtained <- make_par(mod)
+    mod <- list(priors = priors, matrices_parfree_outcome = matrices_parfree_outcome)
+    mod <- list(priors = priors, matrices_parfree_outcome = matrices_parfree_outcome)
+    ans_obtained <- make_parfree(mod)
     ans_expected <- c(-3, 0, 0, 0, 0.1, -0.1, 0, 0, 0)
     expect_identical(ans_obtained, ans_expected)
 })

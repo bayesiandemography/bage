@@ -120,7 +120,6 @@ generics::fit
 #'
 #' @export    
 fit.bage_mod <- function(object, ...) {
-    priors <- object$priors
     outcome <- object$outcome
     offset <- object$offset
     matrices_par_outcome <- object$matrices_par_outcome
@@ -131,26 +130,36 @@ fit.bage_mod <- function(object, ...) {
     terms_const <- make_terms_const(object)
     hyper <- make_hyper(object)
     terms_hyper <- make_terms_hyper(object)
+    uses_matrix_parfree_par <- make_uses_matrix_parfree_par(object)
+    matrices_parfree_par <- make_matrices_parfree_par(object)
+    uses_offset_parfree_par <- make_uses_offset_parfree_par(object)
+    offsets_parfree_par <- make_offsets_parfree_par(object)
     terms_par <- make_terms_par(object)
-    par <- make_par(object)
+    terms_parfree <- make_terms_parfree(object)
+    parfree <- make_parfree(object)
     map <- make_map(object)
     data <- list(nm_distn = nm_distn,
                  outcome = outcome,
                  offset = offset,
                  is_in_lik = is_in_lik,
                  terms_par = terms_par,
+                 terms_parfree = terms_parfree,
+                 uses_matrix_parfree_par = uses_matrix_parfree_par,
+                 matrices_parfree_par = matrices_parfree_par,
+                 uses_offset_parfree_par = uses_offset_parfree_par,
+                 offsets_parfree_par = offsets_parfree_par,
                  matrices_par_outcome = matrices_par_outcome,
                  i_prior = i_prior,
                  terms_hyper = terms_hyper,
                  consts = const,             ## in TMB template refer to 'consts', 
                  terms_consts = terms_const) ## not 'const', because 'const' is a 
-    parameters <- list(par = par,            ## reserved word
+    parameters <- list(parfree = parfree,    ## reserved word
                        hyper = hyper)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
                         map = map,
                         DLL = "bage",
-                        random = "par",
+                        random = "parfree",
                         silent = TRUE)
     stats::nlminb(start = f$par,
                   objective = f$fn,

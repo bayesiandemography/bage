@@ -160,7 +160,7 @@ NFixed <- function(sd = 1) {
     
 
 ## HAS_TESTS
-#' One-dimensional random walk priors
+#' Random walk priors
 #'
 #' Priors in which units follow a one-dimensional
 #' random walk or random walk with drift.
@@ -217,8 +217,87 @@ RW2 <- function(scale = 1) {
 }
 
 
-## MRW <- function() NULL
+#' P-spline prior
+#'
+#' Specify a P-spline (penalised spline) prior.
+#' A P-spline is flexible, but
+#' favours profiles that are relatively smooth.
+#'
+#' @section Mathematical details:
+#'
+#' The model for the effect, on the log scale, is
+#'
+#' \deqn{\beta = X \gamma}
+#'
+#' where
+#' - \eqn{\beta} is a main effect,
+#' - \eqn{X} is a matrix holding the basis functions
+#' for the spline, with `n_spline` columns, and
+#' - \eqn{\alpha} is a vector of coefficients,
+#' with `n_spline` elements.
+#'
+#' The elements of \eqn{\gamma} are assumed to follow
+#' a second order random walk,
+#'
+#' \deqn{(\gamma_j - \gamma_{j-1}) - (\gamma_{j-1} - \gamma_{j-2}) \sim \text{N}(0, \tau^2)}
+#'
+#' Parameter \eqn{\tau} has prior
+#'
+#' \deqn{\tau \sim \text{N}^+(0, A^2)}
+#'
+#' where \eqn{\text{N}^+} denotes a half-normal distribution,
+#' and a value for \eqn{A} is supplied by the user.
+#'
+#' @param n Number of spline vectors.
+#' @param scale Scale for error term.
+#' The default is 1.
+#'
+#' @returns An object of class `"bage_prior_spline"`.
+#'
+#' @seealso
+#' - [RW2()] etc
+#'
+#' @examples
+#' Spline()
+#' Spline(df = 10)
+#' @export
+Spline <- function(n = NULL, scale = 1) {
+    check_n(n, min = 4L, null_ok = TRUE)
+    scale <- check_and_tidy_scale(scale, x_arg = "scale")
+    new_bage_prior_spline(n = n,
+                          scale = scale)
+}
 
+
+#' SVD prior
+#'
+#' Specify a scaled SVD (singular value decomposition)
+#' prior for an age variable, or a combination
+#' of age and sex/gender variables.
+#'
+#' @param n Number of components.
+#' @param val An object created by [scaled_svd()]
+#' holding scaled values from a SVD of
+#' age-specific rates, probabilities, or means.
+#' @param indep Whether, in an interaction,
+#' age profiles for different
+#' sexes/genders are modelled independently.
+#' See description in Details. Default is `TRUE`.
+#'
+#' @returns An object of class `"bage_prior_svd"`.
+#'
+#' @export
+SVD <- function(val, n = 5, indep = TRUE) {
+    if (!inherits(val, "bage_scaled_svd"))
+        cli::cli_abort(c("{.arg val} does not hold scaled SVD values.",
+                         i = "{.arg val} has class {.cls {class(val)}}.",
+                         i = "{.arg val} should have class {.cls bage_scaled_svd}."))
+    check_n(n, min = 1L, null_ok = FALSE)
+    check_flag(indep)
+    new_bage_prior_svd(n = n,
+                       val = val,
+                       indep = indep)
+}
 
 
 ## Internal constructors ------------------------------------------------------
@@ -238,10 +317,8 @@ RW2 <- function(scale = 1) {
 ## 'n_hyper' is the number of elements in the 'hyper'
 ## vector that are associated with this prior
 ##
-## 'specific' is a list of objects associated
-## with this prior that are not used by 'fit.bage_mod',
-## but that may be used by other functions,
-## eg for printing.
+## 'specific' is a general list of objects
+## contained in this prior
 
 ## HAS_TESTS
 new_bage_prior_ar1 <- function(scale, min, max) {
@@ -309,23 +386,22 @@ new_bage_prior_rw2 <- function(scale) {
     ans
 }
 
-
-## Validators -----------------------------------------------------------------
-
-
-validate_bage_prior <- function(prior) {
-    checkmate::assert_integer(prior@i_prior,
-                              lower = 0L,
-                              len = 1L,
-                              any.missing = FALSE)
-    checkmate::assert_double(prior@const,
-                             any.missing = FALSE)
-    checkmate::assert_integer(prior@n_hyper,
-                              lower = 0L,
-                              len = 1L,
-                              any.missing = FALSE)
-    checkmate::assert_list(prior@specific)
-    prior
+## NO_TESTS
+new_bage_prior_spline <- function(n, scale) {
+    ans <- list(i_prior = 6L,
+                const = c(n, scale),
+                n_hyper = 1L, ## log_sd
+                specific = list(n = n, scale = scale))
+    class(ans) <- c("bage_prior_spline", "bage_prior")
+    ans
 }
-    
-    
+
+## NO_TESTS
+new_bage_prior_svd <- function(n, val) {
+    ans <- list(i_prior = 7L,
+                const = c(n, scale),
+                n_hyper = 1L, ## log_sd
+                specific = list(n = n, val = val, indep = indep))
+    class(ans) <- c("bage_prior_svd", "bage_prior")
+    ans
+}

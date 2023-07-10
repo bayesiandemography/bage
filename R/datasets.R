@@ -1,22 +1,4 @@
 
-## #' Mortality rates from the Human Mortality Database
-## #'
-## #' Estimated mortality rates, modified from estimates
-## #' from the Human Mortality Database.
-## #'
-## #' @format A matrix, in which each row holds a combination
-## #' of sex and age, and each column holds a combination
-## #' of country and year.
-## #'
-## #' @source HMD. Human Mortality Database. Max Planck
-## #' Institute for Demographic Research (Germany),
-## #' University of California, Berkeley (USA), and
-## #' French Institute for Demographic Studies (France).
-## #' Available at www.mortality.org
-## #' (data downloaded on 24 December 2021).
-## "mx_hmd"
-
-
 ## #' Labour force participation rates from the OECD
 ## #'
 ## #' Estimated labour force participation rates,
@@ -33,7 +15,6 @@
 ## #' https://doi.org/10.1787/data-00310-en
 ## #' (accessed on 12 October 2022).
 ## "lfpr_oecd"
-
 
 
 
@@ -91,8 +72,6 @@
 #' on the Statistics New Zealand website.
 #' Data downloaded on 3 January 2023.
 "households"
-
-
 
 
 #' Per capital health expenditure in the Netherlands, 2003-2011

@@ -192,6 +192,23 @@ make_lengths_par <- function(mod) {
 }
 
 
+## NO_TESTS
+#' Lengths of vectors of free parameters
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named integer vector.
+#'
+#' @noRd
+make_lengths_parfree <- function(mod) {
+    priors <- mod$priors
+    matrices <- make_matrices_parfree_par(mod)
+    ans <- vapply(matrices, ncol, 1L)
+    names(ans) <- names(priors)
+    ans
+}
+
+
 ## HAS_TESTS
 #' Make mapping used by MakeADFun
 #'
@@ -209,24 +226,24 @@ make_lengths_par <- function(mod) {
 #' @noRd
 make_map <- function(mod) {
     priors <- mod$priors
-    lengths_par <- make_lengths_par(mod)
-    map_par <- lapply(lengths_par, function(n) rep(0, times = n))
+    lengths_parfree <- make_lengths_parfree(mod)
+    map_parfree <- lapply(lengths_parfree, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
         if (is_known)
-            map_par[[i_term]][] <- NA
+            map_parfree[[i_term]][] <- NA
     }
-    map_par <- unlist(map_par, use.names = FALSE)
-    n <- length(map_par)
-    is_na <- is.na(map_par)
+    map_parfree <- unlist(map_parfree, use.names = FALSE)
+    n <- length(map_parfree)
+    is_na <- is.na(map_parfree)
     n_na <- sum(is_na)
     if (n_na == 0L)
         ans <- NULL
     else {
-        map_par[!is_na] <- seq_len(n - n_na)
-        map_par <- factor(map_par)
-        ans <- list(par = map_par)
+        map_parfree[!is_na] <- seq_len(n - n_na)
+        map_parfree <- factor(map_parfree)
+        ans <- list(parfree = map_parfree)
     }
     ans
 }   
@@ -321,6 +338,30 @@ make_matrices_par_outcome_vec <- function(formula, data) {
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans        
+}
+
+
+## NO_TESTS
+#' Make list of matrices mapping parfree to par
+#'
+#' Make list of matrices mapping free parameters
+#' for main effects or interactions to
+#' full parameter vectors
+#' 
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list of matrices
+#'
+#' @noRd
+make_matrices_parfree_par <- function(mod) {
+    priors <- mod$priors
+    lengths_par <- make_lengths_par(mod)
+    ans <- .mapply(make_matrix_parfree_par,
+                   dots = list(prior = priors,
+                               length_par = lengths_par),
+                   MoreArgs = list())
+    names(ans) <- names(priors)
+    ans    
 }
 
 
@@ -458,6 +499,31 @@ make_offset_vec <- function(vname_offset, data) {
 }
 
 
+## NO_TESTS
+#' Make list of offsets using in converting
+#' parfree to par
+#'
+#' Make list vectors used in converting free parameters
+#' for main effects or interactions to
+#' full parameter vectors
+#' 
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list of vectors
+#'
+#' @noRd
+make_offsets_parfree_par <- function(mod) {
+    priors <- mod$priors
+    lengths_par <- make_lengths_par(mod)
+    ans <- .mapply(make_offset_parfree_par,
+                   dots = list(prior = priors,
+                               length_par = lengths_par),
+                   MoreArgs = list())
+    ans <- unlist(ans)
+    ans    
+}
+
+
 ## HAS_TESTS
 #' Make array holding outcome variable
 #' cross-classified by predictors
@@ -527,10 +593,10 @@ make_outcome_vec <- function(formula, data) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_par <- function(mod) {
+make_parfree <- function(mod) {
     priors <- mod$priors
-    lengths_par <- make_lengths_par(mod)
-    ans <- lapply(lengths_par, function(n) rep(0, times = n))
+    lengths_parfree <- make_lengths_parfree(mod)
+    ans <- lapply(lengths_parfree, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
@@ -540,7 +606,7 @@ make_par <- function(mod) {
         }
     }
     ans <- unlist(ans)
-    names(ans) <- rep(names(priors), times = lengths_par)
+    names(ans) <- rep(names(priors), times = lengths_parfree)
     ans
 }
 
@@ -640,24 +706,86 @@ make_terms_hyper <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make factor identifying components of 'par'
+#' Make factor identifying components of
+#' combined parameter vector
 #'
-#' Make factor the same length as 'par',
+#' Make factor the same length as
+#' a combined parameter vector
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor.
+#'
+#' @noRd
+make_terms_par <- function(mod) {
+    priors <- mod$priors
+    matrices <- mod$matrices_par_outcome
+    lengths <- vapply(matrices, ncol, 1L)
+    nms <- names(priors)
+    ans <- rep(nms, times = lengths)
+    ans <- factor(ans, levels = nms)
+    ans
+}
+
+
+## NO_TESTS
+#' Make factor identifying components of 'parfree'
+#'
+#' Make factor the same length as 'parfree',
 #' giving the name of the term
 #' that the each element belongs to.
 #'
 #' @param mod Object of class "bage_mod"
 #'
 #' @returns A factor, the same length
-#' as 'par'.
+#' as 'parfree'.
 #'
 #' @noRd
-make_terms_par <- function(mod) {
+make_terms_parfree <- function(mod) {
     priors <- mod$priors
-    matrices_par <- mod$matrices_par
-    lengths_par <- vapply(matrices_par, ncol, 1L)
-    nms_terms <- names(priors)
-    ans <- rep(nms_terms, times = lengths_par)
-    ans <- factor(ans, levels = nms_terms)
+    matrices <- make_matrices_parfree_par(mod)
+    lengths <- vapply(matrices, ncol, 1L)
+    nms <- names(priors)
+    ans <- rep(nms, times = lengths)
+    ans <- factor(ans, levels = nms)
     ans
+}
+
+
+## NO_TESTS
+#' Make integer vector of flags for whether
+#' each prior uses a matrix mapping parfree to par
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_matrix_parfree_par <- function(mod) {
+    priors <- mod$priors
+    ans <- vapply(priors, uses_matrix_parfree_par, TRUE)
+    ans <- as.integer(ans)
+    names(ans) <- names(priors)
+    ans    
+}
+
+
+## NO_TESTS
+#' Make integer vector of flags for whether
+#' each prior uses an offset to convert
+#' parfree to par
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_offset_parfree_par <- function(mod) {
+    priors <- mod$priors
+    ans <- vapply(priors, uses_offset_parfree_par, TRUE)
+    ans <- as.integer(ans)
+    names(ans) <- names(priors)
+    ans    
 }

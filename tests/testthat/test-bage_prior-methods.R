@@ -136,6 +136,24 @@ test_that("'transform_hyper' works with 'bage_prior_rw2'", {
 })
 
 
+## uses_matrix_parfree_par ----------------------------------------------------
+
+test_that("'uses_matrix_parfree_par' works with valid inputs", {
+    expect_false(uses_matrix_parfree_par(N()))
+    expect_true(uses_matrix_parfree_par(Spline()))
+    expect_true(uses_matrix_parfree_par(SVD(HMD)))
+})
+
+
+## uses_offset_parfree_par ----------------------------------------------------
+
+test_that("'uses_offset_parfree_par' works with valid inputs", {
+    expect_false(uses_offset_parfree_par(N()))
+    expect_false(uses_offset_parfree_par(Spline()))
+    expect_true(uses_offset_parfree_par(SVD(HMD)))
+})
+
+
 ## values_known ---------------------------------------------------------------
 
 test_that("'values_known' works with valid inputs", {
