@@ -3,7 +3,7 @@
 \name{RW}
 \alias{RW}
 \alias{RW2}
-\title{One-dimensional random walk priors}
+\title{Random walk priors}
 \usage{
 RW(scale = 1)
 

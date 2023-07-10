@@ -281,10 +281,10 @@ make_levels_hyper <- function(mod) {
 #' @noRd
 make_levels_par <- function(mod) {
     formula <- mod$formula
-    matrices_par <- mod$matrices_par
+    matrices_par_outcome <- mod$matrices_par_outcome
     outcome <- mod$outcome
     data <- mod$data
-    nms <- names(matrices_par)
+    nms <- names(matrices_par_outcome)
     n <- length(nms)
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
@@ -302,7 +302,7 @@ make_levels_par <- function(mod) {
             i_dim <- factors[, nm, drop = TRUE]
             paste_dot <- function(...) paste(..., sep = ".")
             term_levels <- do.call(paste_dot, dim_levels[i_dim])
-            matrix_par <- matrices_par[[i]]
+            matrix_par <- matrices_par_outcome[[i]]
             i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
             ans[[i]] <- term_levels[i_term_level]
         }

@@ -89,17 +89,13 @@ We allow $\xi$ to equal 0, in which case the model reduces to
 \begin{equation}
   y_i \mid w_i, \mu_i \ind \text{Binom}(w_i, \mu_i).
 \end{equation}
-For $\xi > 0$, set
+Equations \@ref(eq:lik-binom-1) and \@ref(eq:lik-binom-2) are then equivalent to
 \begin{equation}
-  \varrho = \frac{1-\xi}{\xi}.
-\end{equation}
-Equations \@ref(eq:lik-binom-1) and \@ref(eq:lik-binom-1) are then equivalent to
-\begin{equation}
-  y_i | w_i, \mu_i, \varrho \ind \text{BetaBinom}\left(w_i, \mu_i \varrho, (1 - \mu_i) \varrho \right),
+  y_i | w_i, \mu_i, \xi \ind \text{BetaBinom}\left(w_i, \xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i) \right),
 \end{equation}
 which is what we use internally. Values for $\gamma_i$ can be generated using
 \begin{equation}
-  \gamma_i \mid y_i, w_i, \mu_i, \varrho \sim \text{Beta}\left(y_i + \mu_i \varrho, w_i - y_i + (1-\mu_i) \varrho \right).
+  \gamma_i \mid y_i, w_i, \mu_i, \xi \sim \text{Beta}\left(y_i + \xi^{-1} \mu_i, w_i - y_i + \xi^{-1}(1-\mu_i) \right).
 \end{equation}
 
 
@@ -898,8 +894,8 @@ TODO - choice of $A_{\xi}$.
 
 ### Binomial
 
+It seems sensible to use the same prior for $\xi$ as we do with the Poisson likelihood, since in both cases, the $\xi^{-1}$ is the number of prior cases. But we need to verify this. I started in Appendix \@ref(app:disp), but got stuck.
 
-TODO - we need to derive this!! See Appendix for an incomplete attempt.
 
 ### Normal
 
@@ -932,7 +928,6 @@ set_prior_disp(scale = NULL)
 | $\gamma_i$ | Super-population rate, probability, or mean. |
 | $\mu_i$ | Cell-specific mean. |
 | $\xi$   | Dispersion parameter. |
-| $\varrho$ | $(1 - \xi)/\xi$. Used in binomial model. |
 | $g()$ | Log, logit, or identity function. |
 | $m$ | Index for intercept, main effect, or interaction. $m = 0, \cdots, M$. |
 | $\beta^{(0)}$ | Intercept. |
@@ -1018,45 +1013,11 @@ The Kullback-Liebler divergence $\text{KL}(f_1 || f_0)$ of two beta distribution
 \end{equation}
 https://math.stackexchange.com/questions/257821/kullback-liebler-divergence#comment564291_257821
 
-Using the parameterisation $v = \alpha + \beta$, $\mu = \alpha / (\alpha + \beta)$, this becomes
+Using the parameterisation $v = 1 / \xi = \alpha + \beta$, $\mu = \alpha / (\alpha + \beta)$, this becomes
 \begin{equation}
   \log \frac{\Gamma(v_1) \Gamma(\mu v_0) \Gamma((1 - \mu) v_0)}{\Gamma(v_0) \Gamma(\mu v_1) \Gamma((1 - \mu) v_1)} + (v_1 - v_0) \mu (\psi(\mu v_1) - \psi(v_1)) + (v_1 - v_0) (1 - \mu) (\psi((1-\mu) v_1) - \psi(v_1))
 \end{equation}
 
-If we substitute the approximation (valid for large $x$) $\log \Gamma(x) \approx (x - \frac{1}{2})\log x - x + \frac{1}{2} \log(2\pi)$
-[https://en.wikipedia.org/wiki/Gamma_function] into the first term we obtain
-
-\begin{align}
-  & \left(v_1 - \frac{1}{2}\right) \log v_1 - v_1 \\
-  & + \left(\mu v_0 - \frac{1}{2}\right) \left(\log \mu + \log v_0 \right) - \mu v_0 \\
-  & + \left((1-\mu) v_0 - \frac{1}{2}\right) \left( \log (1-\mu) + \log v_0 \right) - (1-\mu) v_0 \\
-  & - \left(v_0 - \frac{1}{2}\right) \log v_0 + v_0 \\
-  & - \left(\mu v_1 - \frac{1}{2}\right) \left(\log \mu + \log v_1 \right) + \mu v_1 \\
-  & - \left((1-\mu) v_1 - \frac{1}{2}\right) \left( \log (1-\mu) + \log v_1 \right) + (1-\mu) v_1 \\
-=  & \left(v_1 - \frac{1}{2} - \mu v_1 + \frac{1}{2} - (1-\mu) v_1 + \frac{1}{2} \right) \log v_1 \\
-  & + \left(\mu v_0 - \frac{1}{2} + (1-\mu) v_0 - \frac{1}{2} - v_0 + \frac{1}{2} \right) \log v_0 \\
-  & + \left(\mu v_0 - \frac{1}{2} - \mu v_1 + \frac{1}{2} \right) \log \mu \\
-  & + \left((1 - \mu) v_0 - \frac{1}{2} - (1 - \mu) v_1 + \frac{1}{2} \right) \log (1 - \mu) \\
-  & + \left(-1 + \mu + (1 - \mu) \right) v_1 \\
-  & + \left(-\mu - (1 - \mu) + 1 \right) v_0 \\
-= & \frac{1}{2} \log v_1 - \frac{1}{2} \log v_0 - (v_1 - v_0) \mu \log \mu - (v_1 - v_0) (1 - \mu) \log (1-\mu) \\
-= & \frac{1}{2} \log \frac{v_1}{v_0} - (v_1 - v_0) \left(\mu \log \mu + (1 - \mu) \log (1-\mu) \right)
-\end{align}
-
-
-Using the approximation $\psi(x) \approx \log x - \frac{1}{2}x$, the second term in \@ref(eq:kl-beta) becomes
-\begin{equation}
-  (v_1 - v_0) \left(\mu \log \mu + (1 - \mu) \log (1 - \mu) + \mu (1 - \mu) v_1 \right).
-\end{equation}
-\@ref(eq:kl-beta) therefore reduces to
-\begin{equation}
-\frac{1}{2} \log \frac{v_1}{v_0} +  \mu (1 - \mu) v_1 (v_1 - v_0)
-\end{equation}
-
-## Changes 
-
-- NFixed prior
-- scale outcome in normal models, and use s = 1 for everything?
 
 
 # References

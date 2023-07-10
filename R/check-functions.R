@@ -1,5 +1,5 @@
 
-## NO_TESTS
+## HAS_TESTS
 #' Check and tidy a scale term
 #'
 #' Check that `x` is a positive
@@ -27,6 +27,28 @@ check_and_tidy_scale <- function(x, x_arg) {
         cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
                          i = "{.arg {x_arg}} equals {x}."))
     as.double(x)
+}
+
+
+## HAS_TESTS
+#' Check a logical flag
+#'
+#' @param x TRUE or FALSE
+#'
+#' @returns TRUE, invisibly
+#' 
+#' @noRd
+check_flag <- function(x) {
+    nm <- deparse1(substitute(x))
+    if (!identical(length(x), 1L))
+        cli::cli_abort(c("{.arg {nm}} does not have length 1",
+                         i = "{.arg {nm}} has length {length(x)}."))
+    if (!is.logical(x))
+        cli::cli_abort(c("{.arg {nm}} does not have class {.cls logical}.",
+                         i = "{.arg {nm}} has class {.cls {class(x)}}"))
+    if (is.na(x))
+        cli::cli_abort("{.arg {nm}} is {.val {NA}}")
+    invisible(TRUE)
 }
 
 
@@ -129,6 +151,38 @@ check_formula_vnames_in_data <- function(formula, data) {
                       deparse1(formula),
                       "data"),
              call. = FALSE)
+    invisible(TRUE)
+}
+
+
+## NO_TESTS
+#' Check 'n' argument
+#'
+#' @param n_spline A whole number greater
+#' than or equal to 'min', and possibly NULL.
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_n <- function(n, min, null_ok) {
+    if (null_ok && is.null(n)) 
+        return(invisible(TRUE))
+    if (!is.numeric(n))
+        cli::cli_abort(c("{.arg n} is non-numeric.",
+                         i = "{.arg n} has class {.cls {class(n)}}."))
+    if (length(n) != 1L)
+        cli::cli_abort(c("{.arg n} does not have length 1.",
+                         i = "{.arg n} has length {length(n)}."))
+    if (is.na(n))
+        cli::cli_abort("{.arg n} is NA.")
+    if (is.infinite(n))
+        cli::cli_abort("{.arg n} is infinite.")
+    if (!isTRUE(all.equal(round(n), n)))
+        cli::cli_abort(c("{.arg n} is not an integer.",
+                         i = "{.arg n} equals {n}."))
+    if (n < min)
+        cli::cli_abort(c("{.arg n} is less than {min}.",
+                         i = "{.arg n} equals {n}."))
     invisible(TRUE)
 }
 

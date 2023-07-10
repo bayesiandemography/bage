@@ -189,11 +189,124 @@ levels_hyper.bage_prior_rw2 <- function(prior)
     "sd"
 
 
+## 'make_matrix_parfree_par' --------------------------------------------------
+
+#' Make matrix mapping parfree to par
+#'
+#' Make matrices mapping free parameters
+#' for main effects or interactions to
+#' full parameter vectors
+#' 
+#' @param prior Object of class 'bage_prior'
+#' @param ... Other arguments
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+make_matrix_parfree_par <- function(prior, ...) {
+    UseMethod("make_matrix_parfree_par")
+}
+
+## NO_TESTS
+#' @export
+make_matrix_parfree_par.bage_prior <- function(prior, length_par, ...) {
+    Matrix::.sparseDiagonal(length_par)
+}
+
+## NO_TESTS
+#' @export
+make_matrix_parfree_par.bage_prior_svd <- function(prior,...) {
+    val <- prior$val
+    indep <- prior$indep
+    stop("not written yet")
+}
+
+
+## 'make_offset_parfree_par' --------------------------------------------------
+
+#' Make offset used in converting parfree to par
+#'
+#' Make offset used in converting
+#' free parameters
+#' for main effects or interactions to
+#' full parameter vectors
+#' 
+#' @param prior Object of class 'bage_prior'
+#' @param ... Other arguments
+#'
+#' @returns A vector.
+#'
+#' @noRd
+make_offset_parfree_par <- function(prior, ...) {
+    UseMethod("make_offset_parfree_par")
+}
+
+## NO_TESTS
+#' @export
+make_offset_parfree_par.bage_prior <- function(prior, length_par, ...) {
+    rep(0, times = length_par)
+}
+
+## NO_TESTS
+#' @export
+make_offset_parfree_par.bage_prior_svd <- function(prior, ...) {
+    stop("not written yet")
+}
+
+
+## 'uses_matrix_parfree_par' --------------------------------------------------
+
+#' Whether prior uses matrix to convert parfree to par
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+uses_matrix_parfree_par <- function(prior) {
+    UseMethod("uses_matrix_parfree_par")
+}
+
+## NO_TESTS
+#' @export
+uses_matrix_parfree_par.bage_prior <- function(prior) FALSE
+
+## NO_TESTS
+#' @export
+uses_matrix_parfree_par.bage_prior_spline <- function(prior) TRUE
+
+## NO_TESTS
+#' @export
+uses_matrix_parfree_par.bage_prior_svd <- function(prior) TRUE
+
+
+## 'uses_offset_parfree_par' --------------------------------------------------
+
+#' Whether prior uses offset to convert parfree to par
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+uses_offset_parfree_par <- function(prior) {
+    UseMethod("uses_offset_parfree_par")
+}
+
+## NO_TESTS
+#' @export
+uses_offset_parfree_par.bage_prior <- function(prior) FALSE
+
+## NO_TESTS
+#' @export
+uses_offset_parfree_par.bage_prior_svd <- function(prior) TRUE
+
+
 ## 'str_call_prior' -----------------------------------------------------------
 
 #' Create string describing prior
 #'
-#' Create string describing prior that
+#' Creates string describing prior that
 #' (inspired by printing of objects in Python)
 #' looks like a call to the constructor function
 #'
@@ -325,6 +438,56 @@ transform_hyper.bage_prior_rw2 <- function(prior)
     list(exp)
 
 
+## 'uses_matrix_parfree_par' --------------------------------------------------
+
+#' Whether prior uses matrix to transform parfree
+#' to par
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+uses_matrix_parfree_par <- function(prior) {
+    UseMethod("uses_matrix_parfree_par")
+}
+
+## HAS_TESTS
+#' @export
+uses_matrix_parfree_par.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_matrix_parfree_par.bage_prior_spline <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_parfree_par.bage_prior_svd <- function(prior) TRUE
+
+
+## 'uses_offset_parfree_par' --------------------------------------------------
+
+#' Whether prior uses offset to transform parfree
+#' to par
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+uses_offset_parfree_par <- function(prior) {
+    UseMethod("uses_offset_parfree_par")
+}
+
+## HAS_TESTS
+#' @export
+uses_offset_parfree_par.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_offset_parfree_par.bage_prior_svd <- function(prior) TRUE
+
+
 ## 'values_known' -------------------------------------------------------------
 
 #' Given a prior that treats a term as known,
@@ -342,3 +505,5 @@ values_known <- function(prior) {
 ## HAS_TESTS
 #' @export
 values_known.bage_prior_known <- function(prior) prior$specific$values
+
+
