@@ -19,8 +19,8 @@ hold scaled SVDs (singular value decompositions.)
 \details{
 \code{data} has the following columns:
 \itemize{
-\item \code{sexgender} Sex/gender, including \code{".Joint"},
-and `".Total".
+\item \code{type} Type of decomposition. Choices are "total",
+"joint", and "independent". See details.
 \item \code{labels_age} Age labels for individual rows of
 matrices within \code{matrix} and individual elements
 of vectors within \code{offset}.

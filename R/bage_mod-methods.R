@@ -346,7 +346,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 
 #' @export
 print.bage_mod <- function(x, ...) {
-    nchar_offset <- 10
+    nchar_offset <- 14
     ## calculations
     formula <- x$formula
     priors <- x$priors
@@ -354,6 +354,7 @@ print.bage_mod <- function(x, ...) {
     data <- x$data
     vname_offset <- x$vname_offset
     var_age <- x$var_age
+    var_sexgender <- x$var_sexgender
     var_time <- x$var_time
     is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
@@ -365,6 +366,7 @@ print.bage_mod <- function(x, ...) {
     padding_formula <- paste(rep(" ", nchar_max - nchar_response),
                              collapse = "")
     str_var_age <- if (is.null(var_age)) "<not detected>" else var_age
+    str_var_sexgender <- if (is.null(var_sexgender)) "<not detected>" else var_sexgender
     str_var_time <- if (is.null(var_time)) "<not detected>" else var_time
     nms_priors <- sprintf("% *s", nchar_max, nms_priors)
     calls_priors <- vapply(priors, str_call_prior, "")
@@ -392,6 +394,11 @@ print.bage_mod <- function(x, ...) {
                 nchar_offset,
                 "var_age",
                 str_var_age))
+    cat("\n")
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "var_sexgender",
+                str_var_sexgender))
     cat("\n")
     cat(sprintf("% *s: %s",
                 nchar_offset,
