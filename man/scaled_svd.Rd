@@ -19,8 +19,16 @@ hold scaled SVDs (singular value decompositions.)
 \details{
 \code{data} has the following columns:
 \itemize{
-\item \code{sexgender} Labels for sexes/genders. The column
-can also be called \code{sex} or \code{gender}.
+\item \code{sexgender} Sex/gender, including \code{".Joint"},
+and `".Total".
+\item \code{labels_age} Age labels for individual rows of
+matrices within \code{matrix} and individual elements
+of vectors within \code{offset}.
+\item \code{labels_sexgender} Sex/gender labels for individual rows of
+matrices within \code{matrix} and individual elements
+of vectors within \code{offset}, or \code{NULL}.
+Only non-\code{NULL} when \code{sexgender} is \code{".Joint"}
+(which is when both are needed to identify rows.)
 \item \code{matrix} List column of matrices created by
 \code{\link[=scaled_svd_comp]{scaled_svd_comp()}}. Must have rownames.
 Must not have NAs. Each matrix has 10 columns.

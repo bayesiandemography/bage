@@ -1,6 +1,8 @@
 
 test_that("'scaled_svd' creates object of class 'bage_scaled_svd' with valid inputs", {
     data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data$labels_age <- rep(list(c("0-4", "5-9")), times = 4)
+    data$labels_sexgender <- list(NULL, NULL, NULL, c("Female", "Male"))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -11,39 +13,6 @@ test_that("'scaled_svd' creates object of class 'bage_scaled_svd' with valid inp
                         c("0-4" = 41, "5-9" = 42))
     ans <- scaled_svd(data)
     expect_s3_class(ans, "bage_scaled_svd")
-})
-
-test_that("'scaled_svd' corrects name of 'sexgender' variable", {
-    data <- data.frame(sex = c("Female", "Male", ".Total", ".Joint"))
-    data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-                        matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-                        matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-                        matrix(15, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)))
-    data$offset <- list(c("0-4" = 11, "5-9" = 12),
-                        c("0-4" = 21, "5-9" = 22),
-                        c("0-4" = 31, "5-9" = 32),
-                        c("0-4" = 41, "5-9" = 42))
-    ans <- scaled_svd(data)
-    expect_s3_class(ans, "bage_scaled_svd")
-    expect_identical(names(ans$data)[[1L]], "sexgender")
-    names(data)[[1L]] <- "gender"
-    ans <- scaled_svd(data)
-    expect_s3_class(ans, "bage_scaled_svd")
-    expect_identical(names(ans$data)[[1L]], "sexgender")
-})
-
-test_that("'scaled_svd' reformats sexgender categories", {
-    data <- data.frame(sex = c("F", "M", ".Total", ".Joint"))
-    data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-                        matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-                        matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-                        matrix(15, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)))
-    data$offset <- list(c("0-4" = 11, "5-9" = 12),
-                        c("0-4" = 21, "5-9" = 22),
-                        c("0-4" = 31, "5-9" = 32),
-                        c("0-4" = 41, "5-9" = 42))
-    ans <- scaled_svd(data)
-    expect_identical(ans$data$sexgender, c("Female", "Male", ".Total", ".Joint"))
 })
 
 test_that("'scaled_svd' throws correct error when 'data' is not data frame", {
@@ -53,7 +22,9 @@ test_that("'scaled_svd' throws correct error when 'data' is not data frame", {
 
 test_that("'scaled_svd' throws correct error when names duplicated", {
     data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
-                       sex = 1:4)
+                       "blank" = 1:4,
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     names(data)[2] <- "sexgender"
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -68,7 +39,9 @@ test_that("'scaled_svd' throws correct error when names duplicated", {
 })
 
 test_that("'scaled_svd' throws correct error when name invalid", {
-    data <- data.frame(wrong = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(wrong = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -82,7 +55,9 @@ test_that("'scaled_svd' throws correct error when name invalid", {
 })
 
 test_that("'scaled_svd' throws correct error when sexgender has NA", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", NA))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", NA),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -96,7 +71,9 @@ test_that("'scaled_svd' throws correct error when sexgender has NA", {
 })
 
 test_that("'scaled_svd' throws correct error when matrix is not list column", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- 1:4
     data$offset <- list(c("0-4" = 11, "5-9" = 12),
                         c("0-4" = "a", "5-9" = 22),
@@ -107,7 +84,9 @@ test_that("'scaled_svd' throws correct error when matrix is not list column", {
 })
 
 test_that("'scaled_svd' throws correct error when offset has non-numeric", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -121,7 +100,9 @@ test_that("'scaled_svd' throws correct error when offset has non-numeric", {
 })
 
 test_that("'scaled_svd' throws correct error when offset has NA", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -135,7 +116,9 @@ test_that("'scaled_svd' throws correct error when offset has NA", {
 })
 
 test_that("'scaled_svd' throws correct error when 'matrix' has non-matrices", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         1:3,
@@ -149,7 +132,9 @@ test_that("'scaled_svd' throws correct error when 'matrix' has non-matrices", {
 })
 
 test_that("'scaled_svd' throws correct error when 'sexgender' missing categories", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Total"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -163,7 +148,9 @@ test_that("'scaled_svd' throws correct error when 'sexgender' missing categories
 })
 
 test_that("'scaled_svd' throws correct error when 'matrix', 'offset' inconsistent", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -177,7 +164,9 @@ test_that("'scaled_svd' throws correct error when 'matrix', 'offset' inconsisten
 })
 
 test_that("'scaled_svd' throws correct error when matrices not all 10 columns", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -191,7 +180,9 @@ test_that("'scaled_svd' throws correct error when matrices not all 10 columns", 
 })
 
 test_that("'scaled_svd' throws correct error when matrix does not have rownames", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -205,7 +196,9 @@ test_that("'scaled_svd' throws correct error when matrix does not have rownames"
 })
 
 test_that("'scaled_svd' throws correct error when offset does not have names", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
@@ -219,7 +212,9 @@ test_that("'scaled_svd' throws correct error when offset does not have names", {
 })
 
 test_that("'scaled_svd' throws correct error when rownames, names different", {
-    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
+    data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"),
+                       labels_age = rep(list(c("0-4", "5-9")), times = 4),
+                       labels_sexgender = list(NULL, NULL, NULL, c("Female", "Male")))
     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),

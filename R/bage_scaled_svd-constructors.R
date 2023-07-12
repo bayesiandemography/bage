@@ -1,5 +1,5 @@
 
-## HAS_TESTS
+## NO_TESTS - TESTS INCOMPLETE
 #' Create object to hold data from scaled SVDs
 #'
 #' Create an object of class `bage_scaled_svd` to
@@ -7,8 +7,16 @@
 #'
 #' `data` has the following columns:
 #'
-#' - `sexgender` Labels for sexes/genders. The column
-#'   can also be called `sex` or `gender`.
+#' - `sexgender` Sex/gender, including `".Joint"`,
+#'    and `".Total".
+#' - `labels_age` Age labels for individual rows of
+#'    matrices within `matrix` and individual elements
+#'    of vectors within `offset`.
+#' - `labels_sexgender` Sex/gender labels for individual rows of
+#'    matrices within `matrix` and individual elements
+#'    of vectors within `offset`, or `NULL`.
+#'    Only non-`NULL` when `sexgender` is `".Joint"`
+#'    (which is when both are needed to identify rows.)
 #' - `matrix` List column of matrices created by
 #'   [scaled_svd_comp()]. Must have rownames.
 #'   Must not have NAs. Each matrix has 10 columns.
@@ -23,9 +31,11 @@
 #'
 #' @export
 scaled_svd <- function(data) {
-    nms_valid <- list(c("sex", "matrix", "offset"),
-                      c("gender", "matrix", "offset"),
-                      c("sexgender", "matrix", "offset"))
+    nms_valid <- c("sexgender",
+                   "labels_age",
+                   "labels_sexgender",
+                   "matrix",
+                   "offset")
     n_comp <- 10L
     ## 'data' is a data frame
     if (!is.data.frame(data))
@@ -37,37 +47,73 @@ scaled_svd <- function(data) {
     if (i_dup > 0L)
         cli::cli_abort("{.arg data} has duplicated name: {.val {nms_data[[i_dup]]}}.")
     ## names in 'data' valid
-    is_nms_valid <- FALSE
-    for (nms in nms_valid) {
-        if (setequal(nms_data, nms)) {
-            is_nms_valid <- TRUE
-            break
-        }
-    }
-    if (!is_nms_valid)
+    if (!setequal(nms_data, nms_valid))
         cli::cli_abort(c("{.arg data} does not have expected variables.",
                          i = "{.arg data} has variables {.val {nms_data}}."))
-    nms_data <- sub("^sex$|^gender$", "sexgender", nms_data)
-    names(data) <- nms_data
-    ## 'sexgender' column has no NAs
+    ## 'sexgender' has no NAs
     i_na_sex <- match(TRUE, is.na(data$sexgender), nomatch = 0L)
     if (i_na_sex > 0L)
-        cli::cli_abort("Element {i_na_sex} of sex/gender variable is {.val {NA}}.")
-    ## 'matrix' and 'offset' are both list columns, the elements of which are numeric, with no NAs
-    for (nm in c("matrix", "offset")) {
+        cli::cli_abort("Element {i_na_sex} of {.var sexgender} is {.val {NA}}.")
+    ## 'sexgender' includes levels ".Joint" and ".Total"
+    for (nm in c(".Joint", ".Total")) {
+        if (!(nm %in% data$sexgender))
+            cli::cli_abort("{.var sexgender} does not have category {.val {nm}}.")
+    }
+    ## 'labels_age', 'labels_sexgender', 'matrix', and 'offset'
+    ## are all list columns with no NAs
+    for (nm in c("labels_age", "labels_sexgender", "matrix", "offset")) {
         value <- data[[nm]]
         if (!is.list(value))
             cli::cli_abort(c("{.var {nm}} is not a list column.",
                              i = "{.var {nm}} has class {.cls {class(value)}}."))
+        has_na_val <- vapply(value, anyNA, TRUE)
+        i_na_val <- match(TRUE, has_na_val, nomatch = 0L)
+        if (i_na_val > 0L)
+            cli::cli_abort("Element {i_na_val} of {.var {nm}} has NA.")
+    }
+    ## 'labels_sexgender' is non-NULL iff 'sexgender' is ".Joint"
+    is_lsg_nonnull <- !vapply(data$labels_sexgender, is.null, TRUE)
+    is_joint <- data$sexgender == ".Joint"
+    i_neq_lsg_joint <- match(FALSE, is_lsg_nonnull == is_joint, nomatch = 0L)
+    if (i_neq_lsg_joint > 0L) {
+        val_sg <- data$sexgender[[i_neq_lsg_joint]]
+        val_lsg <- if (is_lsg_nonnull[[i_neq_lsg_joint]]) "non-NULL" else "NULL"
+        cli::cli_abort(c("{.var sexgender} and {.var labels_sexgender} are inconsistent.",
+                         i = "Element {i_neq_lsg_joint} of {.var sexgender} is {.val val_sg}.",
+                         i = "Element {i_neq_lsg_joint} of {.var labels_sexgender} is {val_lsg}."))
+    }
+    ## if 'labels_sexgender' non-NULL, then length of element
+    ## equals length of element of 'labels_age'
+    len_age <- lengths(data$labels_age)
+    len_sg <- lengths(data$labels_sexgender)
+    is_neq_age_sg <- (len_age != len_sg) & is_lsg_nonnull
+    i_neq_age_sg <- match(TRUE, is_neq_age_sg, nomatch = 0L)
+    if (i_neq_age_sg > 0L) {
+        val_age <- len_age[[i_neq_age_sg]]
+        val_sg <- len_sg[[i_neq_age_sg]]
+        cli::cli_abort(c("{.var labels_age} and {.var labels_sexgender} are inconsistent.",
+                         i = "Element {i_neq_age_sg} of {.var labels_age} has length {val_age}.",
+                         i = "Element {i_neq_age_sg} of {.var labels_sexgender} has length {val_sg}."))
+    }
+    ## elements of 'labels_age' and 'offset' have same length
+    len_off <- lengths(data$offset)
+    is_neq_age_off <- len_age != len_off
+    i_neq_age_off <- match(TRUE, is_neq_age_off, nomatch = 0L)
+    if (i_neq_age_off > 0L) {
+        val_age <- len_age[[i_neq_age_off]]
+        val_off <- len_off[[i_neq_age_off]]
+        cli::cli_abort(c("{.var labels_age} and {.var offset} are inconsistent.",
+                         i = "Element {i_neq_age_off} of {.var labels_age} has length {val_age}.",
+                         i = "Element {i_neq_age_off} of {.var offset} has length {val_off}."))
+    }
+    ## all elements of 'matrix' and 'offset' are numeric
+    for (nm in c("matrix", "offset")) {
+        value <- data[[nm]]
         is_num <- vapply(value, is.numeric, TRUE)
         i_nonnum <- match(FALSE, is_num, nomatch = 0L)
         if (i_nonnum > 0L)
             cli::cli_abort(c("Element {i_nonnum} of {.var {nm}} is non-numeric.",
                              i = "Element {i_nonnum} has class {.cls {class(value[[i_nonnum]])}}."))
-        has_na_val <- vapply(value, anyNA, TRUE)
-        i_na_val <- match(TRUE, has_na_val, nomatch = 0L)
-        if (i_na_val > 0L)
-            cli::cli_abort("Element {i_na_val} of {.var {nm}} has NA.")
     }
     ## 'matrix' consists of matrices
     is_mat <- vapply(data$matrix, is.matrix, TRUE)
@@ -75,24 +121,6 @@ scaled_svd <- function(data) {
     if (i_nonmat > 0L)
         cli::cli_abort(c("Element {i_nonmat} of {.var matrix} is not a matrix.",
                          i = "Element {i_nonmat} has class {.cls {class(data$matrix[[i_nonmat]])}}."))
-    ## 'sexgender' includes levels ".Joint" and ".Total"
-    for (nm in c(".Joint", ".Total")) {
-        if (!(nm %in% data$sexgender))
-            cli::cli_abort("Sex/gender variable does not have category {.val {nm}}.")
-    }
-    ## If, aside from ".Joint" and ".Total", 'sexgender' has
-    ## two levels, then try reformatting these remaining levels
-    ## to "Female", "Male". If unsuccessful, leave untouched.
-    is_not_jt <- !(data$sexgender %in% c(".Joint", ".Total"))
-    sexgender_other <- data$sexgender[is_not_jt]
-    has_two_other_labels <- length(unique(sexgender_other)) == 2L
-    if (has_two_other_labels) {
-        sexgender_reformatted <- tryCatch(poputils::reformat_sex(sexgender_other,
-                                                                 factor = FALSE),
-                                          error = function(e) e)
-        if (!inherits(sexgender_reformatted, "error"))
-            data$sexgender[is_not_jt] <- sexgender_reformatted
-    }
     ## nrow(matrix) == length(offset)
     nrow_matrix <- vapply(data$matrix, nrow, 1L)
     length_offset <- vapply(data$offset, length, 1L)
@@ -130,7 +158,7 @@ scaled_svd <- function(data) {
                          i = "Element {i_diff_nm} of {.var offset} has names {nm_offset[[i_diff_nm]]}."))
     ## create object
     data <- tibble::as_tibble(data)
-    data <- data[c("sexgender", "matrix", "offset")]
+    data <- data[c("sexgender", "labels_age", "labels_sexgender", "matrix", "offset")]
     ans <- list(data = data)
     class(ans) <- "bage_scaled_svd"
     ans

@@ -198,30 +198,39 @@ levels_hyper.bage_prior_rw2 <- function(prior)
 #' full parameter vectors
 #' 
 #' @param prior Object of class 'bage_prior'
-#' @param ... Other arguments
+#' @param levels_par Vector of labels for term
+#' @param i_agesex Integer vector of length 2,
+#' created by 'make_i_agesex()'.
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_parfree_par <- function(prior, ...) {
+make_matrix_parfree_par <- function(prior, levels_par, i_agesex) {
     UseMethod("make_matrix_parfree_par")
 }
 
 ## NO_TESTS
 #' @export
-make_matrix_parfree_par.bage_prior <- function(prior, length_par, ...) {
-    Matrix::.sparseDiagonal(length_par)
+make_matrix_parfree_par.bage_prior <- function(prior, levels_par, i_agesex) {
+    n <- length(levels_par)
+    Matrix::.sparseDiagonal(n)
 }
 
 ## NO_TESTS
 #' @export
-make_matrix_parfree_par.bage_prior_svd <- function(prior,...) {
-    val <- prior$val
+make_matrix_parfree_par.bage_prior_svd <- function(prior, levels_par, i_agesex) {
+    scaled_svd <- prior$scaled_svd
     indep <- prior$indep
-    stop("not written yet")
-}
+    n_comp <- prior$n
+    matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                       levels_par = levels_par,
+                                       indep = indep,
+                                       i_agesex = i_agesex
+                                       get_matrix = TRUE,
+                                       n_comp = n_comp)
+}                             
 
-
+    
 ## 'make_offset_parfree_par' --------------------------------------------------
 
 #' Make offset used in converting parfree to par

@@ -9,15 +9,16 @@
 #'
 #' `scaled_svd_comp() typically proceeds as follows:
 #' - transform values in matrix `x` (eg take logs)
+#' - center each column of `x`
 #' - carry out a SVD on the transformed version of `x`
 #' - centre and scale the results from the SVD to produce
-#' matrix `transform` and vector `translate`.
+#' matrix `matrix` and vector `offset`.
 #'
 #' If 
 #' - \eqn{X} is a the matrix of transformed values
 #' of `x`
-#' - \eqn{A} is the matrix called `transform`,
-#' - \eqn{b} is the vector called `translate`, and
+#' - \eqn{A} is the matrix called `matrix`,
+#' - \eqn{b} is the vector called `offset`, and
 #' - \eqn{\beta} is a vector of standard normal variates,
 #'
 #' and
@@ -48,16 +49,22 @@
 #' `scaled_svd_comp() also converts any
 #' `1`s to values just below `1`.
 #'
+#' Centering is appropriate when modelling
+#' the shape of, for instance, age profiles,
+#' rather than the absolute level of the profiles.
+#'
 #' @param x A matrix with value such as rates,
 #' probabilities, or means.
 #' @param n Number of components of the SVD to use.
-#' Defaults to 5.
+#' Defaults to 10.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #' Defaults to `"log"`.
+#' @param center Whether to center the transformed
+#' version of `x` before carrying out the SVD.
 #'
 #' @returns A named list with two elements:
-#' - `transform`, a numeric matrix
-#' - `translate`, a numeric vector
+#' - `matrix`, a numeric matrix
+#' - `offset`, a numeric vector
 #'
 #' @seealso
 #' - [poputils::to_matrix()] can create matrices to
@@ -71,11 +78,11 @@
 #' x
 #' scaled_svd_comp(x, n = 3)
 #' scaled_svd_comp(x, n = 3, transform = "none")
-#' ## TODO - AN EXAMPLE COMBINING FEMALE AND MALE
 #' @export
 scaled_svd_comp <- function(x,
-                          n = 5,
-                          transform = c("log", "logit", "none")) {
+                          n = 10,
+                          transform = c("log", "logit", "none"),
+                          center = TRUE) {
     ## check 'n'
     n <- checkmate::assert_count(n,
                                  positive = TRUE,
@@ -111,6 +118,8 @@ scaled_svd_comp <- function(x,
                           "x"),
                  call. = FALSE)
     }
+    ## check 'center'
+    check_flag(center)
     ## transform to log or logit scale if necessary
     if (transform == "log") {
         x <- replace_zeros(x)
@@ -119,6 +128,12 @@ scaled_svd_comp <- function(x,
     if (transform == "logit") {
         x <- replace_zeros_ones(x)
         x <- log(1 / (1 - x))
+    }
+    ## center, if required
+    if (center) {
+        col_means <- colMeans(x)
+        col_means <- rep(col_means, each = nrow(x))
+        x <- x - col_means
     }
     ## apply svd
     svd <- svd(x = x,

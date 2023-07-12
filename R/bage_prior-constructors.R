@@ -276,7 +276,7 @@ Spline <- function(n = NULL, scale = 1) {
 #' of age and sex/gender variables.
 #'
 #' @param n Number of components.
-#' @param val An object created by [scaled_svd()]
+#' @param scaled_svd An object created by [scaled_svd()]
 #' holding scaled values from a SVD of
 #' age-specific rates, probabilities, or means.
 #' @param indep Whether, in an interaction,
@@ -287,15 +287,15 @@ Spline <- function(n = NULL, scale = 1) {
 #' @returns An object of class `"bage_prior_svd"`.
 #'
 #' @export
-SVD <- function(val, n = 5, indep = TRUE) {
-    if (!inherits(val, "bage_scaled_svd"))
-        cli::cli_abort(c("{.arg val} does not hold scaled SVD values.",
-                         i = "{.arg val} has class {.cls {class(val)}}.",
-                         i = "{.arg val} should have class {.cls bage_scaled_svd}."))
+SVD <- function(scaled_svd, n = 5, indep = TRUE) {
+    if (!inherits(s, "bage_scaled_svd"))
+        cli::cli_abort(c("{.arg s} does not hold scaled SVD values.",
+                         i = "{.arg s} has class {.cls {class(val)}}.",
+                         i = "{.arg s} should have class {.cls bage_scaled_svd}."))
     check_n(n, min = 1L, null_ok = FALSE)
     check_flag(indep)
-    new_bage_prior_svd(n = n,
-                       val = val,
+    new_bage_prior_svd(scaled_svd = scaled_svd,
+                       n = n,
                        indep = indep)
 }
 
@@ -379,7 +379,7 @@ new_bage_prior_rw <- function(scale) {
 ## HAS_TESTS
 new_bage_prior_rw2 <- function(scale) {
     ans <- list(i_prior = 4L,
-                const = c(scale),
+                const = scale,
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
@@ -389,19 +389,22 @@ new_bage_prior_rw2 <- function(scale) {
 ## NO_TESTS
 new_bage_prior_spline <- function(n, scale) {
     ans <- list(i_prior = 6L,
-                const = c(n, scale),
+                const = scale,
                 n_hyper = 1L, ## log_sd
-                specific = list(n = n, scale = scale))
+                specific = list(n = n,
+                                scale = scale))
     class(ans) <- c("bage_prior_spline", "bage_prior")
     ans
 }
 
 ## NO_TESTS
-new_bage_prior_svd <- function(n, val) {
+new_bage_prior_svd <- function(scaled_svd, n, indep) {
     ans <- list(i_prior = 7L,
-                const = c(n, scale),
-                n_hyper = 1L, ## log_sd
-                specific = list(n = n, val = val, indep = indep))
+                const = double(),
+                n_hyper = 0L,
+                specific = list(scaled_svd = scaled_svd,
+                                n = n,
+                                indep = indep))
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans
 }
