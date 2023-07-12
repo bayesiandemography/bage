@@ -86,6 +86,72 @@ infer_var_time <- function(formula) {
 
 
 ## HAS_TESTS
+#' Identify age main effects and age-sex/gender interactions
+#'
+#' Classify terms as "age", "age:sex", "sex:age", and "other".
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named character vector.
+#'
+#' @noRd
+make_agesex <- function(mod) {
+    priors <- mod$priors
+    var_age <- mod$var_age
+    var_sexgender <- mod$var_sexgender
+    nms <- names(priors)
+    ans <- vapply(nms,
+                  FUN = make_agesex_inner,
+                  FUN.VALUE = "",
+                  var_age = var_age,
+                  var_sexgender = var_sexgender)
+    names(ans) <- nms
+    ans
+}
+
+
+#' Classify a term, based on the name
+#'
+#' Decide whether an intercept, main effect,
+#' or interaction is
+#' - an age main effect
+#' - an age-sex/gender interaction
+#' - a sex/gender-age interaction
+#' - something else
+#' based on the name of the term,
+#' plus 'var_age' and 'var_sexgender'
+#'
+#' @param nm Name of the term. A string.
+#' @param var_age Name of the age variable. A string.
+#' @param var_sexgender Name of the sex/gender
+#' variable. A string.
+#'
+#' @returns A string. One of "age", "age:sex", "sex:age", "other".
+#'
+#' @noRd
+make_agesex_inner <- function(nm, var_age, var_sexgender) {
+    nm_split <- strsplit(nm, split = ":")[[1L]]
+    n <- length(nm_split)
+    if (n == 1L) {
+        if (identical(nm_split, var_age))
+            "age"
+        else
+            "other"
+    }
+    else if (n == 2L) {
+        if (identical(nm_split, c(var_age, var_sexgender)))
+            "age:sex"
+        else if (identical(nm_split, c(var_sexgender, var_age)))
+            "sex:age"
+        else
+            "other"
+    }
+    else
+        "other"
+}
+
+
+## HAS_TESTS
 #' Make 'const'
 #'
 #' Make vector to hold constants for priors.
@@ -192,7 +258,7 @@ make_lengths_par <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Lengths of vectors of free parameters
 #' 
 #' @param mod Object of class "bage_mod"
@@ -227,7 +293,8 @@ make_lengths_parfree <- function(mod) {
 make_map <- function(mod) {
     priors <- mod$priors
     lengths_parfree <- make_lengths_parfree(mod)
-    map_parfree <- lapply(lengths_parfree, function(n) rep(0, times = n))
+    map_parfree <- lapply(lengths_parfree,
+                          function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
@@ -355,10 +422,14 @@ make_matrices_par_outcome_vec <- function(formula, data) {
 #' @noRd
 make_matrices_parfree_par <- function(mod) {
     priors <- mod$priors
-    lengths_par <- make_lengths_par(mod)
+    levels_par <- make_levels_par(mod)
+    terms_par <- make_terms_par(mod)
+    agesex <- make_agesex(mod)
+    levels_par <- split(levels_par, terms_par)
     ans <- .mapply(make_matrix_parfree_par,
                    dots = list(prior = priors,
-                               length_par = lengths_par),
+                               levels_par = levels_par,
+                               agesex = agesex),
                    MoreArgs = list())
     names(ans) <- names(priors)
     ans    

@@ -2,7 +2,7 @@
 get_matrix_or_offset_svd <- function(scaled_svd,
                                      levels_par,
                                      indep,
-                                     i_agesex,
+                                     agesex,
                                      get_matrix,
                                      n_comp) {
     data <- scaled_svd$data
@@ -10,21 +10,21 @@ get_matrix_or_offset_svd <- function(scaled_svd,
     labels_age <- data$labels_age
     labels_sexgender <- data$labels_age
     ## determine type of values required
-    if (sum(i_agesex == 1L))
+    if (agesex == "age")
         type_req <- "total"
-    else if ((sum(i_agexex) == 3L) && !indep)
+    else if ((agesex %in% c("age:sex", "sex:age")) && !indep)
         type_req <- "joint"
-    else if ((sum(i_agexex) == 3L) && indep)
+    else if ((agesex %in% c("age:sex", "sex:age")) && indep)
         type_req <- "indep"
     else
         cli::cli_abort(paste("Internal error: unexpected combination of",
-                             "{.var i_agesex} and {.var indep}."))
+                             "{.var agesex} and {.var indep}."))
     ## get labels that are in same format as 'levels_par'
     is_type_req <- type == type_req
     if (type == "total")
         labels_all <- labels_age[is_type_req]
     else {
-        is_age_first <- i_agesex[[1L]] == 1L
+        is_age_first <- agesex == "age:sex"
         if (is_age_first)
             dots <- list(x = labels_age, y = labels_sexgender)
         else

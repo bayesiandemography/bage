@@ -7,8 +7,8 @@
 #'
 #' `data` has the following columns:
 #'
-#' - `sexgender` Sex/gender, including `".Joint"`,
-#'    and `".Total".
+#' - `type` Type of decomposition. Choices are "total",
+#'   "joint", and "independent". See details.
 #' - `labels_age` Age labels for individual rows of
 #'    matrices within `matrix` and individual elements
 #'    of vectors within `offset`.
@@ -31,11 +31,12 @@
 #'
 #' @export
 scaled_svd <- function(data) {
-    nms_valid <- c("sexgender",
+    nms_valid <- c("type",
                    "labels_age",
                    "labels_sexgender",
                    "matrix",
                    "offset")
+    type_valid <- c("total", "joint", "indep")
     n_comp <- 10L
     ## 'data' is a data frame
     if (!is.data.frame(data))
@@ -50,15 +51,15 @@ scaled_svd <- function(data) {
     if (!setequal(nms_data, nms_valid))
         cli::cli_abort(c("{.arg data} does not have expected variables.",
                          i = "{.arg data} has variables {.val {nms_data}}."))
-    ## 'sexgender' has no NAs
-    i_na_sex <- match(TRUE, is.na(data$sexgender), nomatch = 0L)
-    if (i_na_sex > 0L)
-        cli::cli_abort("Element {i_na_sex} of {.var sexgender} is {.val {NA}}.")
-    ## 'sexgender' includes levels ".Joint" and ".Total"
-    for (nm in c(".Joint", ".Total")) {
-        if (!(nm %in% data$sexgender))
-            cli::cli_abort("{.var sexgender} does not have category {.val {nm}}.")
-    }
+    ## 'type' has no NAs
+    i_na_type <- match(TRUE, is.na(data$type), nomatch = 0L)
+    if (i_na_type > 0L)
+        cli::cli_abort("Element {i_na_type} of {.var type} is {.val {NA}}.")
+    ## 'type' has values "total", "joint", and "indep"
+    if (!setequal(data$type, type_valid))
+        cli::cli_abort(c("{.var type} does not have valid categories.",
+                         i = "Actual categories: {unique(data$type)}.",
+                         i = "Required categories: {type_valid}."))
     ## 'labels_age', 'labels_sexgender', 'matrix', and 'offset'
     ## are all list columns with no NAs
     for (nm in c("labels_age", "labels_sexgender", "matrix", "offset")) {
@@ -71,16 +72,16 @@ scaled_svd <- function(data) {
         if (i_na_val > 0L)
             cli::cli_abort("Element {i_na_val} of {.var {nm}} has NA.")
     }
-    ## 'labels_sexgender' is non-NULL iff 'sexgender' is ".Joint"
-    is_lsg_nonnull <- !vapply(data$labels_sexgender, is.null, TRUE)
-    is_joint <- data$sexgender == ".Joint"
-    i_neq_lsg_joint <- match(FALSE, is_lsg_nonnull == is_joint, nomatch = 0L)
-    if (i_neq_lsg_joint > 0L) {
-        val_sg <- data$sexgender[[i_neq_lsg_joint]]
-        val_lsg <- if (is_lsg_nonnull[[i_neq_lsg_joint]]) "non-NULL" else "NULL"
-        cli::cli_abort(c("{.var sexgender} and {.var labels_sexgender} are inconsistent.",
-                         i = "Element {i_neq_lsg_joint} of {.var sexgender} is {.val val_sg}.",
-                         i = "Element {i_neq_lsg_joint} of {.var labels_sexgender} is {val_lsg}."))
+    ## 'labels_sexgender' is NULL iff 'type' is "total"
+    is_lsg_null <- vapply(data$labels_sexgender, is.null, TRUE)
+    is_total <- data$type == "total"
+    i_neq_lsg_total <- match(FALSE, is_lsg_null == is_total, nomatch = 0L)
+    if (i_neq_lsg_total > 0L) {
+        val_type <- data$type[[i_neq_lsg_joint]]
+        val_lsg <- if (is_lsg_null[[i_neq_lsg_total]]) "NULL" else "non-NULL"
+        cli::cli_abort(c("{.var type} and {.var labels_sexgender} are inconsistent.",
+                         i = "Element {i_neq_lsg_type} of {.var type} is {.val val_type}.",
+                         i = "Element {i_neq_lsg_type} of {.var labels_sexgender} is {val_lsg}."))
     }
     ## if 'labels_sexgender' non-NULL, then length of element
     ## equals length of element of 'labels_age'
@@ -158,7 +159,7 @@ scaled_svd <- function(data) {
                          i = "Element {i_diff_nm} of {.var offset} has names {nm_offset[[i_diff_nm]]}."))
     ## create object
     data <- tibble::as_tibble(data)
-    data <- data[c("sexgender", "labels_age", "labels_sexgender", "matrix", "offset")]
+    data <- data[c("type", "labels_age", "labels_sexgender", "matrix", "offset")]
     ans <- list(data = data)
     class(ans) <- "bage_scaled_svd"
     ans

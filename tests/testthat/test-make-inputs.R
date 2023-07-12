@@ -123,6 +123,60 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
 })
 
 
+## 'make_agesex' --------------------------------------------------------------
+
+test_that("'make_agesex' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        time = 2000:2005,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_agesex(mod)
+    ans_expected <- c("(Intercept)" = "other",
+                      agegp = "age",
+                      SEX = "other",
+                      region = "other",
+                      "agegp:SEX" = "age:sex")
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_agesex_inner' --------------------------------------------------------
+
+test_that("'make_agesex_inner' works with valid inputs", {
+    expect_identical(make_agesex_inner("agegroup",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "age")
+    expect_identical(make_agesex_inner("(Intercept)",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "other")
+    expect_identical(make_agesex_inner("agegroup:gender",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "age:sex")
+    expect_identical(make_agesex_inner("gender:agegroup",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "sex:age")
+    expect_identical(make_agesex_inner("region:agegroup",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "other")
+    expect_identical(make_agesex_inner("gender:agegroup:region",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "other")
+})
+
+
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
@@ -187,27 +241,60 @@ test_that("'make_lengths_par' works with valid inputs", {
 })
 
 
+## 'make_lengths_parfree' -----------------------------------------------------------
+
+test_that("'make_lengths_parfree' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_lengths_parfree(mod)
+    ans_expected <- c("(Intercept)" = 1L,
+                      agegp = 10L,
+                      SEX = 2L,
+                      region = 2L,
+                      "agegp:SEX" = 20L)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_map' -----------------------------------------------------------------
 
 test_that("'make_map' works with no parameters treated as known", {
-    priors <- list(N(), N())
-    matrices_par_outcome <- list(matrix(nr = 10, nc = 1),
-                                 matrix(nr = 10, nc = 3))
-    mod <- list(priors = priors, matrices_par_outcome = matrices_par_outcome)
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
     ans_obtained <- make_map(mod)
     ans_expected <- NULL
     expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_map' works with some parameters treated as known", {
-    priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
-    matrices_par_outcome <- list(matrix(nr = 10, nc = 1),
-                                 matrix(nr = 10, nc = 3),
-                                 matrix(nr = 10, nc = 2),
-                                 matrix(nr = 10, nc = 3))
-    mod <- list(priors = priors, matrices_par_outcome = matrices_par_outcome)
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
     ans_obtained <- make_map(mod)
-    ans_expected <- list(parfree = factor(c(NA, 1:3, NA, NA, 4:6)))
+    ans_expected <- list(parfree = factor(c(1:4, NA, NA, 5:10)))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -249,6 +336,29 @@ test_that("'make_matrices_par_outcome_vec' works with valid inputs", {
     expect_equal(do.call(cbind, ans_obtained) %*% v,
                  ans_expected %*% v)
     expect_identical(names(ans_obtained), c("(Intercept)", "time", "age:sex"))
+})
+
+
+## 'make_matrices_parfree_par' ------------------------------------------------
+
+test_that("'make_matrices_parfree_par' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_matrices_parfree_par(mod)
+    ans_expected <- list("(Intercept)" = Matrix::.sparseDiagonal(1),
+                         agegp = Matrix::.sparseDiagonal(10),
+                         SEX = Matrix::.sparseDiagonal(2),
+                         region = Matrix::.sparseDiagonal(2),
+                         "agegp:SEX" = Matrix::.sparseDiagonal(20))
+    expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -513,15 +623,20 @@ test_that("'make_outcome_vec' works with valid inputs", {
 ## 'make_parfree' -------------------------------------------------------------
 
 test_that("'make_parfree' works with valid inputs", {
-    priors <- list(Known(-3), N(), Known(c(0.1, -0.1)), N())
-    matrices_parfree_outcome <- list(matrix(nr = 100, ncol = 1),
-                         matrix(nr = 100, ncol = 3),
-                         matrix(nr = 100, ncol = 2),
-                         matrix(nr = 100, ncol = 3))
-    mod <- list(priors = priors, matrices_parfree_outcome = matrices_parfree_outcome)
-    mod <- list(priors = priors, matrices_parfree_outcome = matrices_parfree_outcome)
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) %>%
+        set_prior((Intercept) ~ Known(3))
     ans_obtained <- make_parfree(mod)
-    ans_expected <- c(-3, 0, 0, 0, 0.1, -0.1, 0, 0, 0)
+    ans_expected <- c("(Intercept)" = 3,
+                      agegp = 0, agegp = 0, agegp = 0,
+                      SEX = 0, SEX = 0)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -580,5 +695,33 @@ test_that("'make_terms_par' works with valid inputs", {
     ans_obtained <- make_terms_par(mod)
     ans_expected <- factor(rep(c("a", "b", "c"),
                                times = c(1, 5, 5)))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_terms_parfree' -----------------------------------------------------------
+
+test_that("'make_terms_parfree' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_terms_parfree(mod)
+    ans_expected <- factor(c("(Intercept)",
+                             rep("agegp", times = 10),
+                             rep("SEX", times = 2),
+                             rep("region", times = 2),
+                             rep("agegp:SEX", times = 20)),
+                           levels = c("(Intercept)",
+                                      "agegp",
+                                      "SEX",
+                                      "region",
+                                      "agegp:SEX"))
     expect_identical(ans_obtained, ans_expected)
 })
