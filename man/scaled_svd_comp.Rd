@@ -4,23 +4,31 @@
 \alias{scaled_svd_comp}
 \title{Create components needed by a scaled_svd object}
 \usage{
-scaled_svd_comp(x, n = 5, transform = c("log", "logit", "none"))
+scaled_svd_comp(
+  x,
+  n = 10,
+  transform = c("log", "logit", "none"),
+  center = TRUE
+)
 }
 \arguments{
 \item{x}{A matrix with value such as rates,
 probabilities, or means.}
 
 \item{n}{Number of components of the SVD to use.
-Defaults to 5.}
+Defaults to 10.}
 
 \item{transform}{\code{"log"}, \code{"logit"}, or \code{"none"}.
 Defaults to \code{"log"}.}
+
+\item{center}{Whether to center the transformed
+version of \code{x} before carrying out the SVD.}
 }
 \value{
 A named list with two elements:
 \itemize{
-\item \code{transform}, a numeric matrix
-\item \code{translate}, a numeric vector
+\item \code{matrix}, a numeric matrix
+\item \code{offset}, a numeric vector
 }
 }
 \description{
@@ -33,17 +41,18 @@ other values.
 `scaled_svd_comp() typically proceeds as follows:
 \itemize{
 \item transform values in matrix \code{x} (eg take logs)
+\item center each column of \code{x}
 \item carry out a SVD on the transformed version of \code{x}
 \item centre and scale the results from the SVD to produce
-matrix \code{transform} and vector \code{translate}.
+matrix \code{matrix} and vector \code{offset}.
 }
 
 If
 \itemize{
 \item \eqn{X} is a the matrix of transformed values
 of \code{x}
-\item \eqn{A} is the matrix called \code{transform},
-\item \eqn{b} is the vector called \code{translate}, and
+\item \eqn{A} is the matrix called \code{matrix},
+\item \eqn{b} is the vector called \code{offset}, and
 \item \eqn{\beta} is a vector of standard normal variates,
 }
 
@@ -73,13 +82,16 @@ When \code{scale} is \code{"log"} or \code{"logit"},
 applying the log or logit function.
 When \code{scale} is \code{"logit"},
 \verb{scaled_svd_comp() also converts any }1\verb{s to values just below }1`.
+
+Centering is appropriate when modelling
+the shape of, for instance, age profiles,
+rather than the absolute level of the profiles.
 }
 \examples{
 x <- matrix(rgamma(n = 50, shape = 1), nrow = 5, ncol = 10)
 x
 scaled_svd_comp(x, n = 3)
 scaled_svd_comp(x, n = 3, transform = "none")
-## TODO - AN EXAMPLE COMBINING FEMALE AND MALE
 }
 \seealso{
 \itemize{

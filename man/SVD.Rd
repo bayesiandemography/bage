@@ -4,10 +4,10 @@
 \alias{SVD}
 \title{SVD prior}
 \usage{
-SVD(val, n = 5, indep = TRUE)
+SVD(scaled_svd, n = 5, indep = TRUE)
 }
 \arguments{
-\item{val}{An object created by \code{\link[=scaled_svd]{scaled_svd()}}
+\item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}}
 holding scaled values from a SVD of
 age-specific rates, probabilities, or means.}
 
