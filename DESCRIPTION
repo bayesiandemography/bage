@@ -26,11 +26,9 @@ Imports:
     matrixStats,
     methods,
     poputils,
-    rlang,
     rvec,
     stats,
     tibble,
-    tidyselect,
     TMB,
     vctrs
 Suggests:

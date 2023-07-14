@@ -21,6 +21,10 @@ all: ../data/injuries.rda \
   expenditure/POP_PROJ_04062016225548685.csv.gz
 	Rscript $<
 
+../data/HMD.rda: svd_hmd/HMD.R \
+  svd_hmd/hmd_20221129.rds
+	Rscript $^ $@
+
 
 .PHONY: documentation
 documentation:

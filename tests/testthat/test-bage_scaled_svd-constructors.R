@@ -1,19 +1,25 @@
 
-## test_that("'scaled_svd' creates object of class 'bage_scaled_svd' with valid inputs", {
-##     data <- data.frame(sexgender = c("Female", "Male", ".Total", ".Joint"))
-##     data$labels_age <- rep(list(c("0-4", "5-9")), times = 4)
-##     data$labels_sexgender <- list(NULL, NULL, NULL, c("Female", "Male"))
-##     data$matrix <- list(matrix(1, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-##                         matrix(5, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-##                         matrix(11, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)),
-##                         matrix(15, nr = 2, nc = 10, dimnames = list(c("0-4", "5-9"), NULL)))
-##     data$offset <- list(c("0-4" = 11, "5-9" = 12),
-##                         c("0-4" = 21, "5-9" = 22),
-##                         c("0-4" = 31, "5-9" = 32),
-##                         c("0-4" = 41, "5-9" = 42))
-##     ans <- scaled_svd(data)
-##     expect_s3_class(ans, "bage_scaled_svd")
-## })
+
+test_that("'scaled_svd' creates object of class 'bage_scaled_svd' with valid inputs", {
+    data <- data.frame(type = c("total", "joint", "indep"))
+    data$labels_age <- list(c("0-4", "5-9"),
+                            c("0-4", "5-9", "0-4", "5-9"),
+                            c("0-4", "5-9", "0-4", "5-9"))
+    data$labels_sexgender <- list(NULL,
+                                  c("Female", "Female", "Male", "Male"),
+                                  c("Female", "Female", "Male", "Male"))
+    data$matrix <- list(matrix(1, nr = 2, nc = 10,
+                               dimnames = list(c("0-4", "5-9"), NULL)),
+                        matrix(1, nr = 4, nc = 10,
+                               dimnames = list(c("Female.0-4", "Female.5-9", "Male.0-4", "Male.5-9"), NULL)),
+                        matrix(1, nr = 4, nc = 10,
+                               dimnames = list(c("0-4", "5-9", "0-4", "5-9"), NULL)))
+    data$offset <- list(c("0-4" = 1, "5-9" = 11),
+                        c("Female.0-4" = 1, "Female.5-9" = 1, "Male.0-4" = 1, "Male.5-9" = 1),
+                        c("0-4" = 1, "5-9" = 1, "0-4" = 1, "5-9" = 1))
+    ans <- scaled_svd(data)
+    expect_s3_class(ans, "bage_scaled_svd")
+})
 
 ## test_that("'scaled_svd' throws correct error when 'data' is not data frame", {
 ##     expect_error(scaled_svd(NULL),

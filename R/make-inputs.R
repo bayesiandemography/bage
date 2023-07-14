@@ -1,18 +1,25 @@
 
-#' Derive default prior from name of term
+## HAS_TESTS
+#' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term
 #' @param var_age Name of age variable, or NULL
 #' @param var_time Name of time variable, or NULL
+#' @param length_par Number of elements in term
 #'
 #' @returns A list of objects of class "bage_prior"
 #'
 #' @noRd
-default_prior <- function(nm_term, var_age, var_time) {
+default_prior <- function(nm_term, var_age, var_time, length_par) {
     scale_intercept <- 10
-    if (nm_term == "(Intercept)")
+    is_intercept <- nm_term == "(Intercept)"
+    is_length_1 <- length_par == 1L
+    is_age_time <- nm_term %in% c(var_age, var_time)
+    if (is_intercept)
         NFixed(sd = scale_intercept)
-    else if (nm_term %in% c(var_age, var_time))
+    else if (is_length_1)
+        NFixed()
+    else if (is_age_time)
         RW()
     else
         N()
@@ -110,6 +117,7 @@ make_agesex <- function(mod) {
 }
 
 
+## HAS_TESTS
 #' Classify a term, based on the name
 #'
 #' Decide whether an intercept, main effect,
@@ -133,13 +141,17 @@ make_agesex_inner <- function(nm, var_age, var_sexgender) {
     nm_split <- strsplit(nm, split = ":")[[1L]]
     n <- length(nm_split)
     if (n == 1L) {
-        if (identical(nm_split, var_age))
+        if (is.null(var_age))
+            NULL
+        else if (identical(nm_split, var_age))
             "age"
         else
             "other"
     }
     else if (n == 2L) {
-        if (identical(nm_split, c(var_age, var_sexgender)))
+        if (is.null(var_age) || is.null(var_sexgender))
+            NULL
+        else if (identical(nm_split, c(var_age, var_sexgender)))
             "age:sex"
         else if (identical(nm_split, c(var_sexgender, var_age)))
             "sex:age"
@@ -469,6 +481,38 @@ make_matrix_par_outcome_array <- function(dim, is_in_term) {
 
 
 ## HAS_TESTS
+#' Make a matrix of B-spline basis functions
+#'
+#' Based on Eilers and Marx (1996). Flexible Smoothing
+#' with B-splines and Penalties.
+#' Statistical Science, 11(2), 89-121.
+#'
+#' @param length_par Number of elements in main
+#' effect.
+#' @param n_spline Number of columns in spline matrix
+#'
+#' @returns Matrix with 'length_par' rows and 'n_spline' columns
+#'
+#' @noRd
+make_spline_matrix <- function(length_par, n_spline) {
+    n_interval <- n_spline - 3L
+    interval_length <- (length_par - 1L) / n_interval
+    start <- 1 - 3 * interval_length
+    end <- length_par + 3 * interval_length
+    x <- seq(from = start, to = end, by = 0.001)
+    base <- splines::bs(x = x, df = n_spline + 5L)
+    i_keep <- findInterval(seq_len(length_par), x)
+    j_keep <- seq.int(from = 3L, length.out = n_spline)
+    ans <- base[i_keep, j_keep]
+    colmeans <- colMeans(ans)
+    ans <- ans - rep(colmeans, each = nrow(ans))
+    Matrix::sparseMatrix(i = row(ans),
+                         j = col(ans),
+                         x = as.double(ans))
+}
+
+
+## HAS_TESTS
 #' Make array holding offset variable
 #' cross-classified by predictors
 #'
@@ -585,12 +629,16 @@ make_offset_vec <- function(vname_offset, data) {
 #' @noRd
 make_offsets_parfree_par <- function(mod) {
     priors <- mod$priors
-    lengths_par <- make_lengths_par(mod)
+    levels_par <- make_levels_par(mod)
+    terms_par <- make_terms_par(mod)
+    agesex <- make_agesex(mod)
+    levels_par <- split(levels_par, terms_par)
     ans <- .mapply(make_offset_parfree_par,
                    dots = list(prior = priors,
-                               length_par = lengths_par),
+                               levels_par = levels_par,
+                               agesex = agesex),
                    MoreArgs = list())
-    ans <- unlist(ans)
+    names(ans) <- names(priors)
     ans    
 }
 
@@ -695,20 +743,22 @@ make_parfree <- function(mod) {
 #' @param formula Formula specifying model
 #' @param var_age Name of age variable, or NULL
 #' @param var_time Name of time variable, or NULL
+#' @param lengths_par Number of elements in each term
 #'
 #' @returns Named list of objects with class
 #' 'bage_prior'.
 #'
 #' @noRd
-make_priors <- function(formula, var_age, var_time) {
+make_priors <- function(formula, var_age, var_time, lengths_par) {
     nms_terms <- attr(stats::terms(formula), "term.labels")
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept)
         nms_terms <- c("(Intercept)", nms_terms)
-    ans <- lapply(X = nms_terms,
-                  FUN = default_prior,
-                  var_age = var_age,
-                  var_time = var_time)
+    ans <- .mapply(default_prior,
+                   dots = list(nm_term = nms_terms,
+                               length_par = lengths_par),
+                   MoreArgs = list(var_age = var_age,
+                                   var_time = var_time))
     names(ans) <- nms_terms
     ans
 }        

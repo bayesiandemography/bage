@@ -49,11 +49,12 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 
 ## 'set_prior' ----------------------------------------------------------------
 
-## HAS_TESTS
+## NO_TESTS - INCOMPLETE
 #' Change the prior for a model term
 #'
 #' Specify a non-default prior distribution
-#' for a main effect or interaction.
+#' for the intercept, a main effect,
+#' or an interaction.
 #'
 #' If the `mod` argument to `set_prior` is
 #' a fitted model, then `set_prior` 'unfits'
@@ -83,26 +84,31 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' mod |> set_prior(age ~ RW2())
 #' @export
 set_prior <- function(mod, formula) {
+    nm_response <- deparse1(formula[[2L]])
     checkmate::assert_class(mod, "bage_mod")
     check_format_prior_formula(formula)
-    nm_response <- deparse1(formula[[2L]])
     nms_terms <- names(mod$priors)
+    matrices_par_outcome <- mod$matrices_par_outcome
+    var_age <- mod$var_age
+    var_sexgender <- mod$var_sexgender
     i <- match(nm_response, nms_terms, nomatch = 0L)
     if (i == 0L)
-        stop(gettextf(paste("response in prior formula '%s' not a",
-                            "valid term from model formula '%s' :",
-                            "valid terms are %s"),
-                      deparse1(formula),
-                      deparse1(mod$formula),
-                      paste(sprintf("'%s'", nms_terms), collapse = ", ")),
-             call. = FALSE)
+        cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
+                         i = "The response must be a term from the model formula {.code {deparse1(mod$formula)}}.",
+                         i = "The model formula contains terms {.val {nms_terms}}."))
     prior <- tryCatch(eval(formula[[3L]]),
                       error = function(e) e)
     if (inherits(prior, "error"))
-        stop(gettextf("prior formula '%s' invalid : %s",
-                      deparse1(formula),
-                      prior$message),
-             call. = FALSE)
+        cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
+                         i = prior$message))
+    length_par <- ncol(matrices_par_outcome[[i]])
+    agesex <- make_agesex_inner(nm = nm_response,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender)
+    is_prior_ok_for_term(prior = prior,
+                         nm = nm_response,
+                         length_par = length_par,
+                         agesex = agesex)
     mod$priors[[i]] <- prior
     mod["est"] <- list(NULL)
     mod["prec"] <- list(NULL)
@@ -224,7 +230,6 @@ set_var_sexgender <- function(mod, name) {
                   name = name,
                   var = "sexgender")
 }
-
 
 
 ## 'set_var_time' --------------------------------------------------------------

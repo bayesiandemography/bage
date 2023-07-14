@@ -151,6 +151,36 @@ test_that("'check_formula_vnames_in_data' returns correct error with invalid inp
 })
 
 
+## 'check_is_main_effect' -----------------------------------------------------
+
+test_that("'check_is_main_effect' returns TRUE with valid inputs", {
+    expect_true(check_is_main_effect("age", N()))
+})
+
+test_that("'check_is_main_effect' throws correct error when interaction", {
+    expect_error(check_is_main_effect("age:sex", AR1()),
+                 "`AR1\\(\\)` prior cannot be used for `age:sex` term.")                 
+})    
+
+
+## 'check_length_par_gt' ------------------------------------------------------
+
+test_that("'check_length_par_gt' returns TRUE with valid inputs", {
+    expect_true(check_length_par_gt(length_par = 10L,
+                                    min = 3L,
+                                    nm = "age",
+                                    prior = N()))
+})
+
+test_that("'check_length_par_gt' throws correct error with length less than min", {
+    expect_error(check_length_par_gt(length_par = 1L,
+                                     min = 2L,
+                                     nm = "age",
+                                     prior = N()),
+                 "`N\\(\\)` prior cannot be used for `age` term.")                
+})
+
+
 ## 'check_offset_in_data' -----------------------------------------------------
 
 test_that("'check_offset_in_data' returns TRUE with valid inputs", {
@@ -165,6 +195,52 @@ test_that("'check_offset_in_data' returns correct error with invalid inputs", {
                                       data = data.frame(deaths = 1, wrong = 2)),
                  "exposure variable \\[popn\\] not found in 'data'")
 })
+
+
+## 'check_n' ------------------------------------------------------------------
+
+test_that("'check_n' returns TRUE with valid inputs", {
+    expect_true(check_n(n = 4, min = 4L, max = NULL, null_ok = FALSE))
+    expect_true(check_n(n = NULL, min = 4L, max = NULL, null_ok = TRUE))
+})
+
+test_that("'check_n' throws correct error with non-numeric", {
+    expect_error(check_n(n = "4", min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` is non-numeric")
+})
+
+test_that("'check_n' throws correct error with wrong length", {
+    expect_error(check_n(n = integer(), min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` does not have length 1")
+    expect_error(check_n(n = 10:11, min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` does not have length 1")
+})
+
+test_that("'check_n' throws correct error with NA", {
+    expect_error(check_n(n = NA_real_, min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` is NA")
+})
+
+test_that("'check_n' throws correct error with Inf", {
+    expect_error(check_n(n = Inf, min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` is Inf")
+})
+
+test_that("'check_n' throws correct error with non-integer", {
+    expect_error(check_n(n = 6.4, min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` is not an integer")
+})
+
+test_that("'check_n' throws correct error when less than min", {
+    expect_error(check_n(n = 3, min = 4L, max = NULL, null_ok = FALSE),
+                 "`n` is less than 4")
+})
+
+test_that("'check_n' throws correct error when greater than max", {
+    expect_error(check_n(n = 60, min = 4, max = 10, null_ok = FALSE),
+                 "`n` is greater than 10")
+})
+
 
 
 ## 'check_offset_nonneg' ----------------------------------------------------

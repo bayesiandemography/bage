@@ -4,36 +4,50 @@
 test_that("'default_prior' works with ordinary term", {
     expect_identical(default_prior(nm_term = "x",
                                    var_age = "age",
-                                   var_time = "time"),
+                                   var_time = "time",
+                                   length_par = 5L),
                      N())
 })
 
 test_that("'default_prior' works with intercept", {
     expect_identical(default_prior(nm_term = "(Intercept)",
                                    var_age = "age",
-                                   var_time = "time"),
+                                   var_time = "time",
+                                   length_par = 1L),
                      NFixed(sd = 10))
+})
+
+test_that("'default_prior' works with term with length 1", {
+    expect_identical(default_prior(nm_term = "region",
+                                   var_age = "age",
+                                   var_time = "time",
+                                   length_par = 1L),
+                     NFixed())
 })
 
 test_that("'default_prior' works with age term", {
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = "AgeGroup",
-                                   var_time = "time"),
+                                   var_time = "time",
+                                   length_par = 5),
                      RW())
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = "AgeGroup",
-                                   var_time = NULL),
+                                   var_time = NULL,
+                                   length_par = 5),
                      RW())
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = NULL,
-                                   var_time = NULL),
+                                   var_time = NULL,
+                                   length_par = 5),
                      N())
 })
 
 test_that("'default_prior' works with time term", {
     expect_identical(default_prior(nm_term = "year",
                                    var_age = "AgeGroup",
-                                   var_time = "year"),
+                                   var_time = "year",
+                                   length_par = 5),
                      RW())
 })
 
@@ -154,6 +168,10 @@ test_that("'make_agesex_inner' works with valid inputs", {
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
                      "age")
+    expect_identical(make_agesex_inner("agegroup",
+                                       var_age = NULL,
+                                       var_sexgender = "gender"),
+                     NULL)
     expect_identical(make_agesex_inner("(Intercept)",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
@@ -162,6 +180,10 @@ test_that("'make_agesex_inner' works with valid inputs", {
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
                      "age:sex")
+    expect_identical(make_agesex_inner("agegroup:gender",
+                                       var_age = "agegroup",
+                                       var_sexgender = NULL),
+                     NULL)
     expect_identical(make_agesex_inner("gender:agegroup",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
@@ -173,6 +195,10 @@ test_that("'make_agesex_inner' works with valid inputs", {
     expect_identical(make_agesex_inner("gender:agegroup:region",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
+                     "other")
+    expect_identical(make_agesex_inner("gender:agegroup:region",
+                                       var_age = NULL,
+                                       var_sexgender = NULL),
                      "other")
 })
 
@@ -647,7 +673,8 @@ test_that("'make_priors' works with valid inputs - has intercept", {
     formula <- deaths ~ age:sex + time
     ans_obtained <- make_priors(formula,
                                 var_age = "age",
-                                var_time = "time")
+                                var_time = "time",
+                                lengths_par = c(1L, 10L, 12L))
     ans_expected <- list("(Intercept)" = NFixed(sd = 10),
                          time = RW(),
                          "age:sex" = N())
@@ -658,10 +685,21 @@ test_that("'make_priors' works with valid inputs - no intercept", {
     formula <- deaths ~ age:sex + time - 1
     ans_obtained <- make_priors(formula,
                                 var_age = "age",
-                                var_time = "time")
+                                var_time = "time",
+                                lengths_par = c(10L, 12L))
     ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_spline_matrix' -------------------------------------------------------
+
+test_that("'make_spline_matrix' works", {
+    set.seed(0)
+    m <- make_spline_matrix(length_par = 10, n_spline = 5)
+    expect_equal(dim(m), c(10L, 5L))
+    expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
 })
 
 

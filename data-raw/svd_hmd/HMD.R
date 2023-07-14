@@ -7,3 +7,5 @@ cmd_assign(hmd = "svd_hmd/hmd_20221129.rds",
 
 HMD <- scaled_svd(hmd)
 
+save(HMD, file = .out, compress = "bzip2")
+
