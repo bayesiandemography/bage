@@ -155,16 +155,58 @@ check_formula_vnames_in_data <- function(formula, data) {
 }
 
 
-## NO_TESTS
-#' Check 'n' argument
+## HAS_TESTS
+#' Check, based on its name, that a term is a main effect
 #'
-#' @param n_spline A whole number greater
-#' than or equal to 'min', and possibly NULL.
+#' @param nm Name of the term.
 #'
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_n <- function(n, min, null_ok) {
+check_is_main_effect <- function(nm, prior) {
+    nms_dims <- strsplit(nm, split = ":")[[1L]]
+    is_main_effect <- length(nms_dims) == 1L
+    if (!is_main_effect)
+        cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used for {.var {nm}} term.",
+                         i = "{.var {str_call_prior(prior)}} prior can only be used with main effects."))
+    invisible(TRUE)
+}
+    
+        
+## HAS_TESTS
+#' Check that term has has least 'min' elements
+#'
+#' @param length_par Number of elements
+#' @param min Minimum number of elements
+#' @param nm Name of term
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_length_par_gt <- function(length_par, min, nm, prior) {
+    if (length_par < min)
+        cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
+                               "used for {.var {nm}} term."),
+                         i = paste("{.var {str_call_prior(prior)}} prior can only be",
+                                   "used with terms that have at least {min} element{?s}."),
+                         i = "{.var {nm}} term has {length_par} element{?s}."))
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check 'n' argument
+#'
+#' @param n A whole number greater
+#' than or equal to 'min', less than
+#' or equal to 'max',
+#' and possibly NULL.
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_n <- function(n, min, max, null_ok) {
     if (null_ok && is.null(n)) 
         return(invisible(TRUE))
     if (!is.numeric(n))
@@ -174,15 +216,18 @@ check_n <- function(n, min, null_ok) {
         cli::cli_abort(c("{.arg n} does not have length 1.",
                          i = "{.arg n} has length {length(n)}."))
     if (is.na(n))
-        cli::cli_abort("{.arg n} is NA.")
+        cli::cli_abort("{.arg n} is {.val {NA}}.")
     if (is.infinite(n))
-        cli::cli_abort("{.arg n} is infinite.")
+        cli::cli_abort("{.arg n} is {.val {Inf}}.")
     if (!isTRUE(all.equal(round(n), n)))
         cli::cli_abort(c("{.arg n} is not an integer.",
-                         i = "{.arg n} equals {n}."))
+                         i = "{.arg n} is {.val {n}}."))
     if (n < min)
         cli::cli_abort(c("{.arg n} is less than {min}.",
-                         i = "{.arg n} equals {n}."))
+                         i = "{.arg n} is {.val {n}}."))
+    if (!is.null(max) && (n > max))
+        cli::cli_abort(c("{.arg n} is greater than {max}.",
+                         i = "{.arg n} is {.val {n}}."))
     invisible(TRUE)
 }
 

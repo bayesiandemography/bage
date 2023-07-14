@@ -32,6 +32,24 @@ test_that("'RW2' works with valid inputs", {
     expect_identical(RW2(), new_bage_prior_rw2(scale = 1))
 })
 
+test_that("'Spline' works with valid inputs", {
+    expect_identical(Spline(), new_bage_prior_spline(n = NULL, scale = 1))
+    expect_identical(Spline(n = 6), new_bage_prior_spline(n = 6L, scale = 1))
+})
+
+test_that("'SVD' works with valid inputs", {
+    expect_identical(SVD(HMD),
+                     new_bage_prior_svd(HMD,
+                                        nm_scaled_svd = "HMD",
+                                        indep = TRUE,
+                                        n = 5L))
+    expect_identical(SVD(HMD, indep = FALSE, n = 3),
+                     new_bage_prior_svd(HMD,
+                                        nm_scaled_svd = "HMD",
+                                        indep = FALSE,
+                                        n = 3L))
+})
+
 
 ## Internal constructors ------------------------------------------------------
 
@@ -98,4 +116,33 @@ test_that("'new_bage_prior_rw2' works", {
     expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))
 })
+
+test_that("'new_bage_prior_spline' works", {
+    obj <- new_bage_prior_spline(n = 10L, scale = 1)
+    expect_s3_class(obj, "bage_prior_spline")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 6L)
+    expect_identical(obj$const, 1)
+    expect_identical(obj$n_hyper, 1L)
+    expect_identical(obj$specific, list(n = 10L, scale = 1))
+})
+
+test_that("'new_bage_prior_svd' works", {
+    obj <- new_bage_prior_svd(HMD,
+                              nm_scaled_svd = "HMD",
+                              n = 3L,
+                              indep = TRUE)
+    expect_s3_class(obj, "bage_prior_svd")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 7L)
+    expect_identical(obj$const, double())
+    expect_identical(obj$n_hyper, 0L)
+    expect_identical(obj$specific,
+                     list(scaled_svd = HMD,
+                          nm_scaled_svd = "HMD",
+                          n = 3L,
+                          indep = TRUE))
+})
+
+
 

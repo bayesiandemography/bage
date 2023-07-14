@@ -17,6 +17,42 @@
 ## "lfpr_oecd"
 
 
+#' Deaths in Iceland
+#'
+#' Deaths and mid-year populations in Iceland,
+#' by age, sex, and calendar year.
+#'
+#' @format
+#' A tibble with 5500 rows and the following
+#' columns:
+#' `age` Single year of age, up to `"109+"`.
+#' `sex` `"Female"` and `"Male"`.
+#' `time` Calendar year, 1998-2022.
+#' `deaths` Counts of deaths.
+#' `popn` Mid-year population.
+#'
+#' @source Tables "Deaths by municipalities, sex and age 1981-2022",
+#' and "Average annual population by municipality,
+#' age and sex 1998-2022 - Current municipalities",
+#' on the Statistics Iceland website. Data downloaded
+#' on 12 July 2023.
+"deaths"
+
+
+#' Components from Human Mortality Database
+#'
+#' An object of class [bage_scaled_svd][scaled_svd()]
+#' holding components extracted from mortality
+#' data from the [Human Mortality Database](https://www.mortality.org).
+#'
+#' @source Derived from data at
+#' Human Mortality Database. Max Planck Institute for
+#' Demographic Research (Germany), University of California,
+#' Berkeley (USA), and French Institute for Demographic Studies
+#' (France). Available at www.mortality.org.
+#' Code for processing the data is
+#' [here](https://github.com/bayesiandemography/svd_hmd).
+"HMD"
 
 #' Fatal injuries in New Zealand
 #'

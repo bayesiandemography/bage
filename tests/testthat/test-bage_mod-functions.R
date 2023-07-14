@@ -22,28 +22,26 @@ test_that("'set_prior' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age:sex + time
+    formula <- deaths ~ age*sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod_rw <- set_prior(mod, age:sex ~ RW())
-    expect_s3_class(mod_rw$priors[["age:sex"]], "bage_prior_rw")
-    mod_rw <- set_prior(mod, age:sex ~ RW2())
-    expect_s3_class(mod_rw$priors[["age:sex"]], "bage_prior_rw2")
+    mod_rw <- set_prior(mod, age ~ RW2())
+    expect_s3_class(mod_rw$priors[["age"]], "bage_prior_rw2")
+    mod_rw <- set_prior(mod, age:sex ~ NFixed())
+    expect_s3_class(mod_rw$priors[["age:sex"]], "bage_prior_normfixed")
 })
 
 test_that("'set_prior' throws correct error with invalid response", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age:sex + time
+    formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_error(set_prior(mod, sex:age ~ RW()),
-                 paste("response in prior formula 'sex:age ~ RW\\(\\)' not",
-                       "a valid term from model formula 'deaths ~ age:sex \\+ time'",
-                       ": valid terms are '\\(Intercept\\)', 'time', 'age:sex'"))
+    expect_error(set_prior(mod, wrong ~ RW()),
+                 "Problem with prior formula `wrong ~ RW\\(\\)`.")
 })
 
 test_that("'set_prior' throws correct error with invalid prior function", {
@@ -55,8 +53,19 @@ test_that("'set_prior' throws correct error with invalid prior function", {
                     data = data,
                     exposure = popn)
     expect_error(set_prior(mod, age:sex ~ Wrong()),
-                 paste("prior formula 'age:sex ~ Wrong\\(\\)' invalid :",
-                       "could not find function \"Wrong\""))
+                 "Problem with prior formula `age:sex ~ Wrong\\(\\)`")
+})
+
+test_that("'set_prior' throws correct error with SVD prior but var_age not indentified", {
+    data <- expand.grid(v = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ v*sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_prior(mod, v:sex ~ SVD(HMD)),
+                 "Can't use `SVD\\(HMD\\)` prior for interaction when age or sex/gender variable not yet identified.")
 })
 
 test_that("'set_prior' unfits a fitted model", {

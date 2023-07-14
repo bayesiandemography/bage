@@ -102,11 +102,13 @@ mod_pois <- function(formula, data, exposure) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    priors <- make_priors(formula = formula,
-                          var_age = var_age,
-                          var_time = var_time)
     matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
                                                             outcome = outcome)
+    lengths_par <- vapply(matrices_par_outcome, ncol, 1L)
+    priors <- make_priors(formula = formula,
+                          var_age = var_age,
+                          var_time = var_time,
+                          lengths_par = lengths_par)
     ## create object and return
     est <- NULL
     prec <- NULL
@@ -214,11 +216,13 @@ mod_binom <- function(formula, data, size) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    priors <- make_priors(formula = formula,
-                          var_age = var_age,
-                          var_time = var_time)
     matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
                                                             outcome = outcome)
+    lengths_par <- vapply(matrices_par_outcome, ncol, 1L)
+    priors <- make_priors(formula = formula,
+                          var_age = var_age,
+                          var_time = var_time,
+                          lengths_par = lengths_par)
     ## create object and return
     est <- NULL
     prec <- NULL
@@ -333,11 +337,13 @@ mod_norm <- function(formula, data, weights) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    priors <- make_priors(formula = formula,
-                          var_age = var_age,
-                          var_time = var_time)
     matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula,
                                                           data = data)
+    lengths_par <- vapply(matrices_par_outcome, ncol, 0L)
+    priors <- make_priors(formula = formula,
+                          var_age = var_age,
+                          var_time = var_time,
+                          lengths_par = lengths_par)
     ## create object and return
     est <- NULL
     prec <- NULL

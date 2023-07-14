@@ -7,7 +7,11 @@
 Spline(n = NULL, scale = 1)
 }
 \arguments{
-\item{n}{Number of spline vectors.}
+\item{n}{Number of spline vectors.
+By default is \code{NULL}, in which case the number of
+vectors is set to \code{max(ceiling(0.7 * k), 4)}
+where \code{k} is the number
+of elements in the term being modelled.}
 
 \item{scale}{Scale for error term.
 The default is 1.}
@@ -31,9 +35,9 @@ where
 \itemize{
 \item \eqn{\beta} is a main effect,
 \item \eqn{X} is a matrix holding the basis functions
-for the spline, with \code{n_spline} columns, and
+for the spline, with \code{n} columns, and
 \item \eqn{\alpha} is a vector of coefficients,
-with \code{n_spline} elements.
+with \code{n} elements.
 }
 
 The elements of \eqn{\gamma} are assumed to follow
@@ -51,7 +55,7 @@ and a value for \eqn{A} is supplied by the user.
 
 \examples{
 Spline()
-Spline(df = 10)
+Spline(n = 10)
 }
 \seealso{
 \itemize{

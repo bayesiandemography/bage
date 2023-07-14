@@ -11,7 +11,9 @@ SVD(scaled_svd, n = 5, indep = TRUE)
 holding scaled values from a SVD of
 age-specific rates, probabilities, or means.}
 
-\item{n}{Number of components.}
+\item{n}{Number of components from scaled SVD
+to use in modelling. Must be between 1 and 10.
+Default is 10.}
 
 \item{indep}{Whether, in an interaction,
 age profiles for different

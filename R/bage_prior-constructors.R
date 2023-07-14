@@ -1,6 +1,9 @@
 
 ## User-visible constructors --------------------------------------------------
 
+## 'bage_prior_ar1' only ever created via 'set_prior()'
+
+## HAS_TESTS
 #' AR1 prior
 #'
 #' Autoregression prior.
@@ -58,6 +61,8 @@ AR1 <- function(min = 0.8, max = 0.98, scale = 1) {
 }
 
 
+## 'bage_prior_known' only ever created via 'set_prior()'
+
 ## HAS_TESTS
 #' Treat a model term as known
 #'
@@ -84,6 +89,8 @@ Known <- function(values) {
     new_bage_prior_known(values = values)
 }
 
+
+## 'bage_prior_norm' can be created during initial call to mod_* function
 
 ## HAS_TESTS
 #' Normal prior
@@ -128,6 +135,8 @@ N <- function(scale = 1) {
 }
 
 
+## 'bage_prior_normfixed' priors can be created during intial call to mod_* function
+
 #' Normal prior with fixed standard deviation
 #'
 #' Normal prior where, in contrast to [N()], the
@@ -157,7 +166,9 @@ NFixed <- function(sd = 1) {
     scale <- check_and_tidy_scale(sd, x_arg = "sd") 
     new_bage_prior_normfixed(sd = sd)
 }
-    
+
+## 'bage_prior_rw' can be created during initial call to mod_* function
+## 'bage_prior_rw2' only ever created by call to 'set_prior' function
 
 ## HAS_TESTS
 #' Random walk priors
@@ -217,6 +228,9 @@ RW2 <- function(scale = 1) {
 }
 
 
+## 'bage_prior_spline' only ever created by call to 'set_prior' function
+
+## HAS_TESTS
 #' P-spline prior
 #'
 #' Specify a P-spline (penalised spline) prior.
@@ -232,9 +246,9 @@ RW2 <- function(scale = 1) {
 #' where
 #' - \eqn{\beta} is a main effect,
 #' - \eqn{X} is a matrix holding the basis functions
-#' for the spline, with `n_spline` columns, and
+#' for the spline, with `n` columns, and
 #' - \eqn{\alpha} is a vector of coefficients,
-#' with `n_spline` elements.
+#' with `n` elements.
 #'
 #' The elements of \eqn{\gamma} are assumed to follow
 #' a second order random walk,
@@ -249,6 +263,10 @@ RW2 <- function(scale = 1) {
 #' and a value for \eqn{A} is supplied by the user.
 #'
 #' @param n Number of spline vectors.
+#' By default is `NULL`, in which case the number of
+#' vectors is set to `max(ceiling(0.7 * k), 4)`
+#' where `k` is the number
+#' of elements in the term being modelled.
 #' @param scale Scale for error term.
 #' The default is 1.
 #'
@@ -259,26 +277,33 @@ RW2 <- function(scale = 1) {
 #'
 #' @examples
 #' Spline()
-#' Spline(df = 10)
+#' Spline(n = 10)
 #' @export
 Spline <- function(n = NULL, scale = 1) {
-    check_n(n, min = 4L, null_ok = TRUE)
+    check_n(n, min = 4L, max = NULL, null_ok = TRUE)
+    if (!is.null(n))
+        n <- as.integer(n)
     scale <- check_and_tidy_scale(scale, x_arg = "scale")
     new_bage_prior_spline(n = n,
                           scale = scale)
 }
 
 
+## 'bage_prior_svd' only ever created by call to 'set_prior' function
+
+## HAS_TESTS
 #' SVD prior
 #'
 #' Specify a scaled SVD (singular value decomposition)
 #' prior for an age variable, or a combination
 #' of age and sex/gender variables.
 #'
-#' @param n Number of components.
 #' @param scaled_svd An object created by [scaled_svd()]
 #' holding scaled values from a SVD of
 #' age-specific rates, probabilities, or means.
+#' @param n Number of components from scaled SVD
+#' to use in modelling. Must be between 1 and 10.
+#' Default is 10.
 #' @param indep Whether, in an interaction,
 #' age profiles for different
 #' sexes/genders are modelled independently.
@@ -288,20 +313,22 @@ Spline <- function(n = NULL, scale = 1) {
 #'
 #' @export
 SVD <- function(scaled_svd, n = 5, indep = TRUE) {
-    if (!inherits(s, "bage_scaled_svd"))
-        cli::cli_abort(c("{.arg s} does not hold scaled SVD values.",
-                         i = "{.arg s} has class {.cls {class(val)}}.",
-                         i = "{.arg s} should have class {.cls bage_scaled_svd}."))
-    check_n(n, min = 1L, null_ok = FALSE)
+    nm_scaled_svd <- deparse1(substitute(scaled_svd))
+    if (!inherits(scaled_svd, "bage_scaled_svd"))
+        cli::cli_abort(c("{.arg scaled_svd} does not hold scaled SVD values.",
+                         i = "{.arg scaled_svd} has class {.cls {class(scaled_svdbbbb)}}.",
+                         i = "{.arg scaled_svd} should have class {.cls bage_scaled_svd}."))
+    check_n(n, min = 1L, max = 10L, null_ok = FALSE)
+    n <- as.integer(n)
     check_flag(indep)
     new_bage_prior_svd(scaled_svd = scaled_svd,
+                       nm_scaled_svd = nm_scaled_svd,
                        n = n,
                        indep = indep)
 }
 
 
 ## Internal constructors ------------------------------------------------------
-
 
 ## Assume that inputs are all correct.
 ## (Checking is done by user-visible functions.)
@@ -386,7 +413,7 @@ new_bage_prior_rw2 <- function(scale) {
     ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 new_bage_prior_spline <- function(n, scale) {
     ans <- list(i_prior = 6L,
                 const = scale,
@@ -397,12 +424,13 @@ new_bage_prior_spline <- function(n, scale) {
     ans
 }
 
-## NO_TESTS
-new_bage_prior_svd <- function(scaled_svd, n, indep) {
+## HAS_TESTS
+new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, indep) {
     ans <- list(i_prior = 7L,
                 const = double(),
                 n_hyper = 0L,
                 specific = list(scaled_svd = scaled_svd,
+                                nm_scaled_svd = nm_scaled_svd,
                                 n = n,
                                 indep = indep))
     class(ans) <- c("bage_prior_svd", "bage_prior")

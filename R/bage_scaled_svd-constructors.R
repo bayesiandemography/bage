@@ -77,7 +77,7 @@ scaled_svd <- function(data) {
     is_total <- data$type == "total"
     i_neq_lsg_total <- match(FALSE, is_lsg_null == is_total, nomatch = 0L)
     if (i_neq_lsg_total > 0L) {
-        val_type <- data$type[[i_neq_lsg_joint]]
+        val_type <- data$type[[i_neq_lsg_total]]
         val_lsg <- if (is_lsg_null[[i_neq_lsg_total]]) "NULL" else "non-NULL"
         cli::cli_abort(c("{.var type} and {.var labels_sexgender} are inconsistent.",
                          i = "Element {i_neq_lsg_type} of {.var type} is {.val val_type}.",
@@ -87,7 +87,7 @@ scaled_svd <- function(data) {
     ## equals length of element of 'labels_age'
     len_age <- lengths(data$labels_age)
     len_sg <- lengths(data$labels_sexgender)
-    is_neq_age_sg <- (len_age != len_sg) & is_lsg_nonnull
+    is_neq_age_sg <- (len_age != len_sg) & !is_lsg_null
     i_neq_age_sg <- match(TRUE, is_neq_age_sg, nomatch = 0L)
     if (i_neq_age_sg > 0L) {
         val_age <- len_age[[i_neq_age_sg]]

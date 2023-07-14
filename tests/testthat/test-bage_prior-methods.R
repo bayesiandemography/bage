@@ -7,6 +7,100 @@ test_that("'is_known' works with valid inputs", {
 })
 
 
+## is_prior_ok_for_term -------------------------------------------------------
+
+test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
+    expect_true(is_prior_ok_for_term(prior = AR1(),
+                                     nm = "time",
+                                     length_par = 4L,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_known", {
+    expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
+                                     nm = "sex",
+                                     length_par = 2,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
+    expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
+                                      nm = "sex",
+                                      length_par = 3,
+                                      agesex = "other"),
+                 "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
+    expect_true(is_prior_ok_for_term(prior = N(),
+                                     nm = "sex",
+                                     length_par = 2,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
+    expect_true(is_prior_ok_for_term(prior = NFixed(),
+                                     nm = "sex",
+                                     length_par = 1,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rw", {
+    expect_true(is_prior_ok_for_term(prior = RW(),
+                                     nm = "time",
+                                     length_par = 2,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
+    expect_true(is_prior_ok_for_term(prior = RW2(),
+                                     nm = "time",
+                                     length_par = 3,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
+    expect_true(is_prior_ok_for_term(prior = Spline(),
+                                     nm = "time:sex",
+                                     length_par = 2,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
+    expect_true(is_prior_ok_for_term(prior = SVD(sim_scaled_svd()),
+                                     nm = "age:sex",
+                                     length_par = 10,
+                                     agesex = "age:sex"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with main effect, agesex NULL", {
+    s <- sim_scaled_svd()
+    expect_error(is_prior_ok_for_term(prior = SVD(s),
+                                     nm = "bla",
+                                     length_par = 10,
+                                     agesex = NULL),
+                "Problem with `SVD\\(s\\)` prior for `bla` term.")
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with interaction, agesex NULL", {
+    s <- sim_scaled_svd()
+    expect_error(is_prior_ok_for_term(prior = SVD(s),
+                                     nm = "bla:bleh",
+                                     length_par = 10,
+                                     agesex = NULL),
+                "Problem with `SVD\\(s\\)` prior for `bla:bleh` term.")
+})
+
+test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, agesex 'other'", {
+    s <- sim_scaled_svd()
+    expect_error(is_prior_ok_for_term(prior = SVD(s),
+                                      nm = "bla:bleh:blu",
+                                      length_par = 10,
+                                      agesex = "other"),
+                 "Problem with `SVD\\(s\\)` prior for `bla:bleh:blu` term.")
+})
+
+
 ## levels_const ---------------------------------------------------------------
 
 test_that("'levels_const' works with 'bage_prior_ar1'", {
@@ -61,6 +155,104 @@ test_that("'levels_hyper' works with 'bage_prior_rw2'", {
 })
 
 
+## 'make_matrix_parfree_par' --------------------------------------------------
+
+test_that("'make_matrix_parfree_par' works with bage_prior_ar1", {
+    prior <- AR1()
+    levels_par <- 2001:2005
+    agesex <- "other"
+    ans_obtained <- make_matrix_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- Matrix::.sparseDiagonal(5)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_parfree_par' works with bage_prior_spline - n supplied", {
+    prior <- Spline(n = 5)
+    levels_par <- 1:10
+    ans_obtained <- make_matrix_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- make_spline_matrix(length_par = 10,
+                                       n_spline = 5)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_parfree_par' works with bage_prior_spline - n NULL", {
+    prior <- Spline()
+    levels_par <- 1:10
+    ans_obtained <- make_matrix_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- make_spline_matrix(length_par = 10,
+                                       n_spline = 7)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_parfree_par' works with bage_prior_svd - age main effect", {
+    s <- sim_scaled_svd()
+    prior <- SVD(scaled_svd = s, n = 3)
+    levels_par <- c("0-4", "5-9")
+    agesex <- "age"
+    ans_obtained <- make_matrix_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_parfree_par' works with bage_prior_svd - age-sex interaction, joint", {
+    s <- sim_scaled_svd()
+    prior <- SVD(scaled_svd = s, n = 3, indep = FALSE)
+    levels_par <- c("Female.0-4", "Female.5-9", "Male.0-4", "Male.5-9")
+    agesex <- "sex:age"
+    ans_obtained <- make_matrix_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][,1:3]
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_offset_parfree_par' --------------------------------------------------
+
+test_that("'make_offset_parfree_par' works with bage_prior_ar1", {
+    prior <- AR1()
+    levels_par <- 2001:2005
+    agesex <- "other"
+    ans_obtained <- make_offset_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- rep(0, 5)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset_parfree_par' works with bage_prior_svd - age main effect", {
+    s <- sim_scaled_svd()
+    prior <- SVD(scaled_svd = s, n = 3)
+    levels_par <- c("0-4", "5-9")
+    agesex <- "age"
+    ans_obtained <- make_offset_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset_parfree_par' works with bage_prior_svd - age-sex interaction, joint", {
+    s <- sim_scaled_svd()
+    prior <- SVD(scaled_svd = s, n = 3, indep = FALSE)
+    levels_par <- c("Female.0-4", "Female.5-9", "Male.0-4", "Male.5-9")
+    agesex <- "sex:age"
+    ans_obtained <- make_offset_parfree_par(prior = prior,
+                                            levels_par = levels_par,
+                                            agesex = agesex)
+    ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]]
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'str_call_prior' -----------------------------------------------------------
 
 test_that("'str_call_prior' works with bage_prior_ar1", {
@@ -98,7 +290,22 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW2()), "RW2()")
     expect_identical(str_call_prior(RW2(scale = 0.95)), "RW2(scale=0.95)")
-})    
+})
+
+test_that("'str_call_prior' works with bage_prior_spline", {
+    expect_identical(str_call_prior(Spline()), "Spline()")
+    expect_identical(str_call_prior(Spline(n = 5L)), "Spline(n=5)")
+    expect_identical(str_call_prior(Spline(scale = 0.1)), "Spline(scale=0.1)")
+    expect_identical(str_call_prior(Spline(scale = 3,n = 5L)), "Spline(n=5,scale=3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd", {
+    s <- sim_scaled_svd()
+    expect_identical(str_call_prior(SVD(s)), "SVD(s)")
+    expect_identical(str_call_prior(SVD(s,indep = FALSE)), "SVD(s,indep=FALSE)")
+    expect_identical(str_call_prior(SVD(s,n = 6L)), "SVD(s,n=6)")
+    expect_identical(str_call_prior(SVD(s,indep=F,n = 3L)), "SVD(s,n=3,indep=FALSE)")
+})
 
 
 ## transform_hyper ------------------------------------------------------------

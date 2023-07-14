@@ -101,6 +101,138 @@ is_known.bage_prior <- function(prior) FALSE
 is_known.bage_prior_known <- function(prior) TRUE
 
 
+## 'is_prior_ok_for_term' -----------------------------------------------------
+
+#' Test whether a prior can be used with
+#' a particular effect or interaction
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm Name of term.
+#' @param length_par Number of elements in term.
+#' @param agesex String. One of "age", "age:sex",
+#' "sex:age" or "other"
+#'
+#' @returns TRUE or raises an error
+#'
+#' @noRd
+is_prior_ok_for_term <- function(prior, nm, length_par, agesex) {
+    UseMethod("is_prior_ok_for_term")
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_ar1 <- function(prior, nm, length_par, agesex) {
+    check_is_main_effect(nm = nm,
+                         prior = prior)
+    check_length_par_gt(length_par = length_par,
+                        min = 2L,
+                        nm = nm,
+                        prior = prior)
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_known <- function(prior, nm, length_par, agesex) {
+    values <- prior$specific$values
+    n_values <- length(values)
+    if (n_values != length_par) {
+        str <- str_call_prior(prior)
+        cli::cli_abort(c("{.var {str}} prior for {.var {nm}} term invalid.",
+                         i = "Prior specifies {n_values} element{?s}.",
+                         i = "{.var {nm}} has {length_par} element{?s}."))
+    }
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, length_par, agesex) {
+    check_length_par_gt(length_par = length_par,
+                        min = 2L,
+                        nm = nm,
+                        prior = prior)
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_normfixed <- function(prior, nm, length_par, agesex) {
+    check_length_par_gt(length_par = length_par,
+                        min = 1L,
+                        nm = nm,
+                        prior = prior)
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, length_par, agesex) {
+    check_is_main_effect(nm = nm, prior = prior)
+    check_length_par_gt(length_par = length_par,
+                        min = 2L,
+                        nm = nm,
+                        prior = prior)
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, length_par, agesex) {
+    check_is_main_effect(nm = nm, prior = prior)
+    check_length_par_gt(length_par = length_par,
+                        min = 3L,
+                        nm = nm,
+                        prior = prior)
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, length_par, agesex) {
+    check_is_main_effect(nm = nm, prior = prior)
+    check_length_par_gt(length_par = length_par,
+                        min = 2L,
+                        nm = nm,
+                        prior = prior)
+    invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, length_par, agesex) {
+    has_agesex <- !is.null(agesex)
+    n_dim <- length(strsplit(nm, split = ":")[[1L]])
+    str <- str_call_prior(prior)
+    msg1 <- "Problem with {.var {str}} prior for {.var {nm}} term."
+    ## note that 'agesex' is always "other" if n_dim > 2
+    if (!has_agesex && (n_dim == 1L))
+        cli::cli_abort(c(msg1,
+                         i = paste("Can't use {.var {str}} prior for main effect when age",
+                                   "variable not yet identified."),
+                         i = paste("Please use function {.fun set_var_age} to",
+                                   "identify age variable.")))
+    else if (!has_agesex && (n_dim == 2L))
+        cli::cli_abort(c(msg1,
+                         i = paste("Can't use {.var {str}} prior for interaction when",
+                                   "age or sex/gender variable not yet identified."),
+                         i = paste("Please use function {.fun set_var_age}",
+                                   "or {.fun set_var_sexgender} to identify age",
+                                   "or sex/gender variables.")))
+    else if (identical(agesex, "other"))
+        cli::cli_abort(c(msg1,
+                         i = paste("{.var {str}} prior can only be used",
+                                   "with age main effects or with interactions between",
+                                   "age and sex/gender.")))
+    else
+        check_length_par_gt(length_par = length_par,
+                            min = 2L,
+                            nm = nm,
+                            prior = prior)
+    invisible(TRUE)
+}
+
+
 ## 'levels_const' -------------------------------------------------------------
 
 #' Names of constants
@@ -209,19 +341,33 @@ make_matrix_parfree_par <- function(prior, levels_par, agesex) {
     UseMethod("make_matrix_parfree_par")
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 make_matrix_parfree_par.bage_prior <- function(prior, levels_par, agesex) {
     n <- length(levels_par)
     Matrix::.sparseDiagonal(n)
 }
 
-## NO_TESTS
+## HAS_TESTS
+#' @export
+make_matrix_parfree_par.bage_prior_spline <- function(prior, levels_par, agesex) {
+    n_spline <- prior$specific$n
+    if (is.null(n_spline)) {
+        n_spline <- 0.7 * length(levels_par)
+        n_spline <- ceiling(n_spline)
+        n_spline <- max(n_spline, 4L)
+    }
+    length_par <- length(levels_par)
+    matrix <- make_spline_matrix(n_spline = n_spline,
+                                 length_par = length_par)
+}
+
+## HAS_TESTS
 #' @export
 make_matrix_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
-    scaled_svd <- prior$scaled_svd
-    indep <- prior$indep
-    n_comp <- prior$n
+    scaled_svd <- prior$specific$scaled_svd
+    indep <- prior$specific$indep
+    n_comp <- prior$specific$n
     matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
                                        levels_par = levels_par,
                                        indep = indep,
@@ -246,20 +392,28 @@ make_matrix_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
 #' @returns A vector.
 #'
 #' @noRd
-make_offset_parfree_par <- function(prior, ...) {
+make_offset_parfree_par <- function(prior, levels_par, agesex) {
     UseMethod("make_offset_parfree_par")
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
-make_offset_parfree_par.bage_prior <- function(prior, length_par, ...) {
-    rep(0, times = length_par)
+make_offset_parfree_par.bage_prior <- function(prior, levels_par, agesex) {
+    n <- length(levels_par)
+    rep(0, times = n)
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
-make_offset_parfree_par.bage_prior_svd <- function(prior, ...) {
-    stop("not written yet")
+make_offset_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
+    scaled_svd <- prior$specific$scaled_svd
+    indep <- prior$specific$indep
+    matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                       levels_par = levels_par,
+                                       indep = indep,
+                                       agesex = agesex,
+                                       get_matrix = FALSE,
+                                       n_comp = NULL)
 }
 
 
@@ -276,15 +430,15 @@ uses_matrix_parfree_par <- function(prior) {
     UseMethod("uses_matrix_parfree_par")
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 uses_matrix_parfree_par.bage_prior <- function(prior) FALSE
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 uses_matrix_parfree_par.bage_prior_spline <- function(prior) TRUE
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 uses_matrix_parfree_par.bage_prior_svd <- function(prior) TRUE
 
@@ -302,11 +456,11 @@ uses_offset_parfree_par <- function(prior) {
     UseMethod("uses_offset_parfree_par")
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 uses_offset_parfree_par.bage_prior <- function(prior) FALSE
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 uses_offset_parfree_par.bage_prior_svd <- function(prior) TRUE
 
@@ -398,6 +552,45 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
         "RW2()"
     else
         sprintf("RW2(scale=%s)", scale)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_spline <- function(prior) {
+    n <- prior$specific$n
+    scale <- prior$specific$scale
+    if (isTRUE(all.equal(scale, 1))) {
+        if (is.null(n))
+            "Spline()"
+        else
+            sprintf("Spline(n=%d)", n)
+    }
+    else {
+        if (is.null(n))
+            sprintf("Spline(scale=%s)", scale)
+        else
+            sprintf("Spline(n=%d,scale=%s)", n, scale)
+    }
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd <- function(prior) {
+    nm_scaled_svd <- prior$specific$nm_scaled_svd
+    n <- prior$specific$n
+    indep <- prior$specific$indep
+    if (isTRUE(all.equal(n, 5L))) {
+        if (isTRUE(indep))
+            sprintf("SVD(%s)", nm_scaled_svd)
+        else
+            sprintf("SVD(%s,indep=FALSE)", nm_scaled_svd)
+    }
+    else {
+        if (isTRUE(indep))
+            sprintf("SVD(%s,n=%d)", nm_scaled_svd, n)
+        else
+            sprintf("SVD(%s,n=%d,indep=FALSE)", nm_scaled_svd, n)
+    }
 }
 
 
