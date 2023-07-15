@@ -1,7 +1,8 @@
 
 
 .PHONY: all
-all: ../data/injuries.rda \
+all: ../data/deaths.rda \
+     ../data/injuries.rda \
      ../data/households.rda \
      ../data/expenditure.rda \
      documentation
@@ -23,6 +24,11 @@ all: ../data/injuries.rda \
 
 ../data/HMD.rda: svd_hmd/HMD.R \
   svd_hmd/hmd_20221129.rds
+	Rscript $^ $@
+
+../data/deaths.rda: deaths/deaths.R \
+  deaths/MAN02008_20230712-132130.csv.zip \
+  deaths/MAN05221_20230712-131721.csv.zip
 	Rscript $^ $@
 
 

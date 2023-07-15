@@ -1,0 +1,87 @@
+---
+title: "Modelling mortality rates and life expectancy"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Modelling mortality rates and life expectancy}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(bage)
+library(dplyr)
+library(ggplot2)
+library(poputils)
+library(rvec)
+```
+
+
+```{r}
+dth <- bage::deaths
+```
+
+```{r}
+dth %>%
+  filter(time %in% range(time)) %>%
+  mutate(rate = deaths / popn) %>%
+  ggplot(aes(x = age_mid(age), y = rate)) +
+  facet_grid(vars(sex), vars(time)) +
+  geom_point(alpha = 0.5) +
+  scale_y_log10()
+```
+
+```{r}
+dth %>% 
+  filter(popn == 0 & deaths > 0)
+```
+
+
+```{r}
+dth <- dth %>%
+  mutate(popn = if_else(popn == 0 & deaths > 0, 0.5 * deaths, popn))
+```
+
+
+
+```{r}
+mod_svd <- mod_pois(deaths ~ age*sex + time,
+                    data = dth,
+                    exposure = popn) %>%
+  set_prior(age:sex ~ SVD(HMD))
+mod_svd
+```
+
+```{r}
+mod_svd <- fit(mod_svd)
+mod_svd
+```
+
+
+```{r}
+res <- augment(mod_svd)
+res
+```
+
+```{r}
+res %>%
+  filter(time %in% range(time)) %>%
+  mutate(draws_ci(.fitted)) %>%
+  ggplot(aes(x = age_mid(age), 
+             ymin = .fitted.lower,
+             y = .fitted.mid,
+             ymax = .fitted.upper)) +
+  facet_grid(vars(sex), vars(time)) +
+  geom_ribbon(fill = "lightblue") +
+  geom_line(col= "darkblue") +
+  geom_point(aes(y = .observed),
+             size = 0.2) +
+  scale_y_log10()
+```
+

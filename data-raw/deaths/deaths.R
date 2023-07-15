@@ -31,10 +31,12 @@ deaths <- deaths_raw %>%
            age = reformat_age(age)) %>%
     select(age, sex, time = Year, deaths) %>%
     inner_join(popn, by = c("age", "sex", "time")) %>%
-    mutate(age = set_age_open(age, lower = 109))
+    mutate(age = set_age_open(age, lower = 105)) %>%
+    group_by(age, sex, time) %>%
+    summarise(deaths = sum(deaths), popn = sum(popn), .groups = "drop") %>%
+    arrange(time, sex, age)
 
 save(deaths, file = .out, compress = "bzip2")
-
 
 
 ## library(ggplot2)

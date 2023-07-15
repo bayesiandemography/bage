@@ -99,7 +99,7 @@ infer_var_time <- function(formula) {
 #'
 #' @param mod Object of class 'bage_mod'
 #'
-#' @returns A named character vector.
+#' @returns A named list.
 #'
 #' @noRd
 make_agesex <- function(mod) {
@@ -107,9 +107,8 @@ make_agesex <- function(mod) {
     var_age <- mod$var_age
     var_sexgender <- mod$var_sexgender
     nms <- names(priors)
-    ans <- vapply(nms,
-                  FUN = make_agesex_inner,
-                  FUN.VALUE = "",
+    ans <- lapply(nms,
+                  make_agesex_inner,
                   var_age = var_age,
                   var_sexgender = var_sexgender)
     names(ans) <- nms
@@ -420,7 +419,7 @@ make_matrices_par_outcome_vec <- function(formula, data) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Make list of matrices mapping parfree to par
 #'
 #' Make list of matrices mapping free parameters
@@ -614,17 +613,19 @@ make_offset_vec <- function(vname_offset, data) {
 }
 
 
-## NO_TESTS
-#' Make list of offsets using in converting
+## HAS_TESTS
+#' Make combined vector offsets using in converting
 #' parfree to par
 #'
-#' Make list vectors used in converting free parameters
+#' Make combined vector of offsets used in converting free parameters
 #' for main effects or interactions to
-#' full parameter vectors
+#' full parameter vectors. Note that in TMB itself,
+#' the combined vector is split into pieces using
+#' terms_parfree.
 #' 
 #' @param mod Object of class 'bage_mod'
 #'
-#' @returns A named list of vectors
+#' @returns A named vector of doubles.
 #'
 #' @noRd
 make_offsets_parfree_par <- function(mod) {
@@ -639,6 +640,7 @@ make_offsets_parfree_par <- function(mod) {
                                agesex = agesex),
                    MoreArgs = list())
     names(ans) <- names(priors)
+    ans <- unlist(ans)
     ans    
 }
 
@@ -851,7 +853,7 @@ make_terms_par <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Make factor identifying components of 'parfree'
 #'
 #' Make factor the same length as 'parfree',
@@ -875,7 +877,7 @@ make_terms_parfree <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Make integer vector of flags for whether
 #' each prior uses a matrix mapping parfree to par
 #'
@@ -893,7 +895,7 @@ make_uses_matrix_parfree_par <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Make integer vector of flags for whether
 #' each prior uses an offset to convert
 #' parfree to par

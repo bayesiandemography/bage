@@ -112,8 +112,8 @@ get_fun_align_to_data <- function(mod) {
 #'
 #' @noRd
 make_combined_matrix_par_outcome <- function(mod) {
-    matrices <- mod$matrices_par_outcome
-    Reduce(Matrix::cbind2, matrices)
+    matrices_par_outcome <- mod$matrices_par_outcome
+    Reduce(Matrix::cbind2, matrices_par_outcome)
 }
 
 
@@ -132,6 +132,24 @@ make_combined_matrix_par_outcome <- function(mod) {
 make_combined_matrix_parfree_par <- function(mod) {
     matrices <- make_matrices_parfree_par(mod)
     Matrix::.bdiag(matrices)
+}
+
+
+## HAS_TESTS
+#' Create combined offset from parfree to par
+#'
+#' Combine offsets for individual terms to
+#' create a offset that maps all elements of
+#' 'parfree' to 'pr'.
+#'
+#' @param An object of class 'bage_mod'
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+make_combined_offset_parfree_par <- function(mod) {
+    offsets <- make_offsets_parfree_par(mod)
+    do.call(c, offsets)
 }
 
 
@@ -225,7 +243,8 @@ make_draws_hyper <- function(mod) {
 make_draws_par <- function(mod) {
     draws <- make_draws_parfree(mod)
     matrix <- make_combined_matrix_parfree_par(mod)
-    matrix %*% draws
+    offset <- make_offsets_parfree_par(mod)
+    matrix %*% draws + offset
 }
 
 

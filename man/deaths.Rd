@@ -5,9 +5,9 @@
 \alias{deaths}
 \title{Deaths in Iceland}
 \format{
-A tibble with 5500 rows and the following
+A tibble with 5300 rows and the following
 columns:
-\code{age} Single year of age, up to \code{"109+"}.
+\code{age} Single year of age, up to \code{"105+"}.
 \code{sex} \code{"Female"} and \code{"Male"}.
 \code{time} Calendar year, 1998-2022.
 \code{deaths} Counts of deaths.

@@ -18,7 +18,8 @@ A \code{bage_mod} object.
 }
 \description{
 Specify a non-default prior distribution
-for a main effect or interaction.
+for the intercept, a main effect,
+or an interaction.
 }
 \details{
 If the \code{mod} argument to \code{set_prior} is
