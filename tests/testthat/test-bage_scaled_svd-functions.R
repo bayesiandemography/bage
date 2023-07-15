@@ -7,7 +7,10 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
                                              agesex = "age",
                                              get_matrix = TRUE,
                                              n_comp = 3L)
-    ans_expected <- matrix(1, nr = 2, nc = 3, dimnames = list(c("0-4", "5-9"), NULL))
+    ans_expected <- Matrix::sparseMatrix(i = rep(1:2, 3),
+                                         j = rep(1:3, each = 2),
+                                         x = 1,
+                                         dimnames = list(c("0-4", "5-9"), NULL))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -43,7 +46,12 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is in
                                              agesex = "age:sex",
                                              get_matrix = TRUE,
                                              n_comp = 5)
-    ans_expected <- matrix(3, nr = 4, nc = 5, dimnames = list(c("0-4", "0-4", "5-9", "5-9"), NULL))
+    ans_expected <- Matrix::sparseMatrix(i = rep(1:4, 5),
+                                         j = rep(1:5, each = 4),
+                                         x = 3,
+                                         dimnames = list(c("0-4", "0-4",
+                                                           "5-9", "5-9"),
+                                                         NULL))
     expect_identical(ans_obtained, ans_expected)
 })
 

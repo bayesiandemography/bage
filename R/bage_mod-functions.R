@@ -49,7 +49,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 
 ## 'set_prior' ----------------------------------------------------------------
 
-## NO_TESTS - INCOMPLETE
+## HAS_TESTS
 #' Change the prior for a model term
 #'
 #' Specify a non-default prior distribution
@@ -343,6 +343,7 @@ set_var_inner <- function(mod, name, var) {
     names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
     has_name_old <- !is.null(name_old)
     names_priors <- names(priors)
+    matrices_par_outcome <- mod$matrices_par_outcome
     ## check 'name'
     checkmate::assert_string(name, min.chars = 1L)
     check_formula_has_variable(name = name, formula = formula)
@@ -362,13 +363,17 @@ set_var_inner <- function(mod, name, var) {
     ## reset priors
     var_age <- mod[["var_age"]]
     var_time <- mod[["var_time"]]
+    length_par <- ncol(matrices_par_outcome[[name]])
     priors[[name]] <- default_prior(nm_term = name,
                                     var_age = var_age,
-                                    var_time = var_time)
+                                    var_time = var_time,
+                                    length_par = length_par)
     if (has_name_old) {
+        length_par_old <- ncol(matrices_par_outcome[[name_old]])
         priors[[name_old]] <- default_prior(nm_term = name_old,
                                             var_age = var_age, 
-                                            var_time = var_time)
+                                            var_time = var_time,
+                                            length_par = length_par)
     }
     ## modify priors
     mod$priors <- priors

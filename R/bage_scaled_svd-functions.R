@@ -85,6 +85,10 @@ get_matrix_or_offset_svd <- function(scaled_svd,
         ans <- data$matrix[is_type_req][[i_all]]
         cols <- seq_len(n_comp)
         ans <- ans[i_levels_par, cols, drop = FALSE]
+        ans <- Matrix::sparseMatrix(i = row(ans),
+                                    j = col(ans),
+                                    x = as.double(ans),
+                                    dimnames = dimnames(ans))
     }
     else {
         ans <- data$offset[is_type_req][[i_all]]

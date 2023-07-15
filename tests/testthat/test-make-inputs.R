@@ -152,11 +152,11 @@ test_that("'make_agesex' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_agesex(mod)
-    ans_expected <- c("(Intercept)" = "other",
-                      agegp = "age",
-                      SEX = "other",
-                      region = "other",
-                      "agegp:SEX" = "age:sex")
+    ans_expected <- list("(Intercept)" = "other",
+                         agegp = "age",
+                         SEX = "other",
+                         region = "other",
+                         "agegp:SEX" = "age:sex")
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -599,6 +599,30 @@ test_that("'make_offset_ones_vec' works with valid inputs", {
 })
 
 
+## 'make_offsets_parfree_par' ------------------------------------------------
+
+test_that("'make_offsets_parfree_par' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_offsets_parfree_par(mod)
+    ans_expected <- list("(Intercept)" = 0,
+                         agegp = rep(0, 10),
+                         SEX = rep(0, 2),
+                         region = rep(0, 2),
+                         "agegp:SEX" = rep(0, 20))
+    ans_expected <- unlist(ans_expected)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_outcome_array' -------------------------------------------------------
 
 test_that("'make_outcome_array' works with valid inputs, no NA", {
@@ -761,5 +785,53 @@ test_that("'make_terms_parfree' works with valid inputs", {
                                       "SEX",
                                       "region",
                                       "agegp:SEX"))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_uses_matrix_parfree_par' ---------------------------------------------
+
+test_that("'make_uses_matrix_parfree_par' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) %>%
+        set_prior(agegp ~ Spline())
+    ans_obtained <- make_uses_matrix_parfree_par(mod)
+    ans_expected <- c("(Intercept)" = 0L,
+                      agegp = 1L,
+                      SEX = 0L,
+                      region = 0L,
+                      "agegp:SEX" = 0L)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_uses_matrix_parfree_par' ---------------------------------------------
+
+test_that("'make_uses_offset_parfree_par' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) %>%
+        set_prior(agegp ~ Spline())
+    ans_obtained <- make_uses_offset_parfree_par(mod)
+    ans_expected <- c("(Intercept)" = 0L,
+                      agegp = 0L,
+                      SEX = 0L,
+                      region = 0L,
+                      "agegp:SEX" = 0L)
     expect_identical(ans_obtained, ans_expected)
 })

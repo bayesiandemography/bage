@@ -61,7 +61,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
     expect_true(is_prior_ok_for_term(prior = Spline(),
-                                     nm = "time:sex",
+                                     nm = "time",
                                      length_par = 2,
                                      agesex = "other"))
 })
@@ -199,6 +199,10 @@ test_that("'make_matrix_parfree_par' works with bage_prior_svd - age main effect
                                             levels_par = levels_par,
                                             agesex = agesex)
     ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
+    ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
+                                         j = col(ans_expected),
+                                         x = as.double(ans_expected),
+                                         dimnames = dimnames(ans_expected))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -211,6 +215,10 @@ test_that("'make_matrix_parfree_par' works with bage_prior_svd - age-sex interac
                                             levels_par = levels_par,
                                             agesex = agesex)
     ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][,1:3]
+    ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
+                                         j = col(ans_expected),
+                                         x = as.double(ans_expected),
+                                         dimnames = dimnames(ans_expected))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -248,7 +256,7 @@ test_that("'make_offset_parfree_par' works with bage_prior_svd - age-sex interac
     ans_obtained <- make_offset_parfree_par(prior = prior,
                                             levels_par = levels_par,
                                             agesex = agesex)
-    ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]]
+    ans_expected <- s$data$offset[s$data$type == "joint"][[1L]]
     expect_identical(ans_obtained, ans_expected)
 })
 

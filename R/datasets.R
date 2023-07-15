@@ -23,9 +23,9 @@
 #' by age, sex, and calendar year.
 #'
 #' @format
-#' A tibble with 5500 rows and the following
+#' A tibble with 5300 rows and the following
 #' columns:
-#' `age` Single year of age, up to `"109+"`.
+#' `age` Single year of age, up to `"105+"`.
 #' `sex` `"Female"` and `"Male"`.
 #' `time` Calendar year, 1998-2022.
 #' `deaths` Counts of deaths.
