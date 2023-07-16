@@ -110,7 +110,7 @@ scaled_svd <- function(data) {
                          i = "Element {i_neq_age_off} of {.var offset} has length {val_off}."))
     }
     ## 'matrix' consists of sparse matrices
-    is_mat <- vapply(data$matrix, is, TRUE, "sparseMatrix")
+    is_mat <- vapply(data$matrix, methods::is, TRUE, "sparseMatrix")
     i_nonmat <- match(FALSE, is_mat, nomatch = 0L)
     if (i_nonmat > 0L)
         cli::cli_abort(c("Element {i_nonmat} of {.var matrix} is not a sparse matrix.",
