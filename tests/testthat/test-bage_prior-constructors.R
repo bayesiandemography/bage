@@ -72,7 +72,7 @@ test_that("'new_bage_prior_known' works", {
     expect_s3_class(obj, "bage_prior_known")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 0L)
-    expect_identical(obj$const, double())
+    expect_identical(obj$const, 0)
     expect_identical(obj$n_hyper, 0L)
     expect_identical(obj$specific, list(values = 1.0))
 })
@@ -135,7 +135,7 @@ test_that("'new_bage_prior_svd' works", {
     expect_s3_class(obj, "bage_prior_svd")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 7L)
-    expect_identical(obj$const, double())
+    expect_identical(obj$const, 0)
     expect_identical(obj$n_hyper, 0L)
     expect_identical(obj$specific,
                      list(scaled_svd = HMD,

@@ -233,50 +233,6 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, length_par, agesex) {
 }
 
 
-## 'levels_const' -------------------------------------------------------------
-
-#' Names of constants
-#'
-#' @param prior An object of class 'bage_prior'.
-#'
-#' @returns A character vector.
-#'
-#' @noRd
-levels_const <- function(prior) {
-    UseMethod("levels_const")
-}
-
-## HAS_TESTS
-#' @export
-levels_const.bage_prior_ar1 <- function(prior)
-    c("shape1", "shape2", "min", "max", "scale")
-
-## HAS_TESTS
-#' @export
-levels_const.bage_prior_known <- function(prior)
-    character()
-
-## HAS_TESTS
-#' @export
-levels_const.bage_prior_norm <- function(prior)
-    "scale"
-
-## HAS_TESTS
-#' @export
-levels_const.bage_prior_normfixed <- function(prior)
-    "sd"
-
-## HAS_TESTS
-#' @export
-levels_const.bage_prior_rw <- function(prior)
-    "scale"
-
-## HAS_TESTS
-#' @export
-levels_const.bage_prior_rw2 <- function(prior)
-    "scale"
-
-
 ## 'levels_hyper' -------------------------------------------------------------
 
 #' Names of hyper-parameters
@@ -319,6 +275,16 @@ levels_hyper.bage_prior_rw <- function(prior)
 #' @export
 levels_hyper.bage_prior_rw2 <- function(prior)
     "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_spline <- function(prior)
+    "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_svd <- function(prior)
+    character()
 
 
 ## 'make_matrix_parfree_par' --------------------------------------------------

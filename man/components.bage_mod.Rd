@@ -13,7 +13,7 @@
 }
 \value{
 A \link[tibble:tibble-package]{tibble} with
-variables \code{component}, \code{term}, \code{level}, and \code{value}.
+variables \code{component}, \code{term}, \code{level}, and \code{.fitted}.
 }
 \description{
 Extract components from a fitted object
@@ -31,7 +31,7 @@ For each component, \code{components()} returns three things:
 \itemize{
 \item \code{term} Name of the intercept, main effect, or interaction
 \item \code{level} Element of term
-\item \code{value} An \link[rvec:rvec]{rvec} containing
+\item \code{.fitted} An \link[rvec:rvec]{rvec} containing
 draws from the posterior distribution.
 }
 }

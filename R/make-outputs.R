@@ -20,7 +20,7 @@ components_hyper <- function(mod) {
     tibble::tibble(component = "hyper",
                    term = term,
                    level = level,
-                   value = .fitted)
+                   .fitted = .fitted)
 }
 
 
@@ -226,7 +226,7 @@ make_draws_hyper <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Make draws from posterior distribution
 #' of vector all parameters
 #'

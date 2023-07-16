@@ -31,7 +31,6 @@ Type logpost_norm(vector<Type> parfree,
 
 template <class Type>
 Type logpost_normfixed(vector<Type> parfree,
-  		       vector<Type> hyper,
 		       vector<Type> consts) {
   Type sd = consts[0];
   Type ans = 0;
@@ -105,24 +104,38 @@ Type logpost_spline(vector<Type> parfree,
 
 template <class Type>
 Type logpost_svd(vector<Type> parfree,
-		 vector<Type> hyper,
 		 vector<Type> consts) {
   return dnorm(parfree, Type(0), Type(1), true).sum();
 }
 
 
 template <class Type>
-Type logpost(vector<Type> parfree,
-	     vector<Type> hyper,
-	     vector<Type> consts,
-	     int i_prior) {
+Type logpost_not_uses_hyper(vector<Type> parfree,
+			    vector<Type> consts,
+			    int i_prior) {
+  Type ans = 0;
+  switch(i_prior) {
+  case 2:
+    ans = logpost_normfixed(parfree, consts);
+    break;
+  case 7:
+    ans = logpost_svd(parfree, consts);
+    break;
+  default:
+    error("function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_uses_hyper(vector<Type> parfree,
+			vector<Type> hyper,
+			vector<Type> consts,
+			int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 1:
     ans = logpost_norm(parfree, hyper, consts);
-    break;
-  case 2:
-    ans = logpost_normfixed(parfree, hyper, consts);
     break;
   case 3:
     ans = logpost_rw(parfree, hyper, consts);
@@ -136,11 +149,8 @@ Type logpost(vector<Type> parfree,
   case 6:
     ans = logpost_spline(parfree, hyper, consts);
     break;
-  case 7:
-    ans = logpost_svd(parfree, hyper, consts);
-    break;
   default:
-    error("function 'logpost' cannot handle i_prior = %d", i_prior);
+    error("function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
   }
   return ans;
 }
@@ -183,7 +193,8 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(uses_offset_parfree_par);
   DATA_VECTOR(offsets_parfree_par);
   DATA_STRUCT(matrices_par_outcome, LIST_SM_t);
-  DATA_IVECTOR(i_prior);        
+  DATA_IVECTOR(i_prior);
+  DATA_IVECTOR(uses_hyper);
   DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
@@ -231,9 +242,13 @@ Type objective_function<Type>::operator() ()
     int i_prior_term = i_prior[i_term];
     if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
       vector<Type> parfree_term = parfree_split[i_term];
-      vector<Type> hyper_term = hyper_split[i_term];
       vector<Type> consts_term = consts_split[i_term];
-      ans -= logpost(parfree_term, hyper_term, consts_term, i_prior_term);
+      if (uses_hyper[i_term]) {
+	vector<Type> hyper_term = hyper_split[i_term];
+	ans -= logpost_uses_hyper(parfree_term, hyper_term, consts_term, i_prior_term);
+      }
+      else
+	ans -= logpost_not_uses_hyper(parfree_term, consts_term, i_prior_term);
     }
   }
 

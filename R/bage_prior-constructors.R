@@ -366,7 +366,7 @@ new_bage_prior_ar1 <- function(scale, min, max) {
 ## HAS_TESTS
 new_bage_prior_known <- function(values) {
     ans <- list(i_prior = 0L,
-                const = double(),
+                const = 0, ## not used
                 n_hyper = 0L,
                 specific = list(values = values))
     class(ans) <- c("bage_prior_known", "bage_prior")
@@ -427,7 +427,7 @@ new_bage_prior_spline <- function(n, scale) {
 ## HAS_TESTS
 new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, indep) {
     ans <- list(i_prior = 7L,
-                const = double(),
+                const = 0, ## not used
                 n_hyper = 0L,
                 specific = list(scaled_svd = scaled_svd,
                                 nm_scaled_svd = nm_scaled_svd,

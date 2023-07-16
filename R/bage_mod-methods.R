@@ -71,14 +71,14 @@ generics::components
 #' For each component, `components()` returns three things:
 #' - `term` Name of the intercept, main effect, or interaction
 #' - `level` Element of term
-#' - `value` An [rvec][rvec::rvec()] containing
+#' - `.fitted` An [rvec][rvec::rvec()] containing
 #' draws from the posterior distribution.
 #'
 #' @param object An fitted model.
 #' @param ... Not currently used.
 #'
 #' @returns A [tibble][tibble::tibble-package] with
-#' variables `component`, `term`, `level`, and `value`.
+#' variables `component`, `term`, `level`, and `.fitted`.
 #'
 #' @seealso [augment()], [tidy()]
 #'
@@ -128,6 +128,7 @@ fit.bage_mod <- function(object, ...) {
     i_prior <- make_i_prior(object)
     const <- make_const(object)
     terms_const <- make_terms_const(object)
+    uses_hyper <- make_uses_hyper(object)
     hyper <- make_hyper(object)
     terms_hyper <- make_terms_hyper(object)
     uses_matrix_parfree_par <- make_uses_matrix_parfree_par(object)
@@ -150,6 +151,7 @@ fit.bage_mod <- function(object, ...) {
                  offsets_parfree_par = offsets_parfree_par,
                  matrices_par_outcome = matrices_par_outcome,
                  i_prior = i_prior,
+                 uses_hyper = uses_hyper,
                  terms_hyper = terms_hyper,
                  consts = const,             ## in TMB template refer to 'consts', 
                  terms_consts = terms_const) ## not 'const', because 'const' is a 
