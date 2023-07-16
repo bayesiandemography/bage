@@ -80,9 +80,9 @@
 #' scaled_svd_comp(x, n = 3, transform = "none")
 #' @export
 scaled_svd_comp <- function(x,
-                          n = 10,
-                          transform = c("log", "logit", "none"),
-                          center = TRUE) {
+                            n = 10,
+                            transform = c("log", "logit", "none"),
+                            center = TRUE) {
     ## check 'n'
     n <- checkmate::assert_count(n,
                                  positive = TRUE,
@@ -153,6 +153,11 @@ scaled_svd_comp <- function(x,
         dimnames(matrix) <- c(dn[1L], list(component = seq_len(n)))
         names(offset) <- dn[[1L]]
     }
+    ## convert matrix to sparse matrix
+    matrix <- Matrix::sparseMatrix(i = row(matrix),
+                                   j = col(matrix),
+                                   x = as.double(matrix),
+                                   dimnames = dimnames(matrix))
     ## return
     list(matrix = matrix,
          offset = offset)

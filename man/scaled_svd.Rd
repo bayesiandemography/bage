@@ -20,18 +20,20 @@ hold scaled SVDs (singular value decompositions.)
 \code{data} has the following columns:
 \itemize{
 \item \code{type} Type of decomposition. Choices are "total",
-"joint", and "independent". See details.
+"joint", and "indep". See details.
 \item \code{labels_age} Age labels for individual rows of
 matrices within \code{matrix} and individual elements
 of vectors within \code{offset}.
 \item \code{labels_sexgender} Sex/gender labels for individual rows of
 matrices within \code{matrix} and individual elements
 of vectors within \code{offset}, or \code{NULL}.
-Only non-\code{NULL} when \code{sexgender} is \code{".Joint"}
-(which is when both are needed to identify rows.)
-\item \code{matrix} List column of matrices created by
+\code{NULL} when \code{sexgender} is \code{"total"}, since in
+this case results average across sexes/genders.
+\item \code{matrix} List column of sparse matrices created by
 \code{\link[=scaled_svd_comp]{scaled_svd_comp()}}. Must have rownames.
-Must not have NAs. Each matrix has 10 columns.
+Must not have NAs. When \code{type} is \code{"total"} or \code{"joint"},
+each matrix has 10 columns. When \code{"type"} is \code{"indep"},
+each matrix has 20 columns.
 \item \code{offset} List column of vectors created by
 \code{\link[=scaled_svd_comp]{scaled_svd_comp()}}. Must have names, which
 are identical to the rownames of the corresponding

@@ -46,8 +46,8 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is in
                                              agesex = "age:sex",
                                              get_matrix = TRUE,
                                              n_comp = 5)
-    ans_expected <- Matrix::sparseMatrix(i = rep(1:4, 5),
-                                         j = rep(1:5, each = 4),
+    ans_expected <- Matrix::sparseMatrix(i = rep(1:4, 10),
+                                         j = rep(1:10, each = 4),
                                          x = 3,
                                          dimnames = list(c("0-4", "0-4",
                                                            "5-9", "5-9"),

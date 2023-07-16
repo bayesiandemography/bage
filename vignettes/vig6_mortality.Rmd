@@ -51,10 +51,10 @@ dth <- dth %>%
 
 
 ```{r}
-mod_svd <- mod_pois(deaths ~ age*sex + time,
+mod_svd <- mod_pois(deaths ~ sex:age + time,
                     data = dth,
                     exposure = popn) %>%
-  set_prior(age:sex ~ SVD(HMD))
+  set_prior(sex:age ~ SVD(HMD, n = 3, indep = TRUE))
 mod_svd
 ```
 

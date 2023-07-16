@@ -27,6 +27,7 @@ get_matrix_or_offset_svd <- function(scaled_svd,
                                      agesex,
                                      get_matrix,
                                      n_comp) {
+    n_comp_max <- 10L
     data <- scaled_svd$data
     type <- data$type
     labels_age <- data$labels_age
@@ -84,11 +85,14 @@ get_matrix_or_offset_svd <- function(scaled_svd,
     if (get_matrix) {
         ans <- data$matrix[is_type_req][[i_all]]
         cols <- seq_len(n_comp)
+        if (type_req == "indep") {
+            cols_extra <- seq.int(from = 0,
+                                  by = n_comp_max,
+                                  length.out = ncol(ans) %/% n_comp_max)
+            cols_extra <- rep(cols_extra, each = n_comp)
+            cols <- cols + cols_extra
+        }
         ans <- ans[i_levels_par, cols, drop = FALSE]
-        ans <- Matrix::sparseMatrix(i = row(ans),
-                                    j = col(ans),
-                                    x = as.double(ans),
-                                    dimnames = dimnames(ans))
     }
     else {
         ans <- data$offset[is_type_req][[i_all]]

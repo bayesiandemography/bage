@@ -15,8 +15,8 @@ test_that("'scaled_svd_comp' performs correctly with valid inputs - log", {
     expect_identical(names(ans), c("matrix", "offset"))
     expect_identical(dim(ans$matrix), c(18L, 3L))
     expect_identical(length(ans$offset), 18L)
-    expect_false(any(is.infinite(unlist(ans))))
-    expect_false(any(is.na(unlist(ans))))
+    expect_false(any(vapply(ans, anyNA, FALSE)))
+    expect_false(any(vapply(ans, function(x) any(is.infinite(x)), FALSE)))
 })
 
 test_that("'scaled_svd_comp' performs correctly with valid inputs - logit", {
@@ -28,8 +28,8 @@ test_that("'scaled_svd_comp' performs correctly with valid inputs - logit", {
     x$value <- rbeta(nrow(x), shape1 = 2, shape2 = 3)
     x <- poputils::to_matrix(x, rows = age, cols = c(sex, year, country), measure = value)
     ans <- scaled_svd_comp(x = x, n = 3, transform = "logit")
-    expect_false(any(is.infinite(unlist(ans))))
-    expect_false(any(is.na(unlist(ans))))
+    expect_false(any(sapply(ans, function(x) any(is.infinite(x)))))
+    expect_false(any(sapply(ans, anyNA)))
 })
 
 test_that("'scaled_svd_comp' performs correctly with valid inputs - none", {
@@ -41,8 +41,8 @@ test_that("'scaled_svd_comp' performs correctly with valid inputs - none", {
     x$value <- rnorm(nrow(x))
     x <- poputils::to_matrix(x, rows = age, cols = c(sex, year, country), measure = value)
     ans <- scaled_svd_comp(x = x, n = 3, transform = "none")
-    expect_false(any(is.infinite(unlist(ans))))
-    expect_false(any(is.na(unlist(ans))))
+    expect_false(any(sapply(ans, function(x) any(is.infinite(x)))))
+    expect_false(any(sapply(ans, anyNA)))
 })
 
 

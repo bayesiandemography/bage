@@ -23,7 +23,7 @@ all: ../data/deaths.rda \
 	Rscript $<
 
 ../data/HMD.rda: svd_hmd/HMD.R \
-  svd_hmd/hmd_20221129.rds
+  svd_hmd/HMD_20221129.rds
 	Rscript $^ $@
 
 ../data/deaths.rda: deaths/deaths.R \
