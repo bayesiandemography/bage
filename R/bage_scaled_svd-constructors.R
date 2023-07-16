@@ -1,5 +1,5 @@
 
-## NO_TESTS - TESTS INCOMPLETE
+## HAS_TESTS
 #' Create object to hold data from scaled SVDs
 #'
 #' Create an object of class `bage_scaled_svd` to
@@ -8,18 +8,20 @@
 #' `data` has the following columns:
 #'
 #' - `type` Type of decomposition. Choices are "total",
-#'   "joint", and "independent". See details.
+#'   "joint", and "indep". See details.
 #' - `labels_age` Age labels for individual rows of
 #'    matrices within `matrix` and individual elements
 #'    of vectors within `offset`.
 #' - `labels_sexgender` Sex/gender labels for individual rows of
 #'    matrices within `matrix` and individual elements
 #'    of vectors within `offset`, or `NULL`.
-#'    Only non-`NULL` when `sexgender` is `".Joint"`
-#'    (which is when both are needed to identify rows.)
-#' - `matrix` List column of matrices created by
+#'    `NULL` when `sexgender` is `"total"`, since in
+#'    this case results average across sexes/genders.
+#' - `matrix` List column of sparse matrices created by
 #'   [scaled_svd_comp()]. Must have rownames.
-#'   Must not have NAs. Each matrix has 10 columns.
+#'   Must not have NAs. When `type` is `"total"` or `"joint"`,
+#'   each matrix has 10 columns. When `"type"` is `"indep"`,
+#'   each matrix has 20 columns.
 #' - `offset` List column of vectors created by
 #'   [scaled_svd_comp()]. Must have names, which
 #'   are identical to the rownames of the corresponding
@@ -57,9 +59,9 @@ scaled_svd <- function(data) {
         cli::cli_abort("Element {i_na_type} of {.var type} is {.val {NA}}.")
     ## 'type' has values "total", "joint", and "indep"
     if (!setequal(data$type, type_valid))
-        cli::cli_abort(c("{.var type} does not have valid categories.",
-                         i = "Actual categories: {unique(data$type)}.",
-                         i = "Required categories: {type_valid}."))
+        cli::cli_abort(c("{.var type} has invalid set of categories.",
+                         i = "Actual categories: {.val {unique(data$type)}}.",
+                         i = "Required categories: {.val {type_valid}}."))
     ## 'labels_age', 'labels_sexgender', 'matrix', and 'offset'
     ## are all list columns with no NAs
     for (nm in c("labels_age", "labels_sexgender", "matrix", "offset")) {
@@ -80,8 +82,8 @@ scaled_svd <- function(data) {
         val_type <- data$type[[i_neq_lsg_total]]
         val_lsg <- if (is_lsg_null[[i_neq_lsg_total]]) "NULL" else "non-NULL"
         cli::cli_abort(c("{.var type} and {.var labels_sexgender} are inconsistent.",
-                         i = "Element {i_neq_lsg_type} of {.var type} is {.val val_type}.",
-                         i = "Element {i_neq_lsg_type} of {.var labels_sexgender} is {val_lsg}."))
+                         i = "Element {i_neq_lsg_total} of {.var type} is {.val {val_type}}.",
+                         i = "Element {i_neq_lsg_total} of {.var labels_sexgender} is {.val {val_lsg}}."))
     }
     ## if 'labels_sexgender' non-NULL, then length of element
     ## equals length of element of 'labels_age'
@@ -107,21 +109,18 @@ scaled_svd <- function(data) {
                          i = "Element {i_neq_age_off} of {.var labels_age} has length {val_age}.",
                          i = "Element {i_neq_age_off} of {.var offset} has length {val_off}."))
     }
-    ## all elements of 'matrix' and 'offset' are numeric
-    for (nm in c("matrix", "offset")) {
-        value <- data[[nm]]
-        is_num <- vapply(value, is.numeric, TRUE)
-        i_nonnum <- match(FALSE, is_num, nomatch = 0L)
-        if (i_nonnum > 0L)
-            cli::cli_abort(c("Element {i_nonnum} of {.var {nm}} is non-numeric.",
-                             i = "Element {i_nonnum} has class {.cls {class(value[[i_nonnum]])}}."))
-    }
-    ## 'matrix' consists of matrices
-    is_mat <- vapply(data$matrix, is.matrix, TRUE)
+    ## 'matrix' consists of sparse matrices
+    is_mat <- vapply(data$matrix, is, TRUE, "sparseMatrix")
     i_nonmat <- match(FALSE, is_mat, nomatch = 0L)
     if (i_nonmat > 0L)
-        cli::cli_abort(c("Element {i_nonmat} of {.var matrix} is not a matrix.",
+        cli::cli_abort(c("Element {i_nonmat} of {.var matrix} is not a sparse matrix.",
                          i = "Element {i_nonmat} has class {.cls {class(data$matrix[[i_nonmat]])}}."))
+    ## all elements of 'offset' are numeric
+    is_num <- vapply(data$offset, is.numeric, TRUE)
+    i_nonnum <- match(FALSE, is_num, nomatch = 0L)
+    if (i_nonnum > 0L)
+        cli::cli_abort(c("Element {i_nonnum} of {.var offset} is non-numeric.",
+                         i = "Element {i_nonnum} has class {.cls {class(data$offset[[i_nonnum]])}}."))
     ## nrow(matrix) == length(offset)
     nrow_matrix <- vapply(data$matrix, nrow, 1L)
     length_offset <- vapply(data$offset, length, 1L)
@@ -131,13 +130,17 @@ scaled_svd <- function(data) {
         cli::cli_abort(c("{.var matrix} and {.var offset} not consistent.",
                          i = "Element {i_uneq} of {.var matrix} has {nrow_matrix[[i_uneq]]} rows.",
                          i = "Element {i_uneq} of {.var offset} has length {length_offset[[i_uneq]]}."))
-    ## elements of 'matrix' all have 'n_comp' columns
+    ## elements of 'matrix' have 'n_comp' columns if type is "total" or "joint"
+    ## and 2 * 'n_comp' columns if type is "indep"
     ncol_matrix <- vapply(data$matrix, ncol, 1L)
-    is_eq_n_comp <- ncol_matrix == n_comp
-    i_neq_n_comp <- match(FALSE, is_eq_n_comp, nomatch = 0L)
-    if (i_neq_n_comp > 0L)
-        cli::cli_abort(c("Element {i_neq_n_comp} of {.var matrix} does not have {n_comp} columns.",
-                         i = "Element {i_neq_n_comp} has {ncol_matrix[[i_neq_n_comp]]} columns."))
+    ncol_expected <- ifelse(data$type == "indep", 2L * n_comp, n_comp)
+    is_ncol_expect <- ncol_matrix == ncol_expected
+    i_ncol_unex <- match(FALSE, is_ncol_expect, nomatch = 0L)
+    if (i_ncol_unex > 0L)
+        cli::cli_abort(c("Element {i_ncol_unex} of {.var matrix} has wrong number of columns.",
+                         i = "Element {i_ncol_unex} has {ncol_matrix[[i_ncol_unex]]} columns.",
+                         i = paste("Element {i_ncol_unex} of {.var type} is {.val {data$type[[i_ncol_unex]]}},",
+                                   "so should have {ncol_expected[[i_ncol_unex]]} columns.")))
     ## elements of 'matrix' have rownames
     rn_matrix <- lapply(data$matrix, rownames)
     is_rn_null <- vapply(rn_matrix, is.null, TRUE)
@@ -150,13 +153,13 @@ scaled_svd <- function(data) {
     i_nm_null <- match(TRUE, is_nm_null, nomatch = 0L)
     if (i_nm_null > 0L)
         cli::cli_abort("Element {i_nm_null} of {.var offset} does not have names.")
-    ## colnames in matrix match names in offset
+    ## rownames in matrix match names in offset
     is_same_nm <- mapply(identical, rn_matrix, nm_offset)
     i_diff_nm <- match(FALSE, is_same_nm, nomatch = 0L)
     if (i_diff_nm > 0L)
         cli::cli_abort(c("{.var matrix} and {.var offset} not consistent.",
-                         i = "Element {i_diff_nm} of {.var matrix} has rownames {rn_matrix[[i_diff_nm]]}.",
-                         i = "Element {i_diff_nm} of {.var offset} has names {nm_offset[[i_diff_nm]]}."))
+                         i = "Element {i_diff_nm} of {.var matrix} has rownames {.val {rn_matrix[[i_diff_nm]]}}.",
+                         i = "Element {i_diff_nm} of {.var offset} has names {.val {nm_offset[[i_diff_nm]]}}."))
     ## create object
     data <- tibble::as_tibble(data)
     data <- data[c("type", "labels_age", "labels_sexgender", "matrix", "offset")]

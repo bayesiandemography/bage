@@ -2,7 +2,7 @@
 ## 'augment' ---------------------------------------------------------------
 
 test_that("'augment' works with valid inputs", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -23,7 +23,7 @@ test_that("'augment' works with valid inputs", {
 ## 'components' ---------------------------------------------------------------
 
 test_that("'components' works with valid inputs", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -42,7 +42,7 @@ test_that("'components' works with valid inputs", {
 ## 'fit' -----------------------------------------------------------------
 
 test_that("'fit' works with valid inputs - pois has exposure", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -56,7 +56,7 @@ test_that("'fit' works with valid inputs - pois has exposure", {
 
 
 test_that("'fit' works with valid inputs - pois has exposure", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$deaths <- rpois(n = nrow(data), lambda = 10000)
     formula <- deaths ~ age + sex + time
@@ -70,7 +70,7 @@ test_that("'fit' works with valid inputs - pois has exposure", {
 
 
 test_that("'fit' works with valid inputs - binom", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
@@ -96,7 +96,7 @@ test_that("'fit' works with valid inputs - norm", {
 })
 
 test_that("'fit' works with known intercept and sex effect", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -112,7 +112,7 @@ test_that("'fit' works with known intercept and sex effect", {
 })
 
 test_that("'fit' works with AR1", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -126,7 +126,7 @@ test_that("'fit' works with AR1", {
 })
 
 test_that("'fit' gives the same imputed rate when outcome is NA and offset is NA", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:4, time = 2000:2002, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -152,7 +152,7 @@ test_that("'fit' gives the same imputed rate when outcome is NA and offset is NA
     ## compare
     expect_equal(ans_outcome, ans_offset)
 })
-    
+
 test_that("'fit' works when all observed values for one year are NA", {
     data <- data.frame(deaths = c(NA, 2:10),
                        age = rep(1:2, each = 5),
@@ -173,6 +173,243 @@ test_that("'fit' works when single dimension", {
     mod_fitted <- fit(mod)
     expect_identical(length(mod_fitted$est$par), nrow(data) + 1L)
 })
+
+## OK
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + age:time + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+## OK
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ sex:age + age:time + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:age ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+## fail
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ sex:age + age + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:age ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+## fail
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+## fail
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:time + age:sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+## fail
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time + age:time + age:sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+## OK
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + age:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+## OK
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + time:age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+## OK
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + sex + time:age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+## Fail
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+## OK
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + sex:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+# FAIL
+test_that("'fit' works with SVD", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2005,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ NFixed())
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
+
+
+
+
+
+#devtools::load_all()
+
+
+## OK
+##    formula <- deaths ~ age:sex + age:time + time
+##     formula <- deaths ~ sex:age + age:time + time
+##     formula <- deaths ~ age:sex + age:time
+##     formula <- deaths ~ age:sex + time:age
+##    formula <- deaths ~ age:sex + sex + time:age
+##    formula <- deaths ~ age:sex + sex:time
+##    formula <- deaths ~ sex:age + sex:time
+
+## FAIL
+##    formula <- deaths ~ sex:age + age + time
+##     formula <- deaths ~ age:sex + time
+##     formula <- deaths ~ age:time + age:sex + time
+##     formula <- deaths ~ time + age:time + age:sex
+##     formula <- deaths ~ time + age:time + age:sex
+##    formula <- deaths ~ age:sex + sex + time
+
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
@@ -241,7 +478,7 @@ test_that("'nm_offset' works with valid inputs", {
 ## 'tidy' ---------------------------------------------------------------------
 
 test_that("'tidy' works with valid inputs", {
-    set.seed(0)    
+    set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)

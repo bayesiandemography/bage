@@ -156,6 +156,8 @@ struct LIST_SM_t : vector<SparseMatrix<Type> > {
     (*this).resize(LENGTH(x));
     for (int i = 0; i < LENGTH(x); i++){
       SEXP sm = VECTOR_ELT(x, i);
+      if(!isValidSparseMatrix(sm))
+        error("Not a sparse matrix");
       (*this)(i) = asSparseMatrix<Type>(sm);
     }
   }
