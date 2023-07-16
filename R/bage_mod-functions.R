@@ -47,20 +47,6 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 }
 
 
- 
-## mod_svd <- mod_pois(deaths ~ age + sex:age + time,
-##                     data = dth,
-##                     exposure = popn) |>
-##   set_prior(sex:age ~ SVD(HMD))
-## Error in `set_prior()`:
-## ! Problem with prior formula `sex:age ~ SVD(HMD)`.
-## ℹ The response must be a term from the model formula `deaths ~ age + sex:age +
-##   time`.
-## ℹ The model formula contains terms "(Intercept)", "age", "time", and "age:sex".
-## Backtrace:
-##  1. ... %>% set_prior(sex:age ~ SVD(HMD))
-##  2. bage::set_prior(., sex:age ~ SVD(HMD))
-
 ## 'set_prior' ----------------------------------------------------------------
 
 ## HAS_TESTS
@@ -105,8 +91,16 @@ set_prior <- function(mod, formula) {
     matrices_par_outcome <- mod$matrices_par_outcome
     var_age <- mod$var_age
     var_sexgender <- mod$var_sexgender
-    i <- match(nm_response, nms_terms, nomatch = 0L)
-    if (i == 0L)
+    nm_response_split <- strsplit(nm_response, split = ":")[[1L]]
+    nms_terms_split <- lapply(nms_terms, strsplit, split = ":")
+    nms_terms_split <- lapply(nms_terms_split, `[[`, 1L)
+    is_matched <- FALSE
+    for (i in seq_along(nms_terms_split)) {
+        is_matched <- setequal(nm_response_split, nms_terms_split[[i]])
+        if (is_matched)
+            break
+    }
+    if (!is_matched)
         cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
                          i = "The response must be a term from the model formula {.code {deparse1(mod$formula)}}.",
                          i = "The model formula contains terms {.val {nms_terms}}."))
@@ -116,7 +110,7 @@ set_prior <- function(mod, formula) {
         cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
                          i = prior$message))
     length_par <- ncol(matrices_par_outcome[[i]])
-    agesex <- make_agesex_inner(nm = nm_response,
+    agesex <- make_agesex_inner(nm = nms_terms[[i]],
                                 var_age = var_age,
                                 var_sexgender = var_sexgender)
     is_prior_ok_for_term(prior = prior,

@@ -129,6 +129,11 @@ make_agesex <- function(mod) {
 #' plus 'var_age' and 'var_sexgender'
 #'
 #' @param nm Name of the term. A string.
+#' WARNING. This must be the name that
+#' is used internally, which is not necessarily
+#' the one that appears in the original
+#' formula, as base::terms() and friends
+#' switch dimension order.
 #' @param var_age Name of the age variable. A string.
 #' @param var_sexgender Name of the sex/gender
 #' variable. A string.

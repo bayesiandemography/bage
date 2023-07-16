@@ -83,6 +83,19 @@ test_that("'set_prior' unfits a fitted model", {
     expect_true("est" %in% names(mod))
 })
 
+test_that("'set_prior' works with when order of components of interaction changed", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age + sex:age + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:age ~ NFixed())
+    expect_s3_class(mod$priors[["age:sex"]], "bage_prior_normfixed")
+})
+
+
 
 ## 'set_var_age' --------------------------------------------------------------
 
