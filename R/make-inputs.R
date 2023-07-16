@@ -879,6 +879,25 @@ make_terms_parfree <- function(mod) {
 
 ## HAS_TESTS
 #' Make integer vector of flags for whether
+#' each prior uses hyper-parameters
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_hyper <- function(mod) {
+    priors <- mod$priors
+    has_hyper <- function(x) x$n_hyper > 0L
+    ans <- vapply(priors, has_hyper, TRUE)
+    ans <- as.integer(ans)
+    names(ans) <- names(priors)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make integer vector of flags for whether
 #' each prior uses a matrix mapping parfree to par
 #'
 #' @param mod Object of class 'bage_mod'

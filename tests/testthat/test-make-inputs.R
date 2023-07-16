@@ -732,7 +732,7 @@ test_that("'make_spline_matrix' works", {
 test_that("'make_terms_const' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = Known(1:3), d = N()))
     ans_obtained <- make_terms_const(mod)
-    ans_expected <- factor(c("a", "b", "d"), levels = c("a", "b", "c", "d"))
+    ans_expected <- factor(c("a", "b", "c", "d"), levels = c("a", "b", "c", "d"))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -785,6 +785,30 @@ test_that("'make_terms_parfree' works with valid inputs", {
                                       "SEX",
                                       "region",
                                       "agegp:SEX"))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_uses_hyper' ----------------------------------------------------------
+
+test_that("'make_uses_hyper' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) %>%
+        set_prior(agegp ~ NFixed())
+    ans_obtained <- make_uses_hyper(mod)
+    ans_expected <- c("(Intercept)" = 0L,
+                      agegp = 0L,
+                      SEX = 1L,
+                      region = 1L,
+                      "agegp:SEX" = 1L)
     expect_identical(ans_obtained, ans_expected)
 })
 

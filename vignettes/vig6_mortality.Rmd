@@ -51,10 +51,10 @@ dth <- dth %>%
 
 
 ```{r}
-mod_svd <- mod_pois(deaths ~ sex:age + time,
+mod_svd <- mod_pois(deaths ~ age:sex + time,
                     data = dth,
                     exposure = popn) %>%
-  set_prior(sex:age ~ SVD(HMD, n = 3, indep = TRUE))
+  set_prior(age:sex ~ SVD(HMD, n = 3, indep = F))
 mod_svd
 ```
 
@@ -84,4 +84,29 @@ res %>%
              size = 0.2) +
   scale_y_log10()
 ```
+
+```{r}
+lifeexp <- res %>%
+  group_by(sex, time) %>%
+  summarise(lifeexp_mod = lifeexp(.fitted, age = age, sex = sex),
+            lifeexp_obs = lifeexp(.observed, age = age, sex = sex)) %>%
+  ungroup()
+lifeexp
+```
+
+```{r}
+lifeexp %>%
+  mutate(draws_ci(lifeexp_mod)) %>%
+  ggplot(aes(x = time,
+             ymin = lifeexp_mod.lower,
+             y = lifeexp_mod.mid,
+             ymax = lifeexp_mod.upper)) +
+  facet_wrap(vars(sex)) +
+  geom_ribbon(fill = "lightblue") +
+  geom_line(col = "darkblue") +
+  geom_point(aes(y = lifeexp_obs),
+             size = 0.2,
+             col = "red")
+```
+
 

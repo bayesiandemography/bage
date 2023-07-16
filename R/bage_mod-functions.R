@@ -47,6 +47,20 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 }
 
 
+ 
+## mod_svd <- mod_pois(deaths ~ age + sex:age + time,
+##                     data = dth,
+##                     exposure = popn) |>
+##   set_prior(sex:age ~ SVD(HMD))
+## Error in `set_prior()`:
+## ! Problem with prior formula `sex:age ~ SVD(HMD)`.
+## ℹ The response must be a term from the model formula `deaths ~ age + sex:age +
+##   time`.
+## ℹ The model formula contains terms "(Intercept)", "age", "time", and "age:sex".
+## Backtrace:
+##  1. ... %>% set_prior(sex:age ~ SVD(HMD))
+##  2. bage::set_prior(., sex:age ~ SVD(HMD))
+
 ## 'set_prior' ----------------------------------------------------------------
 
 ## HAS_TESTS
