@@ -4,9 +4,12 @@ library(dplyr)
 library(tidyr)
 library(forcats)
 library(poputils)
+library(command)
 
-households <- read_csv("households/TABLECODE8420_Data.csv.gz",
-                       col_types = "cccii-") %>%
+cmd_assign(.raw = "households/TABLECODE8420_Data.csv.gz",
+           .out = "../data/households.rda")
+
+households <- read_csv(.raw, col_types = "cccii-") %>%
     rename(region = Area,
            age = `Age group`,
            composition = `Household composition`,
@@ -15,17 +18,11 @@ households <- read_csv("households/TABLECODE8420_Data.csv.gz",
     filter(!grepl("^Total", region)) %>%
     mutate(region = sub(" Region$", "", region),
            region = fct_inorder(region)) %>%
-    mutate(age = clean_age(age)) %>%
+    mutate(age = reformat_age(age)) %>%
     mutate(composition = fct_recode(composition,
                                     oneperson = "One-person household",
                                     total = "Total people in households stated")) %>%
     pivot_wider(names_from = composition, values_from = count) %>%
     select(age, region, year, oneperson, total)
 
-save(households,
-     file = "../data/households.rda",
-     compress = "bzip2")
-                                    
-                                    
-
-    
+save(households, file = .out, compress = "bzip2")
