@@ -1,17 +1,8 @@
 
 
 .PHONY: all
-all: ../data/deaths.rda \
-     ../data/injuries.rda \
-     ../data/households.rda \
-     ../data/expenditure.rda \
-     documentation
+all: out/deaths.rds
 
-../data/injuries.rda: injuries/injuries.R \
-  injuries/DPE403903_20230101_021709_80.csv.gz \
-  injuries/DPE479901_20230101_021445_73.csv.gz \
-  injuries/TABLECODE7935_Data.csv.gz
-	Rscript $<
 
 ../data/households.rda: households/households.R \
   households/TABLECODE8420_Data.csv.gz
