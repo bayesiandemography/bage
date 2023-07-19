@@ -1,22 +1,4 @@
 
-## #' Labour force participation rates from the OECD
-## #'
-## #' Estimated labour force participation rates,
-## #' is the proportion of the population that is in the
-## #' labour force, by age and sex.
-## #'
-## #' @format A matrix, in which each row holds a combination
-## #' of sex and age, and each column holds a combination
-## #' of country and year.
-## #'
-## #' @source OECD (2022), "Labour Market Statistics:
-## #' Labour force statistics by sex and age: indicators",
-## #' OECD Employment and Labour Market Statistics (database),
-## #' https://doi.org/10.1787/data-00310-en
-## #' (accessed on 12 October 2022).
-## "lfpr_oecd"
-
-
 #' Deaths in Iceland
 #'
 #' Deaths and mid-year populations in Iceland,
@@ -39,20 +21,55 @@
 "deaths"
 
 
-#' Components from Human Mortality Database
+#' Divorces in New Zealand
 #'
-#' An object of class [bage_scaled_svd][scaled_svd()]
-#' holding components extracted from mortality
-#' data from the [Human Mortality Database](https://www.mortality.org).
+#' Counts of divorces and population, by age, sex,
+#' and calendar year, in New Zealand, 1992-2021.
 #'
-#' @source Derived from data at
-#' Human Mortality Database. Max Planck Institute for
-#' Demographic Research (Germany), University of California,
-#' Berkeley (USA), and French Institute for Demographic Studies
-#' (France). Available at www.mortality.org.
-#' Code for processing the data is
-#' [here](https://github.com/bayesiandemography/svd_hmd).
-"HMD"
+#' @format A data frame with the following variables:
+#' - `age`: Age, in 5-year age groups, `"15-19"` to `"65+"`.
+#' - `sex`: `"Female"` or `"Male"`.
+#' - `time`: Calendar year.
+#' - `divorces`: Numbers of divorces during year.
+#' - `population`: Person-years lived during year.
+#'
+#'
+#' @source Divorce counts from data in table "Age at divorces by
+#' sex (marriages and civil unions) (Annual-Dec)"
+#' in the online database Infoshare
+#' on the Statistics New Zealand website.
+#' Data downloaded on 22 March 2023.
+#' Population estimates derived from data in table
+#' "Estimated Resident Population by Age and Sex (1991+)
+#' (Annual-Dec)" in the online
+#' database Infoshare
+#' on the Statistics New Zealand website.
+#' Data downloaded on 26 March 2023.
+"divorces"
+
+
+#' Per capital health expenditure in the Netherlands, 2003-2011
+#' 
+#' Per capita health expenditure, in Euros, for all providers,
+#' by diagnostic group, age group, and year.
+#'
+#' @format A data frame with 1296 rows and the
+#' following variables:
+#' - `diag` Diagnostic group
+#' - `age` Age, in 5-year age groups, with open age
+#' group of 85+
+#' - `year` 2003, 2005, 2007, and 2011
+#'
+#' @source Calculated from data in table
+#' "Expenditure by disease, age and gender under the System
+#' of Health Accounts (SHA) Framework :
+#' Current health spending by age"
+#' from OECD database 'OECD.Stat' (downloaded on 25 May 2016)
+#' and in table "Historical population data and projections
+#' (1950-2050)" from OECD database 'OECD.Stat' (downloaded
+#' 5 June 2016).
+"expenditure"
+
 
 #' Fatal injuries in New Zealand
 #'
@@ -110,24 +127,19 @@
 "households"
 
 
-#' Per capital health expenditure in the Netherlands, 2003-2011
-#' 
-#' Per capita health expenditure, in Euros, for all providers,
-#' by diagnostic group, age group, and year.
+
+#' Components from Human Mortality Database
 #'
-#' @format A data frame with 1296 rows and the
-#' following variables:
-#' - `diag` Diagnostic group
-#' - `age` Age, in 5-year age groups, with open age
-#' group of 85+
-#' - `year` 2003, 2005, 2007, and 2011
+#' An object of class [bage_scaled_svd][scaled_svd()]
+#' holding components extracted from mortality
+#' data from the [Human Mortality Database](https://www.mortality.org).
 #'
-#' @source Calculated from data in table
-#' "Expenditure by disease, age and gender under the System
-#' of Health Accounts (SHA) Framework :
-#' Current health spending by age"
-#' from OECD database 'OECD.Stat' (downloaded on 25 May 2016)
-#' and in table "Historical population data and projections
-#' (1950-2050)" from OECD database 'OECD.Stat' (downloaded
-#' 5 June 2016).
-"expenditure"
+#' @source Derived from data at
+#' Human Mortality Database. Max Planck Institute for
+#' Demographic Research (Germany), University of California,
+#' Berkeley (USA), and French Institute for Demographic Studies
+#' (France). Available at www.mortality.org.
+#' Code for processing the data is
+#' [here](https://github.com/bayesiandemography/svd_hmd).
+"HMD"
+
