@@ -102,40 +102,34 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 ## Normal {#sec:norm}
 
 \begin{equation}
-  y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2)
+  y_i \sim \mathcal{N}(\mu_i, w_i^{-1}\xi^2)
 \end{equation}
 where the $w_i$ are some form of weights, with the possibility that $w_i \equiv 1$.
 
+Response $y_i$ is standardised to have mean 0 and standard deviation 1. We set
+\begin{equation}
+  y_i = \frac{y_i^{*} - \bar{y}^*}{s^*}
+\end{equation}
+where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*$ and $s^*$ are the mean and standard deviation of the $y_i^*$.
 
 
 # Model for means
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
-  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta} + \pmb{o} (\#eq:means)
+  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta} (\#eq:means)
 \end{equation}
 where
 
 - $g$ is a log function in Poisson models, a logit function in binomial models, and an identity function in normal models;
 - $\beta^{(0)}$ is an intercept;
-- $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a main effect or interaction, formed from the dimensions of data $\pmb{y}$, with $J_m$ elements;
-- $\pmb{\lambda}^{(m)}$ is a seasonal effect, which is non-zero only when $\pmb{\beta}^{(m)}$ includes a time dimension, and can be zero even then;
-- $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$, and possibly of $\pmb{\lambda}^{(m)}$, that is used with cell $i$;
-- $\pmb{Z}$ is a $n \times P$ matrix of covariates;
-- $\pmb{\zeta}$ is a coefficent vector with $P$ elements; and
-- $\pmb{o}$ is an offset consisting of known values.
+- $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a vector with $J_m$ elements describing a main effect or interaction formed from the dimensions of data $\pmb{y}$;
+- $\pmb{\lambda}^{(m)}$ is a seasonal effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
+- $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ and (if $\pmb{\lambda}^{(m)}$ exists) of $\pmb{\lambda}^{(m)}$, that is used with cell $i$;
+- $\pmb{Z}$ is a $n \times P$ matrix of covariates; and
+- $\pmb{\zeta}$ is a coefficent vector with $P$ elements.
 
-Priors for the $\pmb{\beta}^{(m)}$ are described in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact-high), priors for seasonal effect $\pmb{\lambda}^{(m)}$ are discussed in Section \@ref(sec:pr-season), and priors for coefficient vector $\pmb{\zeta}$ are discussed in Section \@ref(sec:pr-cov).
-
-
-# Scale term
-
-Many priors use a value $s$ as the default for parameters involving. The value for $s$ depends on the likelihood:
-\begin{equation}
-  s = \begin{cases} 1 & \text{ with Poisson or binomial likelihoods} \\
-  \sqrt{\sum_{i=1}^n (y_i - \bar{y})^2/(n-1)} & \text{ with normal likelihoods.} \end{cases}  (\#eq:defn-s)
-\end{equation}
-
+Priors for the $\pmb{\beta}^{(m)}$ are discussed in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact), priors for seasonal effect $\pmb{\lambda}^{(m)}$ are discussed in Section \@ref(sec:pr-season), and priors for coefficient vector $\pmb{\zeta}$ are discussed in Section \@ref(sec:pr-cov).
 
 
 # Prior for intercept {#sec:pr-int}
@@ -143,10 +137,10 @@ Many priors use a value $s$ as the default for parameters involving. The value f
 ## Model
 
 \begin{equation}
-  \beta^{(0)} \sim \text{N}(0, A_0^2)
+  \beta^{(0)} \sim \mathcal{N}(0, A_0^2)
 \end{equation}
 
-By default, $A_0 = 10s$, with $s$ defined in Equation \@ref(eq:defn-s), which gives the intercept a proper but diffuse prior.
+By default, $A_0 = 10$, which gives the intercept a proper but diffuse prior.
 
 
 ## Code
@@ -167,31 +161,6 @@ In all priors for  main effects, we require, for identifiability, that
 \begin{equation}
   \text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0.
 \end{equation}
-In the case of random walk priors (sections \@ref(sec:pr-rw) and \@ref(sec:pr-rw2)), the easiest way to implement this requirement is to impose the stronger condition that $\sum_{j=1}^{J_m} \beta_j^{(m)} = 0$.
-
-With the exception of the SVD prior (Section \@ref(sec:pr-svd)), the average value of the marginal variances of the $\beta_j^{(m)}$ is the same across all priors. All priors, apart from the SVD prior, have the form
-\begin{equation}
-  \text{<value>} = \text{<optional linear trend>} + \text{<error>}.
-\end{equation}
-After removing any linear trend, we always have
-\begin{equation}
- \frac{1}{J_m} \sum_{j=1}^{J_m} \text{var}(\beta_j^{(m)}) = \tau_m^2. (\#eq:constraint-var)
-\end{equation}
-We assign a half-normal prior to $\tau_m$,
-\begin{equation}
-  \tau_m \sim \text{N}^+\left(A_{\tau}^{(m)2}\right).
-\end{equation}
-The default for $A_{\tau}^{(m)}$ is always $s$, as defined in Equation \@ref(eq:defn-s).
-
-## Standard format
-
-All priors can be put into the format
-\begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{\Phi}^{(m)} \pmb{\alpha}^{(m)} \\
-  \alpha_k^{(m)} & \sim \text{N}(0, (\nu_k^{(m)})^2), \quad k = 1, \dots, K_m
-\end{align}
-where $\pmb{\Phi}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{\alpha}^{(m)}$ is an $K_m$-element vector of free parameters. In AR1 priors (Section \@ref(sec:pr-ar1)) and linear priors with AR1 errors (Section \@ref(sec:pr-lin-ar1)), $\pmb{\Phi}^{(m)}$ depends on correlation coefficient $\phi_m$. In all other priors, $\pmb{\Phi}^{(m)}$ is fixed and known.
-
 
 ## Prediction
 
@@ -199,7 +168,7 @@ In some applications, we need to predict outside that data, which requires gener
 \begin{equation}
   p(\beta_{J_m+h+1}^{(m)} \mid \beta_{J_m+h}^{(m)}, \cdots, \beta_1^{(m)}, \pmb{\psi}^{(m)}), \quad h = 0, 1, \cdots, (\#eq:predict) 
 \end{equation}
-where $\pmb{\psi}^{(m)}$ is a vector containing hyper-parameters. Equation \@ref(eq:predict) can be applied recursively, to generate predictions for any prediction interval. Index $J_m+h$ normally refers to time, but can refer to any dimension.
+where $\pmb{\psi}^{(m)}$ is a vector containing hyper-parameters. Equation \@ref(eq:predict) can be applied recursively to generate predictions for any prediction interval. Index $J_m+h$ normally refers to time, but can refer to any dimension.
 
 Predicted values are not centered or constrained, and in general,
 \begin{equation}
@@ -210,7 +179,7 @@ Predicted values are not centered or constrained, and in general,
 ## Code
 
 ```
-set_prior_effect(formula)
+set_prior(formula)
 ```
 
 - `formula` is a two-sided R formula with the name of the main effect on the left hand side, and the call to the prior function on the right
@@ -218,8 +187,8 @@ set_prior_effect(formula)
 eg
 
 ```
-set_prior_effect(region ~ N())
-set_prior_effect(time ~ Lin(scale = 0.2))
+set_prior(region ~ N())
+set_prior(time ~ Lin(scale = 0.2))
 ```
 
 
@@ -231,23 +200,14 @@ set_prior_effect(time ~ Lin(scale = 0.2))
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right) \\
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right)
+  \beta_j^{(m)} | \tau_m & \ind \mathcal{N}\left(0, \tau_m^2 \right) \\
+  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \pmb{I}_{J_m} \\
-  K_m & = J_m \\
-  \nu_k^{(m)} & = \tau_m, \quad k = 1, \cdots, J_m
-\end{align}
-where $\pmb{I}_{J_m}$ is a $J_m \times J_m$ identity matrix.
 
 ### Prediction
 
 \begin{equation}
-    \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, \tau_m^2)
+    \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(0, \tau_m^2)
 \end{equation}
 
 
@@ -257,7 +217,7 @@ where $\pmb{I}_{J_m}$ is a $J_m \times J_m$ identity matrix.
 N(scale = NULL)
 ```
 
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 ## Multivariate normal {#sec:pr-mnorm}
 
@@ -265,20 +225,10 @@ N(scale = NULL)
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{V}^{(m)} \right) \\
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right)
+  \pmb{\beta}^{(m)} & \sim \mathcal{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right) \\
+  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
-where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user, and $c_m = J_m  \left(\text{tr}(\pmb{V}^{(m)})\right)^{-1}$.
-
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & =  \pmb{L}^{(m)} \\
-  K_m & = J_m \\
-  \nu_k^{(m)} & = c_m \tau_m, \quad k = 1, \cdots, K_m
-\end{align}
-where $\pmb{L}^{(m)}$ is the lower triangular matrix obtained from a Cholesky decomposition of $\pmb{V}^{(m)}$.
+where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user.
 
 ### Prediction
 
@@ -292,41 +242,25 @@ MVN(V, scale = NULL)
 ```
 
 - `V` is $\pmb{V}^{(m)}$
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## First-order random walk {#sec:pr-rw}
 
 ### Model
 
-\begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{D}_{J_m}^{\top} (\pmb{D}_{J_m} \pmb{D}_{J_m}^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
-  \pmb{\epsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, c_m \tau_m^2 \pmb{I}_{J_m - 1}\right) \\ (\#eq:pr-rw-eps)
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right)
-\end{align}
-where $\pmb{D}_n$ is a $(n - 1) \times n$ first-order difference matrix of the form
 \begin{equation}
-  \begin{bmatrix} -1 & 1 & 0 & 0 \\
-                  0 & -1 & 1 & 0 \\
-		  0 & 0 & -1 & 1 \end{bmatrix}
+  \beta_{j+1}^{(m)} \sim \mathcal{N}(\beta_j^{(m)}, \tau_m^2),
 \end{equation}
-
-Note that $\pmb{D}_{J_m} \pmb{\beta}^{(m)} =  \pmb{D}_{J_m} \pmb{D}_{J_m}^{\top} (\pmb{D}_{J_m} \pmb{D}_{J_m}^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and that $\pmb{1}^{\top} \pmb{\beta}^{(m)} =  \pmb{1}^{\top} \pmb{D}_{J_m}^{\top} (\pmb{D}_{J_m} \pmb{D}_{J_m}^{\top})^{-1} \pmb{\epsilon}^{(m)} = 0$.
-
-The $c_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_{J_m}^{\top} (\pmb{D}_{J_m} \pmb{D}_{J_m}^{\top})^{-1} ((\pmb{D}_{J_m} \pmb{D}_{J_m}^{\top})^{-1})^{\top} \pmb{D}_{J_m})\right)^{-1}$.
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \pmb{D}_{J_m}^{\top} (\pmb{D}_{J_m} \pmb{D}_{J_m}^{\top})^{-1} \\
-  K_m & = J_m - 1 \\
-  \nu_k^{(m)} & = c_m \tau_m, \quad k = 1, \cdots, K_m
-\end{align}
+$j = 1, \cdots, J_m - 1$, together with the soft constraint
+\begin{equation}
+  \sum_{j=1}^{J_m} \beta_j^{(m)} \sim \mathcal{N}(0, 1).
+\end{equation}
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\beta_{J_m+h}^{(m)}, \tau_m^2)
+  \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(\beta_{J_m+h}^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -336,56 +270,36 @@ The $c_m$ in Equation \@ref(eq:pr-rw-eps) equals $J_m \left(\text{tr}(\pmb{D}_{J
 RW(scale = NULL)
 ```
 
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## Second-order random walk {#sec:pr-rw2}
 
 ### Model
 
-\begin{align}
-  \pmb{\beta}^{(m)} & =  \pmb{h}^{(m)} \eta_m + \pmb{R}_{J_m}^{\top} (\pmb{R}_{J_m} \pmb{R}_{J_m}^{\top})^{-1} \pmb{\epsilon}^{(m)} \\
-  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \pmb{\epsilon}^{(m)} & \sim \text{N}(\pmb{0}, c_m \tau_m^2 \pmb{I}_{J_m - 2}) (\#eq:pr-rw2-eps) \\
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right)
-\end{align}
-where $\pmb{h}^{(m)}$ is a vector, the $j$th element of which is
 \begin{equation}
-  l_j^{(m)}  = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j,
+  \beta_{j+2}^{(m)} \sim \mathcal{N}(2 \beta_{j+1}^{(m)} - \beta_{j}^{(m)}, \tau_m^2),
 \end{equation}
-and $\pmb{R}_{J_m}$ is a second-order difference matrix formed by multiplying two first-order difference matrices.
-The $\pmb{h}^{(m)} \eta_m$ term is needed because the columns of $\pmb{R}_{J_m}^{\top} (\pmb{R}_{J_m} \pmb{R}_{J_m}^{\top})^{-1}$ do not span the space defined by $\sum_{j=1}^{J_m}{\beta_j^{(m)}} = 0$. See, for instance, @currie2002flexible [336].
-
-We have $\pmb{R}_{J_m} \pmb{\beta}^{(m)} =  \pmb{R}_{J_m}^{\top} \pmb{h}^{(m)} \eta_m + \pmb{R}_{J_m} \pmb{R}_{J_m}^{\top} (\pmb{R}_{J_m} \pmb{R}_{J_m}^{\top})^{-1} \pmb{\epsilon}^{(m)} = \pmb{\epsilon}^{(m)}$ and $\pmb{1}^{\top} \pmb{\beta}^{(m)} = 0$.
-
-The $c_m$ in Equation \@ref(eq:pr-rw2-eps) equals $J_m \left(\text{tr}(\pmb{R}_{J_m}^{\top} (\pmb{R}_{J_m} \pmb{R}_{J_m}^{\top})^{-1} ((\pmb{R}_{J_m} \pmb{R}_{J_m}^{\top})^{-1})^{\top} \pmb{R}_{J_m})\right)^{-1}$.
-
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{h}^{(m)} & \pmb{R}_{J_m}^{\top} (\pmb{R}_{J_m} \pmb{R}_{J_m}^{\top})^{-1} \end{bmatrix} \\
-  K_m & = J_m - 1 \\
-  \nu_1^{(m)} & = (A_{\eta}^{(m)})^2 \\
-  \nu_k^{(m)} & = c_m \tau_m, \quad k = 2, \cdots, K_m
-\end{align}
+$j = 1, \cdots, J_m - 2$, together with the soft constraint
+\begin{equation}
+  \sum_{j=1}^{J_m} \beta_j^{(m)} \sim \mathcal{N}(0, 1).
+\end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(2 \beta_{J_m + h}^{(m)} - \beta_{J_m + h -1}^{(m)}, \tau_m^2)
+  \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(2 \beta_{J_m + h}^{(m)} - \beta_{J_m + h -1}^{(m)}, \tau_m^2)
 \end{equation}
 
 
 ### Code
 
 ```
-RW2(sd = NULL, scale = NULL)
+RW2(scale = NULL)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$.
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## AR1 {#sec:pr-ar1}
@@ -393,46 +307,19 @@ RW2(sd = NULL, scale = NULL)
 ### Model
 
 \begin{align}
-  \beta_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \beta_1^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
   \beta_j^{(m)} & \sim \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
-  \epsilon_j^{(m)} & \sim \text{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \epsilon_j^{(m)} & \sim \mathcal{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right).
+  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right).
 \end{align}
 This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). We require that $-1 < a_{0m} < a_{1m} < 1$.
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \pmb{L}^{(m)} \\
-  K_m & = J_m \\
-  \nu_k^{(m)} & =  \tau_m, \quad k = 1, \cdots, K_m
-\end{align}
-where $\pmb{L}^{(m)}$ is the lower triangular matrix from the Cholesky decomposition of
-
-\begin{equation}
-  \begin{bmatrix} 1 & \phi & \phi^2 & \phi^3 & \phi^4\\
-                  \phi & 1 & \phi & \phi^2 & \phi^3\\
-                  \phi^2 & \phi & 1 & \phi & \phi^2 \\
-                  \phi^3 & \phi^2 & \phi & 1 & \phi \\
-		  \phi^4 & \phi^3 & \phi^2 & \phi & 1 \end{bmatrix},
-\end{equation}
-
-[@rue2005gaussian, 2] and has the form
-\begin{equation}
-  \begin{bmatrix} 1 & 0 & 0 & 0 & 0 \\
-                  \phi & \sqrt(1 - \phi^2) & 0 & 0 & 0 \\
-                  \phi^2 & \phi \sqrt(1 - \phi^2) & \sqrt(1 - \phi^2) & 0 & 0 \\
-                  \phi^3 & \phi^2 \sqrt(1 - \phi^2) & \phi \sqrt(1 - \phi^2) & \sqrt(1 - \phi^2) & \phi \\
-		  \phi^4 & \phi^3 \sqrt(1 - \phi^2) & \phi^2 \sqrt(1 - \phi^2) & \phi \sqrt(1 - \phi^2) & \sqrt(1 - \phi^2) \end{bmatrix}.
-\end{equation}
-
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
+  \beta_{J_m + h + 1}^{(m)} \sim \mathcal{N}\left(\phi_m \beta_{J_m + h}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
 \end{equation}
 
 
@@ -445,7 +332,7 @@ AR1(min = 0.8, max = 0.98, scale = NULL)
 
 - `min` is $a_{0m}$
 - `max` is $a_{1m}$
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
@@ -455,27 +342,17 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{h}^{(m)} \eta_m + \pmb{\epsilon}^{(m)} \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right)
+  \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
+   h_q^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
+  \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \epsilon_j^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
+  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
-where $\pmb{h}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{h}^{(m)} & \pmb{I}_{J_m} \end{bmatrix} \\
-  K_m & = J_m + 1\\
-  \nu_1^{(m)} & =  (A_{\eta}^{(m)})^2 \\
-  \nu_k^{(m)} & =  \tau_m, \quad k = 2, \cdots, K_m
-\end{align}
-
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \text{N}(\beta_{J_m + h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m, \tau_m^2)
+  \beta_{J_m + h + 1}^{(m)} \sim \mathcal{N}(\beta_{J_m + h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m, \tau_m^2)
 \end{equation}
 
 
@@ -485,39 +362,32 @@ where $\pmb{h}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2).
 Lin(sd = NULL, scale = NULL)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$.
+- `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## Linear with AR1 errors {#sec:pr-lin-ar1}
 
 ### Model
 
-\begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{h}^{(m)} \eta_m + \pmb{\epsilon}^{(m)} \\
-  \epsilon_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+n\begin{align}
+  \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
+   h_q^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
+  \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \epsilon_1^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
   \epsilon_j^{(m)} & \sim \phi_m \epsilon_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
-  \tau_m & \sim \text{N}^+\left(A_{\tau}^{(m)2}\right)
+  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
-where $\pmb{h}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2), and $-1 < a_{0m} < a_{1m} < 1$.
+where $-1 < a_{0m} < a_{1m} < 1$.
 
 
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{h}^{(m)} & \pmb{L}^{(m)} \end{bmatrix} \\
-  K_m & = J_m + 1 \\
-  \nu_1^{(m)} & =  (A_{\eta}^{(m)})^2 \\
-  \nu_k^{(m)} & =  \tau_m, \quad k = 2, \cdots, K_m
-\end{align}
-where $\pmb{h}^{(m)}$ is defined as in Section \@ref(sec:pr-rw2), and $\pmb{L}^{(m)}$ is defined as in Section \@ref(sec:pr-ar1).
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\hat{\beta}_{J_m+h+1}^{(m)} + \phi_m \hat{\epsilon}_{J_m+h}^{(m)}, (1 - \phi_m^2) \tau_m^2)
+  \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(\hat{\beta}_{J_m+h+1}^{(m)} + \phi_m \hat{\epsilon}_{J_m+h}^{(m)}, (1 - \phi_m^2) \tau_m^2)
 \end{equation}
 where
 \begin{align}
@@ -532,10 +402,10 @@ where
 LinAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
+- `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
 - `min` is $a_{0m}$.
 - `max` is $a_{1m}$.
-- `scale` is $A_{\tau}^{(m)}$. Defaults to $s$.
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## P-Spline {#sec:pr-spline}
@@ -543,31 +413,11 @@ LinAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)
 ### Model
 
 \begin{equation}
-  \pmb{\beta}^{(m)} = \pmb{B}^{(m)} \pmb{\vartheta}^{(m)}
+  \pmb{\beta}^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}^{(m)}
 \end{equation}
-where $\pmb{B}^{(m)}$ is a $J_m \times Q_m$ matrix of B-splines, and $\pmb{\vartheta}^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
+where $\pmb{B}^{(m)}$ is a $J_m \times K_m$ matrix of B-splines, and $\pmb{\alpha}^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
 
-$\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{Q_m}^{(m)}(\pmb{j}))$, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_q^{(m)}(\pmb{j}) = 0$, $q = 1, \cdots, Q_m$.
-
-### Standard format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \begin{bmatrix} \pmb{B}^{(m)} \pmb{h}^{(m)} & \pmb{B}^{(m)} \pmb{R}_{Q_m}^{\top} (\pmb{R}_{Q_m} \pmb{R}_{Q_m}^{\top})^{-1} \end{bmatrix} \\
-  K_m & = Q_m - 1 \\
-  \nu_1 & = (A_{\eta}^{(m)})^2 \\
-  \nu_k &  = c_m \tau_m, \quad k = 2, \cdots, K_m,
-\end{align}
-where $\pmb{h}^{(m)}$ is a vector with $Q_m$ elements, the $q$th element of which is
-\begin{equation}
-  l_q^{(m)}  = -\frac{Q_m + 1}{Q_m - 1} + \frac{2}{Q_m - 1} q,
-\end{equation}
-and $c_m$ is defined as in Section \@ref(sec:pr-rw2).
-
-Matrix $\pmb{\Phi}^{(m)}$ is derived by noting that, when $\pmb{\vartheta}^{(m)}$ has a second-order random walk prior,
-\begin{equation}
-  \pmb{B}^{(m)} \pmb{\vartheta}^{(m)} = \pmb{B}^{(m)} \begin{bmatrix} \pmb{h}^{(m)} & \pmb{R}_{Q_m}^{\top} (\pmb{R}_{Q_m} \pmb{R}_{Q_m}^{\top})^{-1} \end{bmatrix}
-  \begin{bmatrix} \eta_m \\ \pmb{\epsilon}^{(m)} \end{bmatrix}.
-\end{equation}
+$\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j}))$, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{j}) = 0$, $k = 1, \cdots, K_m$.
 
 
 ### Prediction
@@ -581,8 +431,8 @@ Main effects with a P-Spline prior cannot be predicted.
 Spline(df, scale = NULL)
 ```
 
-- `df` is $Q_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
-- `scale` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to $s$, as defined in Equation \@ref(eq:defn-s).
+- `df` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
+- `scale` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to 1.
 
 
 ## SVD {#sec:pr-svd}
@@ -590,21 +440,11 @@ Spline(df, scale = NULL)
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\vartheta}^{(m)} + \pmb{g}^{(m)} \\
-  \vartheta_j^{(m)} & \sim \text{N}(0, 1)
+  \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}^{(m)} + \pmb{g}^{(m)} \\
+  \alpha_j^{(m)} & \sim \mathcal{N}(0, 1)
 \end{align}
-where $\pmb{F}^{(m)}$ is a $J_m \times Q_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\vartheta}^{(m)}$.
+where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
-
-### Standard format
-
-Internally, we include $\pmb{g}^{(m)}$ in the offset term $\pmb{o}$ in Equation \@ref(eq:means). The SVD prior without $\pmb{g}^{(m)}$ has format
-
-\begin{align}
-  \pmb{\Phi}^{(m)} & = \pmb{F}^{(m)} \\
-  K_m & = Q_m \\
-  \nu_k &  = 1, \quad k = 1, \cdots, K_m
-\end{align}
 
 
 ### Prediction
@@ -632,128 +472,9 @@ Designed for use with age, but can be used with other dimensions.
 Can also combine dimensions by taking Cartesian product of categories, eg age-sex.
 
 
-# Priors for second-order interactions {#sec:pr-interact-2}
+# Priors for interactions {#sec:pr-interact}
 
-## Model
-
-When term $m$ is a second-order interaction, it is convenient to treat $\pmb{\beta}^{(m)}$ as a $J_1^{(m)} \times J_2^{(m)}$ matrix, where $J_1^{(m)}$ is the number of categories in the first dimension of the interaction and $J_2^{(m)}$ is the number of categories in the second, with $J_1^{(m)} \times J_2^{(m)} = J_m$.
-
-We construct a prior for $\pmb{\beta}^{(m)}$ by specifying priors for the two component dimensions, and then merging these priors.  Any combination of priors from Section \@ref(sec:pr-main-specific) is permitted. We work with the prior `standard formats'. The first prior contributes the $J_1^{(m)} \times K_1^{(m)}$ matrix $\Phi_1^{(m)}$. The second prior contributes the $J_2^{(m)} \times K_2^{(m)}$ matrix $\Phi_2^{(m)}$, and also the variances $\nu_1^{(m)}, \cdots, \nu_{K_2}^{(m)}$.
-
-
-We set
-\begin{equation}
-  \pmb{\beta}_{*,j_2}^{(m)} = \pmb{\Phi}_1^{(m)} \pmb{\delta}_{*,j_2}^{(m)}, \quad j_2 = 1, \cdots, J_2^{(m)}  
-\end{equation}
-where
-\begin{equation}
-  \pmb{\beta}_{*,j_2}^{(m)} = \begin{bmatrix} \beta_{1,j_2}^{(m)} \\ \vdots \\ \beta_{J_1^{(m)},j_2}^{(m)} \end{bmatrix}
-\end{equation}
-denotes column $j_2^{(m)}$ of $\pmb{\beta}^{(m)}$, and
-\begin{equation}
-  \pmb{\delta}_{*,j_2}^{(m)} = \begin{bmatrix} \delta_{1,j_2}^{(m)} \\ \vdots \\ \delta_{K_1^{(m)},j_2}^{(m)} \end{bmatrix}
-\end{equation}
-denotes column $j_2^{(m)}$ of a $K_1^{(m)} \times J_2^{(m)}$ parameter matrix $\pmb{\delta}^{(m)}$.
-
-Each row
-\begin{equation}
-  \pmb{\delta}_{k_1,*}^{(m)} = \begin{bmatrix} \delta_{k_1,1}^{(m)} & \dots & \delta_{k_1,J_2^{(m)}}^{(m)} \end{bmatrix}
-\end{equation}
-of $\pmb{\delta}^{(m)}$ is modelled independently, using the prior for dimension 2. We set
-\begin{align}
-  \pmb{\delta}_{k_1,*}^{(m)\top} & = \pmb{\Phi}_2^{(m)} \pmb{\alpha}_{k_1,*}^{(m)\top} \\
-  \alpha_{k_1,k_2}^{(m)} & \sim \text{N}(0, (\nu_{k_2}^{(m)})^2), \quad k_2 = 1, \dots, K_2^{(m)},
-\end{align}
-where $\pmb{\alpha}^{(m)}$ is treated as a $K_1^{(m)} \times K_2^{(m)}$ parameter matrix.
-
-The specification for second-order priors can be expressed more compactly as
-\begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{\Phi}_1^{(m)} \pmb{\delta}^{(m)}  \\
-  \pmb{\delta}^{(m)\top} & = \pmb{\Phi}_2^{(m)} \pmb{\alpha}^{(m)\top},
-\end{align}
-or, with $\pmb{\delta}^{(m)}$ eliminated, as
-\begin{equation}
-  \pmb{\beta}^{(m)} = \pmb{\Phi}_1^{(m)} \pmb{\alpha}^{(m)} \pmb{\Phi}_2^{(m)\top}.
-\end{equation}
-
-Giving each row of $\pmb{\delta}^{(m)}$ an independent, identical prior is less restrictive that it might seem. Depending on the choice of prior for dimension 1, and hence the structure of $\pmb{\Phi}_1^{(m)},$ the rows of $\pmb{\beta}^{(m)}$ may still be correlated, even when the rows of $\pmb{\delta}^{(m)}$ are not. In addition, $\pmb{\beta}^{(m)}$ is only one part of the overall prior structure, and other terms, such as a main effect for dimension 2, can potentially capture correlations omitted from $\pmb{\beta}^{(m)}$. The use of independent, identical priors on rows keeps the specification of interactions manageable, and helps with speed and scalability.
-
-
-
-## Prediction
-
-With a second-order interaction, prediction consists of adding columns to matrix $\pmb{\beta}^{(m)}$. The analogue of Equation \@ref(eq:predict) is
-\begin{equation}
-    p(\pmb{\beta}_{*,J_2^{(m)}+h+1}^{(m)} \mid \pmb{\beta}_{*,J_2^{(m)}+h}^{(m)}, \cdots, \pmb{\beta}_{*,1}^{(m)}, \pmb{\psi}^{(m)}). (\#eq:prediction-2)
-\end{equation}
-We can draw from \@ref(eq:prediction-2) by drawing from 
-\begin{equation}
-    p(\pmb{\delta}_{*,J_2^{(m)}+h+1}^{(m)} \mid \pmb{\delta}_{*,J_2^{(m)}+h}^{(m)}, \cdots, \pmb{\delta}_{*,1}^{(m)}, \pmb{\psi}^{(m)}) (\#eq:prediction-delta)
-\end{equation}
-and then multiplying by $\pmb{\Phi}_1^{(m)}$. We draw from \@ref(eq:prediction-delta) by drawing
-\begin{equation}
-    p(\delta_{k_1,J_2^{(m)}+h+1}^{(m)} \mid \delta_{k_1,J_2^{(m)}+h}^{(m)}, \cdots, \delta_{k_1,1}^{(m)}, \pmb{\psi}^{(m)})
-\end{equation}
-independently for $k_1 = 1, \cdots, K_1^{(m)}$, using the formulas defined for $\alpha_{J_m+h+1}^{(m)}$ in Section \@ref(sec:pr-main-specific).
-
-
-
-## Code
-
-```
-set_prior_effect(formula)
-```
-
-- `formula` is a two-sided R formula with the name of the main effect on the left hand side, and calls to prior functions on the right, separated by colons,
-
-```
-set_prior_effect(age:time ~ SVD_HMD() : RW2())
-set_prior_effect(sex:age ~ MVN(V = corr_sex) : AR1())
-```
-
-The first dimension named in the call to `set_prior_effect()` is treated as dimension 1, supplying $\Phi_1^{(m)}$, and the second dimension is treated as dimension 2, supplying $\Phi_2^{(m)}$ and $\nu_1^{(m)}, \cdots, \nu_{K_2}^{(m)}$. The order of the dimension names in the call to `set_prior_effect()` does not need to match the order of the dimension names in the call setting up the likelihood. For instance, the following code is valid:
-
-```
-mod <- mod_pois(deaths ~ age:sex + time,
-                exposure = popn,
-		data = deaths_data) %>%
-    set_prior_effect(sex:age ~ N() : RW2())		
-```
-
-
-# Priors for higher-order interactions {#sec:pr-interact-high}
-
-## Model
-
-We treat $\pmb{\beta}^{(m)}$ as a multi-way array. We choose two dimensions, which we refer to as the 'inner' dimensions, to receive second-order priors. These priors are applied to every matrix formed by fixing categories for the remaining 'outer' dimensions. Hyperparameters $\pmb{\psi}$ are shared across batches of $\beta_j^{(m)}$ defined by the categories of the outer dimensions, but conditional on these hyper-parameters, the batches are independent.
-
-If, for instance, we have a $d$-order interaction, and we are treating the first two dimensions as inner dimensions, then the density of the implied prior for $\pmb{\beta}^{(m)}$ is
-\begin{equation}
-  p(\pmb{\psi}) \prod_{k_3 = 1}^{K_3^{(m)}} \dots \prod_{k_d = 1}^{K_d^{(m)}} p(\pmb{\beta}^{(m)}_{*,*,k_3, \cdots, k_d} \mid \pmb{\psi})
-\end{equation}
-where $\pmb{\beta}^{(m)}_{*,*,k_3, \cdots, k_d}$ is a $K_1^{(m)} \times K_2^{(m)}$ matrix.
-
-## Prediction
-
-Predictions are constructed in the same way as they are for second-order interactions, but within each combinations of categories of the outer dimensions.
-
-
-## Code
-
-Function `set_prior_effect()` is used in the same way with higher-order interactions as it is with second-order interactions, except that the right hand side includes blanks to indicate that a dimension is an outer dimension. For instance, in the prior defined by
-
-```
-set_prior_effect(gender:state:age ~ N() : : RW())
-```
-
-the inner dimensions are `gender` and `age`, and the outer dimension is `state`, and in the prior defined by
-
-```
-set_prior_effect(age:sex:region:time ~ SVD() : : : RW2())
-```
-
-the inner dimensions are `age` and `time`, and the outer dimensions are `sex` and `region`.
-
+*Not written yet*
 
 # Seasonal effects {#sec:pr-season}
 
@@ -761,47 +482,20 @@ the inner dimensions are `age` and `time`, and the outer dimensions are `sex` an
 
 ### Time main effect
 
-Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $2 \le S_m \le J_m$ elements, where $S_m$ is the number of "seasons". The seasonal effect in period $j$ is $\lambda_{s_j}^{(m)}$ where $s_j = (j \bmod S_m) + 1$.
+Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ elements. Seasonal effects are divided into $S_m$ batches, corresponding to $S_m$ "seasons", where $2 \le S_m \le J_m/2$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
 
-We model $\pmb{\lambda}^{(m)}$ as a draw from a multivariate normal distribution, constrained to sum to zero,
 \begin{align}
-  \pmb{\lambda}^{(m)} & = \pmb{G}_{S_m} \pmb{\varepsilon}^{(m)} \\
-  \pmb{\varepsilon}^{(m)} & \sim \text{N}\left(\pmb{0}, \kappa_m^2 \pmb{I}_{S_m-1}\right) \\ 
-  \kappa_m & \sim \text{N}^+\left(A_{\kappa}^{(m)2}\right)
+  \lambda_{j}^{(m)} & \sim \mathcal{N}(\lambda_{j - S_m}^{(m)}, \kappa_m^2 ) \\ 
+  \kappa_m & \sim \mathcal{N}^+\left(0, A_{\kappa}^{(m)2}\right) \\
+  \sum_{j=1}^{J_m} \lambda_j & \sim \mathcal{N}(0, 1)
 \end{align}
-where
-\begin{equation}
-  \pmb{G}_n = \frac{1}{\sqrt{n}} 
-  \begin{bmatrix} \pmb{1}^{\top} \\
-                  \pmb{I}_{n - 1} - \frac{1}{n - 1} \pmb{1} \pmb{1}^{\top}. \end{bmatrix}
-\end{equation}
 
-Constraining the seasonal effect to sum to zero helps with identification, but also gives the seasonal effect a clearer meaning.
 
 
 ### Interaction involving time
 
-If $\pmb{\beta}^{(m)}$ is an interaction, then the time dimension is treated as an inner dimension, and the remaining dimension as outer dimensions, with a model like the one defined for time main effects being applied within each combination of categories of the non-time variables. The matrix $\pmb{G}_{S_m}$ and standard deviation $\kappa_m$ are shared across all inner models.
+*Not written yet*
 
-If, for instance, $\pmb{\beta}^{(m)}$ is a $d$-order interaction, the last dimension of which is time, then, adapting notation from Section \@ref(sec:pr-interact-high), the posterior density for the seasonal effect is
-\begin{equation}
-  p(\kappa_m) \prod_{k_1 = 1}^{K_1^{(m)}} \dots \prod_{k_{d-1} = 1}^{K_{d-1}^{(m)}} p(\pmb{\lambda}_{k_1, \cdots, k_{d-1}}^{(m)} \mid \pmb{G}_{S_m}, \kappa_m).
-\end{equation}
-
-## Code
-
-```
-Season(n_season, scale = NULL)
-```
-
-- `n_season` is $S$
-- `scale` is $A_{\lambda}^{(m)}$. Defaults to $s$, as defined in Equation \@ref(eq:defn-s), if user does not supply a value
-
-Examples:
-```
-set_prior_effect(time ~ LinAR1() + Season(n_season = 4, scale = 0.1))
-set_effect(age:time ~ SVD_HMD() : RW2() + Season(n_season = 12))
-```
 
 
 # Covariates {#sec:pr-cov}
@@ -816,8 +510,8 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 ### Standard prior
 
 \begin{align}
-  \zeta_p | \varphi & \ind \text{N}(0, \varphi^2) \\
-  \varphi & \sim \text{N}^+(1)
+  \zeta_p | \varphi & \ind \mathcal{N}(0, \varphi^2) \\
+  \varphi & \sim \mathcal{N}^+(0, 1)
 \end{align}
 
 
@@ -826,9 +520,9 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 Regularised horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
-  \zeta_p | \omega_p, \varphi & \ind \text{N}(0, \omega_p^2 \varphi^2) \\
-  \omega_p & \sim \text{Cauchy}^+(1) \\
-  \varphi & \sim \text{Cauchy}^+(A_{\varphi}^2) \\
+  \zeta_p | \omega_p, \varphi & \ind \mathcal{N}(0, \omega_p^2 \varphi^2) \\
+  \omega_p & \sim \text{Cauchy}^+(0, 1) \\
+  \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
   A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}
 \end{align}
 where $p_0$ is an initial guess at the number of $\zeta_p$ that are non-zero, and $\hat{\sigma}$ is obtained as follows:
@@ -853,7 +547,7 @@ and set
 \end{equation}
 - Normal. Using maximum likelihood, fit the linear model
 \begin{equation}
-  y_i \sim \text{N}\left(\sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}, w_i^{-1}\xi^2 \right)
+  y_i \sim \mathcal{N}\left(\sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}, w_i^{-1}\xi^2 \right)
 \end{equation}
 and set $\hat{\sigma} = \hat{\xi}$.
 
@@ -938,11 +632,10 @@ set_prior_disp(scale = NULL)
 | $\pmb{Z}^{(m)}$ | Matrix of covariates. |
 | $\pmb{\zeta}^{(m)}$ | Parameter vector for covariates $\pmb{Z}^{(m)}$. |
 | $\pmb{o}$ | Offset |
-| $s$ | Generic scale parameter. Equal to 1 or to $\text{sd}(y_i)$. |
 | $A_0$ | Scale parameter in prior for intercept $\beta^{(0)}$. |
 | $\tau_m$ | Standard deviation parameter for main effect or interaction. |
 | $A_{\tau}^{(m)}$ | Scale parameter in prior for $\tau_m$. |
-| $\pmb{\alpha}^{(m)}$ | Free parameters $\alpha^{(m)}$  |
+| $\pmb{\alpha}^{(m)}$ | Parameter vector for P-spline and SVD priors. |
 | $\alpha_k^{(m)}$ | $k$th element of $\pmb{\alpha}^{(m)}$. $k = 1, \cdots, K_m$. |
 | $\pmb{\Phi}^{(m)}$ | Matrix mapping $\pmb{\alpha}^{(m)}$ to $\pmb{\beta}^{(m)}$. |
 | $\nu_k^{(m)}$ | Standard deviation of $\alpha_k^{(m)}$ in prior for main effect. |
@@ -951,20 +644,15 @@ set_prior_disp(scale = NULL)
 | $\pmb{0}$ | Column vectors of 0s. |
 | $c_m$ | Scaling factor applied to variance terms in priors. |
 | $\pmb{V}^{(m)}$ | Covariance matrix for multivariant normal prior. |
-| $\pmb{L}^{(m)}$ | Matrix from Cholesky decomposition of $\pmb{V}^{(m)}$. |
-| $\pmb{D}_n$ | $(n - 1) \times n$ First-order difference matrix. |
-| $\pmb{R}_n$ | $(n - 2) \times n$ Second-order difference matrix. |
-| $\pmb{h}^{(m)}$ | Vector for linear covariate |
+| $h_j^{(m)}$ | Linear covariate |
 | $\eta^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
 | $A_{\eta}^{(m)}$ | Standard deviation in normal prior for $\eta_m$. |
 | $\phi_m$ | Correlation coefficient in AR1 densities. |
 | $a_{0m}$, $a_{1m}$ | Minimum and maximum values for $\phi_m$. |
 | $\pmb{B}^{(m)}$ | B-spline matrix in P-spline prior. |
 | $\pmb{b}_q^{(m)}$ | B-spline. $q = 1, \cdots, Q_m$. |
-| $\pmb{\vartheta}^{(m)}$ | Parameter vector for P-spline and SVD priors. |
 | $\pmb{F}^{(m)}$ | Matrix in SVD prior. |
 | $\pmb{g}^{(m)}$ | Offset in SVD prior. |
-| $G_n$ | Centering matrix. |
 | $\kappa_m$ | Standard deviation parameter for seasonal effect. |
 | $\varphi$ | Global shrinkage parameter in shrinkage prior. |
 | $A_{\varphi}$ | Scale term in prior for $\varphi$. |
