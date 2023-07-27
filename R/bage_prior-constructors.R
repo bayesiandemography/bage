@@ -14,7 +14,7 @@
 #' \deqn{\epsilon \sim \text{N}(0, \sigma^2)}
 #'
 #' \eqn{\sigma} is drawn from a half-normal distribition
-#' with scale set by the `scale` parameter.
+#' with scale set by the `s` argument.
 #'
 #' Correlation parameter \eqn{\phi} is constrained
 #' to lie in the interval `(a, b)`,
@@ -28,7 +28,7 @@
 #' @param min,max Minimum and maximum values
 #' for autocorrelation parameter (\eqn{\phi}).
 #' Default to 0.8 and 0.98.
-#' @param scale Scale of half-normal prior for
+#' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
 #' Defaults to 1.
 #'
@@ -43,10 +43,10 @@
 #'
 #' @examples
 #' AR1()
-#' AR1(min = 0, max = 1, scale = 2.4)
+#' AR1(min = 0, max = 1, s = 2.4)
 #' @export
-AR1 <- function(min = 0.8, max = 0.98, scale = 1) {
-    scale <- check_and_tidy_scale(scale, x_arg = "scale") 
+AR1 <- function(min = 0.8, max = 0.98, s = 1) {
+    scale <- check_and_tidy_scale(s, x_arg = "s") 
     checkmate::assert_number(min, lower = 0, upper = 1)
     checkmate::assert_number(max, lower = 0, upper = 1)
     if (min >= max)
@@ -98,15 +98,15 @@ Known <- function(values) {
 #' Prior in which units are drawn independently from a normal
 #' distribution. The default prior for most terms.
 #'
-#' The normal distribution has mean `0` and standard
-#' deviation `s`.
+#' The normal distribution has mean \eqn{0} and standard
+#' deviation \eqn{\sigma}.
 #' 
-#' \deqn{x \sim \text{N}(0, s^2)}
+#' \deqn{x \sim \text{N}(0, \sigma^2)}
 #'
-#' Standard deviation `s` is drawn from a half-normal
+#' Standard deviation \eqn{\sigma} is drawn from a half-normal
 #' distribution,
 #'
-#' \deqn{s \sim \text{N}^+(0, \text{scale}^2)}
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
 #'
 #' (A half-normal distribution has the same shape as a normal
 #' distribution, but is defined only for non-negative
@@ -118,7 +118,7 @@ Known <- function(values) {
 #' estimates for `x`, and higher values lead to less tightly
 #' concentrated estimates.
 #'
-#' @param scale A positive, finite number.
+#' @param s A positive, finite number.
 #'
 #' @returns An object of class `bage_prior_norm`.
 #'
@@ -127,10 +127,10 @@ Known <- function(values) {
 #'
 #' @examples
 #' N()
-#' N(scale = 0.5)
+#' N(s = 0.5)
 #' @export
-N <- function(scale = 1) {
-    scale <- check_and_tidy_scale(scale, x_arg = "scale") 
+N <- function(s = 1) {
+    scale <- check_and_tidy_scale(s, x_arg = "s") 
     new_bage_prior_norm(scale = scale)
 }
 
@@ -142,11 +142,11 @@ N <- function(scale = 1) {
 #' Normal prior where, in contrast to [N()], the
 #' standard deviation is treated as fixed and known.
 #'
-#' The distribution as mean equal to `0` and
+#' The distribution has mean equal to `0` and
 #' standard deviation `sd`, where `sd` is supplied
 #' by the user.
 #'
-#' \deqn{x \sim \text{N}(0, s^2)}
+#' \deqn{x \sim \text{N}(0, \text{sd}^2)}
 #'
 #' `NFixed()` is the default prior for the intercept.
 #'
@@ -179,30 +179,28 @@ NFixed <- function(sd = 1) {
 #' With `RW()`, increments between neighbouring
 #' `x`s are normally distibuted,
 #'
-#' \deqn{x_i - x_{i-1} \sim \text{N}(0, s^2)}
+#' \deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2)}
 #'
 #' With `RW2()`, increments in increments
 #' are normally distributed,
 #' 
-#' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, s^2)}
+#' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, \sigma^2)}
 #'
-#' In addition, there is a linear term TODO - EXPLAIN.
-#' 
-#' In both cases, standard deviation `s` is drawn from a
+#' In both cases, standard deviation \eqn{\sigma} is drawn from a
 #' half-normal distribution,
 #' 
-#' \deqn{s \sim \text{N}^+(0, \text{scale}^2)}
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
 #'
 #' (A half-normal distribution has the same shape as a normal
 #' distribution, but is defined only for non-negative
 #' values.)
 #'
-#' The scale for the half-normal distribution defaults
+#' The scale for the half-normal distribution, `s`, defaults
 #' to 1, but can be set to other values. Lower values
 #' for `scale` lead to smoother series of `x`s, and
 #' higher values lead to rougher series.
 #'
-#' @param scale A positive, finite number.
+#' @param s A positive, finite number.
 #'
 #' @returns An object of class `bage_prior_rw`
 #' or `bage_prior_rw2`.
@@ -212,18 +210,18 @@ NFixed <- function(sd = 1) {
 #'
 #' @examples
 #' RW()
-#' RW(scale = 0.5)
+#' RW(s = 0.5)
 #' RW2()
 #' @export
-RW <- function(scale = 1) {
-    scale <- check_and_tidy_scale(scale, x_arg = "scale")
+RW <- function(s = 1) {
+    scale <- check_and_tidy_scale(s, x_arg = "s")
     new_bage_prior_rw(scale = scale)
 }
 
 #' @export
 #' @rdname RW
-RW2 <- function(scale = 1) {
-    scale <- check_and_tidy_scale(scale, x_arg = "scale")
+RW2 <- function(s = 1) {
+    scale <- check_and_tidy_scale(s, x_arg = "s")
     new_bage_prior_rw2(scale = scale)
 }
 
@@ -253,22 +251,22 @@ RW2 <- function(scale = 1) {
 #' The elements of \eqn{\gamma} are assumed to follow
 #' a second order random walk,
 #'
-#' \deqn{(\gamma_j - \gamma_{j-1}) - (\gamma_{j-1} - \gamma_{j-2}) \sim \text{N}(0, \tau^2)}
+#' \deqn{(\gamma_j - \gamma_{j-1}) - (\gamma_{j-1} - \gamma_{j-2}) \sim \text{N}(0, \sigma^2)}
 #'
-#' Parameter \eqn{\tau} has prior
+#' Parameter \eqn{\sigma} has prior
 #'
-#' \deqn{\tau \sim \text{N}^+(0, A^2)}
+#' \deqn{\sigma \sim \text{N}^+(0, s^2)}
 #'
 #' where \eqn{\text{N}^+} denotes a half-normal distribution,
-#' and a value for \eqn{A} is supplied by the user.
+#' and a value for \eqn{s} is supplied by the user.
 #'
 #' @param n Number of spline vectors.
 #' By default is `NULL`, in which case the number of
 #' vectors is set to `max(ceiling(0.7 * k), 4)`
 #' where `k` is the number
 #' of elements in the term being modelled.
-#' @param scale Scale for error term.
-#' The default is 1.
+#' @param s Scale for error term.
+#' Default is 1.
 #'
 #' @returns An object of class `"bage_prior_spline"`.
 #'
@@ -279,11 +277,11 @@ RW2 <- function(scale = 1) {
 #' Spline()
 #' Spline(n = 10)
 #' @export
-Spline <- function(n = NULL, scale = 1) {
+Spline <- function(n = NULL, s = 1) {
     check_n(n, min = 4L, max = NULL, null_ok = TRUE)
     if (!is.null(n))
         n <- as.integer(n)
-    scale <- check_and_tidy_scale(scale, x_arg = "scale")
+    scale <- check_and_tidy_scale(s, x_arg = "s")
     new_bage_prior_spline(n = n,
                           scale = scale)
 }

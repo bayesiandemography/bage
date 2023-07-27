@@ -428,10 +428,10 @@ Main effects with a P-Spline prior cannot be predicted.
 ### Code
 
 ```
-Spline(df, scale = NULL)
+Spline(n = NULL, scale = 1)
 ```
 
-- `df` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
+- `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
 - `scale` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to 1.
 
 
@@ -445,7 +445,7 @@ Spline(df, scale = NULL)
 \end{align}
 where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
-
+TODO - Describe age-sex interactions.
 
 ### Prediction
 
@@ -454,15 +454,13 @@ Main effects with a SVD prior cannot be predicted.
 
 ### Code
 
-```
-SVD(transform, translate)
-SVD_HMD()
-SVD_HFD()
+```{r}
+SVD(scaled_svd, n = 5, indep = TRUE)
 ```
 
-- `transform` is $\pmb{F}^{\text{age}}$
-- `translate` is $\pmb{g}^{(m)}$
-- functions such as `SVD_HMD()` and `SVD_HFD()` (for Human Mortality Database and Human Fertility Database) provide pre-packaged values.
+- `scaled_svd` contains $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$
+- `n` is the number of components
+- `indep` Type of age-sex interaction TODO - COMPLETE
 
 
 ### Combined dimensions
@@ -496,6 +494,14 @@ Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ eleme
 
 *Not written yet*
 
+## Code
+
+```
+Season(n, s = 1)
+```
+
+- `n` is $S_m$
+- `s` is $A_{\kappa}^{(m)}$
 
 
 # Covariates {#sec:pr-cov}
