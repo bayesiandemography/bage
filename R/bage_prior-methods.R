@@ -460,7 +460,7 @@ str_call_prior.bage_prior_ar1 <- function(prior) {
     if (max != 0.98)
         args[[2L]] <- sprintf("max=%s", max)
     if (scale != 1)
-        args[[3L]] <- sprintf("scale=%s", scale)
+        args[[3L]] <- sprintf("s=%s", scale)
     args <- args[nzchar(args)]
     args <- paste(args, collapse = ", ")
     sprintf("AR1(%s)", args)
@@ -487,7 +487,7 @@ str_call_prior.bage_prior_norm <- function(prior) {
     if (isTRUE(all.equal(scale, 1)))
         "N()"
     else
-        sprintf("N(scale=%s)", scale)
+        sprintf("N(s=%s)", scale)
 }
 
 ## HAS_TESTS
@@ -507,7 +507,7 @@ str_call_prior.bage_prior_rw <- function(prior) {
     if (isTRUE(all.equal(scale, 1)))
         "RW()"
     else
-        sprintf("RW(scale=%s)", scale)
+        sprintf("RW(s=%s)", scale)
 }
 
 ## HAS_TESTS
@@ -517,7 +517,7 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
     if (isTRUE(all.equal(scale, 1)))
         "RW2()"
     else
-        sprintf("RW2(scale=%s)", scale)
+        sprintf("RW2(s=%s)", scale)
 }
 
 ## HAS_TESTS
@@ -533,9 +533,9 @@ str_call_prior.bage_prior_spline <- function(prior) {
     }
     else {
         if (is.null(n))
-            sprintf("Spline(scale=%s)", scale)
+            sprintf("Spline(s=%s)", scale)
         else
-            sprintf("Spline(n=%d,scale=%s)", n, scale)
+            sprintf("Spline(n=%d,s=%s)", n, scale)
     }
 }
 

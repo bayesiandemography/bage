@@ -248,9 +248,9 @@ test_that("'str_call_prior' works with bage_prior_ar1", {
     expect_identical(str_call_prior(AR1()), "AR1()")
     expect_identical(str_call_prior(AR1(min = 0.5)), "AR1(min=0.5)")
     expect_identical(str_call_prior(AR1(max = 0.95)), "AR1(max=0.95)")
-    expect_identical(str_call_prior(AR1(scale = 0.3)), "AR1(scale=0.3)")
-    expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, scale = 0.3)),
-                     "AR1(min=0.5, max=0.95, scale=0.3)")
+    expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
+    expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, s = 0.3)),
+                     "AR1(min=0.5, max=0.95, s=0.3)")
 })
 
 test_that("'str_call_prior' works with bage_prior_ar1", {
@@ -263,7 +263,7 @@ test_that("'str_call_prior' works with bage_prior_ar1", {
 
 test_that("'str_call_prior' works with bage_prior_norm", {
     expect_identical(str_call_prior(N()), "N()")
-    expect_identical(str_call_prior(N(scale = 0.95)), "N(scale=0.95)")
+    expect_identical(str_call_prior(N(s = 0.95)), "N(s=0.95)")
 })
 
 test_that("'str_call_prior' works with bage_prior_normfixed", {
@@ -273,19 +273,19 @@ test_that("'str_call_prior' works with bage_prior_normfixed", {
 
 test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW()), "RW()")
-    expect_identical(str_call_prior(RW(scale = 0.95)), "RW(scale=0.95)")
+    expect_identical(str_call_prior(RW(s = 0.95)), "RW(s=0.95)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(scale = 0.95)), "RW2(scale=0.95)")
+    expect_identical(str_call_prior(RW2(s = 0.95)), "RW2(s=0.95)")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {
     expect_identical(str_call_prior(Spline()), "Spline()")
     expect_identical(str_call_prior(Spline(n = 5L)), "Spline(n=5)")
-    expect_identical(str_call_prior(Spline(scale = 0.1)), "Spline(scale=0.1)")
-    expect_identical(str_call_prior(Spline(scale = 3,n = 5L)), "Spline(n=5,scale=3)")
+    expect_identical(str_call_prior(Spline(s = 0.1)), "Spline(s=0.1)")
+    expect_identical(str_call_prior(Spline(s = 3,n = 5L)), "Spline(n=5,s=3)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
