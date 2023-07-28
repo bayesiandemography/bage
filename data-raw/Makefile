@@ -4,10 +4,11 @@
 all: ../data/deaths.rda \
      ../data/divorces.rda \
      ../data/expenditure.rda \
+     ../data/HMD.rda \
      ../data/households.rda \
      ../data/injuries.rda \
-     ../data/HMD.rda \
-     documentation
+     ../data/us_acc_deaths.rda \
+	documentation
 
 
 ../data/deaths.rda: deaths/deaths.R \
@@ -35,6 +36,10 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
   expenditure/POP_PROJ_04062016225548685.csv.gz
 	Rscript $^ $@
 
+../data/HMD.rda: svd_hmd/HMD.R \
+  svd_hmd/HMD_20221129.rds
+	Rscript $^ $@
+
 ../data/households.rda: households/households.R \
   households/TABLECODE8420_Data.csv.gz
 	Rscript $^ $@
@@ -45,8 +50,7 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
   injuries/DPE403903_20230101_021709_80.csv.gz
 	Rscript $^ $@
 
-../data/HMD.rda: svd_hmd/HMD.R \
-  svd_hmd/HMD_20221129.rds
+../data/us_acc_deaths.rda: us_acc_deaths/us_acc_deaths.R
 	Rscript $^ $@
 
 .PHONY: documentation

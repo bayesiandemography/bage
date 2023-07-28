@@ -14,7 +14,7 @@ set_prior(mod, formula)
 and a function for creating a prior.}
 }
 \value{
-A \code{bage_mod} object.
+A modified \code{bage_mod} object.
 }
 \description{
 Specify a non-default prior distribution
@@ -41,5 +41,14 @@ mod
 mod |> set_prior(age ~ RW2())
 }
 \seealso{
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=AR1]{AR1()}}, \code{\link[=Known]{Known()}}
+\itemize{
+\item \code{\link[=N]{N()}}
+\item \code{\link[=NFixed]{NFixed()}}
+\item \code{\link[=RW]{RW()}}
+\item \code{\link[=RW2]{RW2()}}
+\item \code{\link[=AR1]{AR1()}}
+\item \code{\link[=Known]{Known()}}
+\item \code{\link[=SVD]{SVD()}}
+\item \code{\link[=Spline]{Spline()}}
+}
 }

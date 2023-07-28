@@ -4,10 +4,10 @@
 \alias{N}
 \title{Normal prior}
 \usage{
-N(scale = 1)
+N(s = 1)
 }
 \arguments{
-\item{scale}{A positive, finite number.}
+\item{s}{A positive, finite number.}
 }
 \value{
 An object of class \code{bage_prior_norm}.
@@ -17,15 +17,15 @@ Prior in which units are drawn independently from a normal
 distribution. The default prior for most terms.
 }
 \details{
-The normal distribution has mean \code{0} and standard
-deviation \code{s}.
+The normal distribution has mean \eqn{0} and standard
+deviation \eqn{\sigma}.
 
-\deqn{x \sim \text{N}(0, s^2)}
+\deqn{x \sim \text{N}(0, \sigma^2)}
 
-Standard deviation \code{s} is drawn from a half-normal
+Standard deviation \eqn{\sigma} is drawn from a half-normal
 distribution,
 
-\deqn{s \sim \text{N}^+(0, \text{scale}^2)}
+\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
 
 (A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative
@@ -39,7 +39,7 @@ concentrated estimates.
 }
 \examples{
 N()
-N(scale = 0.5)
+N(s = 0.5)
 }
 \seealso{
 \code{N()} is usually called within \code{\link[=set_prior]{set_prior()}}.

@@ -71,33 +71,20 @@
 "expenditure"
 
 
-#' Fatal injuries in New Zealand
+#' Components from Human Mortality Database
 #'
-#' Counts of fatal injuries in New Zealand, by age, sex,
-#' ethnicity, and year, plus estimates of the population
-#' at risk.
+#' An object of class [bage_scaled_svd][scaled_svd()]
+#' holding components extracted from mortality
+#' data from the [Human Mortality Database](https://www.mortality.org).
 #'
-#' @format A data frame with 912 rows and the
-#' following variables:
-#' - `age`: Age, in 5-year age groups, up to age 55-59.
-#' - `sex`: `"Female"` or `"Male"`
-#' - `ethnicity`: `"Maori"` or `"Non Maori"`
-#' - `year`: Calendar year
-#' - `injuries`: Count of injuries, randomly rounded to base 3.
-#' - `popn`: Population on 30 June.
-#'
-#' @source Derived from data in tables "Estimated Resident
-#' Population by Age and Sex (1991+) (Annual-Jun)" and
-#' "Maori Ethnic Group Estimated Resident Population
-#' by Age and Sex (1991+) (Annual-Jun)" in the online
-#' database Infoshare, and table
-#' "Count of fatal and serious non-fatal
-#' injuries by sex, age group, ethnicity, cause, and severity
-#' of injury, 2000-2021" in the online database NZ.Stat,
-#' on the Statistics New Zealand website.
-#' Data downloaded on 1 January 2023.
-"injuries"
-
+#' @source Derived from data at
+#' Human Mortality Database. Max Planck Institute for
+#' Demographic Research (Germany), University of California,
+#' Berkeley (USA), and French Institute for Demographic Studies
+#' (France). Available at www.mortality.org.
+#' Code for processing the data is
+#' [here](https://github.com/bayesiandemography/svd_hmd).
+"HMD"
 
 
 #' People in one-person households in New Zealand
@@ -127,19 +114,46 @@
 "households"
 
 
+#' Fatal injuries in New Zealand
+#'
+#' Counts of fatal injuries in New Zealand, by age, sex,
+#' ethnicity, and year, plus estimates of the population
+#' at risk.
+#'
+#' @format A data frame with 912 rows and the
+#' following variables:
+#' - `age`: Age, in 5-year age groups, up to age 55-59.
+#' - `sex`: `"Female"` or `"Male"`
+#' - `ethnicity`: `"Maori"` or `"Non Maori"`
+#' - `year`: Calendar year
+#' - `injuries`: Count of injuries, randomly rounded to base 3.
+#' - `popn`: Population on 30 June.
+#'
+#' @source Derived from data in tables "Estimated Resident
+#' Population by Age and Sex (1991+) (Annual-Jun)" and
+#' "Maori Ethnic Group Estimated Resident Population
+#' by Age and Sex (1991+) (Annual-Jun)" in the online
+#' database Infoshare, and table
+#' "Count of fatal and serious non-fatal
+#' injuries by sex, age group, ethnicity, cause, and severity
+#' of injury, 2000-2021" in the online database NZ.Stat,
+#' on the Statistics New Zealand website.
+#' Data downloaded on 1 January 2023.
+"injuries"
 
-#' Components from Human Mortality Database
+
+#' Accidental deaths in the USA
 #'
-#' An object of class [bage_scaled_svd][scaled_svd()]
-#' holding components extracted from mortality
-#' data from the [Human Mortality Database](https://www.mortality.org).
+#' Counts of accidental deaths in the USA,
+#' by month, for 1973-1978.
 #'
-#' @source Derived from data at
-#' Human Mortality Database. Max Planck Institute for
-#' Demographic Research (Germany), University of California,
-#' Berkeley (USA), and French Institute for Demographic Studies
-#' (France). Available at www.mortality.org.
-#' Code for processing the data is
-#' [here](https://github.com/bayesiandemography/svd_hmd).
-"HMD"
+#' @format A data frame with 72 rows and the
+#' following variables:
+#' - `month`: Year and month.
+#' - `deaths`: Count of deaths.
+#'
+#' @source Reformatted version of
+#' `datasets::USAccDeaths`.
+"us_acc_deaths"
+
 

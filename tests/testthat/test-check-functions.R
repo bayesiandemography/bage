@@ -1,46 +1,4 @@
 
-## 'check_and_tidy_scale' -----------------------------------------------------
-
-test_that("'check_and_tidy_scale' returns double with valid inputs", {
-    expect_identical(check_and_tidy_scale(1L, x_arg = "x"),
-                     as.double(1L))
-    expect_identical(check_and_tidy_scale(0.001, x_arg = "x"),
-                     0.001)
-})
-
-test_that("'check_and_tidy_scale' returns correct error with non-numeric", {
-    expect_error(check_and_tidy_scale("1", x_arg = "x"),
-                 "`x` is non-numeric.")
-})
-
-test_that("'check_and_tidy_scale' returns correct error with non-numeric", {
-    expect_error(check_and_tidy_scale("1", x_arg = "x"),
-                 "`x` is non-numeric.")
-})
-
-test_that("'check_and_tidy_scale' returns correct error with wrong length", {
-    expect_error(check_and_tidy_scale(1:2, x_arg = "x"),
-                 "`x` does not have length 1.")
-})
-
-test_that("'check_and_tidy_scale' returns correct error with NA", {
-    expect_error(check_and_tidy_scale(NA_real_, x_arg = "x"),
-                 "`x` is NA.")
-})
-
-test_that("'check_and_tidy_scale' returns correct error with Inf", {
-    expect_error(check_and_tidy_scale(Inf, x_arg = "x"),
-                 "`x` is infinite.")
-})
-
-test_that("'check_and_tidy_scale' returns correct error with non-positive", {
-    expect_error(check_and_tidy_scale(0, x_arg = "x"),
-                 "`x` is non-positive.")
-    expect_error(check_and_tidy_scale(-1, x_arg = "x"),
-                 "`x` is non-positive.")
-})
-
-
 ## 'check_flag' ---------------------------------------------------------------
 
 test_that("'check_flag' returns TRUE with valid inputs", {
@@ -339,5 +297,41 @@ test_that("'check_response_nonneg' returns correct error with invalid inputs", {
 })
 
 
+## 'check_scale' --------------------------------------------------------------
 
+test_that("'check_scale' returns double with valid inputs", {
+    expect_true(check_scale(1L, x_arg = "x"))
+    expect_true(check_scale(0.001, x_arg = "x"))
+})
 
+test_that("'check_scale' returns correct error with non-numeric", {
+    expect_error(check_scale("1", x_arg = "x"),
+                 "`x` is non-numeric.")
+})
+
+test_that("'check_scale' returns correct error with non-numeric", {
+    expect_error(check_scale("1", x_arg = "x"),
+                 "`x` is non-numeric.")
+})
+
+test_that("'check_scale' returns correct error with wrong length", {
+    expect_error(check_scale(1:2, x_arg = "x"),
+                 "`x` does not have length 1.")
+})
+
+test_that("'check_scale' returns correct error with NA", {
+    expect_error(check_scale(NA_real_, x_arg = "x"),
+                 "`x` is NA.")
+})
+
+test_that("'check_scale' returns correct error with Inf", {
+    expect_error(check_scale(Inf, x_arg = "x"),
+                 "`x` is infinite.")
+})
+
+test_that("'check_scale' returns correct error with non-positive", {
+    expect_error(check_scale(0, x_arg = "x"),
+                 "`x` is non-positive.")
+    expect_error(check_scale(-1, x_arg = "x"),
+                 "`x` is non-positive.")
+})

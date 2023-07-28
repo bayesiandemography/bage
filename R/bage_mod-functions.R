@@ -72,9 +72,17 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' @param formula A formula giving the term
 #' and a function for creating a prior.
 #'
-#' @returns A `bage_mod` object.
+#' @returns A modified `bage_mod` object.
 #'
-#' @seealso [N()], [RW()], [RW2()], [AR1()], [Known()]
+#' @seealso
+#' - [N()]
+#' - [NFixed()]
+#' - [RW()]
+#' - [RW2()]
+#' - [AR1()]
+#' - [Known()]
+#' - [SVD()]
+#' - [Spline()]
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + year,
@@ -121,6 +129,37 @@ set_prior <- function(mod, formula) {
     mod["est"] <- list(NULL)
     mod["prec"] <- list(NULL)
     mod
+}
+
+
+## Seasonal effect ------------------------------------------------------------
+
+## NO_TESTS
+#' Add a seasonal effect
+#'
+#' Add a seasonal effect to a model.
+#'
+#' TODO - description
+#'
+#' @param n Number of seasons.
+#' @param s Scale of half-normal prior for
+#' standard deviation (\eqn{\sigma}).
+#' Defaults to 1.
+#'
+#' @returns A modified `bage_mod` object.
+#'
+#' @examples
+#' mod <- mod_pois(deaths ~ month,
+#'                 data = us_acc_deaths,
+#'                 exposure = 1)
+#' mod
+#' mod |> set_season(n = 12)
+#' @export
+set_season <- function(n, s = 1) {
+    check_n(n, min = 2L, max = NULL, null_ok = FALSE)
+    n <- as.integer(n)
+    check_scale(s, x_arg = "s")
+    scale <- as.double(s)
 }
 
 

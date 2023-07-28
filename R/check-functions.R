@@ -1,36 +1,5 @@
 
 ## HAS_TESTS
-#' Check and tidy a scale term
-#'
-#' Check that `x` is a positive
-#' finite scalar, and coerce to double.
-#'
-#' @param x A positive number.
-#' @param x_arg Name for `x` to be
-#' used in error messages.
-#'
-#' @return `x`, coerced to double.
-#'
-#' @noRd
-check_and_tidy_scale <- function(x, x_arg) {
-    if (!is.numeric(x))
-        cli::cli_abort(c("{.arg {x_arg}} is non-numeric.",
-                         i = "{.arg {x_arg}} has class {.cls {class(x)}}."))
-    if (length(x) != 1L)
-        cli::cli_abort(c("{.arg {x_arg}} does not have length 1.",
-                         i = "{.arg {x_arg}} has length {length(x)}."))
-    if (is.na(x))
-        cli::cli_abort("{.arg {x_arg}} is NA.")
-    if (is.infinite(x))
-        cli::cli_abort("{.arg {x_arg}} is infinite.")
-    if (x <= 0)
-        cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
-                         i = "{.arg {x_arg}} equals {x}."))
-    as.double(x)
-}
-
-
-## HAS_TESTS
 #' Check a logical flag
 #'
 #' @param x TRUE or FALSE
@@ -390,10 +359,34 @@ check_response_nonneg <- function(formula, data, nm_distn) {
              call. = FALSE)
     invisible(TRUE)
 }
-
-
-
-
-
         
     
+## HAS_TESTS
+#' Check a scale term
+#'
+#' Check that `x` is a positive
+#' finite scalar.
+#'
+#' @param x A positive number.
+#' @param x_arg Name for `x` to be
+#' used in error messages.
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_scale <- function(x, x_arg) {
+    if (!is.numeric(x))
+        cli::cli_abort(c("{.arg {x_arg}} is non-numeric.",
+                         i = "{.arg {x_arg}} has class {.cls {class(x)}}."))
+    if (length(x) != 1L)
+        cli::cli_abort(c("{.arg {x_arg}} does not have length 1.",
+                         i = "{.arg {x_arg}} has length {length(x)}."))
+    if (is.na(x))
+        cli::cli_abort("{.arg {x_arg}} is NA.")
+    if (is.infinite(x))
+        cli::cli_abort("{.arg {x_arg}} is infinite.")
+    if (x <= 0)
+        cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
+                         i = "{.arg {x_arg}} equals {x}."))
+    invisible(TRUE)
+}

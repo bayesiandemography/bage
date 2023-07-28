@@ -5,12 +5,12 @@
 \alias{RW2}
 \title{Random walk priors}
 \usage{
-RW(scale = 1)
+RW(s = 1)
 
-RW2(scale = 1)
+RW2(s = 1)
 }
 \arguments{
-\item{scale}{A positive, finite number.}
+\item{s}{A positive, finite number.}
 }
 \value{
 An object of class \code{bage_prior_rw}
@@ -24,32 +24,30 @@ random walk or random walk with drift.
 With \code{RW()}, increments between neighbouring
 \code{x}s are normally distibuted,
 
-\deqn{x_i - x_{i-1} \sim \text{N}(0, s^2)}
+\deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2)}
 
 With \code{RW2()}, increments in increments
 are normally distributed,
 
-\deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, s^2)}
+\deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, \sigma^2)}
 
-In addition, there is a linear term TODO - EXPLAIN.
-
-In both cases, standard deviation \code{s} is drawn from a
+In both cases, standard deviation \eqn{\sigma} is drawn from a
 half-normal distribution,
 
-\deqn{s \sim \text{N}^+(0, \text{scale}^2)}
+\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
 
 (A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)
 
-The scale for the half-normal distribution defaults
+The scale for the half-normal distribution, \code{s}, defaults
 to 1, but can be set to other values. Lower values
 for \code{scale} lead to smoother series of \code{x}s, and
 higher values lead to rougher series.
 }
 \examples{
 RW()
-RW(scale = 0.5)
+RW(s = 0.5)
 RW2()
 }
 \seealso{
