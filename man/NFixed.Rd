@@ -21,11 +21,11 @@ Normal prior where, in contrast to \code{\link[=N]{N()}}, the
 standard deviation is treated as fixed and known.
 }
 \details{
-The distribution as mean equal to \code{0} and
+The distribution has mean equal to \code{0} and
 standard deviation \code{sd}, where \code{sd} is supplied
 by the user.
 
-\deqn{x \sim \text{N}(0, s^2)}
+\deqn{x \sim \text{N}(0, \text{sd}^2)}
 
 \code{NFixed()} is the default prior for the intercept.
 }

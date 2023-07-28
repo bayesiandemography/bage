@@ -46,7 +46,8 @@
 #' AR1(min = 0, max = 1, s = 2.4)
 #' @export
 AR1 <- function(min = 0.8, max = 0.98, s = 1) {
-    scale <- check_and_tidy_scale(s, x_arg = "s") 
+    check_scale(s, x_arg = "s")
+    scale <- as.double(s)
     checkmate::assert_number(min, lower = 0, upper = 1)
     checkmate::assert_number(max, lower = 0, upper = 1)
     if (min >= max)
@@ -130,7 +131,8 @@ Known <- function(values) {
 #' N(s = 0.5)
 #' @export
 N <- function(s = 1) {
-    scale <- check_and_tidy_scale(s, x_arg = "s") 
+    check_scale(s, x_arg = "s") 
+    scale <- as.double(s)
     new_bage_prior_norm(scale = scale)
 }
 
@@ -163,7 +165,8 @@ N <- function(s = 1) {
 #' NFixed(sd = 10) ## prior used for intercept
 #' @export
 NFixed <- function(sd = 1) {
-    scale <- check_and_tidy_scale(sd, x_arg = "sd") 
+    check_scale(sd, x_arg = "sd") 
+    sd <- as.double(sd)
     new_bage_prior_normfixed(sd = sd)
 }
 
@@ -214,14 +217,16 @@ NFixed <- function(sd = 1) {
 #' RW2()
 #' @export
 RW <- function(s = 1) {
-    scale <- check_and_tidy_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s")
+    scale <- as.double(s)
     new_bage_prior_rw(scale = scale)
 }
 
 #' @export
 #' @rdname RW
 RW2 <- function(s = 1) {
-    scale <- check_and_tidy_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s")
+    scale <- as.double(s)
     new_bage_prior_rw2(scale = scale)
 }
 
@@ -281,7 +286,8 @@ Spline <- function(n = NULL, s = 1) {
     check_n(n, min = 4L, max = NULL, null_ok = TRUE)
     if (!is.null(n))
         n <- as.integer(n)
-    scale <- check_and_tidy_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s")
+    scale <- as.double(s)
     new_bage_prior_spline(n = n,
                           scale = scale)
 }
@@ -314,7 +320,7 @@ SVD <- function(scaled_svd, n = 5, indep = TRUE) {
     nm_scaled_svd <- deparse1(substitute(scaled_svd))
     if (!inherits(scaled_svd, "bage_scaled_svd"))
         cli::cli_abort(c("{.arg scaled_svd} does not hold scaled SVD values.",
-                         i = "{.arg scaled_svd} has class {.cls {class(scaled_svdbbbb)}}.",
+                         i = "{.arg scaled_svd} has class {.cls {class(scaled_svd)}}.",
                          i = "{.arg scaled_svd} should have class {.cls bage_scaled_svd}."))
     check_n(n, min = 1L, max = 10L, null_ok = FALSE)
     n <- as.integer(n)

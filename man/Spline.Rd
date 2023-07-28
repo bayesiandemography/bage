@@ -4,7 +4,7 @@
 \alias{Spline}
 \title{P-spline prior}
 \usage{
-Spline(n = NULL, scale = 1)
+Spline(n = NULL, s = 1)
 }
 \arguments{
 \item{n}{Number of spline vectors.
@@ -13,8 +13,8 @@ vectors is set to \code{max(ceiling(0.7 * k), 4)}
 where \code{k} is the number
 of elements in the term being modelled.}
 
-\item{scale}{Scale for error term.
-The default is 1.}
+\item{s}{Scale for error term.
+Default is 1.}
 }
 \value{
 An object of class \code{"bage_prior_spline"}.
@@ -43,14 +43,14 @@ with \code{n} elements.
 The elements of \eqn{\gamma} are assumed to follow
 a second order random walk,
 
-\deqn{(\gamma_j - \gamma_{j-1}) - (\gamma_{j-1} - \gamma_{j-2}) \sim \text{N}(0, \tau^2)}
+\deqn{(\gamma_j - \gamma_{j-1}) - (\gamma_{j-1} - \gamma_{j-2}) \sim \text{N}(0, \sigma^2)}
 
-Parameter \eqn{\tau} has prior
+Parameter \eqn{\sigma} has prior
 
-\deqn{\tau \sim \text{N}^+(0, A^2)}
+\deqn{\sigma \sim \text{N}^+(0, s^2)}
 
 where \eqn{\text{N}^+} denotes a half-normal distribution,
-and a value for \eqn{A} is supplied by the user.
+and a value for \eqn{s} is supplied by the user.
 }
 
 \examples{

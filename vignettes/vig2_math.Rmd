@@ -454,7 +454,7 @@ Main effects with a SVD prior cannot be predicted.
 
 ### Code
 
-```{r}
+```
 SVD(scaled_svd, n = 5, indep = TRUE)
 ```
 
@@ -478,8 +478,6 @@ Can also combine dimensions by taking Cartesian product of categories, eg age-se
 
 ## Model
 
-### Time main effect
-
 Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ elements. Seasonal effects are divided into $S_m$ batches, corresponding to $S_m$ "seasons", where $2 \le S_m \le J_m/2$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
 
 \begin{align}
@@ -489,15 +487,10 @@ Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ eleme
 \end{align}
 
 
-
-### Interaction involving time
-
-*Not written yet*
-
 ## Code
 
 ```
-Season(n, s = 1)
+set_season(n, s = 1)
 ```
 
 - `n` is $S_m$

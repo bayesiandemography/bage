@@ -4,14 +4,14 @@
 \alias{AR1}
 \title{AR1 prior}
 \usage{
-AR1(min = 0.8, max = 0.98, scale = 1)
+AR1(min = 0.8, max = 0.98, s = 1)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
 for autocorrelation parameter (\eqn{\phi}).
 Default to 0.8 and 0.98.}
 
-\item{scale}{Scale of half-normal prior for
+\item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
 Defaults to 1.}
 }
@@ -28,7 +28,7 @@ The model is
 \deqn{\epsilon \sim \text{N}(0, \sigma^2)}
 
 \eqn{\sigma} is drawn from a half-normal distribition
-with scale set by the \code{scale} parameter.
+with scale set by the \code{s} argument.
 
 Correlation parameter \eqn{\phi} is constrained
 to lie in the interval \verb{(a, b)},
@@ -41,7 +41,7 @@ where
 }
 \examples{
 AR1()
-AR1(min = 0, max = 1, scale = 2.4)
+AR1(min = 0, max = 1, s = 2.4)
 }
 \references{
 TMB documentation of
