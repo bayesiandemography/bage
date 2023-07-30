@@ -141,6 +141,7 @@ set_prior <- function(mod, formula) {
 #'
 #' TODO - description
 #'
+#' @inheritParams set_n_draw
 #' @param n Number of seasons.
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
@@ -155,11 +156,32 @@ set_prior <- function(mod, formula) {
 #' mod
 #' mod |> set_season(n = 12)
 #' @export
-set_season <- function(n, s = 1) {
+set_season <- function(mod, n, s = 1) {
+    checkmate::assert_class(mod, "bage_mod")
     check_n(n, min = 2L, max = NULL, null_ok = FALSE)
     n <- as.integer(n)
     check_scale(s, x_arg = "s")
     scale <- as.double(s)
+    var_time <- mod$var_time
+    priors <- mod$priors
+    if (is.null(var_time))
+        cli::cli_abort("Can't set season when time variable not yet identified.",
+                       i = paste("Please use function {.fun set_var_time} to",
+                                 "identify time variable."))
+    nms_terms <- names(priors)
+    if (!(var_time %in% nms_terms))
+        cli::cli_abort(c(paste("Can't use seasonal effect when model does not",
+                               "contain a time main effect."),
+                         i = "Model formula contains terms {.val {nms_terms}}."))
+    n_time <- n_time(mod)
+    if (n > (n_time %/% 2L))
+        cli::cli_abort(c(paste("Estimation period not long enough for seasonal effect",
+                               "with {n_season} seasons."),
+                         i = "Must have at least two time points for each season.",
+                         i = "Data contains {n_time} time points."))
+    mod$n_season <- n
+    mod$scale_season <- s
+    mod
 }
 
 

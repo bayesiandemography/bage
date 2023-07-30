@@ -155,6 +155,24 @@ Type logpost_uses_hyper(vector<Type> parfree,
   return ans;
 }
 
+template <class Type>
+Type logpost_season(vector<Type> par_season,
+		    vector<Type> hyper_season,
+		    vector<Type> consts_season,
+		    int n_season) {
+  Type scale = consts_season[0];
+  Type log_sd = hyper_season[0];
+  Type sd = exp(log_sd);
+  int n = par_season.size();
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i = n_season; i < n; i++)
+    ans += dnorm(par_season[i] - par_season[i-n_season], Type(0), sd, true);
+  Type par_season_total = par_season.sum();
+  ans += dnorm(par_season_total, Type(0), Type(1), true);
+  return ans;
+}
+
 
 // List object to hold matrices -----------------------------------------------
 
@@ -198,9 +216,14 @@ Type objective_function<Type>::operator() ()
   DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
+  DATA_INTEGER(idx_time);
+  DATA_INTEGER(n_season);
+  DATA_VECTOR(consts_season);
 
   PARAMETER_VECTOR(parfree); 
   PARAMETER_VECTOR(hyper);
+  PARAMETER_VECTOR(par_season);
+  PARAMETER_VECTOR(hyper_season);
   
 
   // intermediate quantities
@@ -210,7 +233,8 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > parfree_split = split(parfree, terms_parfree);
   vector<vector<Type> > offsets_parfree_par_split = split(offsets_parfree_par, terms_par);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
-  vector<vector<Type> > consts_split = split(consts, terms_consts); 
+  vector<vector<Type> > consts_split = split(consts, terms_consts);
+  int has_season = n_season > 0;
 
   vector<Type> linear_pred(n_outcome);
   linear_pred.fill(0);
@@ -223,11 +247,15 @@ Type objective_function<Type>::operator() ()
       SparseMatrix<Type> matrix_parfree_par = matrices_parfree_par[i_term];
       par_term = matrix_parfree_par * parfree_term;
     }
-    else
+    else {
       par_term = parfree_term;
+    }
     if (uses_offset_parfree_par[i_term]) {
       vector<Type> offset_term = offsets_parfree_par_split[i_term];
       par_term = par_term + offset_term;
+    }
+    if (has_season && (i_term == idx_time - 1)) { // 'idx_time' 1-base index
+      par_term = par_term + par_season;
     }
     linear_pred = linear_pred + matrix_par_outcome * par_term;
   }
@@ -251,6 +279,13 @@ Type objective_function<Type>::operator() ()
 	ans -= logpost_not_uses_hyper(parfree_term, consts_term, i_prior_term);
     }
   }
+
+  // contribution to log posterior from seasonal effect
+  if (has_season)
+    ans -= logpost_season(par_season,
+			  hyper_season,
+			  consts_season,
+			  n_season);
 
   // contribution to log posterior from data
   if (nm_distn == "pois") {

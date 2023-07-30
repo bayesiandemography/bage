@@ -123,22 +123,28 @@ fit.bage_mod <- function(object, ...) {
     outcome <- object$outcome
     offset <- object$offset
     matrices_par_outcome <- object$matrices_par_outcome
+    n_season <- object$n_season
     nm_distn <- nm_distn(object)
     is_in_lik <- make_is_in_lik(object)
-    i_prior <- make_i_prior(object)
-    const <- make_const(object)
-    terms_const <- make_terms_const(object)
-    uses_hyper <- make_uses_hyper(object)
-    hyper <- make_hyper(object)
-    terms_hyper <- make_terms_hyper(object)
+    terms_par <- make_terms_par(object)
+    terms_parfree <- make_terms_parfree(object)
     uses_matrix_parfree_par <- make_uses_matrix_parfree_par(object)
     matrices_parfree_par <- make_matrices_parfree_par(object)
     uses_offset_parfree_par <- make_uses_offset_parfree_par(object)
     offsets_parfree_par <- make_offsets_parfree_par(object)
-    terms_par <- make_terms_par(object)
-    terms_parfree <- make_terms_parfree(object)
+    i_prior <- make_i_prior(object)
+    uses_hyper <- make_uses_hyper(object)
+    terms_hyper <- make_terms_hyper(object)
+    const <- make_const(object)
+    terms_const <- make_terms_const(object)
+    idx_time <- make_idx_time(object)
+    const_season <- make_const_season(object)
     parfree <- make_parfree(object)
+    hyper <- make_hyper(object)
+    par_season <- make_par_season(object)
+    hyper_season <- make_hyper_season(object)
     map <- make_map(object)
+    random <- make_random(object)
     data <- list(nm_distn = nm_distn,
                  outcome = outcome,
                  offset = offset,
@@ -153,15 +159,20 @@ fit.bage_mod <- function(object, ...) {
                  i_prior = i_prior,
                  uses_hyper = uses_hyper,
                  terms_hyper = terms_hyper,
-                 consts = const,             ## in TMB template refer to 'consts', 
-                 terms_consts = terms_const) ## not 'const', because 'const' is a 
-    parameters <- list(parfree = parfree,    ## reserved word
-                       hyper = hyper)
+                 consts = const, ## 'const' is reserved word in C
+                 terms_consts = terms_const,
+                 idx_time = idx_time,
+                 n_season = n_season,
+                 consts_season = const_season)
+    parameters <- list(parfree = parfree,   
+                       hyper = hyper,
+                       par_season = par_season,
+                       hyper_season = hyper_season)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
                         map = map,
                         DLL = "bage",
-                        random = "parfree",
+                        random = random,
                         silent = TRUE)
     stats::nlminb(start = f$par,
                   objective = f$fn,
@@ -237,6 +248,30 @@ get_fun_scale_outcome.bage_mod_norm <- function(mod) {
 }
 
 
+## 'has_season' ----------------------------------------------------------------
+
+#' Test whether a model includes a seasonal effect
+#'
+#' Test whether a seasonal effect has been added
+#' to a model (via [set_season()]).
+#'
+#' @param x A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_season <- function(mod) {
+    UseMethod("has_season")
+}
+
+## HAS_TESTS
+#' @export
+has_season.bage_mod <- function(mod) {
+    n_season <- mod$n_season
+    n_season > 0L
+}
+
+
 ## 'is_fitted' ----------------------------------------------------------------
 
 #' Test whether a model has been fitted
@@ -290,6 +325,32 @@ model_descr.bage_mod_binom <- function(mod) "binomial"
 ## HAS_TESTS
 #' @export
 model_descr.bage_mod_norm <- function(mod) "normal"
+
+
+## 'n_time' -------------------------------------------------------------------
+
+#' Number of time points in outcome data
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns An integer
+#'
+#' @noRd
+n_time <- function(mod) {
+    UseMethod("n_time")
+}
+
+#' @export
+n_time <- function(mod) {
+    var_time <- mod$var_time
+    has_time <- !is.null(var_time)
+    if (has_time) {
+        matrices_par_outcome <- mod$matrices_par_outcome
+        ncol(matrices_par_outcome[[var_time]])
+    }
+    else
+        0L
+}
 
 
 ## 'nm_distn' -----------------------------------------------------------------
@@ -348,7 +409,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 
 #' @export
 print.bage_mod <- function(x, ...) {
-    nchar_offset <- 14
+    nchar_offset <- 15
     ## calculations
     formula <- x$formula
     priors <- x$priors
@@ -358,6 +419,8 @@ print.bage_mod <- function(x, ...) {
     var_age <- x$var_age
     var_sexgender <- x$var_sexgender
     var_time <- x$var_time
+    n_season <- x$n_season
+    scale_season <- x$scale_season
     is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -367,19 +430,23 @@ print.bage_mod <- function(x, ...) {
     nchar_max <- max(nchar(nms_priors), nchar_response)
     padding_formula <- paste(rep(" ", nchar_max - nchar_response),
                              collapse = "")
-    str_var_age <- if (is.null(var_age)) "<not detected>" else var_age
-    str_var_sexgender <- if (is.null(var_sexgender)) "<not detected>" else var_sexgender
-    str_var_time <- if (is.null(var_time)) "<not detected>" else var_time
     nms_priors <- sprintf("% *s", nchar_max, nms_priors)
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
     str_priors <- paste(str_priors, collapse = "\n")
+    has_season <- n_season > 0L
+    if (has_season) {
+        nm_season <- sprintf("% *s", nchar_offset, "seasonal effect")
+        str_season <- sprintf("%s: n=%d", nm_season, n_season)
+        if (scale_season != 1)
+            str_season <- sprintf("%s, s=%s", str_season, scale_season)
+    }
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
         nm_offset <- nm_offset(x)
         nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
         str_offset <- sprintf("%s: %s", nm_offset, vname_offset)
-    }
+    }        
     ## printing
     cat(str_title)
     cat("\n\n")
@@ -388,30 +455,42 @@ print.bage_mod <- function(x, ...) {
     cat("\n")
     cat(str_priors)
     cat("\n\n")
+    if (has_season) {
+        cat(str_season)
+        cat("\n")
+    }
     if (has_offset) {
         cat(str_offset)
         cat("\n")
     }
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "var_age",
-                str_var_age))
-    cat("\n")
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "var_sexgender",
-                str_var_sexgender))
-    cat("\n")
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "var_time",
-                str_var_time))
-    cat("\n")
-    cat(sprintf("% *s: %d",
-                nchar_offset,
-                "n_draw",
-                n_draw))
-    cat("\n")
+    if (!is.null(var_age)) {
+        cat(sprintf("% *s: %s",
+                    nchar_offset,
+                    "var_age",
+                    var_age))
+        cat("\n")
+    }
+    if (!is.null(var_sexgender)) {
+        cat(sprintf("% *s: %s",
+                    nchar_offset,
+                    "var_sexgender",
+                    var_sexgender))
+        cat("\n")
+    }
+    if (!is.null(var_time)) {
+        cat(sprintf("% *s: %s",
+                    nchar_offset,
+                    "var_time",
+                    var_time))
+        cat("\n")
+    }
+    if (has_offset) {
+        cat(sprintf("% *s: %d",
+                    nchar_offset,
+                    "n_draw",
+                    n_draw))
+        cat("\n")
+    }
     ## return
     invisible(x)
 }

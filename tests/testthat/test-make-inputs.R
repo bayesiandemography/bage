@@ -214,6 +214,25 @@ test_that("'make_const' works with valid inputs", {
 })
 
 
+## 'make_const_season' -------------------------------------------------------- 
+
+test_that("'make_const_season' works with non-NULL seasonal effect", {
+    mod <- list(scale_season = 1.3)
+    ans_obtained <- make_const_season(mod)
+    ans_expected <- 1.3
+    expect_identical(ans_obtained, ans_expected)
+    expect_true(is.double(ans_expected))
+})
+
+test_that("'make_const_season' works with non-NULL seasonal effect", {
+    mod <- list(scale_season = NULL)
+    ans_obtained <- make_const_season(mod)
+    ans_expected <- 0
+    expect_identical(ans_obtained, ans_expected)
+    expect_true(is.double(ans_expected))
+})
+
+
 ## 'make_hyper' ---------------------------------------------------------------
 
 test_that("'make_hyper' works with valid inputs", {
@@ -225,13 +244,39 @@ test_that("'make_hyper' works with valid inputs", {
 })
 
 
-## 'make_i_prior' ---------------------------------------------------------------
+## 'make_hyper_season' ---------------------------------------------------------------
+
+test_that("'make_hyper_season' works with valid inputs", {
+    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    ans_obtained <- make_hyper_season(mod)
+    ans_expected <- 0
+    expect_identical(ans_obtained, ans_expected)
+    expect_true(is.double(ans_expected))
+})
+
+
+## 'make_i_prior' -------------------------------------------------------------
 
 test_that("'make_i_prior' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_i_prior(mod)
     ans_expected <- c(a = 1L, b = 3L, c = 1L)
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_idx_time' ------------------------------------------------------------
+
+test_that("'make_idx_time' works with var_time non-NULL", {
+    mod <- list(priors = list(a = N(), b = RW(), c = N()),
+                var_time = "b")
+    expect_identical(make_idx_time(mod), 2L)
+})
+
+test_that("'make_idx_time' returns 0 when var_time NULL", {
+    mod <- list(priors = list(a = N(), b = RW(), c = N()),
+                var_time = NULL)
+    expect_identical(make_idx_time(mod), 0L)
 })
 
 
@@ -292,36 +337,156 @@ test_that("'make_lengths_parfree' works with valid inputs", {
 
 ## 'make_map' -----------------------------------------------------------------
 
-test_that("'make_map' works with no parameters treated as known", {
+test_that("'make_map' works with no parameters fixed", {
     set.seed(0)
-    data <- expand.grid(agegp = 0:9,
+    data <- expand.grid(time = 2000:2009,
                         region = 1:2,
                         SEX = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + region
+    formula <- deaths ~ time * SEX + region
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_season(mod, n = 2, s = 0.2)
     ans_obtained <- make_map(mod)
     ans_expected <- NULL
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_map' works with some parameters treated as known", {
+test_that("'make_map' works when 'parfree' contains known values", {
     set.seed(0)
-    data <- expand.grid(agegp = 0:2,
+    data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX
+    formula <- deaths ~ time * SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
+    mod <- set_season(mod, n = 2)
+    ans_obtained <- make_map(mod)
+    ans_expected <- list(parfree = factor(c("(Intercept)" = 1,
+                                            time = 2,
+                                            time = 3,
+                                            time = 4,
+                                            time = 5,
+                                            SEX = NA,
+                                            SEX = NA,
+                                            "time:SEX" = 6,
+                                            "time:SEX" = 7,
+                                            "time:SEX" = 8,
+                                            "time:SEX" = 9,
+                                            "time:SEX" = 10,
+                                            "time:SEX" = 11,
+                                            "time:SEX" = 12,
+                                            "time:SEX" = 13)))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_map' works when there is no season effect", {
+    set.seed(0)
+    data <- expand.grid(time = 0:3,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time * SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_map(mod)
+    ans_expected <- list(par_season = factor(c(NA, NA, NA, NA)),
+                         hyper_season = factor(NA))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_map' works when parfree has known values and there is no season effect", {
+    set.seed(0)
+    data <- expand.grid(time = 0:3,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time * SEX
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
     ans_obtained <- make_map(mod)
-    ans_expected <- list(parfree = factor(c(1:4, NA, NA, 5:10)))
+    ans_expected <- list(parfree = factor(c("(Intercept)" = 1,
+                                            time = 2,
+                                            time = 3,
+                                            time = 4,
+                                            time = 5,
+                                            SEX = NA,
+                                            SEX = NA,
+                                            "time:SEX" = 6,
+                                            "time:SEX" = 7,
+                                            "time:SEX" = 8,
+                                            "time:SEX" = 9,
+                                            "time:SEX" = 10,
+                                            "time:SEX" = 11,
+                                            "time:SEX" = 12,
+                                            "time:SEX" = 13)),
+                         par_season = factor(c(NA, NA, NA, NA)),
+                         hyper_season = factor(NA))
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_map_hyper_season_fixed' ----------------------------------------------
+
+test_that("'make_map_hyper_season_fixed' works", {
+    mod <- list()
+    expect_identical(make_map_hyper_season_fixed(mod), factor(NA))
+    expect_identical(length(make_map_hyper_season_fixed(mod)),
+                     length(make_hyper_season(mod)))
+})
+
+
+## 'make_map_par_season_fixed' ------------------------------------------------
+
+test_that("'make_map_par_season_fixed' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(time = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_map_par_season_fixed(mod)
+    ans_expected <- factor(rep(NA, 3))
+    expect_identical(ans_obtained, ans_expected)
+    expect_identical(length(make_map_par_season_fixed(mod)),
+                     length(make_par_season(mod)))
+})
+
+
+## 'make_map_parfree_fixed' ---------------------------------------------------
+
+test_that("'make_map_par_season_fixed' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(time = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, SEX ~ Known(c(-1, 1)))
+    ans_obtained <- make_map_parfree_fixed(mod)
+    ans_expected <- factor(c("(Intercept)" = 1,
+                             time = 2,
+                             time = 3,
+                             time = 4,
+                             SEX = NA,
+                             SEX = NA))
+    expect_identical(ans_obtained, ans_expected)
+    expect_identical(length(make_map_parfree_fixed(mod)),
+                     length(make_parfree(mod)))
 })
 
 
@@ -670,6 +835,39 @@ test_that("'make_outcome_vec' works with valid inputs", {
 })
 
 
+## 'make_par_season' ----------------------------------------------------------
+
+test_that("'make_par_season' works when var_time non-NULL", {
+    set.seed(0)
+    data <- expand.grid(time = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_par_season(mod)
+    ans_expected <- c(0.0, 0.0, 0.0)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_par_season' works when var_time NULL", {
+    set.seed(0)
+    data <- expand.grid(age = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_par_season(mod)
+    ans_expected <- double()
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_parfree' -------------------------------------------------------------
 
 test_that("'make_parfree' works with valid inputs", {
@@ -714,6 +912,21 @@ test_that("'make_priors' works with valid inputs - no intercept", {
     ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_random' --------------------------------------------------------------
+
+test_that("'make_random' works when no season effect", {
+    mod <- structure(list(n_season = 0L),
+                     class = "bage_mod")
+    expect_identical(make_random(mod), "parfree")
+})
+
+test_that("'make_random' works when has season effect", {
+    mod <- structure(list(n_season = 2L),
+                     class = "bage_mod")
+    expect_identical(make_random(mod), c("parfree", "par_season"))
 })
 
 

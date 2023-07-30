@@ -191,6 +191,29 @@ make_const <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make 'const_season'
+#'
+#' Make vector to hold constants for seasonal effect.
+#'
+#' We generate 'const_season' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when seasonal effect changes  via 'set_season'.
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_const_season <- function(mod) {
+    ans <- mod$scale_season
+    if (is.null(ans))
+        ans <- 0
+    ans
+}
+
+
+## HAS_TESTS
 #' Make 'hyper'
 #'
 #' Make vector to hold hyper-parameters
@@ -216,6 +239,20 @@ make_hyper <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make vector containing hyper-parameters for
+#' seasonal effect
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_hyper_season <- function(mod) {
+    0 ## standard deviation
+}
+
+
+## HAS_TESTS
 #' Make 'i_prior'
 #'
 #' Make 'i_prior' a vector of integers used to
@@ -235,6 +272,30 @@ make_hyper <- function(mod) {
 make_i_prior <- function(mod) {
     priors <- mod$priors
     vapply(priors, function(x) x$i_prior, 0L)
+}
+
+
+## HAS_TESTS
+#' Return one-based index of time main effect
+#'
+#' Returns 0 when 'var_time' is NULL, or
+#' no time main effect in model.
+#'
+#' @param mod Object of class "bage_mod".
+#'
+#' @returns Non-negative integer
+#'
+#' @noRd
+make_idx_time <- function(mod) {
+    var_time <- mod$var_time
+    priors <- mod$priors
+    if (is.null(var_time))
+        ans <- 0L 
+    else {
+        nms <- names(priors)
+        ans <- match(var_time, nms)
+    }
+    ans
 }
 
 
@@ -294,42 +355,101 @@ make_lengths_parfree <- function(mod) {
 ## HAS_TESTS
 #' Make mapping used by MakeADFun
 #'
-#' Make 'map' argument to be passed to
-#' MakeADFun. Normally just NULL,
-#' but consists of a single factor
-#' if one or more terms is being treated
-#' as known.
+#' Make 'map' argument to be passed to MakeADFun.
+#' Return value is non-NULL if
+#' (i) any priors are "bage_prior_known", or
+#' (ii) the model does not include season effects.
 #'
 #' @param mod Object of class "bage_mod"
 #'
-#' @returns NULL or a list with
-#' a single element called 'parfree'.
+#' @returns NULL or a named list
 #'
 #' @noRd
 make_map <- function(mod) {
     priors <- mod$priors
-    lengths_parfree <- make_lengths_parfree(mod)
-    map_parfree <- lapply(lengths_parfree,
-                          function(n) rep(0, times = n))
-    for (i_term in seq_along(priors)) {
-        prior <- priors[[i_term]]
-        is_known <- is_known(prior)
-        if (is_known)
-            map_parfree[[i_term]][] <- NA
-    }
-    map_parfree <- unlist(map_parfree, use.names = FALSE)
-    n <- length(map_parfree)
-    is_na <- is.na(map_parfree)
-    n_na <- sum(is_na)
-    if (n_na == 0L)
-        ans <- NULL
-    else {
-        map_parfree[!is_na] <- seq_len(n - n_na)
-        map_parfree <- factor(map_parfree)
-        ans <- list(parfree = map_parfree)
+    n_season <- mod$n_season
+    ## determine whether any parameters fixed
+    is_known <- vapply(priors, is_known, FALSE)
+    is_parfree_fixed <- any(is_known)
+    is_season_fixed <- n_season == 0L
+    ## return NULL if nothing fixed
+    if (!is_parfree_fixed && !is_season_fixed)
+        return(NULL)
+    ## otherwise construct named list
+    ans <- list()
+    if (is_parfree_fixed)
+        ans$parfree <- make_map_parfree_fixed(mod)
+    if (is_season_fixed) {
+        ans$par_season <- make_map_par_season_fixed(mod)
+        ans$hyper_season <- make_map_hyper_season_fixed(mod)
     }
     ans
-}   
+}
+
+
+## HAS_TESTS
+#' Make 'hyper_season' component of 'map'
+#' argument to MakeADFun
+#'
+#' Only called when model does not have
+#' seasonal effect (implying that 'hyper_season'
+#' must be treated as fixed.)
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of NAs
+#'
+#' @noRd
+make_map_hyper_season_fixed <- function(mod) {
+    factor(NA)
+}
+
+
+## HAS_TESTS
+#' Make 'par_season' component of 'map'
+#' argument to MakeADFun
+#'
+#' Only called when model does not have
+#' seasonal effect (implying that 'par_season'
+#' must be treated as fixed.)
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of NAs
+#'
+#' @noRd
+make_map_par_season_fixed <- function(mod) {
+    n_time <- n_time(mod)
+    ans <- rep(NA, times = n_time)
+    ans <- factor(ans)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make 'parfree' component of 'map'
+#' argument to MakeADFun
+#'
+#' Only called when model has Known prior.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor vector of NAs
+#'
+#' @noRd
+make_map_parfree_fixed <- function(mod) {
+    priors <- mod$priors
+    is_known <- vapply(priors, is_known, FALSE)
+    lengths <- make_lengths_parfree(mod)
+    ans <- ifelse(is_known, NA, 0L)
+    ans <- rep(ans, times = lengths)
+    n <- length(ans)
+    is_na <- is.na(ans)
+    n_na <- sum(is_na)
+    ans[!is_na] <- seq_len(n - n_na)
+    ans <- factor(ans)
+    ans
+}
 
 
 ## HAS_TESTS
@@ -708,6 +828,21 @@ make_outcome_vec <- function(formula, data) {
 
 ## HAS_TESTS
 #' Make vector containing parameters for
+#' seasonal effect
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_par_season <- function(mod) {
+    n_time <- n_time(mod)
+    rep(0, times = n_time)
+}
+
+
+## HAS_TESTS
+#' Make vector containing parameters for
 #' intercept, main effects, and interactions
 #'
 #' Return value is 0 where a parameter is being estimated,
@@ -769,6 +904,26 @@ make_priors <- function(formula, var_age, var_time, lengths_par) {
     names(ans) <- nms_terms
     ans
 }        
+
+
+#' Make 'random' argument to MakeADFun function
+#'
+#' Return value always includes "parfree".
+#' Also contains "par_season" if the model has
+#' a seasonal effect.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_random <- function(mod) {
+    has_season <- has_season(mod)
+    ans <- "parfree"
+    if (has_season)
+        ans <- c(ans, "par_season")
+    ans
+}
 
 
 ## HAS_TESTS
