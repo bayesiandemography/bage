@@ -4,9 +4,13 @@
 \alias{set_season}
 \title{Add a seasonal effect}
 \usage{
-set_season(n, s = 1)
+set_season(mod, n, s = 1)
 }
 \arguments{
+\item{mod}{A \code{bage_mod} object, typically
+created with \code{\link[=mod_pois]{mod_pois()}},
+\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
 \item{n}{Number of seasons.}
 
 \item{s}{Scale of half-normal prior for

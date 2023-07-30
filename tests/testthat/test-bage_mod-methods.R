@@ -107,8 +107,8 @@ test_that("'fit' works with known intercept and sex effect", {
     mod <- set_prior(mod, `(Intercept)` ~ Known(values = -2))
     mod <- set_prior(mod, sex ~ Known(values = c(-0.1, 0.1)))
     ans_obtained <- fit(mod)
-    expect_equal(ans_obtained$est$par[[1L]], -2)
-    expect_equal(ans_obtained$est$par[names(ans_obtained$est$par) == "sex"], c(sex = -0.1, sex = 0.1))
+    expect_equal(ans_obtained$est$parfree[[1L]], -2)
+    expect_equal(ans_obtained$est$parfree[names(ans_obtained$est$parfree) == "sex"], c(sex = -0.1, sex = 0.1))
 })
 
 test_that("'fit' works with AR1", {
@@ -171,7 +171,7 @@ test_that("'fit' works when single dimension", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_identical(length(mod_fitted$est$par), nrow(data) + 1L)
+    expect_identical(length(mod_fitted$est$parfree), nrow(data) + 1L)
 })
 
 test_that("'fit' works with SVD", {
@@ -213,6 +213,16 @@ test_that("'get_fun_scale_outcome' works with valid inputs", {
 })
 
 
+## 'has_season' ---------------------------------------------------------------
+
+test_that("'has_season' works with valid inputs", {
+    mod <- structure(list(n_season = 0L), class = "bage_mod")
+    expect_false(has_season(mod))
+    mod <- structure(list(n_season = 2L), class = "bage_mod")
+    expect_true(has_season(mod))
+})
+
+
 ## 'is_fitted' ----------------------------------------------------------------
 
 test_that("'is_fitted' works with valid inputs", {
@@ -233,6 +243,37 @@ test_that("'model_descr' works with valid inputs", {
     expect_identical(model_descr(structure(1, class = "bage_mod_pois")), "Poisson")
     expect_identical(model_descr(structure(1, class = "bage_mod_binom")), "binomial")
     expect_identical(model_descr(structure(1, class = "bage_mod_norm")), "normal")
+})
+
+
+## 'n_time' -------------------------------------------------------------------
+
+test_that("'n_time' works when outcome has time variable", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- n_time(mod)
+    ans_expected <- 6L
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'n_time' works when outcome does not have time variable", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- n_time(mod)
+    ans_expected <- 0L
+    expect_identical(ans_obtained, ans_expected)
 })
 
 

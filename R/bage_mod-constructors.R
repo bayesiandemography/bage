@@ -110,8 +110,6 @@ mod_pois <- function(formula, data, exposure) {
                           var_time = var_time,
                           lengths_par = lengths_par)
     ## create object and return
-    est <- NULL
-    prec <- NULL
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,
@@ -122,8 +120,10 @@ mod_pois <- function(formula, data, exposure) {
                 var_sexgender = var_sexgender,
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
-                est = est,
-                prec = prec,
+                n_season = 0L,
+                scale_season = NULL,
+                est = NULL,
+                prec = NULL,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_pois", "bage_mod")
     ans
@@ -224,8 +224,6 @@ mod_binom <- function(formula, data, size) {
                           var_time = var_time,
                           lengths_par = lengths_par)
     ## create object and return
-    est <- NULL
-    prec <- NULL
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,
@@ -236,8 +234,10 @@ mod_binom <- function(formula, data, size) {
                 var_sexgender = var_sexgender,
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
-                est = est,
-                prec = prec,
+                n_season = 0L,
+                scale_season = NULL,
+                est = NULL,
+                prec = NULL,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_binom", "bage_mod")
     ans
@@ -345,8 +345,6 @@ mod_norm <- function(formula, data, weights) {
                           var_time = var_time,
                           lengths_par = lengths_par)
     ## create object and return
-    est <- NULL
-    prec <- NULL
     ans <- list(formula = formula,
                 data = data,
                 outcome = outcome,
@@ -359,8 +357,10 @@ mod_norm <- function(formula, data, weights) {
                 var_sexgender = var_sexgender,
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
-                est = est,
-                prec = prec,
+                n_season = 0L,
+                scale_season = NULL,
+                est = NULL,
+                prec = NULL,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_norm", "bage_mod")
     ans
