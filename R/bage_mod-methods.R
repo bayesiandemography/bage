@@ -63,13 +63,15 @@ generics::components
 #' Extract components from a fitted object
 #' of class `bage_mod`.
 #'
-#' There are two types of component:
+#' There are three types of component:
 #' - `"par"` Intercept, main effects, and interactions.
 #' - `"hyper"` Hyper-parameters from priors for intercept,
 #' main effects, and interactions.
+#' - `"season"` Parameters and hyper-parameters for
+#' seasonal effect, if present.
 #'
 #' For each component, `components()` returns three things:
-#' - `term` Name of the intercept, main effect, or interaction
+#' - `term` Name of the effect or interaction
 #' - `level` Element of term
 #' - `.fitted` An [rvec][rvec::rvec()] containing
 #' draws from the posterior distribution.
@@ -83,22 +85,31 @@ generics::components
 #' @seealso [augment()], [tidy()]
 #'
 #' @examples
+#' library(dplyr)
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = injuries,
-#'                 exposure = popn) |>
+#'                 exposure = popn) %>%
 #'   fit()
 #' mod
-#' components(mod)
+#' mod %>%
+#'   components() %>%
+#'   filter(component == "par",
+#'          term == "age")
 #' @export
 components.bage_mod <- function(object, ...) {
     is_fitted <- is_fitted(object)
     if (is_fitted) {
         par <- components_par(object)
         hyper <- components_hyper(object)
-        vctrs::vec_rbind(par, hyper)
+        ans <- vctrs::vec_rbind(par, hyper)
+        if (has_season(object)) {
+            season <- components_season(object)
+            ans <- vctrs::vec_rbind(ans, season)
+        }
     }
     else
-        NULL
+        ans <- NULL
+    ans
 }
     
 
@@ -340,8 +351,9 @@ n_time <- function(mod) {
     UseMethod("n_time")
 }
 
+## HAS_TESTS
 #' @export
-n_time <- function(mod) {
+n_time.bage_mod <- function(mod) {
     var_time <- mod$var_time
     has_time <- !is.null(var_time)
     if (has_time) {
@@ -528,7 +540,10 @@ tidy.bage_mod <- function(x, ...) {
     ans <- tibble::tibble(term, spec, n)
     is_fitted <- is_fitted(x)
     if (is_fitted) {
-        par <- x$est$par
+        parfree <- x$est$parfree
+        matrix <- make_combined_matrix_parfree_par(x)
+        offset <- make_offsets_parfree_par(x)
+        par <- matrix %*% parfree + offset
         terms <- make_terms_par(x)
         par <- split(par, terms)
         ans[["sd"]] <- vapply(par, stats::sd, 0)

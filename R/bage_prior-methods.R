@@ -605,6 +605,16 @@ transform_hyper.bage_prior_rw <- function(prior)
 transform_hyper.bage_prior_rw2 <- function(prior)
     list(exp)
 
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_spline <- function(prior)
+    list(exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd <- function(prior)
+    list()
+
 
 ## 'uses_matrix_parfree_par' --------------------------------------------------
 

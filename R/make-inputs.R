@@ -353,6 +353,54 @@ make_lengths_parfree <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make levels associated with each element of 'par'
+#'
+#' Make levels for each term, eg ages, times.
+#' 'make_levels_par' works with the matrices
+#' used to map levels to the outcome, to
+#' ensure that the levels are correct (rather than
+#' relying on undocumented properties of 'xtabs' etc),
+#' though this makes the function a bit complicated.
+#'
+#' @param mod A fitted object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_par <- function(mod) {
+    formula <- mod$formula
+    matrices_par_outcome <- mod$matrices_par_outcome
+    outcome <- mod$outcome
+    data <- mod$data
+    nms <- names(matrices_par_outcome)
+    n <- length(nms)
+    factors <- attr(stats::terms(formula), "factors")
+    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
+    factors <- factors > 0L
+    if (is.array(outcome))
+        dim_levels <- expand.grid(dimnames(outcome))
+    else
+        dim_levels <- data[rownames(factors)]
+    ans <- vector(mode = "list", length = n)
+    for (i in seq_len(n)) {
+        nm <- nms[[i]]
+        if (nm == "(Intercept)")
+            ans[[i]] <- "(Intercept)"
+        else {
+            i_dim <- factors[, nm, drop = TRUE]
+            paste_dot <- function(...) paste(..., sep = ".")
+            term_levels <- do.call(paste_dot, dim_levels[i_dim])
+            matrix_par <- matrices_par_outcome[[i]]
+            i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
+            ans[[i]] <- term_levels[i_term_level]
+        }
+    }
+    ans <- unlist(ans, use.names = FALSE)
+    ans
+}
+
+
+## HAS_TESTS
 #' Make mapping used by MakeADFun
 #'
 #' Make 'map' argument to be passed to MakeADFun.

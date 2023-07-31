@@ -31,11 +31,12 @@ test_that("'components' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_season(mod, n = 2)
     expect_identical(components(mod), NULL)
     mod_fitted <- fit(mod)
     ans <- components(mod_fitted)
     expect_true(is.data.frame(ans))
-    expect_identical(unique(ans$component), c("par", "hyper"))
+    expect_identical(unique(ans$component), c("par", "hyper", "season"))
 })
 
 

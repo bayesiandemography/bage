@@ -96,6 +96,72 @@ test_that("'set_prior' works with when order of components of interaction change
 })
 
 
+## 'set_season' --------------------------------------------------------------
+
+test_that("'set_season' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age*time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_false(has_season(mod))
+    mod <- set_season(mod, n = 2, s = 0.2)
+    expect_true(has_season(mod))
+    expect_identical(mod$n_season, 2L)
+    expect_identical(mod$scale_season, 0.2)
+})
+
+test_that("'set_season' gives expected error when 'var_time' not defined", {
+    data <- expand.grid(age = 0:2, thyme = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age*thyme + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_season(mod, n = 2),
+                 "Can't specify seasonal effect when time variable not identified.")
+})
+
+test_that("'set_season' gives expected error when 'var_time' not defined", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age + sex:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_season(mod, n = 2),
+                 "Can't use seasonal effect when model does not contain time main effect.")
+})
+
+test_that("'set_season' gives expected error when no time main effect", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age + sex:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_season(mod, n = 2),
+                 "Can't use seasonal effect when model does not contain time main effect.")
+})
+
+test_that("'set_season' gives expected error when too many seasons", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_season(mod, n = 4),
+                 "Estimation period not long enough to use seasonal effect with 4 seasons.")
+})
+
+
 
 ## 'set_var_age' --------------------------------------------------------------
 

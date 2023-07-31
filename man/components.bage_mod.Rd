@@ -20,28 +20,34 @@ Extract components from a fitted object
 of class \code{bage_mod}.
 }
 \details{
-There are two types of component:
+There are three types of component:
 \itemize{
 \item \code{"par"} Intercept, main effects, and interactions.
 \item \code{"hyper"} Hyper-parameters from priors for intercept,
 main effects, and interactions.
+\item \code{"season"} Parameters and hyper-parameters for
+seasonal effect, if present.
 }
 
 For each component, \code{components()} returns three things:
 \itemize{
-\item \code{term} Name of the intercept, main effect, or interaction
+\item \code{term} Name of the effect or interaction
 \item \code{level} Element of term
 \item \code{.fitted} An \link[rvec:rvec]{rvec} containing
 draws from the posterior distribution.
 }
 }
 \examples{
+library(dplyr)
 mod <- mod_pois(injuries ~ age + sex + year,
                 data = injuries,
-                exposure = popn) |>
+                exposure = popn) \%>\%
   fit()
 mod
-components(mod)
+mod \%>\%
+  components() \%>\%
+  filter(component == "par",
+         term == "age")
 }
 \seealso{
 \code{\link[=augment]{augment()}}, \code{\link[=tidy]{tidy()}}

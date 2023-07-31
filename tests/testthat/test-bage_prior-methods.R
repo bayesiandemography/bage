@@ -331,6 +331,16 @@ test_that("'transform_hyper' works with 'bage_prior_rw2'", {
     expect_equal(0.35, l[[1]](log(0.35)))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_spline'", {
+    l <- transform_hyper(Spline())
+    expect_equal(0.35, l[[1]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_svd'", {
+    l <- transform_hyper(SVD(HMD))
+    expect_identical(l, list())
+})
+
 
 ## uses_matrix_parfree_par ----------------------------------------------------
 

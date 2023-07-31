@@ -165,20 +165,19 @@ set_season <- function(mod, n, s = 1) {
     var_time <- mod$var_time
     priors <- mod$priors
     if (is.null(var_time))
-        cli::cli_abort("Can't set season when time variable not yet identified.",
-                       i = paste("Please use function {.fun set_var_time} to",
-                                 "identify time variable."))
+        cli::cli_abort(c("Can't specify seasonal effect when time variable not identified.",
+                         i = "Please use {.fun set_var_time} to identify time variable."))
     nms_terms <- names(priors)
     if (!(var_time %in% nms_terms))
         cli::cli_abort(c(paste("Can't use seasonal effect when model does not",
-                               "contain a time main effect."),
-                         i = "Model formula contains terms {.val {nms_terms}}."))
+                               "contain time main effect."),
+                         i = "Model has terms {.val {nms_terms}}."))
     n_time <- n_time(mod)
     if (n > (n_time %/% 2L))
-        cli::cli_abort(c(paste("Estimation period not long enough for seasonal effect",
-                               "with {n_season} seasons."),
+        cli::cli_abort(c(paste("Estimation period not long enough to use seasonal effect",
+                               "with {n} seasons."),
                          i = "Must have at least two time points for each season.",
-                         i = "Data contains {n_time} time points."))
+                         i = "Data used for estimation has {n_time} time points."))
     mod$n_season <- n
     mod$scale_season <- s
     mod
