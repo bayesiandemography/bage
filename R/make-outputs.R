@@ -1,6 +1,4 @@
 
-## 'components_hyper' -----------------------------------------------------------
-
 ## HAS_TESTS
 #' Create data frame holding hyper-parameters
 #'
@@ -24,10 +22,8 @@ components_hyper <- function(mod) {
 }
 
 
-## 'components_par' -----------------------------------------------------------
-
 ## HAS_TESTS
-#' Create data data frame holding parameters
+#' Create data frame holding parameters
 #'
 #' Helper function for 'components'
 #'
@@ -41,9 +37,34 @@ components_par <- function(mod) {
     term <- as.character(term)    
     level <- make_levels_par(mod)
     draws <- make_draws_par(mod)
-    draws <- as.matrix(draws)
+    draws <- as.matrix(draws) ## cast from dgeMatrix
     .fitted <- rvec::rvec_dbl(draws)
     tibble::tibble(component = "par",
+                   term = term,
+                   level = level,
+                   .fitted = .fitted)
+}
+
+
+## HAS_TESTS
+#' Create data frame holding seasonal effect
+#'
+#' Helper function for 'components'
+#'
+#' @param mod A fitted 'bage_mod' object
+#'
+#' @returns A tibble or NULL
+#'
+#' @noRd
+components_season <- function(mod) {
+    if (!has_season(mod))
+        return(NULL)
+    term <- make_terms_season(mod)
+    term <- as.character(term)
+    level <- make_levels_season(mod)
+    draws <- make_draws_season(mod)
+    .fitted <- rvec::rvec_dbl(draws)
+    tibble::tibble(component = "season",
                    term = term,
                    level = level,
                    .fitted = .fitted)
@@ -202,17 +223,19 @@ make_draws_fitted <- function(mod) {
 #'
 #' @param mod A fitted object of class 'bage_mod'.
 #'
-#' @returns A matrix with 'n_draw' columns.
+#' @returns A list of vectors, each with 'n_draw' elements.
 #'
 #' @noRd
 make_draws_hyper <- function(mod) {
+    priors <- mod$priors
+    mean_par <- mod$est$par
     mean_hyper <- mod$est$hyper
-    prec_all <- mod$prec ## includes par, hyper
+    prec_all <- mod$prec ## includes parfree, hyper, potentially par_season, hyper_season
     n_draw <- mod$n_draw
     terms_hyper <- make_terms_hyper(mod)
+    n_par <- length(mean_par)
     n_hyper <- length(mean_hyper)
-    n_all <- nrow(prec_all)
-    s_hyper <- seq.int(to = n_all, length.out = n_hyper)
+    s_hyper <- seq.int(from = n_par + 1L, length.out = n_hyper)
     V1 <- prec_all[s_hyper, s_hyper, drop = FALSE]
     V2 <- prec_all[-s_hyper, -s_hyper, drop = FALSE]
     R <- prec_all[-s_hyper, s_hyper, drop = FALSE]
@@ -220,8 +243,13 @@ make_draws_hyper <- function(mod) {
     ans <- rmvn(n = n_draw,
                 mean = mean_hyper,
                 prec = prec_hyper)
-    dimnames(ans) <- list(term = terms_hyper,
-                          draw = seq_len(n_draw))
+    transforms <- lapply(priors, transform_hyper)
+    transforms <- unlist(transforms, recursive = FALSE)
+    ans <- apply(ans, 1L, identity, simplify = FALSE)
+    for (i in seq_along(ans)) {
+        transform <- transforms[[i]]
+        ans[[i]] <- transform(ans[[i]])
+    }
     ans
 }
 
@@ -306,6 +334,42 @@ make_draws_parfree <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make draws from posterior distribution
+#' of seasonal effect parameters and hyper-parameter.
+#'
+#' Number of draws governed by 'n_draw'.
+#'
+#' @param mod A fitted object of class 'bage_mod'.
+#'
+#' @returns A list of vectors, each with 'n_draw' elements.
+#'
+#' @noRd
+make_draws_season <- function(mod) {
+    transform_hyper <- exp ## log_sd
+    priors <- mod$priors
+    mean_par_season <- mod$est$par_season
+    mean_hyper_season <- mod$est$hyper_season
+    prec_all <- mod$prec
+    n_draw <- mod$n_draw
+    mean_season <- c(mean_par_season, mean_hyper_season)
+    n_season <- length(mean_season)
+    n_all <- nrow(prec_all)
+    s_season <- seq.int(to = n_all, length.out = n_season)
+    V1 <- prec_all[s_season, s_season, drop = FALSE]
+    V2 <- prec_all[-s_season, -s_season, drop = FALSE]
+    R <- prec_all[-s_season, s_season, drop = FALSE]
+    prec_season <- V1 - Matrix::crossprod(R, Matrix::solve(V2, R))
+    ans <- rmvn(n = n_draw,
+                mean = mean_season,
+                prec = prec_season)
+    ans <- apply(ans, 1L, identity, simplify = FALSE)
+    n_ans <- length(ans)
+    ans[[n_ans]] <- transform_hyper(ans[[n_ans]])
+    ans
+}
+
+
+## HAS_TESTS
 #' Make levels associated with each element of 'hyper'
 #'
 #' Make levels for hyperparameters for each term
@@ -324,49 +388,23 @@ make_levels_hyper <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make levels associated with each element of 'par'
-#'
-#' Make levels for each term, eg ages, times.
-#' 'make_levels_par' works with the matrices
-#' used to map levels to the outcome, to
-#' ensure that the levels are correct (rather than
-#' relying on undocumented properties of 'xtabs' etc),
-#' though this makes the function a bit complicated.
+#' Make levels for parameters and hyper-parameter of
+#' seasonal effect
 #'
 #' @param mod A fitted object of class 'bage_mod'.
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-make_levels_par <- function(mod) {
-    formula <- mod$formula
-    matrices_par_outcome <- mod$matrices_par_outcome
-    outcome <- mod$outcome
-    data <- mod$data
-    nms <- names(matrices_par_outcome)
-    n <- length(nms)
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
-    factors <- factors > 0L
-    if (is.array(outcome))
-        dim_levels <- expand.grid(dimnames(outcome))
-    else
-        dim_levels <- data[rownames(factors)]
-    ans <- vector(mode = "list", length = n)
-    for (i in seq_len(n)) {
-        nm <- nms[[i]]
-        if (nm == "(Intercept)")
-            ans[[i]] <- "(Intercept)"
-        else {
-            i_dim <- factors[, nm, drop = TRUE]
-            paste_dot <- function(...) paste(..., sep = ".")
-            term_levels <- do.call(paste_dot, dim_levels[i_dim])
-            matrix_par <- matrices_par_outcome[[i]]
-            i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
-            ans[[i]] <- term_levels[i_term_level]
-        }
-    }
-    ans <- unlist(ans, use.names = FALSE)
+make_levels_season <- function(mod) {
+    level_hyper <- "sd"
+    if (!has_season(mod))
+        return(character())
+    var_time <- mod$var_time
+    levels_par <- make_levels_par(mod)
+    terms_par <- make_terms_par(mod)
+    levels_time <- levels_par[terms_par == var_time]
+    ans <- c(levels_time, level_hyper)
     ans
 }
 
@@ -389,6 +427,29 @@ make_observed <- function(mod) {
 }
 
 
+## HAS_TESTS
+#' Make factor identifying components of 'season'
+#'
+#' Make factor distinguishing parameters
+#' and hyper-parmeters in 'season'
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor.
+#'
+#' @noRd
+make_terms_season <- function(mod) {
+    if (!has_season(mod))
+        return(factor())
+    n_time <- n_time(mod)
+    levels <- c("par", "hyper")
+    times <- c(n_time, 1L)
+    ans <- rep(levels, times = times)
+    ans <- factor(ans, levels = levels)
+    ans
+}
+
+    
 ## HAS_TESTS
 #' Draw from a multivariate normal distribution
 #'
