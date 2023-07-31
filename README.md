@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# bage
+# bage <a href="https://github.com/bayesiandemography/bage"><img src="data-raw/sticker/sticker.png" align="right" height="138" /></a>
 
 <!-- badges: start -->
 
@@ -34,33 +34,35 @@ mod
 #> -- Fitted Poisson model --
 #> 
 #>    injuries ~ age:sex + ethnicity + year
-#> (Intercept) ~ N(scale=10)
+#> (Intercept) ~ NFixed(sd=10)
 #>   ethnicity ~ N()
 #>        year ~ RW()
 #>     age:sex ~ N()
 #> 
-#>   exposure: popn
-#>    var_age: age
-#>   var_time: year
-#>     n_draw: 1000
+#>        exposure: popn
+#>         var_age: age
+#>   var_sexgender: sex
+#>        var_time: year
+#>          n_draw: 1000
 ```
 
 Extract model-based and direct estimates.
 
 ``` r
 augment(mod)
-#> # A tibble: 912 × 10
-#>    age   sex    ethnicity  year injuries  popn   .fitted  .lower  .upper .obse…¹
-#>    <fct> <chr>  <chr>     <int>    <int> <int>     <dbl>   <dbl>   <dbl>   <dbl>
-#>  1 0-4   Female Maori      2000       12 35830 0.000244  2.18e-4 2.73e-4 3.35e-4
-#>  2 5-9   Female Maori      2000        6 35120 0.0000679 5.64e-5 8.20e-5 1.71e-4
-#>  3 10-14 Female Maori      2000        3 32830 0.0000919 7.80e-5 1.09e-4 9.14e-5
-#>  4 15-19 Female Maori      2000        6 27130 0.000433  3.96e-4 4.72e-4 2.21e-4
-#>  5 20-24 Female Maori      2000        6 24380 0.000422  3.83e-4 4.63e-4 2.46e-4
-#>  6 25-29 Female Maori      2000        6 24160 0.000348  3.16e-4 3.85e-4 2.48e-4
-#>  7 30-34 Female Maori      2000       12 22560 0.000322  2.91e-4 3.56e-4 5.32e-4
-#>  8 35-39 Female Maori      2000        3 22230 0.000350  3.15e-4 3.86e-4 1.35e-4
-#>  9 40-44 Female Maori      2000        6 18130 0.000345  3.15e-4 3.78e-4 3.31e-4
-#> 10 45-49 Female Maori      2000        6 13770 0.000365  3.31e-4 4.03e-4 4.36e-4
-#> # … with 902 more rows, and abbreviated variable name ¹​.observed
+#> # A tibble: 912 × 8
+#>    age   sex    ethnicity  year injuries  popn                    .fitted
+#>    <fct> <chr>  <chr>     <int>    <int> <int>               <rdbl<1000>>
+#>  1 0-4   Female Maori      2000       12 35830 0.00024 (0.00022, 0.00027)
+#>  2 5-9   Female Maori      2000        6 35120 6.8e-05 (5.6e-05, 8.3e-05)
+#>  3 10-14 Female Maori      2000        3 32830 9.1e-05 (7.8e-05, 0.00011)
+#>  4 15-19 Female Maori      2000        6 27130 0.00043 (0.00039, 0.00047)
+#>  5 20-24 Female Maori      2000        6 24380 0.00042 (0.00038, 0.00047)
+#>  6 25-29 Female Maori      2000        6 24160 0.00035 (0.00031, 0.00039)
+#>  7 30-34 Female Maori      2000       12 22560 0.00032 (0.00029, 0.00036)
+#>  8 35-39 Female Maori      2000        3 22230 0.00035 (0.00032, 0.00039)
+#>  9 40-44 Female Maori      2000        6 18130 0.00034 (0.00031, 0.00038)
+#> 10 45-49 Female Maori      2000        6 13770   0.00036 (0.00033, 4e-04)
+#> # ℹ 902 more rows
+#> # ℹ 1 more variable: .observed <dbl>
 ```
