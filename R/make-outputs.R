@@ -465,11 +465,20 @@ make_terms_season <- function(mod) {
 #' @noRd
 rmvn <- function(n, mean, prec) {
     n_val <- length(mean)
-    ch <- chol(prec)
-    I <- diag(n_val)
-    sd <- backsolve(ch, I)
     Z <- matrix(stats::rnorm(n = n_val * n),
                 nrow = n_val,
                 ncol = n)
-    mean + sd %*% Z
+    ch <- chol(prec)
+    mean + backsolve(ch, Z)
 }
+
+## rmvn <- function(n, mean, prec) {
+##     n_val <- length(mean)
+##     ch <- chol(prec)
+##     I <- diag(n_val)
+##     sd <- backsolve(ch, I)
+##     Z <- matrix(stats::rnorm(n = n_val * n),
+##                 nrow = n_val,
+##                 ncol = n)
+##     mean + sd %*% Z
+## }
