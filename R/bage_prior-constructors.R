@@ -46,7 +46,7 @@
 #' AR1(min = 0, max = 1, s = 2.4)
 #' @export
 AR1 <- function(min = 0.8, max = 0.98, s = 1) {
-    check_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s", zero_ok = FALSE)
     scale <- as.double(s)
     checkmate::assert_number(min, lower = 0, upper = 1)
     checkmate::assert_number(max, lower = 0, upper = 1)
@@ -131,7 +131,7 @@ Known <- function(values) {
 #' N(s = 0.5)
 #' @export
 N <- function(s = 1) {
-    check_scale(s, x_arg = "s") 
+    check_scale(s, x_arg = "s", zero_ok = FALSE) 
     scale <- as.double(s)
     new_bage_prior_norm(scale = scale)
 }
@@ -165,7 +165,7 @@ N <- function(s = 1) {
 #' NFixed(sd = 10) ## prior used for intercept
 #' @export
 NFixed <- function(sd = 1) {
-    check_scale(sd, x_arg = "sd") 
+    check_scale(sd, x_arg = "sd", zero_ok = FALSE) 
     sd <- as.double(sd)
     new_bage_prior_normfixed(sd = sd)
 }
@@ -217,7 +217,7 @@ NFixed <- function(sd = 1) {
 #' RW2()
 #' @export
 RW <- function(s = 1) {
-    check_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s", zero_ok = FALSE)
     scale <- as.double(s)
     new_bage_prior_rw(scale = scale)
 }
@@ -225,7 +225,7 @@ RW <- function(s = 1) {
 #' @export
 #' @rdname RW
 RW2 <- function(s = 1) {
-    check_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s", zero_ok = FALSE)
     scale <- as.double(s)
     new_bage_prior_rw2(scale = scale)
 }
@@ -286,7 +286,7 @@ Spline <- function(n = NULL, s = 1) {
     check_n(n, min = 4L, max = NULL, null_ok = TRUE)
     if (!is.null(n))
         n <- as.integer(n)
-    check_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s", zero_ok = FALSE)
     scale <- as.double(s)
     new_bage_prior_spline(n = n,
                           scale = scale)

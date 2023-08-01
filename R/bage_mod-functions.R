@@ -1,9 +1,50 @@
 
 ## User-visible functions that look like methods, but technically are not
 
+## 'set_disp' -----------------------------------------------------------------
+
+## NO_TESTS
+#' Set scale parameter for dispersion
+#'
+#' Specify the scale parameter `s` in the prior
+#' for dispersion.
+#'
+#' In Poisson and binomial models,
+#' `s` can be set to `0`, implying
+#' that the dispersion term is also `0`.
+#' In normal models, `s` must be non-negative.
+#'
+#' @param mod A `bage_mod` object, typically
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param s Scale term. In Poisson and
+#' binomial models, `s` must be non-negative.
+#' In normal models, `s` must be positive.
+#'
+#' @returns A `bage_mod` object
+#' 
+#' @examples
+#' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#' mod
+#' mod |> set_disp(s = 0.1)
+#' mod |> set_disp(s = 0)
+#' @export
+set_disp <- function(mod, s) {
+    checkmate::assert_class(mod, "bage_mod")
+    nm_distn <- nm_distn(mod)
+    zero_ok <- nm_distn %in% c("pois", "binom")
+    check_scale(s, x_arg = "s", zero_ok = zero_ok)
+    scale_disp <- as.double(s)
+    mod$scale_disp <- scale_disp
+    mod
+}
+
 
 ## 'set_n_draw' ---------------------------------------------------------------
 
+## HAS_TESTS
 #' Set the number of draws
 #'
 #' Specify the number of draws from the posterior
@@ -18,9 +59,7 @@
 #' model fitting: it only affects posterior
 #' summaries.
 #'
-#' @param mod A `bage_mod` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
+#' @inheritParams set_disp
 #' @param n_draw Number of draws.
 #'
 #' @returns A `bage_mod` object
@@ -141,7 +180,7 @@ set_prior <- function(mod, formula) {
 #'
 #' TODO - description
 #'
-#' @inheritParams set_n_draw
+#' @inheritParams set_disp
 #' @param n Number of seasons.
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
@@ -160,7 +199,7 @@ set_season <- function(mod, n, s = 1) {
     checkmate::assert_class(mod, "bage_mod")
     check_n(n, min = 2L, max = NULL, null_ok = FALSE)
     n <- as.integer(n)
-    check_scale(s, x_arg = "s")
+    check_scale(s, x_arg = "s", zero_ok = FALSE)
     scale <- as.double(s)
     var_time <- mod$var_time
     priors <- mod$priors
@@ -206,9 +245,7 @@ set_season <- function(mod, n, s = 1) {
 #' via `set_var_age()` can change priors:
 #' see below for an example.
 #' 
-#' @param mod A `bage_mod` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
+#' @inheritParams set_disp
 #' @param name The name of the age variable.
 #'
 #' @returns A `bage_mod` object
@@ -261,9 +298,7 @@ set_var_age <- function(mod, name) {
 #' contains variables `gender` and `region`,
 #' and terms `gender`, `region`, and `gender:region`.
 #'
-#' @param mod A `"bage_mod"` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
+#' @inheritParams set_disp
 #' @param name The name of the sex or gender variable.
 #'
 #' @returns A `"bage_mod"` object
@@ -323,9 +358,7 @@ set_var_sexgender <- function(mod, name) {
 #' via `set_var_time()` can change priors:
 #' see below for an example.
 #' 
-#' @param mod A `bage_mod` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
+#' @inheritParams set_disp
 #' @param name The name of the time variable.
 #'
 #' @returns A `bage_mod` object
@@ -381,6 +414,8 @@ set_var_time <- function(mod, name) {
 ##     NULL
 ## }
 
+
+## Helper functions -----------------------------------------------------------
 
 ## HAS_TESTS
 #' Set var_age, var_sexgender, or var_time

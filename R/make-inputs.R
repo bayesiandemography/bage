@@ -406,7 +406,8 @@ make_levels_par <- function(mod) {
 #' Make 'map' argument to be passed to MakeADFun.
 #' Return value is non-NULL if
 #' (i) any priors are "bage_prior_known", or
-#' (ii) the model does not include season effects.
+#' (ii) 'scale_disp' is 0, or
+#' (iii) the model does not include season effects.
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -415,18 +416,22 @@ make_levels_par <- function(mod) {
 #' @noRd
 make_map <- function(mod) {
     priors <- mod$priors
+    scale_disp <- mod$scale_disp
     n_season <- mod$n_season
     ## determine whether any parameters fixed
     is_known <- vapply(priors, is_known, FALSE)
     is_parfree_fixed <- any(is_known)
+    is_disp_fixed <- scale_disp == 0
     is_season_fixed <- n_season == 0L
     ## return NULL if nothing fixed
-    if (!is_parfree_fixed && !is_season_fixed)
+    if (!is_parfree_fixed && !is_disp_fixed && !is_season_fixed)
         return(NULL)
     ## otherwise construct named list
     ans <- list()
     if (is_parfree_fixed)
         ans$parfree <- make_map_parfree_fixed(mod)
+    if (is_disp_fixed)
+        ans$log_disp <- factor(NA)
     if (is_season_fixed) {
         ans$par_season <- make_map_par_season_fixed(mod)
         ans$hyper_season <- make_map_hyper_season_fixed(mod)

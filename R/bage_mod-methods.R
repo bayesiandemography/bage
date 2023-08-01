@@ -97,11 +97,14 @@ generics::components
 #'          term == "age")
 #' @export
 components.bage_mod <- function(object, ...) {
-    is_fitted <- is_fitted(object)
-    if (is_fitted) {
+    if (is_fitted(object)) {
         par <- components_par(object)
         hyper <- components_hyper(object)
         ans <- vctrs::vec_rbind(par, hyper)
+        if (has_disp(object)) {
+            disp <- components_disp(object)
+            ans <- vctrs::vec_rbind(ans, disp)
+        }
         if (has_season(object)) {
             season <- components_season(object)
             ans <- vctrs::vec_rbind(ans, season)
@@ -131,11 +134,10 @@ generics::fit
 #'
 #' @export    
 fit.bage_mod <- function(object, ...) {
+    ## data
+    nm_distn <- nm_distn(object)
     outcome <- object$outcome
     offset <- object$offset
-    matrices_par_outcome <- object$matrices_par_outcome
-    n_season <- object$n_season
-    nm_distn <- nm_distn(object)
     is_in_lik <- make_is_in_lik(object)
     terms_par <- make_terms_par(object)
     terms_parfree <- make_terms_parfree(object)
@@ -143,19 +145,17 @@ fit.bage_mod <- function(object, ...) {
     matrices_parfree_par <- make_matrices_parfree_par(object)
     uses_offset_parfree_par <- make_uses_offset_parfree_par(object)
     offsets_parfree_par <- make_offsets_parfree_par(object)
+    matrices_par_outcome <- object$matrices_par_outcome
     i_prior <- make_i_prior(object)
     uses_hyper <- make_uses_hyper(object)
     terms_hyper <- make_terms_hyper(object)
     const <- make_const(object)
     terms_const <- make_terms_const(object)
+    scale_disp <- object$scale_disp
+    n_season <- object$n_season
+    has_disp <- scale_disp > 0
     idx_time <- make_idx_time(object)
     const_season <- make_const_season(object)
-    parfree <- make_parfree(object)
-    hyper <- make_hyper(object)
-    par_season <- make_par_season(object)
-    hyper_season <- make_hyper_season(object)
-    map <- make_map(object)
-    random <- make_random(object)
     data <- list(nm_distn = nm_distn,
                  outcome = outcome,
                  offset = offset,
@@ -172,23 +172,36 @@ fit.bage_mod <- function(object, ...) {
                  terms_hyper = terms_hyper,
                  consts = const, ## 'const' is reserved word in C
                  terms_consts = terms_const,
+                 scale_disp = scale_disp,
                  idx_time = idx_time,
                  n_season = n_season,
                  consts_season = const_season)
+    ## parameters
+    parfree <- make_parfree(object)
+    hyper <- make_hyper(object)
+    log_disp <- 0
+    par_season <- make_par_season(object)
+    hyper_season <- make_hyper_season(object)
     parameters <- list(parfree = parfree,   
                        hyper = hyper,
+                       log_disp = log_disp,
                        par_season = par_season,
                        hyper_season = hyper_season)
+    ## MakeADFun
+    map <- make_map(object)
+    random <- make_random(object)
     f <- TMB::MakeADFun(data = data,
                         parameters = parameters,
                         map = map,
                         DLL = "bage",
                         random = random,
                         silent = TRUE)
+    ## optimise
     stats::nlminb(start = f$par,
                   objective = f$fn,
                   gradient = f$gr,
                   silent = TRUE)
+    ## extract results and return
     sdreport <- TMB::sdreport(f,
                               bias.correct = TRUE,
                               getJointPrecision = TRUE)
@@ -256,6 +269,27 @@ get_fun_scale_outcome.bage_mod_norm <- function(mod) {
     mean <- mod$outcome_mean
     sd <- mod$outcome_sd
     function(x) x * sd + mean
+}
+
+
+## 'has_disp' ----------------------------------------------------------------
+
+#' Test whether a model includes a dispersion parameter
+#'
+#' @param x A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_disp <- function(mod) {
+    UseMethod("has_disp")
+}
+
+## HAS_TESTS
+#' @export
+has_disp.bage_mod <- function(mod) {
+    scale_disp <- mod$scale_disp
+    scale_disp > 0L
 }
 
 
@@ -431,6 +465,7 @@ print.bage_mod <- function(x, ...) {
     var_age <- x$var_age
     var_sexgender <- x$var_sexgender
     var_time <- x$var_time
+    scale_disp <- x$scale_disp
     n_season <- x$n_season
     scale_season <- x$scale_season
     is_fitted <- is_fitted(x)
@@ -446,6 +481,7 @@ print.bage_mod <- function(x, ...) {
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
     str_priors <- paste(str_priors, collapse = "\n")
+    str_disp <- sprintf("% *s: s=%s", nchar_offset, "dispersion", scale_disp)
     has_season <- n_season > 0L
     if (has_season) {
         nm_season <- sprintf("% *s", nchar_offset, "seasonal effect")
@@ -464,9 +500,11 @@ print.bage_mod <- function(x, ...) {
     cat("\n\n")
     cat(padding_formula)
     cat(paste(deparse(formula), collapse = "\n"))
-    cat("\n")
+    cat("\n\n")
     cat(str_priors)
     cat("\n\n")
+    cat(str_disp)
+    cat("\n")
     if (has_season) {
         cat(str_season)
         cat("\n")
