@@ -364,17 +364,18 @@ check_response_nonneg <- function(formula, data, nm_distn) {
 ## HAS_TESTS
 #' Check a scale term
 #'
-#' Check that `x` is a positive
+#' Check that `x` is a positive or non-negative
 #' finite scalar.
 #'
-#' @param x A positive number.
+#' @param x A positive or non-negative number.
 #' @param x_arg Name for `x` to be
 #' used in error messages.
+#' @param zero_ok Whether 'x' can be zero.
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
-check_scale <- function(x, x_arg) {
+check_scale <- function(x, x_arg, zero_ok) {
     if (!is.numeric(x))
         cli::cli_abort(c("{.arg {x_arg}} is non-numeric.",
                          i = "{.arg {x_arg}} has class {.cls {class(x)}}."))
@@ -385,8 +386,15 @@ check_scale <- function(x, x_arg) {
         cli::cli_abort("{.arg {x_arg}} is NA.")
     if (is.infinite(x))
         cli::cli_abort("{.arg {x_arg}} is infinite.")
-    if (x <= 0)
-        cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
-                         i = "{.arg {x_arg}} equals {x}."))
+    if (zero_ok) {
+        if (x < 0)
+            cli::cli_abort(c("{.arg {x_arg}} is negative.",
+                             i = "{.arg {x_arg}} equals {x}."))
+    }
+    else {
+        if (x <= 0)
+            cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
+                             i = "{.arg {x_arg}} equals {x}."))
+    }
     invisible(TRUE)
 }

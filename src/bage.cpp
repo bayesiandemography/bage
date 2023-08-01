@@ -122,7 +122,7 @@ Type logpost_not_uses_hyper(vector<Type> parfree,
     ans = logpost_svd(parfree, consts);
     break;
   default:
-    error("function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
+    error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
   }
   return ans;
 }
@@ -150,7 +150,7 @@ Type logpost_uses_hyper(vector<Type> parfree,
     ans = logpost_spline(parfree, hyper, consts);
     break;
   default:
-    error("function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
+    error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
   }
   return ans;
 }
@@ -173,6 +173,19 @@ Type logpost_season(vector<Type> par_season,
   return ans;
 }
 
+template <class Type>
+Type logpost_betabinom(Type x,
+		       Type n,
+		       Type logit_mu,
+		       Type disp) {
+  Type mu = 1 / (1 + exp(-logit_mu));
+  Type alpha = mu / disp;
+  Type beta = (1 - mu) / disp;
+  Type log_num = lgamma(x + alpha) + lgamma(n - x + beta) - lgamma(n + alpha + beta);
+  Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
+  return log_num - log_den;
+}
+
 
 // List object to hold matrices -----------------------------------------------
 
@@ -185,7 +198,7 @@ struct LIST_SM_t : vector<SparseMatrix<Type> > {
     for (int i = 0; i < LENGTH(x); i++){
       SEXP sm = VECTOR_ELT(x, i);
       if(!isValidSparseMatrix(sm))
-        error("Not a sparse matrix");
+        error("Internal error: not a sparse matrix");
       (*this)(i) = asSparseMatrix<Type>(sm);
     }
   }
@@ -216,12 +229,14 @@ Type objective_function<Type>::operator() ()
   DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
+  DATA_SCALAR(scale_disp);
   DATA_INTEGER(idx_time);
   DATA_INTEGER(n_season);
   DATA_VECTOR(consts_season);
 
   PARAMETER_VECTOR(parfree); 
   PARAMETER_VECTOR(hyper);
+  PARAMETER(log_disp);
   PARAMETER_VECTOR(par_season);
   PARAMETER_VECTOR(hyper_season);
   
@@ -234,6 +249,8 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > offsets_parfree_par_split = split(offsets_parfree_par, terms_par);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
   vector<vector<Type> > consts_split = split(consts, terms_consts);
+  int has_disp = scale_disp > 0;
+  Type disp = has_disp ? exp(log_disp) : 0;
   int has_season = n_season > 0;
 
   vector<Type> linear_pred(n_outcome);
@@ -287,34 +304,49 @@ Type objective_function<Type>::operator() ()
 			  consts_season,
 			  n_season);
 
+  // contribution to log posterior from dispersion term
+  if (has_disp) {
+    if ((nm_distn == "pois") || (nm_distn == "binom"))
+      ans -= -1 * scale_disp * sqrt(disp) - 0.5 * log_disp;
+    else if (nm_distn == "norm")
+      ans -= dexp(disp, scale_disp, true);
+    else
+      error("Internal error: invalid 'nm_distn' in logposterior disp");
+    ans -= log_disp; // Jacobian
+  }
+	     
+
   // contribution to log posterior from data
-  if (nm_distn == "pois") {
-    for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-      if (is_in_lik[i_outcome]) {
-	Type rate = exp(linear_pred[i_outcome]);
-	ans -= dpois(outcome[i_outcome],
-		     rate * offset[i_outcome],
-		     true);
+  for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
+    if (is_in_lik[i_outcome]) {
+      Type outcome_i = outcome[i_outcome];
+      Type linear_pred_i = linear_pred[i_outcome];
+      Type offset_i = offset[i_outcome];
+      if (nm_distn == "pois") {
+	Type rate_i = exp(linear_pred_i) * offset_i;
+	if (has_disp) {
+	  Type size = 1 / disp;
+	  Type prob_i = size / (rate_i + size);
+	  ans -= dnbinom(outcome_i, size, prob_i, true);
+	}
+	else {
+	  ans -= dpois(outcome_i, rate_i, true);
+	}
       }
-    }
-  }
-  else if (nm_distn == "binom") {
-    for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-      if (is_in_lik[i_outcome]) {
-	ans -= dbinom_robust(outcome[i_outcome],
-			     offset[i_outcome],
-			     linear_pred[i_outcome],
-			     true);
+      else if (nm_distn == "binom") {
+	if (has_disp) {
+	  ans -= logpost_betabinom(outcome_i, offset_i, linear_pred_i, disp);
+	}
+	else {
+	  ans -= dbinom_robust(outcome_i, offset_i, linear_pred_i, true);
+	}
       }
-    }
-  }
-  else { // norm
-    for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-      if (is_in_lik[i_outcome]) {
-	ans -= dnorm(outcome[i_outcome],
-		     linear_pred[i_outcome],
-		     1 / offset[i_outcome],
-		     true);
+      else if (nm_distn == "norm") {
+	Type sd_i = disp / sqrt(offset_i);
+	ans -= dnorm(outcome_i, linear_pred_i, sd_i, true);
+      }
+      else {
+	error("Internal error: invalid 'nm_distn' in logpost data");
       }
     }
   }

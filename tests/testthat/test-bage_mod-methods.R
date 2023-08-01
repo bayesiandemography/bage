@@ -36,7 +36,7 @@ test_that("'components' works with valid inputs", {
     mod_fitted <- fit(mod)
     ans <- components(mod_fitted)
     expect_true(is.data.frame(ans))
-    expect_identical(unique(ans$component), c("par", "hyper", "season"))
+    expect_identical(unique(ans$component), c("par", "hyper", "disp", "season"))
 })
 
 
@@ -211,6 +211,20 @@ test_that("'get_fun_scale_outcome' works with valid inputs", {
     expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_binom", "bage_mod")))(1), 1)
     expect_equal(get_fun_scale_outcome(structure(list(outcome_mean = 3, outcome_sd = 2),
                                                  class = c("bage_mod_norm", "bage_mod")))(1), 5)
+})
+
+
+## 'has_disp' -----------------------------------------------------------------
+
+test_that("'is_fitted' works with valid inputs", {
+    data <- data.frame(deaths = 1:10,
+                       time = 2001:2010)
+    mod <- mod_pois(deaths ~ time,
+                    data = data,
+                    exposure = 1)
+    expect_true(has_disp(mod))
+    mod <- set_disp(mod, s = 0)
+    expect_false(has_disp(mod))
 })
 
 

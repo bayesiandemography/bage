@@ -452,6 +452,24 @@ test_that("'make_map' works when 'parfree' contains known values", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_map' works dispersion is 0", {
+    set.seed(0)
+    data <- expand.grid(time = 2000:2009,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2, s = 0.2)
+    mod <- set_disp(mod, s = 0)
+    ans_obtained <- make_map(mod)
+    ans_expected <- list(log_disp = factor(NA))
+    expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_map' works when there is no season effect", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
