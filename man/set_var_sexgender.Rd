@@ -30,6 +30,10 @@ from a 'term'. For instance,
 
 contains variables \code{gender} and \code{region},
 and terms \code{gender}, \code{region}, and \code{gender:region}.
+
+If the \code{mod} argument to \code{set_var_sexgender} is
+a fitted model, then \code{set_var_sexgender} 'unfits'
+the model, by deleting existing estimates.
 }
 \examples{
 ## rename 'sex' variable to something unexpected
@@ -56,5 +60,6 @@ to locate sex or gender variables
 to locate female categories within a sex or gender variable
 \item internally, \code{bage} uses \code{\link[poputils:find_label_male]{poputils::find_label_male()}}
 to locate male categories within a sex or gender variable
+\item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

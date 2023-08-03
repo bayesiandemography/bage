@@ -134,6 +134,8 @@ Priors for the $\pmb{\beta}^{(m)}$ are discussed in sections \@ref(sec:pr-int)--
 
 # Prior for intercept {#sec:pr-int}
 
+TODO - also allow for known prior.
+
 ## Model
 
 \begin{equation}
@@ -146,10 +148,10 @@ By default, $A_0 = 10$, which gives the intercept a proper but diffuse prior.
 ## Code
 
 ```
-set_prior_intercept(scale = NULL)
+set_prior(`(Intercept)` ~ NFixed(sd))
 ```
 
-- `scale` is $A_0$. Defaults to $10s$.
+- `scale` is $A_0$. 
 
 
 
@@ -214,10 +216,34 @@ set_prior(time ~ Lin(scale = 0.2))
 ### Code
 
 ```
-N(scale = NULL)
+N(s = 1)
 ```
 
 - `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+
+## Fixed normal {#sec:pr-fnorm}
+
+### Model
+
+\begin{equation}
+  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \mathcal{N}\left(0, A_{\beta}^{(m)2}\right)
+\end{equation}
+
+### Prediction
+
+\begin{equation}
+    \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(0, A_{\beta}^{(m)2})
+\end{equation}
+
+
+### Code
+
+```
+NFix(s = 1)
+```
+
+- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+
 
 ## Multivariate normal {#sec:pr-mnorm}
 
@@ -238,7 +264,7 @@ Main effects with a multivariate normal prior cannot be predicted.
 ### Code
 
 ```
-MVN(V, scale = NULL)
+MVN(V, s = 1)
 ```
 
 - `V` is $\pmb{V}^{(m)}$
@@ -267,7 +293,7 @@ $j = 1, \cdots, J_m - 1$, together with the soft constraint
 ### Code
 
 ```
-RW(scale = NULL)
+RW(s = 1)
 ```
 
 - `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
@@ -296,7 +322,7 @@ $j = 1, \cdots, J_m - 2$, together with the soft constraint
 ### Code
 
 ```
-RW2(scale = NULL)
+RW2(s = 1)
 ```
 
 - `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
@@ -327,7 +353,7 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Code
 
 ```
-AR1(min = 0.8, max = 0.98, scale = NULL)
+AR1(min = 0.8, max = 0.98, s = 1)
 ```
 
 - `min` is $a_{0m}$
@@ -359,7 +385,7 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 ### Code
 
 ```
-Lin(sd = NULL, scale = NULL)
+Lin(sd = NULL, s = 1)
 ```
 
 - `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
@@ -370,7 +396,7 @@ Lin(sd = NULL, scale = NULL)
 
 ### Model
 
-n\begin{align}
+\begin{align}
   \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
    h_q^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
   \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
@@ -399,7 +425,7 @@ where
 ### Code
 
 ```
-LinAR1(sd = NULL, min = 0.8, max = 0.98, scale = NULL)
+LinAR1(sd = NULL, min = 0.8, max = 0.98, s = 1)
 ```
 
 - `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
@@ -478,7 +504,7 @@ Can also combine dimensions by taking Cartesian product of categories, eg age-se
 
 ## Model
 
-Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ elements. Seasonal effects are divided into $S_m$ batches, corresponding to $S_m$ "seasons", where $2 \le S_m \le J_m/2$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
+Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ elements. Seasonal effects are divided into $S_m$ batches, corresponding to $S_m$ "seasons", where $2 \le S_m \le \tfrac{1}{2} J_m$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
 
 \begin{align}
   \lambda_{j}^{(m)} & \sim \mathcal{N}(\lambda_{j - S_m}^{(m)}, \kappa_m^2 ) \\ 
@@ -601,10 +627,44 @@ It seems sensible to use the same prior for $\xi$ as we do with the Poisson like
 ## Code
 
 ```
-set_prior_disp(scale = NULL)
+set_disp(s = 1)
 ```
 
 - scale is $A_{\xi}$
+
+
+# Deriving outputs
+
+Running TMB yields a set of means $\pmb{m}$, and a precision matrix $\pmb{Q}^{-1}$, which together define the approximate joint posterior distribution of
+
+- $\pmb{\beta}^{(m)}$ for terms with independent normal, fixed normal, multivariate normal, random walk, second-order random walk, AR1, Linear, and Linear-AR1 priors,
+- $\pmb{\alpha}$ for terms with Spline and SVD priors,
+- hyper-parameters for $\pmb{\beta}^{(m)}$ and $\pmb{\alpha}^{(m)}$ typically transformed to another scale, such as a log scale,
+- dispersion term $\xi$, and
+- seasonal effects $\pmb{\lambda}^{(m)}$, together with associated hyper-parameters $\kappa_m$ (on a log scale).
+
+We use $\tilde{\pmb{\theta}}$ to denote a vector containing all these quantities.
+
+We perform a Cholesky decomposition of $\pmb{Q}^{-1}$, to obtain $\pmb{R}$ such that
+\begin{equation}
+  \pmb{R}^{\top} \pmb{R} = \pmb{Q}^{-1}
+\end{equation}
+We store $\pmb{R}$ as part of the model object.
+
+We draw generate values for $\tilde{\pmb{\theta}}$ by generating a vector of standard normal variates $\pmb{z}$, back-solving the equation
+\begin{equation}
+  \pmb{R} \pmb{v} = \pmb{z}
+\end{equation}
+and setting
+\begin{equation}
+  \tilde{\pmb{\theta}} = \pmb{v} + \pmb{m}.
+\end{equation}
+
+Next we convert any transformed hyper-parameters back to the original units, and insert values for $\pmb{\beta}^{(m)}$ for terms that have Known priors. We denote the resulting vector $\pmb{\theta}$.
+
+Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Section \@ref(sec:lik).
+
+
 
 # Simulation
 
@@ -626,32 +686,25 @@ set_prior_disp(scale = NULL)
 | $\beta^{(0)}$ | Intercept. |
 | $\pmb{\beta}^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
 | $\beta_j^{(m)}$ | $j$th element of $\pmb{\beta}^{(m)}$. $j = 1, \cdots, J_m$. |
-| $\pmb{\lambda}^{(m)}$ | Seasonal effect. |
 | $\pmb{X}^{(m)}$ | Matrix mapping $\pmb{\beta}^{(m)}$ to $\pmb{y}$. |
 | $\pmb{Z}^{(m)}$ | Matrix of covariates. |
 | $\pmb{\zeta}^{(m)}$ | Parameter vector for covariates $\pmb{Z}^{(m)}$. |
-| $\pmb{o}$ | Offset |
 | $A_0$ | Scale parameter in prior for intercept $\beta^{(0)}$. |
 | $\tau_m$ | Standard deviation parameter for main effect or interaction. |
 | $A_{\tau}^{(m)}$ | Scale parameter in prior for $\tau_m$. |
 | $\pmb{\alpha}^{(m)}$ | Parameter vector for P-spline and SVD priors. |
 | $\alpha_k^{(m)}$ | $k$th element of $\pmb{\alpha}^{(m)}$. $k = 1, \cdots, K_m$. |
-| $\pmb{\Phi}^{(m)}$ | Matrix mapping $\pmb{\alpha}^{(m)}$ to $\pmb{\beta}^{(m)}$. |
-| $\nu_k^{(m)}$ | Standard deviation of $\alpha_k^{(m)}$ in prior for main effect. |
-| $\pmb{I}_n$ | $n \times n$ identity matrix |
-| $\pmb{1}$ | Column vectors of 1s. |
-| $\pmb{0}$ | Column vectors of 0s. |
-| $c_m$ | Scaling factor applied to variance terms in priors. |
-| $\pmb{V}^{(m)}$ | Covariance matrix for multivariant normal prior. |
+| $\pmb{V}^{(m)}$ | Covariance matrix for multivariate normal prior. |
 | $h_j^{(m)}$ | Linear covariate |
 | $\eta^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
 | $A_{\eta}^{(m)}$ | Standard deviation in normal prior for $\eta_m$. |
 | $\phi_m$ | Correlation coefficient in AR1 densities. |
 | $a_{0m}$, $a_{1m}$ | Minimum and maximum values for $\phi_m$. |
 | $\pmb{B}^{(m)}$ | B-spline matrix in P-spline prior. |
-| $\pmb{b}_q^{(m)}$ | B-spline. $q = 1, \cdots, Q_m$. |
+| $\pmb{b}_k^{(m)}$ | B-spline. $k = 1, \cdots, K_m$. |
 | $\pmb{F}^{(m)}$ | Matrix in SVD prior. |
 | $\pmb{g}^{(m)}$ | Offset in SVD prior. |
+| $\pmb{\lambda}^{(m)}$ | Seasonal effect. |
 | $\kappa_m$ | Standard deviation parameter for seasonal effect. |
 | $\varphi$ | Global shrinkage parameter in shrinkage prior. |
 | $A_{\varphi}$ | Scale term in prior for $\varphi$. |

@@ -253,6 +253,9 @@ Type objective_function<Type>::operator() ()
   Type disp = has_disp ? exp(log_disp) : 0;
   int has_season = n_season > 0;
 
+
+  // linear predictor
+
   vector<Type> linear_pred(n_outcome);
   linear_pred.fill(0);
   for (int i_term = 0; i_term < n_term; i_term++) {
