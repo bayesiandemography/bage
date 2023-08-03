@@ -124,7 +124,9 @@ mod_pois <- function(formula, data, exposure) {
                 n_season = 0L,
                 scale_season = NULL,
                 est = NULL,
+                is_fixed = NULL,
                 prec = NULL,
+                R_prec = NULL,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_pois", "bage_mod")
     ans
@@ -239,7 +241,9 @@ mod_binom <- function(formula, data, size) {
                 n_season = 0L,
                 scale_season = NULL,
                 est = NULL,
+                is_fixed = NULL,
                 prec = NULL,
+                R_prec = NULL,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_binom", "bage_mod")
     ans
@@ -363,7 +367,9 @@ mod_norm <- function(formula, data, weights) {
                 n_season = 0L,
                 scale_season = NULL,
                 est = NULL,
+                is_fixed = NULL,
                 prec = NULL,
+                R_prec = NULL,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_norm", "bage_mod")
     ans

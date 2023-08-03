@@ -22,7 +22,7 @@ test_that("'augment' works with valid inputs", {
 
 ## 'components' ---------------------------------------------------------------
 
-test_that("'components' works with valid inputs", {
+test_that("'components' works with season and disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -38,6 +38,43 @@ test_that("'components' works with valid inputs", {
     expect_true(is.data.frame(ans))
     expect_identical(unique(ans$component), c("par", "hyper", "disp", "season"))
 })
+
+test_that("'components' works with season and no disp", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    mod <- set_disp(mod, s = 0)
+    expect_identical(components(mod), NULL)
+    mod_fitted <- fit(mod)
+    ans <- components(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(unique(ans$component), c("par", "hyper", "season"))
+})
+
+test_that("'components' works with no season no disp", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_disp(mod, s = 0)
+    expect_identical(components(mod), NULL)
+    mod_fitted <- fit(mod)
+    ans <- components(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(unique(ans$component), c("par", "hyper"))
+})
+
+
 
 
 ## 'fit' -----------------------------------------------------------------

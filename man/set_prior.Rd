@@ -23,10 +23,8 @@ or an interaction.
 }
 \details{
 If the \code{mod} argument to \code{set_prior} is
-a fitted model, then \code{set_prior} 'unfits'
-\code{mod}, ie \code{set_prior} deletes existing
-estimates and returns \code{mod} to an
-unfitted state.
+a fitted model, then \code{set_disp} 'unfits'
+the model, by deleting existing estimates.
 
 \code{formula} gives the name of a main
 effect or interaction, and a function
@@ -50,5 +48,6 @@ mod |> set_prior(age ~ RW2())
 \item \code{\link[=Known]{Known()}}
 \item \code{\link[=SVD]{SVD()}}
 \item \code{\link[=Spline]{Spline()}}
+\item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

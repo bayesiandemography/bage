@@ -27,6 +27,10 @@ In Poisson and binomial models,
 \code{s} can be set to \code{0}, implying
 that the dispersion term is also \code{0}.
 In normal models, \code{s} must be non-negative.
+
+If the \code{mod} argument to \code{set_disp} is
+a fitted model, then \code{set_disp} 'unfits'
+the model, by deleting existing estimates.
 }
 \examples{
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -35,4 +39,9 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 mod
 mod |> set_disp(s = 0.1)
 mod |> set_disp(s = 0)
+}
+\seealso{
+\itemize{
+\item \code{\link[=is_fitted]{is_fitted()}}
+}
 }

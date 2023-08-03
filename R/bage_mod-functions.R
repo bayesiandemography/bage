@@ -14,6 +14,10 @@
 #' that the dispersion term is also `0`.
 #' In normal models, `s` must be non-negative.
 #'
+#' If the `mod` argument to `set_disp` is
+#' a fitted model, then `set_disp` 'unfits'
+#' the model, by deleting existing estimates.
+#' 
 #' @param mod A `bage_mod` object, typically
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
@@ -22,6 +26,9 @@
 #' In normal models, `s` must be positive.
 #'
 #' @returns A `bage_mod` object
+#'
+#' @seealso
+#' - [is_fitted()]
 #' 
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -38,6 +45,7 @@ set_disp <- function(mod, s) {
     check_scale(s, x_arg = "s", zero_ok = zero_ok)
     scale_disp <- as.double(s)
     mod$scale_disp <- scale_disp
+    mod <- unfit(mod)
     mod
 }
 
@@ -96,11 +104,9 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' or an interaction.
 #'
 #' If the `mod` argument to `set_prior` is
-#' a fitted model, then `set_prior` 'unfits'
-#' `mod`, ie `set_prior` deletes existing
-#' estimates and returns `mod` to an
-#' unfitted state.
-#'
+#' a fitted model, then `set_disp` 'unfits'
+#' the model, by deleting existing estimates.
+#' 
 #' `formula` gives the name of a main
 #' effect or interaction, and a function
 #' specifying a prior, eg
@@ -122,6 +128,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' - [Known()]
 #' - [SVD()]
 #' - [Spline()]
+#' - [is_fitted()]
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + year,
@@ -165,8 +172,7 @@ set_prior <- function(mod, formula) {
                          length_par = length_par,
                          agesex = agesex)
     mod$priors[[i]] <- prior
-    mod["est"] <- list(NULL)
-    mod["prec"] <- list(NULL)
+    mod <- unfit(mod)
     mod
 }
 
@@ -180,6 +186,10 @@ set_prior <- function(mod, formula) {
 #'
 #' TODO - description
 #'
+#' If the `mod` argument to `set_season` is
+#' a fitted model, then `set_season` 'unfits'
+#' the model, by deleting existing estimates.
+#' 
 #' @inheritParams set_disp
 #' @param n Number of seasons.
 #' @param s Scale of half-normal prior for
@@ -188,6 +198,9 @@ set_prior <- function(mod, formula) {
 #'
 #' @returns A modified `bage_mod` object.
 #'
+#' @seealso
+#' - [is_fitted()]
+#' 
 #' @examples
 #' mod <- mod_pois(deaths ~ month,
 #'                 data = us_acc_deaths,
@@ -219,6 +232,7 @@ set_season <- function(mod, n, s = 1) {
                          i = "Data used for estimation has {n_time} time points."))
     mod$n_season <- n
     mod$scale_season <- s
+    mod <- unfit(mod)
     mod
 }
 
@@ -244,6 +258,10 @@ set_season <- function(mod, n, s = 1) {
 #' ([RW()]) prior. Changing the age variable
 #' via `set_var_age()` can change priors:
 #' see below for an example.
+#'
+#' If the `mod` argument to `set_var_age` is
+#' a fitted model, then `set_var_age` 'unfits'
+#' the model, by deleting existing estimates.
 #' 
 #' @inheritParams set_disp
 #' @param name The name of the age variable.
@@ -255,6 +273,7 @@ set_season <- function(mod, n, s = 1) {
 #' - [set_var_time()] sets the time variable
 #' - internally, `bage` uses [poputils::find_var_age()]
 #'   to locate age variables
+#' - [is_fitted()]
 #' 
 #' @examples
 #' ## rename 'age' variable to something unusual
@@ -298,6 +317,10 @@ set_var_age <- function(mod, name) {
 #' contains variables `gender` and `region`,
 #' and terms `gender`, `region`, and `gender:region`.
 #'
+#' If the `mod` argument to `set_var_sexgender` is
+#' a fitted model, then `set_var_sexgender` 'unfits'
+#' the model, by deleting existing estimates.
+#' 
 #' @inheritParams set_disp
 #' @param name The name of the sex or gender variable.
 #'
@@ -312,6 +335,7 @@ set_var_age <- function(mod, name) {
 #'   to locate female categories within a sex or gender variable
 #' - internally, `bage` uses [poputils::find_label_male()]
 #'   to locate male categories within a sex or gender variable
+#' - [is_fitted()]
 #' 
 #' @examples
 #' ## rename 'sex' variable to something unexpected
@@ -357,6 +381,10 @@ set_var_sexgender <- function(mod, name) {
 #' ([RW()]) prior. Changing the time variable
 #' via `set_var_time()` can change priors:
 #' see below for an example.
+#'
+#' If the `mod` argument to `set_var_time` is
+#' a fitted model, then `set_var_time` 'unfits'
+#' the model, by deleting existing estimates.
 #' 
 #' @inheritParams set_disp
 #' @param name The name of the time variable.
@@ -368,6 +396,7 @@ set_var_sexgender <- function(mod, name) {
 #' - [set_var_sexgender()] sets the sex or gender
 #' - internally, `bage` uses [poputils::find_var_time()]
 #'   to locate time variables
+#' - [is_fitted()]
 #'
 #' @examples
 #' ## rename time variable to something unusual
@@ -480,6 +509,25 @@ set_var_inner <- function(mod, name, var) {
     }
     ## modify priors
     mod$priors <- priors
+    ## unfit
+    mod <- unfit(mod)
     ## return
+    mod
+}
+
+
+## NO_TESTS
+#' Reset a model
+#'
+#' @param mod A `bage_mod` object.
+#'
+#' @returns A `bage_mod` object
+#'
+#' @noRd
+unfit <- function(mod) {
+    mod["est"] <- list(NULL)
+    mod["is_fixed"] <- list(NULL)
+    mod["prec"] <- list(NULL)
+    mod["R_prec"] <- list(NULL)
     mod
 }

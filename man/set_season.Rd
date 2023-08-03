@@ -25,6 +25,10 @@ Add a seasonal effect to a model.
 }
 \details{
 TODO - description
+
+If the \code{mod} argument to \code{set_season} is
+a fitted model, then \code{set_season} 'unfits'
+the model, by deleting existing estimates.
 }
 \examples{
 mod <- mod_pois(deaths ~ month,
@@ -32,4 +36,9 @@ mod <- mod_pois(deaths ~ month,
                 exposure = 1)
 mod
 mod |> set_season(n = 12)
+}
+\seealso{
+\itemize{
+\item \code{\link[=is_fitted]{is_fitted()}}
+}
 }

@@ -35,6 +35,10 @@ By default, an age main effect has a random walk
 (\code{\link[=RW]{RW()}}) prior. Changing the age variable
 via \code{set_var_age()} can change priors:
 see below for an example.
+
+If the \code{mod} argument to \code{set_var_age} is
+a fitted model, then \code{set_var_age} 'unfits'
+the model, by deleting existing estimates.
 }
 \examples{
 ## rename 'age' variable to something unusual
@@ -59,5 +63,6 @@ mod |>
 \item \code{\link[=set_var_time]{set_var_time()}} sets the time variable
 \item internally, \code{bage} uses \code{\link[poputils:find_var_age]{poputils::find_var_age()}}
 to locate age variables
+\item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

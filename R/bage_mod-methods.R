@@ -98,21 +98,19 @@ generics::components
 #' @export
 components.bage_mod <- function(object, ...) {
     if (is_fitted(object)) {
-        par <- components_par(object)
-        hyper <- components_hyper(object)
-        ans <- vctrs::vec_rbind(par, hyper)
-        if (has_disp(object)) {
-            disp <- components_disp(object)
-            ans <- vctrs::vec_rbind(ans, disp)
-        }
-        if (has_season(object)) {
-            season <- components_season(object)
-            ans <- vctrs::vec_rbind(ans, season)
-        }
+        comp <- make_comp_component(object)
+        term <- make_term_components(object)
+        level <- make_level_components(object)
+        draws <- make_draws_components(object)
+        draws <- as.matrix(draws)
+        .fitted <- rvec::rvec_dbl(draws)
+        tibble::tibble(component = comp,
+                       term = term,
+                       level = level,
+                       .fitted = .fitted)
     }
     else
-        ans <- NULL
-    ans
+        NULL
 }
     
 
@@ -201,14 +199,20 @@ fit.bage_mod <- function(object, ...) {
                   objective = f$fn,
                   gradient = f$gr,
                   silent = TRUE)
-    ## extract results and return
+    ## extract results
     sdreport <- TMB::sdreport(f,
                               bias.correct = TRUE,
                               getJointPrecision = TRUE)
     est <- as.list(sdreport, what = "Est")
     attr(est, "what") <- NULL
+    is_fixed <- make_is_fixed(est = est,
+                              map = map)
+    prec <- sdreport$jointPrecision
+    R_prec <- chol(prec)
     object$est <- est
-    object$prec <- sdreport$jointPrecision
+    object$is_fixed <- is_fixed
+    object$prec <- prec ## TODO - DELETE THIS
+    object$R_prec <- R_prec
     object
 }
 
@@ -228,8 +232,7 @@ get_fun_inv_transform <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-get_fun_inv_transform.bage_mod_pois <- function(mod)
-    exp
+get_fun_inv_transform.bage_mod_pois <- function(mod) exp
 
 ## HAS_TESTS
 #' @export
