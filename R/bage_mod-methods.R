@@ -349,6 +349,89 @@ is_fitted.bage_mod <- function(x)
     !is.null(x$est)
 
 
+## 'make_fitted_disp' ---------------------------------------------------------
+
+#' Make modelled estimates for models
+#' with dispersion term
+#'
+#' @param x A fitted 'bage_mod' object.
+#' @param expected An rvec with posterior
+#' distribution of expected values,
+#' based on (transformed) linear predictor.
+#' Aligned to data (not outcome.)
+#' @param disp An rvec of length 1 with
+#' posterior distribution for
+#' dispersion term.
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_fitted_disp <- function(x, expected, disp) {
+    UseMethod("make_fitted_disp")
+}
+
+## HAS_TESTS
+#' @export
+make_fitted_disp.bage_mod_pois <- function(x, expected, disp) {
+    outcome <- x$outcome
+    offset <- x$offset
+    align_to_data <- get_fun_align_to_data(x)
+    outcome <- align_to_data(outcome)
+    offset <- align_to_data(offset)
+    rvec::rgamma_rvec(n = length(outcome),
+                      shape = outcome + 1 / disp,
+                      rate = offset + 1 / (disp * expected))
+}
+
+## HAS_TESTS
+#' @export
+make_fitted_disp.bage_mod_binom <- function(x, expected, disp) {
+    outcome <- x$outcome
+    offset <- x$offset
+    align_to_data <- get_fun_align_to_data(x)
+    outcome <- align_to_data(outcome)
+    offset <- align_to_data(offset)
+    rvec::rbeta_rvec(n = length(outcome),
+                     shape1 = outcome + expected / disp,
+                     shape2 = offset - outcome + (1 - expected) / disp)
+}
+
+## TODO - write bage_mod_norm method
+
+
+
+## 'make_observed' ------------------------------------------------------------
+
+#' Make direct estimates
+#'
+#' @param x A fitted 'bage_mod' object.
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_observed <- function(x) {
+    UseMethod("make_observed")
+}
+              
+## HAS_TESTS
+#' @export
+make_observed.bage_mod <- function(x) {
+    outcome <- x$outcome
+    offset <- x$offset
+    align_to_data <- get_fun_align_to_data(x)
+    ans <- as.double(outcome / offset)
+    ans <- align_to_data(ans)
+    ans
+}
+
+## HAS_TESTS
+#' @export
+make_observed.bage_mod_norm <- function(x) {
+    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",
+                         "of class {.cls {class(x)}}."))
+}
+
+
 ## 'model_descr' -----------------------------------------------------------------
 
 #' Name of distribution used in printing

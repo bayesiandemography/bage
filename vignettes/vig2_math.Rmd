@@ -113,6 +113,8 @@ Response $y_i$ is standardised to have mean 0 and standard deviation 1. We set
 where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*$ and $s^*$ are the mean and standard deviation of the $y_i^*$.
 
 
+TODO - formula for $\mu_i$.
+
 # Model for means
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
