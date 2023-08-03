@@ -491,9 +491,9 @@ test_that("'make_levels_season' works", {
 })
 
 
-## 'make_observed' ------------------------------------------------------------
+## 'make_linpred_par' ---------------------------------------------------------
 
-test_that("'make_observed' works", {
+test_that("'make_linpred_par' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -502,10 +502,37 @@ test_that("'make_observed' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_observed(mod)
-    align_fun <- get_fun_align_to_data(mod)
-    ans_expected <- align_fun(as.double(mod$outcome / mod$offset))
-    expect_equal(ans_obtained, ans_expected)
+    mod <- set_n_draw(mod, n_draw = 100L)
+    mod <- fit(mod)
+    comp <- components(mod)
+    set.seed(1)
+    ans <- make_linpred_par(mod = mod,
+                            components = comp)
+    expect_identical(length(ans), length(mod$outcome))
+    expect_s3_class(ans, "rvec")
+})
+
+
+## 'make_linpred_season' ------------------------------------------------------
+
+test_that("'make_linpred_season' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_n_draw(mod, n_draw = 100L)
+    mod <- set_season(mod, n = 2)
+    mod <- fit(mod)
+    comp <- components(mod)
+    set.seed(1)
+    ans <- make_linpred_season(mod = mod,
+                               components = comp)
+    expect_identical(length(ans), length(mod$outcome))
+    expect_s3_class(ans, "rvec")
 })
 
 
@@ -528,7 +555,6 @@ test_that("'make_term_components' works", {
     ans <- make_term_components(mod)
     expect_identical(length(ans), length(comp))
 })
-
 
 
 ## 'make_terms_season' --------------------------------------------------------

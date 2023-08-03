@@ -670,20 +670,49 @@ make_levels_season <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make direct estimates
+#' Make linear predictor from par.
 #'
-#' @param A fitted 'bage_mod' object.
+#' Does not include seasonal effect.
 #'
-#' @returns A vector of doubles.
+#' Return value aligned to outcome, not data.
+#'
+#' @param mod Object of class "bage_mod"
+#' @param components Data frame produced by
+#' call to `components()`.
+#'
+#' @returns An rvec
 #'
 #' @noRd
-make_observed <- function(mod) {
-    outcome <- mod$outcome
-    offset <- mod$offset
-    align_to_data <- get_fun_align_to_data(mod)
-    ans <- as.double(outcome / offset)
-    ans <- align_to_data(ans)
-    ans
+make_linpred_par <- function(mod, components) {
+    matrix_par_outcome <- make_combined_matrix_par_outcome(mod)
+    matrix_par_outcome <- as.matrix(matrix_par_outcome)
+    is_par <- components$component == "par"
+    par <- components$.fitted[is_par]
+    matrix_par_outcome %*% par
+}
+
+
+## HAS_TESTS
+#' Make linear predictor from par.
+#'
+#' Does not include seasonal effect.
+#'
+#' Return value aligned to outcome, not data.
+#'
+#' @param mod Object of class "bage_mod"
+#' @param components Data frame produced by
+#' call to `components()`.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_linpred_season <- function(mod, components) {
+    matrix_season_outcome <- make_combined_matrix_season_outcome(mod)
+    matrix_season_outcome <- as.matrix(matrix_season_outcome)
+    is_season <- ((components$component == "season")
+        & (components$term == "par"))
+    season <- components$.fitted[is_season]
+    matrix_season_outcome %*% season
 }
 
 
@@ -861,64 +890,71 @@ transform_draws_par <- function(draws, matrix, offset) {
 
 
 
-make_linear_pred <- function(mod, components) {
-    matrix_par_outcome <- make_combined_matrix_par_outcome(mod)
-    is_par <- components$component == "par"
-    par <- components[is_par, ".fitted"]
-    ans <- matrix_par_outcome %*% par
-    if (has_season(mod)) {
-        matrix_season_outcome <- make_combined_matrix_season_outcome(mod)
-        is_season <- components$component == "season"
-        season <- components[is_season, ".fitted"]
-        ans <- ans + matrix_season_outcome %*% season
+
+
+
+    
+
+## For use with Poisson, binomial - need special method for normal
+augment.bage_mod <- function(x, ...) {
+    is_fitted <- is_fitted(x)
+    ans <- x$data
+    ## make 'observed'
+    observed <- make_observed(x)
+    ans$.observed <- observed
+    ## if model not fitted, stop here
+    if (!is_fitted)
+        return(ans)
+    ## make transformation from scale/ordering of par
+    ## to scale/ordering of outcome
+    inv_transform <- get_fun_inv_transform(mod)
+    align_to_data <- get_fun_align_to_data(mod)
+    transform <- function(x)
+        align_to_data(inv_transform(x))
+    ## extract quantities needed in calculations
+    has_season <- has_season(x)
+    has_disp <- has_disp(x)
+    components <- components(x)
+    linpred_par <- make_linpred_par(mod = x,
+                                    components = components)
+    if (has_season) {
+        linpred_season <- make_linpred_season(mod = x,
+                                              components = components)
+        linpred <- linpred_par + linpred_season
+        expected <- transform(linpred)
+        seasadj <- transform(linpred_par)
+    }
+    else
+        expected <- transform(linpred_par)
+    if (has_disp) {
+        is_disp <- components$component == "disp"
+        disp <- components$.fitted[is_disp]
+        fitted <- make_fitted_disp(mod = x,
+                                   expected = expected,
+                                   disp = disp)
+    }
+    ## Deal with four combinations of dispersion
+    ## and seasonal effect. Note that when no
+    ## dispersion, fitted and expected are identical.
+    if (!has_disp && !has_season) {
+        ans$.fitted <- expected
+    }
+    else if (has_disp && !has_season) {
+        ans$.fitted <- fitted
+        ans$.expected <- expected
+    }
+    else if (!has_disp && has_season) {
+        ans$.fitted <- expected
+        ans$.seasadj <- seasadj
+    }
+    else { ## has_disp && has_season
+        ans$.fitted <- fitted
+        ans$.expected <- expected
+        ans$.seasadj <- seasadj
     }
     ans
 }
 
-## make_expected <- function(
-
-
-##     inv_transform <- get_fun_inv_transform(mod)
-##     align_to_data <- get_fun_align_to_data(mod)
-##     scale_outcome <- get_fun_scale_outcome(mod)
-##     ans <- inv_transform(draws_linear_pred)
-##     ans <- align_to_data(ans)
-##     ans <- scale_outcome(ans)
-
-    
-## make_fitted.bage_mod_pois <- function(mod, expected, disp) {
-##     align_to_data <- get_fun_align_to_data(mod)
-##     outcome <- align_to_data(mod$outcome)
-##     offset <- align_to_data(mod$offset)
-##     rvec::rvec_rgamma(n = length(outcome),
-##                       shape = outcome + 1 / disp
-##                       rate = offset + 1 / (disp * expected))
-## }
-    
-
-
-## augment.bage_mod <- function(x, ...) {
-##     ans <- x$data
-##     ans[[".observed"]] <- make_observed(x)
-##     is_fitted <- is_fitted(x)
-##     if (is_fitted) {
-##         components <- components(x)
-##         expected <- make_expected(mod = x,
-##                                   components = components)
-##         if (has_disp) {
-##             disp <- make_disp(components)
-##             fitted <- make_fitted(mod = x,
-##                                   expected = expected,
-##                                   disp = disp)
-##             ans[[".fitted"]] <- fitted
-##             ans[[".expected"]] <- expected
-##         }
-##         else
-##             ans[[".fitted"]] <- expected
-##     }
-##     ans <- tibble(ans)
-##     ans
-## }
 
     
     
