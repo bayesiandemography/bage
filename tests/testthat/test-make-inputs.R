@@ -14,7 +14,7 @@ test_that("'default_prior' works with intercept", {
                                    var_age = "age",
                                    var_time = "time",
                                    length_par = 1L),
-                     NFixed(sd = 10))
+                     NFix(sd = 10))
 })
 
 test_that("'default_prior' works with term with length 1", {
@@ -22,7 +22,7 @@ test_that("'default_prior' works with term with length 1", {
                                    var_age = "age",
                                    var_time = "time",
                                    length_par = 1L),
-                     NFixed())
+                     NFix())
 })
 
 test_that("'default_prior' works with age term", {
@@ -978,7 +978,7 @@ test_that("'make_priors' works with valid inputs - has intercept", {
                                 var_age = "age",
                                 var_time = "time",
                                 lengths_par = c(1L, 10L, 12L))
-    ans_expected <- list("(Intercept)" = NFixed(sd = 10),
+    ans_expected <- list("(Intercept)" = NFix(sd = 10),
                          time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
@@ -1096,7 +1096,7 @@ test_that("'make_uses_hyper' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) %>%
-        set_prior(agegp ~ NFixed())
+        set_prior(agegp ~ NFix())
     ans_obtained <- make_uses_hyper(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 0L,

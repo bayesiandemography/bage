@@ -28,7 +28,7 @@ test_that("'set_prior' works with valid inputs", {
                     exposure = popn)
     mod_rw <- set_prior(mod, age ~ RW2())
     expect_s3_class(mod_rw$priors[["age"]], "bage_prior_rw2")
-    mod_rw <- set_prior(mod, age:sex ~ NFixed())
+    mod_rw <- set_prior(mod, age:sex ~ NFix())
     expect_s3_class(mod_rw$priors[["age:sex"]], "bage_prior_normfixed")
 })
 
@@ -91,7 +91,7 @@ test_that("'set_prior' works with when order of components of interaction change
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:age ~ NFixed())
+    mod <- set_prior(mod, sex:age ~ NFix())
     expect_s3_class(mod$priors[["age:sex"]], "bage_prior_normfixed")
 })
 

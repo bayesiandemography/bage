@@ -150,21 +150,21 @@ N <- function(s = 1) {
 #'
 #' \deqn{x \sim \text{N}(0, \text{sd}^2)}
 #'
-#' `NFixed()` is the default prior for the intercept.
+#' `NFix()` is the default prior for the intercept.
 #'
 #' @param sd Standard deviation.
 #' A positive, finite number.
 #' Default is `1`.
 #'
 #' @returns An object of class `bage_prior_normfixed`.
-#' `NFixed()` is usually called within [set_prior()].
+#' `NFix()` is usually called within [set_prior()].
 #' Other priors are [N()], [RW()], [RW2()].
 #'
 #' @examples
-#' NFixed()
-#' NFixed(sd = 10) ## prior used for intercept
+#' NFix()
+#' NFix(sd = 10) ## prior used for intercept
 #' @export
-NFixed <- function(sd = 1) {
+NFix <- function(sd = 1) {
     check_scale(sd, x_arg = "sd", zero_ok = FALSE) 
     sd <- as.double(sd)
     new_bage_prior_normfixed(sd = sd)

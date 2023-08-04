@@ -16,9 +16,9 @@ default_prior <- function(nm_term, var_age, var_time, length_par) {
     is_length_1 <- length_par == 1L
     is_age_time <- nm_term %in% c(var_age, var_time)
     if (is_intercept)
-        NFixed(sd = scale_intercept)
+        NFix(sd = scale_intercept)
     else if (is_length_1)
-        NFixed()
+        NFix()
     else if (is_age_time)
         RW()
     else
