@@ -38,7 +38,9 @@ Note: this is describing the models we want to get to soon, not the ones we curr
 
 # Likelihood {#sec:lik}
 
-## Poisson {#sec:pois}
+## Models
+
+### Poisson {#sec:pois}
 
 Let $y_i$ be a count of events in cell $i = 1, \cdots, n$ and let $w_i$ be the corresponding exposure measure, with the possibility that $w_i \equiv 1$. The likelihood under the Poisson model is then
 \begin{align}
@@ -69,7 +71,7 @@ This is the format we use internally for estimation. When values for $\gamma_i$ 
 \end{equation}
 
 
-## Binomial {#sec:binom}
+### Binomial {#sec:binom}
 
 The likelihood under the binomial model is
 \begin{align}
@@ -99,7 +101,7 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 \end{equation}
 
 
-## Normal {#sec:norm}
+### Normal {#sec:norm}
 
 \begin{equation}
   y_i \sim \mathcal{N}(\mu_i, w_i^{-1}\xi^2)
@@ -112,8 +114,9 @@ Response $y_i$ is standardised to have mean 0 and standard deviation 1. We set
 \end{equation}
 where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*$ and $s^*$ are the mean and standard deviation of the $y_i^*$.
 
+## Missing values
 
-TODO - formula for $\mu_i$.
+For any given cell $i$, one or both of $y_i$ and $w_i$ may be missing. In this case, cell $i$ is omitted from the likelihood.
 
 # Model for means
 
@@ -134,29 +137,6 @@ where
 Priors for the $\pmb{\beta}^{(m)}$ are discussed in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact), priors for seasonal effect $\pmb{\lambda}^{(m)}$ are discussed in Section \@ref(sec:pr-season), and priors for coefficient vector $\pmb{\zeta}$ are discussed in Section \@ref(sec:pr-cov).
 
 
-# Prior for intercept {#sec:pr-int}
-
-TODO - also allow for known prior.
-
-## Model
-
-\begin{equation}
-  \beta^{(0)} \sim \mathcal{N}(0, A_0^2)
-\end{equation}
-
-By default, $A_0 = 10$, which gives the intercept a proper but diffuse prior.
-
-
-## Code
-
-```
-set_prior(`(Intercept)` ~ NFixed(sd))
-```
-
-- `scale` is $A_0$. 
-
-
-
 # Design of priors for main effects {#sec:pr-main-over}
 
 ## Model
@@ -165,6 +145,10 @@ In all priors for  main effects, we require, for identifiability, that
 \begin{equation}
   \text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0.
 \end{equation}
+
+## Contribution to posterior density
+
+TMB requires that we provide a function to calculate contribution to the posterior density of each prior. The function does not need to be normalised: any quantities that do not vary with the parameters can be omitted.
 
 ## Prediction
 
@@ -196,7 +180,6 @@ set_prior(time ~ Lin(scale = 0.2))
 ```
 
 
-
 # Priors for main effects {#sec:pr-main-specific}
 
 ## Independent normal {#sec:pr-inorm}
@@ -207,6 +190,13 @@ set_prior(time ~ Lin(scale = 0.2))
   \beta_j^{(m)} | \tau_m & \ind \mathcal{N}\left(0, \tau_m^2 \right) \\
   \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
+
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \mathcal{N}(\beta_j^{(m)} \mid 0, \tau_m^2) 
+\end{equation}
+
 
 ### Prediction
 
@@ -230,6 +220,13 @@ N(s = 1)
 \begin{equation}
   \beta_j^{(m)} | A_{\beta}^{(m)} \ind \mathcal{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
+
+### Contribution to posterior density
+
+\begin{equation}
+  \prod_{j=1}^{J_m} \mathcal{N}(\beta_j^{(m)} \mid 0, A_{\beta}^{(m)2}) 
+\end{equation}
+
 
 ### Prediction
 
@@ -258,6 +255,13 @@ NFix(s = 1)
 \end{align}
 where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user.
 
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
+\end{equation}
+
+
 ### Prediction
 
 Main effects with a multivariate normal prior cannot be predicted.
@@ -284,6 +288,14 @@ $j = 1, \cdots, J_m - 1$, together with the soft constraint
 \begin{equation}
   \sum_{j=1}^{J_m} \beta_j^{(m)} \sim \mathcal{N}(0, 1).
 \end{equation}
+
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \beta_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
+\end{equation}
+
+
 
 ### Prediction
 
@@ -313,6 +325,11 @@ $j = 1, \cdots, J_m - 2$, together with the soft constraint
   \sum_{j=1}^{J_m} \beta_j^{(m)} \sim \mathcal{N}(0, 1).
 \end{equation}
 
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \beta_j^{(m)} \mid 0, 1 \right)  \prod_{j=3}^{J_m} \mathcal{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+\end{equation}
 
 ### Prediction
 
@@ -486,16 +503,29 @@ Main effects with a SVD prior cannot be predicted.
 SVD(scaled_svd, n = 5, indep = TRUE)
 ```
 
-- `scaled_svd` contains $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$
-- `n` is the number of components
-- `indep` Type of age-sex interaction TODO - COMPLETE
+## Known {#sec:pr-known}
+
+### Model
+
+Elements of $\pmb{\beta}^{(m)}$ are treated as known with certainty.
+
+### Prediction
+
+Main effects with a known prior cannot be predicted.
 
 
-### Combined dimensions
+### Code
 
-Designed for use with age, but can be used with other dimensions.
+```
+Known(values)
+```
 
-Can also combine dimensions by taking Cartesian product of categories, eg age-sex.
+- `values` is a vector containing the $\beta_j^{(m)}$.
+
+
+# Priors for intercept {#sec:pr-int}
+
+The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)). If a fixed-norm prior is used, the default value for scale $A_{\beta}^{(0)}$ is 10 rather than 1.
 
 
 # Priors for interactions {#sec:pr-interact}
