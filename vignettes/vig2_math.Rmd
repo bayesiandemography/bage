@@ -150,6 +150,8 @@ In all priors for  main effects, we require, for identifiability, that
 
 TMB requires that we provide a function to calculate contribution to the posterior density of each prior. The function does not need to be normalised: any quantities that do not vary with the parameters can be omitted.
 
+In TMB itself, densitities are specified on the log scale. Here, however, we present them on the original scale.
+
 ## Prediction
 
 In some applications, we need to predict outside that data, which requires generating values $\beta_{J_m + h}^{(m)}$, $h = 1, 2, \cdots$. We do not allow predicted values with multivariate normal priors (Section \@ref(sec:pr-mnorm)), P-Spline priors (Section \@ref(sec:pr-spline)), or SVD priors (Section \@ref(sec:pr-svd)). For all other priors, we are able to obtain expressions for
@@ -211,7 +213,7 @@ set_prior(time ~ Lin(scale = 0.2))
 N(s = 1)
 ```
 
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 ## Fixed normal {#sec:pr-fnorm}
 
@@ -238,10 +240,10 @@ N(s = 1)
 ### Code
 
 ```
-NFix(s = 1)
+NFix(sd = 1)
 ```
 
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `sd` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## Multivariate normal {#sec:pr-mnorm}
@@ -274,7 +276,7 @@ MVN(V, s = 1)
 ```
 
 - `V` is $\pmb{V}^{(m)}$
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## First-order random walk {#sec:pr-rw}
@@ -295,8 +297,6 @@ $j = 1, \cdots, J_m - 1$, together with the soft constraint
   \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \beta_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
-
-
 ### Prediction
 
 \begin{equation}
@@ -310,7 +310,7 @@ $j = 1, \cdots, J_m - 1$, together with the soft constraint
 RW(s = 1)
 ```
 
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## Second-order random walk {#sec:pr-rw2}
@@ -344,7 +344,7 @@ $j = 1, \cdots, J_m - 2$, together with the soft constraint
 RW2(s = 1)
 ```
 
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## AR1 {#sec:pr-ar1}
@@ -353,13 +353,21 @@ RW2(s = 1)
 
 \begin{align}
   \beta_1^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
-  \beta_j^{(m)} & \sim \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
+  \beta_j^{(m)} & = \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
   \epsilon_j^{(m)} & \sim \mathcal{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right).
 \end{align}
 This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). We require that $-1 < a_{0m} < a_{1m} < 1$.
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \mathcal{N}\left(\beta_1^{(m)} \mid 0, \tau_m^2 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\beta_j^{(m)} \mid \phi_m \beta_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
+\end{equation}
+
 
 ### Prediction
 
@@ -377,7 +385,7 @@ AR1(min = 0.8, max = 0.98, s = 1)
 
 - `min` is $a_{0m}$
 - `max` is $a_{1m}$
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
@@ -388,11 +396,19 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 
 \begin{align}
   \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
-   h_q^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
+   h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
   \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
   \epsilon_j^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
   \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2})   \mathcal{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \mathcal{N}\left(\beta_j^{(m)} \mid h_j^{(m)} \eta_m, \tau_m^2 \right) 
+\end{equation}
+
 
 ### Prediction
 
@@ -408,7 +424,7 @@ Lin(sd = NULL, s = 1)
 ```
 
 - `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## Linear with AR1 errors {#sec:pr-lin-ar1}
@@ -417,16 +433,22 @@ Lin(sd = NULL, s = 1)
 
 \begin{align}
   \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
-   h_q^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
+   h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
   \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
   \epsilon_1^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
-  \epsilon_j^{(m)} & \sim \phi_m \epsilon_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
+  \epsilon_j^{(m)} & \sim \mathcal{N}\left(\phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 where $-1 < a_{0m} < a_{1m} < 1$.
 
+
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \mathcal{N}\left(\epsilon_1^{(m)} \mid 0, \tau_m^2 \right)  \mathcal{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=2}^{J_m} \mathcal{N}\left(\epsilon_j^{(m)} \mid \phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2  \right) 
+\end{equation}
 
 
 ### Prediction
@@ -450,7 +472,7 @@ LinAR1(sd = NULL, min = 0.8, max = 0.98, s = 1)
 - `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
 - `min` is $a_{0m}$.
 - `max` is $a_{1m}$.
-- `scale` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## P-Spline {#sec:pr-spline}
@@ -465,6 +487,13 @@ where $\pmb{B}^{(m)}$ is a $J_m \times K_m$ matrix of B-splines, and $\pmb{\alph
 $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j}))$, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{j}) = 0$, $k = 1, \cdots, K_m$.
 
 
+### Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{k=1}^{K_m} \alpha_k^{(m)} \mid 0, 1 \right)  \prod_{k=3}^{K_m} \mathcal{N}\left(\alpha_k^{(m)} - 2 \alpha_{k-1}^{(m)} + \alpha_{k-2}^{(m)} \mid 0, \tau_m^2 \right) 
+\end{equation}
+
+
 ### Prediction
 
 Main effects with a P-Spline prior cannot be predicted.
@@ -473,11 +502,11 @@ Main effects with a P-Spline prior cannot be predicted.
 ### Code
 
 ```
-Spline(n = NULL, scale = 1)
+Spline(n = NULL, s = 1)
 ```
 
 - `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
-- `scale` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to 1.
+- `s` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to 1.
 
 
 ## SVD {#sec:pr-svd}
@@ -491,6 +520,12 @@ Spline(n = NULL, scale = 1)
 where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
 TODO - Describe age-sex interactions.
+
+### Contribution to posterior density
+
+\begin{equation}
+  \prod_{k=1}^{K_m} \mathcal{N}\left(\alpha_k^{(m)} \mid 0, 1 \right) 
+\end{equation}
 
 ### Prediction
 
@@ -508,6 +543,10 @@ SVD(scaled_svd, n = 5, indep = TRUE)
 ### Model
 
 Elements of $\pmb{\beta}^{(m)}$ are treated as known with certainty.
+
+### Contribution to posterior density
+
+Known priors make no contribution to the posterior density.
 
 ### Prediction
 
@@ -543,6 +582,13 @@ Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ eleme
   \kappa_m & \sim \mathcal{N}^+\left(0, A_{\kappa}^{(m)2}\right) \\
   \sum_{j=1}^{J_m} \lambda_j & \sim \mathcal{N}(0, 1)
 \end{align}
+
+
+## Contribution to posterior density
+
+\begin{equation}
+  \mathcal{N}(\kappa_m | 0, A_{\kappa}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\lambda_j^{(m)} - \lambda_{j-1}^{(m)} \mid 0, \kappa_m^2 \right) 
+\end{equation}
 
 
 ## Code

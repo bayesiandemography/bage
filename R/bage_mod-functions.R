@@ -121,7 +121,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #'
 #' @seealso
 #' - [N()]
-#' - [NFixed()]
+#' - [NFix()]
 #' - [RW()]
 #' - [RW2()]
 #' - [AR1()]

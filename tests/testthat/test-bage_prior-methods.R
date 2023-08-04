@@ -39,7 +39,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
-    expect_true(is_prior_ok_for_term(prior = NFixed(),
+    expect_true(is_prior_ok_for_term(prior = NFix(),
                                      nm = "sex",
                                      length_par = 1,
                                      agesex = "other"))
@@ -116,7 +116,7 @@ test_that("'levels_hyper' works with 'bage_prior_norm'", {
 })
 
 test_that("'levels_hyper' works with 'bage_prior_normfixed'", {
-    expect_identical(levels_hyper(NFixed()), character())
+    expect_identical(levels_hyper(NFix()), character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw'", {
@@ -267,8 +267,8 @@ test_that("'str_call_prior' works with bage_prior_norm", {
 })
 
 test_that("'str_call_prior' works with bage_prior_normfixed", {
-    expect_identical(str_call_prior(NFixed()), "NFixed()")
-    expect_identical(str_call_prior(NFixed(sd = 0.95)), "NFixed(sd=0.95)")
+    expect_identical(str_call_prior(NFix()), "NFix()")
+    expect_identical(str_call_prior(NFix(sd = 0.95)), "NFix(sd=0.95)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw", {
@@ -317,7 +317,7 @@ test_that("'transform_hyper' works with 'bage_prior_norm'", {
 })
 
 test_that("'transform_hyper' works with 'bage_prior_normfixed'", {
-    l <- transform_hyper(NFixed())
+    l <- transform_hyper(NFix())
     expect_identical(l, list())
 })
 

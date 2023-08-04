@@ -20,8 +20,8 @@ test_that("'N' works with valid inputs", {
     expect_identical(N(), new_bage_prior_norm(scale = 1))
 })
 
-test_that("'NFixed' works with valid inputs", {
-    expect_identical(NFixed(), new_bage_prior_normfixed(sd = 1))
+test_that("'NFix' works with valid inputs", {
+    expect_identical(NFix(), new_bage_prior_normfixed(sd = 1))
 })
 
 test_that("'RW' works with valid inputs", {

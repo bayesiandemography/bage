@@ -495,9 +495,9 @@ str_call_prior.bage_prior_norm <- function(prior) {
 str_call_prior.bage_prior_normfixed <- function(prior) {
     sd <- prior$specific$sd
     if (isTRUE(all.equal(sd, 1)))
-        "NFixed()"
+        "NFix()"
     else
-        sprintf("NFixed(sd=%s)", sd)
+        sprintf("NFix(sd=%s)", sd)
 }
 
 ## HAS_TESTS
