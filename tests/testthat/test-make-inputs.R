@@ -795,9 +795,7 @@ test_that("'make_offset_vec' works with valid inputs - no NA", {
     ans_obtained <- make_offset_vec(vname_offset = "wt",
                                     data = data)
     ans_expected <- as.double(data$wt)
-    ans_expected <- ans_expected / mean(ans_expected)
     expect_identical(ans_obtained, ans_expected)
-    expect_equal(mean(ans_obtained), 1)
 })
 
 test_that("'make_offset_vec' works with valid inputs - has NA", {
@@ -809,9 +807,7 @@ test_that("'make_offset_vec' works with valid inputs - has NA", {
     ans_expected <- xtabs(wt ~ age + sex + time, data = data)
     ans_expected[3] <- NA
     ans_expected <- data$wt
-    ans_expected <- ans_expected / mean(ans_expected, na.rm = TRUE)
     expect_identical(ans_obtained, ans_expected)
-    expect_equal(mean(ans_obtained, na.rm = TRUE), 1)
 })
 
 

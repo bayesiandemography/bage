@@ -772,8 +772,6 @@ make_offset_ones_vec <- function(data) {
 ## HAS_TESTS
 #' Make vector holding offset variable
 #'
-#' The offset is standardised to have mean 1.
-#' 
 #' @param vname_offset Name of the offset variable.
 #' @param data A data frame
 #'
@@ -783,9 +781,6 @@ make_offset_ones_vec <- function(data) {
 make_offset_vec <- function(vname_offset, data) {
     nms_data <- names(data)
     ans <- data[[match(vname_offset, nms_data)]]
-    n_obs <- sum(!is.na(ans))
-    if (n_obs >= 1L)
-        ans <- ans / mean(ans, na.rm = TRUE)
     ans <- as.double(ans)
     ans
 }
