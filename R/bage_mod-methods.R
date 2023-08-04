@@ -39,14 +39,100 @@ generics::augment
 #'   augment()
 #' @export
 augment.bage_mod <- function(x, ...) {
-    ans <- x$data
     is_fitted <- is_fitted(x)
-    if (is_fitted) {
-        draws <- make_draws_fitted(x)
-        ans[[".fitted"]] <- rvec::rvec_dbl(draws)
+    ans <- x$data
+    ## make 'observed'
+    observed <- make_observed(x)
+    ans$.observed <- observed
+    ## if model not fitted, stop here
+    if (!is_fitted)
+        return(ans)
+    ## make transformation from scale/ordering of par
+    ## to scale/ordering of outcome
+    inv_transform <- get_fun_inv_transform(x)
+    align_to_data <- get_fun_align_to_data(x)
+    transform <- function(x)
+        align_to_data(inv_transform(x))
+    ## extract quantities needed in calculations
+    has_season <- has_season(x)
+    has_disp <- has_disp(x)
+    components <- components(x)
+    linpred_par <- make_linpred_par(mod = x,
+                                    components = components)
+    if (has_season) {
+        linpred_season <- make_linpred_season(mod = x,
+                                              components = components)
+        linpred <- linpred_par + linpred_season
+        expected <- transform(linpred)
+        seasadj <- transform(linpred_par)
     }
-    ans[[".observed"]] <- make_observed(x)
-    ans <- tibble(ans)
+    else
+        expected <- transform(linpred_par)
+    if (has_disp) {
+        is_disp <- components$component == "disp"
+        disp <- components$.fitted[is_disp]
+        fitted <- make_fitted_disp(x = x,
+                                   expected = expected,
+                                   disp = disp)
+    }
+    ## Deal with four combinations of dispersion
+    ## and seasonal effect. Note that when no
+    ## dispersion, fitted and expected are identical.
+    if (!has_disp && !has_season) {
+        ans$.fitted <- expected
+    }
+    else if (has_disp && !has_season) {
+        ans$.fitted <- fitted
+        ans$.expected <- expected
+    }
+    else if (!has_disp && has_season) {
+        ans$.fitted <- expected
+        ans$.seasadj <- seasadj
+    }
+    else { ## has_disp && has_season
+        ans$.fitted <- fitted
+        ans$.expected <- expected
+        ans$.seasadj <- seasadj
+    }
+    ans
+}
+
+## NO_TESTS
+#' @export
+augment.bage_mod_norm <- function(x, ...) {
+    is_fitted <- is_fitted(x)
+    ans <- x$data
+    ## if model not fitted, stop here
+    if (!is_fitted)
+        return(ans)
+    ## make transformation from scale/ordering of par
+    ## to scale/ordering of outcome
+    align_to_data <- get_fun_align_to_data(x)
+    scale_outcome <- get_fun_scale_outcome(x)
+    transform <- function(x)
+        scale_outcome(align_to_data(x))
+    ## extract quantities needed in calculations
+    components <- components(x)
+    linpred_par <- make_linpred_par(mod = x,
+                                    components = components)
+    has_season <- has_season(x)
+    if (has_season) {
+        linpred_season <- make_linpred_season(mod = x,
+                                              components = components)
+        linpred <- linpred_par + linpred_season
+        fitted <- transform(linpred)
+        seasadj <- transform(linpred_par)
+    }
+    else
+        fitted <- transform(linpred_par)
+    ## deal withs case with and without seasonal effect
+    if (has_season) {
+        ans$.fitted <- fitted
+    }
+    else { 
+        ans$.fitted <- fitted
+        ans$.seasadj <- seasadj
+    }
     ans
 }
 
@@ -378,9 +464,17 @@ make_fitted_disp.bage_mod_pois <- function(x, expected, disp) {
     align_to_data <- get_fun_align_to_data(x)
     outcome <- align_to_data(outcome)
     offset <- align_to_data(offset)
-    rvec::rgamma_rvec(n = length(outcome),
-                      shape = outcome + 1 / disp,
-                      rate = offset + 1 / (disp * expected))
+    n_val <- length(outcome)
+    n_draw <- rvec::n_draw(expected)
+    ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
+    is_na <- is.na(outcome) | is.na(offset)
+    outcome <- outcome[!is_na]
+    offset <- offset[!is_na]
+    expected <- expected[!is_na]
+    ans[!is_na] <- rvec::rgamma_rvec(n = length(outcome),
+                                     shape = outcome + 1 / disp,
+                                     rate = offset + 1 / (disp * expected))
+    ans
 }
 
 ## HAS_TESTS
@@ -391,12 +485,17 @@ make_fitted_disp.bage_mod_binom <- function(x, expected, disp) {
     align_to_data <- get_fun_align_to_data(x)
     outcome <- align_to_data(outcome)
     offset <- align_to_data(offset)
-    rvec::rbeta_rvec(n = length(outcome),
-                     shape1 = outcome + expected / disp,
-                     shape2 = offset - outcome + (1 - expected) / disp)
+    n_val <- length(outcome)
+    n_draw <- rvec::n_draw(expected)
+    ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
+    is_na <- is.na(outcome) | is.na(offset)
+    outcome <- outcome[!is_na]
+    offset <- offset[!is_na]
+    expected <- expected[!is_na]
+    ans[!is_na] <- rvec::rbeta_rvec(n = length(outcome),
+                                    shape1 = outcome + expected / disp,
+                                    shape2 = offset - outcome + (1 - expected) / disp)
 }
-
-## TODO - write bage_mod_norm method
 
 
 

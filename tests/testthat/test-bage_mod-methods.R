@@ -16,7 +16,7 @@ test_that("'augment' works with valid inputs", {
     ans <- augment(mod_fitted)
     expect_true(is.data.frame(ans))
     expect_identical(names(ans),
-                     c(names(data), c(".fitted", ".observed")))
+                     c(names(data), c(".observed", ".fitted", ".expected")))
 })
 
 
