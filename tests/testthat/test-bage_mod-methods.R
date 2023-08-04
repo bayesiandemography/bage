@@ -1,7 +1,7 @@
 
 ## 'augment' ---------------------------------------------------------------
 
-test_that("'augment' works with valid inputs", {
+test_that("'augment' works with Poisson, disp, no season", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
@@ -18,6 +18,82 @@ test_that("'augment' works with valid inputs", {
     expect_identical(names(ans),
                      c(names(data), c(".observed", ".fitted", ".expected")))
 })
+
+test_that("'augment' works with binomial, no disp, no season", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.5)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_disp(mod, s = 0)
+    expect_identical(augment(mod), tibble(data, .observed = make_observed(mod)))
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".observed", ".fitted")))
+})
+
+test_that("'augment' works with Poisson, no disp, season", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_disp(mod, s = 0)
+    mod <- set_season(mod, n = 2)
+    expect_identical(augment(mod), tibble(data, .observed = make_observed(mod)))
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".observed", ".fitted", ".seasadj")))
+})
+
+test_that("'augment' works with binomial, disp, season", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.5)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    expect_identical(augment(mod), tibble(data, .observed = make_observed(mod)))
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), c(".observed", ".fitted", ".expected", ".seasadj")))
+})
+
+test_that("'augment' works with normal, no season", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$deaths <- rpois(n = nrow(data), lambda = 100)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = 1)
+    expect_identical(augment(mod), tibble(data))
+    mod_fitted <- fit(mod)
+    ans <- augment(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(names(ans),
+                     c(names(data), ".fitted"))
+})
+
 
 
 ## 'components' ---------------------------------------------------------------

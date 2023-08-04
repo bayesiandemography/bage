@@ -806,7 +806,7 @@ test_that("'make_offset_vec' works with valid inputs - has NA", {
                                     data = data)
     ans_expected <- xtabs(wt ~ age + sex + time, data = data)
     ans_expected[3] <- NA
-    ans_expected <- data$wt
+    ans_expected <- as.double(data$wt)
     expect_identical(ans_obtained, ans_expected)
 })
 

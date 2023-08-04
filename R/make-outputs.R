@@ -1,24 +1,4 @@
 
-## NO_TESTS
-#' Create data frame holding dispersion parameter
-#'
-#' Helper function for 'components'
-#'
-#' @param mod A fitted 'bage_mod' object
-#'
-#' @returns A tibble
-#'
-#' @noRd
-components_disp <- function(mod) {
-    draws <- make_draws_disp(mod)
-    .fitted <- rvec::rvec_dbl(draws)
-    tibble::tibble(component = "disp",
-                   term = "disp",
-                   level = "disp",
-                   .fitted = .fitted)
-}
-
-
 ## HAS_TESTS
 #' Create data frame holding hyper-parameters
 #'
@@ -335,41 +315,6 @@ make_draws_components <- function(mod) {
     }
     draws <- draws[keep, , drop = FALSE]
     draws
-}
-
-
-
-## NO_TESTS
-#' Make draws from posterior distribution
-#' of dispersion parameter
-#'
-#' Number of draws governed by 'n_draw'.
-#'
-#' @param mod A fitted object of class 'bage_mod'.
-#'
-#' @returns A list of length 1, holding a vector
-#' with 'n_draw' elements.
-#'
-#' @noRd
-make_draws_disp <- function(mod) {
-    mean_par <- mod$est$par
-    mean_hyper <- mod$est$hyper
-    mean_disp <- mod$est$log_disp
-    prec_all <- mod$prec
-    n_draw <- mod$n_draw
-    i_disp <- length(mean_par) + length(mean_hyper) + 1L
-    V1 <- prec_all[i_disp, i_disp, drop = FALSE]
-    V2 <- prec_all[-i_disp, -i_disp, drop = FALSE]
-    R <- prec_all[-i_disp, i_disp, drop = FALSE]
-    prec_disp <- V1 - Matrix::crossprod(R, Matrix::solve(V2, R))
-    prec_disp <- as.numeric(prec_disp)
-    sd_disp <- 1 / sqrt(prec_disp)
-    ans <- rnorm(n = n_draw, 
-                 mean = mean_disp,
-                 sd = sd_disp)
-    ans <- exp(ans)
-    ans <- list(ans)
-    ans
 }
 
 

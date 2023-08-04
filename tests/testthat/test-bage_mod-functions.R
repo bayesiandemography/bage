@@ -1,4 +1,36 @@
 
+
+## 'set_disp' -----------------------------------------------------------------
+
+test_that("'set_disp' works with Poisson", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_identical(mod$scale_disp, 1)
+    mod <- set_disp(mod, s = 0)
+    expect_identical(mod$scale_disp, 0)
+    mod <- set_disp(mod, s = 0.5)
+    expect_identical(mod$scale_disp, 0.5)
+})
+
+test_that("'set_disp' works with normal", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$deaths <- rpois(n = nrow(data), lambda = 100)
+    formula <- deaths ~ age:sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = 1)
+    expect_identical(mod$scale_disp, 1)
+    mod <- set_disp(mod, s = 0.5)
+    expect_identical(mod$scale_disp, 0.5)
+    expect_error(set_disp(mod, s = 0))
+})
+
+
 ## 'set_n_draw' ---------------------------------------------------------------
 
 test_that("'set_n_draw' works with valid inputs", {
@@ -292,4 +324,22 @@ test_that("'set_var_inner' gives correct errors with invalid inputs", {
                                name = "age",
                                var = "time"),
                  "time variable and age variable have same name \\[\"age\"\\]")
+})
+
+
+## 'unfit' --------------------------------------------------------------------
+
+
+test_that("'set_n_draw' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age:sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod_fit_unfit <- unfit(fit(mod))
+    expect_identical(mod$est, mod_fit_unfit$est)
+    expect_identical(mod$is_fixed, mod_fit_unfit$is_fixed)
+    expect_identical(mod$R_prec, mod_fit_unfit$R_prec)
 })

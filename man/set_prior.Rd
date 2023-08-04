@@ -41,7 +41,7 @@ mod |> set_prior(age ~ RW2())
 \seealso{
 \itemize{
 \item \code{\link[=N]{N()}}
-\item \code{\link[=NFixed]{NFixed()}}
+\item \code{\link[=NFix]{NFix()}}
 \item \code{\link[=RW]{RW()}}
 \item \code{\link[=RW2]{RW2()}}
 \item \code{\link[=AR1]{AR1()}}
