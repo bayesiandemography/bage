@@ -97,7 +97,7 @@ augment.bage_mod <- function(x, ...) {
     ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 augment.bage_mod_norm <- function(x, ...) {
     is_fitted <- is_fitted(x)
@@ -125,13 +125,13 @@ augment.bage_mod_norm <- function(x, ...) {
     }
     else
         fitted <- transform(linpred_par)
-    ## deal withs case with and without seasonal effect
+    ## deal with case with and without seasonal effect
     if (has_season) {
         ans$.fitted <- fitted
+        ans$.seasadj <- seasadj
     }
     else { 
         ans$.fitted <- fitted
-        ans$.seasadj <- seasadj
     }
     ans
 }

@@ -3,7 +3,7 @@
 
 ## 'set_disp' -----------------------------------------------------------------
 
-## NO_TESTS
+## HAS_TESTS
 #' Set scale parameter for dispersion
 #'
 #' Specify the scale parameter `s` in the prior
@@ -179,7 +179,7 @@ set_prior <- function(mod, formula) {
 
 ## Seasonal effect ------------------------------------------------------------
 
-## NO_TESTS
+## HAS_TESTS
 #' Add a seasonal effect
 #'
 #' Add a seasonal effect to a model.
@@ -516,7 +516,7 @@ set_var_inner <- function(mod, name, var) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Reset a model
 #'
 #' @param mod A `bage_mod` object.
@@ -527,7 +527,6 @@ set_var_inner <- function(mod, name, var) {
 unfit <- function(mod) {
     mod["est"] <- list(NULL)
     mod["is_fixed"] <- list(NULL)
-    mod["prec"] <- list(NULL)
     mod["R_prec"] <- list(NULL)
     mod
 }
