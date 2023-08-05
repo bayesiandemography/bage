@@ -29,8 +29,7 @@ Imports:
     rvec,
     stats,
     tibble,
-    TMB,
-    vctrs
+    TMB
 Suggests:
     bookdown,
     covr,
@@ -39,7 +38,8 @@ Suggests:
     ggplot2,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tidyr
 Remotes:
     bayesiandemography/poputils,
     bayesiandemography/rvec
