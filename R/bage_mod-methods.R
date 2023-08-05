@@ -297,7 +297,6 @@ fit.bage_mod <- function(object, ...) {
     R_prec <- chol(prec)
     object$est <- est
     object$is_fixed <- is_fixed
-    object$prec <- prec ## TODO - DELETE THIS
     object$R_prec <- R_prec
     object
 }
