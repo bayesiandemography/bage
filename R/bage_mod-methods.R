@@ -236,10 +236,11 @@ fit.bage_mod <- function(object, ...) {
     const <- make_const(object)
     terms_const <- make_terms_const(object)
     scale_disp <- object$scale_disp
+    n_time <- n_time(object)
     n_season <- object$n_season
     has_disp <- scale_disp > 0
-    idx_time <- make_idx_time(object)
     const_season <- make_const_season(object)
+    matrix_season_outcome <- object$matrix_season_outcome
     data <- list(nm_distn = nm_distn,
                  outcome = outcome,
                  offset = offset,
@@ -257,9 +258,10 @@ fit.bage_mod <- function(object, ...) {
                  consts = const, ## 'const' is reserved word in C
                  terms_consts = terms_const,
                  scale_disp = scale_disp,
-                 idx_time = idx_time,
+                 n_time = n_time,
                  n_season = n_season,
-                 consts_season = const_season)
+                 consts_season = const_season,
+                 matrix_season_outcome = matrix_season_outcome)
     ## parameters
     parfree <- make_parfree(object)
     hyper <- make_hyper(object)
@@ -291,8 +293,7 @@ fit.bage_mod <- function(object, ...) {
                               getJointPrecision = TRUE)
     est <- as.list(sdreport, what = "Est")
     attr(est, "what") <- NULL
-    is_fixed <- make_is_fixed(est = est,
-                              map = map)
+    is_fixed <- make_is_fixed(est = est, map = map)
     prec <- sdreport$jointPrecision
     R_prec <- chol(prec)
     object$est <- est
@@ -496,6 +497,53 @@ make_fitted_disp.bage_mod_binom <- function(x, expected, disp) {
                                     shape2 = offset - outcome + (1 - expected) / disp)
 }
 
+
+## 'make_matrix_season_outcome' -----------------------------------------------
+
+#' Make matrix mapping season effect to outcome
+#'
+#' @param x Object of class 'bage_mod'
+#' @param by Variable names (tidyselect style) or NULL.
+#'
+#' @returns Sparse matrix
+#'
+#' @noRd
+make_matrix_season_outcome <- function(x, by) {
+    UseMethod("make_matrix_season_outcome")
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_season_outcome.bage_mod <- function(x, by) {
+    outcome <- x$outcome
+    var_time <- x$var_time
+    dim <- dim(outcome)
+    nms_outcome <- names(dimnames(outcome))
+    nms_season <- c(by, var_time)
+    is_in_season <- nms_outcome %in% nms_season
+    make_matrix_par_outcome_array(dim = dim,
+                                  is_in_term = is_in_season)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_season_outcome.bage_mod_norm <- function(x, by) {
+    data <- x$data
+    var_time <- x$var_time
+    nms_season <- c(by, var_time)
+    data_season <- data[nms_season]
+    data_season[] <- lapply(data_season, factor)
+    contrasts_season <- lapply(data_season, stats::contrasts, contrast = FALSE)
+    formula_season <- paste(nms_season, collapse = ":")
+    formula_season <- paste0("~", formula_season, "-1")
+    formula_season <- stats::as.formula(formula_season)
+    ans <- Matrix::sparse.model.matrix(formula_season,
+                                       data = data_season,
+                                       contrasts.arg = contrasts_season,
+                                       row.names = FALSE)
+    attr(ans, "Dimnames")[2L] <- list(NULL)
+    ans
+}
 
 
 ## 'make_observed' ------------------------------------------------------------

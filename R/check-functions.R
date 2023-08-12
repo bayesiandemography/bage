@@ -1,5 +1,59 @@
 
 ## HAS_TESTS
+#' Check that 'by' argument consists of terms
+#' named in 'formula'
+#'
+#' @param nms_by Character vector of variable names, or NULL
+#' @param formula Model formula. Assumed to be valid.
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_by_in_formula <- function(by, formula) {
+    if (!is.null(by)) {
+        terms <- terms(formula)
+        terms <- delete.response(terms)
+        nms_dims <- rownames(attr(terms, "factors"))
+        nms_invalid <- setdiff(by, nms_dims)
+        n_invalid <- length(nms_invalid)
+        if (n_invalid > 0L) {
+            cli::cli_abort(c(paste("{.arg by} includes {n_invalid} dimension{?s} not",
+                                   "included in {.arg formula}."),
+                             i = "Dimension{?s} in {.arg by}: {.val {by}}.",
+                             i = "Dimension{?s} in {.arg formula}: {.val {nms_dims}}.",
+                             i = paste("Dimension{?s} in {.arg by} but not in",
+                                       "{.arg formula}: {.val {nms_invalid}}.")))
+        }
+    }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that 'by' argument does not include
+#' time dimension
+#'
+#' Applied if 'by' and 'var_time' both non-NULL.
+#'
+#' @param nms_by Character vector of variable names, or NULL
+#' @param var_time Name of time variable, or NULL.
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_by_excludes_time <- function(by, var_time) {
+    if (!is.null(by) && !is.null(var_time)) {
+        if (var_time %in% by) {
+            cli::cli_abort(c("{.arg by} includes time dimension.",
+                             i = "Dimension{?s} in {.arg by}: {.val {by}}.",
+                             i = "Time dimension ({.var var_time}): {.val {var_time}}."))
+        }
+    }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check a logical flag
 #'
 #' @param x TRUE or FALSE
