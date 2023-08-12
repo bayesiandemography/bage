@@ -48,8 +48,10 @@ Type logpost_rw(vector<Type> parfree,
   int n = parfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i = 1; i < n; i++)
-    ans += dnorm(parfree[i] - parfree[i-1], Type(0), sd, true);
+  for (int i = 1; i < n; i++) {
+    Type diff = parfree[i] - parfree[i-1];
+    ans += dnorm(diff, Type(0), sd, true);
+  }
   Type parfree_total = parfree.sum();
   ans += dnorm(parfree_total, Type(0), Type(1), true);
   return ans;
@@ -65,8 +67,10 @@ Type logpost_rw2(vector<Type> parfree,
   int n = parfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i = 2; i < n; i++)
-    ans += dnorm(parfree[i] - 2 * parfree[i-1] + parfree[i-2], Type(0), sd, true);
+  for (int i = 2; i < n; i++) {
+    Type diff = parfree[i] - 2 * parfree[i-1] + parfree[i-2];
+    ans += dnorm(diff, Type(0), sd, true);
+  }
   Type parfree_total = parfree.sum();
   ans += dnorm(parfree_total, Type(0), Type(1), true);
   return ans;
@@ -107,7 +111,6 @@ Type logpost_svd(vector<Type> parfree,
 		 vector<Type> consts) {
   return dnorm(parfree, Type(0), Type(1), true).sum();
 }
-
 
 template <class Type>
 Type logpost_not_uses_hyper(vector<Type> parfree,
@@ -159,17 +162,25 @@ template <class Type>
 Type logpost_season(vector<Type> par_season,
 		    vector<Type> hyper_season,
 		    vector<Type> consts_season,
+		    int n_time,
 		    int n_season) {
   Type scale = consts_season[0];
   Type log_sd = hyper_season[0];
   Type sd = exp(log_sd);
-  int n = par_season.size();
+  int n_par = par_season.size();
+  int n_by = n_par / n_time;
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i = n_season; i < n; i++)
-    ans += dnorm(par_season[i] - par_season[i-n_season], Type(0), sd, true);
-  Type par_season_total = par_season.sum();
-  ans += dnorm(par_season_total, Type(0), Type(1), true);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_time = n_season; i_time < n_time; i_time++) {
+      int idx_curr = i_by + i_time * n_by;
+      int idx_prev = i_by + (i_time - n_season) * n_by;
+      Type diff = par_season[idx_curr] - par_season[idx_prev];
+      ans += dnorm(diff, Type(0), sd, true);
+    }
+  }
+  Type par_season_mean = par_season.sum() / n_par;
+  ans += dnorm(par_season_mean, Type(0), Type(1), true);
   return ans;
 }
 
@@ -230,9 +241,10 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
   DATA_SCALAR(scale_disp);
-  DATA_INTEGER(idx_time);
+  DATA_INTEGER(n_time);
   DATA_INTEGER(n_season);
   DATA_VECTOR(consts_season);
+  DATA_SPARSE_MATRIX(matrix_season_outcome);
 
   PARAMETER_VECTOR(parfree); 
   PARAMETER_VECTOR(hyper);
@@ -274,10 +286,10 @@ Type objective_function<Type>::operator() ()
       vector<Type> offset_term = offsets_parfree_par_split[i_term];
       par_term = par_term + offset_term;
     }
-    if (has_season && (i_term == idx_time - 1)) { // 'idx_time' 1-base index
-      par_term = par_term + par_season;
-    }
     linear_pred = linear_pred + matrix_par_outcome * par_term;
+  }
+  if (has_season) {
+    linear_pred = linear_pred + matrix_season_outcome * par_season;
   }
 
 
@@ -305,6 +317,7 @@ Type objective_function<Type>::operator() ()
     ans -= logpost_season(par_season,
 			  hyper_season,
 			  consts_season,
+			  n_time,
 			  n_season);
 
   // contribution to log posterior from dispersion term
