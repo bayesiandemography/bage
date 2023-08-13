@@ -518,10 +518,12 @@ make_matrix_season_outcome.bage_mod <- function(x, by) {
     outcome <- x$outcome
     var_time <- x$var_time
     dim <- dim(outcome)
+    dimnames <- dimnames(outcome)
     nms_outcome <- names(dimnames(outcome))
     nms_season <- c(by, var_time)
     is_in_season <- nms_outcome %in% nms_season
     make_matrix_par_outcome_array(dim = dim,
+                                  dimnames = dimnames(outcome),
                                   is_in_term = is_in_season)
 }
 
@@ -541,7 +543,6 @@ make_matrix_season_outcome.bage_mod_norm <- function(x, by) {
                                        data = data_season,
                                        contrasts.arg = contrasts_season,
                                        row.names = FALSE)
-    attr(ans, "Dimnames")[2L] <- list(NULL)
     ans
 }
 

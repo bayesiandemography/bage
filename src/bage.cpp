@@ -178,9 +178,13 @@ Type logpost_season(vector<Type> par_season,
       Type diff = par_season[idx_curr] - par_season[idx_prev];
       ans += dnorm(diff, Type(0), sd, true);
     }
+    Type sum_by = 0;
+    for (int i_time = 0; i_time < n_time; i_time ++) {
+      int idx = i_by + i_time * n_by;
+      sum_by += par_season[idx];
+    }
+    ans += dnorm(sum_by, Type(0), Type(1), true);
   }
-  Type par_season_mean = par_season.sum() / n_par;
-  ans += dnorm(par_season_mean, Type(0), Type(1), true);
   return ans;
 }
 

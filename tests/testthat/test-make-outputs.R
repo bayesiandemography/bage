@@ -74,24 +74,6 @@ test_that("'make_combined_matrix_par_outcome' works with valid inputs", {
 })
 
 
-## 'make_combined_matrix_season_outcome' --------------------------------------
-
-test_that("'make_combined_matrix_par_outcome' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + age * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans_obtained <- make_combined_matrix_season_outcome(mod)
-    expect_identical(nrow(ans_obtained), nrow(data))
-    expect_identical(ncol(ans_obtained), sum(make_terms_par(mod) == "time"))
-})
-
-
 ## 'make_combined_matrix_parfree_par' -----------------------------------------
 
 test_that("'make_combined_matrix_parfree_par' works with valid inputs", {
@@ -181,9 +163,9 @@ test_that("'make_draws_components' works", {
     draws <- transform_draws_hyper(draws,
                                    transforms = transforms)
     draws <- transform_draws_par(draws = draws,
-                                        matrix = matrix,
+                                 matrix = matrix,
                                  offset = offset)
-    ans_expected <- draws[seq_len(nrow(draws) - 7), ,drop = FALSE]
+    ans_expected <- draws[-nrow(draws), ,drop = FALSE]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -295,7 +277,7 @@ test_that("'make_levels_hyper' works", {
 
 ## 'make_levels_season' -------------------------------------------------------
 
-test_that("'make_levels_season' works", {
+test_that("'make_levels_season' works - no by", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -305,7 +287,6 @@ test_that("'make_levels_season' works", {
                     data = data,
                     exposure = popn)
     mod <- set_season(mod, n = 2)
-    mod <- fit(mod)
     ans_obtained <- make_levels_season(mod)
     ans_expected <- c(2000:2005, "sd")
     expect_identical(ans_obtained, ans_expected)                      
@@ -380,7 +361,7 @@ test_that("'make_term_components' works", {
 
 ## 'make_terms_season' --------------------------------------------------------
 
-test_that("'make_terms_season' works with models with seasonal effect", {
+test_that("'make_terms_season' works with models with seasonal effect - no by", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -393,6 +374,23 @@ test_that("'make_terms_season' works with models with seasonal effect", {
     mod <- fit(mod)
     ans_obtained <- make_terms_season(mod)
     ans_expected <- factor(c("par", "par", "par", "par", "par", "par", "hyper"),
+                           levels = c("par", "hyper"))
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+test_that("'make_terms_season' works with models with seasonal effect - 1-dim by", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$income <- rnorm(n = nrow(data))
+    formula <- income ~ age * sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = popn)
+    mod <- set_season(mod, n = 2, by = sex)
+    mod <- fit(mod)
+    ans_obtained <- make_terms_season(mod)
+    ans_expected <- factor(c(rep("par", 12), "hyper"),
                            levels = c("par", "hyper"))
     expect_identical(ans_obtained, ans_expected)                      
 })
@@ -486,6 +484,6 @@ test_that("'transform_draws_par' works", {
                                         matrix = matrix,
                                         offset = offset)
     ans_expected <- rbind(matrix %*% draws[1:16, ] + offset,
-                          draws[17:27, ])
+                          draws[17:21, ])
     expect_identical(ans_obtained, ans_expected)
 })
