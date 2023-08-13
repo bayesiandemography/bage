@@ -162,6 +162,31 @@ check_formula_has_variable <- function(name, formula) {
 }
 
 
+## NO_TESTS
+#' Check formula does not have function calls
+#'
+#' @param formula A formula.
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_formula_no_functions <- function(formula) {
+    terms <- terms(formula)
+    variables <- attr(terms, "variables")
+    is_call <- vapply(variables[-1L], is.call, TRUE)
+    i_call <- match(TRUE, is_call, nomatch = 0L)
+    if (i_call > 0L) {
+        str_formula <- deparse1(formula)
+        str_call <- deparse1(variables[-1L][[i_call]])
+        cli::cli_abort(c("{.arg formula} contains a function call.",
+                         i = "{.arg formula}: {.code {str_formula}}.",
+                         i = "Function call: {.code {str_call}}."))
+    }
+    invisible(TRUE)
+}
+
+
+
 ## HAS_TESTS
 #' Check variables used in 'formula' occur in 'data'
 #'
