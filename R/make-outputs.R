@@ -93,25 +93,6 @@ make_combined_matrix_par_outcome <- function(mod) {
 
 
 ## HAS_TESTS
-#' Create combined matrix from seasonal effect to outcome
-#'
-#' Combine matrices for individual terms to
-#' create a matrix that maps all elements of
-#' seaonal effect to 'outcome'.
-#'
-#' @param An object of class 'bage_mod'
-#'
-#' @returns A sparse matrix.
-#'
-#' @noRd
-make_combined_matrix_season_outcome <- function(mod) {
-    var_time <- mod$var_time
-    matrices <- mod$matrices_par_outcome
-    matrices[[var_time]]
-}
-
-
-## HAS_TESTS
 #' Create combined matrix from parfree to par
 #'
 #' Combine matrices for individual terms to
@@ -337,11 +318,9 @@ make_levels_season <- function(mod) {
     level_hyper <- "sd"
     if (!has_season(mod))
         return(character())
-    var_time <- mod$var_time
-    levels_par <- make_levels_par(mod)
-    terms_par <- make_terms_par(mod)
-    levels_time <- levels_par[terms_par == var_time]
-    ans <- c(levels_time, level_hyper)
+    matrix <- mod$matrix_season_outcome
+    levels_par <- colnames(matrix)
+    ans <- c(levels_par, level_hyper)
     ans
 }
 
@@ -384,7 +363,7 @@ make_linpred_par <- function(mod, components) {
 #'
 #' @noRd
 make_linpred_season <- function(mod, components) {
-    matrix_season_outcome <- make_combined_matrix_season_outcome(mod)
+    matrix_season_outcome <- mod$matrix_season_outcome
     matrix_season_outcome <- as.matrix(matrix_season_outcome)
     is_season <- ((components$component == "season")
         & (components$term == "par"))
@@ -435,9 +414,10 @@ make_term_components <- function(mod) {
 make_terms_season <- function(mod) {
     if (!has_season(mod))
         return(factor())
-    n_time <- n_time(mod)
+    par <- make_par_season(mod)
+    n_par <- length(par)
     levels <- c("par", "hyper")
-    times <- c(n_time, 1L)
+    times <- c(n_par, 1L)
     ans <- rep(levels, times = times)
     ans <- factor(ans, levels = levels)
     ans

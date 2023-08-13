@@ -206,10 +206,11 @@ make_const <- function(mod) {
 #'
 #' @noRd
 make_const_season <- function(mod) {
-    ans <- mod$scale_season
-    if (is.null(ans))
-        ans <- 0
-    ans
+    has_season <- has_season(mod)
+    if (has_season)
+        mod$scale_season
+    else
+        0
 }
 
 
@@ -472,8 +473,9 @@ make_map_hyper_season_fixed <- function(mod) {
 #'
 #' @noRd
 make_map_par_season_fixed <- function(mod) {
-    n_time <- n_time(mod)
-    ans <- rep(NA, times = n_time)
+    par_season <- make_par_season(mod)
+    n_par <- length(par_season)
+    ans <- rep(NA, times = n_par)
     ans <- factor(ans)
     ans
 }
@@ -525,10 +527,12 @@ make_matrices_par_outcome_array <- function(formula, outcome) {
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
+    dimnames_outcome <- dimnames(outcome)
     ans <- apply(factors,
                  MARGIN = 2L,
                  FUN = make_matrix_par_outcome_array,
                  dim = dim_outcome,
+                 dimnames = dimnames_outcome,
                  simplify = FALSE)
     names(ans) <- colnames(factors)
     has_intercept <- attr(stats::terms(formula), "intercept")
@@ -539,7 +543,8 @@ make_matrices_par_outcome_array <- function(formula, outcome) {
         x <- rep.int(1L, times = n_outcome)
         m <- Matrix::sparseMatrix(i = i, 
                                   j = j,
-                                  x = x)
+                                  x = x,
+                                  dimnames = list(NULL, "(Intercept)"))
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans
@@ -578,7 +583,6 @@ make_matrices_par_outcome_vec <- function(formula, data) {
                                               data = data_term,
                                               contrasts.arg = contrasts_term,
                                               row.names = FALSE)
-        attr(m_term, "Dimnames")[2L] <- list(NULL)
         ans[[i_term]] <- m_term
     }
     names(ans) <- nms_terms
@@ -634,58 +638,26 @@ make_matrices_parfree_par <- function(mod) {
 #' variable, or the linear predictor.)
 #'
 #' @param dim `dim` attribute of array holding rates.
+#' @param dimnames `dimnames` attribute of array holding rates.
 #' @param is_in_term Whether the term includes
 #' the dimension.
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_par_outcome_array <- function(dim, is_in_term) {
-    make_submatrix <- function(d, is_in) {
-        i <- seq_len(d)
-        j <- if (is_in) i else rep.int(1L, times = d)
-        Matrix::sparseMatrix(i = i, j = j)
-    }
+make_matrix_par_outcome_array <- function(dim, dimnames, is_in_term) {
     submatrices <- .mapply(make_submatrix,
                            dots = list(d = as.list(dim),
                                        is_in = as.list(is_in_term)),
                            MoreArgs = list())
     submatrices <- rev(submatrices)
     ans <- Reduce(Matrix::kronecker, submatrices)
+    colnames <- expand.grid(dimnames[is_in_term],
+                            KEEP.OUT.ATTRS = FALSE,
+                            stringsAsFactors = FALSE)
+    colnames(ans) <- interaction(colnames)
     ans <- methods::as(ans, "dMatrix")
     ans
-}
-
-
-## HAS_TESTS
-#' Make a matrix of B-spline basis functions
-#'
-#' Based on Eilers and Marx (1996). Flexible Smoothing
-#' with B-splines and Penalties.
-#' Statistical Science, 11(2), 89-121.
-#'
-#' @param length_par Number of elements in main
-#' effect.
-#' @param n_spline Number of columns in spline matrix
-#'
-#' @returns Matrix with 'length_par' rows and 'n_spline' columns
-#'
-#' @noRd
-make_spline_matrix <- function(length_par, n_spline) {
-    n_interval <- n_spline - 3L
-    interval_length <- (length_par - 1L) / n_interval
-    start <- 1 - 3 * interval_length
-    end <- length_par + 3 * interval_length
-    x <- seq(from = start, to = end, by = 0.001)
-    base <- splines::bs(x = x, df = n_spline + 5L)
-    i_keep <- findInterval(seq_len(length_par), x)
-    j_keep <- seq.int(from = 3L, length.out = n_spline)
-    ans <- base[i_keep, j_keep]
-    colmeans <- colMeans(ans)
-    ans <- ans - rep(colmeans, each = nrow(ans))
-    Matrix::sparseMatrix(i = row(ans),
-                         j = col(ans),
-                         x = as.double(ans))
 }
 
 
@@ -884,8 +856,11 @@ make_outcome_vec <- function(formula, data) {
 #'
 #' @noRd
 make_par_season <- function(mod) {
-    n_time <- n_time(mod)
-    rep(0, times = n_time)
+    matrix <- mod$matrix_season_outcome
+    n <- ncol(matrix)
+    ans <- rep(0, times = n)
+    names(ans) <- colnames(matrix)
+    ans
 }
 
 
@@ -954,6 +929,7 @@ make_priors <- function(formula, var_age, var_time, lengths_par) {
 }        
 
 
+## HAS_TESTS
 #' Make 'random' argument to MakeADFun function
 #'
 #' Return value always includes "parfree".
@@ -971,6 +947,61 @@ make_random <- function(mod) {
     if (has_season)
         ans <- c(ans, "par_season")
     ans
+}
+
+
+## HAS_TESTS
+#' Make a matrix of B-spline basis functions
+#'
+#' Based on Eilers and Marx (1996). Flexible Smoothing
+#' with B-splines and Penalties.
+#' Statistical Science, 11(2), 89-121.
+#'
+#' @param length_par Number of elements in main
+#' effect.
+#' @param n_spline Number of columns in spline matrix
+#'
+#' @returns Matrix with 'length_par' rows and 'n_spline' columns
+#'
+#' @noRd
+make_spline_matrix <- function(length_par, n_spline) {
+    n_interval <- n_spline - 3L
+    interval_length <- (length_par - 1L) / n_interval
+    start <- 1 - 3 * interval_length
+    end <- length_par + 3 * interval_length
+    x <- seq(from = start, to = end, by = 0.001)
+    base <- splines::bs(x = x, df = n_spline + 5L)
+    i_keep <- findInterval(seq_len(length_par), x)
+    j_keep <- seq.int(from = 3L, length.out = n_spline)
+    ans <- base[i_keep, j_keep]
+    colmeans <- colMeans(ans)
+    ans <- ans - rep(colmeans, each = nrow(ans))
+    Matrix::sparseMatrix(i = row(ans),
+                         j = col(ans),
+                         x = as.double(ans))
+}
+
+
+## HAS_TESTS
+#' Make sparse matrix describing the relationship
+#' between a dimension and the outcome array
+#'
+#' @param d Integer. Length of dimension
+#' @param is_in Logical vector. Whether the dimension
+#' is in the array.
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_submatrix <- function(d, is_in) {
+    i <- seq_len(d)
+    if (is_in)
+        j <- i
+    else
+        j <- rep.int(1L, times = d)
+    Matrix::sparseMatrix(i = i,
+                         j = j,
+                         x = 1)
 }
 
 

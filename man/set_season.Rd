@@ -4,7 +4,7 @@
 \alias{set_season}
 \title{Add a seasonal effect}
 \usage{
-set_season(mod, n, s = 1)
+set_season(mod, n, by = NULL, s = 1)
 }
 \arguments{
 \item{mod}{A \code{bage_mod} object, typically
@@ -12,6 +12,12 @@ created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
 \item{n}{Number of seasons.}
+
+\item{by}{<\code{\link[tidyselect:language]{tidyselect}}>
+Names of dimensions, other than the
+time dimension. If a value for \code{by} is supplied,
+then separate seasonal effects are
+created for combination of the \code{by} dimensions.}
 
 \item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
@@ -31,11 +37,14 @@ a fitted model, then \code{set_season} 'unfits'
 the model, by deleting existing estimates.
 }
 \examples{
+## single set of seasonal effects
 mod <- mod_pois(deaths ~ month,
                 data = us_acc_deaths,
                 exposure = 1)
 mod
 mod |> set_season(n = 12)
+
+## TODO - multiple sets of seasonal effects
 }
 \seealso{
 \itemize{
