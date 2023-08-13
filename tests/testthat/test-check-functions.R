@@ -78,9 +78,12 @@ test_that("'check_format_prior_formula' returns TRUE with valid inputs", {
 })
 
 test_that("'check_format_prior_formula' returns correct error with invalid inputs", {
-    expect_error(check_format_prior_formula("age~N()"))
+    expect_error(check_format_prior_formula(N()),
+                 "`formula` not a formula.")
+    expect_error(check_format_prior_formula("age~N()"),
+                 "`formula` not a formula.")
     expect_error(check_format_prior_formula(~N()),
-                 "prior formula '~N\\(\\)' has too few elements")
+                 "`formula` has too few elements")
 })
 
 
@@ -113,7 +116,7 @@ test_that("'check_formula_has_response' returns correct error with invalid input
 })
 
 
-## 'check_formula_as_variable' ------------------------------------------------
+## 'check_formula_has_variable' -----------------------------------------------
 
 test_that("'check_formula_has_variable' returns TRUE with valid inputs", {
     expect_true(check_formula_has_variable(name = "age",
@@ -128,6 +131,21 @@ test_that("'check_formula_has_variable' returns correct error with invalid input
     expect_error(check_formula_has_variable(name = "wrong",
                                             formula = deaths ~ age*sex + time),
                  "formula 'deaths ~ age \\* sex \\+ time' does not have variable \"wrong\"")
+})
+
+
+## 'check_formula_no_functions' -----------------------------------------------
+
+test_that("'check_formula_no_functions' returns TRUE with valid inputs", {
+    expect_true(check_formula_no_functions(formula = deaths ~ age*sex + time))
+    expect_true(check_formula_no_functions(formula = deaths ~ age*sex + time - 1))
+})
+
+test_that("'check_formula_no_functions' returns correct error with invalid inputs", {
+    expect_error(check_formula_no_functions(formula = log(deaths) ~ age*sex + time),
+                 "`formula` contains a function call")
+    expect_error(check_formula_no_functions(formula = deaths ~ age*sex + sqrt(time)),
+                 "`formula` contains a function call")
 })
 
 

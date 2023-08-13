@@ -85,11 +85,19 @@ check_flag <- function(x) {
 #'
 #' @noRd
 check_format_prior_formula <- function(formula) {
-    checkmate::assert_formula(formula)
-    if (length(formula) < 3L)
-        stop(gettextf("prior formula '%s' has too few elements",
-                      deparse1(formula)),
-             call. = FALSE)
+    if (!inherits(formula, "formula")) {
+        msg <- "{.arg formula} not a formula."
+        if (inherits(formula, "bage_prior"))
+            info  <- "{.arg formula} should have format {.code <term> ~ <prior>}."
+        else
+            info <- "{.arg formula} has class {.cls {class(formula)}}."
+        msg <- c(msg, i = info)
+        cli::cli_abort(msg)
+    }
+    n <- length(formula)
+    if (n < 3L)
+        cli::cli_abort(c("{.arg formula} has too few elements.",
+                         i = "{.arg formula} should have format {.code <term> ~ <prior>}."))
     invisible(TRUE)
 }
 
@@ -152,6 +160,31 @@ check_formula_has_variable <- function(name, formula) {
              call. = FALSE)
     invisible(TRUE)
 }
+
+
+## NO_TESTS
+#' Check formula does not have function calls
+#'
+#' @param formula A formula.
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_formula_no_functions <- function(formula) {
+    terms <- terms(formula)
+    variables <- attr(terms, "variables")
+    is_call <- vapply(variables[-1L], is.call, TRUE)
+    i_call <- match(TRUE, is_call, nomatch = 0L)
+    if (i_call > 0L) {
+        str_formula <- deparse1(formula)
+        str_call <- deparse1(variables[-1L][[i_call]])
+        cli::cli_abort(c("{.arg formula} contains a function call.",
+                         i = "{.arg formula}: {.code {str_formula}}.",
+                         i = "Function call: {.code {str_call}}."))
+    }
+    invisible(TRUE)
+}
+
 
 
 ## HAS_TESTS
