@@ -227,6 +227,7 @@ set_season <- function(mod, n, by = NULL, s = 1) {
                          i = "Please use {.fun set_var_time} to identify time variable."))
     check_n(n, min = 2L, max = NULL, null_ok = FALSE)
     n <- as.integer(n)
+    by <- rlang::enquo(by)
     by <- tidyselect::eval_select(by, data = data)
     by <- names(by)
     check_by_in_formula(by = by, formula = formula)

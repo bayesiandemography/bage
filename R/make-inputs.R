@@ -527,10 +527,12 @@ make_matrices_par_outcome_array <- function(formula, outcome) {
     factors <- factors[-1L, , drop = FALSE] ## exclude reponse
     factors <- factors > 0L
     dim_outcome <- dim(outcome)
+    dimnames_outcome <- dimnames(outcome)
     ans <- apply(factors,
                  MARGIN = 2L,
                  FUN = make_matrix_par_outcome_array,
                  dim = dim_outcome,
+                 dimnames = dimnames_outcome,
                  simplify = FALSE)
     names(ans) <- colnames(factors)
     has_intercept <- attr(stats::terms(formula), "intercept")
@@ -541,7 +543,8 @@ make_matrices_par_outcome_array <- function(formula, outcome) {
         x <- rep.int(1L, times = n_outcome)
         m <- Matrix::sparseMatrix(i = i, 
                                   j = j,
-                                  x = x)
+                                  x = x,
+                                  dimnames = list(NULL, "(Intercept)"))
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans
@@ -580,7 +583,6 @@ make_matrices_par_outcome_vec <- function(formula, data) {
                                               data = data_term,
                                               contrasts.arg = contrasts_term,
                                               row.names = FALSE)
-        attr(m_term, "Dimnames")[2L] <- list(NULL)
         ans[[i_term]] <- m_term
     }
     names(ans) <- nms_terms
@@ -636,19 +638,24 @@ make_matrices_parfree_par <- function(mod) {
 #' variable, or the linear predictor.)
 #'
 #' @param dim `dim` attribute of array holding rates.
+#' @param dimnames `dimnames` attribute of array holding rates.
 #' @param is_in_term Whether the term includes
 #' the dimension.
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_par_outcome_array <- function(dim, is_in_term) {
+make_matrix_par_outcome_array <- function(dim, dimnames, is_in_term) {
     submatrices <- .mapply(make_submatrix,
                            dots = list(d = as.list(dim),
                                        is_in = as.list(is_in_term)),
                            MoreArgs = list())
     submatrices <- rev(submatrices)
     ans <- Reduce(Matrix::kronecker, submatrices)
+    colnames <- expand.grid(dimnames[is_in_term],
+                            KEEP.OUT.ATTRS = FALSE,
+                            stringsAsFactors = FALSE)
+    colnames(ans) <- interaction(colnames)
     ans <- methods::as(ans, "dMatrix")
     ans
 }
@@ -851,7 +858,9 @@ make_outcome_vec <- function(formula, data) {
 make_par_season <- function(mod) {
     matrix <- mod$matrix_season_outcome
     n <- ncol(matrix)
-    rep(0, times = n)
+    ans <- rep(0, times = n)
+    names(ans) <- colnames(matrix)
+    ans
 }
 
 
@@ -986,8 +995,13 @@ make_spline_matrix <- function(length_par, n_spline) {
 #' @noRd
 make_submatrix <- function(d, is_in) {
     i <- seq_len(d)
-    j <- if (is_in) i else rep.int(1L, times = d)
-    Matrix::sparseMatrix(i = i, j = j)
+    if (is_in)
+        j <- i
+    else
+        j <- rep.int(1L, times = d)
+    Matrix::sparseMatrix(i = i,
+                         j = j,
+                         x = 1)
 }
 
 

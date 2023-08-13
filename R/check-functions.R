@@ -12,7 +12,7 @@
 check_by_in_formula <- function(by, formula) {
     if (!is.null(by)) {
         terms <- terms(formula)
-        terms <- delete.response(terms)
+        terms <- stats::delete.response(terms)
         nms_dims <- rownames(attr(terms, "factors"))
         nms_invalid <- setdiff(by, nms_dims)
         n_invalid <- length(nms_invalid)

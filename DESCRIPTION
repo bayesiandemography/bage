@@ -26,9 +26,11 @@ Imports:
     matrixStats,
     methods,
     poputils,
+    rlang,
     rvec,
     stats,
     tibble,
+    tidyselect,
     TMB
 Suggests:
     bookdown,

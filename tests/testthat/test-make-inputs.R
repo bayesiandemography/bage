@@ -644,9 +644,11 @@ test_that("'make_matrices_parfree_par' works with valid inputs", {
 
 test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3-dimensional array", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     ## 1
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, FALSE))
     beta <- rnorm(2)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -655,7 +657,8 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3
                      as.numeric(ans_expected))
     ## 2
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(FALSE, TRUE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(FALSE, TRUE, FALSE))
     beta <- rnorm(3)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -671,7 +674,8 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3
                      as.numeric(ans_expected))
     ## 3
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(FALSE, FALSE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(FALSE, FALSE, TRUE))
     beta <- rnorm(4)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -687,9 +691,11 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3
 
 test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3-dimensional array", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     ## 1 and 2
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, TRUE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, TRUE, FALSE))
     beta <- rnorm(6)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -698,7 +704,8 @@ test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3
                      as.numeric(ans_expected))
     ## 1 and 3
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, TRUE))
     beta <- rnorm(8)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -709,7 +716,8 @@ test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3
                      as.numeric(ans_expected))
     ## 2 and 3
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(FALSE, TRUE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(FALSE, TRUE, TRUE))
     beta <- rnorm(12)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -721,8 +729,10 @@ test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3
 
 test_that("'make_matrix_par_outcome_array' works with 3-dimensional term and 3-dimensional array", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, TRUE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, TRUE, TRUE))
     beta <- rnorm(24)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -733,8 +743,10 @@ test_that("'make_matrix_par_outcome_array' works with 3-dimensional term and 3-d
 
 test_that("'make_matrix_par_outcome_array' works with one-dimensional term and one-dimensional array", {
     dim <- 4
+    dimnames <- list(1:4)
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = TRUE)
+                                       dimnames = dimnames,
+                                       is_in_term = TRUE)
     beta <- rnorm(4)
     ans_obtained <- m %*% beta
     ans_expected <- beta
@@ -744,12 +756,15 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and o
 
 test_that("'make_matrix_par_outcome_array' creates sparse matrix", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, FALSE))
     expect_s4_class(m, "sparseMatrix")
     dim <- 2:4
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, TRUE))
     expect_s4_class(m, "sparseMatrix")
 })
 
@@ -933,6 +948,7 @@ test_that("'make_par_season' works when has season effect, by is NULL", {
     mod <- set_season(mod, n = 2)
     ans_obtained <- make_par_season(mod)
     ans_expected <- c(0.0, 0.0, 0.0, 0.0)
+    names(ans_expected) <- 0:3
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -949,6 +965,7 @@ test_that("'make_par_season' works when has season effect, by has dim 1", {
     mod <- set_season(mod, n = 2, by = "SEX")
     ans_obtained <- make_par_season(mod)
     ans_expected <- rep(0.0, 8)
+    names(ans_expected) <- paste(0:3, rep(c("F", "M"), each = 4), sep = ".")
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1045,14 +1062,14 @@ test_that("'make_spline_matrix' works", {
 test_that("'make_submatrix' works - dimension in term", {
     ans_obtained <- make_submatrix(d = 4L, is_in = TRUE)
     ans_expected <- diag(4L)
-    expect_identical(1 * as.matrix(ans_obtained), ans_expected)
+    expect_identical(as.matrix(ans_obtained), ans_expected)
     expect_s4_class(ans_obtained, "sparseMatrix")
 })
 
 test_that("'make_submatrix' works - dimension not in term", {
     ans_obtained <- make_submatrix(d = 4L, is_in = FALSE)
     ans_expected <- matrix(1, nrow = 4, ncol = 1)
-    expect_identical(1 * as.matrix(ans_obtained), ans_expected)
+    expect_identical(as.matrix(ans_obtained), ans_expected)
     expect_s4_class(ans_obtained, "sparseMatrix")
 })    
 
