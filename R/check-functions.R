@@ -85,11 +85,19 @@ check_flag <- function(x) {
 #'
 #' @noRd
 check_format_prior_formula <- function(formula) {
-    checkmate::assert_formula(formula)
-    if (length(formula) < 3L)
-        stop(gettextf("prior formula '%s' has too few elements",
-                      deparse1(formula)),
-             call. = FALSE)
+    if (!inherits(formula, "formula")) {
+        msg <- "{.arg formula} not a formula."
+        if (inherits(formula, "bage_prior"))
+            info  <- "{.arg formula} should have format {.code <term> ~ <prior>}."
+        else
+            info <- "{.arg formula} has class {.cls {class(formula)}}."
+        msg <- c(msg, i = info)
+        cli::cli_abort(msg)
+    }
+    n <- length(formula)
+    if (n < 3L)
+        cli::cli_abort(c("{.arg formula} has too few elements.",
+                         i = "{.arg formula} should have format {.code <term> ~ <prior>}."))
     invisible(TRUE)
 }
 

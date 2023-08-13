@@ -78,9 +78,12 @@ test_that("'check_format_prior_formula' returns TRUE with valid inputs", {
 })
 
 test_that("'check_format_prior_formula' returns correct error with invalid inputs", {
-    expect_error(check_format_prior_formula("age~N()"))
+    expect_error(check_format_prior_formula(N()),
+                 "`formula` not a formula.")
+    expect_error(check_format_prior_formula("age~N()"),
+                 "`formula` not a formula.")
     expect_error(check_format_prior_formula(~N()),
-                 "prior formula '~N\\(\\)' has too few elements")
+                 "`formula` has too few elements")
 })
 
 
