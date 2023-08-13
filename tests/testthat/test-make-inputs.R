@@ -217,7 +217,8 @@ test_that("'make_const' works with valid inputs", {
 ## 'make_const_season' -------------------------------------------------------- 
 
 test_that("'make_const_season' works with non-NULL seasonal effect", {
-    mod <- list(scale_season = 1.3)
+    mod <- structure(list(scale_season = 1.3, n_season = 3L),
+                     class = "bage_mod")
     ans_obtained <- make_const_season(mod)
     ans_expected <- 1.3
     expect_identical(ans_obtained, ans_expected)
@@ -225,7 +226,8 @@ test_that("'make_const_season' works with non-NULL seasonal effect", {
 })
 
 test_that("'make_const_season' works with non-NULL seasonal effect", {
-    mod <- list(scale_season = NULL)
+    mod <- structure(list(scale_season = NULL, n_season = 0L),
+                     class = "bage_mod")
     ans_obtained <- make_const_season(mod)
     ans_expected <- 0
     expect_identical(ans_obtained, ans_expected)
@@ -481,7 +483,7 @@ test_that("'make_map' works when there is no season effect", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_map(mod)
-    ans_expected <- list(par_season = factor(c(NA, NA, NA, NA)),
+    ans_expected <- list(par_season = factor(logical()),
                          hyper_season = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -513,7 +515,7 @@ test_that("'make_map' works when parfree has known values and there is no season
                                             "time:SEX" = 11,
                                             "time:SEX" = 12,
                                             "time:SEX" = 13)),
-                         par_season = factor(c(NA, NA, NA, NA)),
+                         par_season = factor(logical()),
                          hyper_season = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -542,7 +544,7 @@ test_that("'make_map_par_season_fixed' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_map_par_season_fixed(mod)
-    ans_expected <- factor(rep(NA, 3))
+    ans_expected <- factor(logical())
     expect_identical(ans_obtained, ans_expected)
     expect_identical(length(make_map_par_season_fixed(mod)),
                      length(make_par_season(mod)))
@@ -642,9 +644,11 @@ test_that("'make_matrices_parfree_par' works with valid inputs", {
 
 test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3-dimensional array", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     ## 1
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, FALSE))
     beta <- rnorm(2)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -653,7 +657,8 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3
                      as.numeric(ans_expected))
     ## 2
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(FALSE, TRUE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(FALSE, TRUE, FALSE))
     beta <- rnorm(3)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -669,7 +674,8 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3
                      as.numeric(ans_expected))
     ## 3
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(FALSE, FALSE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(FALSE, FALSE, TRUE))
     beta <- rnorm(4)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -685,9 +691,11 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and 3
 
 test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3-dimensional array", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     ## 1 and 2
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, TRUE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, TRUE, FALSE))
     beta <- rnorm(6)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -696,7 +704,8 @@ test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3
                      as.numeric(ans_expected))
     ## 1 and 3
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, TRUE))
     beta <- rnorm(8)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -707,7 +716,8 @@ test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3
                      as.numeric(ans_expected))
     ## 2 and 3
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(FALSE, TRUE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(FALSE, TRUE, TRUE))
     beta <- rnorm(12)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -719,8 +729,10 @@ test_that("'make_matrix_par_outcome_array' works with two-dimensional term and 3
 
 test_that("'make_matrix_par_outcome_array' works with 3-dimensional term and 3-dimensional array", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, TRUE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, TRUE, TRUE))
     beta <- rnorm(24)
     ans_obtained <- m %*% beta
     ans_expected <- array(dim = dim)
@@ -731,8 +743,10 @@ test_that("'make_matrix_par_outcome_array' works with 3-dimensional term and 3-d
 
 test_that("'make_matrix_par_outcome_array' works with one-dimensional term and one-dimensional array", {
     dim <- 4
+    dimnames <- list(1:4)
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = TRUE)
+                                       dimnames = dimnames,
+                                       is_in_term = TRUE)
     beta <- rnorm(4)
     ans_obtained <- m %*% beta
     ans_expected <- beta
@@ -742,12 +756,15 @@ test_that("'make_matrix_par_outcome_array' works with one-dimensional term and o
 
 test_that("'make_matrix_par_outcome_array' creates sparse matrix", {
     dim <- 2:4
+    dimnames <- list(1:2, 1:3, 1:4)
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, FALSE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, FALSE))
     expect_s4_class(m, "sparseMatrix")
     dim <- 2:4
     m <- make_matrix_par_outcome_array(dim = dim,
-                         is_in_term = c(TRUE, FALSE, TRUE))
+                                       dimnames = dimnames,
+                                       is_in_term = c(TRUE, FALSE, TRUE))
     expect_s4_class(m, "sparseMatrix")
 })
 
@@ -918,9 +935,9 @@ test_that("'make_outcome_vec' works with valid inputs", {
 
 ## 'make_par_season' ----------------------------------------------------------
 
-test_that("'make_par_season' works when var_time non-NULL", {
+test_that("'make_par_season' works when has season effect, by is NULL", {
     set.seed(0)
-    data <- expand.grid(time = 0:2,
+    data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -928,12 +945,31 @@ test_that("'make_par_season' works when var_time non-NULL", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_season(mod, n = 2)
     ans_obtained <- make_par_season(mod)
-    ans_expected <- c(0.0, 0.0, 0.0)
+    ans_expected <- c(0.0, 0.0, 0.0, 0.0)
+    names(ans_expected) <- 0:3
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_par_season' works when var_time NULL", {
+test_that("'make_par_season' works when has season effect, by has dim 1", {
+    set.seed(0)
+    data <- expand.grid(time = 0:3,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ time + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2, by = "SEX")
+    ans_obtained <- make_par_season(mod)
+    ans_expected <- rep(0.0, 8)
+    names(ans_expected) <- paste(0:3, rep(c("F", "M"), each = 4), sep = ".")
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_par_season' works when no season", {
     set.seed(0)
     data <- expand.grid(age = 0:2,
                         SEX = c("F", "M"))
@@ -1019,6 +1055,23 @@ test_that("'make_spline_matrix' works", {
     expect_equal(dim(m), c(10L, 5L))
     expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
 })
+
+
+## 'make_submatrix' -----------------------------------------------------------
+
+test_that("'make_submatrix' works - dimension in term", {
+    ans_obtained <- make_submatrix(d = 4L, is_in = TRUE)
+    ans_expected <- diag(4L)
+    expect_identical(as.matrix(ans_obtained), ans_expected)
+    expect_s4_class(ans_obtained, "sparseMatrix")
+})
+
+test_that("'make_submatrix' works - dimension not in term", {
+    ans_obtained <- make_submatrix(d = 4L, is_in = FALSE)
+    ans_expected <- matrix(1, nrow = 4, ncol = 1)
+    expect_identical(as.matrix(ans_obtained), ans_expected)
+    expect_s4_class(ans_obtained, "sparseMatrix")
+})    
 
 
 ## 'make_terms_const' ---------------------------------------------------------

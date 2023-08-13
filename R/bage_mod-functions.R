@@ -192,6 +192,11 @@ set_prior <- function(mod, formula) {
 #' 
 #' @inheritParams set_disp
 #' @param n Number of seasons.
+#' @param by <[`tidyselect`][tidyselect::language]>
+#' Names of dimensions, other than the
+#' time dimension. If a value for `by` is supplied,
+#' then separate seasonal effects are
+#' created for combination of the `by` dimensions.
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
 #' Defaults to 1.
@@ -202,36 +207,43 @@ set_prior <- function(mod, formula) {
 #' - [is_fitted()]
 #' 
 #' @examples
+#' ## single set of seasonal effects
 #' mod <- mod_pois(deaths ~ month,
 #'                 data = us_acc_deaths,
 #'                 exposure = 1)
 #' mod
 #' mod |> set_season(n = 12)
+#'
+#' ## TODO - multiple sets of seasonal effects
 #' @export
-set_season <- function(mod, n, s = 1) {
+set_season <- function(mod, n, by = NULL, s = 1) {
     checkmate::assert_class(mod, "bage_mod")
-    check_n(n, min = 2L, max = NULL, null_ok = FALSE)
-    n <- as.integer(n)
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    var_time <- mod$var_time
+    formula <- mod$formula
+    data <- mod$data
     priors <- mod$priors
+    var_time <- mod$var_time
     if (is.null(var_time))
         cli::cli_abort(c("Can't specify seasonal effect when time variable not identified.",
                          i = "Please use {.fun set_var_time} to identify time variable."))
-    nms_terms <- names(priors)
-    if (!(var_time %in% nms_terms))
-        cli::cli_abort(c(paste("Can't use seasonal effect when model does not",
-                               "contain time main effect."),
-                         i = "Model has terms {.val {nms_terms}}."))
+    check_n(n, min = 2L, max = NULL, null_ok = FALSE)
+    n <- as.integer(n)
+    by <- rlang::enquo(by)
+    by <- tidyselect::eval_select(by, data = data)
+    by <- names(by)
+    check_by_in_formula(by = by, formula = formula)
+    check_by_excludes_time(by = by, var_time)
+    check_scale(s, x_arg = "s", zero_ok = FALSE)
+    scale <- as.double(s)
     n_time <- n_time(mod)
     if (n > (n_time %/% 2L))
         cli::cli_abort(c(paste("Estimation period not long enough to use seasonal effect",
                                "with {n} seasons."),
                          i = "Must have at least two time points for each season.",
                          i = "Data used for estimation has {n_time} time points."))
+    matrix_season_outcome <- make_matrix_season_outcome(mod, by = by)
     mod$n_season <- n
     mod$scale_season <- s
+    mod$matrix_season_outcome <- matrix_season_outcome
     mod <- unfit(mod)
     mod
 }

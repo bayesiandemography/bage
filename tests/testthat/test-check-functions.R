@@ -1,4 +1,44 @@
 
+
+## 'check_by_in_formula' ------------------------------------------------------
+
+test_that("'check_by_in_formula' returns TRUE with valid inputs", {
+    formula  <- deaths ~ age * sex + time
+    expect_true(check_by_in_formula(by = c("age", "sex"),
+                                    formula = formula))
+    expect_true(check_by_in_formula(by = NULL,
+                                    formula = formula))
+})
+
+test_that("'check_by_in_formula' throws appropriate error", {
+    formula  <- deaths ~ age * sex + time
+    expect_error(check_by_in_formula(by = c("age", "wrong"),
+                                     formula = formula),
+                 "`by` includes 1 dimension not included in `formula`")
+    expect_error(check_by_in_formula(by = c("wrong", "wrong2"),
+                                     formula = formula),
+                 "`by` includes 2 dimensions not included in `formula`")
+})
+
+
+## 'check_by_excludes_time' ---------------------------------------------------
+
+test_that("'check_by_excludes_time' returns TRUE with valid inputs", {
+    expect_true(check_by_excludes_time(by = c("age", "sex"),
+                                       var_time = "time"))
+    expect_true(check_by_excludes_time(by = NULL,
+                                       var_time = "time"))
+    expect_true(check_by_excludes_time(by = "age",
+                                       var_time = NULL))
+})
+
+test_that("'check_by_excludes_time' throws appropriate error", {
+    expect_error(check_by_excludes_time(by = c("age", "TIME"),
+                                        var_time = "TIME"),
+                 "`by` includes time dimension.")
+})
+
+
 ## 'check_flag' ---------------------------------------------------------------
 
 test_that("'check_flag' returns TRUE with valid inputs", {

@@ -109,6 +109,9 @@ mod_pois <- function(formula, data, exposure) {
                           var_age = var_age,
                           var_time = var_time,
                           lengths_par = lengths_par)
+    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
+                                                  j = integer(),
+                                                  x = integer())
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -123,6 +126,7 @@ mod_pois <- function(formula, data, exposure) {
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
+                matrix_season_outcome = matrix_season_outcome,
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
@@ -225,6 +229,9 @@ mod_binom <- function(formula, data, size) {
                           var_age = var_age,
                           var_time = var_time,
                           lengths_par = lengths_par)
+    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
+                                                  j = integer(),
+                                                  x = integer())
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -239,6 +246,7 @@ mod_binom <- function(formula, data, size) {
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
+                matrix_season_outcome = matrix_season_outcome,
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
@@ -348,6 +356,9 @@ mod_norm <- function(formula, data, weights) {
                           var_age = var_age,
                           var_time = var_time,
                           lengths_par = lengths_par)
+    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
+                                                  j = integer(),
+                                                  x = integer())
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -364,6 +375,7 @@ mod_norm <- function(formula, data, weights) {
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
+                matrix_season_outcome = matrix_season_outcome,
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
