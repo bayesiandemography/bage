@@ -376,7 +376,7 @@ make_levels_par <- function(mod) {
     nms <- names(matrices_par_outcome)
     n <- length(nms)
     factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
+    factors <- factors[-1L, , drop = FALSE] ## exclude response
     factors <- factors > 0L
     if (is.array(outcome))
         dim_levels <- expand.grid(dimnames(outcome))
@@ -392,6 +392,7 @@ make_levels_par <- function(mod) {
             paste_dot <- function(...) paste(..., sep = ".")
             term_levels <- do.call(paste_dot, dim_levels[i_dim])
             matrix_par <- matrices_par_outcome[[i]]
+            matrix_par <- as.matrix(matrix_par)
             i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
             ans[[i]] <- term_levels[i_term_level]
         }
