@@ -461,6 +461,8 @@ make_fitted_disp <- function(x, expected, disp) {
 make_fitted_disp.bage_mod_pois <- function(x, expected, disp) {
     outcome <- x$outcome
     offset <- x$offset
+    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
+    offset <- as.double(offset)   ## so 'align_to_data' works correctly
     align_to_data <- get_fun_align_to_data(x)
     outcome <- align_to_data(outcome)
     offset <- align_to_data(offset)
@@ -482,6 +484,8 @@ make_fitted_disp.bage_mod_pois <- function(x, expected, disp) {
 make_fitted_disp.bage_mod_binom <- function(x, expected, disp) {
     outcome <- x$outcome
     offset <- x$offset
+    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
+    offset <- as.double(offset)   ## so 'align_to_data' works correctly
     align_to_data <- get_fun_align_to_data(x)
     outcome <- align_to_data(outcome)
     offset <- align_to_data(offset)
@@ -565,6 +569,8 @@ make_observed <- function(x) {
 make_observed.bage_mod <- function(x) {
     outcome <- x$outcome
     offset <- x$offset
+    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
+    offset <- as.double(offset)   ## so 'align_to_data' works correctly
     align_to_data <- get_fun_align_to_data(x)
     ans <- as.double(outcome / offset)
     ans <- align_to_data(ans)
