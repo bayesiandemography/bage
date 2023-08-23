@@ -468,20 +468,20 @@ check_scale <- function(x, x_arg, zero_ok) {
                          i = "{.arg {x_arg}} has class {.cls {class(x)}}."))
     if (length(x) != 1L)
         cli::cli_abort(c("{.arg {x_arg}} does not have length 1.",
-                         i = "{.arg {x_arg}} has length {length(x)}."))
+                         i = "{.arg {x_arg}} has length {.val {length(x)}}."))
     if (is.na(x))
-        cli::cli_abort("{.arg {x_arg}} is NA.")
+        cli::cli_abort("{.arg {x_arg}} is {.val {NA}}.")
     if (is.infinite(x))
         cli::cli_abort("{.arg {x_arg}} is infinite.")
     if (zero_ok) {
         if (x < 0)
             cli::cli_abort(c("{.arg {x_arg}} is negative.",
-                             i = "{.arg {x_arg}} equals {x}."))
+                             i = "{.arg {x_arg}} equals {.val {x}}."))
     }
     else {
         if (x <= 0)
             cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
-                             i = "{.arg {x_arg}} equals {x}."))
+                             i = "{.arg {x_arg}} equals {.val {x}}."))
     }
     invisible(TRUE)
 }
