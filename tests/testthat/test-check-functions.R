@@ -357,7 +357,7 @@ test_that("'check_response_nonneg' returns correct error with invalid inputs", {
 
 ## 'check_scale' --------------------------------------------------------------
 
-test_that("'check_scale' returns double with valid inputs", {
+test_that("'check_scale' returns TRUE with valid inputs", {
     expect_true(check_scale(1L, x_arg = "x", zero_ok = FALSE))
     expect_true(check_scale(0.001, x_arg = "x", zero_ok = FALSE))
 })
