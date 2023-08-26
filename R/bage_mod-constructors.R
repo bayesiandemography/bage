@@ -112,6 +112,8 @@ mod_pois <- function(formula, data, exposure) {
     matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
                                                   j = integer(),
                                                   x = integer())
+    seed_components <- make_seed()
+    seed_fitted <- make_seed()
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -130,7 +132,9 @@ mod_pois <- function(formula, data, exposure) {
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
-                n_draw = n_draw)
+                n_draw = n_draw,
+                seed_components = seed_components,
+                seed_fitted = seed_fitted)
     class(ans) <- c("bage_mod_pois", "bage_mod")
     ans
 }
@@ -232,6 +236,8 @@ mod_binom <- function(formula, data, size) {
     matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
                                                   j = integer(),
                                                   x = integer())
+    seed_components <- make_seed()
+    seed_fitted <- make_seed()
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -250,6 +256,8 @@ mod_binom <- function(formula, data, size) {
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
+                seed_components = seed_components,
+                seed_fitted = seed_fitted,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_binom", "bage_mod")
     ans
@@ -359,6 +367,8 @@ mod_norm <- function(formula, data, weights) {
     matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
                                                   j = integer(),
                                                   x = integer())
+    seed_components <- make_seed()
+    seed_fitted <- make_seed()
     ## create object and return
     ans <- list(formula = formula,
                 data = data,
@@ -379,6 +389,7 @@ mod_norm <- function(formula, data, weights) {
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
+                seed_components = seed_components,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_norm", "bage_mod")
     ans

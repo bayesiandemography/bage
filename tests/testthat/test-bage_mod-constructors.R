@@ -11,13 +11,16 @@ test_that("'mod_pois' works with valid inputs - with exposure", {
                              exposure = popn)
     expect_s3_class(ans_obtained, "bage_mod_pois")
     expect_s3_class(ans_obtained, "bage_mod")
+    set.seed(0)
     ans_noquote <- mod_pois(formula = formula,
                             data = data,
                             exposure = popn)
+    set.seed(0)
     ans_withquote <- mod_pois(formula = formula,
                               data = data,
                               exposure = "popn")
     expect_identical(ans_noquote, ans_withquote)
+    set.seed(0)
     ans_squote <- mod_pois(formula = formula,
                            data = data,
                            exposure = 'popn')
@@ -71,9 +74,11 @@ test_that("'mod_binom' works with valid inputs", {
                               size = popn)
     expect_s3_class(ans_obtained, "bage_mod_binom")
     expect_s3_class(ans_obtained, "bage_mod")
+    set.seed(0)
     ans_noquote <- mod_binom(formula = formula,
                              data = data,
                              size = popn)
+    set.seed(0)
     ans_withquote <- mod_binom(formula = formula,
                                data = data,
                                size = "popn")
@@ -93,9 +98,11 @@ test_that("'mod_norm' works with valid inputs - with weights", {
                              weights = popn)
     expect_s3_class(ans_obtained, "bage_mod_norm")
     expect_s3_class(ans_obtained, "bage_mod")
+    set.seed(0)
     ans_noquote <- mod_norm(formula = formula,
                             data = data,
                             weights = popn)
+    set.seed(0)
     ans_withquote <- mod_norm(formula = formula,
                               data = data,
                               weights = "popn")
