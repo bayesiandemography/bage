@@ -184,10 +184,14 @@ generics::components
 #' @export
 components.bage_mod <- function(object, ...) {
     if (is_fitted(object)) {
+        seed_components <- object$seed_components
         comp <- make_comp_component(object)
         term <- make_term_components(object)
         level <- make_level_components(object)
+        seed_restore <- make_seed()
+        set.seed(seed_components)
         draws <- make_draws_components(object)
+        set.seed(seed_restore)
         draws <- as.matrix(draws)
         .fitted <- rvec::rvec_dbl(draws)
         tibble::tibble(component = comp,
@@ -435,70 +439,59 @@ is_fitted.bage_mod <- function(x)
     !is.null(x$est)
 
 
-## 'make_fitted_disp' ---------------------------------------------------------
+## 'make_fitted_disp_inner' ---------------------------------------------------
 
-#' Make modelled estimates for models
+#' Make random draws for 'make_fitted_disp'
 #' with dispersion term
 #'
-#' @param x A fitted 'bage_mod' object.
+#' @param x Fitted object of class 'bage_mod'.
+#' @param outcome Values for outcome variable
+#' (where neither outcome or offset is NA).
+#' Aligned to data.
+#' @param offset Values for offset variable
+#' (where neither outcome or offset is NA).
+#' Aligned to data.
 #' @param expected An rvec with posterior
 #' distribution of expected values,
 #' based on (transformed) linear predictor.
-#' Aligned to data (not outcome.)
+#' Aligned to data.
 #' @param disp An rvec of length 1 with
 #' posterior distribution for
 #' dispersion term.
 #'
-#' @returns A vector of doubles.
+#' @returns An rvec
 #'
 #' @noRd
-make_fitted_disp <- function(x, expected, disp) {
-    UseMethod("make_fitted_disp")
+make_fitted_disp_inner <- function(x,
+                                   outcome,
+                                   offset,
+                                   expected,
+                                   disp) {
+    UseMethod("make_fitted_disp_inner")
 }
 
 ## HAS_TESTS
 #' @export
-make_fitted_disp.bage_mod_pois <- function(x, expected, disp) {
-    outcome <- x$outcome
-    offset <- x$offset
-    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
-    offset <- as.double(offset)   ## so 'align_to_data' works correctly
-    align_to_data <- get_fun_align_to_data(x)
-    outcome <- align_to_data(outcome)
-    offset <- align_to_data(offset)
-    n_val <- length(outcome)
-    n_draw <- rvec::n_draw(expected)
-    ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
-    is_na <- is.na(outcome) | is.na(offset)
-    outcome <- outcome[!is_na]
-    offset <- offset[!is_na]
-    expected <- expected[!is_na]
-    ans[!is_na] <- rvec::rgamma_rvec(n = length(outcome),
-                                     shape = outcome + 1 / disp,
-                                     rate = offset + 1 / (disp * expected))
-    ans
+make_fitted_disp_inner.bage_mod_pois <- function(x,
+                                                 outcome,
+                                                 offset,
+                                                 expected,
+                                                 disp) {
+    rvec::rgamma_rvec(n = length(outcome),
+                      shape = outcome + 1 / disp,
+                      rate = offset + 1 / (disp * expected))
 }
 
 ## HAS_TESTS
 #' @export
-make_fitted_disp.bage_mod_binom <- function(x, expected, disp) {
-    outcome <- x$outcome
-    offset <- x$offset
-    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
-    offset <- as.double(offset)   ## so 'align_to_data' works correctly
-    align_to_data <- get_fun_align_to_data(x)
-    outcome <- align_to_data(outcome)
-    offset <- align_to_data(offset)
-    n_val <- length(outcome)
-    n_draw <- rvec::n_draw(expected)
-    ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
-    is_na <- is.na(outcome) | is.na(offset)
-    outcome <- outcome[!is_na]
-    offset <- offset[!is_na]
-    expected <- expected[!is_na]
-    ans[!is_na] <- rvec::rbeta_rvec(n = length(outcome),
-                                    shape1 = outcome + expected / disp,
-                                    shape2 = offset - outcome + (1 - expected) / disp)
+make_fitted_disp_inner.bage_mod_binom <- function(x,
+                                                  outcome,
+                                                  offset,
+                                                  expected,
+                                                  disp) {
+    rvec::rbeta_rvec(n = length(outcome),
+                     shape1 = outcome + expected / disp,
+                     shape2 = offset - outcome + (1 - expected) / disp)
 }
 
 

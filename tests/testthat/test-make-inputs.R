@@ -1047,6 +1047,18 @@ test_that("'make_random' works when has season effect", {
 })
 
 
+## 'make_seed' --------------------------------------------------------------
+
+test_that("'make_seed' returns a single unique integer", {
+    set.seed(0)
+    ans1 <- make_seed()
+    ans2 <- make_seed()
+    expect_true(is.integer(ans1))
+    expect_identical(length(ans1), 1L)
+    expect_false(ans1 == ans2)
+})
+
+
 ## 'make_spline_matrix' -------------------------------------------------------
 
 test_that("'make_spline_matrix' works", {
