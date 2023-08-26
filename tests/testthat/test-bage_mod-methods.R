@@ -94,6 +94,22 @@ test_that("'augment' works with normal, no season", {
                      c(names(data), ".fitted"))
 })
 
+test_that("'augment' gives same answer when run twice", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.5)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    mod_fitted <- fit(mod)
+    ans1 <- augment(mod_fitted)
+    ans2 <- augment(mod_fitted)
+    expect_identical(ans1, ans2)
+})
 
 
 ## 'components' ---------------------------------------------------------------
@@ -150,7 +166,22 @@ test_that("'components' works with no season no disp", {
     expect_identical(unique(ans$component), c("par", "hyper"))
 })
 
-
+test_that("'components' gives same answer when run twice", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_disp(mod, s = 0)
+    expect_identical(components(mod), NULL)
+    mod_fitted <- fit(mod)
+    ans1 <- components(mod_fitted)
+    ans2 <- components(mod_fitted)
+    expect_identical(ans1, ans2)
+})
 
 
 ## 'fit' -----------------------------------------------------------------
@@ -364,9 +395,10 @@ test_that("'is_fitted' works with valid inputs", {
     expect_true(is_fitted(mod))
 })
 
-## 'make_fitted_disp' ------------------------------------------------------------
 
-test_that("'make_fitted_disp' works with bage_mod_pois", {
+## 'make_fitted_disp_inner' ---------------------------------------------------
+
+test_that("'make_fitted_disp_inner' works with bage_mod_pois", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -375,40 +407,43 @@ test_that("'make_fitted_disp' works with bage_mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- fit(mod)
-    components <- components(mod)
-    expected <- exp(make_linpred_par(mod, components = components))
-    disp <- components$.fitted[components$component == "disp"]
-    set.seed(1)
-    ans_obtained <- make_fitted_disp(mod,
-                                     expected = expected,
-                                     disp = disp)
-    set.seed(1)
+    outcome <- data$deaths
+    offset <- data$popn
+    expected <- rvec::rpois_rvec(n = 120, lambda = outcome, n_draw = 5)
+    disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.5, n_draw = 5)
+    set.seed(0)
+    ans_obtained <- make_fitted_disp_inner(mod,
+                                           outcome = outcome,
+                                           offset = offset,
+                                           expected = expected,
+                                           disp = disp)
+    set.seed(0)
     ans_expected <- rvec::rgamma_rvec(n = length(expected),
                                       data$deaths + 1/disp,
                                       data$popn + 1/(disp*expected))
     expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_fitted_disp' works with bage_mod_binom", {
+test_that("'make_fitted_disp_inner' works with bage_mod_pois", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
     formula <- deaths ~ age + time + sex
     mod <- mod_binom(formula = formula,
-                     data = data,
-                     size = popn)
-    mod <- fit(mod)
-    components <- components(mod)
-    invlogit <- function(x) 1 / (1 + exp(-x))
-    expected <- invlogit(make_linpred_par(mod, components = components))
-    disp <- components$.fitted[components$component == "disp"]
-    set.seed(1)
-    ans_obtained <- make_fitted_disp(mod,
-                                     expected = expected,
-                                     disp = disp)
-    set.seed(1)
+                    data = data,
+                    size = popn)
+    outcome <- data$deaths
+    offset <- data$popn
+    expected <- rvec::runif_rvec(n = 120, n_draw = 5)
+    disp <- rvec::runif_rvec(n = 1, min = 0.1, max = 0.8, n_draw = 5)
+    set.seed(0)
+    ans_obtained <- make_fitted_disp_inner(mod,
+                                           outcome = outcome,
+                                           offset = offset,
+                                           expected = expected,
+                                           disp = disp)
+    set.seed(0)
     ans_expected <- rvec::rbeta_rvec(n = length(expected),
                                      data$deaths + expected/disp,
                                      data$popn - data$deaths + (1 - expected)/disp)

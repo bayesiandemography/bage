@@ -226,6 +226,52 @@ make_draws_components <- function(mod) {
 }
 
 
+## 'make_fitted_disp' ---------------------------------------------------------
+
+## NO_TESTS
+#' Make modelled estimates for models
+#' with dispersion term
+#'
+#' @param x A fitted 'bage_mod' object.
+#' @param expected An rvec with posterior
+#' distribution of expected values,
+#' based on (transformed) linear predictor.
+#' Aligned to data (not outcome.)
+#' @param disp An rvec of length 1 with
+#' posterior distribution for
+#' dispersion term.
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_fitted_disp <- function(x, expected, disp) {
+    outcome <- x$outcome
+    offset <- x$offset
+    seed_fitted <- x$seed_fitted
+    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
+    offset <- as.double(offset)   ## so 'align_to_data' works correctly
+    align_to_data <- get_fun_align_to_data(x)
+    outcome <- align_to_data(outcome)
+    offset <- align_to_data(offset)
+    n_val <- length(outcome)
+    n_draw <- rvec::n_draw(expected)
+    ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
+    is_na <- is.na(outcome) | is.na(offset)
+    outcome <- outcome[!is_na]
+    offset <- offset[!is_na]
+    expected <- expected[!is_na]
+    seed_restore <- make_seed()
+    set.seed(seed_fitted)
+    ans[!is_na] <- make_fitted_disp_inner(x = x,
+                                          outcome = outcome,
+                                          offset = offset,
+                                          expected = expected,
+                                          disp = disp)
+    set.seed(seed_restore)
+    ans
+}
+
+
 ## HAS_TESTS
 #' Make logical vector indicating whether
 #' an element of 'est' is fixed

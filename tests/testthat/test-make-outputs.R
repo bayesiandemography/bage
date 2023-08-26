@@ -125,7 +125,7 @@ test_that("'make_draws_comp_raw' works with valid inputs", {
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
-    mod <- set_n_draw(mod, n = 10000)
+    mod <- set_n_draw(mod, n = 20000)
     ans <- make_draws_comp_raw(mod)
     mean <- unlist(mod$est, use.names = FALSE)[!mod$is_fixed]
     prec <- crossprod(mod$R_prec)
@@ -148,9 +148,9 @@ test_that("'make_draws_components' works", {
     mod <- set_prior(mod, age ~ Spline())
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
-    set.seed(1)
+    set.seed(0)
     ans_obtained <- make_draws_components(mod)
-    set.seed(1)
+    set.seed(0)
     est <- mod$est
     is_fixed <- mod$is_fixed
     matrix <- make_combined_matrix_parfree_par(mod)
@@ -167,6 +167,57 @@ test_that("'make_draws_components' works", {
                                  offset = offset)
     ans_expected <- draws[-nrow(draws), ,drop = FALSE]
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_fitted_disp' ------------------------------------------------------------
+
+test_that("'make_fitted_disp' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    components <- components(mod)
+    expected <- exp(make_linpred_par(mod, components = components))
+    disp <- components$.fitted[components$component == "disp"]
+    ans_obtained <- make_fitted_disp(mod,
+                                     expected = expected,
+                                     disp = disp)
+    set.seed(mod$seed_fitted)
+    ans_expected <- rvec::rgamma_rvec(n = length(expected),
+                                      data$deaths + 1/disp,
+                                      data$popn + 1/(disp*expected))
+    expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_fitted_disp' works with bage_mod_binom", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+    formula <- deaths ~ age + time + sex
+    mod <- mod_binom(formula = formula,
+                     data = data,
+                     size = popn)
+    mod <- fit(mod)
+    components <- components(mod)
+    invlogit <- function(x) 1 / (1 + exp(-x))
+    expected <- invlogit(make_linpred_par(mod, components = components))
+    disp <- components$.fitted[components$component == "disp"]
+    set.seed(1)
+    ans_obtained <- make_fitted_disp(mod,
+                                     expected = expected,
+                                     disp = disp)
+    set.seed(mod$seed_fitted)
+    ans_expected <- rvec::rbeta_rvec(n = length(expected),
+                                     data$deaths + expected/disp,
+                                     data$popn - data$deaths + (1 - expected)/disp)
+    expect_equal(ans_obtained, ans_expected)
 })
 
 
