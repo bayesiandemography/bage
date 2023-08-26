@@ -952,6 +952,16 @@ make_random <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make a random seed
+#'
+#' @returns A an between 1 and max integer.
+#'
+#' @noRd
+make_seed <- function()
+    sample.int(n = .Machine$integer.max, size = 1L)
+
+
+## HAS_TESTS
 #' Make a matrix of B-spline basis functions
 #'
 #' Based on Eilers and Marx (1996). Flexible Smoothing
