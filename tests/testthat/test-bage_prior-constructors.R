@@ -8,7 +8,7 @@ test_that("'AR1' works with valid inputs", {
 
 test_that("'AR1' throws current error when min >= max", {
     expect_error(AR1(min = 0.8, max = 0.8),
-                 "'min' \\[0.8\\] greater than or equal to 'max' \\[0.8\\]")
+                 "`min` not less than `max`")
 })
 
 test_that("'Known' works with valid inputs", {
