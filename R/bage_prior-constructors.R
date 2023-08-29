@@ -51,9 +51,9 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
     checkmate::assert_number(min, lower = 0, upper = 1)
     checkmate::assert_number(max, lower = 0, upper = 1)
     if (min >= max)
-        stop(gettextf("'%s' [%s] greater than or equal to '%s' [%s]",
-                      "min", min, "max", max),
-             call. = FALSE)
+        cli::cli_abort(c("{.arg min} not less than {.arg max}",
+                         i = "{.arg min} is {.val {min}}.",
+                         i = "{.arg max} is {.val {max}}."))
     min <- as.double(min)
     max <- as.double(max)
     new_bage_prior_ar1(min = min,

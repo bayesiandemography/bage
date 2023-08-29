@@ -494,12 +494,11 @@ set_var_inner <- function(mod, name, var) {
     for (i_oth in seq_along(names_oth)) {
         nm_oth <- names_oth[[i_oth]]
         if (!is.null(nm_oth)) {
-            if (identical(name, nm_oth))
-                stop(gettextf("%s variable and %s variable have same name [\"%s\"]",
-                              var,
-                              vars_oth[[i_oth]],
-                              name),
-                     call. = FALSE)
+            if (identical(name, nm_oth)) {
+                cli::cli_abort(c("Variables for {var} and {vars_oth[[i_oth]]} have the same name.",
+                                 i = "{.var {attr_name}} is {.val {name}}.",
+                                 i = "{.var {attr_names_oth[[i_oth]]}} is {.val {name}}."))
+            }
         }
     }
     ## modify var
