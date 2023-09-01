@@ -104,11 +104,11 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 ### Normal {#sec:norm}
 
 \begin{equation}
-  y_i \sim \mathcal{N}(\mu_i, w_i^{-1}\xi^2)
+  y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2)
 \end{equation}
 where the $w_i$ are some form of weights, with the possibility that $w_i \equiv 1$.
 
-Response $y_i$ is standardised to have mean 0 and standard deviation 1. We set
+Response $y_i$ is standardized to have mean 0 and standard deviation 1. We set
 \begin{equation}
   y_i = \frac{y_i^{*} - \bar{y}^*}{s^*}
 \end{equation}
@@ -189,21 +189,21 @@ set_prior(time ~ Lin(scale = 0.2))
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} | \tau_m & \ind \mathcal{N}\left(0, \tau_m^2 \right) \\
-  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right) \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \mathcal{N}(\beta_j^{(m)} \mid 0, \tau_m^2) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, \tau_m^2) 
 \end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-    \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(0, \tau_m^2)
+    \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, \tau_m^2)
 \end{equation}
 
 
@@ -220,20 +220,20 @@ N(s = 1)
 ### Model
 
 \begin{equation}
-  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \mathcal{N}\left(0, A_{\beta}^{(m)2}\right)
+  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \prod_{j=1}^{J_m} \mathcal{N}(\beta_j^{(m)} \mid 0, A_{\beta}^{(m)2}) 
+  \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, A_{\beta}^{(m)2}) 
 \end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-    \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(0, A_{\beta}^{(m)2})
+    \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, A_{\beta}^{(m)2})
 \end{equation}
 
 
@@ -252,15 +252,15 @@ NFix(sd = 1)
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & \sim \mathcal{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right) \\
-  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right) \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user.
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
 \end{equation}
 
 
@@ -284,23 +284,27 @@ MVN(V, s = 1)
 ### Model
 
 \begin{equation}
-  \beta_{j+1}^{(m)} \sim \mathcal{N}(\beta_j^{(m)}, \tau_m^2),
+  \beta_{j+1}^{(m)} \sim \text{N}(\beta_j^{(m)}, \tau_m^2),
 \end{equation}
 $j = 1, \cdots, J_m - 1$, together with the soft constraint
 \begin{equation}
-  \sum_{j=1}^{J_m} \beta_j^{(m)} \sim \mathcal{N}(0, 1).
+ \eta^{(m)} \sim \text{N}(0, 0.001),
+\end{equation}
+where
+\begin{equation}
+  \eta^{(m)} = \frac{1}{J_m} \sum_{j=1}^{J_m} \beta_j^{(m)}.
 \end{equation}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \beta_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, 0.001)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(\beta_{J_m+h}^{(m)}, \tau_m^2)
+  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\beta_{J_m+h}^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -318,23 +322,30 @@ RW(s = 1)
 ### Model
 
 \begin{equation}
-  \beta_{j+2}^{(m)} \sim \mathcal{N}(2 \beta_{j+1}^{(m)} - \beta_{j}^{(m)}, \tau_m^2),
+  \beta_{j+2}^{(m)} \sim \text{N}(2 \beta_{j+1}^{(m)} - \beta_{j}^{(m)}, \tau_m^2),
 \end{equation}
-$j = 1, \cdots, J_m - 2$, together with the soft constraint
-\begin{equation}
-  \sum_{j=1}^{J_m} \beta_j^{(m)} \sim \mathcal{N}(0, 1).
-\end{equation}
+  $j = 1, \cdots, J_m - 2$, together with the soft constraints
+\begin{align}
+ \eta_0^{(m)} & \sim \text{N}(0, 0.001) \\
+ \eta_1^{(m)} & \sim \text{N}(0, 0.001)
+\end{align}
+where
+\begin{align}
+  \eta_0^{(m)} & = \frac{1}{J_m} \sum_{j=1}^{J_m} \beta_j^{(m)} \\
+  \eta_1^{(m)} & = \frac{\sum_{j=1}^{J_m} \beta_j^{(m)} h_j^{(m)}}{\sum_{j=1}^{J_m} h_j^{(m)2}} \\
+  h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
+\end{align}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \beta_j^{(m)} \mid 0, 1 \right)  \prod_{j=3}^{J_m} \mathcal{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, 0.001) \text{N}(\eta_1^{(m)} \mid 0, 0.001) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(2 \beta_{J_m + h}^{(m)} - \beta_{J_m + h -1}^{(m)}, \tau_m^2)
+  \beta_{J_m+h+1}^{(m)} \sim \text{N}(2 \beta_{J_m + h}^{(m)} - \beta_{J_m + h -1}^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -352,12 +363,12 @@ RW2(s = 1)
 ### Model
 
 \begin{align}
-  \beta_1^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
+  \beta_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
   \beta_j^{(m)} & = \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
-  \epsilon_j^{(m)} & \sim \mathcal{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \epsilon_j^{(m)} & \sim \text{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
-  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right).
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right).
 \end{align}
 This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). We require that $-1 < a_{0m} < a_{1m} < 1$.
 
@@ -365,14 +376,14 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \mathcal{N}\left(\beta_1^{(m)} \mid 0, \tau_m^2 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\beta_j^{(m)} \mid \phi_m \beta_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \text{N}\left(\beta_1^{(m)} \mid 0, \tau_m^2 \right)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} \mid \phi_m \beta_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
 \end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \mathcal{N}\left(\phi_m \beta_{J_m + h}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
+  \beta_{J_m + h + 1}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
 \end{equation}
 
 
@@ -397,23 +408,23 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 \begin{align}
   \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
    h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
-  \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \epsilon_j^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
-  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2})   \mathcal{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \mathcal{N}\left(\beta_j^{(m)} \mid h_j^{(m)} \eta_m, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2})   \text{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \text{N}\left(\beta_j^{(m)} \mid h_j^{(m)} \eta_m, \tau_m^2 \right) 
 \end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \mathcal{N}(\beta_{J_m + h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m, \tau_m^2)
+  \beta_{J_m + h + 1}^{(m)} \sim \text{N}(\beta_{J_m + h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m, \tau_m^2)
 \end{equation}
 
 
@@ -434,12 +445,12 @@ Lin(sd = NULL, s = 1)
 \begin{align}
   \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
    h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
-  \eta_m & \sim \mathcal{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \epsilon_1^{(m)} & \sim \mathcal{N}(0, \tau_m^2) \\
-  \epsilon_j^{(m)} & \sim \mathcal{N}\left(\phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \epsilon_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \epsilon_j^{(m)} & \sim \text{N}\left(\phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
-  \tau_m & \sim \mathcal{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 where $-1 < a_{0m} < a_{1m} < 1$.
 
@@ -447,14 +458,14 @@ where $-1 < a_{0m} < a_{1m} < 1$.
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \mathcal{N}\left(\epsilon_1^{(m)} \mid 0, \tau_m^2 \right)  \mathcal{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=2}^{J_m} \mathcal{N}\left(\epsilon_j^{(m)} \mid \phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2  \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \text{N}\left(\epsilon_1^{(m)} \mid 0, \tau_m^2 \right)  \text{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=2}^{J_m} \text{N}\left(\epsilon_j^{(m)} \mid \phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2  \right) 
 \end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \mathcal{N}(\hat{\beta}_{J_m+h+1}^{(m)} + \phi_m \hat{\epsilon}_{J_m+h}^{(m)}, (1 - \phi_m^2) \tau_m^2)
+  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\hat{\beta}_{J_m+h+1}^{(m)} + \phi_m \hat{\epsilon}_{J_m+h}^{(m)}, (1 - \phi_m^2) \tau_m^2)
 \end{equation}
 where
 \begin{align}
@@ -490,7 +501,7 @@ $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j})
 ### Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\tau_m | 0, A_{\tau}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{k=1}^{K_m} \alpha_k^{(m)} \mid 0, 1 \right)  \prod_{k=3}^{K_m} \mathcal{N}\left(\alpha_k^{(m)} - 2 \alpha_{k-1}^{(m)} + \alpha_{k-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left( {\textstyle\sum}_{k=1}^{K_m} \alpha_k^{(m)} \mid 0, 1 \right)  \prod_{k=3}^{K_m} \text{N}\left(\alpha_k^{(m)} - 2 \alpha_{k-1}^{(m)} + \alpha_{k-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -515,7 +526,7 @@ Spline(n = NULL, s = 1)
 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}^{(m)} + \pmb{g}^{(m)} \\
-  \alpha_j^{(m)} & \sim \mathcal{N}(0, 1)
+  \alpha_j^{(m)} & \sim \text{N}(0, 1)
 \end{align}
 where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
@@ -524,7 +535,7 @@ TODO - Describe age-sex interactions.
 ### Contribution to posterior density
 
 \begin{equation}
-  \prod_{k=1}^{K_m} \mathcal{N}\left(\alpha_k^{(m)} \mid 0, 1 \right) 
+  \prod_{k=1}^{K_m} \text{N}\left(\alpha_k^{(m)} \mid 0, 1 \right) 
 \end{equation}
 
 ### Prediction
@@ -578,16 +589,16 @@ The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) o
 Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ elements. Seasonal effects are divided into $S_m$ batches, corresponding to $S_m$ "seasons", where $2 \le S_m \le \tfrac{1}{2} J_m$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
 
 \begin{align}
-  \lambda_{j}^{(m)} & \sim \mathcal{N}(\lambda_{j - S_m}^{(m)}, \kappa_m^2 ) \\ 
-  \kappa_m & \sim \mathcal{N}^+\left(0, A_{\kappa}^{(m)2}\right) \\
-  \sum_{j=1}^{J_m} \lambda_j & \sim \mathcal{N}(0, 1)
+  \lambda_{j}^{(m)} & \sim \text{N}(\lambda_{j - S_m}^{(m)}, \kappa_m^2 ) \\ 
+  \kappa_m & \sim \text{N}^+\left(0, A_{\kappa}^{(m)2}\right) \\
+  \sum_{j=1}^{J_m} \lambda_j & \sim \text{N}(0, 1)
 \end{align}
 
 
 ## Contribution to posterior density
 
 \begin{equation}
-  \mathcal{N}(\kappa_m | 0, A_{\kappa}^{(m)2}) \mathcal{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \mathcal{N}\left(\lambda_j^{(m)} - \lambda_{j-1}^{(m)} \mid 0, \kappa_m^2 \right) 
+  \text{N}(\kappa_m | 0, A_{\kappa}^{(m)2}) \text{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \text{N}\left(\lambda_j^{(m)} - \lambda_{j-1}^{(m)} \mid 0, \kappa_m^2 \right) 
 \end{equation}
 
 
@@ -613,8 +624,8 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 ### Standard prior
 
 \begin{align}
-  \zeta_p | \varphi & \ind \mathcal{N}(0, \varphi^2) \\
-  \varphi & \sim \mathcal{N}^+(0, 1)
+  \zeta_p | \varphi & \ind \text{N}(0, \varphi^2) \\
+  \varphi & \sim \text{N}^+(0, 1)
 \end{align}
 
 
@@ -623,7 +634,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 Regularised horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
-  \zeta_p | \omega_p, \varphi & \ind \mathcal{N}(0, \omega_p^2 \varphi^2) \\
+  \zeta_p | \omega_p, \varphi & \ind \text{N}(0, \omega_p^2 \varphi^2) \\
   \omega_p & \sim \text{Cauchy}^+(0, 1) \\
   \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
   A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}
@@ -650,7 +661,7 @@ and set
 \end{equation}
 - Normal. Using maximum likelihood, fit the linear model
 \begin{equation}
-  y_i \sim \mathcal{N}\left(\sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}, w_i^{-1}\xi^2 \right)
+  y_i \sim \text{N}\left(\sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}, w_i^{-1}\xi^2 \right)
 \end{equation}
 and set $\hat{\sigma} = \hat{\xi}$.
 
