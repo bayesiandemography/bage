@@ -52,8 +52,8 @@ Type logpost_rw(vector<Type> parfree,
     Type diff = parfree[i] - parfree[i-1];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type parfree_total = parfree.sum();
-  ans += dnorm(parfree_total, Type(0), Type(1), true);
+  Type parfree_mean = parfree.sum() / n;
+  ans += dnorm(parfree_mean, Type(0), Type(0.001), true);
   return ans;
 }
 
@@ -71,8 +71,14 @@ Type logpost_rw2(vector<Type> parfree,
     Type diff = parfree[i] - 2 * parfree[i-1] + parfree[i-2];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type parfree_total = parfree.sum();
-  ans += dnorm(parfree_total, Type(0), Type(1), true);
+  Type parfree_mean = parfree.sum() / n;
+  ans += dnorm(parfree_total, Type(0), Type(0.001), true);
+  Type num = 0;
+  Type den = 0;
+  for (int i = 0; i < n; i++) {
+    num += 
+  Type parfree_slope = 0;
+  
   return ans;
 }
 
