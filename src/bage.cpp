@@ -7,6 +7,8 @@ using namespace density;
 using namespace Eigen;
 using namespace tmbutils;
 
+const double SD_CONSTRAINT = 0.00001;
+
 
 // Functions for calculating prior density ------------------------------------
 
@@ -52,8 +54,8 @@ Type logpost_rw(vector<Type> parfree,
     Type diff = parfree[i] - parfree[i-1];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type parfree_mean = parfree.sum() / n;
-  ans += dnorm(parfree_mean, Type(0), Type(0.001), true);
+  Type parfree_total = parfree.sum();
+  ans += dnorm(parfree_total, Type(0), Type(n * SD_CONSTRAINT), true);
   return ans;
 }
 
@@ -71,14 +73,17 @@ Type logpost_rw2(vector<Type> parfree,
     Type diff = parfree[i] - 2 * parfree[i-1] + parfree[i-2];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type parfree_mean = parfree.sum() / n;
-  ans += dnorm(parfree_total, Type(0), Type(0.001), true);
+  Type parfree_total = parfree.sum();
+  ans += dnorm(parfree_total, Type(0), Type(n * SD_CONSTRAINT), true);
   Type num = 0;
   Type den = 0;
   for (int i = 0; i < n; i++) {
-    num += 
-  Type parfree_slope = 0;
-  
+    Type h = -1 + i * 2 / (n - 1);
+    num += parfree[i] * h;
+    den += h * h;
+  }
+  Type slope = num / den;
+  ans += dnorm(slope, Type(0), Type(1), true);
   return ans;
 }
 
@@ -189,7 +194,7 @@ Type logpost_season(vector<Type> par_season,
       int idx = i_by + i_time * n_by;
       sum_by += par_season[idx];
     }
-    ans += dnorm(sum_by, Type(0), Type(1), true);
+    ans += dnorm(sum_by, Type(0), Type(n_time * SD_CONSTRAINT), true);
   }
   return ans;
 }

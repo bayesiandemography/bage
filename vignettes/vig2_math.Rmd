@@ -288,7 +288,7 @@ MVN(V, s = 1)
 \end{equation}
 $j = 1, \cdots, J_m - 1$, together with the soft constraint
 \begin{equation}
- \eta^{(m)} \sim \text{N}(0, 0.001),
+ \eta^{(m)} \sim \text{N}(0, A_{\eta}^{(m)}),
 \end{equation}
 where
 \begin{equation}
@@ -298,7 +298,7 @@ where
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, 0.001)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, A_{\eta}^{(m)})  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 ### Prediction
@@ -311,10 +311,11 @@ where
 ### Code
 
 ```
-RW(s = 1)
+RW(s = 1, sd_intercept = 0.001)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `sd_intercept` is A_{\eta}^{(m)}$. Defaults to 0.001.
 
 
 ## Second-order random walk {#sec:pr-rw2}
@@ -326,8 +327,8 @@ RW(s = 1)
 \end{equation}
   $j = 1, \cdots, J_m - 2$, together with the soft constraints
 \begin{align}
- \eta_0^{(m)} & \sim \text{N}(0, 0.001) \\
- \eta_1^{(m)} & \sim \text{N}(0, 0.001)
+ \eta_0^{(m)} & \sim \text{N}(0, A_{\eta, 0}^{(m)}) \\
+ \eta_1^{(m)} & \sim \text{N}(0, A_{\eta, 1}^{(m)})
 \end{align}
 where
 \begin{align}
@@ -339,7 +340,7 @@ where
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, 0.001) \text{N}(\eta_1^{(m)} \mid 0, 0.001) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)}) \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 ### Prediction
@@ -352,10 +353,12 @@ where
 ### Code
 
 ```
-RW2(s = 1)
+RW2(s = 1, sd_intercept = 0.001, sd_slope = 1)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `sd_intercept` is $A_{\eta,0}^{(m)}$. Defaults to 0.001.
+- `s_slope` is $A_{\eta,1}^{(m)}$. Defaults to 1.
 
 
 ## AR1 {#sec:pr-ar1}
