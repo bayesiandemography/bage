@@ -7,8 +7,6 @@ using namespace density;
 using namespace Eigen;
 using namespace tmbutils;
 
-const double SD_CONSTRAINT = 0.00001;
-
 
 // Functions for calculating prior density ------------------------------------
 
@@ -45,6 +43,7 @@ Type logpost_rw(vector<Type> parfree,
 		vector<Type> hyper,
 		vector<Type> consts) {
   Type scale = consts[0];
+  Type sd_intercept = consts[1];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   int n = parfree.size();
@@ -55,7 +54,7 @@ Type logpost_rw(vector<Type> parfree,
     ans += dnorm(diff, Type(0), sd, true);
   }
   Type parfree_total = parfree.sum();
-  ans += dnorm(parfree_total, Type(0), Type(n * SD_CONSTRAINT), true);
+  ans += dnorm(parfree_total, Type(0), Type(n * sd_intercept), true);
   return ans;
 }
 
@@ -64,6 +63,8 @@ Type logpost_rw2(vector<Type> parfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
   Type scale = consts[0];
+  Type sd_intercept = consts[1];
+  Type sd_slope = consts[2];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   int n = parfree.size();
@@ -74,7 +75,7 @@ Type logpost_rw2(vector<Type> parfree,
     ans += dnorm(diff, Type(0), sd, true);
   }
   Type parfree_total = parfree.sum();
-  ans += dnorm(parfree_total, Type(0), Type(n * SD_CONSTRAINT), true);
+  ans += dnorm(parfree_total, Type(0), Type(n * sd_intercept), true);
   Type num = 0;
   Type den = 0;
   for (int i = 0; i < n; i++) {
@@ -83,7 +84,7 @@ Type logpost_rw2(vector<Type> parfree,
     den += h * h;
   }
   Type slope = num / den;
-  ans += dnorm(slope, Type(0), Type(1), true);
+  ans += dnorm(slope, Type(0), sd_slope, true);
   return ans;
 }
 
@@ -113,7 +114,7 @@ template <class Type>
 Type logpost_spline(vector<Type> parfree,
    		    vector<Type> hyper,
 		    vector<Type> consts) {
-  return logpost_rw(parfree, hyper, consts);
+  return logpost_rw2(parfree, hyper, consts);
 }
 
 
@@ -176,6 +177,7 @@ Type logpost_season(vector<Type> par_season,
 		    int n_time,
 		    int n_season) {
   Type scale = consts_season[0];
+  Type sd_intercept = consts_season[1];
   Type log_sd = hyper_season[0];
   Type sd = exp(log_sd);
   int n_par = par_season.size();
@@ -194,7 +196,7 @@ Type logpost_season(vector<Type> par_season,
       int idx = i_by + i_time * n_by;
       sum_by += par_season[idx];
     }
-    ans += dnorm(sum_by, Type(0), Type(n_time * SD_CONSTRAINT), true);
+    ans += dnorm(sum_by, Type(0), Type(n_time * sd_intercept), true);
   }
   return ans;
 }

@@ -206,11 +206,14 @@ make_const <- function(mod) {
 #'
 #' @noRd
 make_const_season <- function(mod) {
+    sd_intercept <- 0.0001
     has_season <- has_season(mod)
     if (has_season)
-        mod$scale_season
+        ans <- mod$scale_season
     else
-        0
+        ans <- 0
+    ans <- c(ans, sd_intercept)
+    ans
 }
 
 

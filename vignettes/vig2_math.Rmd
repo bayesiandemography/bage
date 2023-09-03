@@ -311,11 +311,11 @@ where
 ### Code
 
 ```
-RW(s = 1, sd_intercept = 0.001)
+RW(s = 1)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- `sd_intercept` is A_{\eta}^{(m)}$. Defaults to 0.001.
+- Internally, $A_{\eta}^{(m)}$ is set to 0.001.
 
 
 ## Second-order random walk {#sec:pr-rw2}
@@ -353,12 +353,12 @@ where
 ### Code
 
 ```
-RW2(s = 1, sd_intercept = 0.001, sd_slope = 1)
+RW2(s = 1, flat = FALSE)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- `sd_intercept` is $A_{\eta,0}^{(m)}$. Defaults to 0.001.
-- `s_slope` is $A_{\eta,1}^{(m)}$. Defaults to 1.
+- Internally, $A_{\eta,0}^{(m)}$ is set to 0.001.
+- If `flat` is `FALSE` (the default) then $A_{\eta,1}^{(m)}$ is set to 1. Otherwise it is set to 0.001.
 
 
 ## AR1 {#sec:pr-ar1}
@@ -504,8 +504,14 @@ $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j})
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left( {\textstyle\sum}_{k=1}^{K_m} \alpha_k^{(m)} \mid 0, 1 \right)  \prod_{k=3}^{K_m} \text{N}\left(\alpha_k^{(m)} - 2 \alpha_{k-1}^{(m)} + \alpha_{k-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)})  \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)}) \prod_{k=3}^{K_m} \text{N}\left(\alpha_k^{(m)} - 2 \alpha_{k-1}^{(m)} + \alpha_{k-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
+where
+\begin{align}
+  \eta_0^{(m)} & = \frac{1}{K_m} \sum_{k=1}^{K_m} \alpha_k^{(m)} \\
+  \eta_1^{(m)} & = \frac{\sum_{k=1}^{K_m} \alpha_k^{(m)} h_k^{(m)}}{\sum_{k=1}^{K_m} h_k^{(m)2}} \\
+  h_k^{(m)} & = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} j \\
+\end{align}
 
 
 ### Prediction

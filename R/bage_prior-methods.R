@@ -19,17 +19,17 @@ draw_vals_hyper.bage_prior_norm <- function(prior, n_draw) {
     list(sd = sd)
 }
 
-draw_vals_hyper.bage_prior_rw <- function(prior, n_draw) {
-    scale <- prior$scale
-    sd <- abs(stats::rnorm(n = n_draw, sd = scale))
-    list(sd = sd)
-}
+## draw_vals_hyper.bage_prior_rw <- function(prior, n_draw) {
+##     scale <- prior$scale
+##     sd <- abs(stats::rnorm(n = n_draw, sd = scale))
+##     list(sd = sd)
+## }
 
-draw_vals_hyper.bage_prior_rw2 <- function(prior, n_draw) {
-    scale <- prior$scale
-    sd <- abs(stats::rnorm(n = n_draw, sd = scale))
-    list(sd = sd)
-}
+## draw_vals_hyper.bage_prior_rw2 <- function(prior, n_draw) {
+##     scale <- prior$scale
+##     sd <- abs(stats::rnorm(n = n_draw, sd = scale))
+##     list(sd = sd)
+## }
 
 
 ## 'draw_vals_par' ------------------------------------------------------------
@@ -48,34 +48,34 @@ draw_vals_par.bage_prior_norm <- function(prior, hyper, length_par) {
            ncol = n_draw)
 }
 
-draw_vals_par.bage_prior_rw <- function(prior, hyper, length_par) {
-    sd <- hyper$sd
-    n_draw <- length(sd)
-    ## better to use matrices
-    diff <- matrix(stats::rnorm(n = (length_par - 1L) * n_draw, sd = sd),
-                   nrow = length_par - 1L,
-                   ncol = n_draw)
-    ans <- rbind(rep(0, times = n_draw),
-                 matrixStats::colCumsums(diff))
-    ans <- scale(ans, center = TRUE, scale = FALSE)
-    ans
-}
+## draw_vals_par.bage_prior_rw <- function(prior, hyper, length_par) {
+##     sd <- hyper$sd
+##     n_draw <- length(sd)
+##     ## better to use matrices
+##     diff <- matrix(stats::rnorm(n = (length_par - 1L) * n_draw, sd = sd),
+##                    nrow = length_par - 1L,
+##                    ncol = n_draw)
+##     ans <- rbind(rep(0, times = n_draw),
+##                  matrixStats::colCumsums(diff))
+##     ans <- scale(ans, center = TRUE, scale = FALSE)
+##     ans
+## }
 
-draw_vals_par.bage_prior_rw2 <- function(prior, hyper, length_par) {
-    sd <- hyper$sd
-    n_draw <- length(sd)
-    ## better to use matrices
-    diff2 <- matrix(stats::rnorm(n = (length_par - 2L) * n_draw, sd = sd),
-                   nrow = length_par - 2L,
-                   ncol = n_draw)
-    diff <- rbind(rep(0, times = n_draw),
-                  matrixStats::colCumsums(diff2))
-    ans <- rbind(rep(0, times = n_draw),
-                 matrixStats::colCumsums(diff))
-    ## also need slope
-    ans <- scale(ans, center = TRUE, scale = FALSE)
-    ans
-}
+## draw_vals_par.bage_prior_rw2 <- function(prior, hyper, length_par) {
+##     sd <- hyper$sd
+##     n_draw <- length(sd)
+##     ## better to use matrices
+##     diff2 <- matrix(stats::rnorm(n = (length_par - 2L) * n_draw, sd = sd),
+##                    nrow = length_par - 2L,
+##                    ncol = n_draw)
+##     diff <- rbind(rep(0, times = n_draw),
+##                   matrixStats::colCumsums(diff2))
+##     ans <- rbind(rep(0, times = n_draw),
+##                  matrixStats::colCumsums(diff))
+##     ## also need slope
+##     ans <- scale(ans, center = TRUE, scale = FALSE)
+##     ans
+## }
 
 
 ## 'is_known' -----------------------------------------------------------------
@@ -514,10 +514,19 @@ str_call_prior.bage_prior_rw <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2 <- function(prior) {
     scale <- prior$specific$scale
-    if (isTRUE(all.equal(scale, 1)))
-        "RW2()"
-    else
-        sprintf("RW2(s=%s)", scale)
+    flat <- prior$const[[3L]] < 1
+    if (isTRUE(all.equal(scale, 1))) {
+        if (flat)
+            "RW2(flat=TRUE)"
+        else
+            "RW2()"
+    }
+    else {
+        if (flat)
+            sprintf("RW2(s=%s,flat=TRUE)", scale)
+        else
+            sprintf("RW2(s=%s)", scale)
+    }
 }
 
 ## HAS_TESTS

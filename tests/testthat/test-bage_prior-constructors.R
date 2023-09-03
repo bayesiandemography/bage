@@ -29,7 +29,7 @@ test_that("'RW' works with valid inputs", {
 })
 
 test_that("'RW2' works with valid inputs", {
-    expect_identical(RW2(), new_bage_prior_rw2(scale = 1))
+    expect_identical(RW2(), new_bage_prior_rw2(scale = 1, flat = FALSE))
 })
 
 test_that("'Spline' works with valid inputs", {
@@ -102,19 +102,21 @@ test_that("'new_bage_prior_rw' works", {
     expect_s3_class(obj, "bage_prior_rw")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 3L)
-    expect_identical(obj$const, 1.0)
+    expect_identical(obj$const, c(1, 0.001))
     expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))
 })
 
 test_that("'new_bage_prior_rw2' works", {
-    obj <- new_bage_prior_rw2(scale = 1)
+    obj <- new_bage_prior_rw2(scale = 1, flat = FALSE)
     expect_s3_class(obj, "bage_prior_rw2")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 4L)
-    expect_identical(obj$const, 1)
+    expect_identical(obj$const, c(1, 0.001, 1))
     expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))
+    obj <- new_bage_prior_rw2(scale = 1, flat = TRUE)
+    expect_identical(obj$const, c(1, 0.001, 0.001))
 })
 
 test_that("'new_bage_prior_spline' works", {
@@ -122,7 +124,7 @@ test_that("'new_bage_prior_spline' works", {
     expect_s3_class(obj, "bage_prior_spline")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 6L)
-    expect_identical(obj$const, 1)
+    expect_identical(obj$const, c(1, 0.001, 1))
     expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(n = 10L, scale = 1))
 })
