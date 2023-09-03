@@ -113,9 +113,8 @@ check_format_prior_formula <- function(formula) {
 check_formula_has_predictors <- function(formula) {
     has_predictors <- is.matrix(attr(stats::terms(formula), "factors"))
     if (!has_predictors)
-        stop(gettextf("formula '%s' does not have any predictors",
-                      deparse1(formula)),
-             call. = FALSE)
+        cli::cli_abort(c("{.arg formula} does not include any predictors.",
+                         i = "{.arg formula}: {.code {deparse1(formula)}}."))
     invisible(TRUE)
 }
 
@@ -131,9 +130,8 @@ check_formula_has_predictors <- function(formula) {
 check_formula_has_response <- function(formula) {
     has_response <- attr(stats::terms(formula), "response") > 0L
     if (!has_response)
-        stop(gettextf("formula '%s' does not have a response variable",
-                      deparse1(formula)),
-             call. = FALSE)
+        cli::cli_abort(c("{.arg formula} does not include a response variable.",
+                         i = "{.arg formula}: {.code {deparse1(formula)}}."))
     invisible(TRUE)
 }
 
@@ -154,15 +152,13 @@ check_formula_has_variable <- function(name, formula) {
     factors <- attr(stats::terms(formula), "factors")
     varnames <- rownames(factors)[-1L]
     if (!(name %in% varnames))
-        stop(gettextf("formula '%s' does not have variable \"%s\"",
-                      deparse1(formula),
-                      name),
-             call. = FALSE)
+        cli::cli_abort(c("{.arg formula} does not have variable {.val {name}}.",
+                         i = "{.arg formula}: {deparse1(formula)}"))
     invisible(TRUE)
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Check formula does not have function calls
 #'
 #' @param formula A formula.
@@ -186,7 +182,6 @@ check_formula_no_functions <- function(formula) {
 }
 
 
-
 ## HAS_TESTS
 #' Check variables used in 'formula' occur in 'data'
 #'
@@ -201,12 +196,11 @@ check_formula_vnames_in_data <- function(formula, data) {
     nms_data <- names(data)
     is_in_data <- nms_formula %in% nms_data
     i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
-    if (i_not_in_data > 0L)
-        stop(gettextf("variable '%s' from formula '%s' not found in '%s'",
-                      nms_formula[[i_not_in_data]],
-                      deparse1(formula),
-                      "data"),
-             call. = FALSE)
+    if (i_not_in_data > 0L) {
+        nm_var <- nms_formula[[i_not_in_data]]
+        cli::cli_abort(c("Variable {.var {nm_var}} from {.arg formula} not found in {.arg data}.",
+                         i = "{.arg formula}: {.code {deparse(formula)}}."))
+    }
     invisible(TRUE)
 }
 

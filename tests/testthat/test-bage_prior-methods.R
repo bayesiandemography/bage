@@ -276,9 +276,11 @@ test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW(s = 0.95)), "RW(s=0.95)")
 })
 
-test_that("'str_call_prior' works with bage_prior_rw", {
+test_that("'str_call_prior' works with bage_prior_rw2", {
     expect_identical(str_call_prior(RW2()), "RW2()")
+    expect_identical(str_call_prior(RW2(flat = TRUE)), "RW2(flat=TRUE)")
     expect_identical(str_call_prior(RW2(s = 0.95)), "RW2(s=0.95)")
+    expect_identical(str_call_prior(RW2(flat = TRUE, s = 0.95)), "RW2(s=0.95,flat=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {

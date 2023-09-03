@@ -23,7 +23,6 @@ Imports:
     cli,
     generics,
     Matrix,
-    matrixStats,
     methods,
     poputils,
     rlang,
