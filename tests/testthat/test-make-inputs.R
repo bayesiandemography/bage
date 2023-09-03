@@ -208,7 +208,7 @@ test_that("'make_agesex_inner' works with valid inputs", {
 test_that("'make_const' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_const(mod)
-    ans_expected <- rep(1.0, 3L)
+    ans_expected <- c(1, 1, 0.001, 1)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
 })
@@ -220,7 +220,7 @@ test_that("'make_const_season' works with non-NULL seasonal effect", {
     mod <- structure(list(scale_season = 1.3, n_season = 3L),
                      class = "bage_mod")
     ans_obtained <- make_const_season(mod)
-    ans_expected <- 1.3
+    ans_expected <- c(1.3, 0.0001)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
 })
@@ -229,7 +229,7 @@ test_that("'make_const_season' works with non-NULL seasonal effect", {
     mod <- structure(list(scale_season = NULL, n_season = 0L),
                      class = "bage_mod")
     ans_obtained <- make_const_season(mod)
-    ans_expected <- 0
+    ans_expected <- c(0, 0.0001)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
 })
@@ -1091,7 +1091,7 @@ test_that("'make_submatrix' works - dimension not in term", {
 test_that("'make_terms_const' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = Known(1:3), d = N()))
     ans_obtained <- make_terms_const(mod)
-    ans_expected <- factor(c("a", "b", "c", "d"), levels = c("a", "b", "c", "d"))
+    ans_expected <- factor(c("a", "b", "b", "c", "d"), levels = c("a", "b", "c", "d"))
     expect_identical(ans_obtained, ans_expected)
 })
 

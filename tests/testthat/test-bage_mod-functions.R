@@ -315,12 +315,11 @@ test_that("'set_var_inner' gives correct errors with invalid inputs", {
     expect_error(set_var_inner(mod = mod,
                                name = "age",
                                var = "time"),
-                 "time variable and age variable have same name \\[\"age\"\\]")
+                 "Variables for time and age have the same name.")
 })
 
 
 ## 'unfit' --------------------------------------------------------------------
-
 
 test_that("'set_n_draw' works with valid inputs", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)

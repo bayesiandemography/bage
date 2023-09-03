@@ -51,9 +51,9 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
     checkmate::assert_number(min, lower = 0, upper = 1)
     checkmate::assert_number(max, lower = 0, upper = 1)
     if (min >= max)
-        stop(gettextf("'%s' [%s] greater than or equal to '%s' [%s]",
-                      "min", min, "max", max),
-             call. = FALSE)
+        cli::cli_abort(c("{.arg min} not less than {.arg max}",
+                         i = "{.arg min} is {.val {min}}.",
+                         i = "{.arg max} is {.val {max}}."))
     min <- as.double(min)
     max <- as.double(max)
     new_bage_prior_ar1(min = min,
@@ -171,25 +171,21 @@ NFix <- function(sd = 1) {
 }
 
 ## 'bage_prior_rw' can be created during initial call to mod_* function
-## 'bage_prior_rw2' only ever created by call to 'set_prior' function
 
 ## HAS_TESTS
-#' Random walk priors
+#' Random walk prior
 #'
-#' Priors in which units follow a one-dimensional
-#' random walk or random walk with drift.
+#' Prior in which units follow a (first order)
+#' random waok. Increments between neighbouring
+#' `x`s are assumed to be normally distibuted,
+#'
+#' \deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2), i = 2, \cdots, n}
+#'
+#' For identifiability,
+#' the mean value for the $x_i$ is assumed to be
+#' (almost) exactly equal to zero.
 #' 
-#' With `RW()`, increments between neighbouring
-#' `x`s are normally distibuted,
-#'
-#' \deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2)}
-#'
-#' With `RW2()`, increments in increments
-#' are normally distributed,
-#' 
-#' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, \sigma^2)}
-#'
-#' In both cases, standard deviation \eqn{\sigma} is drawn from a
+#' Standard deviation \eqn{\sigma} is drawn from a
 #' half-normal distribution,
 #' 
 #' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
@@ -203,18 +199,19 @@ NFix <- function(sd = 1) {
 #' for `scale` lead to smoother series of `x`s, and
 #' higher values lead to rougher series.
 #'
-#' @param s A positive, finite number.
+#' @param s A positive, finite number. Default is 1.
 #'
-#' @returns An object of class `bage_prior_rw`
-#' or `bage_prior_rw2`.
+#' @returns An object of class `bage_prior_rw`.
 #'
-#' @seealso `RW()` or `RW2()` are usually called within
-#' [set_prior()]. Other priors are [N()].
+#' @seealso
+#' - [RW2()] for a random walk with drift
+#' (a second-order random walk).
+#' - `RW()` is usually called as part of
+#' a call to [set_prior()]
 #'
 #' @examples
 #' RW()
 #' RW(s = 0.5)
-#' RW2()
 #' @export
 RW <- function(s = 1) {
     check_scale(s, x_arg = "s", zero_ok = FALSE)
@@ -222,12 +219,64 @@ RW <- function(s = 1) {
     new_bage_prior_rw(scale = scale)
 }
 
+
+## 'bage_prior_rw2' only ever created by call to 'set_prior' function
+
+## HAS_TESTS
+#' Random walk with drift prior
+#'
+#' Prior in which units follow a random walk with drift.
+#' Second-order differences are normally distributed,
+#' 
+#' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, \sigma^2),
+#'       i = 3, \cdots, n}
+#'
+#' For identifiability,
+#' the mean value for the $x_i$ is assumed to be
+#' (almost) exactly equal to zero.
+#'
+#' When `flat` is `FALSE` (the default),
+#' no constraint is placed on the overall slope of the $x_i$.
+#' When `flat` is `TRUE`, a line through the middle of the
+#' $x_i$ must be be horizontal.
+#' 
+#' Standard deviation \eqn{\sigma} is drawn from a
+#' half-normal distribution,
+#' 
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (A half-normal distribution has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' The scale for the half-normal distribution, `s`, defaults
+#' to 1, but can be set to other values. Lower values
+#' for `scale` lead to smoother series of `x`s, and
+#' higher values lead to rougher series.
+#'
+#' @param s A positive, finite number. Default is 1.
+#' @param flat Whether the overall slope of the
+#' terms is constrained to be zero. Default
+#' is `FALSE`.
+#'
+#' @returns An object of class `bage_prior_rw`
+#' or `bage_prior_rw2`.
+#'
+#' @seealso
+#' - [RW()] for a first-order random walk.
+#' - `RW2()` is usually called as part of
+#' a call to [set_prior()]
+#'
+#' @examples
+#' RW2()
+#' RW2(flat = TRUE)
 #' @export
-#' @rdname RW
-RW2 <- function(s = 1) {
+RW2 <- function(s = 1, flat = FALSE) {
     check_scale(s, x_arg = "s", zero_ok = FALSE)
     scale <- as.double(s)
-    new_bage_prior_rw2(scale = scale)
+    check_flag(flat)
+    new_bage_prior_rw2(scale = scale,
+                       flat = flat)
 }
 
 
@@ -399,8 +448,9 @@ new_bage_prior_normfixed <- function(sd) {
 
 ## HAS_TESTS
 new_bage_prior_rw <- function(scale) {
+    sd_intercept <- 0.001
     ans <- list(i_prior = 3L,
-                const = scale,
+                const = c(scale, sd_intercept),
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw", "bage_prior")
@@ -408,9 +458,11 @@ new_bage_prior_rw <- function(scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale) {
+new_bage_prior_rw2 <- function(scale, flat) {
+    sd_intercept <- 0.001
+    sd_slope <- if (flat) sd_intercept else 1
     ans <- list(i_prior = 4L,
-                const = scale,
+                const = c(scale, sd_intercept, sd_slope),
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
@@ -419,8 +471,10 @@ new_bage_prior_rw2 <- function(scale) {
 
 ## HAS_TESTS
 new_bage_prior_spline <- function(n, scale) {
+    sd_intercept <- 0.001
+    sd_slope <- 1
     ans <- list(i_prior = 6L,
-                const = scale,
+                const = c(scale, sd_intercept, sd_slope),
                 n_hyper = 1L, ## log_sd
                 specific = list(n = n,
                                 scale = scale))
