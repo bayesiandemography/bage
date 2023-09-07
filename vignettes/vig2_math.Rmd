@@ -152,6 +152,10 @@ TMB requires that we provide a function to calculate contribution to the posteri
 
 In TMB itself, densitities are specified on the log scale. Here, however, we present them on the original scale.
 
+## Simulation
+
+All priors are proper, allowing us to draw from them for simulation.
+
 ## Prediction
 
 In some applications, we need to predict outside that data, which requires generating values $\beta_{J_m + h}^{(m)}$, $h = 1, 2, \cdots$. We do not allow predicted values with multivariate normal priors (Section \@ref(sec:pr-mnorm)), P-Spline priors (Section \@ref(sec:pr-spline)), or SVD priors (Section \@ref(sec:pr-svd)). For all other priors, we are able to obtain expressions for
@@ -200,6 +204,14 @@ set_prior(time ~ Lin(scale = 0.2))
 \end{equation}
 
 
+### Simulation
+
+\begin{align}
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right)
+\end{align}
+
+
 ### Prediction
 
 \begin{equation}
@@ -227,6 +239,13 @@ N(s = 1)
 
 \begin{equation}
   \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, A_{\beta}^{(m)2}) 
+\end{equation}
+
+
+### Simulation
+
+\begin{equation}
+  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 
@@ -263,6 +282,13 @@ where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix s
   \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
 \end{equation}
 
+### Simulation
+
+\begin{align}
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
+\end{align}
+
 
 ### Prediction
 
@@ -288,7 +314,7 @@ MVN(V, s = 1)
 \end{equation}
 $j = 1, \cdots, J_m - 1$, together with the soft constraint
 \begin{equation}
- \eta^{(m)} \sim \text{N}(0, A_{\eta}^{(m)}),
+ \eta^{(m)} \sim \text{N}(0, A_{\eta}^{(m)2}),
 \end{equation}
 where
 \begin{equation}
@@ -298,8 +324,28 @@ where
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, A_{\eta}^{(m)})  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, A_{\eta}^{(m)2})  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
+
+
+### Simulation
+
+\begin{align}
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \pmb{\beta}^{(m)} & = \pmb{A}^{-1} \pmb{v}
+\end{align}
+where
+\begin{align}
+  \pmb{A} & = \begin{bmatrix} \pmb{D} \\ J_m^{-1} \pmb{1}^{\top} \end{bmatrix} \\
+  \pmb{v} & \sim \text{N}\left(\begin{bmatrix} \pmb{0} \\ 0 \end{bmatrix}, \begin{bmatrix} \tau_m^2 \pmb{I} & \pmb{0} \\ \pmb{0}^{\top} & A_{\eta}^{(m)2} \end{bmatrix} \right)
+\end{align}
+and $\pmb{D}$ is a first-order difference matrix of the form
+\begin{equation}
+  \begin{bmatrix} -1 & 1 & 0 & 0 \\
+                  0 & -1 & 1 & 0 \\
+		  0 & 0 & -1 & 1 \end{bmatrix}
+\end{equation}
+
 
 ### Prediction
 
@@ -327,8 +373,8 @@ RW(s = 1)
 \end{equation}
   $j = 1, \cdots, J_m - 2$, together with the soft constraints
 \begin{align}
- \eta_0^{(m)} & \sim \text{N}(0, A_{\eta, 0}^{(m)}) \\
- \eta_1^{(m)} & \sim \text{N}(0, A_{\eta, 1}^{(m)})
+ \eta_0^{(m)} & \sim \text{N}(0, A_{\eta, 0}^{(m)2}) \\
+ \eta_1^{(m)} & \sim \text{N}(0, A_{\eta, 1}^{(m)2})
 \end{align}
 where
 \begin{align}
@@ -337,10 +383,32 @@ where
   h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
 \end{align}
 
+
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)}) \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)2}) \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)2}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+\end{equation}
+
+
+### Simulation
+
+\begin{align}
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \pmb{\beta}^{(m)} & = \pmb{A}^{-1} \pmb{v}
+\end{align}
+where
+\begin{align}
+  \pmb{A} & = \begin{bmatrix} \pmb{R} \\ J_m^{-1} \pmb{1}^{\top} \\ \tilde{\pmb{h}}^{\top} \end{bmatrix} \\
+  \pmb{v} & \sim \text{N}\left(\begin{bmatrix} \pmb{0} \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} \tau_m^2 \pmb{I} & \pmb{0} & \pmb{0}\\ \pmb{0}^{\top} & A_{\eta_0}^{(m)2} & 0 \\
+  \pmb{0}^{\top} & 0 & A_{\eta_1}^{(m)2} \end{bmatrix} \right) \\
+\tilde{\pmb{h}} & = \left(\sum_{j=1}^{J_m} h_j^{(m)2} \right)^{-1} \begin{bmatrix} h_1^{(m)} \\ \vdots \\ h_{J_m}^{(m)} \end{bmatrix}
+\end{align}
+and $\pmb{R}$ is a second-order difference matrix of the form
+\begin{equation}
+  \begin{bmatrix} 1 & -2 & 1 & 0 & 0 \\
+                  0 & 1 & -2 & 1 & 0 \\
+		  0 & 0 & 1 & -2 & 1 \end{bmatrix}
 \end{equation}
 
 ### Prediction
@@ -358,7 +426,7 @@ RW2(s = 1, flat = FALSE)
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 - Internally, $A_{\eta,0}^{(m)}$ is set to 0.001.
-- If `flat` is `FALSE` (the default) then $A_{\eta,1}^{(m)}$ is set to 1. Otherwise it is set to 0.001.
+- If `flat` is `FALSE` (the default) then, internally, $A_{\eta,1}^{(m)}$ is set to 1. Otherwise it is set to 0.001.
 
 
 ## AR1 {#sec:pr-ar1}

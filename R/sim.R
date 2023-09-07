@@ -1,7 +1,61 @@
 
-## mod <- mod_pois_sim(y ~ age * sex + time,
-##                     data = data,
-##                     exposure = popn) %>%
+## helpers - draw_val ---------------------------------------------------------
+
+
+draw_vals_coef <- function(prior, n_sim) {
+    specific <- prior$specific
+    shape1 <- specific$shape1
+    shape2 <- specific$shape2
+    min <- specific$max
+    min <- specific$min
+    ans_raw <- stats::rbeta(n = n_sim,
+                            shape1 = shape1,
+                            shape2 = shape2)
+    ans <- min + ans_raw * (max - min)
+    ans
+}
+
+
+draw_vals_sd <- function(prior, n_sim) {
+    scale <- prior$specific$scale
+    ans <- stats::rnorm(n = n_sim, sd = scale)
+    ans <- abs(ans)
+    ans
+}
+
+make_diff_matrix <- function(n) {
+    ans <- matrix(0L, nrow = n - 1L, ncol = n)
+    ans[row(ans) == col(ans)] <- -1L
+    ans[row(ans) == col(ans) - 1L] <- 1L
+    ans
+}
+
+make_rw_matrix <- function(n) {
+    D <- make_diff_matrix(n)
+    rbind(D,
+          1 / n)
+}
+
+make_rw2_matrix <- function(n) {
+    D1 <- make_diff_matrix(n)
+    D2 <- make_diff_matrix(n - 1L)
+    R <- D2 %*% D1
+    h <- (-(n + 1L) + 2L * seq_len(n)) / (n - 1L)
+    h <- h / sum(h)
+    rbind(R,
+          1 / n,
+          h)
+}
+
+    
+    
+
+
+## UNDER CONSTRUCTION ---------------------------------------------------------
+
+## mod <- mod_pois(deaths ~ age * sex + time,
+##                 data = data,
+##                 exposure = popn) %>%
 ##     set_prior(`(Intercept)` ~ NFix(sd = 0.3)) %>%
 ##     set_prior(time ~ SVD(HMD))
 
@@ -28,33 +82,35 @@ report_sim <- function(mod_sim, mod_est = NULL, n_sim = 100) {
                     comparisons = comparisons)
 }
 
-mod_pois_sim <- function(formula, data, exposure) {
-    check_formula_has_response(formula)
-    check_response_not_in_data(formula = formula,
-                               data = data)
-    data <- add_response_to_data(formula = formula,
-                                 data = data)
-    mod_sim <- mod_pois(formula = formula,
-                        data = data,
-                        exposure = exposure)
-    class(mod_sim) <- c("bage_mod", "bage_mod_pois", "bage_mod_pois_sim")
-    mod_sim
-}
+## mod_pois_sim <- function(formula, data, exposure) {
+##     check_formula_has_response(formula)
+##     check_response_not_in_data(formula = formula,
+##                                data = data)
+##     data <- add_response_to_data(formula = formula,
+##                                  data = data)
+##     mod_sim <- mod_pois(formula = formula,
+##                         data = data,
+##                         exposure = exposure)
+##     class(mod_sim) <- c("bage_mod", "bage_mod_pois", "bage_mod_pois_sim")
+##     mod_sim
+## }
 
     
-draw_vals_true.bage_mod_pois_sim <- function(mod, n_sim) {
+draw_vals_true.bage_mod_pois <- function(mod, n_sim) {
     priors <- mod$priors
     offset <- mod$offset
     has_disp <- has_disp(mod)
     has_season <- has_season(mod)
     lengths_par <- make_lengths_par(mod)
     ## randomly generate true parameter values
-    hyper_true <- lapply(priors, draw_hyper_true)
+    vals_hyper <- lapply(priors,
+                         draw_vals_hyper,
+                         n_sim = n_sim)
     par_true <- .mapply(draw_par_true,
                         dots = list(prior = priors,
                                     hyper = hyper_true,
                                     length_par = lengths_par),
-                        MoreArgs = list())
+                        MoreArgs = list(n_sim = n_sim))
     linpred <- make_linpred_par_true(mod = mod,
                                      par_true = par_true)
     if (has_season) {
