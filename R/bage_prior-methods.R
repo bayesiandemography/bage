@@ -7,75 +7,153 @@
 
 ## 'draw_vals_hyper' ----------------------------------------------------------
 
-## Still under construction - possibly to be used for simulation
-
-draw_vals_hyper <- function(prior, n_draw) {
+#' Draw values for hyper-parameters
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns A named list.
+#'
+#' @noRd
+draw_vals_hyper <- function(prior, n_sim) {
   UseMethod("draw_vals_hyper")
 }
 
-draw_vals_hyper.bage_prior_norm <- function(prior, n_draw) {
-    scale <- prior$scale
-    sd <- abs(stats::rnorm(n = n_draw, sd = scale))
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_ar1 <- function(prior, n_sim) {
+    coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(coef = coef,
+         sd = sd)
+}
+
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_known <- function(prior, n_sim)
+    list()
+
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_norm <- function(prior, n_sim) {
+    sd <- draw_val_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
 
-## draw_vals_hyper.bage_prior_rw <- function(prior, n_draw) {
-##     scale <- prior$scale
-##     sd <- abs(stats::rnorm(n = n_draw, sd = scale))
-##     list(sd = sd)
-## }
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_normfixed <- function(prior, n_sim)
+    list()
 
-## draw_vals_hyper.bage_prior_rw2 <- function(prior, n_draw) {
-##     scale <- prior$scale
-##     sd <- abs(stats::rnorm(n = n_draw, sd = scale))
-##     list(sd = sd)
-## }
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw <- function(prior, n_sim)
+    sd <- draw_val_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2 <- function(prior, n_sim) {
+    sd <- draw_val_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_spline <- function(prior, n_sim) {
+    sd <- draw_val_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## NO_TESTS
+#' @export
+draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
+    list()
 
 
 ## 'draw_vals_par' ------------------------------------------------------------
 
-## Still under construction - possibly to be used for simulation
-
-draw_vals_par <- function(prior, hyper, length_par) {
+## NO_TESTS
+#' @export
+draw_vals_par <- function(prior, vals_hyper, length_par, n_sim) {
   UseMethod("draw_vals_par")
 }
 
-draw_vals_par.bage_prior_norm <- function(prior, hyper, length_par) {
-    sd <- hyper$sd
-    n_draw <- length(sd)
-    matrix(stats::rnorm(n = length_par * n_draw, sd = sd),
-           nrow = length_par,
-           ncol = n_draw)
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_ar1 <- function(prior, vals_hyper, length_par, n_sim) {
+    coef <- vals_hyper$coef
+    sd <- vals_hyper$sd
+    sd_scaled <- (1 - coef^2) * sd
+    ans <- matrix(nrow = length_par, ncol = n_sim)
+    ans[1L, ] <- rnorm(n = n_sim, sd = sd)
+    for (i in seq_len(length_par - 1L))
+        ans[i + 1L, ] <- rnorm(n = n_sim,
+                               mean = coef * ans[i, ],
+                               sd =  sd_scaled)
+    ans
 }
 
-## draw_vals_par.bage_prior_rw <- function(prior, hyper, length_par) {
-##     sd <- hyper$sd
-##     n_draw <- length(sd)
-##     ## better to use matrices
-##     diff <- matrix(stats::rnorm(n = (length_par - 1L) * n_draw, sd = sd),
-##                    nrow = length_par - 1L,
-##                    ncol = n_draw)
-##     ans <- rbind(rep(0, times = n_draw),
-##                  matrixStats::colCumsums(diff))
-##     ans <- scale(ans, center = TRUE, scale = FALSE)
-##     ans
-## }
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_known <- function(prior, vals_hyper, length_par, n_sim) {
+    values <- prior$specific$values
+    matrix(values, nrow = length_par, ncol = n_sim)
+}
 
-## draw_vals_par.bage_prior_rw2 <- function(prior, hyper, length_par) {
-##     sd <- hyper$sd
-##     n_draw <- length(sd)
-##     ## better to use matrices
-##     diff2 <- matrix(stats::rnorm(n = (length_par - 2L) * n_draw, sd = sd),
-##                    nrow = length_par - 2L,
-##                    ncol = n_draw)
-##     diff <- rbind(rep(0, times = n_draw),
-##                   matrixStats::colCumsums(diff2))
-##     ans <- rbind(rep(0, times = n_draw),
-##                  matrixStats::colCumsums(diff))
-##     ## also need slope
-##     ans <- scale(ans, center = TRUE, scale = FALSE)
-##     ans
-## }
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_norm <- function(prior, vals_hyper, length_par, n_sim) {
+    sd <- vals_hyper$sd
+    n <- length_par * n_sim
+    sd <- rep(sd, each = length_par)
+    ans <- stats::rnorm(n = n, sd = sd)
+    ans <- matrix(ans, nrow = length_par, ncol = n_sim)
+    ans
+}
+
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_normfixed <- function(prior, vals_hyper, length_par, n_sim) {
+    sd <- prior$specific$sd
+    n <- length_par * n_sim
+    ans <- stats::rnorm(n = n, sd = sd)
+    ans <- matrix(ans, nrow = length_par, ncol = n_sim)
+    ans
+}
+
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_rw <- function(prior, vals_hyper, length_par, n_sim) {
+    sd <- vals_hyper$sd
+    sd_intercept <- prior$specific$sd_intercept
+    A <- make_rw_matrix(length_par)
+    n <- length_par * n_sim
+    sd_v <- rep(c(sd, sd_intercept),
+                times = c(n - 1L, 1L))
+    v <- stats::rnorm(n = n, sd = sd_v)
+    v <- matrix(v, nrow = length_par, ncol = n_sim)
+    solve(A, v)
+}
+
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_rw2 <- function(prior, vals_hyper, length_par, n_sim) {
+    sd <- vals_hyper$sd
+    sd_intercept <- prior$specific$sd_intercept
+    sd_slope <- prior$specific$sd_slope
+    A <- make_rw2_matrix(length_par)
+    n <- length_par * n_sim
+    sd_v <- rep(c(sd, sd_intercept, sd_slope),
+                times = c(n - 2L, 1L, 1L))
+    v <- stats::rnorm(n = n, sd = sd_v)
+    v <- matrix(v, nrow = length_par, ncol = n_sim)
+    solve(A, v)
+}
+
+
+
 
 
 ## 'is_known' -----------------------------------------------------------------
