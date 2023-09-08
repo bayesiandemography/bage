@@ -317,7 +317,7 @@ make_is_fixed <- function(est, map) {
 #'
 #' @noRd
 make_level_components <- function(mod) {
-    par <- make_levels_par(mod)
+    par <- mod$levels_par
     hyper <- make_levels_hyper(mod)
     par <- as.character(par)
     hyper <- as.character(hyper)
