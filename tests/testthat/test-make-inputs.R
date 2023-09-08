@@ -345,11 +345,12 @@ test_that("'make_levels_par' works with valid inputs - pois, complete levels", {
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age * sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- fit(mod)
-    ans_obtained <- make_levels_par(mod)
+    outcome <- make_outcome_array(formula = formula, data = data)
+    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula, outcome = outcome)
+    ans_obtained <- make_levels_par(formula = formula,
+                                    matrices_par_outcome = matrices_par_outcome,
+                                    outcome = outcome,
+                                    data = data)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -367,11 +368,12 @@ test_that("'make_levels_par' works with valid inputs - pois, incomplete levels",
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     data <- data[-3, ]
     formula <- deaths ~ age * sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- fit(mod)
-    ans_obtained <- make_levels_par(mod)
+    outcome <- make_outcome_array(formula = formula, data = data)
+    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula, outcome = outcome)
+    ans_obtained <- make_levels_par(formula = formula,
+                                    matrices_par_outcome = matrices_par_outcome,
+                                    outcome = outcome,
+                                    data = data)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -388,11 +390,12 @@ test_that("'make_levels_par' works with valid inputs - norm", {
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$income <- rnorm(n = nrow(data))
     formula <- income ~ age * sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = popn)
-    mod <- fit(mod)
-    ans_obtained <- make_levels_par(mod)
+    outcome <- make_outcome_vec(formula = formula, data = data)
+    matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula, data = data)
+    ans_obtained <- make_levels_par(formula = formula,
+                                    matrices_par_outcome = matrices_par_outcome,
+                                    outcome = outcome,
+                                    data = data)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
