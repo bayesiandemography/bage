@@ -124,47 +124,48 @@ report_sim <- function(mod_sim, mod_est = NULL, n_sim = 100) {
                     comparisons = comparisons)
 }
 
-## mod_pois_sim <- function(formula, data, exposure) {
-##     check_formula_has_response(formula)
-##     check_response_not_in_data(formula = formula,
-##                                data = data)
-##     data <- add_response_to_data(formula = formula,
-##                                  data = data)
-##     mod_sim <- mod_pois(formula = formula,
-##                         data = data,
-##                         exposure = exposure)
-##     class(mod_sim) <- c("bage_mod", "bage_mod_pois", "bage_mod_pois_sim")
-##     mod_sim
-## }
-
     
-draw_vals_true.bage_mod_pois <- function(mod, n_sim) {
+draw_vals.bage_mod_pois <- function(mod, n_sim) {
+    offset <- mod$offset
+    has_season <- has_season(mod)
+    has_disp <- has_disp(mod)
     vals_hyper <- draw_vals_hyper_all(mod = mod,
                                       n_sim = n_sim)
     vals_par <- draw_vals_par_all(mod = mod,
                                   vals_hyper = vals_hyper,
                                   n_sim = n_sim)
-    vals_linpred <- make_vals_linpred(mod = mod,
-                                      vals_par = vals_par,
-                                      n_sim = n_sim)
-    has_disp <- has_disp(mod)
-    if (has_disp)
-        disp <- draw_disp_true(mod)
+    vals_linpred_par <- make_vals_linpred_par(mod = mod,
+                                              vals_par = vals_par)
+    if (has_season) {
+        vals_season <- make_vals_season(mod = mod,
+                                        n_sim = n_sim)
+        vals_linpred_season <- make_vals_linpred_season(mod = mod,
+                                                        vals_season = vals_season)
+        vals_linpred <- vals_linpred_par + vals_linpred_season
+    }
     else
-        disp <- NULL
-    param_true <- draw_param_pois_true(mod = mod,
-                                       linpred = linpred,
-                                       disp = disp)
-    outcome <- draw_counts_pois_true(mod = mod,
-                                     rate_true = rates_true,
-                                     offset = offset)
-    list(outcome = outcome,
-         param_true = param_true,
-         disp_true = disp_true,
-         par_true = par_true,
-         hyper_true = hyper_true)
+        vals_linpred <- vals_linpred_par
+    if (has_disp) {
+        vals_disp <- draw_vals_disp(mod = mod,
+                                    n_sim = n_sim)
+        vals_param <- draw_vals_param_pois(vals_linpred = vals_linpred,
+                                           vals_disp = vals_disp)
+    }
+    else
+        vals_param <- exp(vals_linpred)
+    vals_outcome <- draw_vals_outcome_pois(vals_param = vals_param
+                                           offset = offset)
+    ans <- list(outcome = vals_outcome,
+                param = vals_param)
+    if (has_disp)
+        ans <- c(ans,
+                 list(disp = vals_disp))
+    ans <- c(ans,
+             list(par = vals_par,
+                  hyper = vals_hyoper))
+    ans
 }
-
+        
 
 draw_vals_hyper <- function(mod, n_sim) {
     priors <- mod$priors
@@ -176,33 +177,15 @@ draw_vals_hyper <- function(mod, n_sim) {
 draw_vals_par <- function(mod, vals_hyper, n_sim) {
     priors <- mod$priors
     levels_par <- mod$levels_par
-    vals_par <- .mapply(draw_vals_par,
-                        dots = list(prior = priors,
-                                    vals_hyper = vals_hyper,
-                                    levels_par = levels_par,
-                                    agesex = agesex),
-                        MoreArgs = list(n_sim = n_sim))
-    list(vals_hyper = vals_hyper,
-         vals_par = vals_par)
+    agesex <- make_agesex(mod)
+    .mapply(draw_vals_par,
+            dots = list(prior = priors,
+                        vals_hyper = vals_hyper,
+                        levels_par = levels_par,
+                        agesex = agesex),
+            MoreArgs = list(n_sim = n_sim))
 }
 
-
-draw_vals_hyper_oar <- function(mod, n_sim) {
-    priors <- mod$priors
-    levels_par <- make_levels_par(mod)
-    make_agesex <- make_agesex(mod)
-    vals_hyper <- lapply(priors,
-                         draw_vals_hyper,
-                         n_sim = n_sim)
-    vals_par <- .mapply(draw_vals_par,
-                        dots = list(prior = priors,
-                                    vals_hyper = vals_hyper,
-                                    levels_par = levels_par,
-                                    agesex = agesex),
-                        MoreArgs = list(n_sim = n_sim))
-    list(vals_hyper = vals_hyper,
-         vals_par = vals_par)
-}
 
 
 draw_vals_linpred <- function(mod, vals_par) {
