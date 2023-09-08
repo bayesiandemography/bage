@@ -395,9 +395,7 @@ make_linpred_par <- function(mod, components) {
 
 
 ## HAS_TESTS
-#' Make linear predictor from par.
-#'
-#' Does not include seasonal effect.
+#' Make linear predictor from season.
 #'
 #' Return value aligned to outcome, not data.
 #'
