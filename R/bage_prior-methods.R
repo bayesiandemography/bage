@@ -76,81 +76,124 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
 
 ## NO_TESTS
 #' @export
-draw_vals_par <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
   UseMethod("draw_vals_par")
 }
 
 ## NO_TESTS
 #' @export
-draw_vals_par.bage_prior_ar1 <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par.bage_prior_ar1 <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     coef <- vals_hyper$coef
     sd <- vals_hyper$sd
-    sd_scaled <- (1 - coef^2) * sd
-    ans <- matrix(nrow = length_par, ncol = n_sim)
-    ans[1L, ] <- rnorm(n = n_sim, sd = sd)
-    for (i in seq_len(length_par - 1L))
-        ans[i + 1L, ] <- rnorm(n = n_sim,
-                               mean = coef * ans[i, ],
-                               sd =  sd_scaled)
-    ans
+    draw_vals_ar1(coef = coef,
+                  sd = sd,
+                  levels = levels_par)
 }
 
 ## NO_TESTS
 #' @export
-draw_vals_par.bage_prior_known <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par.bage_prior_known <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     values <- prior$specific$values
-    matrix(values, nrow = length_par, ncol = n_sim)
+    n_par <- length(levels_par)
+    matrix(values,
+           nrow = n_par,
+           ncol = n_sim,
+           dimnames = list(levels_par, seq_len(n_sim)))
 }
 
 ## NO_TESTS
 #' @export
-draw_vals_par.bage_prior_norm <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par.bage_prior_norm <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     sd <- vals_hyper$sd
-    n <- length_par * n_sim
-    sd <- rep(sd, each = length_par)
+    n_par <- length(levels_par)
+    n <- n_par * n_sim
+    sd <- rep(sd, each = n_par)
     ans <- stats::rnorm(n = n, sd = sd)
-    ans <- matrix(ans, nrow = length_par, ncol = n_sim)
+    ans <- matrix(ans,
+                  nrow = n_par,
+                  ncol = n_sim,
+                  dimnames = list(levels_par, seq_len(n_sim)))
     ans
 }
 
 ## NO_TESTS
 #' @export
-draw_vals_par.bage_prior_normfixed <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par.bage_prior_normfixed <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     sd <- prior$specific$sd
-    n <- length_par * n_sim
+    n_par <- length(levels_par)
+    n <- n_par * n_sim
     ans <- stats::rnorm(n = n, sd = sd)
-    ans <- matrix(ans, nrow = length_par, ncol = n_sim)
+    ans <- matrix(ans,
+                  nrow = n_par,
+                  ncol = n_sim,
+                  dimnames = list(levels_par, seq_len(n_sim)))
     ans
 }
 
 ## NO_TESTS
 #' @export
-draw_vals_par.bage_prior_rw <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par.bage_prior_rw <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     sd <- vals_hyper$sd
     sd_intercept <- prior$specific$sd_intercept
-    A <- make_rw_matrix(length_par)
-    n <- length_par * n_sim
-    sd_v <- rep(c(sd, sd_intercept),
-                times = c(n - 1L, 1L))
-    v <- stats::rnorm(n = n, sd = sd_v)
-    v <- matrix(v, nrow = length_par, ncol = n_sim)
-    solve(A, v)
+    draw_vals_rw(sd = sd,
+                 sd_intercept = sd_intercept,
+                 labels = levels_par)
 }
 
 ## NO_TESTS
 #' @export
-draw_vals_par.bage_prior_rw2 <- function(prior, vals_hyper, length_par, n_sim) {
+draw_vals_par.bage_prior_rw2 <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     sd <- vals_hyper$sd
     sd_intercept <- prior$specific$sd_intercept
     sd_slope <- prior$specific$sd_slope
-    A <- make_rw2_matrix(length_par)
-    n <- length_par * n_sim
-    sd_v <- rep(c(sd, sd_intercept, sd_slope),
-                times = c(n - 2L, 1L, 1L))
-    v <- stats::rnorm(n = n, sd = sd_v)
-    v <- matrix(v, nrow = length_par, ncol = n_sim)
-    solve(A, v)
+    draw_vals_rw2(sd = sd,
+                  sd_intercept = sd_intercept,
+                  sd_slope = sd_slope,
+                  labels = levels_par)
 }
+
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_spline <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+    sd <- vals_hyper$sd
+    sd_intercept <- prior$specific$sd_intercept
+    sd_slope <- prior$specific$sd_slope
+    m <- make_matrix_parfree_par(prior = prior,
+                                 levels_par = levels_par,
+                                 agesex = NULL)
+    n_par <- ncol(m)
+    par <- draw_vals_rw2(sd = sd,
+                         sd_intercept = sd_intercept,
+                         sd_slope = sd_slope,
+                         labels = levels_par)
+    m %*% par
+}
+
+## NO_TESTS
+#' @export
+draw_vals_par.bage_prior_svd <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+    scaled_svd <- prior$specific$scaled_svd
+    indep <- prior$specific$indep
+    n_comp <- prior$specific$n
+    m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                  levels_par = levels_par,
+                                  indep = indep,
+                                  agesex = agesex,
+                                  get_matrix = TRUE,
+                                  n_comp = n_comp)
+    b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                  levels_par = levels_par,
+                                  indep = indep,
+                                  agesex = agesex,
+                                  get_matrix = FALSE,
+                                  n_comp = n_comp)
+    z <- stats::rnorm(n = n_comp * n_sim)
+    z <- matrix(nrow = n_par, ncol = n_sim)
+    ans <- m %*% z + b
+    dimnames(ans) <- list(levels_par, seq_len(n_sim))
+    ans    
+}                             
+    
 
 
 
