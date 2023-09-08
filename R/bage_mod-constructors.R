@@ -104,6 +104,10 @@ mod_pois <- function(formula, data, exposure) {
     var_time <- infer_var_time(formula)
     matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
                                                             outcome = outcome)
+    levels_par <- make_levels_par(formula = formula,
+                                  matrices_par_outcome = matrices_par_outcome,
+                                  outcome = outcome,
+                                  data = data)
     lengths_par <- vapply(matrices_par_outcome, ncol, 1L)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
@@ -125,6 +129,7 @@ mod_pois <- function(formula, data, exposure) {
                 var_sexgender = var_sexgender,
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
+                levels_par = levels_par,
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
@@ -228,6 +233,10 @@ mod_binom <- function(formula, data, size) {
     var_time <- infer_var_time(formula)
     matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
                                                             outcome = outcome)
+    levels_par <- make_levels_par(formula = formula,
+                                  matrices_par_outcome = matrices_par_outcome,
+                                  outcome = outcome,
+                                  data = data)
     lengths_par <- vapply(matrices_par_outcome, ncol, 1L)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
@@ -249,6 +258,7 @@ mod_binom <- function(formula, data, size) {
                 var_sexgender = var_sexgender,
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
+                levels_par = levels_par,
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
@@ -359,6 +369,10 @@ mod_norm <- function(formula, data, weights) {
     var_time <- infer_var_time(formula)
     matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula,
                                                           data = data)
+    levels_par <- make_levels_par(formula = formula,
+                                  matrices_par_outcome = matrices_par_outcome,
+                                  outcome = outcome,
+                                  data = data)
     lengths_par <- vapply(matrices_par_outcome, ncol, 0L)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
@@ -382,6 +396,7 @@ mod_norm <- function(formula, data, weights) {
                 var_sexgender = var_sexgender,
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
+                levels_par = levels_par,
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,

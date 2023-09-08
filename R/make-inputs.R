@@ -366,16 +366,16 @@ make_lengths_parfree <- function(mod) {
 #' relying on undocumented properties of 'xtabs' etc),
 #' though this makes the function a bit complicated.
 #'
-#' @param mod A fitted object of class 'bage_mod'.
+#' @param formula Model formula
+#' @param matrices_par_outcome List of matrices mapping
+#' parameters to outcome
+#' @param outcome Array or data frame with outcome
+#' @param data Data frame
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-make_levels_par <- function(mod) {
-    formula <- mod$formula
-    matrices_par_outcome <- mod$matrices_par_outcome
-    outcome <- mod$outcome
-    data <- mod$data
+make_levels_par <- function(formula, matrices_par_outcome, outcome, data) {
     nms <- names(matrices_par_outcome)
     n <- length(nms)
     factors <- attr(stats::terms(formula), "factors")
@@ -619,7 +619,7 @@ make_matrices_par_outcome_vec <- function(formula, data) {
 #' @noRd
 make_matrices_parfree_par <- function(mod) {
     priors <- mod$priors
-    levels_par <- make_levels_par(mod)
+    levels_par <- mod$levels_par
     terms_par <- make_terms_par(mod)
     agesex <- make_agesex(mod)
     levels_par <- split(levels_par, terms_par)
@@ -779,7 +779,7 @@ make_offset_vec <- function(vname_offset, data) {
 #' @noRd
 make_offsets_parfree_par <- function(mod) {
     priors <- mod$priors
-    levels_par <- make_levels_par(mod)
+    levels_par <- mod$levels_par
     terms_par <- make_terms_par(mod)
     agesex <- make_agesex(mod)
     levels_par <- split(levels_par, terms_par)
