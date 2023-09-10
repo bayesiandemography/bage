@@ -46,7 +46,7 @@ draw_vals_hyper.bage_prior_normfixed <- function(prior, n_sim)
 
 ## NO_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw <- function(prior, n_sim)
+draw_vals_hyper.bage_prior_rw <- function(prior, n_sim) {
     sd <- draw_val_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
