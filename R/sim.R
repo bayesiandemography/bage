@@ -262,14 +262,14 @@ draw_vals.bage_mod_pois <- function(mod, n_sim) {
 }
         
 
-draw_vals_hyper <- function(mod, n_sim) {
+draw_vals_hyper_all <- function(mod, n_sim) {
     priors <- mod$priors
     lapply(priors,
            draw_vals_hyper,
            n_sim = n_sim)
 }
 
-draw_vals_par <- function(mod, vals_hyper, n_sim) {
+draw_vals_par_all <- function(mod, vals_hyper, n_sim) {
     priors <- mod$priors
     levels_par <- mod$levels_par
     agesex <- make_agesex(mod)
