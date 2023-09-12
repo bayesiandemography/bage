@@ -1,4 +1,162 @@
 
+## draw_vals_hyper ------------------------------------------------------------
+
+test_that("'draw_vals_hyper' works with bage_prior_ar1", {
+    prior <- AR1()
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(names(ans), c("coef", "sd"))
+    expect_identical(length(ans$coef), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_known", {
+    prior <- Known(c(0.1, 0.3))
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(ans, list())
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_norm", {
+    prior <- N()
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(names(ans), "sd")
+    expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_normfixed", {
+    prior <- NFix()
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(ans, list())
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw", {
+    prior <- RW()
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(names(ans), "sd")
+    expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2", {
+    prior <- RW2()
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(names(ans), "sd")
+    expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_spline", {
+    prior <- Spline()
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(names(ans), "sd")
+    expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_svd", {
+    prior <- SVD(HMD)
+    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
+    expect_identical(ans, list())
+})
+
+
+## draw_vals_par --------------------------------------------------------------
+
+test_that("'draw_vals_par' works with bage_prior_ar1", {
+    prior <- AR1()
+    n_sim <- 10
+    vals_hyper <- draw_vals_hyper(prior = prior,
+                                  n_sim = n_sim)
+    levels_par <- letters
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = vals_hyper,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_par' works with bage_prior_known", {
+    prior <- Known(c(-0.1, 0, 0.1))
+    n_sim <- 10
+    levels_par <- c("a", "b", "c")
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = NULL,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
+})
+
+test_that("'draw_vals_par' works with bage_prior_norm", {
+    prior <- N()
+    n_sim <- 10
+    vals_hyper <- draw_vals_hyper(prior = prior,
+                                  n_sim = n_sim)
+    levels_par <- seq_len(1000)
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = vals_hyper,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans),
+                     list(as.character(1:1000), as.character(1:10)))
+    expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
+})
+
+test_that("'draw_vals_par' works with bage_prior_normfixed", {
+    prior <- NFix(sd = 0.3)
+    n_sim <- 10
+    levels_par <- seq_len(1000)
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = NULL,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans),
+                     list(as.character(1:1000), as.character(1:10)))
+    expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
+})
+
+test_that("'draw_vals_par' works with bage_prior_rw", {
+    prior <- RW()
+    n_sim <- 10
+    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+    levels_par <- letters
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = vals_hyper,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans),
+                     list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_par' works with bage_prior_rw2", {
+    prior <- RW2()
+    n_sim <- 10
+    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+    levels_par <- letters
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = vals_hyper,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans),
+                     list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_par' works with bage_prior_spline", {
+    prior <- Spline()
+    n_sim <- 10
+    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+    levels_par <- letters
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = vals_hyper,
+                         levels_par = levels_par,
+                         agesex = NULL,
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans),
+                     list(letters, as.character(1:10)))
+})
+
+
+
 ## is_known -------------------------------------------------------------------
 
 test_that("'is_known' works with valid inputs", {
@@ -157,6 +315,7 @@ test_that("'make_matrix_parfree_par' works with bage_prior_spline - n supplied",
                                             agesex = agesex)
     ans_expected <- make_spline_matrix(length_par = 10,
                                        n_spline = 5)
+    rownames(ans_expected) <- levels_par
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -168,6 +327,7 @@ test_that("'make_matrix_parfree_par' works with bage_prior_spline - n NULL", {
                                             agesex = agesex)
     ans_expected <- make_spline_matrix(length_par = 10,
                                        n_spline = 7)
+    rownames(ans_expected) <- levels_par
     expect_identical(ans_obtained, ans_expected)
 })
 
