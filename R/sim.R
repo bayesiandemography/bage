@@ -51,6 +51,48 @@ draw_vals_coef <- function(prior, n_sim) {
 }
 
 ## HAS_TESTS
+#' Draw values for hyper-parameters for all priors in a model
+#'
+#' @param mod Object of class "bage_mod"
+#' @param n_sim Number of draws
+#'
+#' @returns A named list
+#'
+#' @noRd
+draw_vals_hyper_mod <- function(mod, n_sim) {
+    priors <- mod$priors
+    lapply(priors,
+           draw_vals_hyper,
+           n_sim = n_sim)
+}
+
+## HAS_TESTS
+#' Draw values for hyper-parameters for all priors in a model
+#'
+#' @param mod Object of class "bage_mod"
+#' @param vals_hyper List of lists.
+#' @param n_sim Number of draws
+#'
+#' @returns A named list of matrices.
+#'
+#' @noRd
+draw_vals_par_mod <- function(mod, vals_hyper, n_sim) {
+    priors <- mod$priors
+    levels_par <- mod$levels_par
+    terms_par <- make_terms_par(mod)
+    levels_par <- split(levels_par, terms_par)
+    agesex <- make_agesex(mod)
+    ans <- .mapply(draw_vals_par,
+                   dots = list(prior = priors,
+                               vals_hyper = vals_hyper,
+                               levels_par = levels_par,
+                               agesex = agesex),
+                   MoreArgs = list(n_sim = n_sim))
+    names(ans) <- names(priors)
+    ans
+}
+
+## HAS_TESTS
 #' Generate a RW vector
 #'
 #' Each column is one draw.
@@ -126,6 +168,47 @@ draw_vals_sd <- function(prior, n_sim) {
     ans
 }
 
+
+## HAS_TESTS
+#' Draw values for season effects, and the sd parameter for season effects
+#'
+#' Note that if 'n_time' is not a multiple of 'n_season', some seasons will
+#' have fewer than 'n_time' / 'n_season' effects
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param n_sim Number of draws
+#'
+#' @returns A named list with the sd and season effect
+#'
+#' @noRd
+draw_vals_season <- function(mod, n_sim) {
+    n_season <- mod$n_season
+    n_time <- n_time(mod)
+    n_par <- ceiling(n_time / n_season)
+    const <- make_const_season(mod)
+    scale <- const[[1L]]
+    sd_intercept <- const[[2L]]
+    A <- make_rw_matrix(n_par)
+    vals_season <- array(dim = c(n_season, n_par, n_sim))
+    vals_sd <- stats::rnorm(n = n_sim, sd = scale)
+    vals_sd <- abs(vals_sd)
+    sd_v <- array(dim = c(n_season, n_par, n_sim))
+    sd_v[ , -n_par, ] <- rep(vals_sd, each = n_season * (n_par - 1L))
+    sd_v[ , n_par, ] <- sd_intercept
+    for (i in seq_len(n_season)) {
+        v <- matrix(stats::rnorm(n = n_par * n_sim, sd = sd_v[i, , ]),
+                    nrow = n_par,
+                    ncol = n_sim)
+        vals_season[i, , ] <- solve(A, v)
+    }
+    vals_season <- matrix(vals_season, ncol = n_sim)
+    vals_season <- vals_season[seq_len(n_time), ]
+    list(sd = vals_sd,
+         season = vals_season)
+}
+
+
+
 ## HAS_TESTS
 #' Make a difference matrix
 #'
@@ -183,8 +266,38 @@ make_rw2_matrix <- function(n) {
 }
 
 
+## HAS_TESTS
+#' Combine parameter values, then transform to align with outcome
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_par List of matrices
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_vals_linpred_par <- function(mod, vals_par) {
+    matrix_par_outcome <- make_combined_matrix_par_outcome(mod)
+    matrix_par_outcome <- as.matrix(matrix_par_outcome)
+    vals_par <- do.call(rbind, vals_par)
+    matrix_par_outcome %*% vals_par
+}
 
 
+## HAS_TESTS
+#' Transform seaon effect to align with outcome
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_season List with vector and matrix
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_vals_linpred_season <- function(mod, vals_season) {
+    matrix_season_outcome <- mod$matrix_season_outcome
+    matrix_season_outcome <- as.matrix(matrix_season_outcome)
+    season <- vals_season$season
+    matrix_season_outcome %*% season
+}
 
 
 
@@ -201,18 +314,20 @@ make_rw2_matrix <- function(n) {
 ## is_mod_valid(report)
 
 report_sim <- function(mod_sim, mod_est = NULL, n_sim = 100) {
-    comparisons <- vector(mod = "list", length = n_sim)
     if (is_null(mod_est))
         mod_est <- mod_sim
+    vals_sim_true_all <- draw_vals(mod = mod_sim,
+                                   n_sim = n_sim)
+    comparisons <- vector(mod = "list", length = n_sim)
     for (i_sim in seq_len(n_sim)) {
-        vals_true <- draw_vals_true(mod_sim)
-        outcome <- vals_true$outcome
-        mod_est <- update_mod_outcome(mod = mod,
-                                      outcome = outcome)
-        mod <- fit(mod)
-        vals_est <- get_vals_est(mod)
-        comparison <- compare_est_true(vals_true = vals_true,
-                                       vals_est = vals_est)
+        vals_sim_true <- vals_sim_true_all[[i_sim]]
+        outcome <- vals_sim_true[["outcome"]]
+        mod_est <- update_outcome(mod = mod_est,
+                                  outcome = outcome)
+        mod_est <- fit(mod_est)
+        vals_sim_est <- get_vals_sim_est(mod_est)
+        comparison <- compare_est_true(vals_est = vals_sim_est,
+                                       vals_true = vals_sim_true)
         comparisons[[i_sim]] <- comparison
     }
     make_report_sim(mod = mod,
@@ -220,80 +335,52 @@ report_sim <- function(mod_sim, mod_est = NULL, n_sim = 100) {
 }
 
     
-draw_vals.bage_mod_pois <- function(mod, n_sim) {
+draw_vals_mod <- function(mod, n_sim) {
     offset <- mod$offset
     has_season <- has_season(mod)
     has_disp <- has_disp(mod)
-    vals_hyper <- draw_vals_hyper_all(mod = mod,
+    vals_hyper <- draw_vals_hyper_mod(mod = mod,
                                       n_sim = n_sim)
-    vals_par <- draw_vals_par_all(mod = mod,
+    vals_par <- draw_vals_par_mod(mod = mod,
                                   vals_hyper = vals_hyper,
                                   n_sim = n_sim)
-    vals_linpred_par <- make_vals_linpred_par(mod = mod,
-                                              vals_par = vals_par)
+    vals_linpred <- make_vals_linpred_par(mod = mod,
+                                          vals_par = vals_par)
     if (has_season) {
-        vals_season <- make_vals_season(mod = mod,
+        vals_season <- draw_vals_season(mod = mod,
                                         n_sim = n_sim)
         vals_linpred_season <- make_vals_linpred_season(mod = mod,
                                                         vals_season = vals_season)
-        vals_linpred <- vals_linpred_par + vals_linpred_season
+        vals_linpred <- vals_linpred + vals_linpred_season
     }
     else
-        vals_linpred <- vals_linpred_par
+        vals_season <- NULL
     if (has_disp) {
-        vals_disp <- draw_vals_disp(mod = mod,
-                                    n_sim = n_sim)
-        vals_param <- draw_vals_param_pois(vals_linpred = vals_linpred,
-                                           vals_disp = vals_disp)
+        vals_disp <- draw_vals_disp(mod)
+        vals_expected <- transform_linpred(mod = mod,
+                                           linpred = linpred)
+        vals_fitted <- draw_vals_fitted(mod = mod,
+                                        vals_expected = vals_expected,
+                                        vals_disp = vals_disp)
     }
-    else
-        vals_param <- exp(vals_linpred)
-    vals_outcome <- draw_vals_outcome_pois(vals_param = vals_param,
-                                           offset = offset)
-    ans <- list(outcome = vals_outcome,
-                param = vals_param)
-    if (has_disp)
-        ans <- c(ans,
-                 list(disp = vals_disp))
-    ans <- c(ans,
-             list(par = vals_par,
-                  hyper = vals_hyoper))
+    else {
+        vals_disp <- NULL
+        vals_expected <- NULL
+        vals_fitted <- transform_linpred(mod = mod,
+                                         linpred = linpred)
+    }
+    ans <- list(hyper = vals_hyper,
+                par = vals_par,
+                season = vals_season,
+                expected = vals_expected,
+                fitted = vals_fitted,
+                disp = vals_disp)
+    ans <- split_sim(ans)
     ans
 }
-        
-
-draw_vals_hyper_all <- function(mod, n_sim) {
-    priors <- mod$priors
-    lapply(priors,
-           draw_vals_hyper,
-           n_sim = n_sim)
-}
-
-draw_vals_par_all <- function(mod, vals_hyper, n_sim) {
-    priors <- mod$priors
-    levels_par <- mod$levels_par
-    agesex <- make_agesex(mod)
-    .mapply(draw_vals_par,
-            dots = list(prior = priors,
-                        vals_hyper = vals_hyper,
-                        levels_par = levels_par,
-                        agesex = agesex),
-            MoreArgs = list(n_sim = n_sim))
-}
 
 
 
-draw_vals_linpred <- function(mod, vals_par) {
-    
-    linpred <- make_linpred_par_true(mod = mod,
-                                     par_true = par_true)
-    if (has_season) {
-        season_true <- draw_season_true(mod)
-        linpred_season <- make_linpred_season_true(mod = mod,
-                                                   season_true = season_true)
-        linpred <- linpred + linpred_season
-    }
-}
    
     
     

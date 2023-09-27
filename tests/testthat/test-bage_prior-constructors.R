@@ -104,7 +104,7 @@ test_that("'new_bage_prior_rw' works", {
     expect_identical(obj$i_prior, 3L)
     expect_identical(obj$const, c(1, 0.001))
     expect_identical(obj$n_hyper, 1L)
-    expect_identical(obj$specific, list(scale = 1))
+    expect_identical(obj$specific, list(scale = 1, sd_intercept = 0.001))
 })
 
 test_that("'new_bage_prior_rw2' works", {
@@ -114,9 +114,10 @@ test_that("'new_bage_prior_rw2' works", {
     expect_identical(obj$i_prior, 4L)
     expect_identical(obj$const, c(1, 0.001, 1))
     expect_identical(obj$n_hyper, 1L)
-    expect_identical(obj$specific, list(scale = 1))
+    expect_identical(obj$specific, list(scale = 1, sd_intercept = 0.001, sd_slope = 1))
     obj <- new_bage_prior_rw2(scale = 1, flat = TRUE)
     expect_identical(obj$const, c(1, 0.001, 0.001))
+    expect_identical(obj$specific, list(scale = 1, sd_intercept = 0.001, sd_slope = 0.001))
 })
 
 test_that("'new_bage_prior_spline' works", {

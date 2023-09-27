@@ -452,7 +452,8 @@ new_bage_prior_rw <- function(scale) {
     ans <- list(i_prior = 3L,
                 const = c(scale, sd_intercept),
                 n_hyper = 1L, ## log_sd
-                specific = list(scale = scale))
+                specific = list(scale = scale,
+                                sd_intercept = sd_intercept))
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
 }
@@ -464,7 +465,9 @@ new_bage_prior_rw2 <- function(scale, flat) {
     ans <- list(i_prior = 4L,
                 const = c(scale, sd_intercept, sd_slope),
                 n_hyper = 1L, ## log_sd
-                specific = list(scale = scale))
+                specific = list(scale = scale,
+                                sd_intercept = sd_intercept,
+                                sd_slope = sd_slope))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
