@@ -155,6 +155,21 @@ test_that("'draw_vals_par' works with bage_prior_spline", {
                      list(letters, as.character(1:10)))
 })
 
+test_that("'draw_vals_par' works with bage_prior_svd", {
+    prior <- SVD(HMD)
+    n_sim <- 10
+    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+    levels_par <- c(0:79, "80+")
+    ans <- draw_vals_par(prior = prior,
+                         vals_hyper = vals_hyper,
+                         levels_par = levels_par,
+                         agesex = "age",
+                         n_sim = n_sim)
+    expect_identical(dimnames(ans),
+                     list(levels_par, as.character(1:10)))
+})
+
+
 
 
 ## is_known -------------------------------------------------------------------

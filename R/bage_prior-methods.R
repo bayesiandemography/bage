@@ -167,7 +167,7 @@ draw_vals_par.bage_prior_spline <- function(prior, vals_hyper, levels_par, agese
     m %*% par
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 draw_vals_par.bage_prior_svd <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
     scaled_svd <- prior$specific$scaled_svd
@@ -186,16 +186,12 @@ draw_vals_par.bage_prior_svd <- function(prior, vals_hyper, levels_par, agesex, 
                                   get_matrix = FALSE,
                                   n_comp = n_comp)
     z <- stats::rnorm(n = n_comp * n_sim)
-    z <- matrix(nrow = n_par, ncol = n_sim)
+    z <- matrix(nrow = n_comp, ncol = n_sim)
     ans <- m %*% z + b
     dimnames(ans) <- list(levels_par, seq_len(n_sim))
     ans    
 }                             
     
-
-
-
-
 
 ## 'is_known' -----------------------------------------------------------------
 

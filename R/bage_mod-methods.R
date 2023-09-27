@@ -204,6 +204,30 @@ components.bage_mod <- function(object, ...) {
 }
 
 
+## 'draw_vals_disp' -----------------------------------------------------------
+
+draw_vals_disp <- function(mod, n_sim) {
+    UseMethod("draw_vals_disp")
+}
+
+draw_vals_disp.bage_mod <- function(mod, n_sim) {
+    scale <- mod$scale_disp
+    u <- runif(n = n_sim)
+    disp <- ((1 - u) / scale)^2
+    list(disp = disp)
+}
+
+draw_vals_disp.bage_mod_norm <- function(mod, n_sim) {
+    scale <- mod$scale_disp
+    disp <- rexp(n = n_sim, rate = scale)
+    list(disp = disp)
+}
+
+
+
+    
+
+
 ## 'fit' ----------------------------------------------------------------------
 
 #' @importFrom generics fit

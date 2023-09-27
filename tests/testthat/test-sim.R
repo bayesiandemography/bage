@@ -35,6 +35,38 @@ test_that("'draw_vals_coef' works", {
     expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans <- draw_vals_hyper_mod(mod, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(length(ans$age$sd), 10L)
+})
+
+test_that("'draw_vals_par_mod' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+    ans <- draw_vals_par_mod(mod,
+                             vals_hyper = vals_hyper,
+                             n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_true(all(sapply(ans, ncol) == 10L))
+    expect_identical(sapply(ans, nrow), sapply(mod$matrices_par_outcome, ncol))
+})
+
 test_that("'draw_vals_rw' works", {
     set.seed(0)
     prior <- RW()
@@ -100,6 +132,25 @@ test_that("'draw_vals_sd' works", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'draw_vals_season' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    mod <- set_prior(mod, age ~ Spline())
+    mod <- set_prior(mod, time ~ RW2())
+    ans <- draw_vals_season(mod, n_sim = 100)
+    expect_identical(length(ans$sd), 100L)
+    expect_identical(nrow(ans$season), 7L)
+    expect_identical(ncol(ans$season), 100L)
+    expect_equal(mean(apply(ans$season[c(1, 3, 5, 7),], 2, mean)), 0, tolerance = 0.01)
+})
+
 test_that("'make_diff_matrix' works", {
     set.seed(0)
     m <- make_diff_matrix(10)
@@ -126,8 +177,45 @@ test_that("'make_rw2_matrix' works", {
     h <- seq(from = -1, to = 1, length.out = 10)
     slope <- coef(lm(x ~ h))[["h"]]
     ans_expected <- c(diff(x, diff = 2), mean(x), slope)
-    expect_equal(ans_obtained, ans_expected)
+    expect_equal(ans_obtained, ans_expected)eee
 })
 
+test_that("'make_vals_linpred_par' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    n_sim <- 10L
+    vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+    vals_par <- draw_vals_par_mod(mod,
+                                  vals_hyper = vals_hyper,
+                                  n_sim = n_sim)
+    ans <- make_vals_linpred_par(mod = mod,
+                                 vals_par = vals_par)
+    expect_identical(nrow(ans), length(mod$outcome))
+    expect_identical(ncol(ans), n_sim)
+})
 
-          
+test_that("'make_vals_linpred_season' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2006, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    n_sim <- 10L
+    vals_season <- draw_vals_season(mod, n_sim = n_sim)
+    ans <- make_vals_linpred_season(mod = mod,
+                                    vals_season = vals_season)
+    expect_identical(nrow(ans), length(mod$outcome))
+    expect_identical(ncol(ans), n_sim)
+    expect_true(all(apply(ans, 2, function(x) length(unique(x))) == 7L))
+})
+

@@ -770,11 +770,25 @@ set_covariates(~ ., data = cov_data, n_coef = 5)
 ### Poisson
 
 \begin{equation}
-  p(\xi) = \frac{A_{\xi}}{2 \sqrt{\xi}}e^{-A_{\xi} \sqrt{\xi}}
+  p(\xi) = \frac{A_{\xi}}{2 \sqrt{\xi}}e^{-A_{\xi} \sqrt{\xi}} (\#eq:prior-xi-pois)
 \end{equation}
 [@simpson2022priors]
 
 TODO - choice of $A_{\xi}$.
+
+To draw from $p(\xi)$, we use inverse sampling. We have
+\begin{equation}
+  F(\xi) = \int_0^{\xi} \frac{A_{\xi}}{2 \sqrt{\xi}} e^{-A_{\xi} \sqrt{\xi}} = 1 - e^{-A_{\xi} \sqrt{\xi}}.
+\end{equation}
+
+Inverting gives
+\begin{equation}
+  F^{-1}(x) = \left(\frac{\log(1 - x)}{A}\right)^2 (\#eq:prior-xi-inv).
+\end{equation}
+
+Drawing $u \sim \text{Unif}(0, 1)$ and plugging the value into \@ref(eq:prior-xi-inv) yields variates with the required distribution.
+
+
 
 
 ### Binomial
@@ -834,6 +848,18 @@ Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta
 
 # Simulation
 
+To generate one set of simulated values, we start with values for exposure, trials, or weights,  $\pmb{w}$, and possibly covariates $\pmb{Z}, then go through the following steps:
+
+1. Draw values for any parameters in the priors for the $\pmb{\beta}^{(m)}$.
+1. Conditional on the values drawn in Step 1, draw values the $\pmb{\beta}^{(m)}$.
+1. If the model contains seasonal effects, draw the standard deviation $\kappa_m$, and then the effects $\pmb{\lambda}^{(m)}$.
+1. If the model contains covariates, draw $\varphi$ and $\omega_p$ where necessary, and then draw coefficient vector $\pmb{\zeta}$.
+1. Use values from steps 2--4 to form the linear predictor $\pmb{\mu}$.
+1. Back-transform the linear predictor, to obtain $g^{-1}(\pmb{\mu}}$.
+1. If the model contains a dispersion parameter $\xi$, then draw values from its prior.
+1  Use $g^{-1}(\pmb{\mu}}$, $\pmb{y}$, $\pmb{w}$, and $\xi$ (if present) to draw values for $\pmb{\gamma}$.
+
+
 # Appendices
 
 ## Definitions {#app:defn}
@@ -853,8 +879,8 @@ Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta
 | $\pmb{\beta}^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
 | $\beta_j^{(m)}$ | $j$th element of $\pmb{\beta}^{(m)}$. $j = 1, \cdots, J_m$. |
 | $\pmb{X}^{(m)}$ | Matrix mapping $\pmb{\beta}^{(m)}$ to $\pmb{y}$. |
-| $\pmb{Z}^{(m)}$ | Matrix of covariates. |
-| $\pmb{\zeta}^{(m)}$ | Parameter vector for covariates $\pmb{Z}^{(m)}$. |
+| $\pmb{Z}$ | Matrix of covariates. |
+| $\pmb{\zeta}$ | Parameter vector for covariates $\pmb{Z}^{(m)}$. |
 | $A_0$ | Scale parameter in prior for intercept $\beta^{(0)}$. |
 | $\tau_m$ | Standard deviation parameter for main effect or interaction. |
 | $A_{\tau}^{(m)}$ | Scale parameter in prior for $\tau_m$. |
