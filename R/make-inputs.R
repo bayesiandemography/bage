@@ -660,6 +660,10 @@ make_matrix_par_outcome_array <- function(dim, dimnames, is_in_term) {
                             KEEP.OUT.ATTRS = FALSE,
                             stringsAsFactors = FALSE)
     colnames(ans) <- interaction(colnames)
+    rownames <- expand.grid(dimnames,
+                            KEEP.OUT.ATTRS = FALSE,
+                            stringsAsFactors = FALSE)
+    rownames(ans) <- interaction(rownames)
     ans <- methods::as(ans, "dMatrix")
     ans
 }
