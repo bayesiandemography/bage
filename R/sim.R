@@ -1,5 +1,99 @@
 
-## draw_vals helpers ----------------------------------------------------------
+## HAS_TESTS
+#' Calculate point estimates from rvecs, and then calculate
+#' differences from truth
+#'
+#' @param estimate A list of rvecs holding the estimates
+#' @param truth A list of numeric vectors holding the true values
+#' @param point_est_fun Name of function to use to calculate point
+#' estimates from rvec
+#'
+#' @returns A vector of doubles
+#'
+#' @noRd
+calc_error_point_est <- function(estimate, truth, point_est_fun) {
+    if (point_est_fun == "mean")
+        rvec_fun <- rvec::draws_mean
+    else if (point_est_fun == "median")
+        rvec_fun <- rvec::draws_median
+    else
+        cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")
+    ans <- .mapply(calc_error_point_est_one,
+                   dots = list(estimate = estimate,
+                               truth = truth),
+                   MoreArgs = list(rvec_fun = rvec_fun))
+    names(ans) <- names(estimate)
+    ans
+}
+
+
+## HAS_TESTS
+#' Calculate point estimates from an rvec, and then calculate
+#' difference from truth
+#'
+#' @param estimate An rvec with the estimates
+#' @param truth A numeric vector with the true values
+#' @param rvec_fun Function to use to calculate point
+#' estimates from rvec
+#'
+#' @returns A vector of doubles
+#'
+#' @noRd
+calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
+    point_est <- rvec_fun(estimate)
+    as.double(point_est - truth)
+}
+
+
+## HAS_TESTS
+#' Given a sets estimates and true values,
+#' for each set, see how many true values
+#' lie within intervals implied by estimates
+#'
+#' @param estimate A list of rvecs holding the estimates
+#' @param truth A list of numeric vectors holding the true values
+#' @param widths Widths of intervals (between 0 and 1)
+#'
+#' @returns A list of logical vectors
+#'
+#' @noRd
+calc_is_in_interval <- function(estimate, truth, widths) {
+    ans <- .mapply(calc_is_in_interval_one,
+                   dots = list(estimate = estimate,
+                               truth = truth),
+                   MoreArgs = list(widths = widths))
+    names(ans) <- names(estimate)
+    ans
+}
+
+
+## HAS_TESTS
+#' See which elements of 'truth' lie within intervals
+#' formed from 'estimate'
+#'
+#' @param estimate An rvec holding estimates
+#' @param truth A numeric vector holding the true values
+#' @param widths Widths of intervals (between 0 and 1)
+#'
+#' @returns A logical vector
+#'
+#' @noRd
+calc_is_in_interval_one <- function(estimate, truth, widths) {
+    n_widths <- length(widths)
+    ans <- vector(mode = "list", length = n_widths)
+    names(ans) <- widths
+    for (i in seq_len(n_widths)) {
+        width <- widths[[i]]
+        probs <- c(0.5 - width / 2, 0.5 + width / 2)
+        ci <- draws_quantile(x = estimate, probs = probs)
+        lower <- ci[[1L]]
+        upper <- ci[[2L]]
+        is_in_interval <- (lower <= truth) & (truth <= upper)
+        ans[[i]] <- is_in_interval
+    }
+    ans
+}
+
 
 ## HAS_TESTS
 #' Generate an AR1 vector
@@ -27,6 +121,7 @@ draw_vals_ar1 <- function(coef, sd, labels) {
                                sd =  sd_scaled)
     ans
 }
+
 
 ## HAS_TESTS
 #' Draw the 'coef' parameter for a prior
@@ -64,6 +159,47 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
     lapply(priors,
            draw_vals_hyper,
            n_sim = n_sim)
+}
+
+
+#' Draw vales for 'hyper', 'par', 'linpred', and, optionally,
+#' for 'season' and 'disp'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param n_sim Number of draws
+#'
+#' @returns Named list
+#'
+#' @noRd
+draw_vals_hyperparam <- function(mod, n_sim) {
+    has_season <- has_season(mod)
+    has_disp <- has_disp(mod)
+    vals_hyper <- draw_vals_hyper_mod(mod = mod,
+                                      n_sim = n_sim)
+    vals_par <- draw_vals_par_mod(mod = mod,
+                                  vals_hyper = vals_hyper,
+                                  n_sim = n_sim)
+    vals_linpred <- make_vals_linpred_par(mod = mod,
+                                          vals_par = vals_par)
+    if (has_season) {
+        vals_season <- draw_vals_season(mod = mod,
+                                        n_sim = n_sim)
+        vals_linpred_season <- make_vals_linpred_season(mod = mod,
+                                                        vals_season = vals_season)
+        vals_linpred <- vals_linpred + vals_linpred_season
+    }
+    else
+        vals_season <- NULL
+    if (has_disp)
+        vals_disp <- draw_vals_disp(mod = mod,
+                                    n_sim = n_sim)
+    else
+        vals_disp <- NULL
+    list(hyper = vals_hyper,
+         par = vals_par,
+         season = vals_season,
+         linpred = vals_linpred,
+         disp = vals_disp)
 }
 
 ## HAS_TESTS
@@ -208,6 +344,68 @@ draw_vals_season <- function(mod, n_sim) {
 }
 
 
+## HAS_TESTS
+#' Get estimated values for hyper, par, season (if present),
+#' linear predictor, and disp (if present) from a fitted model
+#'
+#' @param mod A fitted object of class 'bage_mod'
+#'
+#' @returns A named list
+#'
+#' @noRd
+get_vals_hyperparam_est <- function(mod) {
+    has_season <- has_season(mod)
+    has_disp <- has_disp(mod)
+    components <- components(mod)
+    is_hyper <- components$component == "hyper"
+    is_par <- components$component == "par"
+    hyper <- components$.fitted[is_hyper]
+    par <- components$.fitted[is_par]
+    linpred <- make_linpred_par(mod = mod,
+                                components = components)
+    if (has_season) {
+        is_season <- components$component == "season"
+        season <- components$.fitted[is_season]
+        linpred_season <- make_linpred_season(mod = mod,
+                                              components = components)
+        linpred <- linpred + linpred_season
+    }
+    else
+        season <- NULL
+    if (has_disp) {
+        is_disp <- components$component == "disp"
+        disp <- components$.fitted[is_disp]
+    }
+    else
+        disp <- NULL
+    list(hyper = hyper,
+         par = par,
+         season = season,
+         linpred = linpred,
+         disp = disp)
+}
+
+
+## HAS_TESTS
+#' Get all simulated values from a model for one simulation draw
+#'
+#' @param x A named list containing simulation draws
+#' @param i_sim The index for the simulation draw
+#' to be extracted
+#'
+#' @returns A named list
+#'
+#' @noRd
+get_vals_sim_one <- function(x, i_sim) {
+    f <- function(v) {
+        if (is.matrix(v))
+            v[ , i_sim, drop = FALSE]
+        else
+            v[i_sim]
+    }
+    rapply(x, f, how = "replace")
+}
+
 
 ## HAS_TESTS
 #' Make a difference matrix
@@ -313,74 +511,40 @@ make_vals_linpred_season <- function(mod, vals_season) {
 
 ## is_mod_valid(report)
 
-report_sim <- function(mod_sim, mod_est = NULL, n_sim = 100) {
+
+report_sim <- function(mod_sim,
+                       mod_est = NULL,
+                       n_sim = 100,
+                       point_est_fun = c("median", "mean"),
+                       widths = c(0.5, 0.95)) {
+    point_est_fun <- match.arg(point_est_fun)
+    check_widths(widths)
     if (is_null(mod_est))
         mod_est <- mod_sim
-    vals_sim_true_all <- draw_vals(mod = mod_sim,
-                                   n_sim = n_sim)
-    comparisons <- vector(mod = "list", length = n_sim)
+    else
+        check_mod_sim_est_compatible(mod_sim = mod_sim,
+                                     mod_est = mod_est)
+    vals_sim_all <- draw_vals_mod(mod = mod_sim,
+                                  n_sim = n_sim)
+    error_point_est <- vector(mod = "list", length = n_sim)
+    is_in_interval <- vector(mod = "list", length = n_sim)
     for (i_sim in seq_len(n_sim)) {
-        vals_sim_true <- vals_sim_true_all[[i_sim]]
-        outcome <- vals_sim_true[["outcome"]]
-        mod_est <- update_outcome(mod = mod_est,
-                                  outcome = outcome)
+        vals_sim <- get_vals_sim_one(vals_sim_all, i_sim = i_sim)
+        mod[["outcome"]] <- vals_sim[["outcome"]]
         mod_est <- fit(mod_est)
-        vals_sim_est <- get_vals_sim_est(mod_est)
-        comparison <- compare_est_true(vals_est = vals_sim_est,
-                                       vals_true = vals_sim_true)
-        comparisons[[i_sim]] <- comparison
+        vals_est <- get_vals_est(mod_est)
+        error_point_est[[i_sim]] <- calc_error_point_est(estimate = vals_est,
+                                                         truth = vals_sim,
+                                                         point_est_fun = point_est_fun)
+        is_in_interval[[i_sim]] <- calc_is_in_interval(estimate = vals_est,
+                                                       truth = vals_sim,
+                                                       widths = widths)
     }
     make_report_sim(mod = mod,
-                    comparisons = comparisons)
-}
-
-    
-draw_vals_mod <- function(mod, n_sim) {
-    offset <- mod$offset
-    has_season <- has_season(mod)
-    has_disp <- has_disp(mod)
-    vals_hyper <- draw_vals_hyper_mod(mod = mod,
-                                      n_sim = n_sim)
-    vals_par <- draw_vals_par_mod(mod = mod,
-                                  vals_hyper = vals_hyper,
-                                  n_sim = n_sim)
-    vals_linpred <- make_vals_linpred_par(mod = mod,
-                                          vals_par = vals_par)
-    if (has_season) {
-        vals_season <- draw_vals_season(mod = mod,
-                                        n_sim = n_sim)
-        vals_linpred_season <- make_vals_linpred_season(mod = mod,
-                                                        vals_season = vals_season)
-        vals_linpred <- vals_linpred + vals_linpred_season
-    }
-    else
-        vals_season <- NULL
-    if (has_disp) {
-        vals_disp <- draw_vals_disp(mod)
-        vals_expected <- transform_linpred(mod = mod,
-                                           linpred = linpred)
-        vals_fitted <- draw_vals_fitted(mod = mod,
-                                        vals_expected = vals_expected,
-                                        vals_disp = vals_disp)
-    }
-    else {
-        vals_disp <- NULL
-        vals_expected <- NULL
-        vals_fitted <- transform_linpred(mod = mod,
-                                         linpred = linpred)
-    }
-    ans <- list(hyper = vals_hyper,
-                par = vals_par,
-                season = vals_season,
-                expected = vals_expected,
-                fitted = vals_fitted,
-                disp = vals_disp)
-    ans <- split_sim(ans)
-    ans
+                    error_point_est = error_point_est,
+                    is_in_interval = is_in_interval)
 }
 
 
 
-   
-    
-    
+

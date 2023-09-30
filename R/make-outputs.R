@@ -228,7 +228,7 @@ make_draws_components <- function(mod) {
 
 ## 'make_fitted_disp' ---------------------------------------------------------
 
-## NO_TESTS
+## HAS_TESTS
 #' Make modelled estimates for models
 #' with dispersion term
 #'

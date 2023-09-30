@@ -141,11 +141,6 @@ Priors for the $\pmb{\beta}^{(m)}$ are discussed in sections \@ref(sec:pr-int)--
 
 ## Model
 
-In all priors for  main effects, we require, for identifiability, that
-\begin{equation}
-  \text{E}\left(\sum_{j=1}^{J_m} \beta_j^{(m)}\right) = 0.
-\end{equation}
-
 ## Contribution to posterior density
 
 TMB requires that we provide a function to calculate contribution to the posterior density of each prior. The function does not need to be normalised: any quantities that do not vary with the parameters can be omitted.
@@ -783,12 +778,10 @@ To draw from $p(\xi)$, we use inverse sampling. We have
 
 Inverting gives
 \begin{equation}
-  F^{-1}(x) = \left(\frac{\log(1 - x)}{A}\right)^2 (\#eq:prior-xi-inv).
+  F^{-1}(p) = \left(\frac{\log(1 - p)}{A}\right)^2 (\#eq:prior-xi-inv).
 \end{equation}
 
 Drawing $u \sim \text{Unif}(0, 1)$ and plugging the value into \@ref(eq:prior-xi-inv) yields variates with the required distribution.
-
-
 
 
 ### Binomial
@@ -850,14 +843,15 @@ Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta
 
 To generate one set of simulated values, we start with values for exposure, trials, or weights,  $\pmb{w}$, and possibly covariates $\pmb{Z}, then go through the following steps:
 
-1. Draw values for any parameters in the priors for the $\pmb{\beta}^{(m)}$.
-1. Conditional on the values drawn in Step 1, draw values the $\pmb{\beta}^{(m)}$.
+1. Draw values for any parameters in the priors for the $\pmb{\beta}^{(m)}$, $m = 1, \cdots, M$.
+1. Conditional on the values drawn in Step 1, draw values the $\pmb{\beta}^{(m)}$, $m = 0, \cdots, M$.
 1. If the model contains seasonal effects, draw the standard deviation $\kappa_m$, and then the effects $\pmb{\lambda}^{(m)}$.
-1. If the model contains covariates, draw $\varphi$ and $\omega_p$ where necessary, and then draw coefficient vector $\pmb{\zeta}$.
-1. Use values from steps 2--4 to form the linear predictor $\pmb{\mu}$.
-1. Back-transform the linear predictor, to obtain $g^{-1}(\pmb{\mu}}$.
-1. If the model contains a dispersion parameter $\xi$, then draw values from its prior.
-1  Use $g^{-1}(\pmb{\mu}}$, $\pmb{y}$, $\pmb{w}$, and $\xi$ (if present) to draw values for $\pmb{\gamma}$.
+1. If the model contains covariates, draw $\varphi$ and $\omega_p$ where necessary, draw coefficient vector $\pmb{\zeta}$.
+1. Use values from steps 2--4 to form the linear predictor $\sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta}$.
+1. Back-transform the linear predictor, to obtain vector of cell-specific parameters $\pmb{\mu}$.
+1. If the model contains a dispersion parameter $\xi$, draw values from the prior for $\xi$.
+1. In Poisson and binomial models, use $\pmb{\mu}$ and, if present, $\xi$ to draw $\pmb{\gamma}$.
+1. In Poisson and binomial models, use $\pmb{\gamma}$ and $\pmb{w}$ to draw $\pmb{y}$; in normal models, use $\pmb{\mu}$, $\xi$, and $\pmb{w}$ to draw $\pmb{y}$.
 
 
 # Appendices
