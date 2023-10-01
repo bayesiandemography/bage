@@ -215,44 +215,44 @@ test_that("'check_offset_in_data' returns correct error with invalid inputs", {
 ## 'check_n' ------------------------------------------------------------------
 
 test_that("'check_n' returns TRUE with valid inputs", {
-    expect_true(check_n(n = 4, min = 4L, max = NULL, null_ok = FALSE))
-    expect_true(check_n(n = NULL, min = 4L, max = NULL, null_ok = TRUE))
+    expect_true(check_n(n = 4, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE))
+    expect_true(check_n(n = NULL, n_arg = "n", min = 4L, max = NULL, null_ok = TRUE))
 })
 
 test_that("'check_n' throws correct error with non-numeric", {
-    expect_error(check_n(n = "4", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = "4", n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is non-numeric")
 })
 
 test_that("'check_n' throws correct error with wrong length", {
-    expect_error(check_n(n = integer(), min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = integer(), n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` does not have length 1")
-    expect_error(check_n(n = 10:11, min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 10:11, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` does not have length 1")
 })
 
 test_that("'check_n' throws correct error with NA", {
-    expect_error(check_n(n = NA_real_, min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = NA_real_, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is NA")
 })
 
 test_that("'check_n' throws correct error with Inf", {
-    expect_error(check_n(n = Inf, min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = Inf, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is Inf")
 })
 
 test_that("'check_n' throws correct error with non-integer", {
-    expect_error(check_n(n = 6.4, min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 6.4, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is not an integer")
 })
 
 test_that("'check_n' throws correct error when less than min", {
-    expect_error(check_n(n = 3, min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 3, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is less than 4")
 })
 
 test_that("'check_n' throws correct error when greater than max", {
-    expect_error(check_n(n = 60, min = 4, max = 10, null_ok = FALSE),
+    expect_error(check_n(n = 60, n_arg = "n", min = 4, max = 10, null_ok = FALSE),
                  "`n` is greater than 10")
 })
 
@@ -397,4 +397,40 @@ test_that("'check_scale' returns correct error with non-positive", {
                  "`x` is non-positive.")
     expect_error(check_scale(-1, x_arg = "x", zero_ok = FALSE),
                  "`x` is non-positive.")
+})
+
+
+## 'check_widths' -------------------------------------------------------------
+
+test_that("'check_widths' returns TRUE with valid inputs", {
+    expect_true(check_widths(0.96))
+    expect_true(check_widths(c(0.2, 0.8)))
+    expect_true(check_widths(c(0.001, 1)))
+})
+
+test_that("'check_widths' throws expected error non-numeric", {
+    expect_error(check_widths(TRUE),
+                 "`widths` has class <logical>.")
+})
+
+test_that("'check_widths' throws expected error length 0", {
+    expect_error(check_widths(integer()),
+                 "`widths` has length 0.")
+})
+
+test_that("'check_widths' throws expected error NA", {
+    expect_error(check_widths(c(NA, 1)),
+                 "`widths` has NA.")
+    expect_error(check_widths(c(NA, 1, NA)),
+                 "`widths` has NAs.")
+})
+
+test_that("'check_widths' throws expected error too low", {
+    expect_error(check_widths(0),
+                 "`widths` has value not in interval \\(0, 1\\].")
+})
+
+test_that("'check_widths' throws expected error too high", {
+    expect_error(check_widths(c(1.2, 1.3)),
+                 "`widths` has values not in interval \\(0, 1\\].")
 })

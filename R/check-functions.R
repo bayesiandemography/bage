@@ -248,36 +248,36 @@ check_length_par_gt <- function(length_par, min, nm, prior) {
 ## HAS_TESTS
 #' Check 'n' argument
 #'
-#' @param n A whole number greater
-#' than or equal to 'min', less than
-#' or equal to 'max',
-#' and possibly NULL.
+#' @param n A whole number
+#' @param n_arg Name for 'n' to be used in error messages
+#' @param min,max Minimum and maximum values 'n' can take
+#' @param null_ok Whether passing NULL (and skipping tests) is allowed
 #'
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_n <- function(n, min, max, null_ok) {
+check_n <- function(n, n_arg, min, max, null_ok) {
     if (null_ok && is.null(n)) 
         return(invisible(TRUE))
     if (!is.numeric(n))
-        cli::cli_abort(c("{.arg n} is non-numeric.",
-                         i = "{.arg n} has class {.cls {class(n)}}."))
+        cli::cli_abort(c("{.arg {n_arg}} is non-numeric.",
+                         i = "{.arg {n_arg}} has class {.cls {class(n)}}."))
     if (length(n) != 1L)
-        cli::cli_abort(c("{.arg n} does not have length 1.",
-                         i = "{.arg n} has length {length(n)}."))
+        cli::cli_abort(c("{.arg {n_arg}} does not have length 1.",
+                         i = "{.arg {n_arg}} has length {length(n)}."))
     if (is.na(n))
-        cli::cli_abort("{.arg n} is {.val {NA}}.")
+        cli::cli_abort("{.arg {n_arg}} is {.val {NA}}.")
     if (is.infinite(n))
-        cli::cli_abort("{.arg n} is {.val {Inf}}.")
+        cli::cli_abort("{.arg {n_arg}} is {.val {Inf}}.")
     if (!isTRUE(all.equal(round(n), n)))
-        cli::cli_abort(c("{.arg n} is not an integer.",
-                         i = "{.arg n} is {.val {n}}."))
+        cli::cli_abort(c("{.arg {n_arg}} is not an integer.",
+                         i = "{.arg {n_arg}} is {.val {n}}."))
     if (n < min)
-        cli::cli_abort(c("{.arg n} is less than {min}.",
-                         i = "{.arg n} is {.val {n}}."))
+        cli::cli_abort(c("{.arg {n_arg}} is less than {min}.",
+                         i = "{.arg {n_arg}} is {.val {n}}."))
     if (!is.null(max) && (n > max))
-        cli::cli_abort(c("{.arg n} is greater than {max}.",
-                         i = "{.arg n} is {.val {n}}."))
+        cli::cli_abort(c("{.arg {n_arg}} is greater than {max}.",
+                         i = "{.arg {n_arg}} is {.val {n}}."))
     invisible(TRUE)
 }
 
@@ -477,5 +477,30 @@ check_scale <- function(x, x_arg, zero_ok) {
             cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
                              i = "{.arg {x_arg}} equals {.val {x}}."))
     }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that 'widths' consists of numbers between 0 and 1
+#'
+#' @param width s
+#'
+#' @returns TRUE, invisibly.
+#'
+#' @noRd
+check_widths <- function(widths) {
+    if (!is.numeric(widths))
+        cli::cli_abort(c("{.arg widths} is non-numeric",
+                         i = "{.arg widths} has class {.cls {class(widths)}}."))
+    if (length(widths) == 0L)
+        cli::cli_abort("{.arg widths} has length 0.")
+    n_na <- sum(is.na(widths))
+    if (n_na > 0L)
+        cli::cli_abort("{.arg widths} has {cli::qty(n_na)} NA{?s}.")
+    n_out <- sum((widths <= 0) | (widths > 1))
+    if (n_out > 0L)
+        cli::cli_abort(c("{.arg widths} has {cli::qty(n_out)} value{?s} not in interval (0, 1]",
+                         i = "{.arg widths}: {.val {widths}}"))
     invisible(TRUE)
 }
