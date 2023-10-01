@@ -517,6 +517,10 @@ report_sim <- function(mod_sim,
                        n_sim = 100,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95)) {
+    if (!inherits(mod_sim, "bage_mod"))
+        cli::cli_abort(c("{.arg mod_sim} is not an object of class {.cls bage_mod}.",
+                         i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}."))
+    check_n(n = n_sim, n_arg = "n_sim", min = 1L, max = NULL, null_ok = FALSE)
     point_est_fun <- match.arg(point_est_fun)
     check_widths(widths)
     if (is_null(mod_est))
@@ -548,3 +552,60 @@ report_sim <- function(mod_sim,
 
 
 
+check_mod_sim_est_compatible <- function(mod_sim, mod_est) {
+    ## same class
+    if (!identical(class(mod_sim)[[1L]], class(mod_est)[[1L]]))
+        cli::cli_abort(c("{.arg mod_sim} and {.arg mod_est} have different classes.",
+                         i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}.",
+                         i = "{.arg mod_est} has class {.cls {class(mod_est)}}."))
+    ## same dimension names for 'outcome'
+    outcome_sim <- mod_sim$outcome
+    outcome_est <- mod_est$outcome
+    if (is.array(outcome_sim)) {
+        dn_sim <- dimnames(outcome_sim)
+        dn_est <- dimnames(outcome_est)
+        nms_sim <- names(dn_sim)
+        nms_est <- names(dn_est)
+    }
+    else if (is.data.frame(outcome_sim)) {
+        nms_sim <- names(outcome_sim)
+        nms_est <- names(outcome_est)
+    }
+    else
+        cli::cli_abort("Internal error: Outcome for 'mod_sim' not array or data frame.")
+    if (!identical(nms_sim, nms_est))
+        cli::cli_abort(c(paste("Outcomes for {.arg mod_sim} and {.arg mod_est} have",
+                               "different dimensions."),
+                         i = "{.arg mod_sim}: {.val {nms_sim}}.",
+                         i = "{.arg mod_est}: {.val {nms_est}}."))
+    ## if 
+    for (nm in nms_sim) {
+        if (!identical(dn_sim[[nm]], dn_est[[nm]]))
+            cli::cli_abort(c(paste("{.val {nm}} dimension for {.arg mod_sim} and {.val {nm}}",
+                                   "dimension for {.arg mod_est} have different categories."),
+                             i = "{.arg mod_sim}: {.val {dn_sim[[nm]]}}.",
+                             i = "{.arg mod_est}: {.val {dn_est[[nm]]}}."))
+    }
+    if (!identical(nms_sim, nms_est))
+        cli::cli_abort(c(paste("Outcomes for {.arg mod_sim} and {.arg mod_est} have",
+                               "different dimensions."),
+                         i = "{.arg mod_sim}: {.val {nms_sim}}.",
+                         i = "{.arg mod_est}: {.val {nms_est}}."))
+        
+    dim_sim <- dim(outcome_sim)
+    dim_est <- dim(outcome_est)
+    if (!identical(dim_sim, dim_est))
+
+
+    
+        
+                
+        for (nm in nms_sim) {
+            
+                             
+                           
+        
+    if (!isTRUE(all_equal(dn_sim, dn_est)))
+        
+    
+    if (!inherits(mod_sim, class(mod_est))

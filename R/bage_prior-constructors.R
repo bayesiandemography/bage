@@ -332,7 +332,7 @@ RW2 <- function(s = 1, flat = FALSE) {
 #' Spline(n = 10)
 #' @export
 Spline <- function(n = NULL, s = 1) {
-    check_n(n, min = 4L, max = NULL, null_ok = TRUE)
+    check_n(n, n_arg = "n", min = 4L, max = NULL, null_ok = TRUE)
     if (!is.null(n))
         n <- as.integer(n)
     check_scale(s, x_arg = "s", zero_ok = FALSE)
@@ -371,7 +371,7 @@ SVD <- function(scaled_svd, n = 5, indep = TRUE) {
         cli::cli_abort(c("{.arg scaled_svd} does not hold scaled SVD values.",
                          i = "{.arg scaled_svd} has class {.cls {class(scaled_svd)}}.",
                          i = "{.arg scaled_svd} should have class {.cls bage_scaled_svd}."))
-    check_n(n, min = 1L, max = 10L, null_ok = FALSE)
+    check_n(n, n_arg = "n", min = 1L, max = 10L, null_ok = FALSE)
     n <- as.integer(n)
     check_flag(indep)
     new_bage_prior_svd(scaled_svd = scaled_svd,
