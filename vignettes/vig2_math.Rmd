@@ -38,6 +38,10 @@ Note: this is describing the models we want to get to soon, not the ones we curr
 
 # Likelihood {#sec:lik}
 
+## Data
+
+
+
 ## Models
 
 ### Poisson {#sec:pois}
@@ -122,13 +126,14 @@ For any given cell $i$, one or both of $y_i$ and $w_i$ may be missing. In this c
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
-  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta} (\#eq:means)
+  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\chi}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta} (\#eq:means)
 \end{equation}
 where
 
 - $g$ is a log function in Poisson models, a logit function in binomial models, and an identity function in normal models;
 - $\beta^{(0)}$ is an intercept;
 - $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a vector with $J_m$ elements describing a main effect or interaction formed from the dimensions of data $\pmb{y}$;
+- $\pmb{\chi}^{(m)}$ is a cyclical effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
 - $\pmb{\lambda}^{(m)}$ is a seasonal effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
 - $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ and (if $\pmb{\lambda}^{(m)}$ exists) of $\pmb{\lambda}^{(m)}$, that is used with cell $i$;
 - $\pmb{Z}$ is a $n \times P$ matrix of covariates; and
@@ -404,7 +409,7 @@ AR1(min = 0.8, max = 0.98, s = 1)
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
 
-## Linear with independent errors {#sec:pr-lin}
+## Linear {#sec:pr-lin}
 
 ### Model
 
@@ -438,54 +443,6 @@ Lin(sd = NULL, s = 1)
 ```
 
 - `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-
-
-## Linear with AR1 errors {#sec:pr-lin-ar1}
-
-### Model
-
-\begin{align}
-  \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
-   h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
-  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \epsilon_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \epsilon_j^{(m)} & \sim \text{N}\left(\phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
-  \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
-  \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-\end{align}
-where $-1 < a_{0m} < a_{1m} < 1$.
-
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \text{N}\left(\epsilon_1^{(m)} \mid 0, \tau_m^2 \right)  \text{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=2}^{J_m} \text{N}\left(\epsilon_j^{(m)} \mid \phi_m \epsilon_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2  \right) 
-\end{equation}
-
-
-### Prediction
-
-\begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\hat{\beta}_{J_m+h+1}^{(m)} + \phi_m \hat{\epsilon}_{J_m+h}^{(m)}, (1 - \phi_m^2) \tau_m^2)
-\end{equation}
-where
-\begin{align}
-  \hat{\beta}_{J_m+h+1}^{(m)} & = \beta_{J_m+h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m \\
-  \hat{\epsilon}_{J_m+h}^{(m)} & = \beta_{J_m+h}^{(m)} - \beta_{J_m+h-1}^{(m)} - \tfrac{2}{J_m - 1}\eta_m
-\end{align}
-
-
-### Code
-
-```
-LinAR1(sd = NULL, min = 0.8, max = 0.98, s = 1)
-```
-
-- `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
-- `min` is $a_{0m}$.
-- `max` is $a_{1m}$.
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
@@ -591,15 +548,78 @@ The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) o
 
 *Not written yet*
 
+
+# Cyclical effects {#sec:pr-cyclical}
+
+"A cyclic pattern exists when data exhibit rises and falls that are not of fixed period", as opposed to a seasonal pattern that has a fixed period [Hyndman](https://robjhyndman.com/hyndsight/cyclicts/).
+
+
+## Model
+
+Cyclical effects can only be used with a time main effect. The prior model is an AR2 model,
+
+\begin{align}
+  \chi_1 & \sim \text{N}(0, \tau_{\chi}^2) \\
+  \chi_2 & = \text{N}(\alpha \chi_1, (1 - \alpha^2) \tau_{\chi}^2) \\
+  \chi_{j} & = \phi_1^{(\chi)} \chi_{j-1} + \phi_2^{(\chi)} \chi_{j-2} + \epsilon_j, \quad j = 3, \cdots, J_m \\
+  \epsilon_j & \sim \text{N}(0, (1 - \phi_1^{(\chi)} - \phi_2^{(\chi)}) \tau_{\chi}^2) \\
+  \tau_{\chi} & \sim \text{N}^+(0, A_{\chi}^2).
+\end{align}
+where
+\begin{equation}
+  \alpha = \frac{\phi_1^{(\chi)}}{1 - \phi_2^{(\chi)}}.
+\end{equation}
+The model is constructed so that $\text{var}(\chi_j) = \tau_{\chi}^2$, $j = 1, \cdots, J_m$. The correlation coefficients have priors
+\begin{align}
+  \phi_1^{(\chi)} & = -1 + 2 \phi_1^{(\chi)\prime} \\
+  \phi_2^{(\chi)} & = -1 + 2 \phi_2^{(\chi)\prime} \\
+  \phi_1^{(\chi)\prime} & \sim \text{Beta}(2, 2) \\
+  \phi_2^{(\chi)\prime} & \sim \text{Beta}(2, 2)
+\end{align}
+subject to
+\begin{align}
+  \mid \phi_2^{(\chi)} \mid & < 1 \\
+  \phi_2^{(\chi)} + \phi_1^{(\chi)} & < 1\\
+  \phi_2^{(\chi)} - \phi_1^{(\chi)} & < 1.
+\end{align}
+
+
+## Contribution to posterior density
+
+\begin{equation}
+\begin{split}
+  \text{N}(\tau_{\chi} | 0, A_{\chi}^2) \text{Beta}( \phi_1^{(\chi)\prime} | 2, 2) \text{Beta}( \phi_2^{(\chi)\prime} | 2, 2) \text{N}\left(\chi_1 \mid 0, \tau_{\chi}^2 \right) \text{N}\left(\chi_2 \mid \alpha \chi_1, (1 - \alpha^2) \tau_{\chi}^2 \right) \\
+  \quad \quad \quad \times \prod_{j=3}^{J_m} \text{N}\left(\chi_j \mid \phi_1^{(\chi)} \chi_{j-1} + \phi_2^{(\chi)} \chi_{j-2}, (1 - \phi_1^{(\chi)} - \phi_2^{(\chi)}) \tau_{\chi}^2 \right) 
+\end{split}
+\end{equation}
+
+
+## Prediction
+
+\begin{equation}
+  \chi_{J_m + h + 1} \sim \text{N}\left(\phi_1^{(\chi)} \chi_{J_m + h} + \phi_2^{(\chi)} \chi_{J_m + h - 1}, (1 - \phi_1^{(\chi)} - \phi_2^{(\chi)}) \tau_m^2\right)
+\end{equation}
+
+
+## Code
+
+```
+set_cyclical(s = 1)
+```
+
+- `s` is $A_{\chi}$
+
+
+
 # Seasonal effects {#sec:pr-season}
 
 ## Model
 
-Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ elements. Seasonal effects are divided into $S_m$ batches, corresponding to $S_m$ "seasons", where $2 \le S_m \le \tfrac{1}{2} J_m$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
+Seasonal effects are applied to a single main effect or interaction $\pmb{\beta}^{(m)}$. They are modelled by a vector $\pmb{\lambda}$ with $J_m$ elements. Seasonal effects are divided into $S$ batches, corresponding to $S$ seasons, where $2 \le S \le \tfrac{1}{2} J_m$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
 
 \begin{align}
-  \lambda_{j}^{(m)} & \sim \text{N}(\lambda_{j - S_m}^{(m)}, \kappa_m^2 ) \\ 
-  \kappa_m & \sim \text{N}^+\left(0, A_{\kappa}^{(m)2}\right) \\
+  \lambda_j & \sim \text{N}(\lambda_{j - S}, \tau_{\lambda}^2 ) \\ 
+  \tau_{\lambda} & \sim \text{N}^+\left(0, A_{\lambda}^2 \right) \\
   \sum_{j=1}^{J_m} \lambda_j & \sim \text{N}(0, 1)
 \end{align}
 
@@ -607,9 +627,12 @@ Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ eleme
 ## Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\kappa_m | 0, A_{\kappa}^{(m)2}) \text{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j^{(m)} \mid 0, 1 \right)  \prod_{j=2}^{J_m} \text{N}\left(\lambda_j^{(m)} - \lambda_{j-1}^{(m)} \mid 0, \kappa_m^2 \right) 
+  \text{N}(\tau_{\lambda} | 0, A_{\lambda}^2) \text{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j \mid 0, 1 \right)  \prod_{j=2}^{J_m} \text{N}\left(\lambda_j - \lambda_{j-1} \mid 0, \tau_{\lambda}^2 \right) 
 \end{equation}
 
+## Prediction
+
+TODO - write
 
 ## Code
 
@@ -617,8 +640,8 @@ Seasonal effects are modelled by a vector $\pmb{\lambda}^{(m)}$ with $J_m$ eleme
 set_season(n, s = 1)
 ```
 
-- `n` is $S_m$
-- `s` is $A_{\kappa}^{(m)}$
+- `n` is $S$
+- `s` is $A_{\lambda}$
 
 
 # Covariates {#sec:pr-cov}
@@ -676,6 +699,14 @@ and set $\hat{\sigma} = \hat{\xi}$.
 
 
 The quantities used for Poisson and binomial likelihoods are derived from normal approximations to GLMs [@piironen2017hyperprior; @gelman2014bayesian, section 16.2].
+
+## Contribution to posterior density
+
+TODO - write
+
+## Prediction
+
+TODO - write
 
 ## Code
 
@@ -739,7 +770,7 @@ Running TMB yields a set of means $\pmb{m}$, and a precision matrix $\pmb{Q}^{-1
 - $\pmb{\alpha}$ for terms with Spline and SVD priors,
 - hyper-parameters for $\pmb{\beta}^{(m)}$ and $\pmb{\alpha}^{(m)}$ typically transformed to another scale, such as a log scale,
 - dispersion term $\xi$, and
-- seasonal effects $\pmb{\lambda}^{(m)}$, together with associated hyper-parameters $\kappa_m$ (on a log scale).
+- seasonal effects $\pmb{\lambda}$, together with associated hyper-parameters $\tau_{\lambda}$ (on a log scale).
 
 We use $\tilde{\pmb{\theta}}$ to denote a vector containing all these quantities.
 
@@ -802,8 +833,12 @@ Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta
 | $\pmb{b}_k^{(m)}$ | B-spline. $k = 1, \cdots, K_m$. |
 | $\pmb{F}^{(m)}$ | Matrix in SVD prior. |
 | $\pmb{g}^{(m)}$ | Offset in SVD prior. |
-| $\pmb{\lambda}^{(m)}$ | Seasonal effect. |
-| $\kappa_m$ | Standard deviation parameter for seasonal effect. |
+| $\pmb{\chi}$ | Cyclical effect. |
+| $\phi_1^{(\chi)}$ | Corelation coefficient in model for cyclical effect |
+| $\phi_2^{(\chi)}$ | Corelation coefficient in model for cyclical effect |
+| $\tau_{\chi}$ | Standard deviation parameter for cyclical effect. |
+| $\pmb{\lambda}$ | Seasonal effect. |
+| $\tau_{\lambda}$ | Standard deviation parameter for seasonal effect. |
 | $\varphi$ | Global shrinkage parameter in shrinkage prior. |
 | $A_{\varphi}$ | Scale term in prior for $\varphi$. |
 | $\omega_p$ | Local shrinkage parameter in shrinkage prior. |
