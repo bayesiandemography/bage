@@ -90,20 +90,18 @@ mod_pois <- function(formula, data, exposure) {
     }
     ## process inputs
     data <- tibble(data)
-    outcome <- make_outcome_array(formula = formula,
-                                  data = data)
+    outcome <- make_outcome(formula = formula,
+                            data = data)
     if (is_offset_specified)
-        offset <- make_offset_array(formula = formula,
-                                    vname_offset = vname_offset,
-                                    data = data)
+        offset <- make_offset(vname_offset = vname_offset,
+                              data = data)
     else
-        offset <- make_offset_ones_array(formula = formula,
-                                         data = data)
+        offset <- make_offset_ones(data)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
-                                                            outcome = outcome)
+    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+                                                      data = data)
     levels_par <- make_levels_par(formula = formula,
                                   matrices_par_outcome = matrices_par_outcome,
                                   outcome = outcome,
@@ -223,16 +221,15 @@ mod_binom <- function(formula, data, size) {
                          data = data)
     ## process inputs
     data <- tibble(data)
-    outcome <- make_outcome_array(formula = formula,
-                                  data = data)
-    offset <- make_offset_array(formula = formula,
-                                vname_offset = vname_offset,
-                                data = data)
+    outcome <- make_outcome(formula = formula,
+                            data = data)
+    offset <- make_offset(vname_offset = vname_offset,
+                          data = data)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
-                                                            outcome = outcome)
+    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+                                                      data = data)
     levels_par <- make_levels_par(formula = formula,
                                   matrices_par_outcome = matrices_par_outcome,
                                   outcome = outcome,
@@ -353,22 +350,21 @@ mod_norm <- function(formula, data, weights) {
     }
     ## process inputs
     data <- tibble(data)
-    outcome <- make_outcome_vec(formula = formula,
-                                data = data)
+    outcome <- make_outcome(formula = formula,
+                            data = data)
     outcome_mean <- mean(outcome, na.rm = TRUE)
     outcome_sd <- stats::sd(outcome, na.rm = TRUE)
     outcome <- (outcome - outcome_mean) / outcome_sd
     if (is_offset_specified)
-        offset <- make_offset_vec(vname_offset = vname_offset,
-                                  data = data)
-    
+        offset <- make_offset(vname_offset = vname_offset,
+                              data = data)
     else
-        offset <- make_offset_ones_vec(data)
+        offset <- make_offset_ones(data)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula,
-                                                          data = data)
+    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+                                                      data = data)
     levels_par <- make_levels_par(formula = formula,
                                   matrices_par_outcome = matrices_par_outcome,
                                   outcome = outcome,
