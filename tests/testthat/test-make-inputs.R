@@ -304,11 +304,10 @@ test_that("'make_is_in_lik' works with NAs", {
 ## 'make_lengths_par' ---------------------------------------------------------
 
 test_that("'make_lengths_par' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()),
-                matrices_par_outcome = list(matrix(nr = 100, nc = 1),
-                                            matrix(nr = 100, nc = 5),
-                                            matrix(nr = 100, nc = 5)))
-    ans_obtained <- make_lengths_par(mod)
+    matrices_par_outcome = list(a = matrix(nr = 100, nc = 1),
+                                b = matrix(nr = 100, nc = 5),
+                                c = matrix(nr = 100, nc = 5))
+    ans_obtained <- make_lengths_par(matrices_par_outcome)
     ans_expected <- c(a = 1L, b = 5L, c = 5L)
     expect_identical(ans_obtained, ans_expected)
 })
@@ -962,11 +961,10 @@ test_that("'make_terms_hyper' works with valid inputs", {
 ## 'make_terms_par' -----------------------------------------------------------
 
 test_that("'make_terms_par' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()),
-                matrices_par_outcome = list(matrix(nr = 100, nc = 1),
-                                    matrix(nr = 100, nc = 5),
-                                    matrix(nr = 100, nc = 5)))
-    ans_obtained <- make_terms_par(mod)
+    matrices_par_outcome = list(a = matrix(nr = 100, nc = 1),
+                                b = matrix(nr = 100, nc = 5),
+                                c = matrix(nr = 100, nc = 5))
+    ans_obtained <- make_terms_par(matrices_par_outcome)
     ans_expected <- factor(rep(c("a", "b", "c"),
                                times = c(1, 5, 5)))
     expect_identical(ans_obtained, ans_expected)

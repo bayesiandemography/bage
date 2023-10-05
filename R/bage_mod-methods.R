@@ -226,8 +226,8 @@ fit.bage_mod <- function(object, ...) {
     nm_distn <- nm_distn(object)
     outcome <- object$outcome
     offset <- object$offset
+    terms_par <- object$terms_par
     is_in_lik <- make_is_in_lik(object)
-    terms_par <- make_terms_par(object)
     terms_parfree <- make_terms_parfree(object)
     uses_matrix_parfree_par <- make_uses_matrix_parfree_par(object)
     matrices_parfree_par <- make_matrices_parfree_par(object)
@@ -755,9 +755,10 @@ generics::tidy
 #' @export
 tidy.bage_mod <- function(x, ...) {
     priors <- x$priors
+    n <- x$lengths_par
+    terms <- x$terms_par
     term <- names(priors)
     spec <- vapply(priors, str_call_prior, "")
-    n <- make_lengths_par(x)
     ans <- tibble::tibble(term, spec, n)
     is_fitted <- is_fitted(x)
     if (is_fitted) {
@@ -765,7 +766,6 @@ tidy.bage_mod <- function(x, ...) {
         matrix <- make_combined_matrix_parfree_par(x)
         offset <- make_offsets_parfree_par(x)
         par <- matrix %*% parfree + offset
-        terms <- make_terms_par(x)
         par <- split(par, terms)
         ans[["sd"]] <- vapply(par, stats::sd, 0)
     }

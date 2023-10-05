@@ -325,17 +325,14 @@ make_is_in_lik <- function(mod) {
 ## HAS_TESTS
 #' Lengths of vectors of parameters
 #' 
-#' @param mod Object of class "bage_mod"
+#' @param matrices_par_outcome Named list of Matrix matrices
 #'
 #' @returns A named integer vector.
 #'
 #' @noRd
-make_lengths_par <- function(mod) {
-    priors <- mod$priors
-    matrices_par_outcome <- mod$matrices_par_outcome
-    ans <- vapply(matrices_par_outcome, ncol, 1L)
-    names(ans) <- names(priors)
-    ans
+make_lengths_par <- function(matrices_par_outcome) {
+    matrices <- lapply(matrices_par_outcome, Matrix::as.matrix)
+    vapply(matrices, ncol, 1L)
 }
 
 
@@ -350,6 +347,7 @@ make_lengths_par <- function(mod) {
 make_lengths_parfree <- function(mod) {
     priors <- mod$priors
     matrices <- make_matrices_parfree_par(mod)
+    matrices <- lapply(matrices, Matrix::as.matrix)
     ans <- vapply(matrices, ncol, 1L)
     names(ans) <- names(priors)
     ans
@@ -395,7 +393,7 @@ make_levels_par <- function(formula, matrices_par_outcome, outcome, data) {
             paste_dot <- function(...) paste(..., sep = ".")
             term_levels <- do.call(paste_dot, dim_levels[i_dim])
             matrix_par <- matrices_par_outcome[[i]]
-            matrix_par <- as.matrix(matrix_par)
+            matrix_par <- Matrix::as.matrix(matrix_par)
             i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
             ans[[i]] <- term_levels[i_term_level]
         }
@@ -577,7 +575,7 @@ make_matrices_par_outcome <- function(formula, data) {
 make_matrices_parfree_par <- function(mod) {
     priors <- mod$priors
     levels_par <- mod$levels_par
-    terms_par <- make_terms_par(mod)
+    terms_par <- mod$terms_par
     agesex <- make_agesex(mod)
     levels_par <- split(levels_par, terms_par)
     ans <- .mapply(make_matrix_parfree_par,
@@ -665,7 +663,7 @@ make_offset_ones <- function(data) {
 make_offsets_parfree_par <- function(mod) {
     priors <- mod$priors
     levels_par <- mod$levels_par
-    terms_par <- make_terms_par(mod)
+    terms_par <- mod$terms_par
     agesex <- make_agesex(mod)
     levels_par <- split(levels_par, terms_par)
     ans <- .mapply(make_offset_parfree_par,
@@ -939,16 +937,15 @@ make_terms_hyper <- function(mod) {
 #' giving the name of the term
 #' that the each element belongs to.
 #'
-#' @param mod Object of class "bage_mod"
+#' @param matrices_par_outcome Named list of Matrix objects
 #'
 #' @returns A factor.
 #'
 #' @noRd
-make_terms_par <- function(mod) {
-    priors <- mod$priors
-    matrices <- mod$matrices_par_outcome
-    lengths <- vapply(matrices, ncol, 1L)
-    nms <- names(priors)
+make_terms_par <- function(matrices_par_outcome) {
+    nms <- names(matrices_par_outcome)
+    matrices_par_outcome <- lapply(matrices_par_outcome, Matrix::as.matrix)
+    lengths <- vapply(matrices_par_outcome, ncol, 1L)
     ans <- rep(nms, times = lengths)
     ans <- factor(ans, levels = nms)
     ans
@@ -971,6 +968,7 @@ make_terms_par <- function(mod) {
 make_terms_parfree <- function(mod) {
     priors <- mod$priors
     matrices <- make_matrices_parfree_par(mod)
+    matrices <- lapply(matrices, Matrix::as.matrix)
     lengths <- vapply(matrices, ncol, 1L)
     nms <- names(priors)
     ans <- rep(nms, times = lengths)
