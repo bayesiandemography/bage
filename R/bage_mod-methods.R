@@ -495,55 +495,6 @@ make_fitted_disp_inner.bage_mod_binom <- function(x,
 }
 
 
-## 'make_matrix_season_outcome' -----------------------------------------------
-
-#' Make matrix mapping season effect to outcome
-#'
-#' @param x Object of class 'bage_mod'
-#' @param by Variable names (tidyselect style) or NULL.
-#'
-#' @returns Sparse matrix
-#'
-#' @noRd
-make_matrix_season_outcome <- function(x, by) {
-    UseMethod("make_matrix_season_outcome")
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_season_outcome.bage_mod <- function(x, by) {
-    outcome <- x$outcome
-    var_time <- x$var_time
-    dim <- dim(outcome)
-    dimnames <- dimnames(outcome)
-    nms_outcome <- names(dimnames(outcome))
-    nms_season <- c(by, var_time)
-    is_in_season <- nms_outcome %in% nms_season
-    make_matrix_par_outcome_array(dim = dim,
-                                  dimnames = dimnames(outcome),
-                                  is_in_term = is_in_season)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_season_outcome.bage_mod_norm <- function(x, by) {
-    data <- x$data
-    var_time <- x$var_time
-    nms_season <- c(by, var_time)
-    data_season <- data[nms_season]
-    data_season[] <- lapply(data_season, factor)
-    contrasts_season <- lapply(data_season, stats::contrasts, contrast = FALSE)
-    formula_season <- paste(nms_season, collapse = ":")
-    formula_season <- paste0("~", formula_season, "-1")
-    formula_season <- stats::as.formula(formula_season)
-    ans <- Matrix::sparse.model.matrix(formula_season,
-                                       data = data_season,
-                                       contrasts.arg = contrasts_season,
-                                       row.names = FALSE)
-    ans
-}
-
-
 ## 'make_observed' ------------------------------------------------------------
 
 #' Make direct estimates

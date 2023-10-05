@@ -512,50 +512,6 @@ make_map_parfree_fixed <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make list of matrices mapping terms to full array
-#'
-#' Make list of matrices mapping main effects or
-#' interactions to array holding full rates (or,
-#' equivalently, the outcome variable, or the
-#' linear predictor.)
-#' 
-#' @param formula Formula specifying model
-#' @param outcome Array holding values for response
-#' variable
-#'
-#' @returns A named list
-#'
-#' @noRd
-make_matrices_par_outcome_array <- function(formula, outcome) {
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, , drop = FALSE] ## exclude reponse
-    factors <- factors > 0L
-    dim_outcome <- dim(outcome)
-    dimnames_outcome <- dimnames(outcome)
-    ans <- apply(factors,
-                 MARGIN = 2L,
-                 FUN = make_matrix_par_outcome_array,
-                 dim = dim_outcome,
-                 dimnames = dimnames_outcome,
-                 simplify = FALSE)
-    names(ans) <- colnames(factors)
-    has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept) {
-        n_outcome <- length(outcome)
-        i <- seq_len(n_outcome)
-        j <- rep.int(1L, times = n_outcome)
-        x <- rep.int(1L, times = n_outcome)
-        m <- Matrix::sparseMatrix(i = i, 
-                                  j = j,
-                                  x = x,
-                                  dimnames = list(NULL, "(Intercept)"))
-        ans <- c(list("(Intercept)" = m), ans)
-    }
-    ans
-}
-
-
-## HAS_TESTS
 #' Make list of matrices mapping terms to outcome vector
 #'
 #' Make list of matrices mapping main effects or
@@ -568,7 +524,7 @@ make_matrices_par_outcome_array <- function(formula, outcome) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_par_outcome_vec <- function(formula, data) {
+make_matrices_par_outcome <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
@@ -587,6 +543,7 @@ make_matrices_par_outcome_vec <- function(formula, data) {
                                               data = data_term,
                                               contrasts.arg = contrasts_term,
                                               row.names = FALSE)
+        colnames(m_term) <- levels(interaction(data_term))
         ans[[i_term]] <- m_term
     }
     names(ans) <- nms_terms
@@ -634,116 +591,31 @@ make_matrices_parfree_par <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make matrix mapping term to full array
+#' Make matrix mapping season effect to outcome
 #'
-#' Make sparse matrix mapping the elements of a
-#' main effect or interaction to an array holding
-#' the full rates (or equivalently, the outcome
-#' variable, or the linear predictor.)
+#' @param x Object of class 'bage_mod'
+#' @param by Variable names (tidyselect style) or NULL.
 #'
-#' @param dim `dim` attribute of array holding rates.
-#' @param dimnames `dimnames` attribute of array holding rates.
-#' @param is_in_term Whether the term includes
-#' the dimension.
-#'
-#' @returns A sparse matrix.
+#' @returns Sparse matrix
 #'
 #' @noRd
-make_matrix_par_outcome_array <- function(dim, dimnames, is_in_term) {
-    submatrices <- .mapply(make_submatrix,
-                           dots = list(d = as.list(dim),
-                                       is_in = as.list(is_in_term)),
-                           MoreArgs = list())
-    submatrices <- rev(submatrices)
-    ans <- Reduce(Matrix::kronecker, submatrices)
-    colnames <- expand.grid(dimnames[is_in_term],
-                            KEEP.OUT.ATTRS = FALSE,
-                            stringsAsFactors = FALSE)
-    colnames(ans) <- interaction(colnames)
-    ans <- methods::as(ans, "dMatrix")
+make_matrix_season_outcome <- function(x, by) {
+    data <- x$data
+    var_time <- x$var_time
+    nms_season <- c(by, var_time)
+    data_season <- data[nms_season]
+    data_season[] <- lapply(data_season, factor)
+    contrasts_season <- lapply(data_season, stats::contrasts, contrast = FALSE)
+    formula_season <- paste(nms_season, collapse = ":")
+    formula_season <- paste0("~", formula_season, "-1")
+    formula_season <- stats::as.formula(formula_season)
+    ans <- Matrix::sparse.model.matrix(formula_season,
+                                       data = data_season,
+                                       contrasts.arg = contrasts_season,
+                                       row.names = FALSE)
+    colnames(ans) <- levels(interaction(data_season))
     ans
 }
-
-
-## HAS_TESTS
-#' Make array holding offset variable
-#' cross-classified by predictors
-#'
-#' Unlike in `xtabs()`, NAs are not converted
-#' to 0s.
-#' 
-#' @param formula Formula specifying model
-#' @param vname_offset Name of the offset variable.
-#' @param data A data frame.
-#'
-#' @returns An array (with named dimnames)
-#'
-#' @noRd
-make_offset_array <- function(formula, vname_offset, data) {
-    factors <- attr(stats::terms(formula), "factors")
-    nms_vars <- rownames(factors)
-    formula_xtabs <- paste0(vname_offset,
-                            "~",
-                            paste(nms_vars[-1L], collapse = "+"))
-    formula_xtabs <- stats::as.formula(formula_xtabs)
-    ans <- stats::xtabs(formula_xtabs, data = data)
-    dim_ans <- dim(ans)
-    dn_ans <- dimnames(ans)
-    ans <- as.double(ans)
-    formula_na <- paste0("is.na(",
-                         vname_offset,
-                         ")~",
-                         paste(nms_vars[-1L], collapse = "+"))
-    formula_na <- stats::as.formula(formula_na)
-    is_na <- stats::xtabs(formula_na, data = data) > 0L
-    ans[is_na] <- NA_real_
-    ans <- array(ans, dim = dim_ans, dimnames = dn_ans)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make offset consisting of 1s and 0s,
-#' the same size as outcome
-#'
-#' The return value contains 0s for
-#' combinations of classifying
-#' variables not found in the data.
-#'
-#' @param formula Formula specifying model
-#' @param data A data frame
-#'
-#' @returns An array of 1.0s and 0.0s
-#' (with named dimnames)
-#'
-#' @noRd
-make_offset_ones_array <- function(formula, data) {
-    factors <- attr(stats::terms(formula), "factors")
-    nms_vars <- rownames(factors)
-    formula_xtabs <- paste0("~", paste(nms_vars[-1L], collapse = "+"))
-    formula_xtabs <- stats::as.formula(formula_xtabs)
-    ans <- stats::xtabs(formula_xtabs, data = data)
-    ans <- array(as.double(ans),
-                 dim = dim(ans),
-                 dimnames = dimnames(ans))
-    ans <- 1.0 * (ans > 0)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make offset consisting entirely of 1s,
-#' the same length as outcome
-#'
-#' @param data Data frame
-#'
-#' @returns Vector of doubles.
-#'
-#' @noRd
-make_offset_ones_vec <- function(data) {
-    rep(1.0, times = nrow(data))
-}
-
 
 ## HAS_TESTS
 #' Make vector holding offset variable
@@ -754,11 +626,24 @@ make_offset_ones_vec <- function(data) {
 #' @returns An vector of doubles.
 #'
 #' @noRd
-make_offset_vec <- function(vname_offset, data) {
+make_offset <- function(vname_offset, data) {
     nms_data <- names(data)
     ans <- data[[match(vname_offset, nms_data)]]
     ans <- as.double(ans)
     ans
+}
+
+## HAS_TESTS
+#' Make offset consisting entirely of 1s,
+#' the same length as outcome
+#'
+#' @param data Data frame
+#'
+#' @returns Vector of doubles.
+#'
+#' @noRd
+make_offset_ones <- function(data) {
+    rep(1.0, times = nrow(data))
 }
 
 
@@ -795,42 +680,6 @@ make_offsets_parfree_par <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make array holding outcome variable
-#' cross-classified by predictors
-#'
-#' Unlike in `xtabs()`, NAs are not converted
-#' to 0s.
-#'
-#' @param formula Formula specifying model
-#' @param data A data frame
-#'
-#' @returns An array (with named dimnames)
-#'
-#' @noRd
-make_outcome_array <- function(formula, data) {
-    factors <- attr(stats::terms(formula), "factors")
-    nms_vars <- rownames(factors)
-    formula_xtabs <- paste0(nms_vars[[1L]],
-                            "~",
-                            paste(nms_vars[-1L], collapse = "+"))
-    formula_xtabs <- stats::as.formula(formula_xtabs)
-    ans <- stats::xtabs(formula_xtabs, data = data, addNA = TRUE)
-    dim_ans <- dim(ans)
-    dn_ans <- dimnames(ans)
-    ans <- as.double(ans)
-    formula_na <- paste0("is.na(",
-                         nms_vars[[1L]],
-                         ")~",
-                         paste(nms_vars[-1L], collapse = "+"))
-    formula_na <- stats::as.formula(formula_na)
-    is_na <- stats::xtabs(formula_na, data = data) > 0L
-    ans[is_na] <- NA_real_
-    ans <- array(ans, dim = dim_ans, dimnames = dn_ans)
-    ans
-}
-
-
-## HAS_TESTS
 #' Make vector holding outcome variable
 #'
 #' Extracts the outcome variable from 'data'.
@@ -841,7 +690,7 @@ make_outcome_array <- function(formula, data) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_outcome_vec <- function(formula, data) {
+make_outcome <- function(formula, data) {
     nm_response <- deparse1(formula[[2L]])
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
