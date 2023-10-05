@@ -32,14 +32,18 @@ library(bage)
 
 # Introduction
 
-Specification document. Aims to give complete mathematical description of models used by bage.
+Specification document - a mathematical description of models used by bage.
 
 Note: this is describing the models we want to get to soon, not the ones we currently implement.
 
 # Likelihood {#sec:lik}
 
-## Data
+## Input data
 
+- outcome variable: events, numbers of people, or some sort of measure on a continuous variable such as income or expenditure
+- exposure/size/weights
+- disagg by one or more variables. Almost always includes age, sex/gender, and time. May include other variables eg region, ethnicity, education.
+- not all combinations of variables present; may be some missing values
 
 
 ## Models
@@ -118,9 +122,6 @@ Response $y_i$ is standardized to have mean 0 and standard deviation 1. We set
 \end{equation}
 where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*$ and $s^*$ are the mean and standard deviation of the $y_i^*$.
 
-## Missing values
-
-For any given cell $i$, one or both of $y_i$ and $w_i$ may be missing. In this case, cell $i$ is omitted from the likelihood.
 
 # Model for means
 
