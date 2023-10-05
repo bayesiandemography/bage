@@ -708,6 +708,7 @@ make_outcome <- function(formula, data) {
 #' @noRd
 make_par_season <- function(mod) {
     matrix <- mod$matrix_season_outcome
+    matrix <- Matrix::as.matrix(matrix)
     n <- ncol(matrix)
     ans <- rep(0, times = n)
     names(ans) <- colnames(matrix)
