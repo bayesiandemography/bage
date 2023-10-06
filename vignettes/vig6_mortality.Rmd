@@ -28,9 +28,9 @@ dth <- bage::deaths
 ```
 
 ```{r}
-dth %>%
-  filter(time %in% range(time)) %>%
-  mutate(rate = deaths / popn) %>%
+dth |>
+  filter(time %in% range(time)) |>
+  mutate(rate = deaths / popn) |>
   ggplot(aes(x = age_mid(age), y = rate)) +
   facet_grid(vars(sex), vars(time)) +
   geom_point(alpha = 0.5) +
@@ -38,13 +38,13 @@ dth %>%
 ```
 
 ```{r}
-dth %>% 
+dth |> 
   filter(popn == 0 & deaths > 0)
 ```
 
 
 ```{r}
-dth <- dth %>%
+dth <- dth |>
   mutate(popn = if_else(popn == 0 & deaths > 0, 0.5 * deaths, popn))
 ```
 
@@ -53,7 +53,7 @@ dth <- dth %>%
 ```{r}
 mod_svd <- mod_pois(deaths ~ age:sex + time,
                     data = dth,
-                    exposure = popn) %>%
+                    exposure = popn) |>
   set_prior(age:sex ~ SVD(HMD, n = 3, indep = F))
 mod_svd
 ```
@@ -70,9 +70,9 @@ res
 ```
 
 ```{r}
-res %>%
-  filter(time %in% range(time)) %>%
-  mutate(draws_ci(.fitted)) %>%
+res |>
+  filter(time %in% range(time)) |>
+  mutate(draws_ci(.fitted)) |>
   ggplot(aes(x = age_mid(age), 
              ymin = .fitted.lower,
              y = .fitted.mid,
@@ -86,27 +86,22 @@ res %>%
 ```
 
 ```{r}
-lifeexp <- res %>%
-  group_by(sex, time) %>%
-  summarise(lifeexp_mod = lifeexp(.fitted, age = age, sex = sex),
-            lifeexp_obs = lifeexp(.observed, age = age, sex = sex)) %>%
-  ungroup()
+lifeexp <- res |>
+    lifeexp(mx = .fitted,
+            by = c(time, sex))
 lifeexp
 ```
 
 ```{r}
-lifeexp %>%
-  mutate(draws_ci(lifeexp_mod)) %>%
+lifeexp |>
+  mutate(draws_ci(ex)) |>
   ggplot(aes(x = time,
-             ymin = lifeexp_mod.lower,
-             y = lifeexp_mod.mid,
-             ymax = lifeexp_mod.upper)) +
+             ymin = ex.lower,
+             y = ex.mid,
+             ymax = ex.upper)) +
   facet_wrap(vars(sex)) +
   geom_ribbon(fill = "lightblue") +
-  geom_line(col = "darkblue") +
-  geom_point(aes(y = lifeexp_obs),
-             size = 0.2,
-             col = "red")
+  geom_line(col = "darkblue")
 ```
 
 

@@ -73,7 +73,6 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
 
 ## 'draw_vals_par' ------------------------------------------------------------
 
-#' @export
 draw_vals_par <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
   UseMethod("draw_vals_par")
 }

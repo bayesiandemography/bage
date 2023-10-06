@@ -387,7 +387,7 @@ make_levels_season <- function(mod) {
 #' @noRd
 make_linpred_par <- function(mod, components) {
     matrix_par_outcome <- make_combined_matrix_par_outcome(mod)
-    matrix_par_outcome <- as.matrix(matrix_par_outcome)
+    matrix_par_outcome <- Matrix::as.matrix(matrix_par_outcome)
     is_par <- components$component == "par"
     par <- components$.fitted[is_par]
     matrix_par_outcome %*% par
@@ -408,7 +408,7 @@ make_linpred_par <- function(mod, components) {
 #' @noRd
 make_linpred_season <- function(mod, components) {
     matrix_season_outcome <- mod$matrix_season_outcome
-    matrix_season_outcome <- as.matrix(matrix_season_outcome)
+    matrix_season_outcome <- Matrix::as.matrix(matrix_season_outcome)
     is_season <- ((components$component == "season")
         & (components$term == "par"))
     season <- components$.fitted[is_season]
@@ -428,7 +428,7 @@ make_linpred_season <- function(mod, components) {
 #'
 #' @noRd
 make_term_components <- function(mod) {
-    par <- make_terms_par(mod)
+    par <- mod$terms_par
     hyper <- make_terms_hyper(mod)
     par <- as.character(par)
     hyper <- as.character(hyper)

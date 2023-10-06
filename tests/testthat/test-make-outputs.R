@@ -70,7 +70,7 @@ test_that("'make_combined_matrix_par_outcome' works with valid inputs", {
                     exposure = popn)
     ans_obtained <- make_combined_matrix_par_outcome(mod)
     expect_identical(nrow(ans_obtained), nrow(data))
-    expect_identical(ncol(ans_obtained), length(make_terms_par(mod)))
+    expect_identical(ncol(ans_obtained), length(mod$terms_par))
 })
 
 
@@ -86,7 +86,7 @@ test_that("'make_combined_matrix_parfree_par' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_combined_matrix_parfree_par(mod)
-    expect_identical(nrow(ans_obtained), length(make_terms_par(mod)))
+    expect_identical(nrow(ans_obtained), length(mod$terms_par))
     expect_identical(ncol(ans_obtained), length(make_terms_parfree(mod)))
 })
 
