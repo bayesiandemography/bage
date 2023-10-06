@@ -24,13 +24,13 @@ library(ggplot2)
 ```{r}
 mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
                 data = injuries,
-                exposure = popn) %>%
+                exposure = popn) |>
   set_prior(year ~ AR1())
 mod
 ```
 
 ```{r}
-mod <- mod %>%
+mod <- mod |>
   fit()
 mod
 ```
@@ -44,9 +44,9 @@ augment(mod)
 ```
 
 ```{r}
-mod %>%
-  augment() %>%
-  mutate(draws_ci(.fitted)) %>%
+mod |>
+  augment() |>
+  mutate(draws_ci(.fitted)) |>
   select(-(1:6))
 ```
 
@@ -55,11 +55,11 @@ mod %>%
 Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>).
 
 ```{r fig, fig.width = 7, fig.height = 5}
-mod %>%
-  augment() %>%
-  mutate(draws_ci(.fitted)) %>%
+mod |>
+  augment() |>
+  mutate(draws_ci(.fitted)) |>
   filter(year >= 2017,
-         ethnicity == "Maori") %>%
+         ethnicity == "Maori") |>
   ggplot(aes(x = age, y = .fitted.mid)) +
   facet_grid(vars(sex), vars(year)) +
   geom_point(aes(y = .observed), 

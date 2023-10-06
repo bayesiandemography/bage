@@ -246,6 +246,57 @@ check_length_par_gt <- function(length_par, min, nm, prior) {
 
 
 ## HAS_TESTS
+#' Check that 'mod_est' and 'mod_sim' meet minimum
+#' requirements for 'report_sim'
+#'
+#' @param mod_est,mod_sim Object of class 'bage_mod'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_mod_est_est_compatible <- function(mod_est, mod_sim) {
+    ## same class
+    if (!identical(class(mod_est)[[1L]], class(mod_sim)[[1L]]))
+        cli::cli_abort(c("{.arg mod_est} and {.arg mod_sim} have different classes.",
+                         i = "{.arg mod_est} has class {.cls {class(mod_est)}}.",
+                         i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}."))
+    ## outcome variables are same
+    nm_outcome_sim <- deparse1(mod_est$formula[[2L]])
+    nm_outcome_est <- deparse1(mod_sim$formula[[2L]])
+    if (!identical(nm_outcome_sim, nm_outcome_est))
+        cli::cli_abort(c("{.arg mod_est} and {.arg mod_sim} have different outcome variables.",
+                         i = "Outcome variable for {.arg mod_est}: {.val {nm_outcome_sim}}.",
+                         i = "Outcome variable for {.arg mod_sim}: {.val {nm_outcome_est}}."))
+    ## apart from outcome variable, data are the same
+    data_sim <- mod_est$data
+    data_est <- mod_sim$data
+    nms_sim <- names(data_sim)
+    nms_est <- names(data_est)
+    if (!identical(sort(nms_sim), sort(nms_est)))
+        cli::cli_abort(c(paste("Data for {.arg mod_est} and {.arg mod_sim} have",
+                               "different variables."),
+                         i = "Data for {.arg mod_est} has variables {.val {nms_sim}}.",
+                         i = "Data for {.arg mod_sim} has variables {.val {nms_est}}."))
+    for (nm in setdiff(nms_sim, nm_outcome_sim)) {
+        var_sim <- data_sim[[nm]]
+        var_est <- data_est[[nm]]
+        is_same <- var_sim == var_est
+        i_not_same <- match(FALSE, is_same, nomatch = 0L)
+        if (i_not_same > 0L) {
+            val_sim <- var_sim[[i_not_same]]
+            val_est <- var_est[[i_not_same]]
+            cli::cli_abort(c("{.arg mod_est} and {.arg mod_sim} have different data.",
+                             i = paste("In row {i_not_same} of data for {.arg mod_est},",
+                                       "variable {.var {nm}} has value {.val {val_sim}}."),
+                             i = paste("In row {i_not_same} of data for {.arg mod_sim},",
+                                       "variable {.var {nm}} has value {.val {val_est}}.")))
+        }
+    }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check 'n' argument
 #'
 #' @param n A whole number

@@ -1,14 +1,15 @@
 
 ## calc_error_point_est -------------------------------------------------------
 
-test_that("'calc_error_point_est' works", {
-    estimate <- list(a = rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec_dbl(matrix(13:24, nr = 3)))
+test_that("'calc_error_point_est' works - include_priors is TRUE", {
+    estimate <- list(a = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
     truth <- list(a = 1:3, b = 4:6)
     point_est_fun <- "mean"
     ans_obtained <- calc_error_point_est(estimate = estimate,
                                          truth = truth,
-                                         point_est_fun = point_est_fun)
+                                         point_est_fun = point_est_fun,
+                                         include_priors = TRUE)
     ans_expected <- list(a = calc_error_point_est_one(estimate = estimate[[1]],
                                                       truth = truth[[1]],
                                                       rvec_fun = rvec::draws_mean),
@@ -18,11 +19,26 @@ test_that("'calc_error_point_est' works", {
     expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'calc_error_point_est' works - include_priors is FALSE", {
+    estimate <- list(hyper = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(hyper = 1:3, b = 4:6)
+    point_est_fun <- "mean"
+    ans_obtained <- calc_error_point_est(estimate = estimate,
+                                         truth = truth,
+                                         point_est_fun = point_est_fun,
+                                         include_priors = FALSE)
+    ans_expected <- list(b = calc_error_point_est_one(estimate = estimate[[2]],
+                                                      truth = truth[[2]],
+                                                      rvec_fun = rvec::draws_mean))
+    expect_equal(ans_obtained, ans_expected)
+})
+
 
 ## calc_error_point_est_one ---------------------------------------------------
 
 test_that("'calc_error_point_est_one' works", {
-    estimate <- rvec_dbl(matrix(1:12, nr = 3))
+    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
     truth <- 1:3
     rvec_fun <- rvec::draws_mean
     ans_obtained <- calc_error_point_est_one(estimate = estimate,
@@ -34,18 +50,34 @@ test_that("'calc_error_point_est_one' works", {
 
 ## calc_is_in_interval --------------------------------------------------------
 
-test_that("'calc_is_in_interval' works", {
-    estimate <- list(a = rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec_dbl(matrix(13:24, nr = 3)))
-    truth <- list(a = 1:3, b = 4:6)
+test_that("'calc_is_in_interval' works - include_priors is TRUE", {
+    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(par = 1:3, b = 4:6)
     widths <- c(0.5, 0.9, 1)
     ans_obtained <- calc_is_in_interval(estimate = estimate,
                                         truth = truth,
-                                        widths = widths)
-    ans_expected <- list(a = calc_is_in_interval_one(estimate = estimate[[1]],
+                                        widths = widths,
+                                        include_priors = TRUE)
+    ans_expected <- list(par = calc_is_in_interval_one(estimate = estimate[[1]],
                                                      truth = truth[[1]],
                                                      widths = widths),
                          b = calc_is_in_interval_one(estimate = estimate[[2]],
+                                                     truth = truth[[2]],
+                                                     widths = widths))
+    expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'calc_is_in_interval' works - include_priors is FALSE", {
+    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(par = 1:3, b = 4:6)
+    widths <- c(0.5, 0.9, 1)
+    ans_obtained <- calc_is_in_interval(estimate = estimate,
+                                        truth = truth,
+                                        widths = widths,
+                                        include_priors = FALSE)
+    ans_expected <- list(b = calc_is_in_interval_one(estimate = estimate[[2]],
                                                      truth = truth[[2]],
                                                      widths = widths))
     expect_equal(ans_obtained, ans_expected)
@@ -55,7 +87,7 @@ test_that("'calc_is_in_interval' works", {
 ## calc_is_in_interval_one ---------------------------------------------------
 
 test_that("'calc_is_in_interval_one' works", {
-    estimate <- rvec_dbl(matrix(1:12, nr = 3))
+    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
     truth <- rep(2, 3)
     widths <- c(0.9, 1)
     ans_obtained <- calc_is_in_interval_one(estimate = estimate,
@@ -260,7 +292,7 @@ test_that("'draw_vals_sd' works", {
 })
 
 
-## draw_vals_season -----------------------------------------------------------
+## 'draw_vals_season' ---------------------------------------------------------
 
 test_that("'draw_vals_season' works", {
     set.seed(0)
@@ -282,7 +314,7 @@ test_that("'draw_vals_season' works", {
 })
 
 
-## get_vals_hyperparam_est ----------------------------------------------------
+## 'get_vals_hyperparam_est' --------------------------------------------------
 
 test_that("'get_vals_hyperparam_est' works", {
     set.seed(0)
@@ -307,9 +339,9 @@ test_that("'get_vals_hyperparam_est' works", {
 })
 
 
-## get_vals_sim_one -----------------------------------------------------------
+## 'get_vals_sim_one' ---------------------------------------------------------
 
-test_that("'get_vals_sim_one' works", {
+test_that("'get_vals_sim_one' works - include_priors = TRUE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -335,6 +367,63 @@ test_that("'get_vals_sim_one' works", {
                          fitted = vals$fitted[,3,drop = FALSE],
                          outcome = vals$outcome[,3,drop = FALSE])
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'is_same_priors' -----------------------------------------------------------
+
+test_that("'is_same_priors' returns TRUE when priors same", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    expect_true(is_same_priors(mod, mod))
+})
+
+test_that("'is_same_priors' returns TRUE when priors same - different order", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod1 <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod2 <- mod_pois(formula = deaths ~ age + time + sex,
+                    data = data,
+                    exposure = popn)
+    expect_true(is_same_priors(mod1, mod2))
+})
+
+test_that("'is_same_priors' returns FALSE when different numbers of priors", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod1 <- mod_pois(formula = deaths ~ age + sex,
+                    data = data,
+                    exposure = popn)
+    mod2 <- mod_pois(formula = deaths ~ age + time + sex,
+                    data = data,
+                    exposure = popn)
+    expect_false(is_same_priors(mod1, mod2))
+})
+
+test_that("'is_same_priors' returns FALSE when priors have different classes", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod1 <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(age ~ N())
+    mod2 <- mod_pois(formula = deaths ~ age + time + sex,
+                    data = data,
+                    exposure = popn)
+    expect_false(is_same_priors(mod1, mod2))
 })
 
 

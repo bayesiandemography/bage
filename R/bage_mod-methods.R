@@ -222,7 +222,7 @@ draw_vals_disp <- function(mod, n_sim) {
 #' @export
 draw_vals_disp.bage_mod <- function(mod, n_sim) {
     scale <- mod$scale_disp
-    u <- runif(n = n_sim)
+    u <- stats::runif(n = n_sim)
     ans <- (log(u) / scale)^2 ## log(u) equivalent to log(1-u) when u ~ Unif(0, 1)
     names(ans) <- seq_len(n_sim)
     ans
@@ -233,7 +233,7 @@ draw_vals_disp.bage_mod <- function(mod, n_sim) {
 #' @export
 draw_vals_disp.bage_mod_norm <- function(mod, n_sim) {
     scale <- mod$scale_disp
-    ans <- rexp(n = n_sim, rate = scale)
+    ans <- stats::rexp(n = n_sim, rate = scale)
     names(ans) <- seq_len(n_sim)
     ans
 }
@@ -438,8 +438,8 @@ fit.bage_mod <- function(object, ...) {
     nm_distn <- nm_distn(object)
     outcome <- object$outcome
     offset <- object$offset
+    terms_par <- object$terms_par
     is_in_lik <- make_is_in_lik(object)
-    terms_par <- make_terms_par(object)
     terms_parfree <- make_terms_parfree(object)
     uses_matrix_parfree_par <- make_uses_matrix_parfree_par(object)
     matrices_parfree_par <- make_matrices_parfree_par(object)
@@ -762,55 +762,6 @@ make_fitted_disp_inner.bage_mod_binom <- function(x,
 }
 
 
-## 'make_matrix_season_outcome' -----------------------------------------------
-
-#' Make matrix mapping season effect to outcome
-#'
-#' @param x Object of class 'bage_mod'
-#' @param by Variable names (tidyselect style) or NULL.
-#'
-#' @returns Sparse matrix
-#'
-#' @noRd
-make_matrix_season_outcome <- function(x, by) {
-    UseMethod("make_matrix_season_outcome")
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_season_outcome.bage_mod <- function(x, by) {
-    outcome <- x$outcome
-    var_time <- x$var_time
-    dim <- dim(outcome)
-    dimnames <- dimnames(outcome)
-    nms_outcome <- names(dimnames(outcome))
-    nms_season <- c(by, var_time)
-    is_in_season <- nms_outcome %in% nms_season
-    make_matrix_par_outcome_array(dim = dim,
-                                  dimnames = dimnames(outcome),
-                                  is_in_term = is_in_season)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_season_outcome.bage_mod_norm <- function(x, by) {
-    data <- x$data
-    var_time <- x$var_time
-    nms_season <- c(by, var_time)
-    data_season <- data[nms_season]
-    data_season[] <- lapply(data_season, factor)
-    contrasts_season <- lapply(data_season, stats::contrasts, contrast = FALSE)
-    formula_season <- paste(nms_season, collapse = ":")
-    formula_season <- paste0("~", formula_season, "-1")
-    formula_season <- stats::as.formula(formula_season)
-    ans <- Matrix::sparse.model.matrix(formula_season,
-                                       data = data_season,
-                                       contrasts.arg = contrasts_season,
-                                       row.names = FALSE)
-    ans
-}
-
-
 ## 'make_observed' ------------------------------------------------------------
 
 #' Make direct estimates
@@ -1071,9 +1022,10 @@ generics::tidy
 #' @export
 tidy.bage_mod <- function(x, ...) {
     priors <- x$priors
+    n <- x$lengths_par
+    terms <- x$terms_par
     term <- names(priors)
     spec <- vapply(priors, str_call_prior, "")
-    n <- make_lengths_par(x)
     ans <- tibble::tibble(term, spec, n)
     is_fitted <- is_fitted(x)
     if (is_fitted) {
@@ -1081,7 +1033,6 @@ tidy.bage_mod <- function(x, ...) {
         matrix <- make_combined_matrix_parfree_par(x)
         offset <- make_offsets_parfree_par(x)
         par <- matrix %*% parfree + offset
-        terms <- make_terms_par(x)
         par <- split(par, terms)
         ans[["sd"]] <- vapply(par, stats::sd, 0)
     }

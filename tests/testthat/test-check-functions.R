@@ -196,6 +196,92 @@ test_that("'check_length_par_gt' throws correct error with length less than min"
 })
 
 
+## 'check_mod_est_est_compatible' ---------------------------------------------
+
+test_that("'check_mod_est_est_compatible' returns TRUE with indentical models", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_true(check_mod_est_est_compatible(mod, mod))
+})
+
+test_that("'check_mod_est_est_compatible' raises correct error with different classes", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(check_mod_est_est_compatible(mod, 1L),
+                 "`mod_est` and `mod_sim` have different classes")
+})
+
+test_that("'check_mod_est_est_compatible' raises correct error with different outcomes", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths1 <- rpois(n = nrow(data), lambda = 10)
+    data$deaths2 <- rpois(n = nrow(data), lambda = 10)
+    formula1 <- deaths1 ~ age + sex + time
+    formula2 <- deaths2 ~ age + sex + time
+    mod1 <- mod_pois(formula = formula1,
+                    data = data,
+                    exposure = popn)
+    mod2 <- mod_pois(formula = formula2,
+                    data = data,
+                    exposure = popn)
+    expect_error(check_mod_est_est_compatible(mod1, mod2),
+                 "`mod_est` and `mod_sim` have different outcome variables")
+})
+
+test_that("'check_mod_est_est_compatible' raises correct error when data have different variables", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data2 <- data
+    data2$region <- "a"
+    formula <- deaths ~ age + sex + time
+    mod1 <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod2 <- mod_pois(formula = formula,
+                    data = data2,
+                    exposure = popn)
+    expect_error(check_mod_est_est_compatible(mod1, mod2),
+                 "`mod_est` and `mod_sim` have different variables.")
+})
+
+test_that("'check_mod_est_est_compatible' raises correct error when data have different values", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data2 <- data
+    data2$time[118] <- 2004
+    formula <- deaths ~ age + sex + time
+    mod1 <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod2 <- mod_pois(formula = formula,
+                    data = data2,
+                    exposure = popn)
+    expect_error(check_mod_est_est_compatible(mod1, mod2),
+                 "`mod_est` and `mod_sim` have different data")
+})
+
+
+
+
+
+
 ## 'check_offset_in_data' -----------------------------------------------------
 
 test_that("'check_offset_in_data' returns TRUE with valid inputs", {

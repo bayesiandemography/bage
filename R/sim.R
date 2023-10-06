@@ -7,17 +7,25 @@
 #' @param truth A list of numeric vectors holding the true values
 #' @param point_est_fun Name of function to use to calculate point
 #' estimates from rvec
+#' @param include_priors Whether to include 'hyper' and 'par'
+#' in calculations
 #'
 #' @returns A vector of doubles
 #'
 #' @noRd
-calc_error_point_est <- function(estimate, truth, point_est_fun) {
+calc_error_point_est <- function(estimate, truth, point_est_fun, include_priors) {
     if (point_est_fun == "mean")
         rvec_fun <- rvec::draws_mean
     else if (point_est_fun == "median")
         rvec_fun <- rvec::draws_median
     else
         cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")
+    if (!include_priors) {
+        is_prior_est <- names(estimate) %in% c("hyper", "par")
+        is_prior_tr <- names(truth) %in% c("hyper", "par")
+        estimate <- estimate[!is_prior_est]
+        truth <- truth[!is_prior_tr]
+    }
     ans <- .mapply(calc_error_point_est_one,
                    dots = list(estimate = estimate,
                                truth = truth),
@@ -53,11 +61,19 @@ calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
 #' @param estimate A list of rvecs holding the estimates
 #' @param truth A list of numeric vectors holding the true values
 #' @param widths Widths of intervals (between 0 and 1)
+#' @param include_priors Whether to include 'hyper' and 'par'
+#' in calculations
 #'
 #' @returns A list of logical vectors
 #'
 #' @noRd
-calc_is_in_interval <- function(estimate, truth, widths) {
+calc_is_in_interval <- function(estimate, truth, widths, include_priors) {
+    if (!include_priors) {
+        is_prior_est <- names(estimate) %in% c("hyper", "par")
+        is_prior_tr <- names(truth) %in% c("hyper", "par")
+        estimate <- estimate[!is_prior_est]
+        truth <- truth[!is_prior_tr]
+    }
     ans <- .mapply(calc_is_in_interval_one,
                    dots = list(estimate = estimate,
                                truth = truth),
@@ -85,7 +101,7 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
     for (i in seq_len(n_widths)) {
         width <- widths[[i]]
         probs <- c(0.5 - width / 2, 0.5 + width / 2)
-        ci <- draws_quantile(x = estimate, probs = probs)
+        ci <- rvec::draws_quantile(x = estimate, probs = probs)
         lower <- ci[[1L]]
         upper <- ci[[2L]]
         is_in_interval <- (lower <= truth) & (truth <= upper)
@@ -114,11 +130,11 @@ draw_vals_ar1 <- function(coef, sd, labels) {
     ans <- matrix(nrow = n_par,
                   ncol = n_sim,
                   dimnames = list(labels, seq_len(n_sim)))
-    ans[1L, ] <- rnorm(n = n_sim, sd = sd)
+    ans[1L, ] <- stats::rnorm(n = n_sim, sd = sd)
     for (i in seq_len(n_par - 1L))
-        ans[i + 1L, ] <- rnorm(n = n_sim,
-                               mean = coef * ans[i, ],
-                               sd =  sd_scaled)
+        ans[i + 1L, ] <- stats::rnorm(n = n_sim,
+                                      mean = coef * ans[i, ],
+                                      sd =  sd_scaled)
     ans
 }
 
@@ -215,7 +231,7 @@ draw_vals_hyperparam <- function(mod, n_sim) {
 draw_vals_par_mod <- function(mod, vals_hyper, n_sim) {
     priors <- mod$priors
     levels_par <- mod$levels_par
-    terms_par <- make_terms_par(mod)
+    terms_par <- mod$terms_par
     levels_par <- split(levels_par, terms_par)
     agesex <- make_agesex(mod)
     ans <- .mapply(draw_vals_par,
@@ -407,6 +423,38 @@ get_vals_sim_one <- function(x, i_sim) {
 }
 
 
+#' Check whether two named lists of priors are the same
+#'
+#' Test via isTRUE(all.equal(x, y))
+#'
+#' If data for mod_est and est is the same,
+#' and 'is_same_priors' is TRUE, then mod_est
+#' and mod_sim must have same main effects
+#' and interactions.
+#'
+#' @param mod_est,mod_sim Objects of class "bage_mod"
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_same_priors <- function(mod_est, mod_sim) {
+    pr_est <- mod_est$priors
+    pr_sim <- mod_sim$priors
+    if (length(pr_est) != length(pr_sim))
+        return(FALSE)
+    nms_est <- names(pr_est)
+    nms_sim <- names(pr_sim)
+    if (!setequal(nms_est, nms_sim))
+        return(FALSE)
+    for (nm in nms_est) {
+        if (!isTRUE(all.equal(pr_est[[nm]], pr_sim[[nm]])))
+            return(FALSE)
+    }
+    TRUE
+}
+
+
+
 ## HAS_TESTS
 #' Make a difference matrix
 #'
@@ -512,26 +560,28 @@ make_vals_linpred_season <- function(mod, vals_season) {
 ## is_mod_valid(report)
 
 
-report_sim <- function(mod_sim,
-                       mod_est = NULL,
+report_sim <- function(mod_est,
+                       mod_sim = NULL,
                        n_sim = 100,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95)) {
-    if (!inherits(mod_sim, "bage_mod"))
-        cli::cli_abort(c("{.arg mod_sim} is not an object of class {.cls bage_mod}.",
-                         i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}."))
+    if (!inherits(mod_est, "bage_mod"))
+        cli::cli_abort(c("{.arg mod_est} is not an object of class {.cls bage_mod}.",
+                         i = "{.arg mod_est} has class {.cls {class(mod_est)}}."))
     check_n(n = n_sim, n_arg = "n_sim", min = 1L, max = NULL, null_ok = FALSE)
     point_est_fun <- match.arg(point_est_fun)
     check_widths(widths)
-    if (is_null(mod_est))
-        mod_est <- mod_sim
+    if (is.null(mod_sim))
+        mod_sim <- mod_est
     else
-        check_mod_sim_est_compatible(mod_sim = mod_sim,
-                                     mod_est = mod_est)
+        check_mod_est_est_compatible(mod_est = mod_est,
+                                     mod_sim = mod_sim)
+    is_same_priors <- is_same_priors(mod_est = mod_est,
+                                     mod_sim = mod_sim)
     vals_sim_all <- draw_vals_mod(mod = mod_sim,
                                   n_sim = n_sim)
-    error_point_est <- vector(mod = "list", length = n_sim)
-    is_in_interval <- vector(mod = "list", length = n_sim)
+    error_point_est <- vector(mode = "list", length = n_sim)
+    is_in_interval <- vector(mode = "list", length = n_sim)
     for (i_sim in seq_len(n_sim)) {
         vals_sim <- get_vals_sim_one(vals_sim_all, i_sim = i_sim)
         mod[["outcome"]] <- vals_sim[["outcome"]]
@@ -539,10 +589,12 @@ report_sim <- function(mod_sim,
         vals_est <- get_vals_est(mod_est)
         error_point_est[[i_sim]] <- calc_error_point_est(estimate = vals_est,
                                                          truth = vals_sim,
-                                                         point_est_fun = point_est_fun)
+                                                         point_est_fun = point_est_fun,
+                                                         include_priors = is_same_priors)
         is_in_interval[[i_sim]] <- calc_is_in_interval(estimate = vals_est,
                                                        truth = vals_sim,
-                                                       widths = widths)
+                                                       widths = widths,
+                                                       include_priors = is_same_priors)
     }
     make_report_sim(mod = mod,
                     error_point_est = error_point_est,
@@ -550,62 +602,6 @@ report_sim <- function(mod_sim,
 }
 
 
-
-
-check_mod_sim_est_compatible <- function(mod_sim, mod_est) {
-    ## same class
-    if (!identical(class(mod_sim)[[1L]], class(mod_est)[[1L]]))
-        cli::cli_abort(c("{.arg mod_sim} and {.arg mod_est} have different classes.",
-                         i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}.",
-                         i = "{.arg mod_est} has class {.cls {class(mod_est)}}."))
-    ## same dimension names for 'outcome'
-    outcome_sim <- mod_sim$outcome
-    outcome_est <- mod_est$outcome
-    if (is.array(outcome_sim)) {
-        dn_sim <- dimnames(outcome_sim)
-        dn_est <- dimnames(outcome_est)
-        nms_sim <- names(dn_sim)
-        nms_est <- names(dn_est)
-    }
-    else if (is.data.frame(outcome_sim)) {
-        nms_sim <- names(outcome_sim)
-        nms_est <- names(outcome_est)
-    }
-    else
-        cli::cli_abort("Internal error: Outcome for 'mod_sim' not array or data frame.")
-    if (!identical(nms_sim, nms_est))
-        cli::cli_abort(c(paste("Outcomes for {.arg mod_sim} and {.arg mod_est} have",
-                               "different dimensions."),
-                         i = "{.arg mod_sim}: {.val {nms_sim}}.",
-                         i = "{.arg mod_est}: {.val {nms_est}}."))
-    ## if 
-    for (nm in nms_sim) {
-        if (!identical(dn_sim[[nm]], dn_est[[nm]]))
-            cli::cli_abort(c(paste("{.val {nm}} dimension for {.arg mod_sim} and {.val {nm}}",
-                                   "dimension for {.arg mod_est} have different categories."),
-                             i = "{.arg mod_sim}: {.val {dn_sim[[nm]]}}.",
-                             i = "{.arg mod_est}: {.val {dn_est[[nm]]}}."))
-    }
-    if (!identical(nms_sim, nms_est))
-        cli::cli_abort(c(paste("Outcomes for {.arg mod_sim} and {.arg mod_est} have",
-                               "different dimensions."),
-                         i = "{.arg mod_sim}: {.val {nms_sim}}.",
-                         i = "{.arg mod_est}: {.val {nms_est}}."))
-        
-    dim_sim <- dim(outcome_sim)
-    dim_est <- dim(outcome_est)
-    if (!identical(dim_sim, dim_est))
-
-
     
-        
-                
-        for (nm in nms_sim) {
-            
                              
-                           
-        
-    if (!isTRUE(all_equal(dn_sim, dn_est)))
-        
     
-    if (!inherits(mod_sim, class(mod_est))

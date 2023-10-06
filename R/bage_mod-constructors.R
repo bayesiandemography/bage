@@ -90,25 +90,24 @@ mod_pois <- function(formula, data, exposure) {
     }
     ## process inputs
     data <- tibble(data)
-    outcome <- make_outcome_array(formula = formula,
-                                  data = data)
+    outcome <- make_outcome(formula = formula,
+                            data = data)
     if (is_offset_specified)
-        offset <- make_offset_array(formula = formula,
-                                    vname_offset = vname_offset,
-                                    data = data)
+        offset <- make_offset(vname_offset = vname_offset,
+                              data = data)
     else
-        offset <- make_offset_ones_array(formula = formula,
-                                         data = data)
+        offset <- make_offset_ones(data)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
-                                                            outcome = outcome)
+    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+                                                      data = data)
     levels_par <- make_levels_par(formula = formula,
                                   matrices_par_outcome = matrices_par_outcome,
                                   outcome = outcome,
                                   data = data)
-    lengths_par <- vapply(matrices_par_outcome, ncol, 1L)
+    lengths_par <- make_lengths_par(matrices_par_outcome)
+    terms_par <- make_terms_par(matrices_par_outcome)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
                           var_time = var_time,
@@ -130,6 +129,8 @@ mod_pois <- function(formula, data, exposure) {
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
                 levels_par = levels_par,
+                lengths_par = lengths_par,
+                terms_par = terms_par,
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
@@ -223,21 +224,21 @@ mod_binom <- function(formula, data, size) {
                          data = data)
     ## process inputs
     data <- tibble(data)
-    outcome <- make_outcome_array(formula = formula,
-                                  data = data)
-    offset <- make_offset_array(formula = formula,
-                                vname_offset = vname_offset,
-                                data = data)
+    outcome <- make_outcome(formula = formula,
+                            data = data)
+    offset <- make_offset(vname_offset = vname_offset,
+                          data = data)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome_array(formula = formula,
-                                                            outcome = outcome)
+    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+                                                      data = data)
     levels_par <- make_levels_par(formula = formula,
                                   matrices_par_outcome = matrices_par_outcome,
                                   outcome = outcome,
                                   data = data)
-    lengths_par <- vapply(matrices_par_outcome, ncol, 1L)
+    lengths_par <- make_lengths_par(matrices_par_outcome)
+    terms_par <- make_terms_par(matrices_par_outcome)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
                           var_time = var_time,
@@ -259,6 +260,8 @@ mod_binom <- function(formula, data, size) {
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
                 levels_par = levels_par,
+                lengths_par = lengths_par,
+                terms_par = terms_par,
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
@@ -353,27 +356,27 @@ mod_norm <- function(formula, data, weights) {
     }
     ## process inputs
     data <- tibble(data)
-    outcome <- make_outcome_vec(formula = formula,
-                                data = data)
+    outcome <- make_outcome(formula = formula,
+                            data = data)
     outcome_mean <- mean(outcome, na.rm = TRUE)
     outcome_sd <- stats::sd(outcome, na.rm = TRUE)
     outcome <- (outcome - outcome_mean) / outcome_sd
     if (is_offset_specified)
-        offset <- make_offset_vec(vname_offset = vname_offset,
-                                  data = data)
-    
+        offset <- make_offset(vname_offset = vname_offset,
+                              data = data)
     else
-        offset <- make_offset_ones_vec(data)
+        offset <- make_offset_ones(data)
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome_vec(formula = formula,
-                                                          data = data)
+    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+                                                      data = data)
     levels_par <- make_levels_par(formula = formula,
                                   matrices_par_outcome = matrices_par_outcome,
                                   outcome = outcome,
                                   data = data)
-    lengths_par <- vapply(matrices_par_outcome, ncol, 0L)
+    lengths_par <- make_lengths_par(matrices_par_outcome)
+    terms_par <- make_terms_par(matrices_par_outcome)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
                           var_time = var_time,
@@ -397,6 +400,8 @@ mod_norm <- function(formula, data, weights) {
                 var_time = var_time,
                 matrices_par_outcome = matrices_par_outcome,
                 levels_par = levels_par,
+                lengths_par = lengths_par,
+                terms_par = terms_par,
                 scale_disp = 1,
                 n_season = 0L,
                 scale_season = NULL,
