@@ -321,18 +321,19 @@ draw_vals_mod.bage_mod_pois <- function(mod, n_sim) {
     has_disp <- !is.null(disp)
     inv_transform <- get_fun_inv_transform(mod)
     align_to_data <- get_fun_align_to_data(mod)
-    transform <- function(x)
-        align_to_data(inv_transform(x))
     if (has_disp) {
-        vals_expected <- transform(linpred)
+        vals_expected <- inv_transform(linpred)
+        vals_expected <- align_to_data(vals_expected)
         vals_fitted <- draw_vals_fitted(mod = mod,
                                         vals_expected = vals_expected,
                                         vals_disp = disp)
     }
-    else
-        vals_fitted <- transform(linpred)
+    else {
+        vals_fitted <- inv_transform(linpred)
+        vals_fitted <- align_to_data(vals_fitted)
+    }
     n_outcome <- nrow(vals_fitted)
-    exposure <- transform(offset)
+    exposure <- align_to_data(offset)
     exposure <- rep(exposure, times = n_sim)
     lambda <- vals_fitted * exposure
     vals_outcome <- stats::rpois(n = n_outcome * n_sim,
@@ -340,10 +341,10 @@ draw_vals_mod.bage_mod_pois <- function(mod, n_sim) {
     vals_outcome <- matrix(vals_outcome,
                            nrow = n_outcome,
                            ncol = n_sim)
-    c(vals_hyperparam["hyper"],
-      vals_hyperparam["par"],
-      vals_hyperparam["season"],
+    c(vals_hyperparam["par"],
+      vals_hyperparam["hyper"],
       vals_hyperparam["disp"],
+      vals_hyperparam["season"],
       list(fitted = vals_fitted,
            outcome = vals_outcome))
 }
@@ -359,18 +360,19 @@ draw_vals_mod.bage_mod_binom <- function(mod, n_sim) {
     has_disp <- !is.null(disp)
     inv_transform <- get_fun_inv_transform(mod)
     align_to_data <- get_fun_align_to_data(mod)
-    transform <- function(x)
-        align_to_data(inv_transform(x))
     if (has_disp) {
-        vals_expected <- transform(linpred)
+        vals_expected <- inv_transform(linpred)
+        vals_expected <- align_to_data(vals_expected)
         vals_fitted <- draw_vals_fitted(mod = mod,
                                         vals_expected = vals_expected,
                                         vals_disp = disp)
     }
-    else
-        vals_fitted <- transform(linpred)
+    else {
+        vals_fitted <- inv_transform(linpred)
+        vals_fitted <- align_to_data(vals_fitted)
+    }
     n_outcome <- nrow(vals_fitted)
-    size <- transform(offset)
+    size <- align_to_data(offset)
     size <- rep(size, times = n_sim)
     vals_outcome <- stats::rbinom(n = n_outcome * n_sim,
                                   size = size,
@@ -378,10 +380,10 @@ draw_vals_mod.bage_mod_binom <- function(mod, n_sim) {
     vals_outcome <- matrix(vals_outcome,
                            nrow = n_outcome,
                            ncol = n_sim)
-    c(vals_hyperparam["hyper"],
-      vals_hyperparam["par"],
-      vals_hyperparam["season"],
+    c(vals_hyperparam["par"],
+      vals_hyperparam["hyper"],
       vals_hyperparam["disp"],
+      vals_hyperparam["season"],
       list(fitted = vals_fitted,
            outcome = vals_outcome))
 }
@@ -394,8 +396,6 @@ draw_vals_mod.bage_mod_norm <- function(mod, n_sim) {
                                             n_sim = n_sim)
     linpred <- vals_hyperparam$linpred
     disp <- vals_hyperparam$disp
-    ## make transformation from scale/ordering of par
-    ## to scale/ordering of outcome
     align_to_data <- get_fun_align_to_data(mod)
     scale_outcome <- get_fun_scale_outcome(mod)
     fitted <- scale_outcome(align_to_data(linpred))
@@ -407,10 +407,10 @@ draw_vals_mod.bage_mod_norm <- function(mod, n_sim) {
     vals_outcome <- matrix(vals_outcome,
                            nrow = n_outcome,
                            ncol = n_sim)
-    c(vals_hyperparam["hyper"],
-      vals_hyperparam["par"],
-      vals_hyperparam["season"],
+    c(vals_hyperparam["par"],
+      vals_hyperparam["hyper"],
       vals_hyperparam["disp"],
+      vals_hyperparam["season"],
       list(fitted = fitted,
            outcome = vals_outcome))
 }
@@ -609,10 +609,10 @@ get_vals_est.bage_mod <- function(mod) {
     }
     else
         fitted <- transform(linpred)
-    list(hyper = vals_hyperparam[["hyper"]],
-         par = vals_hyperparam[["par"]],
-         season = vals_hyperparam[["season"]],
+    list(par = vals_hyperparam[["par"]],
+         hyper = vals_hyperparam[["hyper"]],
          disp = vals_hyperparam[["disp"]],
+         season = vals_hyperparam[["season"]],
          fitted = fitted)
 }
 
@@ -624,10 +624,10 @@ get_vals_est.bage_mod_norm <- function(mod) {
     align_to_data <- get_fun_align_to_data(mod)
     scale_outcome <- get_fun_scale_outcome(mod)
     fitted <- scale_outcome(align_to_data(linpred))
-    list(hyper = vals_hyperparam[["hyper"]],
-         par = vals_hyperparam[["par"]],
-         season = vals_hyperparam[["season"]],
+    list(par = vals_hyperparam[["par"]],
+         hyper = vals_hyperparam[["hyper"]],
          disp = vals_hyperparam[["disp"]],
+         season = vals_hyperparam[["season"]],
          fitted = fitted)
 }
 
@@ -794,6 +794,32 @@ make_observed.bage_mod_norm <- function(x) {
     cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",
                          "of class {.cls {class(x)}}."))
 }
+
+
+## 'make_term_fitted' ---------------------------------------------------------
+
+#' Name to use for fitted parameter
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A string
+#'
+#' @noRd
+make_term_fitted <- function(mod) {
+    UseMethod("make_term_fitted")
+}
+
+## HAS_TESTS
+#' @export
+make_term_fitted.bage_mod_pois <- function(mod) "rate"
+
+## HAS_TESTS
+#' @export
+make_term_fitted.bage_mod_binom <- function(mod) "prob"
+
+## HAS_TESTS
+#' @export
+make_term_fitted.bage_mod_norm <- function(mod) "mean"
 
 
 ## 'model_descr' -----------------------------------------------------------------

@@ -26,6 +26,9 @@ calc_error_point_est <- function(estimate, truth, point_est_fun, include_priors)
         estimate <- estimate[!is_prior_est]
         truth <- truth[!is_prior_tr]
     }
+    is_null <- vapply(estimate, is.null, FALSE)
+    estimate <- estimate[!is_null]
+    truth <- truth[!is_null]
     ans <- .mapply(calc_error_point_est_one,
                    dots = list(estimate = estimate,
                                truth = truth),
@@ -69,11 +72,14 @@ calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
 #' @noRd
 calc_is_in_interval <- function(estimate, truth, widths, include_priors) {
     if (!include_priors) {
-        is_prior_est <- names(estimate) %in% c("hyper", "par")
-        is_prior_tr <- names(truth) %in% c("hyper", "par")
+        is_prior_est <- names(estimate) %in% c("par", "hyper")
+        is_prior_tr <- names(truth) %in% c("par", "hyper")
         estimate <- estimate[!is_prior_est]
         truth <- truth[!is_prior_tr]
     }
+    is_null <- vapply(estimate, is.null, FALSE)
+    estimate <- estimate[!is_null]
+    truth <- truth[!is_null]
     ans <- .mapply(calc_is_in_interval_one,
                    dots = list(estimate = estimate,
                                truth = truth),
@@ -178,8 +184,9 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 }
 
 
-#' Draw vales for 'hyper', 'par', 'linpred', and, optionally,
-#' for 'season' and 'disp'
+## HAS_TESTS
+#' Draw vales for 'par', 'hyper', optionally 'disp',
+#' optionally 'season', and 'linpred'
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws
@@ -197,6 +204,11 @@ draw_vals_hyperparam <- function(mod, n_sim) {
                                   n_sim = n_sim)
     vals_linpred <- make_vals_linpred_par(mod = mod,
                                           vals_par = vals_par)
+    if (has_disp)
+        vals_disp <- draw_vals_disp(mod = mod,
+                                    n_sim = n_sim)
+    else
+        vals_disp <- NULL
     if (has_season) {
         vals_season <- draw_vals_season(mod = mod,
                                         n_sim = n_sim)
@@ -206,16 +218,11 @@ draw_vals_hyperparam <- function(mod, n_sim) {
     }
     else
         vals_season <- NULL
-    if (has_disp)
-        vals_disp <- draw_vals_disp(mod = mod,
-                                    n_sim = n_sim)
-    else
-        vals_disp <- NULL
-    list(hyper = vals_hyper,
-         par = vals_par,
+    list(par = vals_par,
+         hyper = vals_hyper,
+         disp = vals_disp,
          season = vals_season,
-         linpred = vals_linpred,
-         disp = vals_disp)
+         linpred = vals_linpred)
 }
 
 ## HAS_TESTS
@@ -355,8 +362,8 @@ draw_vals_season <- function(mod, n_sim) {
     }
     vals_season <- matrix(vals_season, ncol = n_sim)
     vals_season <- vals_season[seq_len(n_time), ]
-    list(sd = vals_sd,
-         season = vals_season)
+    list(season = vals_season,
+         sd = vals_sd)
 }
 
 
@@ -373,32 +380,40 @@ get_vals_hyperparam_est <- function(mod) {
     has_season <- has_season(mod)
     has_disp <- has_disp(mod)
     components <- components(mod)
-    is_hyper <- components$component == "hyper"
     is_par <- components$component == "par"
-    hyper <- components$.fitted[is_hyper]
+    is_hyper <- components$component == "hyper"
     par <- components$.fitted[is_par]
+    hyper <- components$.fitted[is_hyper]
+    names(par) <- paste0(components$term[is_par],
+                         components$level[is_par])
+    names(hyper) <- paste0(components$term[is_hyper],
+                           components$level[is_hyper])
     linpred <- make_linpred_par(mod = mod,
                                 components = components)
+    if (has_disp) {
+        is_disp <- components$component == "disp"
+        disp <- components$.fitted[is_disp]
+        names(disp) <- paste0(components$term[is_disp],
+                              components$level[is_disp])
+    }
+    else
+        disp <- NULL
     if (has_season) {
         is_season <- components$component == "season"
         season <- components$.fitted[is_season]
+        names(season) <- paste0(components$term[is_season],
+                                components$level[is_season])
         linpred_season <- make_linpred_season(mod = mod,
                                               components = components)
         linpred <- linpred + linpred_season
     }
     else
         season <- NULL
-    if (has_disp) {
-        is_disp <- components$component == "disp"
-        disp <- components$.fitted[is_disp]
-    }
-    else
-        disp <- NULL
-    list(hyper = hyper,
-         par = par,
+    list(par = par,
+         hyper = hyper,
+         disp = disp,
          season = season,
-         linpred = linpred,
-         disp = disp)
+         linpred = linpred)
 }
 
 
@@ -415,14 +430,17 @@ get_vals_hyperparam_est <- function(mod) {
 get_vals_sim_one <- function(x, i_sim) {
     f <- function(v) {
         if (is.matrix(v))
-            v[ , i_sim, drop = FALSE]
+            v[ , i_sim]
         else
             v[i_sim]
     }
-    rapply(x, f, how = "replace")
+    ans <- rapply(x, f, how = "replace")
+    ans <- lapply(ans, unlist)
+    ans
 }
 
 
+## HAS_TESTS
 #' Check whether two named lists of priors are the same
 #'
 #' Test via isTRUE(all.equal(x, y))
@@ -584,7 +602,8 @@ report_sim <- function(mod_est,
     is_in_interval <- vector(mode = "list", length = n_sim)
     for (i_sim in seq_len(n_sim)) {
         vals_sim <- get_vals_sim_one(vals_sim_all, i_sim = i_sim)
-        mod[["outcome"]] <- vals_sim[["outcome"]]
+        mod_est[["outcome"]] <- vals_sim[["outcome"]]
+        vals_sim$outcome <- NULL
         mod_est <- fit(mod_est)
         vals_est <- get_vals_est(mod_est)
         error_point_est[[i_sim]] <- calc_error_point_est(estimate = vals_est,
@@ -596,10 +615,69 @@ report_sim <- function(mod_est,
                                                        widths = widths,
                                                        include_priors = is_same_priors)
     }
-    make_report_sim(mod = mod,
-                    error_point_est = error_point_est,
-                    is_in_interval = is_in_interval)
+    id_vars <- make_id_vars_report(mod = mod_est,
+                                   include_priors = is_same_priors)
+    error_point_est <- unlist(error_point_est, use.names = FALSE)
+    error_point_est <- matrix(error_point_est, ncol = n_sim)
+    error_point_est <- rvec::rvec_dbl(error_point_est)
+    n_batch <- length(is_in_interval[[1L]])
+    n_width <- length(widths)
+    n_val <- length(error_point_est)
+    is_in_interval <- unlist(is_in_interval, recursive = FALSE, use.names = FALSE)
+    is_in_interval <- unlist(is_in_interval, recursive = FALSE, use.names = FALSE)
+    is_in_interval <- array(is_in_interval, dim = c(n_width, n_batch, n_sim))
+    is_in_interval <- aperm(is_in_interval, perm = c(2L, 3L, 1L))
+    is_in_interval <- lapply(seq_len(n_width), function(i) is_in_interval[, , i])
+    is_in_interval <- lapply(is_in_interval, unlist, use.names = FALSE)
+    is_in_interval <- lapply(is_in_interval, matrix, ncol = n_sim)
+    is_in_interval <- lapply(is_in_interval, rvec::rvec_lgl)
+    names(is_in_interval) <- paste("is_in_interval", widths, sep = ".")
+    is_in_interval <- tibble::as_tibble(is_in_interval)
+    tibble::tibble(id_vars,
+                   error_point_est = error_point_est,
+                   is_in_interval)
 }
+    
+        
+
+    
+make_id_vars_report <- function(mod, include_priors) {
+    ans <- tibble::tibble(component = character(),
+                          term = character(),
+                          level = character())
+    if (include_priors) {
+        par <- tibble::tibble(component = "par",
+                              term = mod$terms_par,
+                              level = mod$levels_par)
+        hyper <- tibble::tibble(component = "hyper",
+                                term = make_terms_hyper(mod),
+                                level = make_levels_hyper(mod))
+        ans <- vctrs::vec_rbind(ans, par, hyper)
+    }
+    if (has_disp(mod)) {
+        disp <- tibble::tibble(component = "disp",
+                               term = "disp",
+                               level = "disp")
+        ans <- vctrs::vec_rbind(ans, disp)
+    }
+    if (has_season(mod)) {
+        season <- tibble::tibble(component = "season",
+                                 term = make_terms_season(mod),
+                                 level = make_levels_season(mod))
+        ans <- vctrs::vec_rbind(ans, season)
+    }
+    fitted <- tibble::tibble(component = "fitted",
+                             term = make_term_fitted(mod),
+                             level = as.character(seq_len(nrow(mod$data))))
+    ans <- vctrs::vec_rbind(ans, fitted)
+    ans
+}
+
+        
+        
+    
+        
+    
 
 
     
