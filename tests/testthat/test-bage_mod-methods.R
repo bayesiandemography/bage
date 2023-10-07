@@ -276,7 +276,7 @@ test_that("'draw_vals_mod' works with 'bage_mod_pois'", {
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_mod(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "disp", 
+                     c("par", "hyper", "disp", "season", 
                        "fitted", "outcome"))
 })
 
@@ -292,7 +292,7 @@ test_that("'draw_vals_mod' works with 'bage_mod_pois' - outcome different from d
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_mod(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "disp", 
+                     c("par", "hyper", "disp", "season", 
                        "fitted", "outcome"))
     expect_identical(nrow(ans$outcome), nrow(data))
 })
@@ -309,7 +309,7 @@ test_that("'draw_vals_mod' works with 'bage_mod_binom'", {
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_mod(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "disp", 
+                     c("par", "hyper", "disp", "season", 
                        "fitted", "outcome"))
     expect_identical(nrow(ans$outcome), nrow(data))
 })
@@ -326,7 +326,7 @@ test_that("'draw_vals_mod' works with 'bage_mod_binom' - outcome different from 
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_mod(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "disp", 
+                     c("par", "hyper", "disp", "season", 
                        "fitted", "outcome"))
     expect_identical(nrow(ans$outcome), nrow(data))
 })
@@ -343,7 +343,7 @@ test_that("'draw_vals_mod' works with 'bage_mod_norm'", {
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_mod(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "disp",
+                     c("par", "hyper", "disp", "season",
                        "fitted", "outcome"))
     expect_identical(nrow(ans$outcome), nrow(data))
 })
@@ -361,7 +361,7 @@ test_that("'draw_vals_mod' works with 'bage_mod_norm' - some rows of data missin
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_mod(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "disp",
+                     c("par", "hyper", "disp", "season",
                        "fitted", "outcome"))
     expect_identical(nrow(ans$outcome), nrow(data))
 })
@@ -536,12 +536,13 @@ test_that("'get_vals_est' works with 'bage_mod_pois'", {
     ans_obtained <- get_vals_est(mod)
     comp <- components(mod)
     aug <- augment(mod)
-    ans_expected <- list(hyper = comp$.fitted[[comp$component == "hyper"]],
-                         par = comp$.fitted[[comp$component == "par"]],
-                         season = NULL,
+    ans_expected <- list(par = comp$.fitted[[comp$component == "par"]],
+                         hyper = comp$.fitted[[comp$component == "hyper"]],
                          disp = NULL,
+                         season = NULL,
                          fitted = aug$.fitted)
-    expect_identical(ans_obtained, ans_expected)
+    expect_identical(as.numeric(unlist(ans_obtained)),
+                     as.numeric(unlist(ans_expected)))
 })
 
 test_that("'get_vals_est' works with 'bage_mod_norm'", {
@@ -558,12 +559,13 @@ test_that("'get_vals_est' works with 'bage_mod_norm'", {
     ans_obtained <- get_vals_est(mod)
     comp <- components(mod)
     aug <- augment(mod)
-    ans_expected <- list(hyper = comp$.fitted[[comp$component == "hyper"]],
-                         par = comp$.fitted[[comp$component == "par"]],
-                         season = NULL,
+    ans_expected <- list(par = comp$.fitted[[comp$component == "par"]],
+                         hyper = comp$.fitted[[comp$component == "hyper"]],
                          disp = comp$.fitted[[comp$component == "disp"]],
+                         season = NULL,
                          fitted = aug$.fitted)
-    expect_identical(ans_obtained, ans_expected)
+    expect_identical(as.numeric(unlist(ans_obtained)),
+                     as.numeric(unlist(ans_expected)))
 })
 
 
@@ -726,6 +728,15 @@ test_that("'make_observed' throws expected with bage_mod_norm", {
                     weights = 1)
     expect_error(make_observed(mod),
                  "Internal error: `make_observed\\(\\)` called on object of class")
+})
+
+
+## 'make_term_fitted' ---------------------------------------------------------
+
+test_that("'make_term_fitted' works with valid inputs", {
+    expect_identical(make_term_fitted(structure(1, class = "bage_mod_pois")), "rate")
+    expect_identical(make_term_fitted(structure(1, class = "bage_mod_binom")), "prob")
+    expect_identical(make_term_fitted(structure(1, class = "bage_mod_norm")), "mean")
 })
 
 

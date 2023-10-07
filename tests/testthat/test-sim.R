@@ -170,7 +170,7 @@ test_that("'draw_vals_hyperparam' works - has season and disp", {
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_hyperparam(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "linpred", "disp"))
+                     c("par", "hyper", "disp", "season", "linpred"))
     expect_false(any(sapply(ans, is.null)))
 })
 
@@ -186,13 +186,13 @@ test_that("'draw_vals_hyperparam' works - no season or disp", {
     mod <- set_disp(mod, s = 0)
     ans <- draw_vals_hyperparam(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("hyper", "par", "season", "linpred", "disp"))
+                     c("par", "hyper", "disp", "season", "linpred"))
     expect_identical(sapply(ans, is.null),
-                     c(hyper = FALSE,
-                       par = FALSE,
+                     c(par = FALSE,
+                       hyper = FALSE,
+                       disp = TRUE,
                        season = TRUE,
-                       linpred = FALSE,
-                       disp = TRUE))
+                       linpred = FALSE))
 })
 
 
@@ -329,12 +329,20 @@ test_that("'get_vals_hyperparam_est' works", {
     mod <- fit(mod)
     ans_obtained <- get_vals_hyperparam_est(mod)
     components <- components(mod)
-    ans_expected <- list(hyper = subset(components, component == "hyper", select = ".fitted")[[1]],
-                         par = subset(components, component == "par", select = ".fitted")[[1]],
+    ans_expected <- list(par = subset(components, component == "par", select = ".fitted")[[1]],
+                         hyper = subset(components, component == "hyper", select = ".fitted")[[1]],
+                         disp = subset(components, component == "disp", select = ".fitted")[[1]],
                          season = subset(components, component == "season", select = ".fitted")[[1]],
                          linpred = make_linpred_par(mod, components) +
-                             make_linpred_season(mod, components),
-                         disp = subset(components, component == "disp", select = ".fitted")[[1]])
+                             make_linpred_season(mod, components))
+    names(ans_expected[[1L]]) <- paste0(subset(components, component == "par", select = "term")[[1]],
+                                        subset(components, component == "par", select = "level")[[1]])
+    names(ans_expected[[2L]]) <- paste0(subset(components, component == "hyper", select = "term")[[1]],
+                                        subset(components, component == "hyper", select = "level")[[1]])
+    names(ans_expected[[3L]]) <- paste0(subset(components, component == "disp", select = "term")[[1]],
+                                        subset(components, component == "disp", select = "level")[[1]])
+    names(ans_expected[[4L]]) <- paste0(subset(components, component == "season", select = "term")[[1]],
+                                        subset(components, component == "season", select = "level")[[1]])
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -353,20 +361,21 @@ test_that("'get_vals_sim_one' works - include_priors = TRUE", {
     mod <- set_season(mod, n = 2)
     vals <- draw_vals_mod(mod, n_sim = 10)
     ans_obtained <- get_vals_sim_one(vals, i_sim = 3L)
-    ans_expected <- list(hyper = list("(Intercept)" = list(),
-                                      age = list(sd = vals$hyper$age$sd[3]),
-                                      sex = list(sd = vals$hyper$sex$sd[3]),
-                                      time = list(sd = vals$hyper$time$sd[3])),
-                         par = list("(Intercept)" = vals$par[["(Intercept)"]][,3,drop = FALSE],
+    ans_expected <- list(par = list("(Intercept)" = vals$par[["(Intercept)"]][,3,drop = FALSE],
                                     age = vals$par$age[, 3, drop = FALSE],
                                     sex = vals$par$sex[, 3, drop = FALSE],
                                     time = vals$par$time[, 3, drop = FALSE]),
-                         season = list(sd = vals$season$sd[3],
-                                       season = vals$season$season[,3,drop = FALSE]),
+                         hyper = list("(Intercept)" = list(),
+                                      age = list(sd = vals$hyper$age$sd[3]),
+                                      sex = list(sd = vals$hyper$sex$sd[3]),
+                                      time = list(sd = vals$hyper$time$sd[3])),
                          disp = vals$disp[3],
+                         season = list(season = vals$season$season[,3,drop = FALSE],
+                                       sd = vals$season$sd[3]),
                          fitted = vals$fitted[,3,drop = FALSE],
                          outcome = vals$outcome[,3,drop = FALSE])
-    expect_identical(ans_obtained, ans_expected)
+    expect_equal(as.numeric(unlist(ans_obtained)),
+                 as.numeric(unlist(ans_expected)))
 })
 
 
@@ -509,3 +518,20 @@ test_that("'make_vals_linpred_season' works", {
     expect_true(all(apply(ans, 2, function(x) length(unique(x))) == 7L))
 })
 
+
+## 'report_sim' ---------------------------------------------------------------
+
+test_that("'report_sim' works when mod_sim is identical to mod_est", {
+    set.seed(10)
+    data <- expand.grid(age = 0:9, time = 2000:2006, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(age ~ RW2()) |>
+                    set_prior(`(Intercept)` ~ NFix(sd = 0.01))
+    ans_obtained <- report_sim(mod, n_sim = 3)
+    expect_true(is.data.frame(ans_obtained))
+})
