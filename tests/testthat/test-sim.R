@@ -1,34 +1,63 @@
 
+## 'assess_performance' -------------------------------------------------------
+
+test_that("'assess_performance' works with valid inputs - include_priors is TRUE", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    vals <- draw_vals_mod(mod, n_sim = 3)
+    vals_sim <- get_vals_sim_one(vals, i_sim = 3)
+    ans <- assess_performance(vals_sim = vals_sim,
+                              mod_est = mod,
+                              point_est_fun = "mean",
+                              include_priors = TRUE,
+                              widths = c(0.5, 0.95))
+    expect_identical(sapply(ans, length),
+                     c(vals_sim = 5L, error_point_est = 5L, is_in_interval = 5L))
+})
+
+test_that("'assess_performance' works with valid inputs - include_priors is FALSE", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    vals <- draw_vals_mod(mod, n_sim = 3)
+    vals_sim <- get_vals_sim_one(vals, i_sim = 3)
+    ans <- assess_performance(vals_sim = vals_sim,
+                              mod_est = mod,
+                              point_est_fun = "mean",
+                              include_priors = FALSE,
+                              widths = c(0.5, 0.95))
+    expect_identical(sapply(ans, length),
+                     c(vals_sim = 3L, error_point_est = 3L, is_in_interval = 3L))
+})
+
+
 ## calc_error_point_est -------------------------------------------------------
 
-test_that("'calc_error_point_est' works - include_priors is TRUE", {
+test_that("'calc_error_point_est' works", {
     estimate <- list(a = rvec::rvec_dbl(matrix(1:12, nr = 3)),
                      b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
     truth <- list(a = 1:3, b = 4:6)
     point_est_fun <- "mean"
     ans_obtained <- calc_error_point_est(estimate = estimate,
                                          truth = truth,
-                                         point_est_fun = point_est_fun,
-                                         include_priors = TRUE)
+                                         point_est_fun = point_est_fun)
     ans_expected <- list(a = calc_error_point_est_one(estimate = estimate[[1]],
                                                       truth = truth[[1]],
                                                       rvec_fun = rvec::draws_mean),
                          b = calc_error_point_est_one(estimate = estimate[[2]],
-                                                      truth = truth[[2]],
-                                                      rvec_fun = rvec::draws_mean))
-    expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'calc_error_point_est' works - include_priors is FALSE", {
-    estimate <- list(hyper = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-    truth <- list(hyper = 1:3, b = 4:6)
-    point_est_fun <- "mean"
-    ans_obtained <- calc_error_point_est(estimate = estimate,
-                                         truth = truth,
-                                         point_est_fun = point_est_fun,
-                                         include_priors = FALSE)
-    ans_expected <- list(b = calc_error_point_est_one(estimate = estimate[[2]],
                                                       truth = truth[[2]],
                                                       rvec_fun = rvec::draws_mean))
     expect_equal(ans_obtained, ans_expected)
@@ -57,27 +86,11 @@ test_that("'calc_is_in_interval' works - include_priors is TRUE", {
     widths <- c(0.5, 0.9, 1)
     ans_obtained <- calc_is_in_interval(estimate = estimate,
                                         truth = truth,
-                                        widths = widths,
-                                        include_priors = TRUE)
+                                        widths = widths)
     ans_expected <- list(par = calc_is_in_interval_one(estimate = estimate[[1]],
                                                      truth = truth[[1]],
                                                      widths = widths),
                          b = calc_is_in_interval_one(estimate = estimate[[2]],
-                                                     truth = truth[[2]],
-                                                     widths = widths))
-    expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'calc_is_in_interval' works - include_priors is FALSE", {
-    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-    truth <- list(par = 1:3, b = 4:6)
-    widths <- c(0.5, 0.9, 1)
-    ans_obtained <- calc_is_in_interval(estimate = estimate,
-                                        truth = truth,
-                                        widths = widths,
-                                        include_priors = FALSE)
-    ans_expected <- list(b = calc_is_in_interval_one(estimate = estimate[[2]],
                                                      truth = truth[[2]],
                                                      widths = widths))
     expect_equal(ans_obtained, ans_expected)
@@ -360,7 +373,7 @@ test_that("'get_vals_sim_one' works - include_priors = TRUE", {
                     exposure = popn)
     mod <- set_season(mod, n = 2)
     vals <- draw_vals_mod(mod, n_sim = 10)
-    ans_obtained <- get_vals_sim_one(vals, i_sim = 3L)
+    ans_obtained <- get_vals_sim_one(i_sim = 3, vals = vals)
     ans_expected <- list(par = list("(Intercept)" = vals$par[["(Intercept)"]][,3,drop = FALSE],
                                     age = vals$par$age[, 3, drop = FALSE],
                                     sex = vals$par$sex[, 3, drop = FALSE],
@@ -527,7 +540,7 @@ test_that("'make_vals_linpred_par' works", {
 })
 
 
-## make_vals_linpred_season ---------------------------------------------------
+## 'make_vals_linpred_season' -------------------------------------------------
 
 test_that("'make_vals_linpred_season' works", {
     set.seed(0)
@@ -549,19 +562,99 @@ test_that("'make_vals_linpred_season' works", {
 })
 
 
+## 'reformat_performance_vec' -------------------------------------------------
+
+test_that("'reformat_performance_vec' works with valid input", {
+    x <- list(list(a = c(0, 0.1),
+                   b = c(1, 1.1, 1.2)),
+              list(a = c(10, 10.1),
+                   b = c(11, 11.1, 11.2)))
+    ans_obtained <- reformat_performance_vec(x)
+    ans_expected <- rvec::rvec_dbl(cbind(c(0, 0.1, 1, 1.1, 1.2),
+                                         c(10, 10.1, 11, 11.1, 11.2)))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'reformat_is_in_interval' --------------------------------------------------
+
+test_that("'reformat_is_in_interval' works with valid input", {
+    x <- list(list(a = list("0.5" = c(T,F), "0.95" = c(F,T)),
+                   b = list("0.5" = c(F,T,F), "0.95" = c(T,F,T))),
+              list(a = list("0.5" = c(T,F), "0.95" = c(F,T)),
+                   b = list("0.5" = c(F,T,F), "0.95" = c(F,T,F))))
+    ans_obtained <- reformat_is_in_interval(x)
+    ans_expected <- tibble::tibble(coverage.0.5 =
+                                       rvec::rvec_lgl(cbind(c(T,F,F,T,F),c(T,F,F,T,F))),
+                                   coverage.0.95 =
+                                       rvec::rvec_lgl(cbind(c(F,T,T,F,T), c(F,T,F,T,F))))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'report_sim' ---------------------------------------------------------------
 
-test_that("'report_sim' works when mod_sim is identical to mod_est", {
-    set.seed(10)
-    data <- expand.grid(age = 0:9, time = 2000:2006, sex = c("F", "M"))
+test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * time + sex
+    formula <- deaths ~ age + sex
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-                    set_prior(age ~ RW2()) |>
                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
-    ans_obtained <- report_sim(mod, n_sim = 3)
+    ans_obtained <- report_sim(mod, n_sim = 2)
     expect_true(is.data.frame(ans_obtained))
+    expect_identical(nrow(ans_obtained), 4L)
+})
+
+test_that("'report_sim' works when mod_sim is identical to mod_est - long", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(`(Intercept)` ~ NFix(sd = 0.01))
+    ans_obtained <- report_sim(mod,
+                               n_sim = 2,
+                               report_type = "long",
+                               point_est_fun = "med")
+    expect_true(is.data.frame(ans_obtained))
+})
+
+
+## 'summarise_sim' ---------------------------------------------------------------
+
+test_that("'summarise_sim' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(`(Intercept)` ~ NFix(sd = 0.01))
+    data <- report_sim(mod, n_sim = 2, report_type = "long")
+    ans <- summarise_sim(data)
+    expect_identical(names(ans), setdiff(names(data), c("term", "level")))
+    expect_true(all(sapply(ans[-1], is.double)))
+})
+
+
+
+## 'transpose_list' -----------------------------------------------------------
+
+test_that("'transpose_list' works with valid inputs - all lengths at least 1", {
+    l <- list(a = list(x = 1, y = 2, z = 3),
+              b = list(x = 10, y = 20, z = 30))
+    ans_obtained <- transpose_list(l)
+    ans_expected <- list(list(1, 10),
+                         list(2, 20),
+                         list(3, 30))
+    expect_identical(ans_obtained, ans_expected)
 })

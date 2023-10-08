@@ -20,11 +20,12 @@ Extract components from a fitted object
 of class \code{bage_mod}.
 }
 \details{
-There are three types of component:
+There are four types of component:
 \itemize{
 \item \code{"par"} Intercept, main effects, and interactions.
 \item \code{"hyper"} Hyper-parameters from priors for intercept,
 main effects, and interactions.
+\item \code{"disp"} Dispersion term.
 \item \code{"season"} Parameters and hyper-parameters for
 seasonal effect, if present.
 }

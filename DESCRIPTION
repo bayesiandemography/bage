@@ -30,7 +30,8 @@ Imports:
     stats,
     tibble,
     tidyselect,
-    TMB
+    TMB,
+    vctrs
 Suggests:
     bookdown,
     covr,
