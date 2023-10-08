@@ -160,9 +160,11 @@ make_comp_component <- function(mod) {
 #' Make initial draws for 'components' function
 #'
 #' Make draws of variables included in 'prec'
-#' matrix of TMB model output. Instead of using
-#' 'prec' itself, use results from Cholesky
-#' decomposition.
+#' matrix of TMB model output.
+#'
+#' If the Cholesky decomposition of
+#' 'prec' was successful, then use that.
+#' Otherwise, use the eigen decomposition.
 #'
 #' @param mod Object of class 'bage_mod'
 #'
@@ -172,14 +174,18 @@ make_comp_component <- function(mod) {
 make_draws_comp_raw <- function(mod) {
     est <- mod$est
     R_prec <- mod$R_prec
+    scaled_eigen <- mod$scaled_eigen
     is_fixed <- mod$is_fixed
     n_draw <- mod$n_draw
-    n_val <- nrow(R_prec)
-    Z <- matrix(stats::rnorm(n = n_val * n_draw),
-                nrow = n_val,
-                ncol = n_draw)
     mean <- unlist(est)[!is_fixed]
-    mean + backsolve(R_prec, Z)
+    if (is.matrix(R_prec))
+        rmvnorm_chol(n = n_draw,
+                     mean = mean,
+                     R_prec = R_prec)
+    else
+        rmvnorm_eigen(n = n_draw,
+                      mean = mean,
+                      scaled_eigen = scaled_eigen)
 }
 
 
@@ -419,6 +425,32 @@ make_linpred_season <- function(mod, components) {
 
 
 ## HAS_TESTS
+#' Use a precision matrix to construct scaled eigen vectors
+#'
+#' The scaled eigen vectors can be used to draw from a
+#' multivariate normal distribution with the given
+#' pecision matrix.
+#'
+#' @param prec A symmetric positive definite matrix.
+#'
+#' @returns A matrix with the same dimensions as 'prec'
+#'
+#' @noRd
+make_scaled_eigen <- function(prec) {
+    tolerance <- 1e-6
+    eigen <- eigen(prec, symmetric = TRUE)
+    vals <- eigen$values
+    vecs <- eigen$vectors
+    min_valid_val <- -tolerance * abs(vals[[1L]]) ## based on MASS::mvrnorm
+    if (any(vals < min_valid_val))
+        cli::cli_abort("Estimated precision matrix not positive definite.")
+    vals <- pmax(vals, abs(min_valid_val))
+    sqrt_inv_vals <- sqrt(1 / vals)
+    vecs %*% diag(sqrt_inv_vals)
+}
+
+
+## HAS_TESTS
 #' Make variable identifying term within each component
 #' of 'components'
 #'
@@ -512,6 +544,46 @@ make_transforms_hyper <- function(mod) {
       ans_log_disp,
       ans_par_season,
       ans_hyper_season)
+}
+
+
+## HAS_TESTS
+#' Draw from multivariate normal, using results
+#' from a Cholesky decomposition
+#'
+#' @param n Number of draws
+#' @param mean Mean of distribution
+#' @param R_prec Cholesky decomposition of precision matrix
+#'
+#' @returns A matrix, with each columns being one draw
+#'
+#' @noRd
+rmvnorm_chol <- function(n, mean, R_prec) {
+    n_val <- length(mean)
+    Z <- matrix(stats::rnorm(n = n_val * n),
+                nrow = n_val,
+                ncol = n)
+    mean + backsolve(R_prec, Z)
+}
+
+
+## HAS_TESTS
+#' Draw from multivariate normal, using results
+#' from an eigen decomposition
+#'
+#' @param n Number of draws
+#' @param mean Mean of distribution
+#' @param scaled_eigen Matrix of scaled eigenvalues
+#'
+#' @returns A matrix, with each columns being one draw
+#'
+#' @noRd
+rmvnorm_eigen <- function(n, mean, scaled_eigen) {
+    n_val <- length(mean)
+    Z <- matrix(stats::rnorm(n = n_val * n),
+                nrow = n_val,
+                ncol = n)
+    mean + scaled_eigen %*% Z
 }
 
 

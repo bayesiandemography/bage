@@ -299,10 +299,14 @@ fit.bage_mod <- function(object, ...) {
     attr(est, "what") <- NULL
     is_fixed <- make_is_fixed(est = est, map = map)
     prec <- sdreport$jointPrecision
-    R_prec <- chol(prec)
+    R_prec <- tryCatch(chol(prec),
+                       error = function(e) e)
+    if (is.matrix(R_prec))
+        object$R_prec <- R_prec
+    else
+        object$scaled_eigen <- make_scaled_eigen(prec)
     object$est <- est
     object$is_fixed <- is_fixed
-    object$R_prec <- R_prec
     object
 }
 
