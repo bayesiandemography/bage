@@ -390,6 +390,27 @@ test_that("'make_linpred_season' works with valid inputs", {
 })
 
 
+## 'make_scaled_eigen' --------------------------------------------------------
+
+## See also tests for rvnorm_eigen
+
+test_that("'make_scaled_eigen' works with positive definite matrix", {
+    set.seed(0)
+    prec <- solve(crossprod(matrix(rnorm(25), 5)))
+    ans <- make_scaled_eigen(prec)
+    expect_identical(dim(ans), dim(prec))
+})
+
+test_that("'make_scaled_eigen' works with non-negative definite matrix", {
+    set.seed(0)
+    prec <- solve(crossprod(matrix(rnorm(25), 5)))
+    prec[5,] <- 0
+    prec[,5] <- 0
+    ans <- make_scaled_eigen(prec)
+    expect_identical(dim(ans), dim(prec))
+})
+
+
 ## 'make_term_components' -----------------------------------------------------
 
 test_that("'make_term_components' works", {
@@ -483,6 +504,21 @@ test_that("'make_transforms_hyper' works", {
                       rep(list(NULL), 6),
                       list(exp))
     expect_identical(unname(ans_obtained), ans_expected)
+})
+
+
+## 'rmvnorm_chol', 'rmvnorm_eigen' --------------------------------------------
+
+test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
+    set.seed(0)
+    prec <- crossprod(matrix(rnorm(25), 5))
+    mean <- rnorm(5)
+    R_prec <- chol(prec)
+    scaled_eigen <- make_scaled_eigen(prec)
+    ans_chol <- rmvnorm_chol(n = 100000, mean = mean, R_prec = R_prec)
+    ans_eigen <- rmvnorm_eigen(n = 100000, mean = mean, scaled_eigen = scaled_eigen)
+    expect_equal(rowMeans(ans_chol), rowMeans(ans_eigen), tolerance = 0.02)
+    expect_equal(cov(t(ans_chol)), cov(t(ans_eigen)), tolerance = 0.02)
 })
 
 
