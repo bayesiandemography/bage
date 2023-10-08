@@ -138,6 +138,7 @@ mod_pois <- function(formula, data, exposure) {
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
+                scaled_eigen = NULL,
                 n_draw = n_draw,
                 seed_components = seed_components,
                 seed_fitted = seed_fitted)
@@ -269,6 +270,7 @@ mod_binom <- function(formula, data, size) {
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
+                scaled_eigen = NULL,
                 seed_components = seed_components,
                 seed_fitted = seed_fitted,
                 n_draw = n_draw)
@@ -409,6 +411,7 @@ mod_norm <- function(formula, data, weights) {
                 est = NULL,
                 is_fixed = NULL,
                 R_prec = NULL,
+                scaled_eigen = NULL,
                 seed_components = seed_components,
                 n_draw = n_draw)
     class(ans) <- c("bage_mod_norm", "bage_mod")
