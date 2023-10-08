@@ -1,5 +1,48 @@
 
 ## HAS_TESTS
+#' Calculate errors and coverage for a single
+#' set of simulated values
+#'
+#' @param vals_sim List with simulated values
+#' @param mod_est Model being tested. Object
+#' of class 'bage_mod'.
+#' @param point_est_fun Mean or median. Function used
+#' to calculate point estimates
+#' @param include_priors Logical. Whether par and hyper
+#' included in tests
+#' @param widths Widths of credible intervals.
+#'
+#' @returns Named list
+#'
+#' @noRd
+assess_performance <- function(vals_sim,
+                               mod_est,
+                               point_est_fun,
+                               include_priors,
+                               widths) {
+    mod_est[["outcome"]] <- vals_sim[["outcome"]]
+    vals_sim$outcome <- NULL
+    mod_est <- fit(mod_est)
+    vals_est <- get_vals_est(mod_est)
+    if (!include_priors) {
+        is_prior_est <- names(vals_est) %in% c("hyper", "par")
+        is_prior_sim <- names(vals_sim) %in% c("hyper", "par")
+        vals_est <- vals_est[!is_prior_est]
+        vals_sim <- vals_sim[!is_prior_sim]
+    }
+    error_point_est <- calc_error_point_est(estimate = vals_est,
+                                            truth = vals_sim,
+                                            point_est_fun = point_est_fun)
+    is_in_interval <- calc_is_in_interval(estimate = vals_est,
+                                          truth = vals_sim,
+                                          widths = widths)
+    list(vals_sim = vals_sim,
+         error_point_est = error_point_est,
+         is_in_interval = is_in_interval)
+}
+
+
+## HAS_TESTS
 #' Calculate point estimates from rvecs, and then calculate
 #' differences from truth
 #'
@@ -7,25 +50,17 @@
 #' @param truth A list of numeric vectors holding the true values
 #' @param point_est_fun Name of function to use to calculate point
 #' estimates from rvec
-#' @param include_priors Whether to include 'hyper' and 'par'
-#' in calculations
 #'
 #' @returns A vector of doubles
 #'
 #' @noRd
-calc_error_point_est <- function(estimate, truth, point_est_fun, include_priors) {
+calc_error_point_est <- function(estimate, truth, point_est_fun) {
     if (point_est_fun == "mean")
         rvec_fun <- rvec::draws_mean
     else if (point_est_fun == "median")
         rvec_fun <- rvec::draws_median
     else
         cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")
-    if (!include_priors) {
-        is_prior_est <- names(estimate) %in% c("hyper", "par")
-        is_prior_tr <- names(truth) %in% c("hyper", "par")
-        estimate <- estimate[!is_prior_est]
-        truth <- truth[!is_prior_tr]
-    }
     is_null <- vapply(estimate, is.null, FALSE)
     estimate <- estimate[!is_null]
     truth <- truth[!is_null]
@@ -64,19 +99,11 @@ calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
 #' @param estimate A list of rvecs holding the estimates
 #' @param truth A list of numeric vectors holding the true values
 #' @param widths Widths of intervals (between 0 and 1)
-#' @param include_priors Whether to include 'hyper' and 'par'
-#' in calculations
 #'
 #' @returns A list of logical vectors
 #'
 #' @noRd
-calc_is_in_interval <- function(estimate, truth, widths, include_priors) {
-    if (!include_priors) {
-        is_prior_est <- names(estimate) %in% c("par", "hyper")
-        is_prior_tr <- names(truth) %in% c("par", "hyper")
-        estimate <- estimate[!is_prior_est]
-        truth <- truth[!is_prior_tr]
-    }
+calc_is_in_interval <- function(estimate, truth, widths) {
     is_null <- vapply(estimate, is.null, FALSE)
     estimate <- estimate[!is_null]
     truth <- truth[!is_null]
@@ -167,6 +194,7 @@ draw_vals_coef <- function(prior, n_sim) {
     ans
 }
 
+
 ## HAS_TESTS
 #' Draw values for hyper-parameters for all priors in a model
 #'
@@ -225,6 +253,7 @@ draw_vals_hyperparam <- function(mod, n_sim) {
          linpred = vals_linpred)
 }
 
+
 ## HAS_TESTS
 #' Draw values for hyper-parameters for all priors in a model
 #'
@@ -250,6 +279,7 @@ draw_vals_par_mod <- function(mod, vals_hyper, n_sim) {
     names(ans) <- names(priors)
     ans
 }
+
 
 ## HAS_TESTS
 #' Generate a RW vector
@@ -279,6 +309,7 @@ draw_vals_rw <- function(sd, sd_intercept, labels) {
     dimnames(ans) <- list(labels, seq_len(n_sim))
     ans
 }
+
 
 ## HAS_TESTS
 #' Generate a RW2 vector
@@ -310,6 +341,7 @@ draw_vals_rw2 <- function(sd, sd_intercept, sd_slope, labels) {
     dimnames(ans) <- list(labels, seq_len(n_sim))
     ans
 }
+
 
 ## HAS_TESTS
 #' Draw the 'sd' parameter for a prior
@@ -361,7 +393,7 @@ draw_vals_season <- function(mod, n_sim) {
         vals_season[i, , ] <- solve(A, v)
     }
     vals_season <- matrix(vals_season, ncol = n_sim)
-    vals_season <- vals_season[seq_len(n_time), ]
+    vals_season <- vals_season[seq_len(n_time), , drop = FALSE]
     list(season = vals_season,
          sd = vals_sd)
 }
@@ -420,21 +452,21 @@ get_vals_hyperparam_est <- function(mod) {
 ## HAS_TESTS
 #' Get all simulated values from a model for one simulation draw
 #'
-#' @param x A named list containing simulation draws
 #' @param i_sim The index for the simulation draw
 #' to be extracted
+#' @param vals A named list containing simulation draws
 #'
 #' @returns A named list
 #'
 #' @noRd
-get_vals_sim_one <- function(x, i_sim) {
+get_vals_sim_one <- function(i_sim, vals) {
     f <- function(v) {
         if (is.matrix(v))
             v[ , i_sim]
         else
             v[i_sim]
     }
-    ans <- rapply(x, f, how = "replace")
+    ans <- rapply(vals, f, how = "replace")
     ans <- lapply(ans, unlist)
     ans
 }
@@ -470,7 +502,6 @@ is_same_priors <- function(mod_est, mod_sim) {
     }
     TRUE
 }
-
 
 
 ## HAS_TESTS
@@ -552,6 +583,7 @@ make_rw_matrix <- function(n) {
           1 / n)
 }
 
+
 ## HAS_TESTS
 #' Make matrix used in generating a random walk
 #'
@@ -609,31 +641,170 @@ make_vals_linpred_season <- function(mod, vals_season) {
 }
 
 
+## HAS_TESTS
+#' Take output from applying 'error_point_est'
+#' on multiple simulation draws, and reformat into
+#' an rvec
+#'
+#' @param x A named list with hierarchy
+#' sim > batch
+#'
+#' @returns An object of class rvec_dbl
+#'
+#' @noRd
+reformat_performance_vec <- function(x) {
+    n_sim <- length(x)
+    x <- unlist(x, use.names = FALSE)
+    x <- matrix(x, ncol = n_sim)
+    rvec::rvec_dbl(x)
+}
 
-## UNDER CONSTRUCTION ---------------------------------------------------------
 
-## mod <- mod_pois(deaths ~ age * sex + time,
-##                 data = data,
-##                 exposure = popn) %>%
-##     set_prior(`(Intercept)` ~ NFix(sd = 0.3)) %>%
-##     set_prior(time ~ SVD(HMD))
+## HAS_TESTS
+#' Take output from applying 'is_in_interval'
+#' on multiple simulation draws,
+#' and reformat into 'n_width' rvecs
+#'
+#' @param x A named list with hierarchy
+#' sim > batch > width
+#' 
+#' @returns A tibble with 'n_width' rvec_lgl
+#'
+#' @noRd
+reformat_is_in_interval <- function(x) {
+    n_sim <- length(x)
+    n_batch <- length(x[[1L]])
+    widths <- names(x[[1L]][[1L]])
+    n_width <- length(widths)
+    x <- unlist(x, recursive = FALSE, use.names = FALSE)
+    x <- unlist(x, recursive = FALSE, use.names = FALSE)
+    x <- array(x, dim = c(n_width, n_batch, n_sim))
+    x <- aperm(x, perm = c(2L, 3L, 1L))
+    x <- lapply(seq_len(n_width), function(i) x[, , i])
+    x <- lapply(x, unlist, use.names = FALSE)
+    x <- lapply(x, matrix, ncol = n_sim)
+    x <- lapply(x, rvec::rvec_lgl)
+    names(x) <- paste("coverage", widths, sep = ".")
+    tibble::as_tibble(x)
+}
 
-## report <- report_sim(mod, n_sim = 100)
 
-## is_mod_valid(report)
+## HAS_TESTS
+#' Transpose the first two layers of a list
+#'
+#' Transposing removes names.
+#'
+#' @param l A list
+#'
+#' @returns A list
+#'
+#' @noRd
+transpose_list <- function(l) {
+    elements <- unlist(l, recursive = FALSE, use.names = FALSE)
+    m <- matrix(elements, ncol = length(l))
+    m <- t(m)
+    apply(m, 2L, identity, simplify = FALSE)
+}
 
 
+## HAS_TESTS
+#' Simulation study of a model
+#'
+#' Use simulated data to assess the performance of
+#' and estimated model.
+#'
+#' @param mod_est The model whose performance is being
+#' assessed. An object of class `bage_mod`.
+#' @param mod_sim The model used to generate the simulated
+#' data. If no value is supplied, `mod_est` is used.
+#' @param n_sim Number of sets of simulated data to use.
+#' Default is 100.
+#' @param point_est_fun Name of the function to use
+#' to calculate point estimates. The options are `"mean"`
+#' and `"median"`, and the default is `"mean"`.
+#' @param widths Widths of credible intervals.
+#' A vector of values in the interval `(0, 1]`.
+#' Default is `0.5` and `0.95`.
+#' @param report_type Amount of detail in return value.
+#' Options are `"short"` and `"long"`. Default is `"short"`.
+#' @param n_core Number of cores to use for parallel
+#' processing. If no value supplied, then no parallel
+#' processing is done. CURRENTLY UNUSED.
+#'
+#' @return
+#' **`report_type` is `"short"`**
+#' A tibble with the following columns:
+#' - `component`. Part of model. See [components()].
+#' `"fitted"` is the rate, probability, or mean
+#' parameter from the likelihood.
+#' - `vals_sim`. Simulated value for parameter, averaged
+#' across all simulations and cells.
+#' - `error_point_est`. Point estimate minus simulation-true
+#' value, averaged across all simulations and cells.
+#' - `coverage`. Actual proportion of simulation-true values
+#' that fall within each type of interval, averaged across all
+#' simulations and cells.
+#'
+#' **`report_type` is `"long"`**
+#' A tibble with the following columns:
+#' - `component`. Part of model. See [components()].
+#' `"fitted"` is the rate, probability,
+#' or mean parameter from the likelihood.
+#' - `term`. Category within `component`.
+#' - `level`. Category within `term`.
+#' - `vals_sim`. Simulated values for parameter,
+#' stored in an [rvec][rvec::rvec()].
+#' - `error_point_est`. Point estimates minus simulation-true
+#' values, stored in an [rvec][rvec::rvec()].
+#' - `coverage`. Actual proportions of simulation-true values
+#' falling within each type of interval, stored in
+#' an [rvec][rvec::rvec()].
+#' 
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to set up
+#' models
+#'
+#' @examples
+#' ## results random, so set seed
+#' set.seed(0)
+#'
+#' ## make data - outcome variable (deaths here)
+#' ## needs to be present, but is not used
+#' data <- data.frame(region = c("A", "B", "C", "D", "E"),
+#'                    population = c(100, 200, 300, 400, 500),
+#'                    deaths = NA)
+#'
+#' ## simulation with estimation model same as
+#' ## data-generating model
+#' mod_est <- mod_pois(deaths ~ region,
+#'                     data = data,
+#'                     exposure = population) |>
+#'   set_prior(`(Intercept)` ~ Known(0))
+#' report_sim(mod_est = mod_est,
+#'            n_sim = 10) ## in practice should use larger value
+#' 
+#' ## simulation with estimation model different
+#' ## from data-generating model
+#' mod_sim <- mod_est |>
+#'   set_prior(region ~ N(s = 2))
+#' report_sim(mod_est = mod_est,
+#'            mod_sim = mod_sim,
+#'            n_sim = 10)
+#' @export
 report_sim <- function(mod_est,
                        mod_sim = NULL,
                        n_sim = 100,
                        point_est_fun = c("median", "mean"),
-                       widths = c(0.5, 0.95)) {
+                       widths = c(0.5, 0.95),
+                       report_type = c("short", "long"),
+                       n_core = NULL) {
     if (!inherits(mod_est, "bage_mod"))
         cli::cli_abort(c("{.arg mod_est} is not an object of class {.cls bage_mod}.",
                          i = "{.arg mod_est} has class {.cls {class(mod_est)}}."))
     check_n(n = n_sim, n_arg = "n_sim", min = 1L, max = NULL, null_ok = FALSE)
     point_est_fun <- match.arg(point_est_fun)
     check_widths(widths)
+    report_type <- match.arg(report_type)
     if (is.null(mod_sim))
         mod_sim <- mod_est
     else
@@ -643,47 +814,54 @@ report_sim <- function(mod_est,
                                      mod_sim = mod_sim)
     vals_sim_all <- draw_vals_mod(mod = mod_sim,
                                   n_sim = n_sim)
-    error_point_est <- vector(mode = "list", length = n_sim)
-    is_in_interval <- vector(mode = "list", length = n_sim)
-    for (i_sim in seq_len(n_sim)) {
-        vals_sim <- get_vals_sim_one(vals_sim_all, i_sim = i_sim)
-        mod_est[["outcome"]] <- vals_sim[["outcome"]]
-        vals_sim$outcome <- NULL
-        mod_est <- fit(mod_est)
-        vals_est <- get_vals_est(mod_est)
-        error_point_est[[i_sim]] <- calc_error_point_est(estimate = vals_est,
-                                                         truth = vals_sim,
-                                                         point_est_fun = point_est_fun,
-                                                         include_priors = is_same_priors)
-        is_in_interval[[i_sim]] <- calc_is_in_interval(estimate = vals_est,
-                                                       truth = vals_sim,
-                                                       widths = widths,
-                                                       include_priors = is_same_priors)
-    }
+    vals_sim_all <- lapply(seq_len(n_sim), get_vals_sim_one, vals_sim_all)
+    performance <- lapply(vals_sim_all,
+                          assess_performance,
+                          mod_est = mod_est,
+                          point_est_fun = point_est_fun,
+                          include_priors = is_same_priors,
+                          widths = widths)
+    performance <- transpose_list(performance)
+    vals_sim <- performance[[1L]]
+    error_point_est <- performance[[2L]]
+    is_in_interval <- performance[[3L]]
+    vals_sim <- reformat_performance_vec(vals_sim)
+    error_point_est <- reformat_performance_vec(error_point_est)
+    is_in_interval <- reformat_is_in_interval(is_in_interval)
     id_vars <- make_id_vars_report(mod = mod_est,
                                    include_priors = is_same_priors)
-    error_point_est <- unlist(error_point_est, use.names = FALSE)
-    error_point_est <- matrix(error_point_est, ncol = n_sim)
-    error_point_est <- rvec::rvec_dbl(error_point_est)
-    n_batch <- length(is_in_interval[[1L]])
-    n_width <- length(widths)
-    n_val <- length(error_point_est)
-    is_in_interval <- unlist(is_in_interval, recursive = FALSE, use.names = FALSE)
-    is_in_interval <- unlist(is_in_interval, recursive = FALSE, use.names = FALSE)
-    is_in_interval <- array(is_in_interval, dim = c(n_width, n_batch, n_sim))
-    is_in_interval <- aperm(is_in_interval, perm = c(2L, 3L, 1L))
-    is_in_interval <- lapply(seq_len(n_width), function(i) is_in_interval[, , i])
-    is_in_interval <- lapply(is_in_interval, unlist, use.names = FALSE)
-    is_in_interval <- lapply(is_in_interval, matrix, ncol = n_sim)
-    is_in_interval <- lapply(is_in_interval, rvec::rvec_lgl)
-    names(is_in_interval) <- paste("is_in_interval", widths, sep = ".")
-    is_in_interval <- tibble::as_tibble(is_in_interval)
-    tibble::tibble(id_vars,
-                   error_point_est = error_point_est,
-                   is_in_interval)
+    ans <- tibble::tibble(id_vars,
+                          vals_sim = vals_sim,
+                          error_point_est = error_point_est,
+                          is_in_interval)
+    if (report_type == "short")
+        summarise_sim(ans)
+    else if (report_type == "long")
+        ans
+    else
+        cli::cli_abort("Internal error: Invalid value for 'report_type'.")
 }
-    
-        
 
-    
 
+## HAS_TESTS
+#' Summarise detailed output from simulation
+#'
+#' Summaries are means across cells and across simulations
+#'
+#' @param data Tibble with output from simulation
+#'
+#' @returns A tibble
+#'
+#' @noRd
+summarise_sim <- function(data) {
+    x <- data[setdiff(names(data), c("component", "term", "level"))]
+    f <- factor(data$component, levels = unique(data$component))
+    data <- split(x = x, f = f)
+    summarise_one_chunk <- function(y)
+        vapply(y, function(z) mean(as.numeric(z)), 0)
+    ans <- lapply(data, summarise_one_chunk)
+    ans <- do.call(rbind, ans)
+    ans <- data.frame(component = names(data), ans)
+    ans <- tibble::tibble(ans)
+    ans
+}

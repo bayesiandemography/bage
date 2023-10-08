@@ -149,10 +149,11 @@ generics::components
 #' Extract components from a fitted object
 #' of class `bage_mod`.
 #'
-#' There are three types of component:
+#' There are four types of component:
 #' - `"par"` Intercept, main effects, and interactions.
 #' - `"hyper"` Hyper-parameters from priors for intercept,
 #' main effects, and interactions.
+#' - `"disp"` Dispersion term.
 #' - `"season"` Parameters and hyper-parameters for
 #' seasonal effect, if present.
 #'
