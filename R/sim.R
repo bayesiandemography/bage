@@ -490,6 +490,51 @@ make_diff_matrix <- function(n) {
     ans
 }
 
+
+## HAS_TESTS
+#' Make tibble with 'component', 'term' and 'level'
+#' variables to use in simulation report
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param include_priors Whether to include values for
+#' par and hyper
+#'
+#' @returns A tibble with three columns
+#'
+#' @noRd
+make_id_vars_report <- function(mod, include_priors) {
+    ans <- tibble::tibble(component = character(),
+                          term = character(),
+                          level = character())
+    if (include_priors) {
+        par <- tibble::tibble(component = "par",
+                              term = mod$terms_par,
+                              level = mod$levels_par)
+        hyper <- tibble::tibble(component = "hyper",
+                                term = make_terms_hyper(mod),
+                                level = make_levels_hyper(mod))
+        ans <- vctrs::vec_rbind(ans, par, hyper)
+    }
+    if (has_disp(mod)) {
+        disp <- tibble::tibble(component = "disp",
+                               term = "disp",
+                               level = "disp")
+        ans <- vctrs::vec_rbind(ans, disp)
+    }
+    if (has_season(mod)) {
+        season <- tibble::tibble(component = "season",
+                                 term = make_terms_season(mod),
+                                 level = make_levels_season(mod))
+        ans <- vctrs::vec_rbind(ans, season)
+    }
+    fitted <- tibble::tibble(component = "fitted",
+                             term = make_term_fitted(mod),
+                             level = as.character(seq_len(nrow(mod$data))))
+    ans <- vctrs::vec_rbind(ans, fitted)
+    ans
+}
+
+
 ## HAS_TESTS
 #' Make matrix used in generating a random walk
 #'
@@ -641,45 +686,4 @@ report_sim <- function(mod_est,
         
 
     
-make_id_vars_report <- function(mod, include_priors) {
-    ans <- tibble::tibble(component = character(),
-                          term = character(),
-                          level = character())
-    if (include_priors) {
-        par <- tibble::tibble(component = "par",
-                              term = mod$terms_par,
-                              level = mod$levels_par)
-        hyper <- tibble::tibble(component = "hyper",
-                                term = make_terms_hyper(mod),
-                                level = make_levels_hyper(mod))
-        ans <- vctrs::vec_rbind(ans, par, hyper)
-    }
-    if (has_disp(mod)) {
-        disp <- tibble::tibble(component = "disp",
-                               term = "disp",
-                               level = "disp")
-        ans <- vctrs::vec_rbind(ans, disp)
-    }
-    if (has_season(mod)) {
-        season <- tibble::tibble(component = "season",
-                                 term = make_terms_season(mod),
-                                 level = make_levels_season(mod))
-        ans <- vctrs::vec_rbind(ans, season)
-    }
-    fitted <- tibble::tibble(component = "fitted",
-                             term = make_term_fitted(mod),
-                             level = as.character(seq_len(nrow(mod$data))))
-    ans <- vctrs::vec_rbind(ans, fitted)
-    ans
-}
 
-        
-        
-    
-        
-    
-
-
-    
-                             
-    
