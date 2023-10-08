@@ -448,6 +448,36 @@ test_that("'make_diff_matrix' works", {
 })
 
 
+## 'make_id_vars' -------------------------------------------------------------
+
+test_that("'make_id_vars' works with include_priors TRUE", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_id_vars_report(mod, include_priors = TRUE)
+    expect_identical(names(ans_obtained), c("component", "term", "level"))
+    expect_setequal(ans_obtained$component, c("par", "hyper", "disp", "fitted"))
+})
+
+test_that("'make_id_vars' works with include_priors FALSE", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn) |>
+                    set_season(n = 2)
+    ans_obtained <- make_id_vars_report(mod, include_priors = FALSE)
+    expect_identical(names(ans_obtained), c("component", "term", "level"))
+    expect_setequal(ans_obtained$component, c("disp", "season", "fitted"))
+})
+
+
 ## make_rw_matrix -------------------------------------------------------------
 
 test_that("'make_rw_matrix' works", {
