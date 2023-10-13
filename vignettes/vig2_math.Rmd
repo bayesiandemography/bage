@@ -556,7 +556,7 @@ Spline(n = NULL, s = 1)
 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}^{(m)} + \pmb{g}^{(m)} \\
-  \alpha_j^{(m)} & \sim \text{N}(0, 1)
+  \alpha_k^{(m)} & \sim \text{N}(0, 1), \quad k^{(m)} = 1, \cdots, K^{(m)}
 \end{align}
 where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
