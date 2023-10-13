@@ -263,15 +263,19 @@ The [Human Mortality Database](https://www.mortality.org) provides estimates of 
 \end{equation}
 looks like a randomly-selected column from $\pmb{M}$.
 
-We use $\pmb{F}$ and $\pmb{g}$ to build priors for age effects, and for age-sex interactions. In the case of age-sex interactions we have
+We use $\pmb{F}$ and $\pmb{g}$ to build priors for age effects and age-sex interactions. The prior for age effects is
+\begin{align}
+  \pmb{\beta}^{(1)} & = \pmb{F} \pmb{\alpha} + \pmb{g} \\
+  \alpha_k & \sim \text{N}(0, 1), \quad k = 1, \cdots, K
+\end{align}
+where $K$ is chosen by the user. The prior for age-sex interactions looks the same except that, by default, the calculations are done separately for each sex.
 
-
-
-
-## Specifying the new prior
+## Specifying the new model
 
 ```{r}
-mod_hmd <- mod_base |>
+mod_hmd <- mod_pois(deaths ~ age:sex + time,
+                    data = dth,
+                    exposure = popn) |>
   set_prior(age:sex ~ SVD(HMD))
 mod_hmd
 ```
@@ -322,9 +326,9 @@ ggplot(age_sex_interact,
            y = .fitted.mid,
            ymin = .fitted.lower,
            ymax = .fitted.upper)) +
-  facet_wrap(vars(sex)) +
-  geom_ribbon(fill = "lightblue") +
-  geom_line() +
+  geom_ribbon(aes(fill = sex),
+              alpha = 0.3) +
+  geom_line(aes(col = sex)) +
   ggtitle("Age-sex interaction")
 ```
 
