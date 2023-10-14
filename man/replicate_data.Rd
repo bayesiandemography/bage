@@ -4,24 +4,24 @@
 \alias{replicate_data}
 \title{Create Replicate Data}
 \usage{
-replicate_data(x, condition_on = c("fitted", "expected"), n = 19)
+replicate_data(x, condition_on = NULL, n = 19)
 }
 \arguments{
 \item{x}{A fitted model, typically created by
 calling \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}},
 and then \code{\link[=fit]{fit()}}.}
 
+\item{condition_on}{Parameters to condition
+on. Either \code{"expected"} or \code{"fitted"}. See
+details.}
+
 \item{n}{Number of replicate datasets to create.
 Default is 19.}
-
-\item{conditition_on}{Parameters to condition
-on. Either \code{"fitted"} or \code{"expected"}. See
-details.}
 }
 \value{
 A tibble with the following structure:\tabular{ll}{
    \code{.replicate} \tab data \cr
-   `"Original" \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_nbinom]{mod_nbinom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
+   `"Original" \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
    \code{"Replicate 1"} \tab Original data, except that actual outcome replaced by simulated values. \cr
    \code{"Replicate 2"} \tab Original data, except that actual outcome replaced by simulated values. \cr
    \dots \tab \dots \cr
@@ -65,9 +65,13 @@ rates or probabilities, drawing values for the
 outcome variable.
 }
 
-The \code{"expected"} option is a more severe test for
-a model, it gives the original data less opportunity
-to influence the replicate data.
+The default for \code{condition_on} is \code{"expected"}.
+The \code{"expected"} option
+provides a more severe test for
+a model than the \code{"fitted"} option,
+since "fitted" values are weighted averages
+of the "expected" values and the original
+data.
 
 As described in \code{\link[=mod_norm]{mod_norm()}}, normal models
 have a slightly different structure from Poisson
@@ -85,13 +89,13 @@ rep_data <- mod |>
   replicate_data()
 
 library(dplyr)
-replicate_data |>
+rep_data |>
   group_by(.replicate) |>
   count(wt = injuries)
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_nbinom]{mod_nbinom()}}, \code{\link[=mod_norm]{mod_norm()}} to create models
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to create models
 \item \code{\link[=fit]{fit()}} to fit models
 }
 }
