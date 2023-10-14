@@ -1064,9 +1064,13 @@ print.bage_mod <- function(x, ...) {
 #' rates or probabilities, drawing values for the 
 #' outcome variable.
 #'
-#' The `"expected"` option is a more severe test for
-#' a model, it gives the original data less opportunity
-#' to influence the replicate data.
+#' The default for `condition_on` is `"expected"`.
+#' The `"expected"` option
+#' provides a more severe test for
+#' a model than the `"fitted"` option,
+#' since "fitted" values are weighted averages
+#' of the "expected" values and the original
+#' data.
 #'
 #' As described in [mod_norm()], normal models
 #' have a slightly different structure from Poisson
@@ -1076,8 +1080,8 @@ print.bage_mod <- function(x, ...) {
 #' @param x A fitted model, typically created by
 #' calling [mod_pois()], [mod_binom()], or [mod_norm()],
 #' and then [fit()].
-#' @param conditition_on Parameters to condition
-#' on. Either `"fitted"` or `"expected"`. See
+#' @param condition_on Parameters to condition
+#' on. Either `"expected"` or `"fitted"`. See
 #' details.
 #' @param n Number of replicate datasets to create.
 #' Default is 19.
@@ -1086,7 +1090,7 @@ print.bage_mod <- function(x, ...) {
 #'
 #' |`.replicate`     | data                           |
 #' |-----------------|--------------------------------|
-#' |`"Original"      | Original data supplied to [mod_pois()], [mod_nbinom()], [mod_norm()] |
+#' |`"Original"      | Original data supplied to [mod_pois()], [mod_binom()], [mod_norm()] |
 #' |`"Replicate 1"`  | Original data, except that actual outcome replaced by simulated values. |
 #' |`"Replicate 2"`  | Original data, except that actual outcome replaced by simulated values. |
 #' |\dots            | \dots                          |
@@ -1094,7 +1098,7 @@ print.bage_mod <- function(x, ...) {
 #' 
 #' 
 #' @seealso
-#' - [mod_pois()], [mod_nbinom()], [mod_norm()] to create models
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to create models
 #' - [fit()] to fit models
 #'
 #' @examples
@@ -1107,18 +1111,21 @@ print.bage_mod <- function(x, ...) {
 #'   replicate_data()
 #'
 #' library(dplyr)
-#' replicate_data |>
+#' rep_data |>
 #'   group_by(.replicate) |>
 #'   count(wt = injuries)
 #' @export
-replicate_data <- function(x, condition_on = c("fitted", "expected"), n = 19) {
+replicate_data <- function(x, condition_on = NULL, n = 19) {
     UseMethod("replicate_data")
 }
 
 ## HAS_TESTS
 #' @export
-replicate_data.bage_mod_pois <- function(x, condition_on = c("fitted", "expected"), n = 19) {
-    condition_on <- match.arg(condition_on)
+replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
+    if (is.null(condition_on))
+        condition_on <- "expected"
+    else
+        condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
     check_n(n = n,
             n_arg = "n",
             min = 1L,
@@ -1129,7 +1136,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = c("fitted", "expected
     formula <- x$formula
     outcome <- x$outcome
     offset <- x$offset
-    x <- set_n_draw(x, n = n)
+    x <- set_n_draw(x, n_draw = n)
     aug <- augment(x)
     n_obs <- nrow(data)
     if (condition_on == "fitted") {
@@ -1160,8 +1167,11 @@ replicate_data.bage_mod_pois <- function(x, condition_on = c("fitted", "expected
 
 ## HAS_TESTS
 #' @export
-replicate_data.bage_mod_binom <- function(x, condition_on = c("fitted", "expected"), n = 19) {
-    condition_on <- match.arg(condition_on)
+replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
+    if (is.null(condition_on))
+        condition_on <- "expected"
+    else
+        condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
     check_n(n = n,
             n_arg = "n",
             min = 1L,
@@ -1172,7 +1182,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = c("fitted", "expecte
     formula <- x$formula
     outcome <- x$outcome
     offset <- x$offset
-    x <- set_n_draw(x, n = n)
+    x <- set_n_draw(x, n_draw = n)
     aug <- augment(x)
     n_obs <- nrow(data)
     if (condition_on == "fitted") {
@@ -1204,9 +1214,13 @@ replicate_data.bage_mod_binom <- function(x, condition_on = c("fitted", "expecte
     ans
 }
 
+## HAS_TESTS
 #' @export
-replicate_data.bage_mod_norm <- function(x, condition_on = c("fitted", "expected"), n = 19) {
-    condition_on <- match.arg(condition_on)
+replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
+    if (!is.null(condition_on))
+        cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
+                        i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
+                                  "when model {.arg x} has a normal likelihood.")))
     check_n(n = n,
             n_arg = "n",
             min = 1L,
@@ -1217,25 +1231,15 @@ replicate_data.bage_mod_norm <- function(x, condition_on = c("fitted", "expected
     formula <- x$formula
     outcome <- x$outcome
     offset <- x$offset
-    x <- set_n_draw(x, n = n)
+    x <- set_n_draw(x, n_draw = n)
     aug <- augment(x)
     comp <- components(x)
     disp <- comp[[".fitted"]][comp$component == "disp"]
     n_obs <- nrow(data)
-    if (condition_on == "fitted") {
-        fitted <- aug$.fitted
-        y_rep <- rvec::rnorm_rvec(n = n_obs,
-                                  mean = fitted,
-                                  sd = disp / sqrt(offset))
-    }
-    else if (condition_on == "expected") {
-        val_fitted <- "fitted"
-        cli::cli_abort(c("{.arg condition_on} is {.val {condition_on}} but model",
-                         "has normal likelihood.",
-                         i = "Use {.code condition_on = {val_fitted}} instead?"))
-    }
-    else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+    fitted <- aug$.fitted
+    y_rep <- rvec::rnorm_rvec(n = n_obs,
+                              mean = fitted,
+                              sd = disp / sqrt(offset))
     outcome_rep <- c(outcome, as.numeric(y_rep))
     nm_outcome <- deparse1(formula[[2L]])
     ans <- make_copies_repdata(data = data, n = n)

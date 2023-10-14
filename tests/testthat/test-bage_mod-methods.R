@@ -804,7 +804,7 @@ test_that("'replicate_data' works with mod_pois", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 0.3 * data$popn)
+    data$deaths <- rpois(n = nrow(data), lambda = 0.4 * data$popn)
     formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
@@ -813,10 +813,10 @@ test_that("'replicate_data' works with mod_pois", {
     ans <- replicate_data(mod)
     expect_identical(names(ans), c(".replicate", names(data)))
     expect_identical(nrow(ans), nrow(data) * 20L)
-    tab <- tapply(ans$deaths, ans$.replicate, mean)
+    tab <- tapply(ans$deaths, ans$.replicate, sd)
     expect_false(any(duplicated(tab)))
-    ans_exp <- replicate_data(mod, condition_on = "expected")
-    expect_equal(mean(ans_exp$deaths), mean(ans$deaths), tolerance = 0.01)
+    ans_fit <- replicate_data(mod, condition_on = "fitted")
+    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.01)
 })
 
 test_that("'replicate_data' works with mod_binom", {
@@ -834,8 +834,8 @@ test_that("'replicate_data' works with mod_binom", {
     expect_identical(nrow(ans), nrow(data) * 20L)
     tab <- tapply(ans$deaths, ans$.replicate, mean)
     expect_false(any(duplicated(tab)))
-    ans_exp <- replicate_data(mod, condition_on = "expected")
-    expect_equal(mean(ans_exp$deaths), mean(ans$deaths), tolerance = 0.01)
+    ans_fit <- replicate_data(mod, condition_on = "fitted")
+    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.01)
 })
 
 test_that("'replicate_data' works with mod_norm", {
@@ -852,12 +852,9 @@ test_that("'replicate_data' works with mod_norm", {
     expect_identical(nrow(ans), nrow(data) * 20L)
     tab <- tapply(ans$income, ans$.replicate, mean)
     expect_false(any(duplicated(tab)))
-    expect_error(replicate_data(mod, condition_on = "expected"),
-                 "`condition_on` is ")
+    expect_warning(replicate_data(mod, condition_on = "expected"),
+                   "Ignoring value for `condition_on`.")
 })
-
-
-    
 
 
 ## 'tidy' ---------------------------------------------------------------------

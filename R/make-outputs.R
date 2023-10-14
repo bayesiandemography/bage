@@ -390,7 +390,8 @@ make_levels_hyper <- function(mod) {
 make_levels_replicate <- function(n, n_row_data) {
     ans <- paste("Replicate", seq_len(n))
     ans <- c("Original", ans)
-    ans <- rep(ans, each = n_row_data)
+    ans <- factor(rep(ans, each = n_row_data),
+                  levels = ans)
     ans
 }
 
