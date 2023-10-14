@@ -113,6 +113,20 @@ test_that("'make_comp_components' works", {
     expect_setequal(ans, c("par", "hyper", "disp", "season"))
 })
 
+## 'make_copies_repdata' ------------------------------------------------------
+
+test_that("'make_copies_repdata' works with valid inputs", {
+    data <- tibble::tibble(age = 0:4, deaths = 1:5, population = 11:15)
+    n <- 2
+    ans_obtained <- make_copies_repdata(data = data, n = n)
+    ans_expected <- tibble::tibble(.replicate = rep(c("Original", "Replicate 1", "Replicate 2"),
+                                                    each = 5),
+                                   age = rep(0:4, 3),
+                                   deaths = rep(1:5, 3),
+                                   population = rep(11:15, 3))
+    expect_identical(ans_obtained, ans_expected)
+})
+
 
 ## 'make_draws_comp_raw' ------------------------------------------------------
 
@@ -324,6 +338,16 @@ test_that("'make_levels_hyper' works", {
     ans_obtained <- make_levels_hyper(mod)
     ans_expected <- c("sd", "sd", "sd", "sd")
     expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_levels_replicate' -------------------------------------------------------
+
+test_that("'make_levels_replicate' works", {
+    ans_obtained <- make_levels_replicate(n = 2, n_row_data = 3)
+    ans_expected <- rep(c("Original", "Replicate 1", "Replicate 2"),
+                        each = 3)
+    expect_identical(ans_obtained, ans_expected)
 })
 
 

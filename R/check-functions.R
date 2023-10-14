@@ -206,6 +206,44 @@ check_formula_vnames_in_data <- function(formula, data) {
 
 
 ## HAS_TESTS
+#' Given that 'condition_on' argument is "expected", check that
+#' the model includes a dispersion term
+#'
+#' @param x A fitted 'bage_mod' object
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_has_disp_if_condition_on_expected <- function(x) {
+    if (!has_disp(x)) {
+        val_exp <- "expected"
+        val_fit <- "fitted"
+        cli::cli_abort(c(paste("{.arg condition_on} is {.val {val_exp}} but model",
+                               "has no dispersion term."),
+                         i = "Use {.code condition_on = {.val {val_fit}}} instead?"))
+    }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that a model has been fitted
+#'
+#' @param x Object of class 'bage_mod'
+#' @param x_arg Name for 'x' to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_is_fitted <- function(x, x_arg) {
+    if (!is_fitted(x))
+        cli::cli_abort(c("{.arg {x_arg}} has not been fitted.",
+                         i = "Call function {.fun bage::fit} on {.arg {x_arg}}?"))
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check, based on its name, that a term is a main effect
 #'
 #' @param nm Name of the term.

@@ -166,6 +166,42 @@ test_that("'check_formula_vnames_in_data' returns correct error with invalid inp
 })
 
 
+## 'check_has_disp_if_condition_on_expected' ----------------------------------
+
+test_that("'check_has_disp_if_condition_on_expected' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_true(check_has_disp_if_condition_on_expected(mod))
+    mod <- set_disp(mod, s = 0)
+    expect_error(check_has_disp_if_condition_on_expected(mod),
+                 "`condition_on` is \"expected\" but model has no dispersion term")
+})
+
+
+## 'check_is_fitted' ----------------------------------------------------------
+
+test_that("'check_is_fitted' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(check_is_fitted(x = mod, x_arg = "Y"),
+                 "`Y` has not been fitted.")
+    mod <- fit(mod)
+    expect_true(check_is_fitted(x = mod, x_arg = "Y"))
+})
+
+
 ## 'check_is_main_effect' -----------------------------------------------------
 
 test_that("'check_is_main_effect' returns TRUE with valid inputs", {
