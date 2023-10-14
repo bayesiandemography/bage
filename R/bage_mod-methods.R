@@ -551,7 +551,7 @@ get_fun_inv_transform.bage_mod_pois <- function(mod) exp
 ## HAS_TESTS
 #' @export
 get_fun_inv_transform.bage_mod_binom <- function(mod)
-    function(x) ifelse(x > 0, 1 / (1 + exp(-x)), exp(x) / (1 + exp(x)))
+    function(x) 1 / (1 + exp(-x))
 
 ## HAS_TESTS
 #' @export
@@ -1031,6 +1031,227 @@ print.bage_mod <- function(x, ...) {
     }
     ## return
     invisible(x)
+}
+
+
+## 'replicate_data' -----------------------------------------------------------
+
+#' Create Replicate Data
+#'
+#' Use a fitted model to create replicate datasets,
+#' typically as a way of checking a model.
+#'
+#' Use `n` draws from the posterior distribution
+#' for model parameters to generate `n` simulated datasets.
+#' If the model is working well, these simulated
+#' datasets should look similar to the actual dataset.
+#'
+#' @section: The `condition_on` argument
+#'
+#' With Poisson and binomial models that include
+#' dispersion terms (which is the default), there are
+#' two options for constructing replicate data.
+#'
+#' - When `condition_on` is `"fitted"`,
+#' the replicate data is created by (i) drawing values
+#' from the posterior distribution for rates or probabilities
+#' (the \eqn{\gamma_i} defined in [mod_pois()]
+#' and [mod_binom()]), and (ii)  conditional on these
+#' rates or probabilities, drawing values for the 
+#' outcome variable.
+#' - When `condition_on` is `"expected"`,
+#' the replicate data is created by (i) drawing
+#' values from hyper-parameters governing
+#' the rates or probabilities 
+#' (the \eqn{\mu_i} and \eqn{\xi} defined
+#' in [mod_pois()] and [mod_binom()]),
+#' then (ii) conditional on these hyper-parameters,
+#' drawing values for the rates or probabilties,
+#' and finally (iii) conditional on these
+#' rates or probabilities, drawing values for the 
+#' outcome variable.
+#'
+#' The default for `condition_on` is `"expected"`.
+#' The `"expected"` option
+#' provides a more severe test for
+#' a model than the `"fitted"` option,
+#' since "fitted" values are weighted averages
+#' of the "expected" values and the original
+#' data.
+#'
+#' As described in [mod_norm()], normal models
+#' have a slightly different structure from Poisson
+#' and binomial models, and the distinction between
+#' fitted and expected values does not apply.
+#'
+#' @param x A fitted model, typically created by
+#' calling [mod_pois()], [mod_binom()], or [mod_norm()],
+#' and then [fit()].
+#' @param condition_on Parameters to condition
+#' on. Either `"expected"` or `"fitted"`. See
+#' details.
+#' @param n Number of replicate datasets to create.
+#' Default is 19.
+#'
+#' @returns A tibble with the following structure:
+#'
+#' |`.replicate`     | data                           |
+#' |-----------------|--------------------------------|
+#' |`"Original"      | Original data supplied to [mod_pois()], [mod_binom()], [mod_norm()] |
+#' |`"Replicate 1"`  | Original data, except that actual outcome replaced by simulated values. |
+#' |`"Replicate 2"`  | Original data, except that actual outcome replaced by simulated values. |
+#' |\dots            | \dots                          |
+#' |`"Replicate <n>"`| Original data, except that actual outcome replaced by simulated values. |
+#' 
+#' 
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to create models
+#' - [fit()] to fit models
+#'
+#' @examples
+#' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+#'                 data = injuries,
+#'                 exposure = 1) |>
+#'   fit()
+#'
+#' rep_data <- mod |>
+#'   replicate_data()
+#'
+#' library(dplyr)
+#' rep_data |>
+#'   group_by(.replicate) |>
+#'   count(wt = injuries)
+#' @export
+replicate_data <- function(x, condition_on = NULL, n = 19) {
+    UseMethod("replicate_data")
+}
+
+## HAS_TESTS
+#' @export
+replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
+    if (is.null(condition_on))
+        condition_on <- "expected"
+    else
+        condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
+    check_n(n = n,
+            n_arg = "n",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
+    check_is_fitted(x = x, x_arg = "x")
+    data <- x$data
+    formula <- x$formula
+    outcome <- x$outcome
+    offset <- x$offset
+    x <- set_n_draw(x, n_draw = n)
+    aug <- augment(x)
+    n_obs <- nrow(data)
+    if (condition_on == "fitted") {
+        fitted <- aug$.fitted
+        lambda <- offset * fitted
+        y_rep <- rvec::rpois_rvec(n = n_obs,
+                                  lambda = lambda)
+    }
+    else if (condition_on == "expected") {
+        check_has_disp_if_condition_on_expected(x)
+        expected <- aug$.expected
+        comp <- components(x)
+        disp <- comp[[".fitted"]][comp$component == "disp"]
+        size <- 1 / disp
+        mu <- offset * expected
+        y_rep <- rvec::rnbinom_rvec(n = n_obs,
+                                    size = size,
+                                    mu = mu)
+    }
+    else
+        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+    outcome_rep <- c(outcome, as.numeric(y_rep))
+    nm_outcome <- deparse1(formula[[2L]])
+    ans <- make_copies_repdata(data = data, n = n)
+    ans[[nm_outcome]] <- outcome_rep
+    ans
+}
+
+## HAS_TESTS
+#' @export
+replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
+    if (is.null(condition_on))
+        condition_on <- "expected"
+    else
+        condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
+    check_n(n = n,
+            n_arg = "n",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
+    check_is_fitted(x = x, x_arg = "x")
+    data <- x$data
+    formula <- x$formula
+    outcome <- x$outcome
+    offset <- x$offset
+    x <- set_n_draw(x, n_draw = n)
+    aug <- augment(x)
+    n_obs <- nrow(data)
+    if (condition_on == "fitted") {
+        fitted <- aug$.fitted
+        y_rep <- rvec::rbinom_rvec(n = n_obs,
+                                   size = offset,
+                                   prob = fitted)
+    }
+    else if (condition_on == "expected") {
+        check_has_disp_if_condition_on_expected(x)
+        expected <- aug$.expected
+        comp <- components(x)
+        disp <- comp[[".fitted"]][comp$component == "disp"]
+        shape1 <- expected / disp
+        shape2 <- (1 - expected) / disp
+        prob <- rvec::rbeta_rvec(n = n_obs,
+                                 shape1 = shape1,
+                                 shape2 = shape2)
+        y_rep <- rvec::rbinom_rvec(n = n_obs,
+                                   size = offset,
+                                   prob = prob)
+    }
+    else
+        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+    outcome_rep <- c(outcome, as.numeric(y_rep))
+    nm_outcome <- deparse1(formula[[2L]])
+    ans <- make_copies_repdata(data = data, n = n)
+    ans[[nm_outcome]] <- outcome_rep
+    ans
+}
+
+## HAS_TESTS
+#' @export
+replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
+    if (!is.null(condition_on))
+        cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
+                        i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
+                                  "when model {.arg x} has a normal likelihood.")))
+    check_n(n = n,
+            n_arg = "n",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
+    check_is_fitted(x = x, x_arg = "x")
+    data <- x$data
+    formula <- x$formula
+    outcome <- x$outcome
+    offset <- x$offset
+    x <- set_n_draw(x, n_draw = n)
+    aug <- augment(x)
+    comp <- components(x)
+    disp <- comp[[".fitted"]][comp$component == "disp"]
+    n_obs <- nrow(data)
+    fitted <- aug$.fitted
+    y_rep <- rvec::rnorm_rvec(n = n_obs,
+                              mean = fitted,
+                              sd = disp / sqrt(offset))
+    outcome_rep <- c(outcome, as.numeric(y_rep))
+    nm_outcome <- deparse1(formula[[2L]])
+    ans <- make_copies_repdata(data = data, n = n)
+    ans[[nm_outcome]] <- outcome_rep
+    ans
 }
 
 

@@ -405,7 +405,6 @@ ggplot(lifeexp,
   geom_line(aes(color = model))
 ```
 
-
 ```{r}
 mod_hmd |>
   augment() |>
@@ -415,4 +414,3 @@ mod_hmd |>
   select(age, qx, lx, ex) %>%
   filter(age %in% c("0", "20", "50", "80"))
 ```
-

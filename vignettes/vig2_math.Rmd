@@ -886,6 +886,56 @@ To generate one set of simulated values, we start with values for exposure, tria
 1. In Poisson and binomial models, use $\pmb{\gamma}$ and $\pmb{w}$ to draw $\pmb{y}$; in normal models, use $\pmb{\mu}$, $\xi$, and $\pmb{w}$ to draw $\pmb{y}$.
 
 
+# Replicate data
+
+## Model
+
+### Poisson likelihood
+
+#### Condition on $\pmb{\gamma}$
+
+\begin{equation}
+  y_i^{\text{rep}} \sim \text{Poisson}(\gamma_i w_i)
+\end{equation}
+
+#### Condition on $(\pmb{\mu}, \xi)$
+
+\begin{align}
+  y_i^{\text{rep}} & \sim \text{Poisson}(\gamma_i^{\text{rep}} w_i) \\
+  \gamma_i^{\text{rep}} & \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})
+\end{align}
+which is equivalent to
+\begin{equation}
+  y_i^{\text{rep}} \sim \text{NegBinom}\left(\xi^{-1}, (1 + \mu_i w_i \xi)^{-1}\right)
+\end{equation}
+
+### Binomial likelihood
+
+#### Condition on $\pmb{\gamma}$
+
+\begin{equation}
+  y_i^{\text{rep}} \sim \text{Binomial}(w_i, \gamma_i)
+\end{equation}
+
+#### Condition on $(\pmb{\mu}, \xi)$
+
+\begin{align}
+  y_i^{\text{rep}} & \sim \text{Binomial}(w_im \gamma_i^{\text{rep}}) \\
+  \gamma_i^{\text{rep}} & \sim \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right)
+\end{align}
+
+### Normal likelihood
+
+\begin{equation}
+  y_i^{\text{rep}} \sim \text{N}(\gamma_i, \xi^2 / w_i)
+\end{equation}
+
+## Code
+
+```
+replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
+```
+
 # Appendices
 
 ## Definitions {#app:defn}
