@@ -157,6 +157,26 @@ make_comp_component <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make copies of the original data to use
+#' for replicate data
+#'
+#' @param data Original data supplied to model. A tibble.
+#' @param n Number of replicates
+#'
+#' @returns A tibble
+#'
+#' @noRd
+make_copies_repdata <- function(data, n) {
+    n_row_data <- nrow(data)
+    .replicate <- make_levels_replicate(n = n, n_row_data = n_row_data)
+    .replicate <- tibble::tibble(.replicate = .replicate)
+    data <- rep(list(data), times = n + 1L) # n replicates, plus original
+    data <- vctrs::vec_rbind(!!!data)
+    vctrs::vec_cbind(.replicate, data)
+}
+    
+
+## HAS_TESTS
 #' Make initial draws for 'components' function
 #'
 #' Make draws of variables included in 'prec'
@@ -353,6 +373,25 @@ make_levels_hyper <- function(mod) {
     priors <- mod$priors
     ans <- lapply(priors, levels_hyper)
     ans <- unlist(ans, use.names = FALSE)
+    ans
+}
+
+
+## HAS_TEST
+#' Make labels for replicate datasets
+#'
+#' @param n Number of replicate datasets
+#' @param n_row_data Number of rows in a single
+#' replicate dataset
+#'
+#' @returns A character vector with length n x n_row_dataset
+#'
+#' @noRd
+make_levels_replicate <- function(n, n_row_data) {
+    ans <- paste("Replicate", seq_len(n))
+    ans <- c("Original", ans)
+    ans <- factor(rep(ans, each = n_row_data),
+                  levels = ans)
     ans
 }
 
