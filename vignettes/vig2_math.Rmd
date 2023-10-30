@@ -615,6 +615,15 @@ The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) o
 
 # Cyclical effects {#sec:pr-cyclical}
 
+
+approximate abs function: https://math.stackexchange.com/questions/728094/approximate-x-with-a-smooth-function?noredirect=1&lq=1
+
+
+approximate error function: https://stats.stackexchange.com/questions/7200/evaluate-definite-interval-of-normal-distribution/7206#7206
+
+
+
+
 "A cyclic pattern exists when data exhibit rises and falls that are not of fixed period", as opposed to a seasonal pattern that has a fixed period [Hyndman](https://robjhyndman.com/hyndsight/cyclicts/).
 
 
