@@ -159,7 +159,7 @@ All priors are proper, allowing us to draw from them for simulation.
 
 ## Prediction
 
-In some applications, we need to predict outside that data, which requires generating values $\beta_{J_m + h}^{(m)}$, $h = 1, 2, \cdots$. We do not allow predicted values with multivariate normal priors (Section \@ref(sec:pr-mnorm)), P-Spline priors (Section \@ref(sec:pr-spline)), or SVD priors (Section \@ref(sec:pr-svd)). For all other priors, we are able to obtain expressions for
+In some applications, we need to predict outside that data, which requires generating values $\beta_{J_m + h}^{(m)}$, $h = 1, 2, \cdots$. We do not allow predicted values with P-Spline priors (Section \@ref(sec:pr-spline)) or SVD priors (Section \@ref(sec:pr-svd)). For all other priors, we are able to obtain expressions for
 \begin{equation}
   p(\beta_{J_m+h+1}^{(m)} \mid \beta_{J_m+h}^{(m)}, \cdots, \beta_1^{(m)}, \pmb{\psi}^{(m)}), \quad h = 0, 1, \cdots, (\#eq:predict) 
 \end{equation}
@@ -264,46 +264,6 @@ NFix(sd = 1)
 ```
 
 - `sd` is $A_{\tau}^{(m)}$. Defaults to 1.
-
-
-## Multivariate normal {#sec:pr-mnorm}
-
-
-### Model
-
-\begin{align}
-  \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right) \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-\end{align}
-where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user.
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
-\end{equation}
-
-### Simulation
-
-\begin{align}
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
-\end{align}
-
-
-### Prediction
-
-Main effects with a multivariate normal prior cannot be predicted.
-
-
-### Code
-
-```
-MVN(V, s = 1)
-```
-
-- `V` is $\pmb{V}^{(m)}$
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
 ## First-order random walk {#sec:pr-rw}
@@ -629,57 +589,44 @@ approximate error function: https://stats.stackexchange.com/questions/7200/evalu
 
 ## Model
 
-Cyclical effects can only be used with a time main effect. The prior model is an AR2 model,
+Cyclical effects can only be used with a time main effect. The prior for cyclical effects is an AR model, with the number of terms, $K_m$, chosen by the user,
 
-\begin{align}
-  \chi_1 & \sim \text{N}(0, \tau_{\chi}^2) \\
-  \chi_2 & = \text{N}(\alpha \chi_1, (1 - \alpha^2) \tau_{\chi}^2) \\
-  \chi_{j} & = \phi_1^{(\chi)} \chi_{j-1} + \phi_2^{(\chi)} \chi_{j-2} + \epsilon_j, \quad j = 3, \cdots, J_m \\
-  \epsilon_j & \sim \text{N}(0, (1 - \phi_1^{(\chi)} - \phi_2^{(\chi)}) \tau_{\chi}^2) \\
-  \tau_{\chi} & \sim \text{N}^+(0, A_{\chi}^2).
-\end{align}
-where
 \begin{equation}
-  \alpha = \frac{\phi_1^{(\chi)}}{1 - \phi_2^{(\chi)}}.
+  \chi_j \sim \text{N}\left(\phi_1^{(\chi)} \chi_{j-1} + \cdots + \phi_{K_m}^{(\chi)} \chi_{j-{K_m}},  \omega_{\chi}^2\right), \quad j = K_m + 1, \cdots, J_m.
 \end{equation}
-The model is constructed so that $\text{var}(\chi_j) = \tau_{\chi}^2$, $j = 1, \cdots, J_m$. The correlation coefficients have priors
+Internally, TMB derives a value for $\omega_{\chi}$ that gives every term $\chi_j$ the same marginal variance. We denote this marginal variance $\tau_{\chi}^2$, and assign it a prior
+\begin{equation}
+  \tau_{\chi}  \sim \text{N}^+(0, A_{\chi}^2).
+\end{equation}
+Each of the $\phi_k^{(\chi)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(\chi)}$ the prior
 \begin{align}
-  \phi_1^{(\chi)} & = -1 + 2 \phi_1^{(\chi)\prime} \\
-  \phi_2^{(\chi)} & = -1 + 2 \phi_2^{(\chi)\prime} \\
-  \phi_1^{(\chi)\prime} & \sim \text{Beta}(2, 2) \\
-  \phi_2^{(\chi)\prime} & \sim \text{Beta}(2, 2)
-\end{align}
-subject to
-\begin{align}
-  \mid \phi_2^{(\chi)} \mid & < 1 \\
-  \phi_2^{(\chi)} + \phi_1^{(\chi)} & < 1\\
-  \phi_2^{(\chi)} - \phi_1^{(\chi)} & < 1.
+  \phi_k^{(\chi)\prime} & \sim \text{Beta}(2, 2) \\
+  \phi_k^{(\chi)} & =  2 \phi_k^{(\chi)\prime} - 1.
 \end{align}
 
 
 ## Contribution to posterior density
 
 \begin{equation}
-\begin{split}
-  \text{N}(\tau_{\chi} | 0, A_{\chi}^2) \text{Beta}( \phi_1^{(\chi)\prime} | 2, 2) \text{Beta}( \phi_2^{(\chi)\prime} | 2, 2) \text{N}\left(\chi_1 \mid 0, \tau_{\chi}^2 \right) \text{N}\left(\chi_2 \mid \alpha \chi_1, (1 - \alpha^2) \tau_{\chi}^2 \right) \\
-  \quad \quad \quad \times \prod_{j=3}^{J_m} \text{N}\left(\chi_j \mid \phi_1^{(\chi)} \chi_{j-1} + \phi_2^{(\chi)} \chi_{j-2}, (1 - \phi_1^{(\chi)} - \phi_2^{(\chi)}) \tau_{\chi}^2 \right) 
-\end{split}
+  \text{N}^+\left(\tau_{\chi} | 0, A_{\chi}^2 \right) \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(\chi)\prime} | 2, 2 \right) p\left( \chi_1, \cdots, \chi_{J_m} | \phi_1^{(\chi)}, \cdots, \phi_{K_m}^{(\chi)}, \tau_{\chi} \right) 
 \end{equation}
-
+where $p\left( \chi_1, \cdots, \chi_{J_m} | \phi_1^{(\chi)}, \cdots, \phi_{K_m}^{(\chi)}, \tau_{\chi} \right)$ is calculated internally by TMB.
 
 ## Prediction
 
 \begin{equation}
-  \chi_{J_m + h + 1} \sim \text{N}\left(\phi_1^{(\chi)} \chi_{J_m + h} + \phi_2^{(\chi)} \chi_{J_m + h - 1}, (1 - \phi_1^{(\chi)} - \phi_2^{(\chi)}) \tau_m^2\right)
+  \chi_{J_m + h } \sim \text{N}\left(\phi_1^{(\chi)} \chi_{J_m + h - 1} + \cdots + \phi_{K_m}^{(\chi)} \chi_{J_m + h - {K_m}}, \tau_{\chi}^2\right)
 \end{equation}
 
 
 ## Code
 
 ```
-set_cyclical(s = 1)
+set_cyclical(x, n = 3, s = 1)
 ```
 
+- `x` is the model object
+- `n` is $K_m$
 - `s` is $A_{\chi}$
 
 
@@ -710,9 +657,10 @@ TODO - write
 ## Code
 
 ```
-set_season(n, s = 1)
+set_season(x, n, s = 1)
 ```
 
+- `x` is the model object
 - `n` is $S$
 - `s` is $A_{\lambda}$
 
@@ -1044,3 +992,42 @@ Using the parameterisation $v = 1 / \xi = \alpha + \beta$, $\mu = \alpha / (\alp
 # References
 
 
+
+% ## Multivariate normal {#sec:pr-mnorm}
+
+
+% ### Model
+
+% \begin{align}
+%   \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right) \\
+%   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+% \end{align}
+% where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user.
+
+% ### Contribution to posterior density
+
+% \begin{equation}
+%   \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
+% \end{equation}
+
+% ### Simulation
+
+% \begin{align}
+%   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+%   \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
+% \end{align}
+
+
+% ### Prediction
+
+% Main effects with a multivariate normal prior cannot be predicted.
+
+
+% ### Code
+
+% ```
+% MVN(V, s = 1)
+% ```
+
+% - `V` is $\pmb{V}^{(m)}$
+% - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
