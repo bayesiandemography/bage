@@ -112,9 +112,8 @@ mod_pois <- function(formula, data, exposure) {
                           var_age = var_age,
                           var_time = var_time,
                           lengths_par = lengths_par)
-    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
-                                                  j = integer(),
-                                                  x = integer())
+    matrix_cyclical_outcome <- make_matrix_sparse_empty()
+    matrix_season_outcome <- make_matrix_sparse_empty()
     seed_components <- make_seed()
     seed_fitted <- make_seed()
     ## create object and return
@@ -132,6 +131,8 @@ mod_pois <- function(formula, data, exposure) {
                 lengths_par = lengths_par,
                 terms_par = terms_par,
                 scale_disp = 1,
+                n_cyclical = 0L,
+                matrix_cyclical_outcome = matrix_cyclical_outcome,
                 n_season = 0L,
                 scale_season = NULL,
                 matrix_season_outcome = matrix_season_outcome,
@@ -244,9 +245,8 @@ mod_binom <- function(formula, data, size) {
                           var_age = var_age,
                           var_time = var_time,
                           lengths_par = lengths_par)
-    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
-                                                  j = integer(),
-                                                  x = integer())
+    matrix_cyclical_outcome <- make_matrix_sparse_empty()
+    matrix_season_outcome <- make_matrix_sparse_empty()
     seed_components <- make_seed()
     seed_fitted <- make_seed()
     ## create object and return
@@ -264,6 +264,8 @@ mod_binom <- function(formula, data, size) {
                 lengths_par = lengths_par,
                 terms_par = terms_par,
                 scale_disp = 1,
+                n_cyclical = 0L,
+                matrix_cyclical_outcome = matrix_cyclical_outcome,
                 n_season = 0L,
                 scale_season = NULL,
                 matrix_season_outcome = matrix_season_outcome,
@@ -383,9 +385,8 @@ mod_norm <- function(formula, data, weights) {
                           var_age = var_age,
                           var_time = var_time,
                           lengths_par = lengths_par)
-    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
-                                                  j = integer(),
-                                                  x = integer())
+    matrix_cyclical_outcome <- make_matrix_sparse_empty()
+    matrix_season_outcome <- make_matrix_sparse_empty()
     seed_components <- make_seed()
     seed_fitted <- make_seed()
     ## create object and return
@@ -405,6 +406,8 @@ mod_norm <- function(formula, data, weights) {
                 lengths_par = lengths_par,
                 terms_par = terms_par,
                 scale_disp = 1,
+                n_cyclical = 0L,
+                matrix_cyclical_outcome = matrix_cyclical_outcome,
                 n_season = 0L,
                 scale_season = NULL,
                 matrix_season_outcome = matrix_season_outcome,

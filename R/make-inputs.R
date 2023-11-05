@@ -191,6 +191,29 @@ make_const <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make 'const_cyclical'
+#'
+#' Make vector to hold constants for cyclical effect.
+#'
+#' We generate 'const_cyclical' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when cyclical effect changes  via 'set_cyclical'.
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_const_cyclical <- function(mod) {
+    shape1 <- 2
+    shape2 <- 2
+    scale <- mod$scale_cyclical
+    c(shape1, shape2, scale)
+}
+
+
+## HAS_TESTS
 #' Make 'const_season'
 #'
 #' Make vector to hold constants for seasonal effect.
@@ -244,6 +267,27 @@ make_hyper <- function(mod) {
 
 ## HAS_TESTS
 #' Make vector containing hyper-parameters for
+#' cyclical effect
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_hyper_cyclical <- function(mod) {
+    ans <- c(log_sd = 0)
+    if (has_cyclical(mod)) {
+        n_cyclical <- mod$n_cyclical
+        coef <- rep(0, times = n_cyclical)
+        names(coef) <- paste0("coef", seq_len(n_cyclical))
+        ans <- c(coef, ans)
+    }
+    ans
+}
+
+
+## HAS_TESTS
+#' Make vector containing hyper-parameters for
 #' seasonal effect
 #'
 #' @param mod Object of class "bage_mod"
@@ -252,7 +296,7 @@ make_hyper <- function(mod) {
 #'
 #' @noRd
 make_hyper_season <- function(mod) {
-    0 ## standard deviation
+    c(log_sd = 0)
 }
 
 
@@ -420,14 +464,16 @@ make_levels_par <- function(formula, matrices_par_outcome, outcome, data) {
 make_map <- function(mod) {
     priors <- mod$priors
     scale_disp <- mod$scale_disp
+    n_cyclical <- mod$n_cyclical
     n_season <- mod$n_season
     ## determine whether any parameters fixed
     is_known <- vapply(priors, is_known, FALSE)
     is_parfree_fixed <- any(is_known)
     is_disp_fixed <- scale_disp == 0
+    is_cyclical_fixed <- n_cyclical == 0L
     is_season_fixed <- n_season == 0L
     ## return NULL if nothing fixed
-    if (!is_parfree_fixed && !is_disp_fixed && !is_season_fixed)
+    if (!is_parfree_fixed && !is_disp_fixed && !is_cyclical_fixed && !is_season_fixed)
         return(NULL)
     ## otherwise construct named list
     ans <- list()
@@ -435,11 +481,33 @@ make_map <- function(mod) {
         ans$parfree <- make_map_parfree_fixed(mod)
     if (is_disp_fixed)
         ans$log_disp <- factor(NA)
+    if (is_cyclical_fixed) {
+        ans$par_cyclical <- make_map_par_cyclical_fixed(mod)
+        ans$hyper_cyclical <- make_map_hyper_cyclical_fixed(mod)
+    }
     if (is_season_fixed) {
         ans$par_season <- make_map_par_season_fixed(mod)
         ans$hyper_season <- make_map_hyper_season_fixed(mod)
     }
     ans
+}
+
+
+## HAS_TESTS
+#' Make 'hyper_cyclical' component of 'map'
+#' argument to MakeADFun
+#'
+#' Only called when model does not have
+#' cyclical effect (implying that 'hyper_cyclical'
+#' must be treated as fixed.)
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns Factor with single NA
+#'
+#' @noRd
+make_map_hyper_cyclical_fixed <- function(mod) {
+    factor(NA)
 }
 
 
@@ -453,11 +521,33 @@ make_map <- function(mod) {
 #'
 #' @param mod Object of class "bage_mod"
 #'
-#' @returns A vector of NAs
+#' @returns Factor with single NA
 #'
 #' @noRd
 make_map_hyper_season_fixed <- function(mod) {
     factor(NA)
+}
+
+
+## HAS_TESTS
+#' Make 'par_cyclical' component of 'map'
+#' argument to MakeADFun
+#'
+#' Only called when model does not have
+#' cyclical effect (implying that 'par_cyclical'
+#' must be treated as fixed.)
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of NAs
+#'
+#' @noRd
+make_map_par_cyclical_fixed <- function(mod) {
+    par_cyclical <- make_par_cyclical(mod)
+    n_par <- length(par_cyclical)
+    ans <- rep(NA, times = n_par)
+    ans <- factor(ans)
+    ans
 }
 
 
@@ -587,6 +677,29 @@ make_matrices_parfree_par <- function(mod) {
     ans    
 }
 
+## NO_TESTS
+#' Make matrix mapping cyclical effect to outcome
+#'
+#' @param x Object of class 'bage_mod'
+#'
+#' @returns Sparse matrix
+#'
+#' @noRd
+make_matrix_cyclical_outcome <- function(x) {
+    data <- x$data
+    var_time <- x$var_time
+    data <- data[var_time]
+    data[] <- lapply(data, factor)
+    contrasts <- lapply(data, stats::contrasts, contrast = FALSE)
+    formula <- paste0("~", var_time, "-1")
+    formula <- stats::as.formula(formula)
+    ans <- Matrix::sparse.model.matrix(formula,
+                                       data = data,
+                                       contrasts.arg = contrasts,
+                                       row.names = FALSE)
+    colnames(ans) <- levels(data[[1L]])
+    ans
+}
 
 ## HAS_TESTS
 #' Make matrix mapping season effect to outcome
@@ -614,6 +727,17 @@ make_matrix_season_outcome <- function(x, by) {
     colnames(ans) <- levels(interaction(data_season))
     ans
 }
+
+## HAS_TESTS
+#' Make an empty sparse matrix
+#'
+#' @returns A 0x0 sparse matrix
+#'
+#' @noRd
+make_matrix_sparse_empty <- function()
+    Matrix::sparseMatrix(i = integer(),
+                         j = integer(),
+                         x = integer())
 
 ## HAS_TESTS
 #' Make vector holding offset variable
@@ -693,6 +817,25 @@ make_outcome <- function(formula, data) {
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
     ans <- as.double(ans)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make vector containing parameters for
+#' cyclical effect
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_par_cyclical <- function(mod) {
+    matrix <- mod$matrix_cyclical_outcome
+    matrix <- Matrix::as.matrix(matrix)
+    n <- ncol(matrix)
+    ans <- rep(0, times = n)
+    names(ans) <- colnames(matrix)
     ans
 }
 
@@ -794,8 +937,11 @@ make_priors <- function(formula, var_age, var_time, lengths_par) {
 #'
 #' @noRd
 make_random <- function(mod) {
+    has_cyclical <- has_cyclical(mod)
     has_season <- has_season(mod)
     ans <- "parfree"
+    if (has_cyclical)
+        ans <- c(ans, "par_cyclical")
     if (has_season)
         ans <- c(ans, "par_season")
     ans
