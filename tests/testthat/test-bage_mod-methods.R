@@ -518,6 +518,23 @@ test_that("'fit' works with SVD", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' works with cyclical effect", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2000:2010,
+                        sex = c("Female", "Male"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_cyclical(mod, n = 1)
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
 
 ## 'get_vals_est' -------------------------------------------------------------
 
@@ -589,6 +606,16 @@ test_that("'get_fun_scale_outcome' works with valid inputs", {
     expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_binom", "bage_mod")))(1), 1)
     expect_equal(get_fun_scale_outcome(structure(list(outcome_mean = 3, outcome_sd = 2),
                                                  class = c("bage_mod_norm", "bage_mod")))(1), 5)
+})
+
+
+## 'has_cyclical' ---------------------------------------------------------------
+
+test_that("'has_cyclical' works with valid inputs", {
+    mod <- structure(list(n_cyclical = 0L), class = "bage_mod")
+    expect_false(has_cyclical(mod))
+    mod <- structure(list(n_cyclical = 2L), class = "bage_mod")
+    expect_true(has_cyclical(mod))
 })
 
 

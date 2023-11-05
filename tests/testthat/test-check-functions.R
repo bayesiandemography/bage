@@ -1,4 +1,25 @@
 
+## 'check_bage_mod' -----------------------------------------------------------
+
+test_that("'check_bage_mod' returns true with valid model object", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_true(check_bage_mod(mod))
+})
+
+test_that("'check_bage_mod' returns expected error message with invalid model object", {
+    expect_error(check_bage_mod(x = NULL, nm_x = "model"),
+                 "`model` does not have class")
+})
+
+
+
 ## 'check_by_in_formula' ------------------------------------------------------
 
 test_that("'check_by_in_formula' returns TRUE with valid inputs", {

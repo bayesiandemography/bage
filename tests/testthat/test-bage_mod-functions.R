@@ -1,3 +1,49 @@
+## 'set_cyclical' -------------------------------------------------------------
+
+test_that("'set_cyclical' works with valid inputs", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age*time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_false(has_cyclical(mod))
+    mod <- set_cyclical(mod)
+    expect_identical(mod$n_cyclical, 2L)
+    expect_identical(mod$scale_cyclical, 1)
+    mod <- set_cyclical(mod, n = 4, s = 0.2)
+    expect_true(has_cyclical(mod))
+    expect_identical(mod$n_cyclical, 4L)
+    expect_identical(mod$scale_cyclical, 0.2)
+    expect_identical(mod$matrix_cyclical_outcome, mod$matrices_par_outcome[["time"]])
+})
+
+test_that("'set_cyclical' throws correct error when no time var", {
+    data <- expand.grid(age = 0:2, wrong = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age*wrong + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_cyclical(mod),
+                 "Can't specify cyclical effect when time variable not identified.")
+})
+
+test_that("'set_cyclical' throws correct error when too many terms", {
+    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$deaths <- rev(seq_len(nrow(data)))
+    formula <- deaths ~ age*time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(set_cyclical(mod, 10),
+                 "Estimation period not long enough to use cyclical effect with 10 terms.")
+})
+
+
 
 
 ## 'set_disp' -----------------------------------------------------------------

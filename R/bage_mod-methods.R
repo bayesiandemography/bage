@@ -54,6 +54,7 @@ augment.bage_mod <- function(x, ...) {
     transform <- function(x)
         align_to_data(inv_transform(x))
     ## extract quantities needed in calculations
+    has_cyclical <- has_cyclical(x)
     has_season <- has_season(x)
     has_disp <- has_disp(x)
     components <- components(x)
@@ -453,9 +454,12 @@ fit.bage_mod <- function(object, ...) {
     const <- make_const(object)
     terms_const <- make_terms_const(object)
     scale_disp <- object$scale_disp
+    has_disp <- scale_disp > 0
+    n_cyclical <- object$n_cyclical
+    const_cyclical <- make_const_cyclical(object)
+    matrix_cyclical_outcome <- object$matrix_cyclical_outcome
     n_time <- n_time(object)
     n_season <- object$n_season
-    has_disp <- scale_disp > 0
     const_season <- make_const_season(object)
     matrix_season_outcome <- object$matrix_season_outcome
     data <- list(nm_distn = nm_distn,
@@ -475,6 +479,9 @@ fit.bage_mod <- function(object, ...) {
                  consts = const, ## 'const' is reserved word in C
                  terms_consts = terms_const,
                  scale_disp = scale_disp,
+                 n_cyclical = n_cyclical,
+                 consts_cyclical = const_cyclical,
+                 matrix_cyclical_outcome = matrix_cyclical_outcome,
                  n_time = n_time,
                  n_season = n_season,
                  consts_season = const_season,
@@ -483,11 +490,15 @@ fit.bage_mod <- function(object, ...) {
     parfree <- make_parfree(object)
     hyper <- make_hyper(object)
     log_disp <- 0
+    par_cyclical <- make_par_cyclical(object)
+    hyper_cyclical <- make_hyper_cyclical(object)
     par_season <- make_par_season(object)
     hyper_season <- make_hyper_season(object)
     parameters <- list(parfree = parfree,   
                        hyper = hyper,
                        log_disp = log_disp,
+                       par_cyclical = par_cyclical,
+                       hyper_cyclical = hyper_cyclical,
                        par_season = par_season,
                        hyper_season = hyper_season)
     ## MakeADFun
@@ -634,6 +645,31 @@ get_vals_est.bage_mod_norm <- function(mod) {
          disp = vals_hyperparam[["disp"]],
          season = vals_hyperparam[["season"]],
          fitted = fitted)
+}
+
+
+## 'has_cyclical' ----------------------------------------------------------------
+
+## HAS_TESTS
+#' Test whether a model includes a cyclical effect
+#'
+#' Test whether a cyclicalal effect has been added
+#' to a model (via [set_cyclical()]).
+#'
+#' @param x A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_cyclical <- function(mod) {
+    UseMethod("has_cyclical")
+}
+
+## HAS_TESTS
+#' @export
+has_cyclical.bage_mod <- function(mod) {
+    n_cyclical <- mod$n_cyclical
+    n_cyclical > 0L
 }
 
 

@@ -1,5 +1,23 @@
 
 ## HAS_TESTS
+#' Check that object inherits from class "bage_mod"
+#'
+#' @param x Object
+#' @param nm_x Name to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_bage_mod <- function(x, nm_x) {
+    if (!inherits(x, "bage_mod"))
+        cli::cli_abort(c("{.arg {nm_x}} does not have class {.cls bage_mod}.",
+                         i = "{.arg {nm_x}} has class {.cls {class(x)}}.",
+                         i = paste("{.arg {nm_x}} should be created by a function",
+                                   "such as {.fun bage::mod_pois}.")))
+    invisible(TRUE)
+}
+
+## HAS_TESTS
 #' Check that 'by' argument consists of terms
 #' named in 'formula'
 #'

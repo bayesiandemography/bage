@@ -142,16 +142,21 @@ make_comp_component <- function(mod) {
     est <- mod$est
     offset <- make_offsets_parfree_par(mod)
     has_disp <- has_disp(mod)
+    has_cyclical <- has_cyclical(mod)
     has_season <- has_season(mod)
-    vals <- c("par", "hyper", "disp", "season")
+    vals <- c("par", "hyper", "disp", "cyclical", "season")
     n_par <- length(offset)
     n_hyper <- length(est$hyper)
     n_disp <- as.integer(has_disp)
+    if (has_cyclical)
+        n_cyclical <- length(est$par_cyclical) + length(est$hyper_cyclical)
+    else
+        n_cyclical <- 0L
     if (has_season)
         n_season <- length(est$par_season) + length(est$hyper_season)
     else
         n_season <- 0L
-    times <- c(n_par, n_hyper, n_disp, n_season)
+    times <- c(n_par, n_hyper, n_disp, n_cyclical, n_season)
     rep(vals, times = times)
 }
 
@@ -238,10 +243,15 @@ make_draws_components <- function(mod) {
                                  offset = offset_parfree_par)
     n <- nrow(draws)
     keep <- rep(TRUE, n)
+    n_cyclical <- length(est$par_cyclical) + length(est$hyper_cyclical)
     n_season <- length(est$par_season) + length(est$hyper_season)
     if (!has_disp(mod)) {
-        i_disp <- n - n_season
+        i_disp <- n - n_cyclical - n_season
         keep[i_disp] <- FALSE
+    }
+    if (!has_cyclical(mod)) {
+        i_cyclical <- seq.int(to = n - n_season, length.out = n_cyclical)
+        keep[i_cyclical] <- FALSE
     }
     if (!has_season(mod)) {
         i_season <- seq.int(to = n, length.out = n_season)
@@ -350,11 +360,38 @@ make_level_components <- function(mod) {
     ans <- c(par, hyper)
     if (has_disp(mod))
         ans <- c(ans, "disp")
+    if (has_cyclical(mod)) {
+        cyclical <- make_levels_cyclical(mod)
+        cyclical <- as.character(cyclical)
+        ans <- c(ans, cyclical)
+    }
     if (has_season(mod)) {
         season <- make_levels_season(mod)
         season <- as.character(season)
         ans <- c(ans, season)
     }
+    ans
+}
+
+
+## HAS_TESTS
+#' Make levels for parameters and hyper-parameter of
+#' cyclical effect
+#'
+#' @param mod A fitted object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_cyclical <- function(mod) {
+    if (!has_cyclical(mod))
+        return(character())
+    n_cyclical <- mod$n_cyclical
+    levels_hyper <- c(paste0("coef", seq_len(n_cyclical)),
+                      "sd")
+    matrix <- mod$matrix_cyclical_outcome
+    levels_par <- colnames(matrix)
+    ans <- c(levels_par, levels_hyper)
     ans
 }
 
@@ -417,9 +454,31 @@ make_levels_season <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make linear predictor from cyclical.
+#'
+#' Return value aligned to outcome, not data.
+#'
+#' @param mod Object of class "bage_mod"
+#' @param components Data frame produced by
+#' call to `components()`.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_linpred_cyclical <- function(mod, components) {
+    matrix_cyclical_outcome <- mod$matrix_cyclical_outcome
+    matrix_cyclical_outcome <- Matrix::as.matrix(matrix_cyclical_outcome)
+    is_cyclical <- ((components$component == "cyclical")
+        & (components$term == "par"))
+    cyclical <- components$.fitted[is_cyclical]
+    matrix_cyclical_outcome %*% cyclical
+}
+
+
+## HAS_TESTS
 #' Make linear predictor from par.
 #'
-#' Does not include seasonal effect.
+#' Does not include cyclical or seasonal effect.
 #'
 #' Return value aligned to outcome, not data.
 #'
@@ -506,11 +565,42 @@ make_term_components <- function(mod) {
     ans <- c(par, hyper)
     if (has_disp(mod))
         ans <- c(ans, "disp")
+    if (has_cyclical(mod)) {
+        cyclical <- make_terms_cyclical(mod)
+        cyclical <- as.character(cyclical)
+        ans <- c(ans, cyclical)
+    }
     if (has_season(mod)) {
         season <- make_terms_season(mod)
         season <- as.character(season)
         ans <- c(ans, season)
     }
+    ans
+}
+
+
+## HAS_TESTS
+#' Make factor identifying components of 'cyclical'
+#'
+#' Make factor distinguishing parameters
+#' and hyper-parmeters in 'cyclical'
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor.
+#'
+#' @noRd
+make_terms_cyclical <- function(mod) {
+    if (!has_cyclical(mod))
+        return(factor())
+    par <- make_par_cyclical(mod)
+    hyper <- make_hyper_cyclical(mod)
+    n_par <- length(par)
+    n_hyper <- length(hyper)
+    levels <- c("par", "hyper")
+    times <- c(n_par, n_hyper)
+    ans <- rep(levels, times = times)
+    ans <- factor(ans, levels = levels)
     ans
 }
 
@@ -544,7 +634,8 @@ make_terms_season <- function(mod) {
 #' hyper-parameters 
 #'
 #' Includes dispersion, if present,
-#' and hyper-parameters for season effect.
+#' and hyper-parameters for cyclical and
+#' seasonal effects.
 #' Result applied to *all* parameters, and
 #' includes NULLs for parameters that are
 #' not hyper-parameters.
@@ -555,15 +646,24 @@ make_terms_season <- function(mod) {
 #'
 #' @noRd
 make_transforms_hyper <- function(mod) {
+    invlogit2 <- function(x) {
+        ans <- exp(x) / (1 + exp(x))
+        2 * ans - 1
+    }
     est <- mod$est
     priors <- mod$priors
     has_disp <- has_disp(mod)
+    has_cyclical <- has_cyclical(mod)
     has_season <- has_season(mod)
     n_parfree <- length(est$parfree)
+    n_par_cyclical <- length(est$par_cyclical)
     n_par_season <- length(est$par_season)
+    n_hyper_cyclical <- length(est$hyper_cyclical)
     n_hyper_season <- length(est$hyper_season)
     nms_parfree <- names(est$parfree)
+    nms_par_cyclical <- names(est$par_cyclical)
     nms_par_season <- names(est$par_season)
+    nms_hyper_cyclical <- names(est$hyper_cyclical)
     nms_hyper_season <- names(est$hyper_season)
     ans_parfree <- rep(list(NULL), times = n_parfree)
     names(ans_parfree) <- nms_parfree
@@ -571,14 +671,26 @@ make_transforms_hyper <- function(mod) {
     ans_hyper <- unlist(ans_hyper, recursive = FALSE)
     ans_log_disp <- if (has_disp) exp else NULL
     ans_log_disp = list(log_disp = ans_log_disp)
+    ans_par_cyclical <- rep(list(NULL), times = n_par_cyclical)
     ans_par_season <- rep(list(NULL), times = n_par_season)
+    names(ans_par_cyclical) <- nms_par_cyclical
     names(ans_par_season) <- nms_par_season
+    if (has_cyclical) {
+        ans_hyper_cyclical <- list(invlogit2, exp)
+        ans_hyper_cyclical <- rep(ans_hyper_cyclical,
+                                  times = c(n_hyper_cyclical - 1L, 1L))
+    }
+    else
+        ans_hyper_cyclical <- rep(list(NULL), times = n_hyper_cyclical)
+    names(ans_hyper_cyclical) <- nms_hyper_cyclical
     ans_hyper_season <- if (has_season) exp else NULL
     ans_hyper_season <- rep(list(ans_hyper_season), times = n_hyper_season)
     names(ans_hyper_season) <- nms_hyper_season
     c(ans_parfree,
       ans_hyper,
       ans_log_disp,
+      ans_par_cyclical,
+      ans_hyper_cyclical,
       ans_par_season,
       ans_hyper_season)
 }

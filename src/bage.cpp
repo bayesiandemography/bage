@@ -171,6 +171,27 @@ Type logpost_uses_hyper(vector<Type> parfree,
 }
 
 template <class Type>
+Type logpost_cyclical(vector<Type> par_cyclical,
+		      vector<Type> hyper_cyclical,
+		      vector<Type> consts_cyclical,
+		      int n_cyclical) {
+  Type shape1 = consts_cyclical[0];
+  Type shape2 = consts_cyclical[1];
+  Type scale = consts_cyclical[2];
+  vector<Type> logit_coef = hyper_cyclical.head(n_cyclical);
+  Type log_sd = hyper_cyclical[n_cyclical];
+  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  vector<Type> coef = 2 * coef_raw - 1;
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dbeta(coef_raw, shape1, shape2, true).sum()
+    + log(coef_raw).sum() + log(1 - coef_raw).sum();
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans -= SCALE(ARk(coef), sd)(par_cyclical); // ARk returns neg log-lik
+  return ans;
+}
+
+template <class Type>
 Type logpost_season(vector<Type> par_season,
 		    vector<Type> hyper_season,
 		    vector<Type> consts_season,
@@ -258,6 +279,9 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
   DATA_SCALAR(scale_disp);
+  DATA_INTEGER(n_cyclical);
+  DATA_VECTOR(consts_cyclical);
+  DATA_SPARSE_MATRIX(matrix_cyclical_outcome);
   DATA_INTEGER(n_time);
   DATA_INTEGER(n_season);
   DATA_VECTOR(consts_season);
@@ -266,6 +290,8 @@ Type objective_function<Type>::operator() ()
   PARAMETER_VECTOR(parfree); 
   PARAMETER_VECTOR(hyper);
   PARAMETER(log_disp);
+  PARAMETER_VECTOR(par_cyclical);
+  PARAMETER_VECTOR(hyper_cyclical);
   PARAMETER_VECTOR(par_season);
   PARAMETER_VECTOR(hyper_season);
   
@@ -280,6 +306,7 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > consts_split = split(consts, terms_consts);
   int has_disp = scale_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
+  int has_cyclical = n_cyclical > 0;
   int has_season = n_season > 0;
 
 
@@ -305,6 +332,9 @@ Type objective_function<Type>::operator() ()
     }
     linear_pred = linear_pred + matrix_par_outcome * par_term;
   }
+  if (has_cyclical) {
+    linear_pred = linear_pred + matrix_cyclical_outcome * par_cyclical;
+  }
   if (has_season) {
     linear_pred = linear_pred + matrix_season_outcome * par_season;
   }
@@ -328,6 +358,13 @@ Type objective_function<Type>::operator() ()
 	ans -= logpost_not_uses_hyper(parfree_term, consts_term, i_prior_term);
     }
   }
+
+  // contribution to log posterior from cyclical effect
+  if (has_cyclical)
+    ans -= logpost_cyclical(par_cyclical,
+			    hyper_cyclical,
+			    consts_cyclical,
+			    n_cyclical);
 
   // contribution to log posterior from seasonal effect
   if (has_season)
