@@ -58,49 +58,49 @@ mod_svd <- mod_pois(deaths ~ age:sex + time,
 mod_svd
 ```
 
-```{r}
-mod_svd <- fit(mod_svd)
-mod_svd
-```
+<!-- ```{r} -->
+<!-- mod_svd <- fit(mod_svd) -->
+<!-- mod_svd -->
+<!-- ``` -->
 
 
-```{r}
-res <- augment(mod_svd)
-res
-```
+<!-- ```{r} -->
+<!-- res <- augment(mod_svd) -->
+<!-- res -->
+<!-- ``` -->
 
-```{r}
-res |>
-  filter(time %in% range(time)) |>
-  mutate(draws_ci(.fitted)) |>
-  ggplot(aes(x = age_mid(age), 
-             ymin = .fitted.lower,
-             y = .fitted.mid,
-             ymax = .fitted.upper)) +
-  facet_grid(vars(sex), vars(time)) +
-  geom_ribbon(fill = "lightblue") +
-  geom_line(col= "darkblue") +
-  geom_point(aes(y = .observed),
-             size = 0.2) +
-  scale_y_log10()
-```
+<!-- ```{r} -->
+<!-- res |> -->
+<!--   filter(time %in% range(time)) |> -->
+<!--   mutate(draws_ci(.fitted)) |> -->
+<!--   ggplot(aes(x = age_mid(age),  -->
+<!--              ymin = .fitted.lower, -->
+<!--              y = .fitted.mid, -->
+<!--              ymax = .fitted.upper)) + -->
+<!--   facet_grid(vars(sex), vars(time)) + -->
+<!--   geom_ribbon(fill = "lightblue") + -->
+<!--   geom_line(col= "darkblue") + -->
+<!--   geom_point(aes(y = .observed), -->
+<!--              size = 0.2) + -->
+<!--   scale_y_log10() -->
+<!-- ``` -->
 
-```{r}
-lifeexp <- res |>
-    lifeexp(mx = .fitted,
-            by = c(time, sex))
-lifeexp
-```
+<!-- ```{r} -->
+<!-- lifeexp <- res |> -->
+<!--     lifeexp(mx = .fitted, -->
+<!--             by = c(time, sex)) -->
+<!-- lifeexp -->
+<!-- ``` -->
 
-```{r}
-lifeexp |>
-  mutate(draws_ci(ex)) |>
-  ggplot(aes(x = time,
-             ymin = ex.lower,
-             y = ex.mid,
-             ymax = ex.upper)) +
-  facet_wrap(vars(sex)) +
-  geom_ribbon(fill = "lightblue") +
-  geom_line(col = "darkblue")
-```
+<!-- ```{r} -->
+<!-- lifeexp |> -->
+<!--   mutate(draws_ci(ex)) |> -->
+<!--   ggplot(aes(x = time, -->
+<!--              ymin = ex.lower, -->
+<!--              y = ex.mid, -->
+<!--              ymax = ex.upper)) + -->
+<!--   facet_wrap(vars(sex)) + -->
+<!--   geom_ribbon(fill = "lightblue") + -->
+<!--   geom_line(col = "darkblue") -->
+<!-- ``` -->
 
