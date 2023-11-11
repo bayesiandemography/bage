@@ -71,115 +71,115 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
     list()
 
 
-## 'draw_vals_par' ------------------------------------------------------------
+## 'draw_vals_effect' ------------------------------------------------------------
 
-draw_vals_par <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
-  UseMethod("draw_vals_par")
+draw_vals_effect <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
+  UseMethod("draw_vals_effect")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_ar1 <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_ar1 <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     coef <- vals_hyper$coef
     sd <- vals_hyper$sd
     draw_vals_ar1(coef = coef,
                   sd = sd,
-                  labels = levels_par)
+                  labels = levels_effect)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_known <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_known <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     values <- prior$specific$values
-    n_par <- length(levels_par)
+    n_effect <- length(levels_effect)
     matrix(values,
-           nrow = n_par,
+           nrow = n_effect,
            ncol = n_sim,
-           dimnames = list(levels_par, seq_len(n_sim)))
+           dimnames = list(levels_effect, seq_len(n_sim)))
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_norm <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_norm <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- vals_hyper$sd
-    n_par <- length(levels_par)
-    n <- n_par * n_sim
-    sd <- rep(sd, each = n_par)
+    n_effect <- length(levels_effect)
+    n <- n_effect * n_sim
+    sd <- rep(sd, each = n_effect)
     ans <- stats::rnorm(n = n, sd = sd)
     ans <- matrix(ans,
-                  nrow = n_par,
+                  nrow = n_effect,
                   ncol = n_sim,
-                  dimnames = list(levels_par, seq_len(n_sim)))
+                  dimnames = list(levels_effect, seq_len(n_sim)))
     ans
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_normfixed <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_normfixed <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- prior$specific$sd
-    n_par <- length(levels_par)
-    n <- n_par * n_sim
+    n_effect <- length(levels_effect)
+    n <- n_effect * n_sim
     ans <- stats::rnorm(n = n, sd = sd)
     ans <- matrix(ans,
-                  nrow = n_par,
+                  nrow = n_effect,
                   ncol = n_sim,
-                  dimnames = list(levels_par, seq_len(n_sim)))
+                  dimnames = list(levels_effect, seq_len(n_sim)))
     ans
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_rw <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_rw <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- vals_hyper$sd
     sd_intercept <- prior$specific$sd_intercept
     draw_vals_rw(sd = sd,
                  sd_intercept = sd_intercept,
-                 labels = levels_par)
+                 labels = levels_effect)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_rw2 <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_rw2 <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- vals_hyper$sd
     sd_intercept <- prior$specific$sd_intercept
     sd_slope <- prior$specific$sd_slope
     draw_vals_rw2(sd = sd,
                   sd_intercept = sd_intercept,
                   sd_slope = sd_slope,
-                  labels = levels_par)
+                  labels = levels_effect)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_spline <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_spline <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- vals_hyper$sd
     sd_intercept <- prior$specific$sd_intercept
     sd_slope <- prior$specific$sd_slope
-    m <- make_matrix_parfree_par(prior = prior,
-                                 levels_par = levels_par,
+    m <- make_matrix_effectfree_effect(prior = prior,
+                                 levels_effect = levels_effect,
                                  agesex = NULL)
     labels <- seq_len(ncol(m))
-    par <- draw_vals_rw2(sd = sd,
+    effect <- draw_vals_rw2(sd = sd,
                          sd_intercept = sd_intercept,
                          sd_slope = sd_slope,
                          labels = labels)
-    m %*% par
+    m %*% effect
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_par.bage_prior_svd <- function(prior, vals_hyper, levels_par, agesex, n_sim) {
+draw_vals_effect.bage_prior_svd <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     scaled_svd <- prior$specific$scaled_svd
     indep <- prior$specific$indep
     n_comp <- prior$specific$n
     m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                  levels_par = levels_par,
+                                  levels_effect = levels_effect,
                                   indep = indep,
                                   agesex = agesex,
                                   get_matrix = TRUE,
                                   n_comp = n_comp)
     b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                  levels_par = levels_par,
+                                  levels_effect = levels_effect,
                                   indep = indep,
                                   agesex = agesex,
                                   get_matrix = FALSE,
@@ -187,7 +187,7 @@ draw_vals_par.bage_prior_svd <- function(prior, vals_hyper, levels_par, agesex, 
     z <- stats::rnorm(n = n_comp * n_sim)
     z <- matrix(nrow = n_comp, ncol = n_sim)
     ans <- m %*% z + b
-    dimnames(ans) <- list(levels_par, seq_len(n_sim))
+    dimnames(ans) <- list(levels_effect, seq_len(n_sim))
     ans    
 }                             
     
@@ -222,23 +222,23 @@ is_known.bage_prior_known <- function(prior) TRUE
 #'
 #' @param prior Object of class 'bage_prior'
 #' @param nm Name of term.
-#' @param length_par Number of elements in term.
+#' @param length_effect Number of elements in term.
 #' @param agesex String. One of "age", "age:sex",
 #' "sex:age" or "other"
 #'
 #' @returns TRUE or raises an error
 #'
 #' @noRd
-is_prior_ok_for_term <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term <- function(prior, nm, length_effect, agesex) {
     UseMethod("is_prior_ok_for_term")
 }
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_ar1 <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term.bage_prior_ar1 <- function(prior, nm, length_effect, agesex) {
     check_is_main_effect(nm = nm,
                          prior = prior)
-    check_length_par_gt(length_par = length_par,
+    check_length_effect_gt(length_effect = length_effect,
                         min = 2L,
                         nm = nm,
                         prior = prior)
@@ -247,22 +247,22 @@ is_prior_ok_for_term.bage_prior_ar1 <- function(prior, nm, length_par, agesex) {
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_known <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term.bage_prior_known <- function(prior, nm, length_effect, agesex) {
     values <- prior$specific$values
     n_values <- length(values)
-    if (n_values != length_par) {
+    if (n_values != length_effect) {
         str <- str_call_prior(prior)
         cli::cli_abort(c("{.var {str}} prior for {.var {nm}} term invalid.",
                          i = "Prior specifies {n_values} element{?s}.",
-                         i = "{.var {nm}} has {length_par} element{?s}."))
+                         i = "{.var {nm}} has {length_effect} element{?s}."))
     }
     invisible(TRUE)
 }
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, length_par, agesex) {
-    check_length_par_gt(length_par = length_par,
+is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, length_effect, agesex) {
+    check_length_effect_gt(length_effect = length_effect,
                         min = 2L,
                         nm = nm,
                         prior = prior)
@@ -271,8 +271,8 @@ is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, length_par, agesex) 
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_normfixed <- function(prior, nm, length_par, agesex) {
-    check_length_par_gt(length_par = length_par,
+is_prior_ok_for_term.bage_prior_normfixed <- function(prior, nm, length_effect, agesex) {
+    check_length_effect_gt(length_effect = length_effect,
                         min = 1L,
                         nm = nm,
                         prior = prior)
@@ -281,9 +281,9 @@ is_prior_ok_for_term.bage_prior_normfixed <- function(prior, nm, length_par, age
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, length_effect, agesex) {
     check_is_main_effect(nm = nm, prior = prior)
-    check_length_par_gt(length_par = length_par,
+    check_length_effect_gt(length_effect = length_effect,
                         min = 2L,
                         nm = nm,
                         prior = prior)
@@ -292,9 +292,9 @@ is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, length_par, agesex) {
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, length_effect, agesex) {
     check_is_main_effect(nm = nm, prior = prior)
-    check_length_par_gt(length_par = length_par,
+    check_length_effect_gt(length_effect = length_effect,
                         min = 3L,
                         nm = nm,
                         prior = prior)
@@ -303,9 +303,9 @@ is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, length_par, agesex) {
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, length_effect, agesex) {
     check_is_main_effect(nm = nm, prior = prior)
-    check_length_par_gt(length_par = length_par,
+    check_length_effect_gt(length_effect = length_effect,
                         min = 2L,
                         nm = nm,
                         prior = prior)
@@ -314,7 +314,7 @@ is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, length_par, agesex
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, length_par, agesex) {
+is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, length_effect, agesex) {
     has_agesex <- !is.null(agesex)
     n_dim <- length(strsplit(nm, split = ":")[[1L]])
     str <- str_call_prior(prior)
@@ -339,7 +339,7 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, length_par, agesex) {
                                    "with age main effects or with interactions between",
                                    "age and sex/gender.")))
     else
-        check_length_par_gt(length_par = length_par,
+        check_length_effect_gt(length_effect = length_effect,
                             min = 2L,
                             nm = nm,
                             prior = prior)
@@ -401,57 +401,57 @@ levels_hyper.bage_prior_svd <- function(prior)
     character()
 
 
-## 'make_matrix_parfree_par' --------------------------------------------------
+## 'make_matrix_effectfree_effect' --------------------------------------------------
 
-#' Make matrix mapping parfree to par
+#' Make matrix mapping effectfree to effect
 #'
 #' Make matrices mapping free parameters
 #' for main effects or interactions to
 #' full parameter vectors
 #' 
 #' @param prior Object of class 'bage_prior'
-#' @param levels_par Vector of labels for term
+#' @param levels_effect Vector of labels for term
 #' @param agesex String. One of "age", "age:sex",
 #' "sex:age" or "other"
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_parfree_par <- function(prior, levels_par, agesex) {
-    UseMethod("make_matrix_parfree_par")
+make_matrix_effectfree_effect <- function(prior, levels_effect, agesex) {
+    UseMethod("make_matrix_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_parfree_par.bage_prior <- function(prior, levels_par, agesex) {
-    n <- length(levels_par)
+make_matrix_effectfree_effect.bage_prior <- function(prior, levels_effect, agesex) {
+    n <- length(levels_effect)
     Matrix::.sparseDiagonal(n)
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_parfree_par.bage_prior_spline <- function(prior, levels_par, agesex) {
+make_matrix_effectfree_effect.bage_prior_spline <- function(prior, levels_effect, agesex) {
     n_spline <- prior$specific$n
     if (is.null(n_spline)) {
-        n_spline <- 0.7 * length(levels_par)
+        n_spline <- 0.7 * length(levels_effect)
         n_spline <- ceiling(n_spline)
         n_spline <- max(n_spline, 4L)
     }
-    length_par <- length(levels_par)
+    length_effect <- length(levels_effect)
     ans <- make_spline_matrix(n_spline = n_spline,
-                              length_par = length_par)
-    rownames(ans) <- levels_par
+                              length_effect = length_effect)
+    rownames(ans) <- levels_effect
     ans
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
+make_matrix_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, agesex) {
     scaled_svd <- prior$specific$scaled_svd
     indep <- prior$specific$indep
     n_comp <- prior$specific$n
     get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                             levels_par = levels_par,
+                             levels_effect = levels_effect,
                              indep = indep,
                              agesex = agesex,
                              get_matrix = TRUE,
@@ -459,9 +459,9 @@ make_matrix_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
 }                             
 
     
-## 'make_offset_parfree_par' --------------------------------------------------
+## 'make_offset_effectfree_effect' --------------------------------------------------
 
-#' Make offset used in converting parfree to par
+#' Make offset used in converting effectfree to effect
 #'
 #' Make offset used in converting
 #' free parameters
@@ -474,24 +474,24 @@ make_matrix_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
 #' @returns A vector.
 #'
 #' @noRd
-make_offset_parfree_par <- function(prior, levels_par, agesex) {
-    UseMethod("make_offset_parfree_par")
+make_offset_effectfree_effect <- function(prior, levels_effect, agesex) {
+    UseMethod("make_offset_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-make_offset_parfree_par.bage_prior <- function(prior, levels_par, agesex) {
-    n <- length(levels_par)
+make_offset_effectfree_effect.bage_prior <- function(prior, levels_effect, agesex) {
+    n <- length(levels_effect)
     rep(0, times = n)
 }
 
 ## HAS_TESTS
 #' @export
-make_offset_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
+make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, agesex) {
     scaled_svd <- prior$specific$scaled_svd
     indep <- prior$specific$indep
     matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                       levels_par = levels_par,
+                                       levels_effect = levels_effect,
                                        indep = indep,
                                        agesex = agesex,
                                        get_matrix = FALSE,
@@ -499,52 +499,52 @@ make_offset_parfree_par.bage_prior_svd <- function(prior, levels_par, agesex) {
 }
 
 
-## 'uses_matrix_parfree_par' --------------------------------------------------
+## 'uses_matrix_effectfree_effect' --------------------------------------------------
 
-#' Whether prior uses matrix to convert parfree to par
+#' Whether prior uses matrix to convert effectfree to effect
 #'
 #' @param prior Object of class 'bage_prior'
 #'
 #' @returns TRUE or FALSE.
 #'
 #' @noRd
-uses_matrix_parfree_par <- function(prior) {
-    UseMethod("uses_matrix_parfree_par")
+uses_matrix_effectfree_effect <- function(prior) {
+    UseMethod("uses_matrix_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-uses_matrix_parfree_par.bage_prior <- function(prior) FALSE
+uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_parfree_par.bage_prior_spline <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_spline <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_parfree_par.bage_prior_svd <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_svd <- function(prior) TRUE
 
 
-## 'uses_offset_parfree_par' --------------------------------------------------
+## 'uses_offset_effectfree_effect' --------------------------------------------------
 
-#' Whether prior uses offset to convert parfree to par
+#' Whether prior uses offset to convert effectfree to effect
 #'
 #' @param prior Object of class 'bage_prior'
 #'
 #' @returns TRUE or FALSE.
 #'
 #' @noRd
-uses_offset_parfree_par <- function(prior) {
-    UseMethod("uses_offset_parfree_par")
+uses_offset_effectfree_effect <- function(prior) {
+    UseMethod("uses_offset_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-uses_offset_parfree_par.bage_prior <- function(prior) FALSE
+uses_offset_effectfree_effect.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_offset_parfree_par.bage_prior_svd <- function(prior) TRUE
+uses_offset_effectfree_effect.bage_prior_svd <- function(prior) TRUE
 
 
 ## 'str_call_prior' -----------------------------------------------------------
@@ -741,54 +741,54 @@ transform_hyper.bage_prior_svd <- function(prior)
     list()
 
 
-## 'uses_matrix_parfree_par' --------------------------------------------------
+## 'uses_matrix_effectfree_effect' --------------------------------------------------
 
-#' Whether prior uses matrix to transform parfree
-#' to par
+#' Whether prior uses matrix to transform effectfree
+#' to effect
 #'
 #' @param prior Object of class 'bage_prior'
 #'
 #' @returns TRUE or FALSE
 #'
 #' @noRd
-uses_matrix_parfree_par <- function(prior) {
-    UseMethod("uses_matrix_parfree_par")
+uses_matrix_effectfree_effect <- function(prior) {
+    UseMethod("uses_matrix_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-uses_matrix_parfree_par.bage_prior <- function(prior) FALSE
+uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_parfree_par.bage_prior_spline <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_spline <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_parfree_par.bage_prior_svd <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_svd <- function(prior) TRUE
 
 
-## 'uses_offset_parfree_par' --------------------------------------------------
+## 'uses_offset_effectfree_effect' --------------------------------------------------
 
-#' Whether prior uses offset to transform parfree
-#' to par
+#' Whether prior uses offset to transform effectfree
+#' to effect
 #'
 #' @param prior Object of class 'bage_prior'
 #'
 #' @returns TRUE or FALSE
 #'
 #' @noRd
-uses_offset_parfree_par <- function(prior) {
-    UseMethod("uses_offset_parfree_par")
+uses_offset_effectfree_effect <- function(prior) {
+    UseMethod("uses_offset_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-uses_offset_parfree_par.bage_prior <- function(prior) FALSE
+uses_offset_effectfree_effect.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_offset_parfree_par.bage_prior_svd <- function(prior) TRUE
+uses_offset_effectfree_effect.bage_prior_svd <- function(prior) TRUE
 
 
 ## 'values_known' -------------------------------------------------------------

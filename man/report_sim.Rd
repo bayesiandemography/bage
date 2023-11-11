@@ -26,11 +26,11 @@ Default is 100.}
 
 \item{point_est_fun}{Name of the function to use
 to calculate point estimates. The options are \code{"mean"}
-and \code{"median"}, and the default is \code{"mean"}.}
+and \code{"median"}. The default is \code{"mean"}.}
 
 \item{widths}{Widths of credible intervals.
 A vector of values in the interval \verb{(0, 1]}.
-Default is \code{0.5} and \code{0.95}.}
+Default is \code{c(0.5, 0.95)}.}
 
 \item{report_type}{Amount of detail in return value.
 Options are \code{"short"} and \code{"long"}. Default is \code{"short"}.}
@@ -43,8 +43,8 @@ processing is done. CURRENTLY UNUSED.}
 \strong{\code{report_type} is \code{"short"}}
 A tibble with the following columns:
 \itemize{
-\item \code{component}. Part of model. See \code{\link[=components]{components()}}.
-\code{"fitted"} is the rate, probability, or mean
+\item \code{component}. Part of model. See Details.
+\code{"par"} is the rate, probability, or mean
 parameter from the likelihood.
 \item \code{vals_sim}. Simulated value for parameter, averaged
 across all simulations and cells.
@@ -59,7 +59,7 @@ simulations and cells.
 A tibble with the following columns:
 \itemize{
 \item \code{component}. Part of model. See \code{\link[=components]{components()}}.
-\code{"fitted"} is the rate, probability,
+\code{"par"} is the rate, probability,
 or mean parameter from the likelihood.
 \item \code{term}. Category within \code{component}.
 \item \code{level}. Category within \code{term}.
@@ -76,6 +76,32 @@ an \link[rvec:rvec]{rvec}.
 Use simulated data to assess the performance of
 and estimated model.
 }
+\section{Comparisons included in report}{
+
+
+When \code{mod_est} and \code{mod_sim} are identical,
+the report produced by \code{report_sim()} has the
+following components:
+\itemize{
+\item \code{"hyper"} Hyper-parameters from priors for intercept,
+main effects, and interactions.
+\item \code{"effect"} Intercept, main effects, and interactions.
+\item \code{"cyclical"} Parameters and hyper-parameters for
+cyclical effect, if included in model.
+\item \code{"season"} Parameters and hyper-parameters for
+seasonal effect, if included in model.
+\item \code{"meanpar"} Expected value for rates probabilities.
+Poisson and binomial models only.
+\item \code{"disp"} Dispersion term, if included in model.
+\item \code{"par"} Rates, probabilities, or means.
+}
+
+When \code{mod_est} and \code{mod_sim} differ, the
+report omits \code{"hyper"}, \code{"effect"}, \code{"cyclical"},
+and \code{"season"} since, for most model specifications,
+these terms are not comparable across models.
+}
+
 \examples{
 ## results random, so set seed
 set.seed(0)

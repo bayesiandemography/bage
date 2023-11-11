@@ -1,7 +1,7 @@
 
 ## 'assess_performance' -------------------------------------------------------
 
-test_that("'assess_performance' works with valid inputs - include_priors is TRUE", {
+test_that("'assess_performance' works with valid inputs - include_upper is TRUE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -16,13 +16,13 @@ test_that("'assess_performance' works with valid inputs - include_priors is TRUE
     ans <- assess_performance(vals_sim = vals_sim,
                               mod_est = mod,
                               point_est_fun = "mean",
-                              include_priors = TRUE,
+                              include_upper = TRUE,
                               widths = c(0.5, 0.95))
     expect_identical(sapply(ans, length),
                      c(vals_sim = 5L, error_point_est = 5L, is_in_interval = 5L))
 })
 
-test_that("'assess_performance' works with valid inputs - include_priors is FALSE", {
+test_that("'assess_performance' works with valid inputs - include_upper is FALSE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -37,10 +37,10 @@ test_that("'assess_performance' works with valid inputs - include_priors is FALS
     ans <- assess_performance(vals_sim = vals_sim,
                               mod_est = mod,
                               point_est_fun = "mean",
-                              include_priors = FALSE,
+                              include_upper = FALSE,
                               widths = c(0.5, 0.95))
     expect_identical(sapply(ans, length),
-                     c(vals_sim = 3L, error_point_est = 3L, is_in_interval = 3L))
+                     c(vals_sim = 2L, error_point_est = 2L, is_in_interval = 2L))
 })
 
 
@@ -79,7 +79,7 @@ test_that("'calc_error_point_est_one' works", {
 
 ## calc_is_in_interval --------------------------------------------------------
 
-test_that("'calc_is_in_interval' works - include_priors is TRUE", {
+test_that("'calc_is_in_interval' works - include_upper is TRUE", {
     estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
                      b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
     truth <- list(par = 1:3, b = 4:6)
@@ -110,6 +110,50 @@ test_that("'calc_is_in_interval_one' works", {
                          "1" = c(TRUE, TRUE, FALSE))
     expect_equal(ans_obtained, ans_expected)
 })                                       
+
+
+## draw_vals_ar ---------------------------------------------------------------
+
+test_that("'draw_vals_ar' works with p = 1", {
+    set.seed(0)
+    coef <- draw_vals_ar_coef(p = 1, shape1 = 2, shape2 = 2)
+    ans <- draw_vals_ar(n = 1000, coef = coef, sd = 0.3)
+    expect_equal(sd(ans), 0.3, tolerance = 0.01)
+})
+
+test_that("'draw_vals_ar' works with p = 2", {
+    set.seed(0)
+    coef <- draw_vals_ar_coef(p = 2, shape1 = 2, shape2 = 2)
+    ans <- draw_vals_ar(n = 1000, coef = coef, sd = 0.3)
+    expect_equal(sd(ans), 0.3, tolerance = 0.01)
+})
+
+test_that("'draw_vals_ar' works with p = 10", {
+    set.seed(0)
+    coef <- draw_vals_ar_coef(p = 10, shape1 = 2, shape2 = 2)
+    ans <- draw_vals_ar(n = 10000, coef = coef, sd = 0.3)
+    expect_equal(sd(ans), 0.3, tolerance = 0.02)
+})
+
+
+## draw_vals_ar_coef ----------------------------------------------------------
+
+test_that("'draw_vals_ar_coef' works with p = 1", {
+    set.seed(0)
+    ans <- draw_vals_ar_coef(p = 1, shape1 = 2, shape2 = 2)
+    expect_true(abs(ans) < 1)
+})
+
+test_that("'draw_vals_ar_coef' works with p = 2", {
+    set.seed(0)
+    ans <- draw_vals_ar_coef(p = 2, shape1 = 2, shape2 = 2)
+    expect_true(all(abs(ans) < 1))
+})
+
+test_that("'draw_vals_ar_coef' works with p = 10", {
+    ans <- draw_vals_ar_coef(p = 2, shape1 = 2, shape2 = 2)
+    expect_true(all(abs(ans) < 1))
+})
 
 
 ## draw_vals_ar1 --------------------------------------------------------------
@@ -152,6 +196,30 @@ test_that("'draw_vals_coef' works", {
 })
 
 
+## 'draw_vals_cyclical' -------------------------------------------------------
+
+test_that("'draw_vals_cyclical' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_cyclical(mod, n = 2)
+    mod <- set_prior(mod, age ~ Spline())
+    mod <- set_prior(mod, time ~ RW2())
+    ans <- draw_vals_cyclical(mod, n_sim = 100)
+    expect_identical(length(ans$sd), 100L)
+    expect_identical(nrow(ans$coef), 2L)
+    expect_identical(ncol(ans$coef), 100L)
+    expect_identical(nrow(ans$cyclical), 7L)
+    expect_identical(ncol(ans$cyclical), 100L)
+    expect_equal(mean(ans$cyclical), 0, tolerance = 0.05)
+})
+
+
 ## draw_vals_hyper_mod --------------------------------------------------------
 
 test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
@@ -171,7 +239,7 @@ test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
 
 ## draw_vals_hyperparam -------------------------------------------------------
 
-test_that("'draw_vals_hyperparam' works - has season and disp", {
+test_that("'draw_vals_hyperparam' works - has cyclical, season and disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -180,14 +248,15 @@ test_that("'draw_vals_hyperparam' works - has season and disp", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_cyclical(mod)
     mod <- set_season(mod, n = 2)
     ans <- draw_vals_hyperparam(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("par", "hyper", "disp", "season", "linpred"))
+                     c("effect", "hyper", "disp", "cyclical", "season", "linpred"))
     expect_false(any(sapply(ans, is.null)))
 })
 
-test_that("'draw_vals_hyperparam' works - no season or disp", {
+test_that("'draw_vals_hyperparam' works - no cyclical, season or disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -199,19 +268,20 @@ test_that("'draw_vals_hyperparam' works - no season or disp", {
     mod <- set_disp(mod, s = 0)
     ans <- draw_vals_hyperparam(mod, n_sim = 10)
     expect_identical(names(ans),
-                     c("par", "hyper", "disp", "season", "linpred"))
+                     c("effect", "hyper", "disp", "cyclical", "season", "linpred"))
     expect_identical(sapply(ans, is.null),
-                     c(par = FALSE,
+                     c(effect = FALSE,
                        hyper = FALSE,
                        disp = TRUE,
+                       cyclical = TRUE,
                        season = TRUE,
                        linpred = FALSE))
 })
 
 
-## draw_vals_par_mod ----------------------------------------------------------
+## draw_vals_effect_mod ----------------------------------------------------------
 
-test_that("'draw_vals_par_mod' works with bage_mod_pois", {
+test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -222,12 +292,12 @@ test_that("'draw_vals_par_mod' works with bage_mod_pois", {
                     exposure = popn)
     n_sim <- 10
     vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-    ans <- draw_vals_par_mod(mod,
-                             vals_hyper = vals_hyper,
-                             n_sim = n_sim)
+    ans <- draw_vals_effect_mod(mod,
+                                vals_hyper = vals_hyper,
+                                n_sim = n_sim)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
     expect_true(all(sapply(ans, ncol) == n_sim))
-    expect_identical(sapply(ans, nrow), sapply(mod$matrices_par_outcome, ncol))
+    expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
 })
 
 
@@ -338,31 +408,47 @@ test_that("'get_vals_hyperparam_est' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_cyclical(mod)
     mod <- set_season(mod, n = 2)
     mod <- fit(mod)
     ans_obtained <- get_vals_hyperparam_est(mod)
     components <- components(mod)
-    ans_expected <- list(par = subset(components, component == "par", select = ".fitted")[[1]],
+    ans_expected <- list(effect = subset(components, component == "effect", select = ".fitted")[[1]],
                          hyper = subset(components, component == "hyper", select = ".fitted")[[1]],
                          disp = subset(components, component == "disp", select = ".fitted")[[1]],
+                         cyclical = subset(components, component == "cyclical",
+                                           select = ".fitted")[[1]],
                          season = subset(components, component == "season", select = ".fitted")[[1]],
-                         linpred = make_linpred_par(mod, components) +
+                         linpred = make_linpred_effect(mod, components) +
+                             make_linpred_cyclical(mod, components) +
                              make_linpred_season(mod, components))
-    names(ans_expected[[1L]]) <- paste0(subset(components, component == "par", select = "term")[[1]],
-                                        subset(components, component == "par", select = "level")[[1]])
-    names(ans_expected[[2L]]) <- paste0(subset(components, component == "hyper", select = "term")[[1]],
-                                        subset(components, component == "hyper", select = "level")[[1]])
-    names(ans_expected[[3L]]) <- paste0(subset(components, component == "disp", select = "term")[[1]],
-                                        subset(components, component == "disp", select = "level")[[1]])
-    names(ans_expected[[4L]]) <- paste0(subset(components, component == "season", select = "term")[[1]],
-                                        subset(components, component == "season", select = "level")[[1]])
+    names(ans_expected[[1L]]) <- paste0(subset(components, component == "effect",
+                                               select = "term")[[1]],
+                                        subset(components, component == "effect",
+                                               select = "level")[[1]])
+    names(ans_expected[[2L]]) <- paste0(subset(components, component == "hyper",
+                                               select = "term")[[1]],
+                                        subset(components, component == "hyper",
+                                               select = "level")[[1]])
+    names(ans_expected[[3L]]) <- paste0(subset(components, component == "disp",
+                                               select = "term")[[1]],
+                                        subset(components, component == "disp",
+                                               select = "level")[[1]])
+    names(ans_expected[[4L]]) <- paste0(subset(components, component == "cyclical",
+                                               select = "term")[[1]],
+                                        subset(components, component == "cyclical",
+                                               select = "level")[[1]])
+    names(ans_expected[[5L]]) <- paste0(subset(components, component == "season",
+                                               select = "term")[[1]],
+                                        subset(components, component == "season",
+                                               select = "level")[[1]])
     expect_identical(ans_obtained, ans_expected)
 })
 
 
 ## 'get_vals_sim_one' ---------------------------------------------------------
 
-test_that("'get_vals_sim_one' works - include_priors = TRUE", {
+test_that("'get_vals_sim_one' works - include_upper = TRUE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -374,21 +460,63 @@ test_that("'get_vals_sim_one' works - include_priors = TRUE", {
     mod <- set_season(mod, n = 2)
     vals <- draw_vals_mod(mod, n_sim = 10)
     ans_obtained <- get_vals_sim_one(i_sim = 3, vals = vals)
-    ans_expected <- list(par = list("(Intercept)" = vals$par[["(Intercept)"]][,3,drop = FALSE],
-                                    age = vals$par$age[, 3, drop = FALSE],
-                                    sex = vals$par$sex[, 3, drop = FALSE],
-                                    time = vals$par$time[, 3, drop = FALSE]),
+    ans_expected <- list(effect = list("(Intercept)" = vals$effect[["(Intercept)"]][,3,drop = FALSE],
+                                       age = vals$effect$age[, 3, drop = FALSE],
+                                       sex = vals$effect$sex[, 3, drop = FALSE],
+                                       time = vals$effect$time[, 3, drop = FALSE]),
                          hyper = list("(Intercept)" = list(),
                                       age = list(sd = vals$hyper$age$sd[3]),
                                       sex = list(sd = vals$hyper$sex$sd[3]),
                                       time = list(sd = vals$hyper$time$sd[3])),
                          disp = vals$disp[3],
+                         cyclical = NULL,
                          season = list(season = vals$season$season[,3,drop = FALSE],
                                        sd = vals$season$sd[3]),
-                         fitted = vals$fitted[,3,drop = FALSE],
+                         par = vals$par[,3,drop = FALSE],
                          outcome = vals$outcome[,3,drop = FALSE])
     expect_equal(as.numeric(unlist(ans_obtained)),
                  as.numeric(unlist(ans_expected)))
+})
+
+
+## 'is_same_cyclical' ---------------------------------------------------------
+
+test_that("'is_same_cyclical' returns TRUE when cyclical effect same", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod <- set_cyclical(mod, n = 2)
+    expect_true(is_same_cyclical(mod, mod))
+})
+
+test_that("'is_same_cyclical' returns TRUE when different n", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod_est <- set_cyclical(mod, n = 2)
+    mod_sim <- set_cyclical(mod, n = 3)
+    expect_false(is_same_cyclical(mod_est, mod_sim))
+})
+
+test_that("'is_same_cyclical' returns TRUE when different 'scale'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod_est <- set_cyclical(mod, n = 2)
+    mod_sim <- set_cyclical(mod, n = 2, s = 0.1)
+    expect_false(is_same_cyclical(mod_est, mod_sim))
 })
 
 
@@ -449,6 +577,60 @@ test_that("'is_same_priors' returns FALSE when priors have different classes", {
 })
 
 
+## 'is_same_season' -----------------------------------------------------------
+
+test_that("'is_same_season' returns TRUE when season effect same", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod <- set_season(mod, n = 2)
+    expect_true(is_same_season(mod, mod))
+})
+
+test_that("'is_same_season' returns TRUE when different n", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod_est <- set_season(mod, n = 2)
+    mod_sim <- set_season(mod, n = 3)
+    expect_false(is_same_season(mod_est, mod_sim))
+})
+
+test_that("'is_same_season' returns TRUE when different 'by'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod_est <- set_season(mod, n = 2, by = age)
+    mod_sim <- set_season(mod, n = 2, by = sex)
+    expect_false(is_same_season(mod_est, mod_sim))
+})
+
+test_that("'is_same_season' returns TRUE when different 'scale'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    mod_est <- set_season(mod, n = 2)
+    mod_sim <- set_season(mod, n = 2, s = 0.1)
+    expect_false(is_same_season(mod_est, mod_sim))
+})
+
+
 ## make_diff_matrix -----------------------------------------------------------
 
 test_that("'make_diff_matrix' works", {
@@ -461,9 +643,9 @@ test_that("'make_diff_matrix' works", {
 })
 
 
-## 'make_id_vars' -------------------------------------------------------------
+## 'make_id_vars_report' -------------------------------------------------------------
 
-test_that("'make_id_vars' works with include_priors TRUE", {
+test_that("'make_id_vars_report' works with include_upper TRUE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -471,12 +653,12 @@ test_that("'make_id_vars' works with include_priors TRUE", {
     mod <- mod_pois(formula = deaths ~ age + sex + time,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_id_vars_report(mod, include_priors = TRUE)
+    ans_obtained <- make_id_vars_report(mod, include_upper = TRUE)
     expect_identical(names(ans_obtained), c("component", "term", "level"))
-    expect_setequal(ans_obtained$component, c("par", "hyper", "disp", "fitted"))
+    expect_setequal(ans_obtained$component, c("effect", "hyper", "disp", "par"))
 })
 
-test_that("'make_id_vars' works with include_priors FALSE", {
+test_that("'make_id_vars_report' works with include_upper FALSE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -485,9 +667,9 @@ test_that("'make_id_vars' works with include_priors FALSE", {
                     data = data,
                     exposure = popn) |>
                     set_season(n = 2)
-    ans_obtained <- make_id_vars_report(mod, include_priors = FALSE)
+    ans_obtained <- make_id_vars_report(mod, include_upper = FALSE)
     expect_identical(names(ans_obtained), c("component", "term", "level"))
-    expect_setequal(ans_obtained$component, c("disp", "season", "fitted"))
+    expect_setequal(ans_obtained$component, c("disp", "par"))
 })
 
 
@@ -517,9 +699,31 @@ test_that("'make_rw2_matrix' works", {
 })
 
 
-## make_vals_linpred_par ------------------------------------------------------
+## 'make_vals_linpred_cylical' ------------------------------------------------
 
-test_that("'make_vals_linpred_par' works", {
+test_that("'make_vals_linpred_cyclical' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2006, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_cyclical(mod, n = 2)
+    n_sim <- 10L
+    vals_cyclical <- draw_vals_cyclical(mod, n_sim = n_sim)
+    ans <- make_vals_linpred_cyclical(mod = mod,
+                                      vals_cyclical = vals_cyclical)
+    expect_identical(nrow(ans), length(mod$outcome))
+    expect_identical(ncol(ans), n_sim)
+    expect_true(all(apply(ans, 2, function(x) length(unique(x))) == 7L))
+})
+
+
+## make_vals_linpred_effect ------------------------------------------------------
+
+test_that("'make_vals_linpred_effect' works", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -530,11 +734,11 @@ test_that("'make_vals_linpred_par' works", {
                     exposure = popn)
     n_sim <- 10L
     vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-    vals_par <- draw_vals_par_mod(mod,
-                                  vals_hyper = vals_hyper,
-                                  n_sim = n_sim)
-    ans <- make_vals_linpred_par(mod = mod,
-                                 vals_par = vals_par)
+    vals_effect <- draw_vals_effect_mod(mod,
+                                        vals_hyper = vals_hyper,
+                                        n_sim = n_sim)
+    ans <- make_vals_linpred_effect(mod = mod,
+                                    vals_effect = vals_effect)
     expect_identical(nrow(ans), length(mod$outcome))
     expect_identical(ncol(ans), n_sim)
 })

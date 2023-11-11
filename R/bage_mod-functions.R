@@ -208,7 +208,7 @@ set_prior <- function(mod, formula) {
     check_bage_mod(x = mod, nm_x = "mod")
     check_format_prior_formula(formula)
     nms_terms <- names(mod$priors)
-    matrices_par_outcome <- mod$matrices_par_outcome
+    matrices_effect_outcome <- mod$matrices_effect_outcome
     var_age <- mod$var_age
     var_sexgender <- mod$var_sexgender
     nm_response_split <- strsplit(nm_response, split = ":")[[1L]]
@@ -229,13 +229,13 @@ set_prior <- function(mod, formula) {
     if (inherits(prior, "error"))
         cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
                          i = prior$message))
-    length_par <- ncol(matrices_par_outcome[[i]])
+    length_effect <- ncol(matrices_effect_outcome[[i]])
     agesex <- make_agesex_inner(nm = nms_terms[[i]],
                                 var_age = var_age,
                                 var_sexgender = var_sexgender)
     is_prior_ok_for_term(prior = prior,
                          nm = nm_response,
-                         length_par = length_par,
+                         length_effect = length_effect,
                          agesex = agesex)
     mod$priors[[i]] <- prior
     mod <- unfit(mod)
@@ -553,7 +553,7 @@ set_var_inner <- function(mod, name, var) {
     names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
     has_name_old <- !is.null(name_old)
     names_priors <- names(priors)
-    matrices_par_outcome <- mod$matrices_par_outcome
+    matrices_effect_outcome <- mod$matrices_effect_outcome
     ## check 'name'
     checkmate::assert_string(name, min.chars = 1L)
     check_formula_has_variable(name = name, formula = formula)
@@ -572,17 +572,17 @@ set_var_inner <- function(mod, name, var) {
     ## reset priors
     var_age <- mod[["var_age"]]
     var_time <- mod[["var_time"]]
-    length_par <- ncol(matrices_par_outcome[[name]])
+    length_effect <- ncol(matrices_effect_outcome[[name]])
     priors[[name]] <- default_prior(nm_term = name,
                                     var_age = var_age,
                                     var_time = var_time,
-                                    length_par = length_par)
+                                    length_effect = length_effect)
     if (has_name_old) {
-        length_par_old <- ncol(matrices_par_outcome[[name_old]])
+        length_effect_old <- ncol(matrices_effect_outcome[[name_old]])
         priors[[name_old]] <- default_prior(nm_term = name_old,
                                             var_age = var_age, 
                                             var_time = var_time,
-                                            length_par = length_par)
+                                            length_effect = length_effect)
     }
     ## modify priors
     mod$priors <- priors

@@ -75,55 +75,55 @@ insert_draws_known <- function(draws, est, is_fixed) {
 
 
 ## HAS_TESTS
-#' Create combined matrix from par to outcome
+#' Create combined matrix from effect to outcome
 #'
 #' Combine matrices for individual terms to
 #' create a matrix that maps all elements of
-#' 'par' to 'outcome'.
+#' 'effect' to 'outcome'.
 #'
 #' @param An object of class 'bage_mod'
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_combined_matrix_par_outcome <- function(mod) {
-    matrices_par_outcome <- mod$matrices_par_outcome
-    Reduce(Matrix::cbind2, matrices_par_outcome)
+make_combined_matrix_effect_outcome <- function(mod) {
+    matrices_effect_outcome <- mod$matrices_effect_outcome
+    Reduce(Matrix::cbind2, matrices_effect_outcome)
 }
 
 
 ## HAS_TESTS
-#' Create combined matrix from parfree to par
+#' Create combined matrix from effectfree to effect
 #'
 #' Combine matrices for individual terms to
 #' create a matrix that maps all elements of
-#' 'parfree' to 'par'.
+#' 'effectfree' to 'effect'.
 #'
 #' @param An object of class 'bage_mod'
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_combined_matrix_parfree_par <- function(mod) {
-    matrices <- make_matrices_parfree_par(mod)
+make_combined_matrix_effectfree_effect <- function(mod) {
+    matrices <- make_matrices_effectfree_effect(mod)
     Matrix::.bdiag(matrices)
 }
 
 
 ## HAS_TESTS
-#' Create combined offset from parfree to par
+#' Create combined offset from effectfree to effect
 #'
 #' Combine offsets for individual terms to
 #' create a offset that maps all elements of
-#' 'parfree' to 'pr'.
+#' 'effectfree' to 'effect'.
 #'
 #' @param An object of class 'bage_mod'
 #'
 #' @returns A numeric vector
 #'
 #' @noRd
-make_combined_offset_parfree_par <- function(mod) {
-    offsets <- make_offsets_parfree_par(mod)
+make_combined_offset_effectfree_effect <- function(mod) {
+    offsets <- make_offsets_effectfree_effect(mod)
     do.call(c, offsets)
 }
 
@@ -138,25 +138,25 @@ make_combined_offset_parfree_par <- function(mod) {
 #' @returns A character vector
 #'
 #' @noRd
-make_comp_component <- function(mod) {
+make_comp_components <- function(mod) {
     est <- mod$est
-    offset <- make_offsets_parfree_par(mod)
+    offset <- make_offsets_effectfree_effect(mod)
     has_disp <- has_disp(mod)
     has_cyclical <- has_cyclical(mod)
     has_season <- has_season(mod)
-    vals <- c("par", "hyper", "disp", "cyclical", "season")
-    n_par <- length(offset)
+    vals <- c("effect", "hyper", "disp", "cyclical", "season")
+    n_effect <- length(offset)
     n_hyper <- length(est$hyper)
     n_disp <- as.integer(has_disp)
     if (has_cyclical)
-        n_cyclical <- length(est$par_cyclical) + length(est$hyper_cyclical)
+        n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
     else
         n_cyclical <- 0L
     if (has_season)
-        n_season <- length(est$par_season) + length(est$hyper_season)
+        n_season <- length(est$effect_season) + length(est$hyper_season)
     else
         n_season <- 0L
-    times <- c(n_par, n_hyper, n_disp, n_cyclical, n_season)
+    times <- c(n_effect, n_hyper, n_disp, n_cyclical, n_season)
     rep(vals, times = times)
 }
 
@@ -227,8 +227,8 @@ make_draws_comp_raw <- function(mod) {
 make_draws_components <- function(mod) {
     est <- mod$est
     is_fixed <- mod$is_fixed
-    matrix_parfree_par <- make_combined_matrix_parfree_par(mod)
-    offset_parfree_par <- make_offsets_parfree_par(mod)
+    matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+    offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
     transforms_hyper <- make_transforms_hyper(mod)
     ## WARNING The order of the following functions matters:
     ## each makes assumptions about the rows of 'draws'
@@ -238,13 +238,13 @@ make_draws_components <- function(mod) {
                                 is_fixed = is_fixed)
     draws <- transform_draws_hyper(draws = draws,
                                    transforms = transforms_hyper)
-    draws <- transform_draws_par(draws = draws,
-                                 matrix = matrix_parfree_par,
-                                 offset = offset_parfree_par)
+    draws <- transform_draws_effect(draws = draws,
+                                 matrix = matrix_effectfree_effect,
+                                 offset = offset_effectfree_effect)
     n <- nrow(draws)
     keep <- rep(TRUE, n)
-    n_cyclical <- length(est$par_cyclical) + length(est$hyper_cyclical)
-    n_season <- length(est$par_season) + length(est$hyper_season)
+    n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
+    n_season <- length(est$effect_season) + length(est$hyper_season)
     if (!has_disp(mod)) {
         i_disp <- n - n_cyclical - n_season
         keep[i_disp] <- FALSE
@@ -262,14 +262,14 @@ make_draws_components <- function(mod) {
 }
 
 
-## 'make_fitted_disp' ---------------------------------------------------------
+## 'make_par_disp' ------------------------------------------------------------
 
 ## HAS_TESTS
 #' Make modelled estimates for models
 #' with dispersion term
 #'
 #' @param x A fitted 'bage_mod' object.
-#' @param expected An rvec with posterior
+#' @param meanpar An rvec with posterior
 #' distribution of expected values,
 #' based on (transformed) linear predictor.
 #' Aligned to data (not outcome.)
@@ -280,7 +280,7 @@ make_draws_components <- function(mod) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_fitted_disp <- function(x, expected, disp) {
+make_par_disp <- function(x, meanpar, disp) {
     outcome <- x$outcome
     offset <- x$offset
     seed_fitted <- x$seed_fitted
@@ -290,19 +290,19 @@ make_fitted_disp <- function(x, expected, disp) {
     outcome <- align_to_data(outcome)
     offset <- align_to_data(offset)
     n_val <- length(outcome)
-    n_draw <- rvec::n_draw(expected)
+    n_draw <- rvec::n_draw(meanpar)
     ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
     is_na <- is.na(outcome) | is.na(offset)
     outcome <- outcome[!is_na]
     offset <- offset[!is_na]
-    expected <- expected[!is_na]
+    meanpar <- meanpar[!is_na]
     seed_restore <- make_seed()
     set.seed(seed_fitted)
-    ans[!is_na] <- make_fitted_disp_inner(x = x,
-                                          outcome = outcome,
-                                          offset = offset,
-                                          expected = expected,
-                                          disp = disp)
+    ans[!is_na] <- make_par_disp_inner(x = x,
+                                       outcome = outcome,
+                                       offset = offset,
+                                       meanpar = meanpar,
+                                       disp = disp)
     set.seed(seed_restore)
     ans
 }
@@ -353,11 +353,11 @@ make_is_fixed <- function(est, map) {
 #'
 #' @noRd
 make_level_components <- function(mod) {
-    par <- mod$levels_par
+    effect <- mod$levels_effect
     hyper <- make_levels_hyper(mod)
-    par <- as.character(par)
+    effect <- as.character(effect)
     hyper <- as.character(hyper)
-    ans <- c(par, hyper)
+    ans <- c(effect, hyper)
     if (has_disp(mod))
         ans <- c(ans, "disp")
     if (has_cyclical(mod)) {
@@ -390,8 +390,8 @@ make_levels_cyclical <- function(mod) {
     levels_hyper <- c(paste0("coef", seq_len(n_cyclical)),
                       "sd")
     matrix <- mod$matrix_cyclical_outcome
-    levels_par <- colnames(matrix)
-    ans <- c(levels_par, levels_hyper)
+    levels_effect <- colnames(matrix)
+    ans <- c(levels_effect, levels_hyper)
     ans
 }
 
@@ -447,8 +447,8 @@ make_levels_season <- function(mod) {
     if (!has_season(mod))
         return(character())
     matrix <- mod$matrix_season_outcome
-    levels_par <- colnames(matrix)
-    ans <- c(levels_par, level_hyper)
+    levels_effect <- colnames(matrix)
+    ans <- c(levels_effect, level_hyper)
     ans
 }
 
@@ -469,14 +469,14 @@ make_linpred_cyclical <- function(mod, components) {
     matrix_cyclical_outcome <- mod$matrix_cyclical_outcome
     matrix_cyclical_outcome <- Matrix::as.matrix(matrix_cyclical_outcome)
     is_cyclical <- ((components$component == "cyclical")
-        & (components$term == "par"))
+        & (components$term == "effect"))
     cyclical <- components$.fitted[is_cyclical]
     matrix_cyclical_outcome %*% cyclical
 }
 
 
 ## HAS_TESTS
-#' Make linear predictor from par.
+#' Make linear predictor from effect.
 #'
 #' Does not include cyclical or seasonal effect.
 #'
@@ -489,12 +489,12 @@ make_linpred_cyclical <- function(mod, components) {
 #' @returns An rvec
 #'
 #' @noRd
-make_linpred_par <- function(mod, components) {
-    matrix_par_outcome <- make_combined_matrix_par_outcome(mod)
-    matrix_par_outcome <- Matrix::as.matrix(matrix_par_outcome)
-    is_par <- components$component == "par"
-    par <- components$.fitted[is_par]
-    matrix_par_outcome %*% par
+make_linpred_effect <- function(mod, components) {
+    matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+    matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
+    is_effect <- components$component == "effect"
+    effect <- components$.fitted[is_effect]
+    matrix_effect_outcome %*% effect
 }
 
 
@@ -514,7 +514,7 @@ make_linpred_season <- function(mod, components) {
     matrix_season_outcome <- mod$matrix_season_outcome
     matrix_season_outcome <- Matrix::as.matrix(matrix_season_outcome)
     is_season <- ((components$component == "season")
-        & (components$term == "par"))
+        & (components$term == "effect"))
     season <- components$.fitted[is_season]
     matrix_season_outcome %*% season
 }
@@ -558,11 +558,11 @@ make_scaled_eigen <- function(prec) {
 #'
 #' @noRd
 make_term_components <- function(mod) {
-    par <- mod$terms_par
+    effect <- mod$terms_effect
     hyper <- make_terms_hyper(mod)
-    par <- as.character(par)
+    effect <- as.character(effect)
     hyper <- as.character(hyper)
-    ans <- c(par, hyper)
+    ans <- c(effect, hyper)
     if (has_disp(mod))
         ans <- c(ans, "disp")
     if (has_cyclical(mod)) {
@@ -593,12 +593,12 @@ make_term_components <- function(mod) {
 make_terms_cyclical <- function(mod) {
     if (!has_cyclical(mod))
         return(factor())
-    par <- make_par_cyclical(mod)
+    effect <- make_effect_cyclical(mod)
     hyper <- make_hyper_cyclical(mod)
-    n_par <- length(par)
+    n_effect <- length(effect)
     n_hyper <- length(hyper)
-    levels <- c("par", "hyper")
-    times <- c(n_par, n_hyper)
+    levels <- c("effect", "hyper")
+    times <- c(n_effect, n_hyper)
     ans <- rep(levels, times = times)
     ans <- factor(ans, levels = levels)
     ans
@@ -619,10 +619,10 @@ make_terms_cyclical <- function(mod) {
 make_terms_season <- function(mod) {
     if (!has_season(mod))
         return(factor())
-    par <- make_par_season(mod)
-    n_par <- length(par)
-    levels <- c("par", "hyper")
-    times <- c(n_par, 1L)
+    effect <- make_effect_season(mod)
+    n_effect <- length(effect)
+    levels <- c("effect", "hyper")
+    times <- c(n_effect, 1L)
     ans <- rep(levels, times = times)
     ans <- factor(ans, levels = levels)
     ans
@@ -655,26 +655,26 @@ make_transforms_hyper <- function(mod) {
     has_disp <- has_disp(mod)
     has_cyclical <- has_cyclical(mod)
     has_season <- has_season(mod)
-    n_parfree <- length(est$parfree)
-    n_par_cyclical <- length(est$par_cyclical)
-    n_par_season <- length(est$par_season)
+    n_effectfree <- length(est$effectfree)
+    n_effect_cyclical <- length(est$effect_cyclical)
+    n_effect_season <- length(est$effect_season)
     n_hyper_cyclical <- length(est$hyper_cyclical)
     n_hyper_season <- length(est$hyper_season)
-    nms_parfree <- names(est$parfree)
-    nms_par_cyclical <- names(est$par_cyclical)
-    nms_par_season <- names(est$par_season)
+    nms_effectfree <- names(est$effectfree)
+    nms_effect_cyclical <- names(est$effect_cyclical)
+    nms_effect_season <- names(est$effect_season)
     nms_hyper_cyclical <- names(est$hyper_cyclical)
     nms_hyper_season <- names(est$hyper_season)
-    ans_parfree <- rep(list(NULL), times = n_parfree)
-    names(ans_parfree) <- nms_parfree
+    ans_effectfree <- rep(list(NULL), times = n_effectfree)
+    names(ans_effectfree) <- nms_effectfree
     ans_hyper <- lapply(priors, transform_hyper)
     ans_hyper <- unlist(ans_hyper, recursive = FALSE)
     ans_log_disp <- if (has_disp) exp else NULL
     ans_log_disp = list(log_disp = ans_log_disp)
-    ans_par_cyclical <- rep(list(NULL), times = n_par_cyclical)
-    ans_par_season <- rep(list(NULL), times = n_par_season)
-    names(ans_par_cyclical) <- nms_par_cyclical
-    names(ans_par_season) <- nms_par_season
+    ans_effect_cyclical <- rep(list(NULL), times = n_effect_cyclical)
+    ans_effect_season <- rep(list(NULL), times = n_effect_season)
+    names(ans_effect_cyclical) <- nms_effect_cyclical
+    names(ans_effect_season) <- nms_effect_season
     if (has_cyclical) {
         ans_hyper_cyclical <- list(invlogit2, exp)
         ans_hyper_cyclical <- rep(ans_hyper_cyclical,
@@ -686,12 +686,12 @@ make_transforms_hyper <- function(mod) {
     ans_hyper_season <- if (has_season) exp else NULL
     ans_hyper_season <- rep(list(ans_hyper_season), times = n_hyper_season)
     names(ans_hyper_season) <- nms_hyper_season
-    c(ans_parfree,
+    c(ans_effectfree,
       ans_hyper,
       ans_log_disp,
-      ans_par_cyclical,
+      ans_effect_cyclical,
       ans_hyper_cyclical,
-      ans_par_season,
+      ans_effect_season,
       ans_hyper_season)
 }
 
@@ -759,7 +759,7 @@ transform_draws_hyper <- function(draws, transforms) {
 
 
 ## HAS_TESTS
-#' Convert 'parfree' part of draws to 'par'
+#' Convert 'effectfree' part of draws to 'effect'
 #'
 #' Use matrices and offset to convert free parameters
 #' (including ones with Known priors)
@@ -772,21 +772,21 @@ transform_draws_hyper <- function(draws, transforms) {
 #' distribution of all parameters, including
 #' parameters with Known priors.
 #' @param matrix Matrix mapping all
-#' parfree to par
+#' effectfree to effect
 #' @param offset Offset converting all
-#' parfree to par
+#' effectfree to effect
 #'
 #' @returns A matrix
 #'
 #' @noRd
-transform_draws_par <- function(draws, matrix, offset) {
-    n_parfree <- ncol(matrix)
+transform_draws_effect <- function(draws, matrix, offset) {
+    n_effectfree <- ncol(matrix)
     n_val <- nrow(draws)
-    is_parfree <- seq_len(n_val) <= n_parfree
-    parfree <- draws[is_parfree, , drop = FALSE]
-    not_parfree <- draws[!is_parfree, , drop = FALSE]
-    par <- matrix %*% parfree + offset
-    rbind(par, not_parfree)
+    is_effectfree <- seq_len(n_val) <= n_effectfree
+    effectfree <- draws[is_effectfree, , drop = FALSE]
+    not_effectfree <- draws[!is_effectfree, , drop = FALSE]
+    effect <- matrix %*% effectfree + offset
+    rbind(effect, not_effectfree)
 }
     
 

@@ -6,7 +6,7 @@
 #' Extract a matrix or offset from a 'bage_scaled_svd' object
 #'
 #' @param scaled_svd Object of class 'bage_scaled_svd'
-#' @param levels_par Labels for an age main effect or
+#' @param levels_effect Labels for an age main effect or
 #' interaction between age and sex/gender
 #' @param indep Whether SVDs for sexes/genders were
 #' carried out jointly or separately
@@ -22,7 +22,7 @@
 #'
 #' @noRd
 get_matrix_or_offset_svd <- function(scaled_svd,
-                                     levels_par,
+                                     levels_effect,
                                      indep,
                                      agesex,
                                      get_matrix,
@@ -42,7 +42,7 @@ get_matrix_or_offset_svd <- function(scaled_svd,
     else
         cli::cli_abort(paste("Internal error: unexpected combination of",
                              "{.var agesex} and {.var indep}."))
-    ## get labels that are in same format as 'levels_par'
+    ## get labels that are in same format as 'levels_effect'
     is_type_req <- type == type_req
     if (identical(type_req, "total"))
         labels_all <- labels_age[is_type_req]
@@ -61,7 +61,7 @@ get_matrix_or_offset_svd <- function(scaled_svd,
     is_matched_labels <- FALSE
     for (i_all in seq_along(labels_all)) {
         labels <- labels_all[[i_all]]
-        is_matched_labels <- setequal(labels, levels_par)
+        is_matched_labels <- setequal(labels, levels_effect)
         if (is_matched_labels) {
             labels_matched <- labels
             break
@@ -71,16 +71,16 @@ get_matrix_or_offset_svd <- function(scaled_svd,
         if (type_req == "total")
             msg <- c(paste("Labels for age main effect not consistent",
                            "with labels for age in {.var scaled_svd}."),
-                     i = "Labels for age main effect: {.val {levels_par}}.")
+                     i = "Labels for age main effect: {.val {levels_effect}}.")
         else
             msg <- c(paste("Labels for interaction between age and sex/gender",
                            "not consistent with labels for age and sex/gender in",
                            "{.var scaled_svd}."),
-                     i = "Labels for interaction: {.val {levels_par}}.")
+                     i = "Labels for interaction: {.val {levels_effect}}.")
         cli::cli_abort(msg)
     }
     ## get order of levels in term
-    i_levels_par <- match(levels_par, labels_matched)
+    i_levels_effect <- match(levels_effect, labels_matched)
     ## extract matrix or offset and align to labels in main effect / interaction
     if (get_matrix) {
         ans <- data$matrix[is_type_req][[i_all]]
@@ -92,11 +92,11 @@ get_matrix_or_offset_svd <- function(scaled_svd,
             cols_extra <- rep(cols_extra, each = n_comp)
             cols <- cols + cols_extra
         }
-        ans <- ans[i_levels_par, cols, drop = FALSE]
+        ans <- ans[i_levels_effect, cols, drop = FALSE]
     }
     else {
         ans <- data$offset[is_type_req][[i_all]]
-        ans <- ans[i_levels_par]
+        ans <- ans[i_levels_effect]
     }
     ## return result
     ans
