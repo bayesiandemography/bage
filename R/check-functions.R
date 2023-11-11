@@ -1,5 +1,23 @@
 
 ## HAS_TESTS
+#' Check that object inherits from class "bage_mod"
+#'
+#' @param x Object
+#' @param nm_x Name to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_bage_mod <- function(x, nm_x) {
+    if (!inherits(x, "bage_mod"))
+        cli::cli_abort(c("{.arg {nm_x}} does not have class {.cls bage_mod}.",
+                         i = "{.arg {nm_x}} has class {.cls {class(x)}}.",
+                         i = paste("{.arg {nm_x}} should be created by a function",
+                                   "such as {.fun bage::mod_pois}.")))
+    invisible(TRUE)
+}
+
+## HAS_TESTS
 #' Check that 'by' argument consists of terms
 #' named in 'formula'
 #'
@@ -206,7 +224,7 @@ check_formula_vnames_in_data <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Given that 'condition_on' argument is "expected", check that
+#' Given that 'condition_on' argument is "meanpar", check that
 #' the model includes a dispersion term
 #'
 #' @param x A fitted 'bage_mod' object
@@ -214,13 +232,13 @@ check_formula_vnames_in_data <- function(formula, data) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_has_disp_if_condition_on_expected <- function(x) {
+check_has_disp_if_condition_on_meanpar <- function(x) {
     if (!has_disp(x)) {
-        val_exp <- "expected"
-        val_fit <- "fitted"
-        cli::cli_abort(c(paste("{.arg condition_on} is {.val {val_exp}} but model",
+        val_meanpar <- "meanpar"
+        val_par <- "par"
+        cli::cli_abort(c(paste("{.arg condition_on} is {.val {val_meanpar}} but model",
                                "has no dispersion term."),
-                         i = "Use {.code condition_on = {.val {val_fit}}} instead?"))
+                         i = "Use {.code condition_on = {.val {val_par}}} instead?"))
     }
     invisible(TRUE)
 }
@@ -264,7 +282,7 @@ check_is_main_effect <- function(nm, prior) {
 ## HAS_TESTS
 #' Check that term has has least 'min' elements
 #'
-#' @param length_par Number of elements
+#' @param length_effect Number of elements
 #' @param min Minimum number of elements
 #' @param nm Name of term
 #' @param prior Object of class 'bage_prior'
@@ -272,13 +290,13 @@ check_is_main_effect <- function(nm, prior) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_length_par_gt <- function(length_par, min, nm, prior) {
-    if (length_par < min)
+check_length_effect_gt <- function(length_effect, min, nm, prior) {
+    if (length_effect < min)
         cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
                                "used for {.var {nm}} term."),
                          i = paste("{.var {str_call_prior(prior)}} prior can only be",
                                    "used with terms that have at least {min} element{?s}."),
-                         i = "{.var {nm}} term has {length_par} element{?s}."))
+                         i = "{.var {nm}} term has {length_effect} element{?s}."))
     invisible(TRUE)
 }
 

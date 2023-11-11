@@ -2,7 +2,7 @@
 test_that("'get_matrix_or_offset_svd' works with age main effect, type is total, matrix", {
     scaled_svd <- sim_scaled_svd()
     ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
-                                             levels_par = c("0-4", "5-9"),
+                                             levels_effect = c("0-4", "5-9"),
                                              indep = NULL,
                                              agesex = "age",
                                              get_matrix = TRUE,
@@ -17,7 +17,7 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
 test_that("'get_matrix_or_offset_svd' works with age main effect, type is total, offset", {
     scaled_svd <- sim_scaled_svd()
     ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
-                                             levels_par = c("0-4", "5-9"),
+                                             levels_effect = c("0-4", "5-9"),
                                              indep = NULL,
                                              agesex = "age",
                                              get_matrix = FALSE,
@@ -29,7 +29,7 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
 test_that("'get_matrix_or_offset_svd' works with sex-age interaction, type is joint, offset", {
     scaled_svd <- sim_scaled_svd()
     ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
-                                             levels_par = c("Male.0-4", "Male.5-9", "Female.0-4", "Female.5-9"),
+                                             levels_effect = c("Male.0-4", "Male.5-9", "Female.0-4", "Female.5-9"),
                                              indep = FALSE,
                                              agesex = "sex:age",
                                              get_matrix = FALSE,
@@ -41,7 +41,7 @@ test_that("'get_matrix_or_offset_svd' works with sex-age interaction, type is jo
 test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is indep, matrix", {
     scaled_svd <- sim_scaled_svd()
     ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
-                                             levels_par = c("0-4.Female", "0-4.Male", "5-9.Female", "5-9.Male"),
+                                             levels_effect = c("0-4.Female", "0-4.Male", "5-9.Female", "5-9.Male"),
                                              indep = TRUE,
                                              agesex = "age:sex",
                                              get_matrix = TRUE,
@@ -58,7 +58,7 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is in
 test_that("'get_matrix_or_offset_svd' returns expected error with illegal combination of indep, agesex", {
     scaled_svd <- sim_scaled_svd()
     expect_error(get_matrix_or_offset_svd(scaled_svd,
-                                          levels_par = c("0-4.Female", "0-4.Male", "5-9.Female", "5-9.Male"),
+                                          levels_effect = c("0-4.Female", "0-4.Male", "5-9.Female", "5-9.Male"),
                                           indep = TRUE,
                                           agesex = "other",
                                           get_matrix = TRUE,
@@ -69,7 +69,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal combin
 test_that("'get_matrix_or_offset_svd' returns expected error with invalid labels - main effect", {
     scaled_svd <- sim_scaled_svd()
     expect_error(get_matrix_or_offset_svd(scaled_svd,
-                                          levels_par = c("0-4", "5-999"),
+                                          levels_effect = c("0-4", "5-999"),
                                           indep = NULL,
                                           agesex = "age",
                                           get_matrix = TRUE,
@@ -81,7 +81,7 @@ test_that("'get_matrix_or_offset_svd' returns expected error with invalid labels
 test_that("'get_matrix_or_offset_svd' returns expected error with invalid labels - interaction", {
     scaled_svd <- sim_scaled_svd()
     expect_error(get_matrix_or_offset_svd(scaled_svd,
-                                          levels_par = c("0-4.Female", "0-4.Male", "5-9.Female", "5-9.Wrong"),
+                                          levels_effect = c("0-4.Female", "0-4.Male", "5-9.Female", "5-9.Wrong"),
                                           indep = TRUE,
                                           agesex = "age:sex",
                                           get_matrix = TRUE,
