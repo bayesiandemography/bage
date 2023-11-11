@@ -17,7 +17,7 @@ using namespace tmbutils;
 // an associated 'logpost' function.
 
 template <class Type>
-Type logpost_norm(vector<Type> parfree,
+Type logpost_norm(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts) {
   Type scale = consts[0];
@@ -25,41 +25,41 @@ Type logpost_norm(vector<Type> parfree,
   Type sd = exp(log_sd);
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(parfree, Type(0), sd, true).sum();
+  ans += dnorm(effectfree, Type(0), sd, true).sum();
   return ans;
 }
 
 template <class Type>
-Type logpost_normfixed(vector<Type> parfree,
+Type logpost_normfixed(vector<Type> effectfree,
 		       vector<Type> consts) {
   Type sd = consts[0];
   Type ans = 0;
-  ans += dnorm(parfree, Type(0), sd, true).sum();
+  ans += dnorm(effectfree, Type(0), sd, true).sum();
   return ans;
 }
 
 template <class Type>
-Type logpost_rw(vector<Type> parfree,
+Type logpost_rw(vector<Type> effectfree,
 		vector<Type> hyper,
 		vector<Type> consts) {
   Type scale = consts[0];
   Type sd_intercept = consts[1];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
-  int n = parfree.size();
+  int n = effectfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i = 1; i < n; i++) {
-    Type diff = parfree[i] - parfree[i-1];
+    Type diff = effectfree[i] - effectfree[i-1];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type parfree_total = parfree.sum();
-  ans += dnorm(parfree_total, Type(0), Type(n * sd_intercept), true);
+  Type effectfree_total = effectfree.sum();
+  ans += dnorm(effectfree_total, Type(0), Type(n * sd_intercept), true);
   return ans;
 }
 
 template <class Type>
-Type logpost_rw2(vector<Type> parfree,
+Type logpost_rw2(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
   Type scale = consts[0];
@@ -67,20 +67,20 @@ Type logpost_rw2(vector<Type> parfree,
   Type sd_slope = consts[2];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
-  int n = parfree.size();
+  int n = effectfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i = 2; i < n; i++) {
-    Type diff = parfree[i] - 2 * parfree[i-1] + parfree[i-2];
+    Type diff = effectfree[i] - 2 * effectfree[i-1] + effectfree[i-2];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type parfree_total = parfree.sum();
-  ans += dnorm(parfree_total, Type(0), Type(n * sd_intercept), true);
+  Type effectfree_total = effectfree.sum();
+  ans += dnorm(effectfree_total, Type(0), Type(n * sd_intercept), true);
   Type num = 0;
   Type den = 0;
   for (int i = 0; i < n; i++) {
     Type h = -1 + i * 2 / (n - 1);
-    num += parfree[i] * h;
+    num += effectfree[i] * h;
     den += h * h;
   }
   Type slope = num / den;
@@ -89,7 +89,7 @@ Type logpost_rw2(vector<Type> parfree,
 }
 
 template <class Type>
-Type logpost_ar1(vector<Type> parfree,
+Type logpost_ar1(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
   Type shape1 = consts[0];
@@ -106,35 +106,35 @@ Type logpost_ar1(vector<Type> parfree,
   ans += dbeta(coef_raw, shape1, shape2, true)
     + log(coef_raw) + log(1 - coef_raw);
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(AR1(coef), sd)(parfree); // AR1 returns neg log-lik
+  ans -= SCALE(AR1(coef), sd)(effectfree); // AR1 returns neg log-lik
   return ans;
 }
 
 template <class Type>
-Type logpost_spline(vector<Type> parfree,
+Type logpost_spline(vector<Type> effectfree,
    		    vector<Type> hyper,
 		    vector<Type> consts) {
-  return logpost_rw2(parfree, hyper, consts);
+  return logpost_rw2(effectfree, hyper, consts);
 }
 
 
 template <class Type>
-Type logpost_svd(vector<Type> parfree,
+Type logpost_svd(vector<Type> effectfree,
 		 vector<Type> consts) {
-  return dnorm(parfree, Type(0), Type(1), true).sum();
+  return dnorm(effectfree, Type(0), Type(1), true).sum();
 }
 
 template <class Type>
-Type logpost_not_uses_hyper(vector<Type> parfree,
+Type logpost_not_uses_hyper(vector<Type> effectfree,
 			    vector<Type> consts,
 			    int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 2:
-    ans = logpost_normfixed(parfree, consts);
+    ans = logpost_normfixed(effectfree, consts);
     break;
   case 7:
-    ans = logpost_svd(parfree, consts);
+    ans = logpost_svd(effectfree, consts);
     break;
   default:
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -143,26 +143,26 @@ Type logpost_not_uses_hyper(vector<Type> parfree,
 }
 
 template <class Type>
-Type logpost_uses_hyper(vector<Type> parfree,
+Type logpost_uses_hyper(vector<Type> effectfree,
 			vector<Type> hyper,
 			vector<Type> consts,
 			int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 1:
-    ans = logpost_norm(parfree, hyper, consts);
+    ans = logpost_norm(effectfree, hyper, consts);
     break;
   case 3:
-    ans = logpost_rw(parfree, hyper, consts);
+    ans = logpost_rw(effectfree, hyper, consts);
     break;
   case 4:
-    ans = logpost_rw2(parfree, hyper, consts);
+    ans = logpost_rw2(effectfree, hyper, consts);
     break;
   case 5:
-    ans = logpost_ar1(parfree, hyper, consts);
+    ans = logpost_ar1(effectfree, hyper, consts);
     break;
   case 6:
-    ans = logpost_spline(parfree, hyper, consts);
+    ans = logpost_spline(effectfree, hyper, consts);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -171,7 +171,7 @@ Type logpost_uses_hyper(vector<Type> parfree,
 }
 
 template <class Type>
-Type logpost_cyclical(vector<Type> par_cyclical,
+Type logpost_cyclical(vector<Type> effect_cyclical,
 		      vector<Type> hyper_cyclical,
 		      vector<Type> consts_cyclical,
 		      int n_cyclical) {
@@ -187,12 +187,12 @@ Type logpost_cyclical(vector<Type> par_cyclical,
   ans += dbeta(coef_raw, shape1, shape2, true).sum()
     + log(coef_raw).sum() + log(1 - coef_raw).sum();
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(ARk(coef), sd)(par_cyclical); // ARk returns neg log-lik
+  ans -= SCALE(ARk(coef), sd)(effect_cyclical); // ARk returns neg log-lik
   return ans;
 }
 
 template <class Type>
-Type logpost_season(vector<Type> par_season,
+Type logpost_season(vector<Type> effect_season,
 		    vector<Type> hyper_season,
 		    vector<Type> consts_season,
 		    int n_time,
@@ -201,21 +201,21 @@ Type logpost_season(vector<Type> par_season,
   Type sd_intercept = consts_season[1];
   Type log_sd = hyper_season[0];
   Type sd = exp(log_sd);
-  int n_par = par_season.size();
-  int n_by = n_par / n_time;
+  int n_effect = effect_season.size();
+  int n_by = n_effect / n_time;
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_time = n_season; i_time < n_time; i_time++) {
       int idx_curr = i_by + i_time * n_by;
       int idx_prev = i_by + (i_time - n_season) * n_by;
-      Type diff = par_season[idx_curr] - par_season[idx_prev];
+      Type diff = effect_season[idx_curr] - effect_season[idx_prev];
       ans += dnorm(diff, Type(0), sd, true);
     }
     Type sum_by = 0;
     for (int i_time = 0; i_time < n_time; i_time ++) {
       int idx = i_by + i_time * n_by;
-      sum_by += par_season[idx];
+      sum_by += effect_season[idx];
     }
     ans += dnorm(sum_by, Type(0), Type(n_time * sd_intercept), true);
   }
@@ -266,13 +266,13 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
   DATA_IVECTOR(is_in_lik);
-  DATA_FACTOR(terms_par);
-  DATA_FACTOR(terms_parfree);
-  DATA_IVECTOR(uses_matrix_parfree_par);
-  DATA_STRUCT(matrices_parfree_par, LIST_SM_t);
-  DATA_IVECTOR(uses_offset_parfree_par);
-  DATA_VECTOR(offsets_parfree_par);
-  DATA_STRUCT(matrices_par_outcome, LIST_SM_t);
+  DATA_FACTOR(terms_effect);
+  DATA_FACTOR(terms_effectfree);
+  DATA_IVECTOR(uses_matrix_effectfree_effect);
+  DATA_STRUCT(matrices_effectfree_effect, LIST_SM_t);
+  DATA_IVECTOR(uses_offset_effectfree_effect);
+  DATA_VECTOR(offsets_effectfree_effect);
+  DATA_STRUCT(matrices_effect_outcome, LIST_SM_t);
   DATA_IVECTOR(i_prior);
   DATA_IVECTOR(uses_hyper);
   DATA_FACTOR(terms_hyper);
@@ -287,12 +287,12 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(consts_season);
   DATA_SPARSE_MATRIX(matrix_season_outcome);
 
-  PARAMETER_VECTOR(parfree); 
+  PARAMETER_VECTOR(effectfree); 
   PARAMETER_VECTOR(hyper);
   PARAMETER(log_disp);
-  PARAMETER_VECTOR(par_cyclical);
+  PARAMETER_VECTOR(effect_cyclical);
   PARAMETER_VECTOR(hyper_cyclical);
-  PARAMETER_VECTOR(par_season);
+  PARAMETER_VECTOR(effect_season);
   PARAMETER_VECTOR(hyper_season);
   
 
@@ -300,8 +300,8 @@ Type objective_function<Type>::operator() ()
 
   int n_outcome = outcome.size();
   int n_term = i_prior.size();
-  vector<vector<Type> > parfree_split = split(parfree, terms_parfree);
-  vector<vector<Type> > offsets_parfree_par_split = split(offsets_parfree_par, terms_par);
+  vector<vector<Type> > effectfree_split = split(effectfree, terms_effectfree);
+  vector<vector<Type> > offsets_effectfree_effect_split = split(offsets_effectfree_effect, terms_effect);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
   vector<vector<Type> > consts_split = split(consts, terms_consts);
   int has_disp = scale_disp > 0;
@@ -315,28 +315,28 @@ Type objective_function<Type>::operator() ()
   vector<Type> linear_pred(n_outcome);
   linear_pred.fill(0);
   for (int i_term = 0; i_term < n_term; i_term++) {
-    SparseMatrix<Type> matrix_par_outcome = matrices_par_outcome[i_term];
-    vector<Type> parfree_term = parfree_split[i_term];
-    int n_par = matrix_par_outcome.cols();
-    vector<Type> par_term(n_par);
-    if (uses_matrix_parfree_par[i_term]) {
-      SparseMatrix<Type> matrix_parfree_par = matrices_parfree_par[i_term];
-      par_term = matrix_parfree_par * parfree_term;
+    SparseMatrix<Type> matrix_effect_outcome = matrices_effect_outcome[i_term];
+    vector<Type> effectfree_term = effectfree_split[i_term];
+    int n_effect = matrix_effect_outcome.cols();
+    vector<Type> effect_term(n_effect);
+    if (uses_matrix_effectfree_effect[i_term]) {
+      SparseMatrix<Type> matrix_effectfree_effect = matrices_effectfree_effect[i_term];
+      effect_term = matrix_effectfree_effect * effectfree_term;
     }
     else {
-      par_term = parfree_term;
+      effect_term = effectfree_term;
     }
-    if (uses_offset_parfree_par[i_term]) {
-      vector<Type> offset_term = offsets_parfree_par_split[i_term];
-      par_term = par_term + offset_term;
+    if (uses_offset_effectfree_effect[i_term]) {
+      vector<Type> offset_term = offsets_effectfree_effect_split[i_term];
+      effect_term = effect_term + offset_term;
     }
-    linear_pred = linear_pred + matrix_par_outcome * par_term;
+    linear_pred = linear_pred + matrix_effect_outcome * effect_term;
   }
   if (has_cyclical) {
-    linear_pred = linear_pred + matrix_cyclical_outcome * par_cyclical;
+    linear_pred = linear_pred + matrix_cyclical_outcome * effect_cyclical;
   }
   if (has_season) {
-    linear_pred = linear_pred + matrix_season_outcome * par_season;
+    linear_pred = linear_pred + matrix_season_outcome * effect_season;
   }
 
 
@@ -348,27 +348,27 @@ Type objective_function<Type>::operator() ()
   for (int i_term = 0; i_term < n_term; i_term++) {
     int i_prior_term = i_prior[i_term];
     if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
-      vector<Type> parfree_term = parfree_split[i_term];
+      vector<Type> effectfree_term = effectfree_split[i_term];
       vector<Type> consts_term = consts_split[i_term];
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
-	ans -= logpost_uses_hyper(parfree_term, hyper_term, consts_term, i_prior_term);
+	ans -= logpost_uses_hyper(effectfree_term, hyper_term, consts_term, i_prior_term);
       }
       else
-	ans -= logpost_not_uses_hyper(parfree_term, consts_term, i_prior_term);
+	ans -= logpost_not_uses_hyper(effectfree_term, consts_term, i_prior_term);
     }
   }
 
   // contribution to log posterior from cyclical effect
   if (has_cyclical)
-    ans -= logpost_cyclical(par_cyclical,
+    ans -= logpost_cyclical(effect_cyclical,
 			    hyper_cyclical,
 			    consts_cyclical,
 			    n_cyclical);
 
   // contribution to log posterior from seasonal effect
   if (has_season)
-    ans -= logpost_season(par_season,
+    ans -= logpost_season(effect_season,
 			  hyper_season,
 			  consts_season,
 			  n_time,

@@ -5,7 +5,7 @@ test_that("'default_prior' works with ordinary term", {
     expect_identical(default_prior(nm_term = "x",
                                    var_age = "age",
                                    var_time = "time",
-                                   length_par = 5L),
+                                   length_effect = 5L),
                      N())
 })
 
@@ -13,7 +13,7 @@ test_that("'default_prior' works with intercept", {
     expect_identical(default_prior(nm_term = "(Intercept)",
                                    var_age = "age",
                                    var_time = "time",
-                                   length_par = 1L),
+                                   length_effect = 1L),
                      NFix(sd = 10))
 })
 
@@ -21,7 +21,7 @@ test_that("'default_prior' works with term with length 1", {
     expect_identical(default_prior(nm_term = "region",
                                    var_age = "age",
                                    var_time = "time",
-                                   length_par = 1L),
+                                   length_effect = 1L),
                      NFix())
 })
 
@@ -29,17 +29,17 @@ test_that("'default_prior' works with age term", {
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = "AgeGroup",
                                    var_time = "time",
-                                   length_par = 5),
+                                   length_effect = 5),
                      RW())
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = "AgeGroup",
                                    var_time = NULL,
-                                   length_par = 5),
+                                   length_effect = 5),
                      RW())
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = NULL,
                                    var_time = NULL,
-                                   length_par = 5),
+                                   length_effect = 5),
                      N())
 })
 
@@ -47,7 +47,7 @@ test_that("'default_prior' works with time term", {
     expect_identical(default_prior(nm_term = "year",
                                    var_age = "AgeGroup",
                                    var_time = "year",
-                                   length_par = 5),
+                                   length_effect = 5),
                      RW())
 })
 
@@ -343,21 +343,21 @@ test_that("'make_is_in_lik' works with NAs", {
 })
 
 
-## 'make_lengths_par' ---------------------------------------------------------
+## 'make_lengths_effect' ---------------------------------------------------------
 
-test_that("'make_lengths_par' works with valid inputs", {
-    matrices_par_outcome = list(a = matrix(nr = 100, nc = 1),
+test_that("'make_lengths_effect' works with valid inputs", {
+    matrices_effect_outcome = list(a = matrix(nr = 100, nc = 1),
                                 b = matrix(nr = 100, nc = 5),
                                 c = matrix(nr = 100, nc = 5))
-    ans_obtained <- make_lengths_par(matrices_par_outcome)
+    ans_obtained <- make_lengths_effect(matrices_effect_outcome)
     ans_expected <- c(a = 1L, b = 5L, c = 5L)
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_lengths_parfree' -----------------------------------------------------------
+## 'make_lengths_effectfree' -----------------------------------------------------------
 
-test_that("'make_lengths_parfree' works with valid inputs", {
+test_that("'make_lengths_effectfree' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
                         region = 1:2,
@@ -368,7 +368,7 @@ test_that("'make_lengths_parfree' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_lengths_parfree(mod)
+    ans_obtained <- make_lengths_effectfree(mod)
     ans_expected <- c("(Intercept)" = 1L,
                       agegp = 10L,
                       SEX = 2L,
@@ -378,18 +378,18 @@ test_that("'make_lengths_parfree' works with valid inputs", {
 })
 
 
-## 'make_levels_par' ----------------------------------------------------------
+## 'make_levels_effect' ----------------------------------------------------------
 
-test_that("'make_levels_par' works with valid inputs - pois, complete levels", {
+test_that("'make_levels_effect' works with valid inputs - pois, complete levels", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age * sex + time
     outcome <- make_outcome(formula = formula, data = data)
-    matrices_par_outcome <- make_matrices_par_outcome(formula = formula, data = data)
-    ans_obtained <- make_levels_par(formula = formula,
-                                    matrices_par_outcome = matrices_par_outcome,
+    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
+    ans_obtained <- make_levels_effect(formula = formula,
+                                    matrices_effect_outcome = matrices_effect_outcome,
                                     outcome = outcome,
                                     data = data)
     ans_expected <- c("(Intercept)",
@@ -402,7 +402,7 @@ test_that("'make_levels_par' works with valid inputs - pois, complete levels", {
     expect_identical(ans_obtained, ans_expected)                      
 })
 
-test_that("'make_levels_par' works with valid inputs - pois, incomplete levels", {
+test_that("'make_levels_effect' works with valid inputs - pois, incomplete levels", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -410,9 +410,9 @@ test_that("'make_levels_par' works with valid inputs - pois, incomplete levels",
     data <- data[-3, ]
     formula <- deaths ~ age * sex + time
     outcome <- make_outcome(formula = formula, data = data)
-    matrices_par_outcome <- make_matrices_par_outcome(formula = formula, data = data)
-    ans_obtained <- make_levels_par(formula = formula,
-                                    matrices_par_outcome = matrices_par_outcome,
+    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
+    ans_obtained <- make_levels_effect(formula = formula,
+                                    matrices_effect_outcome = matrices_effect_outcome,
                                     outcome = outcome,
                                     data = data)
     ans_expected <- c("(Intercept)",
@@ -425,16 +425,16 @@ test_that("'make_levels_par' works with valid inputs - pois, incomplete levels",
     expect_identical(ans_obtained, ans_expected)                      
 })
 
-test_that("'make_levels_par' works with valid inputs - norm", {
+test_that("'make_levels_effect' works with valid inputs - norm", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$income <- rnorm(n = nrow(data))
     formula <- income ~ age * sex + time
     outcome <- make_outcome(formula = formula, data = data)
-    matrices_par_outcome <- make_matrices_par_outcome(formula = formula, data = data)
-    ans_obtained <- make_levels_par(formula = formula,
-                                    matrices_par_outcome = matrices_par_outcome,
+    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
+    ans_obtained <- make_levels_effect(formula = formula,
+                                    matrices_effect_outcome = matrices_effect_outcome,
                                     outcome = outcome,
                                     data = data)
     ans_expected <- c("(Intercept)",
@@ -468,7 +468,7 @@ test_that("'make_map' works with no parameters fixed", {
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_map' works when 'parfree' contains known values", {
+test_that("'make_map' works when 'effectfree' contains known values", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -482,7 +482,7 @@ test_that("'make_map' works when 'parfree' contains known values", {
     mod <- set_cyclical(mod)
     mod <- set_season(mod, n = 2)
     ans_obtained <- make_map(mod)
-    ans_expected <- list(parfree = factor(c("(Intercept)" = 1,
+    ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
                                             time = 2,
                                             time = 3,
                                             time = 4,
@@ -531,7 +531,7 @@ test_that("'make_map' works when there is no cyclical effect", {
                     exposure = popn)
     mod <- set_season(mod, n = 2)
     ans_obtained <- make_map(mod)
-    ans_expected <- list(par_cyclical = factor(logical()),
+    ans_expected <- list(effect_cyclical = factor(logical()),
                          hyper_cyclical = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -548,12 +548,12 @@ test_that("'make_map' works when there is no season effect", {
                     exposure = popn)
     mod <- set_cyclical(mod)
     ans_obtained <- make_map(mod)
-    ans_expected <- list(par_season = factor(logical()),
+    ans_expected <- list(effect_season = factor(logical()),
                          hyper_season = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_map' works when parfree has known values and there is no season or cyclical effect", {
+test_that("'make_map' works when effectfree has known values and there is no season or cyclical effect", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -565,7 +565,7 @@ test_that("'make_map' works when parfree has known values and there is no season
                     exposure = popn)
     mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
     ans_obtained <- make_map(mod)
-    ans_expected <- list(parfree = factor(c("(Intercept)" = 1,
+    ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
                                             time = 2,
                                             time = 3,
                                             time = 4,
@@ -580,9 +580,9 @@ test_that("'make_map' works when parfree has known values and there is no season
                                             "time:SEX" = 11,
                                             "time:SEX" = 12,
                                             "time:SEX" = 13)),
-                         par_cyclical = factor(logical()),
+                         effect_cyclical = factor(logical()),
                          hyper_cyclical = factor(NA),
-                         par_season = factor(logical()),
+                         effect_season = factor(logical()),
                          hyper_season = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -618,9 +618,9 @@ test_that("'make_map_hyper_season_fixed' works", {
 })
 
 
-## 'make_map_par_cyclical_fixed' ----------------------------------------------
+## 'make_map_effect_cyclical_fixed' ----------------------------------------------
 
-test_that("'make_map_par_cyclical_fixed' works with valid inputs", {
+test_that("'make_map_effect_cyclical_fixed' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(time = 0:2,
                         SEX = c("F", "M"))
@@ -630,17 +630,17 @@ test_that("'make_map_par_cyclical_fixed' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_map_par_cyclical_fixed(mod)
+    ans_obtained <- make_map_effect_cyclical_fixed(mod)
     ans_expected <- factor(logical())
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_par_cyclical_fixed(mod)),
-                     length(make_par_cyclical(mod)))
+    expect_identical(length(make_map_effect_cyclical_fixed(mod)),
+                     length(make_effect_cyclical(mod)))
 })
 
 
-## 'make_map_par_season_fixed' ------------------------------------------------
+## 'make_map_effect_season_fixed' ------------------------------------------------
 
-test_that("'make_map_par_season_fixed' works with valid inputs", {
+test_that("'make_map_effect_season_fixed' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(time = 0:2,
                         SEX = c("F", "M"))
@@ -650,17 +650,17 @@ test_that("'make_map_par_season_fixed' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_map_par_season_fixed(mod)
+    ans_obtained <- make_map_effect_season_fixed(mod)
     ans_expected <- factor(logical())
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_par_season_fixed(mod)),
-                     length(make_par_season(mod)))
+    expect_identical(length(make_map_effect_season_fixed(mod)),
+                     length(make_effect_season(mod)))
 })
 
 
-## 'make_map_parfree_fixed' ---------------------------------------------------
+## 'make_map_effectfree_fixed' ---------------------------------------------------
 
-test_that("'make_map_par_season_fixed' works with valid inputs", {
+test_that("'make_map_effect_season_fixed' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(time = 0:2,
                         SEX = c("F", "M"))
@@ -671,7 +671,7 @@ test_that("'make_map_par_season_fixed' works with valid inputs", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, SEX ~ Known(c(-1, 1)))
-    ans_obtained <- make_map_parfree_fixed(mod)
+    ans_obtained <- make_map_effectfree_fixed(mod)
     ans_expected <- factor(c("(Intercept)" = 1,
                              time = 2,
                              time = 3,
@@ -679,19 +679,19 @@ test_that("'make_map_par_season_fixed' works with valid inputs", {
                              SEX = NA,
                              SEX = NA))
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_parfree_fixed(mod)),
-                     length(make_parfree(mod)))
+    expect_identical(length(make_map_effectfree_fixed(mod)),
+                     length(make_effectfree(mod)))
 })
 
 
-## 'make_matrices_par_outcome' --------------------------------------------
+## 'make_matrices_effect_outcome' --------------------------------------------
 
-test_that("'make_matrices_par_outcome' works with valid inputs", {
+test_that("'make_matrices_effect_outcome' works with valid inputs", {
     data <- expand.grid(age = 0:5, time = 2000:2001, sex = 1:2)
     data$val <- 1
     data <- data[-c(3, 5), ]
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_matrices_par_outcome(formula = formula, data = data)
+    ans_obtained <- make_matrices_effect_outcome(formula = formula, data = data)
     data_fac <- data[1:3]
     data_fac[] <- lapply(data_fac, factor)
     ans_expected <- Matrix::sparse.model.matrix(~age:sex + time,
@@ -707,9 +707,9 @@ test_that("'make_matrices_par_outcome' works with valid inputs", {
 })
 
 
-## 'make_matrices_parfree_par' ------------------------------------------------
+## 'make_matrices_effectfree_effect' ------------------------------------------------
 
-test_that("'make_matrices_parfree_par' works with valid inputs", {
+test_that("'make_matrices_effectfree_effect' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
                         region = 1:2,
@@ -720,7 +720,7 @@ test_that("'make_matrices_parfree_par' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_matrices_parfree_par(mod)
+    ans_obtained <- make_matrices_effectfree_effect(mod)
     ans_expected <- list("(Intercept)" = Matrix::.sparseDiagonal(1),
                          agegp = Matrix::.sparseDiagonal(10),
                          SEX = Matrix::.sparseDiagonal(2),
@@ -742,7 +742,7 @@ test_that("'make_matrix_cyclical_outcome' works with bage_mod_pois", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_matrix_cyclical_outcome(mod)
-    ans_expected <- mod$matrices_par_outcome[["time"]]
+    ans_expected <- mod$matrices_effect_outcome[["time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -759,7 +759,7 @@ test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is NULL", 
                     data = data,
                     exposure = popn)
     ans_obtained <- make_matrix_season_outcome(mod, by = NULL)
-    ans_expected <- mod$matrices_par_outcome[["time"]]
+    ans_expected <- mod$matrices_effect_outcome[["time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -773,7 +773,7 @@ test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is 1-dimen
                     data = data,
                     exposure = popn)
     ans_obtained <- make_matrix_season_outcome(mod, by = "age")
-    ans_expected <- mod$matrices_par_outcome[["age:time"]]
+    ans_expected <- mod$matrices_effect_outcome[["age:time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -787,7 +787,7 @@ test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is 2-dimen
                     data = data,
                     exposure = popn)
     ans_obtained <- make_matrix_season_outcome(mod, by = c("age", "sex"))
-    ans_expected <- mod$matrices_par_outcome[["age:sex:time"]]
+    ans_expected <- mod$matrices_effect_outcome[["age:sex:time"]]
     expect_identical(ans_obtained, ans_expected)
 })
     
@@ -801,7 +801,7 @@ test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is NULL", 
                     data = data,
                     weights = 1)
     ans_obtained <- make_matrix_season_outcome(mod, by = NULL)
-    ans_expected <- mod$matrices_par_outcome[["time"]]
+    ans_expected <- mod$matrices_effect_outcome[["time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -815,7 +815,7 @@ test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is 1-dim",
                     data = data,
                     weights = 1)
     ans_obtained <- make_matrix_season_outcome(mod, by = "sex")
-    ans_expected <- mod$matrices_par_outcome[["sex:time"]]
+    ans_expected <- mod$matrices_effect_outcome[["sex:time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -829,7 +829,7 @@ test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is 1-dim",
                     data = data,
                     weights = 1)
     ans_obtained <- make_matrix_season_outcome(mod, by = c("age", "sex"))
-    ans_expected <- mod$matrices_par_outcome[["age:sex:time"]]
+    ans_expected <- mod$matrices_effect_outcome[["age:sex:time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -879,9 +879,9 @@ test_that("'make_offset_ones' works with valid inputs", {
 })
 
 
-## 'make_offsets_parfree_par' ------------------------------------------------
+## 'make_offsets_effectfree_effect' ------------------------------------------------
 
-test_that("'make_offsets_parfree_par' works with valid inputs", {
+test_that("'make_offsets_effectfree_effect' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
                         region = 1:2,
@@ -892,7 +892,7 @@ test_that("'make_offsets_parfree_par' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_offsets_parfree_par(mod)
+    ans_obtained <- make_offsets_effectfree_effect(mod)
     ans_expected <- list("(Intercept)" = 0,
                          agegp = rep(0, 10),
                          SEX = rep(0, 2),
@@ -917,9 +917,9 @@ test_that("'make_outcome' works with valid inputs", {
 })
 
 
-## 'make_par_cyclical' ----------------------------------------------------------
+## 'make_effect_cyclical' -----------------------------------------------------
 
-test_that("'make_par_cyclical' works when has cyclical effect", {
+test_that("'make_effect_cyclical' works when has cyclical effect", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -930,16 +930,16 @@ test_that("'make_par_cyclical' works when has cyclical effect", {
                     data = data,
                     exposure = popn)
     mod <- set_cyclical(mod)
-    ans_obtained <- make_par_cyclical(mod)
+    ans_obtained <- make_effect_cyclical(mod)
     ans_expected <- c(0.0, 0.0, 0.0, 0.0)
     names(ans_expected) <- 0:3
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_par_season' ----------------------------------------------------------
+## 'make_effect_season' ----------------------------------------------------------
 
-test_that("'make_par_season' works when has season effect, by is NULL", {
+test_that("'make_effect_season' works when has season effect, by is NULL", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -950,13 +950,13 @@ test_that("'make_par_season' works when has season effect, by is NULL", {
                     data = data,
                     exposure = popn)
     mod <- set_season(mod, n = 2)
-    ans_obtained <- make_par_season(mod)
+    ans_obtained <- make_effect_season(mod)
     ans_expected <- c(0.0, 0.0, 0.0, 0.0)
     names(ans_expected) <- 0:3
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_par_season' works when has season effect, by has dim 1", {
+test_that("'make_effect_season' works when has season effect, by has dim 1", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -967,13 +967,13 @@ test_that("'make_par_season' works when has season effect, by has dim 1", {
                     data = data,
                     exposure = popn)
     mod <- set_season(mod, n = 2, by = "SEX")
-    ans_obtained <- make_par_season(mod)
+    ans_obtained <- make_effect_season(mod)
     ans_expected <- rep(0.0, 8)
     names(ans_expected) <- paste(c("F", "M"), rep(0:3, each = 2), sep = ".")
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_par_season' works when no season", {
+test_that("'make_effect_season' works when no season", {
     set.seed(0)
     data <- expand.grid(age = 0:2,
                         SEX = c("F", "M"))
@@ -983,15 +983,15 @@ test_that("'make_par_season' works when no season", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_par_season(mod)
+    ans_obtained <- make_effect_season(mod)
     ans_expected <- double()
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_parfree' -------------------------------------------------------------
+## 'make_effectfree' -------------------------------------------------------------
 
-test_that("'make_parfree' works with valid inputs", {
+test_that("'make_effectfree' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:2,
                         SEX = c("F", "M"))
@@ -1002,7 +1002,7 @@ test_that("'make_parfree' works with valid inputs", {
                     data = data,
                     exposure = popn) %>%
         set_prior((Intercept) ~ Known(3))
-    ans_obtained <- make_parfree(mod)
+    ans_obtained <- make_effectfree(mod)
     ans_expected <- c("(Intercept)" = 3,
                       agegp = 0, agegp = 0, agegp = 0,
                       SEX = 0, SEX = 0)
@@ -1017,7 +1017,7 @@ test_that("'make_priors' works with valid inputs - has intercept", {
     ans_obtained <- make_priors(formula,
                                 var_age = "age",
                                 var_time = "time",
-                                lengths_par = c(1L, 10L, 12L))
+                                lengths_effect = c(1L, 10L, 12L))
     ans_expected <- list("(Intercept)" = NFix(sd = 10),
                          time = RW(),
                          "age:sex" = N())
@@ -1029,7 +1029,7 @@ test_that("'make_priors' works with valid inputs - no intercept", {
     ans_obtained <- make_priors(formula,
                                 var_age = "age",
                                 var_time = "time",
-                                lengths_par = c(10L, 12L))
+                                lengths_effect = c(10L, 12L))
     ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
@@ -1041,19 +1041,19 @@ test_that("'make_priors' works with valid inputs - no intercept", {
 test_that("'make_random' works when no cyclical, season effect", {
     mod <- structure(list(n_cyclical = 0L, n_season = 0L),
                      class = "bage_mod")
-    expect_identical(make_random(mod), "parfree")
+    expect_identical(make_random(mod), "effectfree")
 })
 
 test_that("'make_random' works when has cyclical, no seasonal effect", {
     mod <- structure(list(n_cyclical = 2L, n_season = 0L),
                      class = "bage_mod")
-    expect_identical(make_random(mod), c("parfree", "par_cyclical"))
+    expect_identical(make_random(mod), c("effectfree", "effect_cyclical"))
 })
 
 test_that("'make_random' works when has season, no cyclical effect", {
     mod <- structure(list(n_cyclical = 0L, n_season = 2L),
                      class = "bage_mod")
-    expect_identical(make_random(mod), c("parfree", "par_season"))
+    expect_identical(make_random(mod), c("effectfree", "effect_season"))
 })
 
 
@@ -1074,7 +1074,7 @@ test_that("'make_seed' returns a single unique integer", {
 
 test_that("'make_spline_matrix' works", {
     set.seed(0)
-    m <- make_spline_matrix(length_par = 10, n_spline = 5)
+    m <- make_spline_matrix(length_effect = 10, n_spline = 5)
     expect_equal(dim(m), c(10L, 5L))
     expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
 })
@@ -1117,22 +1117,22 @@ test_that("'make_terms_hyper' works with valid inputs", {
 })
 
 
-## 'make_terms_par' -----------------------------------------------------------
+## 'make_terms_effect' -----------------------------------------------------------
 
-test_that("'make_terms_par' works with valid inputs", {
-    matrices_par_outcome = list(a = matrix(nr = 100, nc = 1),
+test_that("'make_terms_effect' works with valid inputs", {
+    matrices_effect_outcome = list(a = matrix(nr = 100, nc = 1),
                                 b = matrix(nr = 100, nc = 5),
                                 c = matrix(nr = 100, nc = 5))
-    ans_obtained <- make_terms_par(matrices_par_outcome)
+    ans_obtained <- make_terms_effect(matrices_effect_outcome)
     ans_expected <- factor(rep(c("a", "b", "c"),
                                times = c(1, 5, 5)))
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_terms_parfree' -----------------------------------------------------------
+## 'make_terms_effectfree' -----------------------------------------------------------
 
-test_that("'make_terms_parfree' works with valid inputs", {
+test_that("'make_terms_effectfree' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
                         region = 1:2,
@@ -1143,7 +1143,7 @@ test_that("'make_terms_parfree' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- make_terms_parfree(mod)
+    ans_obtained <- make_terms_effectfree(mod)
     ans_expected <- factor(c("(Intercept)",
                              rep("agegp", times = 10),
                              rep("SEX", times = 2),
@@ -1182,9 +1182,9 @@ test_that("'make_uses_hyper' works with valid inputs", {
 })
 
 
-## 'make_uses_matrix_parfree_par' ---------------------------------------------
+## 'make_uses_matrix_effectfree_effect' ---------------------------------------------
 
-test_that("'make_uses_matrix_parfree_par' works with valid inputs", {
+test_that("'make_uses_matrix_effectfree_effect' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
                         region = 1:2,
@@ -1196,7 +1196,7 @@ test_that("'make_uses_matrix_parfree_par' works with valid inputs", {
                     data = data,
                     exposure = popn) %>%
         set_prior(agegp ~ Spline())
-    ans_obtained <- make_uses_matrix_parfree_par(mod)
+    ans_obtained <- make_uses_matrix_effectfree_effect(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 1L,
                       SEX = 0L,
@@ -1206,9 +1206,9 @@ test_that("'make_uses_matrix_parfree_par' works with valid inputs", {
 })
 
 
-## 'make_uses_matrix_parfree_par' ---------------------------------------------
+## 'make_uses_matrix_effectfree_effect' ---------------------------------------------
 
-test_that("'make_uses_offset_parfree_par' works with valid inputs", {
+test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
                         region = 1:2,
@@ -1220,7 +1220,7 @@ test_that("'make_uses_offset_parfree_par' works with valid inputs", {
                     data = data,
                     exposure = popn) %>%
         set_prior(agegp ~ Spline())
-    ans_obtained <- make_uses_offset_parfree_par(mod)
+    ans_obtained <- make_uses_offset_effectfree_effect(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 0L,
                       SEX = 0L,

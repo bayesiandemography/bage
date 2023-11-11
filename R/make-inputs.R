@@ -5,15 +5,15 @@
 #' @param nm_term Name of model term
 #' @param var_age Name of age variable, or NULL
 #' @param var_time Name of time variable, or NULL
-#' @param length_par Number of elements in term
+#' @param length_effect Number of elements in term
 #'
 #' @returns A list of objects of class "bage_prior"
 #'
 #' @noRd
-default_prior <- function(nm_term, var_age, var_time, length_par) {
+default_prior <- function(nm_term, var_age, var_time, length_effect) {
     scale_intercept <- 10
     is_intercept <- nm_term == "(Intercept)"
-    is_length_1 <- length_par == 1L
+    is_length_1 <- length_effect == 1L
     is_age_time <- nm_term %in% c(var_age, var_time)
     if (is_intercept)
         NFix(sd = scale_intercept)
@@ -369,13 +369,13 @@ make_is_in_lik <- function(mod) {
 ## HAS_TESTS
 #' Lengths of vectors of parameters
 #' 
-#' @param matrices_par_outcome Named list of Matrix matrices
+#' @param matrices_effect_outcome Named list of Matrix matrices
 #'
 #' @returns A named integer vector.
 #'
 #' @noRd
-make_lengths_par <- function(matrices_par_outcome) {
-    matrices <- lapply(matrices_par_outcome, Matrix::as.matrix)
+make_lengths_effect <- function(matrices_effect_outcome) {
+    matrices <- lapply(matrices_effect_outcome, Matrix::as.matrix)
     vapply(matrices, ncol, 1L)
 }
 
@@ -388,9 +388,9 @@ make_lengths_par <- function(matrices_par_outcome) {
 #' @returns A named integer vector.
 #'
 #' @noRd
-make_lengths_parfree <- function(mod) {
+make_lengths_effectfree <- function(mod) {
     priors <- mod$priors
-    matrices <- make_matrices_parfree_par(mod)
+    matrices <- make_matrices_effectfree_effect(mod)
     matrices <- lapply(matrices, Matrix::as.matrix)
     ans <- vapply(matrices, ncol, 1L)
     names(ans) <- names(priors)
@@ -399,17 +399,17 @@ make_lengths_parfree <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make levels associated with each element of 'par'
+#' Make levels associated with each element of 'effect'
 #'
 #' Make levels for each term, eg ages, times.
-#' 'make_levels_par' works with the matrices
+#' 'make_levels_effect' works with the matrices
 #' used to map levels to the outcome, to
 #' ensure that the levels are correct (rather than
 #' relying on undocumented properties of 'xtabs' etc),
 #' though this makes the function a bit complicated.
 #'
 #' @param formula Model formula
-#' @param matrices_par_outcome List of matrices mapping
+#' @param matrices_effect_outcome List of matrices mapping
 #' parameters to outcome
 #' @param outcome Array or data frame with outcome
 #' @param data Data frame
@@ -417,8 +417,8 @@ make_lengths_parfree <- function(mod) {
 #' @returns A character vector.
 #'
 #' @noRd
-make_levels_par <- function(formula, matrices_par_outcome, outcome, data) {
-    nms <- names(matrices_par_outcome)
+make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) {
+    nms <- names(matrices_effect_outcome)
     n <- length(nms)
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE] ## exclude response
@@ -436,9 +436,9 @@ make_levels_par <- function(formula, matrices_par_outcome, outcome, data) {
             i_dim <- factors[, nm, drop = TRUE]
             paste_dot <- function(...) paste(..., sep = ".")
             term_levels <- do.call(paste_dot, dim_levels[i_dim])
-            matrix_par <- matrices_par_outcome[[i]]
-            matrix_par <- Matrix::as.matrix(matrix_par)
-            i_term_level <- apply(matrix_par, 2L, function(x) match(1L, x))
+            matrix_effect <- matrices_effect_outcome[[i]]
+            matrix_effect <- Matrix::as.matrix(matrix_effect)
+            i_term_level <- apply(matrix_effect, 2L, function(x) match(1L, x))
             ans[[i]] <- term_levels[i_term_level]
         }
     }
@@ -468,25 +468,25 @@ make_map <- function(mod) {
     n_season <- mod$n_season
     ## determine whether any parameters fixed
     is_known <- vapply(priors, is_known, FALSE)
-    is_parfree_fixed <- any(is_known)
+    is_effectfree_fixed <- any(is_known)
     is_disp_fixed <- scale_disp == 0
     is_cyclical_fixed <- n_cyclical == 0L
     is_season_fixed <- n_season == 0L
     ## return NULL if nothing fixed
-    if (!is_parfree_fixed && !is_disp_fixed && !is_cyclical_fixed && !is_season_fixed)
+    if (!is_effectfree_fixed && !is_disp_fixed && !is_cyclical_fixed && !is_season_fixed)
         return(NULL)
     ## otherwise construct named list
     ans <- list()
-    if (is_parfree_fixed)
-        ans$parfree <- make_map_parfree_fixed(mod)
+    if (is_effectfree_fixed)
+        ans$effectfree <- make_map_effectfree_fixed(mod)
     if (is_disp_fixed)
         ans$log_disp <- factor(NA)
     if (is_cyclical_fixed) {
-        ans$par_cyclical <- make_map_par_cyclical_fixed(mod)
+        ans$effect_cyclical <- make_map_effect_cyclical_fixed(mod)
         ans$hyper_cyclical <- make_map_hyper_cyclical_fixed(mod)
     }
     if (is_season_fixed) {
-        ans$par_season <- make_map_par_season_fixed(mod)
+        ans$effect_season <- make_map_effect_season_fixed(mod)
         ans$hyper_season <- make_map_hyper_season_fixed(mod)
     }
     ans
@@ -530,11 +530,11 @@ make_map_hyper_season_fixed <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make 'par_cyclical' component of 'map'
+#' Make 'effect_cyclical' component of 'map'
 #' argument to MakeADFun
 #'
 #' Only called when model does not have
-#' cyclical effect (implying that 'par_cyclical'
+#' cyclical effect (implying that 'effect_cyclical'
 #' must be treated as fixed.)
 #'
 #' @param mod Object of class "bage_mod"
@@ -542,21 +542,21 @@ make_map_hyper_season_fixed <- function(mod) {
 #' @returns A vector of NAs
 #'
 #' @noRd
-make_map_par_cyclical_fixed <- function(mod) {
-    par_cyclical <- make_par_cyclical(mod)
-    n_par <- length(par_cyclical)
-    ans <- rep(NA, times = n_par)
+make_map_effect_cyclical_fixed <- function(mod) {
+    effect_cyclical <- make_effect_cyclical(mod)
+    n_effect <- length(effect_cyclical)
+    ans <- rep(NA, times = n_effect)
     ans <- factor(ans)
     ans
 }
 
 
 ## HAS_TESTS
-#' Make 'par_season' component of 'map'
+#' Make 'effect_season' component of 'map'
 #' argument to MakeADFun
 #'
 #' Only called when model does not have
-#' seasonal effect (implying that 'par_season'
+#' seasonal effect (implying that 'effect_season'
 #' must be treated as fixed.)
 #'
 #' @param mod Object of class "bage_mod"
@@ -564,17 +564,17 @@ make_map_par_cyclical_fixed <- function(mod) {
 #' @returns A vector of NAs
 #'
 #' @noRd
-make_map_par_season_fixed <- function(mod) {
-    par_season <- make_par_season(mod)
-    n_par <- length(par_season)
-    ans <- rep(NA, times = n_par)
+make_map_effect_season_fixed <- function(mod) {
+    effect_season <- make_effect_season(mod)
+    n_effect <- length(effect_season)
+    ans <- rep(NA, times = n_effect)
     ans <- factor(ans)
     ans
 }
 
 
 ## HAS_TESTS
-#' Make 'parfree' component of 'map'
+#' Make 'effectfree' component of 'map'
 #' argument to MakeADFun
 #'
 #' Only called when model has Known prior.
@@ -584,10 +584,10 @@ make_map_par_season_fixed <- function(mod) {
 #' @returns A factor vector of NAs
 #'
 #' @noRd
-make_map_parfree_fixed <- function(mod) {
+make_map_effectfree_fixed <- function(mod) {
     priors <- mod$priors
     is_known <- vapply(priors, is_known, FALSE)
-    lengths <- make_lengths_parfree(mod)
+    lengths <- make_lengths_effectfree(mod)
     ans <- ifelse(is_known, NA, 0L)
     ans <- rep(ans, times = lengths)
     n <- length(ans)
@@ -612,7 +612,7 @@ make_map_parfree_fixed <- function(mod) {
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_par_outcome <- function(formula, data) {
+make_matrices_effect_outcome <- function(formula, data) {
     factors <- attr(stats::terms(formula), "factors")
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
@@ -651,7 +651,7 @@ make_matrices_par_outcome <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Make list of matrices mapping parfree to par
+#' Make list of matrices mapping effectfree to effect
 #'
 #' Make list of matrices mapping free parameters
 #' for main effects or interactions to
@@ -662,15 +662,15 @@ make_matrices_par_outcome <- function(formula, data) {
 #' @returns A named list of matrices
 #'
 #' @noRd
-make_matrices_parfree_par <- function(mod) {
+make_matrices_effectfree_effect <- function(mod) {
     priors <- mod$priors
-    levels_par <- mod$levels_par
-    terms_par <- mod$terms_par
+    levels_effect <- mod$levels_effect
+    terms_effect <- mod$terms_effect
     agesex <- make_agesex(mod)
-    levels_par <- split(levels_par, terms_par)
-    ans <- .mapply(make_matrix_parfree_par,
+    levels_effect <- split(levels_effect, terms_effect)
+    ans <- .mapply(make_matrix_effectfree_effect,
                    dots = list(prior = priors,
-                               levels_par = levels_par,
+                               levels_effect = levels_effect,
                                agesex = agesex),
                    MoreArgs = list())
     names(ans) <- names(priors)
@@ -771,28 +771,28 @@ make_offset_ones <- function(data) {
 
 ## HAS_TESTS
 #' Make combined vector offsets using in converting
-#' parfree to par
+#' effectfree to effect
 #'
 #' Make combined vector of offsets used in converting free parameters
 #' for main effects or interactions to
 #' full parameter vectors. Note that in TMB itself,
 #' the combined vector is split into pieces using
-#' terms_parfree.
+#' terms_effectfree.
 #' 
 #' @param mod Object of class 'bage_mod'
 #'
 #' @returns A named vector of doubles.
 #'
 #' @noRd
-make_offsets_parfree_par <- function(mod) {
+make_offsets_effectfree_effect <- function(mod) {
     priors <- mod$priors
-    levels_par <- mod$levels_par
-    terms_par <- mod$terms_par
+    levels_effect <- mod$levels_effect
+    terms_effect <- mod$terms_effect
     agesex <- make_agesex(mod)
-    levels_par <- split(levels_par, terms_par)
-    ans <- .mapply(make_offset_parfree_par,
+    levels_effect <- split(levels_effect, terms_effect)
+    ans <- .mapply(make_offset_effectfree_effect,
                    dots = list(prior = priors,
-                               levels_par = levels_par,
+                               levels_effect = levels_effect,
                                agesex = agesex),
                    MoreArgs = list())
     names(ans) <- names(priors)
@@ -830,7 +830,7 @@ make_outcome <- function(formula, data) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_par_cyclical <- function(mod) {
+make_effect_cyclical <- function(mod) {
     matrix <- mod$matrix_cyclical_outcome
     matrix <- Matrix::as.matrix(matrix)
     n <- ncol(matrix)
@@ -849,7 +849,7 @@ make_par_cyclical <- function(mod) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_par_season <- function(mod) {
+make_effect_season <- function(mod) {
     matrix <- mod$matrix_season_outcome
     matrix <- Matrix::as.matrix(matrix)
     n <- ncol(matrix)
@@ -872,10 +872,10 @@ make_par_season <- function(mod) {
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_parfree <- function(mod) {
+make_effectfree <- function(mod) {
     priors <- mod$priors
-    lengths_parfree <- make_lengths_parfree(mod)
-    ans <- lapply(lengths_parfree, function(n) rep(0, times = n))
+    lengths_effectfree <- make_lengths_effectfree(mod)
+    ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
     for (i_term in seq_along(priors)) {
         prior <- priors[[i_term]]
         is_known <- is_known(prior)
@@ -885,7 +885,7 @@ make_parfree <- function(mod) {
         }
     }
     ans <- unlist(ans)
-    names(ans) <- rep(names(priors), times = lengths_parfree)
+    names(ans) <- rep(names(priors), times = lengths_effectfree)
     ans
 }
 
@@ -903,20 +903,20 @@ make_parfree <- function(mod) {
 #' @param formula Formula specifying model
 #' @param var_age Name of age variable, or NULL
 #' @param var_time Name of time variable, or NULL
-#' @param lengths_par Number of elements in each term
+#' @param lengths_effect Number of elements in each term
 #'
 #' @returns Named list of objects with class
 #' 'bage_prior'.
 #'
 #' @noRd
-make_priors <- function(formula, var_age, var_time, lengths_par) {
+make_priors <- function(formula, var_age, var_time, lengths_effect) {
     nms_terms <- attr(stats::terms(formula), "term.labels")
     has_intercept <- attr(stats::terms(formula), "intercept")
     if (has_intercept)
         nms_terms <- c("(Intercept)", nms_terms)
     ans <- .mapply(default_prior,
                    dots = list(nm_term = nms_terms,
-                               length_par = lengths_par),
+                               length_effect = lengths_effect),
                    MoreArgs = list(var_age = var_age,
                                    var_time = var_time))
     names(ans) <- nms_terms
@@ -927,8 +927,8 @@ make_priors <- function(formula, var_age, var_time, lengths_par) {
 ## HAS_TESTS
 #' Make 'random' argument to MakeADFun function
 #'
-#' Return value always includes "parfree".
-#' Also contains "par_season" if the model has
+#' Return value always includes "effectfree".
+#' Also contains "effect_season" if the model has
 #' a seasonal effect.
 #'
 #' @param mod Object of class "bage_mod"
@@ -939,19 +939,20 @@ make_priors <- function(formula, var_age, var_time, lengths_par) {
 make_random <- function(mod) {
     has_cyclical <- has_cyclical(mod)
     has_season <- has_season(mod)
-    ans <- "parfree"
+    ans <- "effectfree"
     if (has_cyclical)
-        ans <- c(ans, "par_cyclical")
+        ans <- c(ans, "effect_cyclical")
     if (has_season)
-        ans <- c(ans, "par_season")
+        ans <- c(ans, "effect_season")
     ans
 }
 
 
 ## HAS_TESTS
-#' Make a random seed
+#' Randomly Generate an Integer Suitable for
+#' Using as a Random Seed
 #'
-#' @returns A an between 1 and max integer.
+#' @returns An integer between 1 and max integer.
 #'
 #' @noRd
 make_seed <- function()
@@ -965,21 +966,21 @@ make_seed <- function()
 #' with B-splines and Penalties.
 #' Statistical Science, 11(2), 89-121.
 #'
-#' @param length_par Number of elements in main
+#' @param length_effect Number of elements in main
 #' effect.
 #' @param n_spline Number of columns in spline matrix
 #'
-#' @returns Matrix with 'length_par' rows and 'n_spline' columns
+#' @returns Matrix with 'length_effect' rows and 'n_spline' columns
 #'
 #' @noRd
-make_spline_matrix <- function(length_par, n_spline) {
+make_spline_matrix <- function(length_effect, n_spline) {
     n_interval <- n_spline - 3L
-    interval_length <- (length_par - 1L) / n_interval
+    interval_length <- (length_effect - 1L) / n_interval
     start <- 1 - 3 * interval_length
-    end <- length_par + 3 * interval_length
+    end <- length_effect + 3 * interval_length
     x <- seq(from = start, to = end, by = 0.001)
     base <- splines::bs(x = x, df = n_spline + 5L)
-    i_keep <- findInterval(seq_len(length_par), x)
+    i_keep <- findInterval(seq_len(length_effect), x)
     j_keep <- seq.int(from = 3L, length.out = n_spline)
     ans <- base[i_keep, j_keep]
     colmeans <- colMeans(ans)
@@ -1084,15 +1085,15 @@ make_terms_hyper <- function(mod) {
 #' giving the name of the term
 #' that the each element belongs to.
 #'
-#' @param matrices_par_outcome Named list of Matrix objects
+#' @param matrices_effect_outcome Named list of Matrix objects
 #'
 #' @returns A factor.
 #'
 #' @noRd
-make_terms_par <- function(matrices_par_outcome) {
-    nms <- names(matrices_par_outcome)
-    matrices_par_outcome <- lapply(matrices_par_outcome, Matrix::as.matrix)
-    lengths <- vapply(matrices_par_outcome, ncol, 1L)
+make_terms_effect <- function(matrices_effect_outcome) {
+    nms <- names(matrices_effect_outcome)
+    matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
+    lengths <- vapply(matrices_effect_outcome, ncol, 1L)
     ans <- rep(nms, times = lengths)
     ans <- factor(ans, levels = nms)
     ans
@@ -1100,21 +1101,21 @@ make_terms_par <- function(matrices_par_outcome) {
 
 
 ## HAS_TESTS
-#' Make factor identifying components of 'parfree'
+#' Make factor identifying components of 'effectfree'
 #'
-#' Make factor the same length as 'parfree',
+#' Make factor the same length as 'effectfree',
 #' giving the name of the term
 #' that the each element belongs to.
 #'
 #' @param mod Object of class "bage_mod"
 #'
 #' @returns A factor, the same length
-#' as 'parfree'.
+#' as 'effectfree'.
 #'
 #' @noRd
-make_terms_parfree <- function(mod) {
+make_terms_effectfree <- function(mod) {
     priors <- mod$priors
-    matrices <- make_matrices_parfree_par(mod)
+    matrices <- make_matrices_effectfree_effect(mod)
     matrices <- lapply(matrices, Matrix::as.matrix)
     lengths <- vapply(matrices, ncol, 1L)
     nms <- names(priors)
@@ -1145,16 +1146,16 @@ make_uses_hyper <- function(mod) {
 
 ## HAS_TESTS
 #' Make integer vector of flags for whether
-#' each prior uses a matrix mapping parfree to par
+#' each prior uses a matrix mapping effectfree to effect
 #'
 #' @param mod Object of class 'bage_mod'
 #'
 #' @returns An integer vector
 #'
 #' @noRd
-make_uses_matrix_parfree_par <- function(mod) {
+make_uses_matrix_effectfree_effect <- function(mod) {
     priors <- mod$priors
-    ans <- vapply(priors, uses_matrix_parfree_par, TRUE)
+    ans <- vapply(priors, uses_matrix_effectfree_effect, TRUE)
     ans <- as.integer(ans)
     names(ans) <- names(priors)
     ans    
@@ -1164,16 +1165,16 @@ make_uses_matrix_parfree_par <- function(mod) {
 ## HAS_TESTS
 #' Make integer vector of flags for whether
 #' each prior uses an offset to convert
-#' parfree to par
+#' effectfree to effect
 #'
 #' @param mod Object of class 'bage_mod'
 #'
 #' @returns An integer vector
 #'
 #' @noRd
-make_uses_offset_parfree_par <- function(mod) {
+make_uses_offset_effectfree_effect <- function(mod) {
     priors <- mod$priors
-    ans <- vapply(priors, uses_offset_parfree_par, TRUE)
+    ans <- vapply(priors, uses_offset_effectfree_effect, TRUE)
     ans <- as.integer(ans)
     names(ans) <- names(priors)
     ans    

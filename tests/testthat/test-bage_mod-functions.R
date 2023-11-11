@@ -16,7 +16,7 @@ test_that("'set_cyclical' works with valid inputs", {
     expect_true(has_cyclical(mod))
     expect_identical(mod$n_cyclical, 4L)
     expect_identical(mod$scale_cyclical, 0.2)
-    expect_identical(mod$matrix_cyclical_outcome, mod$matrices_par_outcome[["time"]])
+    expect_identical(mod$matrix_cyclical_outcome, mod$matrices_effect_outcome[["time"]])
 })
 
 test_that("'set_cyclical' throws correct error when no time var", {
@@ -189,7 +189,7 @@ test_that("'set_season' works with valid inputs - no by", {
     expect_true(has_season(mod))
     expect_identical(mod$n_season, 2L)
     expect_identical(mod$scale_season, 0.2)
-    expect_identical(mod$matrix_season_outcome, mod$matrices_par_outcome[["time"]])
+    expect_identical(mod$matrix_season_outcome, mod$matrices_effect_outcome[["time"]])
 })
 
 test_that("'set_season' works with valid inputs - with by", {
@@ -205,7 +205,7 @@ test_that("'set_season' works with valid inputs - with by", {
     expect_true(has_season(mod))
     expect_identical(mod$n_season, 2L)
     expect_identical(mod$scale_season, 0.2)
-    expect_identical(mod$matrix_season_outcome, mod$matrices_par_outcome[["age:time"]])
+    expect_identical(mod$matrix_season_outcome, mod$matrices_effect_outcome[["age:time"]])
 })
 
 test_that("'set_season' gives expected error when 'var_time' not defined", {
