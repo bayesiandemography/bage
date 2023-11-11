@@ -100,21 +100,20 @@ mod_pois <- function(formula, data, exposure) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
                                                       data = data)
-    levels_par <- make_levels_par(formula = formula,
-                                  matrices_par_outcome = matrices_par_outcome,
+    levels_effect <- make_levels_effect(formula = formula,
+                                  matrices_effect_outcome = matrices_effect_outcome,
                                   outcome = outcome,
                                   data = data)
-    lengths_par <- make_lengths_par(matrices_par_outcome)
-    terms_par <- make_terms_par(matrices_par_outcome)
+    lengths_effect <- make_lengths_effect(matrices_effect_outcome)
+    terms_effect <- make_terms_effect(matrices_effect_outcome)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
                           var_time = var_time,
-                          lengths_par = lengths_par)
-    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
-                                                  j = integer(),
-                                                  x = integer())
+                          lengths_effect = lengths_effect)
+    matrix_cyclical_outcome <- make_matrix_sparse_empty()
+    matrix_season_outcome <- make_matrix_sparse_empty()
     seed_components <- make_seed()
     seed_fitted <- make_seed()
     ## create object and return
@@ -127,11 +126,13 @@ mod_pois <- function(formula, data, exposure) {
                 var_age = var_age,
                 var_sexgender = var_sexgender,
                 var_time = var_time,
-                matrices_par_outcome = matrices_par_outcome,
-                levels_par = levels_par,
-                lengths_par = lengths_par,
-                terms_par = terms_par,
+                matrices_effect_outcome = matrices_effect_outcome,
+                levels_effect = levels_effect,
+                lengths_effect = lengths_effect,
+                terms_effect = terms_effect,
                 scale_disp = 1,
+                n_cyclical = 0L,
+                matrix_cyclical_outcome = matrix_cyclical_outcome,
                 n_season = 0L,
                 scale_season = NULL,
                 matrix_season_outcome = matrix_season_outcome,
@@ -232,21 +233,20 @@ mod_binom <- function(formula, data, size) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
+    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
                                                       data = data)
-    levels_par <- make_levels_par(formula = formula,
-                                  matrices_par_outcome = matrices_par_outcome,
+    levels_effect <- make_levels_effect(formula = formula,
+                                  matrices_effect_outcome = matrices_effect_outcome,
                                   outcome = outcome,
                                   data = data)
-    lengths_par <- make_lengths_par(matrices_par_outcome)
-    terms_par <- make_terms_par(matrices_par_outcome)
+    lengths_effect <- make_lengths_effect(matrices_effect_outcome)
+    terms_effect <- make_terms_effect(matrices_effect_outcome)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
                           var_time = var_time,
-                          lengths_par = lengths_par)
-    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
-                                                  j = integer(),
-                                                  x = integer())
+                          lengths_effect = lengths_effect)
+    matrix_cyclical_outcome <- make_matrix_sparse_empty()
+    matrix_season_outcome <- make_matrix_sparse_empty()
     seed_components <- make_seed()
     seed_fitted <- make_seed()
     ## create object and return
@@ -259,11 +259,13 @@ mod_binom <- function(formula, data, size) {
                 var_age = var_age,
                 var_sexgender = var_sexgender,
                 var_time = var_time,
-                matrices_par_outcome = matrices_par_outcome,
-                levels_par = levels_par,
-                lengths_par = lengths_par,
-                terms_par = terms_par,
+                matrices_effect_outcome = matrices_effect_outcome,
+                levels_effect = levels_effect,
+                lengths_effect = lengths_effect,
+                terms_effect = terms_effect,
                 scale_disp = 1,
+                n_cyclical = 0L,
+                matrix_cyclical_outcome = matrix_cyclical_outcome,
                 n_season = 0L,
                 scale_season = NULL,
                 matrix_season_outcome = matrix_season_outcome,
@@ -371,21 +373,20 @@ mod_norm <- function(formula, data, weights) {
     var_age <- infer_var_age(formula)
     var_sexgender <- infer_var_sexgender(formula)
     var_time <- infer_var_time(formula)
-    matrices_par_outcome <- make_matrices_par_outcome(formula = formula,
-                                                      data = data)
-    levels_par <- make_levels_par(formula = formula,
-                                  matrices_par_outcome = matrices_par_outcome,
+    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
+                                                         data = data)
+    levels_effect <- make_levels_effect(formula = formula,
+                                  matrices_effect_outcome = matrices_effect_outcome,
                                   outcome = outcome,
                                   data = data)
-    lengths_par <- make_lengths_par(matrices_par_outcome)
-    terms_par <- make_terms_par(matrices_par_outcome)
+    lengths_effect <- make_lengths_effect(matrices_effect_outcome)
+    terms_effect <- make_terms_effect(matrices_effect_outcome)
     priors <- make_priors(formula = formula,
                           var_age = var_age,
                           var_time = var_time,
-                          lengths_par = lengths_par)
-    matrix_season_outcome <- Matrix::sparseMatrix(i = integer(),
-                                                  j = integer(),
-                                                  x = integer())
+                          lengths_effect = lengths_effect)
+    matrix_cyclical_outcome <- make_matrix_sparse_empty()
+    matrix_season_outcome <- make_matrix_sparse_empty()
     seed_components <- make_seed()
     seed_fitted <- make_seed()
     ## create object and return
@@ -400,11 +401,13 @@ mod_norm <- function(formula, data, weights) {
                 var_age = var_age,
                 var_sexgender = var_sexgender,
                 var_time = var_time,
-                matrices_par_outcome = matrices_par_outcome,
-                levels_par = levels_par,
-                lengths_par = lengths_par,
-                terms_par = terms_par,
+                matrices_effect_outcome = matrices_effect_outcome,
+                levels_effect = levels_effect,
+                lengths_effect = lengths_effect,
+                terms_effect = terms_effect,
                 scale_disp = 1,
+                n_cyclical = 0L,
+                matrix_cyclical_outcome = matrix_cyclical_outcome,
                 n_season = 0L,
                 scale_season = NULL,
                 matrix_season_outcome = matrix_season_outcome,

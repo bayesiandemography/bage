@@ -12,7 +12,7 @@ calling \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()
 and then \code{\link[=fit]{fit()}}.}
 
 \item{condition_on}{Parameters to condition
-on. Either \code{"expected"} or \code{"fitted"}. See
+on. Either \code{"meanpar"} or \code{"par"}. See
 details.}
 
 \item{n}{Number of replicate datasets to create.
@@ -45,14 +45,14 @@ With Poisson and binomial models that include
 dispersion terms (which is the default), there are
 two options for constructing replicate data.
 \itemize{
-\item When \code{condition_on} is \code{"fitted"},
+\item When \code{condition_on} is \code{"par"},
 the replicate data is created by (i) drawing values
 from the posterior distribution for rates or probabilities
 (the \eqn{\gamma_i} defined in \code{\link[=mod_pois]{mod_pois()}}
 and \code{\link[=mod_binom]{mod_binom()}}), and (ii)  conditional on these
 rates or probabilities, drawing values for the
 outcome variable.
-\item When \code{condition_on} is \code{"expected"},
+\item When \code{condition_on} is \code{"meanpar"},
 the replicate data is created by (i) drawing
 values from hyper-parameters governing
 the rates or probabilities
@@ -65,18 +65,18 @@ rates or probabilities, drawing values for the
 outcome variable.
 }
 
-The default for \code{condition_on} is \code{"expected"}.
-The \code{"expected"} option
+The default for \code{condition_on} is \code{"meanpar"}.
+The \code{"meanpar"} option
 provides a more severe test for
-a model than the \code{"fitted"} option,
-since "fitted" values are weighted averages
-of the "expected" values and the original
+a model than the \code{"par"} option,
+since "par" values are weighted averages
+of the "meanpar" values and the original
 data.
 
 As described in \code{\link[=mod_norm]{mod_norm()}}, normal models
 have a slightly different structure from Poisson
 and binomial models, and the distinction between
-fitted and expected values does not apply.
+\code{"par"} and \code{"meanpar"} does not apply.
 }
 
 \examples{

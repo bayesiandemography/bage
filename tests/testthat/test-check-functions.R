@@ -1,4 +1,25 @@
 
+## 'check_bage_mod' -----------------------------------------------------------
+
+test_that("'check_bage_mod' returns true with valid model object", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_true(check_bage_mod(mod))
+})
+
+test_that("'check_bage_mod' returns expected error message with invalid model object", {
+    expect_error(check_bage_mod(x = NULL, nm_x = "model"),
+                 "`model` does not have class")
+})
+
+
+
 ## 'check_by_in_formula' ------------------------------------------------------
 
 test_that("'check_by_in_formula' returns TRUE with valid inputs", {
@@ -166,9 +187,9 @@ test_that("'check_formula_vnames_in_data' returns correct error with invalid inp
 })
 
 
-## 'check_has_disp_if_condition_on_expected' ----------------------------------
+## 'check_has_disp_if_condition_on_meanpar' ----------------------------------
 
-test_that("'check_has_disp_if_condition_on_expected' works", {
+test_that("'check_has_disp_if_condition_on_meanpar' works", {
     set.seed(0)
     data <- expand.grid(age = 0:9, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -177,10 +198,10 @@ test_that("'check_has_disp_if_condition_on_expected' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_true(check_has_disp_if_condition_on_expected(mod))
+    expect_true(check_has_disp_if_condition_on_meanpar(mod))
     mod <- set_disp(mod, s = 0)
-    expect_error(check_has_disp_if_condition_on_expected(mod),
-                 "`condition_on` is \"expected\" but model has no dispersion term")
+    expect_error(check_has_disp_if_condition_on_meanpar(mod),
+                 "`condition_on` is \"meanpar\" but model has no dispersion term")
 })
 
 
@@ -214,20 +235,20 @@ test_that("'check_is_main_effect' throws correct error when interaction", {
 })    
 
 
-## 'check_length_par_gt' ------------------------------------------------------
+## 'check_length_effect_gt' ------------------------------------------------------
 
-test_that("'check_length_par_gt' returns TRUE with valid inputs", {
-    expect_true(check_length_par_gt(length_par = 10L,
-                                    min = 3L,
-                                    nm = "age",
-                                    prior = N()))
+test_that("'check_length_effect_gt' returns TRUE with valid inputs", {
+    expect_true(check_length_effect_gt(length_effect = 10L,
+                                       min = 3L,
+                                       nm = "age",
+                                       prior = N()))
 })
 
-test_that("'check_length_par_gt' throws correct error with length less than min", {
-    expect_error(check_length_par_gt(length_par = 1L,
-                                     min = 2L,
-                                     nm = "age",
-                                     prior = N()),
+test_that("'check_length_effect_gt' throws correct error with length less than min", {
+    expect_error(check_length_effect_gt(length_effect = 1L,
+                                        min = 2L,
+                                        nm = "age",
+                                        prior = N()),
                  "`N\\(\\)` prior cannot be used for `age` term.")                
 })
 
