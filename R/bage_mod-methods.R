@@ -534,6 +534,40 @@ fit.bage_mod <- function(object, ...) {
 }
 
 
+## 'forecast' -----------------------------------------------------------------
+
+#' @importFrom generics forecast
+#' @export
+generics::forecast
+
+## NO_TESTS
+#' Forecast a model
+#'
+#' @param object A `bage_mod` object,
+#' typically created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param ... Not currently used.
+#'
+#' @returns A `bage_mod` object
+#'
+#' @export    
+forecast.bage_mod <- function(object, n, ...) {
+    var_time <- object$var_time
+    if (is.null(var_time))
+        cli::cli_abort(c("Can't forecast when time variable not identified.",
+                         i = "Please use {.fun set_var_time} to identify time variable."))
+    check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
+    levels_time <- 
+    time_extra <- 
+    n <- as.integer(n)
+    
+    
+    has_cyclical <- has_cyclical(object)
+    has_season <- has_season(object)
+    
+
+
+
 ## 'get_fun_inv_transform' ----------------------------------------------------
 
 #' Get function to calculate inverse tranformation

@@ -500,27 +500,6 @@ set_var_time <- function(mod, name) {
 }
 
 
-## generate.bage_mod <- function(x, known = "(Intercept)", ...) {
-##     nm_distn <- x$nm_distn
-##     is_fitted <- !is.null(x$est)
-##     if (!is_fitted)
-##         x <- fit(x)
-##     nms_priors <- names(x$priors)
-##     check_known(known = known,
-##                 nms_priors = nms_priors,
-##                 nm_distn = nm_distn)
-##     if (known == ".")
-##         generate_all(x)
-##     else if (known %in% c("rate", "prob", "mean"))
-##         generate_outcome(x)
-##     else
-##         generate_partial(mod, known = known)
-## }
-
-## fit.bage_mod_sim <- function(x) {
-##     NULL
-## }
-
 
 ## Helper functions -----------------------------------------------------------
 
