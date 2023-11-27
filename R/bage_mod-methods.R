@@ -1164,7 +1164,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
     else
         condition_on <- match.arg(condition_on, choices = c("meanpar", "par"))
     check_n(n = n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)
@@ -1210,7 +1210,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
     else
         condition_on <- match.arg(condition_on, choices = c("meanpar", "par"))
     check_n(n = n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)
@@ -1259,7 +1259,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
                         i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
                                   "when model {.arg x} has a normal likelihood.")))
     check_n(n = n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)

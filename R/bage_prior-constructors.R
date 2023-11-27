@@ -332,7 +332,11 @@ RW2 <- function(s = 1, flat = FALSE) {
 #' Spline(n = 10)
 #' @export
 Spline <- function(n = NULL, s = 1) {
-    check_n(n, n_arg = "n", min = 4L, max = NULL, null_ok = TRUE)
+    check_n(n,
+            nm_n = "n",
+            min = 4L,
+            max = NULL,
+            null_ok = TRUE)
     if (!is.null(n))
         n <- as.integer(n)
     check_scale(s, x_arg = "s", zero_ok = FALSE)
@@ -371,7 +375,11 @@ SVD <- function(scaled_svd, n = 5, indep = TRUE) {
         cli::cli_abort(c("{.arg scaled_svd} does not hold scaled SVD values.",
                          i = "{.arg scaled_svd} has class {.cls {class(scaled_svd)}}.",
                          i = "{.arg scaled_svd} should have class {.cls bage_scaled_svd}."))
-    check_n(n, n_arg = "n", min = 1L, max = 10L, null_ok = FALSE)
+    check_n(n,
+            nm_n = "n",
+            min = 1L,
+            max = 10L,
+            null_ok = FALSE)
     n <- as.integer(n)
     check_flag(indep)
     new_bage_prior_svd(scaled_svd = scaled_svd,
@@ -405,7 +413,11 @@ new_bage_prior_ar1 <- function(scale, min, max) {
     shape1 <- 2.0
     shape2 <- 2.0
     ans <- list(i_prior = 5L,
-                const = c(shape1, shape2, min, max, scale),
+                const = c(shape1 = shape1,
+                          shape2 = shape2,
+                          min = min,
+                          max = max,
+                          scale = scale),
                 n_hyper = 2L, ## logit_coef, log_sd
                 specific = list(shape1 = shape1,
                                 shape2 = shape2,
@@ -429,7 +441,7 @@ new_bage_prior_known <- function(values) {
 ## HAS_TESTS
 new_bage_prior_norm <- function(scale) {
     ans <- list(i_prior = 1L,
-                const = scale,
+                const = c(scale = scale),
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_norm", "bage_prior")
@@ -439,7 +451,7 @@ new_bage_prior_norm <- function(scale) {
 ## HAS_TESTS
 new_bage_prior_normfixed <- function(sd) {
     ans <- list(i_prior = 2L,
-                const = sd,
+                const = c(sd = sd),
                 n_hyper = 0L, ## log_sd
                 specific = list(sd = sd))
     class(ans) <- c("bage_prior_normfixed", "bage_prior")
@@ -450,7 +462,8 @@ new_bage_prior_normfixed <- function(sd) {
 new_bage_prior_rw <- function(scale) {
     sd_intercept <- 0.001
     ans <- list(i_prior = 3L,
-                const = c(scale, sd_intercept),
+                const = c(scale = scale,
+                          sd_intercept = sd_intercept),
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale,
                                 sd_intercept = sd_intercept))
@@ -463,7 +476,9 @@ new_bage_prior_rw2 <- function(scale, flat) {
     sd_intercept <- 0.001
     sd_slope <- if (flat) sd_intercept else 1
     ans <- list(i_prior = 4L,
-                const = c(scale, sd_intercept, sd_slope),
+                const = c(scale = scale,
+                          sd_intercept = sd_intercept,
+                          sd_slope = sd_slope),
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale,
                                 sd_intercept = sd_intercept,
@@ -477,7 +492,9 @@ new_bage_prior_spline <- function(n, scale) {
     sd_intercept <- 0.001
     sd_slope <- 1
     ans <- list(i_prior = 6L,
-                const = c(scale, sd_intercept, sd_slope),
+                const = c(scale = scale,
+                          sd_intercept = sd_intercept,
+                          sd_slope = sd_slope),
                 n_hyper = 1L, ## log_sd
                 specific = list(n = n,
                                 scale = scale))

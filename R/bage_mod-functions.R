@@ -45,7 +45,7 @@ set_cyclical <- function(mod, n = 2, s = 1) {
         cli::cli_abort(c("Can't specify cyclical effect when time variable not identified.",
                          i = "Please use {.fun set_var_time} to identify time variable."))
     check_n(n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)
@@ -291,7 +291,11 @@ set_season <- function(mod, n, by = NULL, s = 1) {
     if (is.null(var_time))
         cli::cli_abort(c("Can't specify seasonal effect when time variable not identified.",
                          i = "Please use {.fun set_var_time} to identify time variable."))
-    check_n(n, n_arg = "n", min = 2L, max = NULL, null_ok = FALSE)
+    check_n(n,
+            nm_n = "n",
+            min = 2L,
+            max = NULL,
+            null_ok = FALSE)
     n <- as.integer(n)
     by <- rlang::enquo(by)
     by <- tidyselect::eval_select(by, data = data)

@@ -11,7 +11,7 @@ report_sim(
   point_est_fun = c("median", "mean"),
   widths = c(0.5, 0.95),
   report_type = c("short", "long"),
-  n_core = NULL
+  n_core = 1
 )
 }
 \arguments{
@@ -36,8 +36,8 @@ Default is \code{c(0.5, 0.95)}.}
 Options are \code{"short"} and \code{"long"}. Default is \code{"short"}.}
 
 \item{n_core}{Number of cores to use for parallel
-processing. If no value supplied, then no parallel
-processing is done. CURRENTLY UNUSED.}
+processing. If \code{n_core} is \code{1} (the default),
+no parallel processing is done.}
 }
 \value{
 \strong{\code{report_type} is \code{"short"}}

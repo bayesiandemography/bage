@@ -19,7 +19,10 @@ test_that("'assess_performance' works with valid inputs - include_upper is TRUE"
                               include_upper = TRUE,
                               widths = c(0.5, 0.95))
     expect_identical(sapply(ans, length),
-                     c(vals_sim = 5L, error_point_est = 5L, is_in_interval = 5L))
+                     c(vals_sim = 5L,
+                       error_point_est = 5L,
+                       is_in_interval = 5L,
+                       width_interval = 5L))
 })
 
 test_that("'assess_performance' works with valid inputs - include_upper is FALSE", {
@@ -40,7 +43,10 @@ test_that("'assess_performance' works with valid inputs - include_upper is FALSE
                               include_upper = FALSE,
                               widths = c(0.5, 0.95))
     expect_identical(sapply(ans, length),
-                     c(vals_sim = 2L, error_point_est = 2L, is_in_interval = 2L))
+                     c(vals_sim = 2L,
+                       error_point_est = 2L,
+                       is_in_interval = 2L,
+                       width_interval = 2L))
 })
 
 
@@ -76,6 +82,39 @@ test_that("'calc_error_point_est_one' works", {
     ans_expected <- rowMeans(matrix(1:12, nr = 3)) - 1:3
     expect_equal(ans_obtained, ans_expected)
 })
+
+
+## calc_interval_width --------------------------------------------------------
+
+test_that("'calc_interval_width' works - include_upper is TRUE", {
+    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(par = 1:3, b = 4:6)
+    widths <- c(0.5, 0.9, 1)
+    ans_obtained <- calc_interval_width(estimate = estimate,
+                                        widths = widths)
+    ans_expected <- list(par = calc_interval_width_one(estimate = estimate[[1]],
+                                                       widths = widths),
+                         b = calc_interval_width_one(estimate = estimate[[2]],
+                                                     widths = widths))
+    expect_equal(ans_obtained, ans_expected)
+})
+
+
+## calc_interval_width_one ---------------------------------------------------
+
+test_that("'calc_interval_width_one' works", {
+    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
+    widths <- c(0.9, 1)
+    ans_obtained <- calc_interval_width_one(estimate = estimate,
+                                            widths = widths)
+    ci.0.9 <- rvec::draws_ci(estimate, width = 0.9)
+    ci.1 <- rvec::draws_ci(estimate, width = 1)
+    ans_expected <- list("0.9" = ci.0.9$estimate.upper - ci.0.9$estimate.lower,
+                         "1" = ci.1$estimate.upper - ci.1$estimate.lower)
+    expect_equal(ans_obtained, ans_expected)
+})
+
 
 ## calc_is_in_interval --------------------------------------------------------
 
@@ -479,9 +518,9 @@ test_that("'get_vals_sim_one' works - include_upper = TRUE", {
 })
 
 
-## 'is_same_cyclical' ---------------------------------------------------------
+## 'is_comparable_cyclical' ---------------------------------------------------
 
-test_that("'is_same_cyclical' returns TRUE when cyclical effect same", {
+test_that("'is_comparable_cyclical' returns TRUE when cyclical effect same", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -490,10 +529,10 @@ test_that("'is_same_cyclical' returns TRUE when cyclical effect same", {
                     data = data,
                     exposure = popn)
     mod <- set_cyclical(mod, n = 2)
-    expect_true(is_same_cyclical(mod, mod))
+    expect_true(is_comparable_cyclical(mod, mod))
 })
 
-test_that("'is_same_cyclical' returns TRUE when different n", {
+test_that("'is_comparable_cyclical' returns FALSE when different n", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -503,10 +542,10 @@ test_that("'is_same_cyclical' returns TRUE when different n", {
                     exposure = popn)
     mod_est <- set_cyclical(mod, n = 2)
     mod_sim <- set_cyclical(mod, n = 3)
-    expect_false(is_same_cyclical(mod_est, mod_sim))
+    expect_false(is_comparable_cyclical(mod_est, mod_sim))
 })
 
-test_that("'is_same_cyclical' returns TRUE when different 'scale'", {
+test_that("'is_comparable_cyclical' returns TRUE when different 'scale'", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -516,13 +555,29 @@ test_that("'is_same_cyclical' returns TRUE when different 'scale'", {
                     exposure = popn)
     mod_est <- set_cyclical(mod, n = 2)
     mod_sim <- set_cyclical(mod, n = 2, s = 0.1)
-    expect_false(is_same_cyclical(mod_est, mod_sim))
+    expect_true(is_comparable_cyclical(mod_est, mod_sim))
+})
+
+test_that("'is_comparable_cyclical' returns FALSE when different matrices", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod_est <- mod_pois(formula = deaths ~ age + sex + time,
+                        data = data,
+                        exposure = popn)
+    mod_sim <- mod_pois(formula = deaths ~ age + sex + time,
+                        data = subset(data, time != 2005),
+                        exposure = popn)
+    mod_est <- set_cyclical(mod_est, n = 2)
+    mod_sim <- set_cyclical(mod_sim, n = 2)
+    expect_false(is_comparable_cyclical(mod_est, mod_sim))
 })
 
 
-## 'is_same_priors' -----------------------------------------------------------
+## 'is_comparable_mod' -----------------------------------------------------
 
-test_that("'is_same_priors' returns TRUE when priors same", {
+test_that("'is_comparable_mod' returns TRUE when models same", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -530,10 +585,24 @@ test_that("'is_same_priors' returns TRUE when priors same", {
     mod <- mod_pois(formula = deaths ~ age + sex + time,
                     data = data,
                     exposure = popn)
-    expect_true(is_same_priors(mod, mod))
+    expect_true(is_comparable_season(mod, mod))
 })
 
-test_that("'is_same_priors' returns TRUE when priors same - different order", {
+
+## 'is_comparable_priors' -----------------------------------------------------
+
+test_that("'is_comparable_priors' returns TRUE when priors same", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(formula = deaths ~ age + sex + time,
+                    data = data,
+                    exposure = popn)
+    expect_true(is_comparable_priors(mod, mod))
+})
+
+test_that("'is_comparable_priors' returns TRUE when priors same - different order", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -544,10 +613,10 @@ test_that("'is_same_priors' returns TRUE when priors same - different order", {
     mod2 <- mod_pois(formula = deaths ~ age + time + sex,
                     data = data,
                     exposure = popn)
-    expect_true(is_same_priors(mod1, mod2))
+    expect_true(is_comparable_priors(mod1, mod2))
 })
 
-test_that("'is_same_priors' returns FALSE when different numbers of priors", {
+test_that("'is_comparable_priors' returns FALSE when different numbers of priors", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -558,10 +627,10 @@ test_that("'is_same_priors' returns FALSE when different numbers of priors", {
     mod2 <- mod_pois(formula = deaths ~ age + time + sex,
                     data = data,
                     exposure = popn)
-    expect_false(is_same_priors(mod1, mod2))
+    expect_false(is_comparable_priors(mod1, mod2))
 })
 
-test_that("'is_same_priors' returns FALSE when priors have different classes", {
+test_that("'is_comparable_priors' returns FALSE when priors have different classes", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -573,13 +642,13 @@ test_that("'is_same_priors' returns FALSE when priors have different classes", {
     mod2 <- mod_pois(formula = deaths ~ age + time + sex,
                     data = data,
                     exposure = popn)
-    expect_false(is_same_priors(mod1, mod2))
+    expect_false(is_comparable_priors(mod1, mod2))
 })
 
 
-## 'is_same_season' -----------------------------------------------------------
+## 'is_comparable_season' -----------------------------------------------------
 
-test_that("'is_same_season' returns TRUE when season effect same", {
+test_that("'is_comparable_season' returns TRUE when season effect same", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -588,10 +657,10 @@ test_that("'is_same_season' returns TRUE when season effect same", {
                     data = data,
                     exposure = popn)
     mod <- set_season(mod, n = 2)
-    expect_true(is_same_season(mod, mod))
+    expect_true(is_comparable_season(mod, mod))
 })
 
-test_that("'is_same_season' returns TRUE when different n", {
+test_that("'is_comparable_season' returns FALSE when different n", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -601,10 +670,10 @@ test_that("'is_same_season' returns TRUE when different n", {
                     exposure = popn)
     mod_est <- set_season(mod, n = 2)
     mod_sim <- set_season(mod, n = 3)
-    expect_false(is_same_season(mod_est, mod_sim))
+    expect_false(is_comparable_season(mod_est, mod_sim))
 })
 
-test_that("'is_same_season' returns TRUE when different 'by'", {
+test_that("'is_comparable_season' returns TRUE when different 'by'", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -614,10 +683,10 @@ test_that("'is_same_season' returns TRUE when different 'by'", {
                     exposure = popn)
     mod_est <- set_season(mod, n = 2, by = age)
     mod_sim <- set_season(mod, n = 2, by = sex)
-    expect_false(is_same_season(mod_est, mod_sim))
+    expect_false(is_comparable_season(mod_est, mod_sim))
 })
 
-test_that("'is_same_season' returns TRUE when different 'scale'", {
+test_that("'is_comparable_season' returns TRUE when different 'scale'", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -627,7 +696,7 @@ test_that("'is_same_season' returns TRUE when different 'scale'", {
                     exposure = popn)
     mod_est <- set_season(mod, n = 2)
     mod_sim <- set_season(mod, n = 2, s = 0.1)
-    expect_false(is_same_season(mod_est, mod_sim))
+    expect_true(is_comparable_season(mod_est, mod_sim))
 })
 
 
@@ -673,14 +742,14 @@ test_that("'make_id_vars_report' works with include_upper FALSE", {
 })
 
 
-## make_rw_matrix -------------------------------------------------------------
+## make_sim_season_matrix -----------------------------------------------------
 
-test_that("'make_rw_matrix' works", {
+test_that("'make_sim_season_matrix' works", {
     set.seed(0)
-    m <- make_rw_matrix(10)
+    m <- make_sim_season_matrix(n_time = 10, n_season = 2L)
     x <- rnorm(10)
     ans_obtained <- as.numeric(m %*% x)
-    ans_expected <- c(diff(x), mean(x))
+    ans_expected <- c(diff(x, lag = 2), mean(x))
     expect_equal(ans_obtained, ans_expected)
 })
 
@@ -780,14 +849,14 @@ test_that("'reformat_performance_vec' works with valid input", {
 })
 
 
-## 'reformat_is_in_interval' --------------------------------------------------
+## 'reformat_interval' --------------------------------------------------
 
-test_that("'reformat_is_in_interval' works with valid input", {
+test_that("'reformat_interval' works with valid input", {
     x <- list(list(a = list("0.5" = c(T,F), "0.95" = c(F,T)),
                    b = list("0.5" = c(F,T,F), "0.95" = c(T,F,T))),
               list(a = list("0.5" = c(T,F), "0.95" = c(F,T)),
                    b = list("0.5" = c(F,T,F), "0.95" = c(F,T,F))))
-    ans_obtained <- reformat_is_in_interval(x)
+    ans_obtained <- reformat_interval(x, nm = "coverage")
     ans_expected <- tibble::tibble(coverage.0.5 =
                                        rvec::rvec_lgl(cbind(c(T,F,F,T,F),c(T,F,F,T,F))),
                                    coverage.0.95 =
@@ -829,6 +898,26 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - long", {
                                point_est_fun = "med")
     expect_true(is.data.frame(ans_obtained))
 })
+
+
+test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(`(Intercept)` ~ NFix(sd = 0.01))
+    ans_obtained <- report_sim(mod,
+                               n_sim = 2,
+                               report_type = "long",
+                               point_est_fun = "med",
+                               n_core = 2)
+    expect_true(is.data.frame(ans_obtained))
+})
+
 
 
 ## 'summarise_sim' ---------------------------------------------------------------

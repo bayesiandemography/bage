@@ -38,11 +38,14 @@ assess_performance <- function(vals_sim,
     is_in_interval <- calc_is_in_interval(estimate = vals_est,
                                           truth = vals_sim,
                                           widths = widths)
+    width_interval <- calc_interval_width(estimate = vals_est,
+                                          widths = widths)
     is_null <- vapply(vals_sim, is.null, FALSE)
     vals_sim <- vals_sim[!is_null]
     list(vals_sim = vals_sim,
          error_point_est = error_point_est,
-         is_in_interval = is_in_interval)
+         is_in_interval = is_in_interval,
+         width_interval = width_interval)
 }
 
 
@@ -92,6 +95,53 @@ calc_error_point_est <- function(estimate, truth, point_est_fun) {
 calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
     point_est <- rvec_fun(estimate)
     as.double(point_est - truth)
+}
+
+
+## HAS_TESTS
+#' Given a sets of estimates,
+#' for each set, calculate the widths
+#' of the credible intervals
+#'
+#' @param estimate A list of rvecs holding the estimates
+#' @param widths Widths of intervals (between 0 and 1)
+#'
+#' @returns A list of logical vectors
+#'
+#' @noRd
+calc_interval_width <- function(estimate, widths) {
+    is_null <- vapply(estimate, is.null, FALSE)
+    estimate <- estimate[!is_null]
+    ans <- .mapply(calc_interval_width_one,
+                   dots = list(estimate = estimate),
+                   MoreArgs = list(widths = widths))
+    names(ans) <- names(estimate)
+    ans
+}
+
+## HAS_TESTS
+#' Calculates widths of credible intervals
+#'
+#' @param estimate An rvec holding estimates
+#' @param widths Widths of intervals (between 0 and 1)
+#'
+#' @returns A logical vector
+#'
+#' @noRd
+calc_interval_width_one <- function(estimate, widths) {
+    n_widths <- length(widths)
+    ans <- vector(mode = "list", length = n_widths)
+    names(ans) <- widths
+    for (i in seq_len(n_widths)) {
+        width <- widths[[i]]
+        probs <- c(0.5 - width / 2, 0.5 + width / 2)
+        ci <- rvec::draws_quantile(x = estimate, probs = probs)
+        lower <- ci[[1L]]
+        upper <- ci[[2L]]
+        width <- upper - lower
+        ans[[i]] <- width
+    }
+    ans
 }
 
 
@@ -494,29 +544,36 @@ draw_vals_cyclical <- function(mod, n_sim) {
 draw_vals_season <- function(mod, n_sim) {
     n_season <- mod$n_season
     n_time <- n_time(mod)
-    n_effect <- ceiling(n_time / n_season)
+    matrix <- mod$matrix_season_outcome
+    matrix <- Matrix::as.matrix(matrix)
+    n_effect <- ncol(matrix)
+    n_by <- n_effect %/% n_time
     const <- make_const_season(mod)
     scale <- const[[1L]]
     sd_intercept <- const[[2L]]
-    A <- make_rw_matrix(n_effect)
-    vals_season <- array(dim = c(n_season, n_effect, n_sim))
+    A <- make_sim_season_matrix(n_time = n_time,
+                                n_by = n_by,
+                                n_season = n_season)
     vals_sd <- stats::rnorm(n = n_sim, sd = scale)
     vals_sd <- abs(vals_sd)
-    sd_v <- array(dim = c(n_season, n_effect, n_sim))
-    sd_v[ , -n_effect, ] <- rep(vals_sd, each = n_season * (n_effect - 1L))
-    sd_v[ , n_effect, ] <- sd_intercept
-    for (i in seq_len(n_season)) {
-        v <- matrix(stats::rnorm(n = n_effect * n_sim, sd = sd_v[i, , ]),
-                    nrow = n_effect,
-                    ncol = n_sim)
-        vals_season[i, , ] <- solve(A, v)
+    season <- array(dim = c(n_by, n_time, n_sim))
+    for (i_sim in seq_len(n_sim)) {
+        sd <- c(vals_sd[[i_sim]], sd_intercept)
+        sd <- rep(sd, times = c(n_time - 1L, 1L))
+        for (i_by in seq_len(n_by)) {
+            v <- rnorm(n = n_time, sd = sd)
+            season[i_by, , i_sim] <- solve(A, v)
+        }
     }
-    vals_season <- matrix(vals_season, ncol = n_sim)
-    vals_season <- vals_season[seq_len(n_time), , drop = FALSE]
+    season <- matrix(season, n_col = n_sim)
     list(season = vals_season,
          sd = vals_sd)
 }
 
+
+
+
+            
 
 ## HAS_TESTS
 #' Get estimated values for hyper, effect,
@@ -606,19 +663,17 @@ get_vals_sim_one <- function(i_sim, vals) {
 
 
 ## HAS_TESTS
-#' Check whether specifications of cyclical effects are the same
-#'
-#' Test via isTRUE(all.equal(x, y))
+#' Check Whether Two Specifications of Cyclical
+#' Effects can be Meaningfully Compared in
+#' a Simulation
 #'
 #' @param mod_est,mod_sim Objects of class "bage_mod"
 #'
 #' @returns TRUE or FALSE
 #'
 #' @noRd
-is_same_cyclical <- function(mod_est, mod_sim) {
+is_comparable_cyclical <- function(mod_est, mod_sim) {
     if (!isTRUE(all.equal(mod_est$n_cyclical, mod_sim$n_cyclical)))
-        return(FALSE)
-    if (!isTRUE(all.equal(mod_est$scale_cyclical, mod_sim$scale_cyclical)))
         return(FALSE)
     if (!isTRUE(all.equal(mod_est$matrix_cyclical_outcome, mod_sim$matrix_cyclical_outcome)))
         return(FALSE)
@@ -627,12 +682,36 @@ is_same_cyclical <- function(mod_est, mod_sim) {
 
 
 ## HAS_TESTS
-#' Check whether two named lists of priors are the same
+#' Check Whether Two Models can be Meaningfully
+#' Compared in a Simulation
+#' 
+#' Test currently very stringent. Requires that
+#' priors all have same class and same number
+#' of hyperparameters, and that cyclical and
+#' seasonal effects same, apart from priors.
 #'
-#' Test via isTRUE(all.equal(x, y))
+#' @param mod_est,mod_sim Objects of class "bage_mod"
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_comparable_mod <- function(mod_est, mod_sim) {
+    is_comparable_priors <- is_comparable_priors(mod_est = mod_est,
+                                                 mod_sim = mod_sim)
+    is_comparable_cyclical <- is_comparable_cyclical(mod_est = mod_est,
+                                                     mod_sim = mod_sim)
+    is_comparable_season <- is_comparable_season(mod_est = mod_est,
+                                                 mod_sim = mod_sim)
+    is_comparable_priors && is_comparable_cyclical && is_comparable_season
+}
+
+
+## HAS_TESTS
+#' Check Whether Two Lists of Priors can be Meaningfully
+#' Compared in a Simulation
 #'
 #' If data for mod_est and est is the same,
-#' and 'is_same_priors' is TRUE, then mod_est
+#' and 'is_comparable_priors' is TRUE, then mod_est
 #' and mod_sim must have same main effects
 #' and interactions.
 #'
@@ -641,7 +720,7 @@ is_same_cyclical <- function(mod_est, mod_sim) {
 #' @returns TRUE or FALSE
 #'
 #' @noRd
-is_same_priors <- function(mod_est, mod_sim) {
+is_comparable_priors <- function(mod_est, mod_sim) {
     pr_est <- mod_est$priors
     pr_sim <- mod_sim$priors
     if (length(pr_est) != length(pr_sim))
@@ -651,7 +730,7 @@ is_same_priors <- function(mod_est, mod_sim) {
     if (!setequal(nms_est, nms_sim))
         return(FALSE)
     for (nm in nms_est) {
-        if (!isTRUE(all.equal(pr_est[[nm]], pr_sim[[nm]])))
+        if (!isTRUE(is_comparable_prior(pr_est[[nm]], pr_sim[[nm]])))
             return(FALSE)
     }
     TRUE
@@ -668,16 +747,13 @@ is_same_priors <- function(mod_est, mod_sim) {
 #' @returns TRUE or FALSE
 #'
 #' @noRd
-is_same_season <- function(mod_est, mod_sim) {
+is_comparable_season <- function(mod_est, mod_sim) {
     if (!isTRUE(all.equal(mod_est$n_season, mod_sim$n_season)))
-        return(FALSE)
-    if (!isTRUE(all.equal(mod_est$scale_season, mod_sim$scale_season)))
         return(FALSE)
     if (!isTRUE(all.equal(mod_est$matrix_season_outcome, mod_sim$matrix_season_outcome)))
         return(FALSE)
     TRUE
 }
-
 
 
 ## HAS_TESTS
@@ -756,20 +832,21 @@ make_id_vars_report <- function(mod, include_upper) {
 
 
 ## HAS_TESTS
-#' Make matrix used in generating a random walk
+#' Make Matrix used to Simulation Seasonal Effects
 #'
-#' Multiplying 'x' by this matrix creates
-#' the vector c(diff(x), mean(x))
+#' Matrix used for each combination of 'by' variables.
 #'
-#' @param n Number of rows/columns of matrix
+#' @param n_time Nnumber of periods
+#' @param n_season Number of seasons
 #'
-#' @returns An n x n matrix
+#' @returns An n_time x n_time matrix
 #'
 #' @noRd
-make_rw_matrix <- function(n) {
-    D <- make_diff_matrix(n)
-    rbind(D,
-          1 / n)
+make_sim_season_matrix <- function(n_time, n_season) {
+    ans <- matrix(0, nrow = n_time - 1L, ncol = n_time)
+    ans[row(ans) == col(ans)] <- -1
+    ans[row(ans) == col(ans) - n_season] <- 1
+    ans <- rbind(ans, 1 / n_time)
 }
 
 
@@ -874,10 +951,10 @@ reformat_performance_vec <- function(x) {
 #' @param x A named list with hierarchy
 #' sim > batch > width
 #' 
-#' @returns A tibble with 'n_width' rvec_lgl
+#' @returns A tibble with 'n_width' rvecs
 #'
 #' @noRd
-reformat_is_in_interval <- function(x) {
+reformat_interval <- function(x, nm) {
     n_sim <- length(x)
     n_batch <- length(x[[1L]])
     widths <- names(x[[1L]][[1L]])
@@ -889,8 +966,8 @@ reformat_is_in_interval <- function(x) {
     x <- lapply(seq_len(n_width), function(i) x[, , i])
     x <- lapply(x, unlist, use.names = FALSE)
     x <- lapply(x, matrix, ncol = n_sim)
-    x <- lapply(x, rvec::rvec_lgl)
-    names(x) <- paste("coverage", widths, sep = ".")
+    x <- lapply(x, rvec::rvec)
+    names(x) <- paste(nm, widths, sep = ".")
     tibble::as_tibble(x)
 }
 
@@ -957,8 +1034,8 @@ transpose_list <- function(l) {
 #' @param report_type Amount of detail in return value.
 #' Options are `"short"` and `"long"`. Default is `"short"`.
 #' @param n_core Number of cores to use for parallel
-#' processing. If no value supplied, then no parallel
-#' processing is done. CURRENTLY UNUSED.
+#' processing. If `n_core` is `1` (the default),
+#' no parallel processing is done.
 #'
 #' @return
 #' **`report_type` is `"short"`**
@@ -1026,48 +1103,72 @@ report_sim <- function(mod_est,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95),
                        report_type = c("short", "long"),
-                       n_core = NULL) {
-    if (!inherits(mod_est, "bage_mod"))
-        cli::cli_abort(c("{.arg mod_est} is not an object of class {.cls bage_mod}.",
-                         i = "{.arg mod_est} has class {.cls {class(mod_est)}}."))
-    check_n(n = n_sim, n_arg = "n_sim", min = 1L, max = NULL, null_ok = FALSE)
+                       n_core = 1) {
+    check_bage_mod(x = mod_est, nm_x = "mod_est")
+    check_n(n = n_sim,
+            nm_n = "n_sim",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
     point_est_fun <- match.arg(point_est_fun)
     check_widths(widths)
     report_type <- match.arg(report_type)
+    check_n(n = n_core,
+            nm_n = "n_core",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
     if (is.null(mod_sim))
         mod_sim <- mod_est
-    else
-        check_mod_est_est_compatible(mod_est = mod_est,
+    else {
+        check_bage_mod(x = mod_sim, nm_x = "mod_sim")
+        check_mod_est_sim_compatible(mod_est = mod_est,
                                      mod_sim = mod_sim)
-    is_same_priors <- is_same_priors(mod_est = mod_est,
-                                     mod_sim = mod_sim)
-    is_same_cyclical <- is_same_cyclical(mod_est = mod_est,
-                                         mod_sim = mod_sim)
-    is_same_season <- is_same_season(mod_est = mod_est,
-                                     mod_sim = mod_sim)
-    include_upper <- is_same_priors && is_same_cyclical && is_same_season
+    }
+    is_comparable_mod <- is_comparable_mod(mod_est = mod_est,
+                                           mod_sim = mod_sim)
     vals_sim_all <- draw_vals_mod(mod = mod_sim,
                                   n_sim = n_sim)
     vals_sim_all <- lapply(seq_len(n_sim), get_vals_sim_one, vals_sim_all)
-    performance <- lapply(vals_sim_all,
-                          assess_performance,
-                          mod_est = mod_est,
-                          point_est_fun = point_est_fun,
-                          include_upper = include_upper,
-                          widths = widths)
+    if (n_core > 1L) {
+        iseed <- make_seed()
+        cl <- parallel::makeCluster(n_core)
+        on.exit(parallel::stopCluster(cl))
+        parallel::clusterSetRNGStream(cl, iseed = iseed)
+        assess_performance_inner <- function(vals_sim)
+            assess_performance(vals_sim,
+                               mod_est = mod_est,
+                               point_est_fun = point_est_fun,
+                               include_upper = is_comparable_mod,
+                               widths = widths)
+        performance <- parallel::parLapply(cl = cl,
+                                           X = vals_sim_all,
+                                           fun = assess_performance_inner)
+    }
+    else {
+        performance <- lapply(vals_sim_all,
+                              assess_performance,
+                              mod_est = mod_est,
+                              point_est_fun = point_est_fun,
+                              include_upper = is_comparable_mod,
+                              widths = widths)
+    }
     performance <- transpose_list(performance)
     vals_sim <- performance[[1L]]
     error_point_est <- performance[[2L]]
     is_in_interval <- performance[[3L]]
+    width_interval <- performance[[4L]]
     vals_sim <- reformat_performance_vec(vals_sim)
     error_point_est <- reformat_performance_vec(error_point_est)
-    is_in_interval <- reformat_is_in_interval(is_in_interval)
+    is_in_interval <- reformat_interval(is_in_interval, nm = "coverage")
+    width_interval <- reformat_interval(width_interval, nm = "width")
     id_vars <- make_id_vars_report(mod = mod_est,
-                                   include_upper = include_upper)
+                                   include_upper = is_comparable_mod)
     ans <- tibble::tibble(id_vars,
                           vals_sim = vals_sim,
                           error_point_est = error_point_est,
-                          is_in_interval)
+                          is_in_interval,
+                          width_interval)
     if (report_type == "short")
         summarise_sim(ans)
     else if (report_type == "long")
