@@ -253,9 +253,9 @@ test_that("'check_length_effect_gt' throws correct error with length less than m
 })
 
 
-## 'check_mod_est_est_compatible' ---------------------------------------------
+## 'check_mod_est_sim_compatible' ---------------------------------------------
 
-test_that("'check_mod_est_est_compatible' returns TRUE with indentical models", {
+test_that("'check_mod_est_sim_compatible' returns TRUE with indentical models", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -264,10 +264,10 @@ test_that("'check_mod_est_est_compatible' returns TRUE with indentical models", 
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_true(check_mod_est_est_compatible(mod, mod))
+    expect_true(check_mod_est_sim_compatible(mod, mod))
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error with different classes", {
+test_that("'check_mod_est_sim_compatible' raises correct error with different classes", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -276,11 +276,11 @@ test_that("'check_mod_est_est_compatible' raises correct error with different cl
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod, 1L),
+    expect_error(check_mod_est_sim_compatible(mod, 1L),
                  "`mod_est` and `mod_sim` have different classes")
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error with different outcomes", {
+test_that("'check_mod_est_sim_compatible' raises correct error with different outcomes", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -294,11 +294,11 @@ test_that("'check_mod_est_est_compatible' raises correct error with different ou
     mod2 <- mod_pois(formula = formula2,
                     data = data,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod1, mod2),
+    expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different outcome variables")
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error when data have different variables", {
+test_that("'check_mod_est_sim_compatible' raises correct error when data have different variables", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -312,11 +312,11 @@ test_that("'check_mod_est_est_compatible' raises correct error when data have di
     mod2 <- mod_pois(formula = formula,
                     data = data2,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod1, mod2),
+    expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different variables.")
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error when data have different values", {
+test_that("'check_mod_est_sim_compatible' raises correct error when data have different values", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -330,7 +330,7 @@ test_that("'check_mod_est_est_compatible' raises correct error when data have di
     mod2 <- mod_pois(formula = formula,
                     data = data2,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod1, mod2),
+    expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different data")
 })
 
@@ -358,44 +358,44 @@ test_that("'check_offset_in_data' returns correct error with invalid inputs", {
 ## 'check_n' ------------------------------------------------------------------
 
 test_that("'check_n' returns TRUE with valid inputs", {
-    expect_true(check_n(n = 4, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE))
-    expect_true(check_n(n = NULL, n_arg = "n", min = 4L, max = NULL, null_ok = TRUE))
+    expect_true(check_n(n = 4, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE))
+    expect_true(check_n(n = NULL, nm_n = "n", min = 4L, max = NULL, null_ok = TRUE))
 })
 
 test_that("'check_n' throws correct error with non-numeric", {
-    expect_error(check_n(n = "4", n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = "4", nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is non-numeric")
 })
 
 test_that("'check_n' throws correct error with wrong length", {
-    expect_error(check_n(n = integer(), n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = integer(), nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` does not have length 1")
-    expect_error(check_n(n = 10:11, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 10:11, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` does not have length 1")
 })
 
 test_that("'check_n' throws correct error with NA", {
-    expect_error(check_n(n = NA_real_, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = NA_real_, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is NA")
 })
 
 test_that("'check_n' throws correct error with Inf", {
-    expect_error(check_n(n = Inf, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = Inf, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is Inf")
 })
 
 test_that("'check_n' throws correct error with non-integer", {
-    expect_error(check_n(n = 6.4, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 6.4, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is not an integer")
 })
 
 test_that("'check_n' throws correct error when less than min", {
-    expect_error(check_n(n = 3, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 3, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is less than 4")
 })
 
 test_that("'check_n' throws correct error when greater than max", {
-    expect_error(check_n(n = 60, n_arg = "n", min = 4, max = 10, null_ok = FALSE),
+    expect_error(check_n(n = 60, nm_n = "n", min = 4, max = 10, null_ok = FALSE),
                  "`n` is greater than 10")
 })
 

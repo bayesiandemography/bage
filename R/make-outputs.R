@@ -74,6 +74,18 @@ insert_draws_known <- function(draws, est, is_fixed) {
 }
 
 
+#' Test Whether Two Objects Have the Same Class
+#'
+#' @param x,y Objects
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_same_class <- function(x, y)
+    identical(class(x)[[1L]], class(y)[[1L]])
+    
+
+
 ## HAS_TESTS
 #' Create combined matrix from effect to outcome
 #'
@@ -239,8 +251,8 @@ make_draws_components <- function(mod) {
     draws <- transform_draws_hyper(draws = draws,
                                    transforms = transforms_hyper)
     draws <- transform_draws_effect(draws = draws,
-                                 matrix = matrix_effectfree_effect,
-                                 offset = offset_effectfree_effect)
+                                    matrix = matrix_effectfree_effect,
+                                    offset = offset_effectfree_effect)
     n <- nrow(draws)
     keep <- rep(TRUE, n)
     n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
@@ -734,6 +746,10 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
                 ncol = n)
     mean + scaled_eigen %*% Z
 }
+
+
+rescale_effects <- function(mod) {
+    
 
 
 ## HAS_TESTS

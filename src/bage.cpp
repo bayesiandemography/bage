@@ -206,18 +206,22 @@ Type logpost_season(vector<Type> effect_season,
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_time = 0; i_time < n_season; i_time++) {
+      int idx = i_by + i_time * n_by;
+      ans += dnorm(effect_season[idx], Type(0), Type(1), true);
+    }      
     for (int i_time = n_season; i_time < n_time; i_time++) {
       int idx_curr = i_by + i_time * n_by;
       int idx_prev = i_by + (i_time - n_season) * n_by;
       Type diff = effect_season[idx_curr] - effect_season[idx_prev];
       ans += dnorm(diff, Type(0), sd, true);
     }
-    Type sum_by = 0;
-    for (int i_time = 0; i_time < n_time; i_time ++) {
-      int idx = i_by + i_time * n_by;
-      sum_by += effect_season[idx];
-    }
-    ans += dnorm(sum_by, Type(0), Type(n_time * sd_intercept), true);
+    // Type sum_by = 0;
+    // for (int i_time = 0; i_time < n_time; i_time ++) {
+    //   int idx = i_by + i_time * n_by;
+    //   sum_by += effect_season[idx];
+    // }
+    // ans += dnorm(sum_by, Type(0), Type(n_time * sd_intercept), true);
   }
   return ans;
 }

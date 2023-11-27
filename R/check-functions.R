@@ -310,9 +310,9 @@ check_length_effect_gt <- function(length_effect, min, nm, prior) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_mod_est_est_compatible <- function(mod_est, mod_sim) {
+check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
     ## same class
-    if (!identical(class(mod_est)[[1L]], class(mod_sim)[[1L]]))
+    if (!is_same_class(x = mod_est, y = mod_sim))
         cli::cli_abort(c("{.arg mod_est} and {.arg mod_sim} have different classes.",
                          i = "{.arg mod_est} has class {.cls {class(mod_est)}}.",
                          i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}."))
@@ -356,35 +356,35 @@ check_mod_est_est_compatible <- function(mod_est, mod_sim) {
 #' Check 'n' argument
 #'
 #' @param n A whole number
-#' @param n_arg Name for 'n' to be used in error messages
+#' @param nm_n Name for 'n' to be used in error messages
 #' @param min,max Minimum and maximum values 'n' can take
 #' @param null_ok Whether passing NULL (and skipping tests) is allowed
 #'
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_n <- function(n, n_arg, min, max, null_ok) {
+check_n <- function(n, nm_n, min, max, null_ok) {
     if (null_ok && is.null(n)) 
         return(invisible(TRUE))
     if (!is.numeric(n))
-        cli::cli_abort(c("{.arg {n_arg}} is non-numeric.",
-                         i = "{.arg {n_arg}} has class {.cls {class(n)}}."))
+        cli::cli_abort(c("{.arg {nm_n}} is non-numeric.",
+                         i = "{.arg {nm_n}} has class {.cls {class(n)}}."))
     if (length(n) != 1L)
-        cli::cli_abort(c("{.arg {n_arg}} does not have length 1.",
-                         i = "{.arg {n_arg}} has length {length(n)}."))
+        cli::cli_abort(c("{.arg {nm_n}} does not have length 1.",
+                         i = "{.arg {nm_n}} has length {length(n)}."))
     if (is.na(n))
-        cli::cli_abort("{.arg {n_arg}} is {.val {NA}}.")
+        cli::cli_abort("{.arg {nm_n}} is {.val {NA}}.")
     if (is.infinite(n))
-        cli::cli_abort("{.arg {n_arg}} is {.val {Inf}}.")
+        cli::cli_abort("{.arg {nm_n}} is {.val {Inf}}.")
     if (!isTRUE(all.equal(round(n), n)))
-        cli::cli_abort(c("{.arg {n_arg}} is not an integer.",
-                         i = "{.arg {n_arg}} is {.val {n}}."))
+        cli::cli_abort(c("{.arg {nm_n}} is not an integer.",
+                         i = "{.arg {nm_n}} is {.val {n}}."))
     if (n < min)
-        cli::cli_abort(c("{.arg {n_arg}} is less than {min}.",
-                         i = "{.arg {n_arg}} is {.val {n}}."))
+        cli::cli_abort(c("{.arg {nm_n}} is less than {min}.",
+                         i = "{.arg {nm_n}} is {.val {n}}."))
     if (!is.null(max) && (n > max))
-        cli::cli_abort(c("{.arg {n_arg}} is greater than {max}.",
-                         i = "{.arg {n_arg}} is {.val {n}}."))
+        cli::cli_abort(c("{.arg {nm_n}} is greater than {max}.",
+                         i = "{.arg {nm_n}} is {.val {n}}."))
     invisible(TRUE)
 }
 

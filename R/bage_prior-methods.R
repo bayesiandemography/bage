@@ -73,6 +73,18 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
 
 ## 'draw_vals_effect' ------------------------------------------------------------
 
+#' Draw Values for Main Effect or Interactions
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param vals_hyper Named list with values of hyper-parameters
+#' @param levels_effect Character vector with labels for effect
+#' @param agesex String. One of "age", "age:sex",
+#' "sex:age" or "other"
+#' @param n_sim Number of draws
+#'
+#' @returns A named list.
+#'
+#' @noRd
 draw_vals_effect <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
   UseMethod("draw_vals_effect")
 }
@@ -184,13 +196,78 @@ draw_vals_effect.bage_prior_svd <- function(prior, vals_hyper, levels_effect, ag
                                   agesex = agesex,
                                   get_matrix = FALSE,
                                   n_comp = n_comp)
-    z <- stats::rnorm(n = n_comp * n_sim)
-    z <- matrix(nrow = n_comp, ncol = n_sim)
+    n_par <- ncol(m)
+    z <- stats::rnorm(n = n_par * n_sim)
+    z <- matrix(nrow = n_par, ncol = n_sim)
     ans <- m %*% z + b
     dimnames(ans) <- list(levels_effect, seq_len(n_sim))
     ans    
 }                             
-    
+
+
+## 'is_comparable_prior' ------------------------------------------------------
+
+#' Test Whether Priors can be Meaningfully Compared
+#' in a Simulation
+#'
+#' Criteria are currently quite conservative:
+#' priors must have the same class, and exactly
+#' the same number of hyper-parameters. This could
+#' in principle be relaxed in future.
+#'
+#' Note that if any two priors are non-compable,
+#' then *no* hyper-parameters are compared in the
+#' simulation.
+#'
+#' @param prior1,prior2 Two objects of class "bage_prior".
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+is_comparable_prior <- function(prior1, prior2) {
+    UseMethod("is_comparable_prior")
+}
+
+## HAS_TESTS
+#' @export
+is_comparable_prior.bage_prior <- function(prior1, prior2) {
+    is_same_class(prior1, prior2)
+}
+
+## HAS_TESTS
+#' @export
+is_comparable_prior.bage_prior_rw2 <- function(prior1, prior2) {
+    if (!is_same_class(prior1, prior2))
+        return(FALSE)
+    sd_slope_1 <- prior1$const[["sd_slope"]]
+    sd_slope_2 <- prior2$const[["sd_slope"]]
+    isTRUE(all.equal(sd_slope_1, sd_slope_2))
+}
+
+## HAS_TESTS
+#' @export
+is_comparable_prior.bage_prior_spline <- function(prior1, prior2) {
+    if (!is_same_class(prior1, prior2))
+        return(FALSE)
+    n_1 <- prior1$specific[["n"]]
+    n_2 <- prior2$specific[["n"]]
+    isTRUE(all.equal(n_1, n_2))
+}
+
+## HAS_TESTS
+#' @export
+is_comparable_prior.bage_prior_svd <- function(prior1, prior2) {
+    if (!is_same_class(prior1, prior2))
+        return(FALSE)
+    n_1 <- prior1$specific[["n"]]
+    n_2 <- prior2$specific[["n"]]
+    if (!isTRUE(all.equal(n_1, n_2)))
+        return(FALSE)
+    indep_1 <- prior1$specific[["indep"]]
+    indep_2 <- prior2$specific[["indep"]]
+    isTRUE(all.equal(indep_1, indep_2))
+}
+
 
 ## 'is_known' -----------------------------------------------------------------
 

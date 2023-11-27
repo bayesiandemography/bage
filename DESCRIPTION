@@ -24,6 +24,7 @@ Imports:
     generics,
     Matrix,
     methods,
+    parallel,
     poputils,
     rlang,
     rvec,
@@ -43,8 +44,7 @@ Suggests:
     testthat (>= 3.0.0),
     tidyr
 Remotes:
-    bayesiandemography/poputils,
-    bayesiandemography/rvec
+    bayesiandemography/poputils
 Config/testthat/edition: 3
 RoxygenNote: 7.2.3
 LinkingTo: 

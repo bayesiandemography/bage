@@ -170,6 +170,35 @@ test_that("'draw_vals_effect' works with bage_prior_svd", {
 })
 
 
+## is_comparable_prior --------------------------------------------------------
+
+test_that("'is_comparable_prior' returns FALSE when priors differ", {
+    expect_false(is_comparable_prior(AR1(), N()))
+})
+
+test_that("'is_comparable_prior' returns TRUE when priors same (and not specific methods)", {
+    expect_true(is_comparable_prior(AR1(), AR1(s = 3)))
+})
+
+test_that("'is_comparable_prior' returns TRUE when priors same (and not specific methods)", {
+    expect_true(is_comparable_prior(AR1(), AR1(s = 3)))
+})
+
+test_that("'is_comparable_prior' works with RW2)", {
+    expect_true(is_comparable_prior(RW2(), RW2(s = 3)))
+    expect_false(is_comparable_prior(RW2(flat = TRUE), RW2()))
+})
+
+test_that("'is_comparable_prior' works with spline)", {
+    expect_true(is_comparable_prior(Spline(), Spline(s = 3)))
+    expect_false(is_comparable_prior(Spline(n = 4), Spline(n = 5)))
+})
+
+test_that("'is_comparable_prior' works with SVD)", {
+    expect_true(is_comparable_prior(SVD(HMD), SVD(HMD)))
+    expect_false(is_comparable_prior(SVD(HMD, n = 4), SVD(HMD, n = 5)))
+    expect_false(is_comparable_prior(SVD(HMD, indep = TRUE), SVD(HMD, indep = FALSE)))
+})    
 
 
 ## is_known -------------------------------------------------------------------

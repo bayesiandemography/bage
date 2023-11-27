@@ -186,6 +186,19 @@ test_that("'make_draws_components' works", {
 })
 
 
+## 'is_same_class' ------------------------------------------------------------
+
+test_that("'is_same_class' returns TRUE when classes same", {
+    expect_true(is_same_class(AR1(), AR1()))
+    expect_true(is_same_class(1L, 2L))
+})
+
+test_that("'is_same_class' returns FALSE when classes different", {
+    expect_false(is_same_class(AR1(), N()))
+    expect_false(is_same_class(1L, FALSE))
+})
+
+
 ## 'make_par_disp' ------------------------------------------------------------
 
 test_that("'make_par_disp' works with bage_mod_pois", {
