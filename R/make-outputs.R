@@ -274,6 +274,44 @@ make_draws_components <- function(mod) {
 }
 
 
+
+rescale_effects <- function(mod) {
+    linpred_all <- make_linpred_all(mod)
+    has_cyclical <- has_cyclical(mod)
+    has_season <- has_season(mod)
+    var_time <- mod$var_time
+    matrices_effect <- mod$matrices_effect_outcome
+    matrix_season <- mod$matrix_season_outcome
+    ## rescale effects
+    mu <- linpred_all$total
+    n_effect <- length(matrices_effect)
+    effects <- vector(mode = "list", length = n_effect)
+    for (i_effect in seq_len(n_effect)) {
+        M <- matrices[[i_effect]]
+        n <- colSums(M)
+        effect <- (t(M) %*% mu) / n
+        mu <- mu - M %*% effect
+        effects[[i_effect]] <- drop(effect)
+    }
+    ## rescale cyclical
+    if (has_cyclical) {
+        mu <- linpred_all$cyclical
+        M <- mod$matrix_cyclical_outcome
+        n <- colSums(M)
+        cyclical <- (t(M) %*% mu) / n
+        mu <- mu - M %*% effect
+        effects[[i_effect]] <- drop(effect)
+        
+        
+        m
+        
+        
+    
+    
+    expected <- expected - mean(expected)
+    
+    
+
 ## 'make_par_disp' ------------------------------------------------------------
 
 ## HAS_TESTS
@@ -747,9 +785,6 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
     mean + scaled_eigen %*% Z
 }
 
-
-rescale_effects <- function(mod) {
-    
 
 
 ## HAS_TESTS
