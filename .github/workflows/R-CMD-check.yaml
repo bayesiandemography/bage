@@ -41,7 +41,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck, Matrix ## TMB needs latest version of 'Matrix'
+          extra-packages: any::rcmdcheck, Matrix
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
