@@ -46,7 +46,6 @@ jobs:
 
       - name: Install latest Matrix package
         run: Rscript -e "install.packages('Matrix')"
-        run: Rscript -e "install.packages('TMB', type = 'source')"
 
       - uses: r-lib/actions/check-r-package@v2
         with:
