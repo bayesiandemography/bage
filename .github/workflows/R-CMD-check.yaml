@@ -42,8 +42,11 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
-	  update: 'TRUE'
           needs: check
+
+      - name: Install latest Matrix package
+        run: Rscript -e "install.packages('Matrix')"
+        run: Rscript -e "install.packages('TMB', type = 'source')"
 
       - uses: r-lib/actions/check-r-package@v2
         with:
