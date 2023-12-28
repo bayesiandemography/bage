@@ -29,53 +29,53 @@ mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
 mod
 ```
 
-```{r}
-mod <- mod |>
-  fit()
-mod
-```
+<!-- ```{r} -->
+<!-- mod <- mod |> -->
+<!--   fit() -->
+<!-- mod -->
+<!-- ``` -->
 
-```{r}
-tidy(mod)
-```
+<!-- ```{r} -->
+<!-- tidy(mod) -->
+<!-- ``` -->
 
-```{r}
-augment(mod)
-```
+<!-- ```{r} -->
+<!-- augment(mod) -->
+<!-- ``` -->
 
-```{r}
-mod |>
-  augment() |>
-  mutate(draws_ci(.fitted)) |>
-  select(-(1:6))
-```
-
-
-
-Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>).
-
-```{r fig, fig.width = 7, fig.height = 5}
-mod |>
-  augment() |>
-  mutate(draws_ci(.fitted)) |>
-  filter(year >= 2017,
-         ethnicity == "Maori") |>
-  ggplot(aes(x = age, y = .fitted.mid)) +
-  facet_grid(vars(sex), vars(year)) +
-  geom_point(aes(y = .observed), 
-             col = "darkorange") +
-  geom_pointrange(aes(ymin = .fitted.lower, ymax = .fitted.upper),
-                  fatten = 0.5,
-                  color = "darkblue")
-```
-
-```{r}
-components(mod, type = "par")
-```
+<!-- ```{r} -->
+<!-- mod |> -->
+<!--   augment() |> -->
+<!--   mutate(draws_ci(.fitted)) |> -->
+<!--   select(-(1:6)) -->
+<!-- ``` -->
 
 
-```{r}
-components(mod, type = "hyper")
-```
+
+<!-- Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>). -->
+
+<!-- ```{r fig, fig.width = 7, fig.height = 5} -->
+<!-- mod |> -->
+<!--   augment() |> -->
+<!--   mutate(draws_ci(.fitted)) |> -->
+<!--   filter(year >= 2017, -->
+<!--          ethnicity == "Maori") |> -->
+<!--   ggplot(aes(x = age, y = .fitted.mid)) + -->
+<!--   facet_grid(vars(sex), vars(year)) + -->
+<!--   geom_point(aes(y = .observed),  -->
+<!--              col = "darkorange") + -->
+<!--   geom_pointrange(aes(ymin = .fitted.lower, ymax = .fitted.upper), -->
+<!--                   fatten = 0.5, -->
+<!--                   color = "darkblue") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- components(mod, type = "par") -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- components(mod, type = "hyper") -->
+<!-- ``` -->
 
 
