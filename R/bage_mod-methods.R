@@ -417,6 +417,13 @@ draw_vals_mod.bage_mod_norm <- function(mod, n_sim) {
 }
 
 
+## 'equation' -----------------------------------------------------------------
+
+#' @importFrom generics equation
+#' @export
+generics::equation
+
+
 ## 'fit' ----------------------------------------------------------------------
 
 #' @importFrom generics fit
