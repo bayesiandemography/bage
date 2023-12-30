@@ -392,32 +392,31 @@ draw_vals_effect_mod <- function(mod, vals_hyper, n_sim) {
 
 
 ## HAS_TESTS
-#' Generate a RW vector
+#' Generate a RW Vector
 #'
 #' Each column is one draw.
 #'
 #' @param sd Vector of values
-#' @param sd_intercept Scalar
 #' @param labels Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw <- function(sd, sd_intercept, labels) {
-    n_effect <- length(labels)
-    n_sim <- length(sd)
-    A <- make_rw_matrix(n_effect)
-    sd_v <- rbind(matrix(sd,
-                         nrow = n_effect - 1L,
-                         ncol = n_sim,
-                         byrow = TRUE),
-                  sd_intercept)
-    v <- matrix(stats::rnorm(n = n_effect * n_sim, sd = sd_v),
+draw_vals_rw <- function(sd, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(sd)
+  first <- stats::rnorm(n = n_sim)
+  diff <- matrix(stats::rnorm(n = (n_effect - 1L) * n_sim,
+                              sd = rep(sd, each = n_effect - 1L)),
+                 nrow = n_effect - 1L,
+                 ncol = n_sim)
+  cumdiff <- apply(diff, 2L, cumsum)
+  ans <- matrix(rep(first, each = n_effect),
                 nrow = n_effect,
-                ncol = n_sim)
-    ans <- solve(A, v)
-    dimnames(ans) <- list(labels, seq_len(n_sim))
-    ans
+                ncol = n_sim,
+                dimnames = list(labels, seq_len(n_sim)))
+  ans[-1L, ] <- ans[-1L, ] + cumdiff
+  ans
 }
 
 

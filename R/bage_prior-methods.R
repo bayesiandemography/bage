@@ -143,9 +143,7 @@ draw_vals_effect.bage_prior_normfixed <- function(prior, vals_hyper, levels_effe
 #' @export
 draw_vals_effect.bage_prior_rw <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- vals_hyper$sd
-    sd_intercept <- prior$specific$sd_intercept
     draw_vals_rw(sd = sd,
-                 sd_intercept = sd_intercept,
                  labels = levels_effect)
 }
 

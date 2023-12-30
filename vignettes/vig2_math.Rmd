@@ -23,8 +23,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-$\newcommand{\ind}{\, \overset{\text{ind}}{\sim} \,}$
-
 
 ```{r setup}
 library(bage)
@@ -52,8 +50,8 @@ Note: this is describing the models we want to get to soon, not the ones we curr
 
 Let $y_i$ be a count of events in cell $i = 1, \cdots, n$ and let $w_i$ be the corresponding exposure measure, with the possibility that $w_i \equiv 1$. The likelihood under the Poisson model is then
 \begin{align}
-  y_i \mid \gamma_i, w_i & \ind \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-1) \\
-  \gamma_i \mid \mu_i, \xi & \ind \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-2)
+  y_i & \sim \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-1) \\
+  \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-2)
 \end{align}
 using the shape-rates parameterisation of the Gamma distribution. Parameter $\xi$ governs dispersion, with
 \begin{equation}
@@ -65,7 +63,7 @@ and
 \end{equation}
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
-  y_i \mid \mu_i, w_i \ind \text{Poisson}(\mu_i w_i).
+  y_i \sim \text{Poisson}(\mu_i w_i).
 \end{equation}
 
 For $\xi > 0$, Equations \@ref(eq:lik-pois-1) and \@ref(eq:lik-pois-2) are equivalent to
@@ -75,7 +73,7 @@ For $\xi > 0$, Equations \@ref(eq:lik-pois-1) and \@ref(eq:lik-pois-2) are equiv
 [@norton2018sampling; @simpson2022priors].
 This is the format we use internally for estimation. When values for $\gamma_i$ are needed, we generate them on the fly, using the fact that
 \begin{equation}
-  \gamma_i \mid y_i, \mu_i, \xi \ind \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
+  \gamma_i \sim \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
 \end{equation}
 
 
@@ -83,8 +81,8 @@ This is the format we use internally for estimation. When values for $\gamma_i$ 
 
 The likelihood under the binomial model is
 \begin{align}
-  y_i \mid \gamma_i, w_i & \ind \text{Binomial}(w_i, \gamma_i) (\#eq:lik-binom-1) \\
-  \gamma_i \mid \mu_i, \xi & \ind \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). (\#eq:lik-binom-2)
+  y_i  & \sim \text{Binomial}(w_i, \gamma_i) (\#eq:lik-binom-1) \\
+  \gamma_i & \sim \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). (\#eq:lik-binom-2)
 \end{align}
 Parameter $\xi$ again governs dispersion, with
 \begin{equation}
@@ -97,15 +95,15 @@ and
 
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
-  y_i \mid w_i, \mu_i \ind \text{Binom}(w_i, \mu_i).
+  y_i  \text{Binom}(w_i, \mu_i).
 \end{equation}
 Equations \@ref(eq:lik-binom-1) and \@ref(eq:lik-binom-2) are then equivalent to
 \begin{equation}
-  y_i | w_i, \mu_i, \xi \ind \text{BetaBinom}\left(w_i, \xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i) \right),
+  y_i  \sim \text{BetaBinom}\left(w_i, \xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i) \right),
 \end{equation}
 which is what we use internally. Values for $\gamma_i$ can be generated using
 \begin{equation}
-  \gamma_i \mid y_i, w_i, \mu_i, \xi \sim \text{Beta}\left(y_i + \xi^{-1} \mu_i, w_i - y_i + \xi^{-1}(1-\mu_i) \right).
+  \gamma_i \sim \text{Beta}\left(y_i + \xi^{-1} \mu_i, w_i - y_i + \xi^{-1}(1-\mu_i) \right).
 \end{equation}
 
 
@@ -180,14 +178,14 @@ Proof that $\sum_{m=0}^M \hat{\beta}_{j_i^m} = \sum_{m=0}^M \beta_{j_i^m}$. Proo
 
 
 
-# Priors for $\pmb{\beta}$ {#sec:priors}
+# Priors for Main Effects and Interactions {#sec:priors}
 
 ## Independent normal {#sec:pr-inorm}
 
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right) \\
+  \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
@@ -202,7 +200,7 @@ Proof that $\sum_{m=0}^M \hat{\beta}_{j_i^m} = \sum_{m=0}^M \beta_{j_i^m}$. Proo
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right)
+  \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right)
 \end{align}
 
 
@@ -226,7 +224,7 @@ N(s = 1)
 ### Model
 
 \begin{equation}
-  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \text{N}\left(0, A_{\beta}^{(m)2}\right)
+  \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 ### Contribution to posterior density
@@ -239,7 +237,7 @@ N(s = 1)
 ### Simulation
 
 \begin{equation}
-  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \text{N}\left(0, A_{\beta}^{(m)2}\right)
+  \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 
@@ -263,22 +261,16 @@ NFix(sd = 1)
 
 ### Model
 
-\begin{equation}
-  \beta_{j+1}^{(m)} \sim \text{N}(\beta_j^{(m)}, \tau_m^2),
-\end{equation}
-$j = 1, \cdots, J_m - 1$, together with the soft constraint
-\begin{equation}
- \eta^{(m)} \sim \text{N}(0, A_{\eta}^{(m)2}),
-\end{equation}
-where
-\begin{equation}
-  \eta^{(m)} = \frac{1}{J_m} \sum_{j=1}^{J_m} \beta_j^{(m)}.
-\end{equation}
+\begin{align}
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, A_{\eta}^{(m)2})  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\beta_1^{(m)} \mid 0, 1)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} \mid \beta_{j-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -286,19 +278,9 @@ where
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \pmb{\beta}^{(m)} & = \pmb{A}^{-1} \pmb{v}
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, 1), \quad j = 2, \cdots, J_m
 \end{align}
-where
-\begin{align}
-  \pmb{A} & = \begin{bmatrix} \pmb{D} \\ J_m^{-1} \pmb{1}^{\top} \end{bmatrix} \\
-  \pmb{v} & \sim \text{N}\left(\begin{bmatrix} \pmb{0} \\ 0 \end{bmatrix}, \begin{bmatrix} \tau_m^2 \pmb{I} & \pmb{0} \\ \pmb{0}^{\top} & A_{\eta}^{(m)2} \end{bmatrix} \right)
-\end{align}
-and $\pmb{D}$ is a first-order difference matrix of the form
-\begin{equation}
-  \begin{bmatrix} -1 & 1 & 0 & 0 \\
-                  0 & -1 & 1 & 0 \\
-		  0 & 0 & -1 & 1 \end{bmatrix}
-\end{equation}
 
 
 ### Prediction
@@ -315,7 +297,6 @@ RW(s = 1)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- Internally, $A_{\eta}^{(m)}$ is set to 0.001.
 
 
 ## Second-order random walk {#sec:pr-rw2}
@@ -670,7 +651,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 ### Standard prior
 
 \begin{align}
-  \zeta_p | \varphi & \ind \text{N}(0, \varphi^2) \\
+  \zeta_p | \varphi & \sim \text{N}(0, \varphi^2) \\
   \varphi & \sim \text{N}^+(0, 1)
 \end{align}
 
@@ -680,7 +661,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 Regularised horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
-  \zeta_p | \omega_p, \varphi & \ind \text{N}(0, \omega_p^2 \varphi^2) \\
+  \zeta_p | \omega_p, \varphi & \sim \text{N}(0, \omega_p^2 \varphi^2) \\
   \omega_p & \sim \text{Cauchy}^+(0, 1) \\
   \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
   A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}

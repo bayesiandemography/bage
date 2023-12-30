@@ -340,30 +340,28 @@
 ## })
 
 
-## ## draw_vals_rw ---------------------------------------------------------------
+## draw_vals_rw ---------------------------------------------------------------
 
-## test_that("'draw_vals_rw' works", {
-##     set.seed(0)
-##     prior <- RW()
-##     n_sim <- 1000
-##     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-##     sd_intercept <- 0.001
-##     labels <- 1:200
-##     set.seed(0)
-##     ans <- draw_vals_rw(sd = sd,
-##                         sd_intercept = sd_intercept,
-##                         labels = labels)
-##     expect_equal(unname(apply(ans, 2, function(x) sd(diff(x)))),
-##                  sd,
-##                  tolerance = 0.05)
-##     expect_equal(sd(colMeans(ans)),
-##                  sd_intercept,
-##                  tolerance = 0.05)
-##     expect_identical(dim(ans), c(200L, 1000L))
-##     expect_identical(dimnames(ans),
-##                      list(as.character(seq_len(200)),
-##                           as.character(seq_len(1000))))
-## })
+test_that("'draw_vals_rw' works", {
+    set.seed(0)
+    prior <- RW()
+    n_sim <- 1000
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    labels <- 1:200
+    set.seed(0)
+    ans <- draw_vals_rw(sd = sd,
+                        labels = labels)
+    expect_equal(mean(ans[1, ]),
+                 0,
+                 tolerance = 0.02)
+    expect_equal(unname(apply(ans, 2, function(x) sd(diff(x)))),
+                 sd,
+                 tolerance = 0.05)
+    expect_identical(dim(ans), c(200L, 1000L))
+    expect_identical(dimnames(ans),
+                     list(as.character(seq_len(200)),
+                          as.character(seq_len(1000))))
+})
 
 
 ## ## draw_vals_rw2 --------------------------------------------------------------

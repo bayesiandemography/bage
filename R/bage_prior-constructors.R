@@ -460,13 +460,10 @@ new_bage_prior_normfixed <- function(sd) {
 
 ## HAS_TESTS
 new_bage_prior_rw <- function(scale) {
-    sd_intercept <- 0.001
     ans <- list(i_prior = 3L,
-                const = c(scale = scale,
-                          sd_intercept = sd_intercept),
+                const = c(scale = scale),
                 n_hyper = 1L, ## log_sd
-                specific = list(scale = scale,
-                                sd_intercept = sd_intercept))
+                specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
 }

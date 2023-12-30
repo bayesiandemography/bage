@@ -734,7 +734,7 @@ test_that("'replicate_data' works with mod_pois", {
 
 test_that("'replicate_data' works with mod_binom", {
     set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data <- expand.grid(age = 0:19, time = 2000:2002, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
     formula <- deaths ~ age + sex + time
