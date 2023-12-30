@@ -113,46 +113,46 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
     expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
 })
 
-## test_that("'draw_vals_effect' works with bage_prior_rw", {
-##     prior <- RW()
-##     n_sim <- 10
-##     vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-##     levels_effect <- letters
-##     ans <- draw_vals_effect(prior = prior,
-##                          vals_hyper = vals_hyper,
-##                          levels_effect = levels_effect,
-##                          agesex = NULL,
-##                          n_sim = n_sim)
-##     expect_identical(dimnames(ans),
-##                      list(letters, as.character(1:10)))
-## })
+test_that("'draw_vals_effect' works with bage_prior_rw", {
+  prior <- RW()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
+})
 
 test_that("'draw_vals_effect' works with bage_prior_rw2", {
-    prior <- RW2()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(letters, as.character(1:10)))
+  prior <- RW2()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline", {
-    prior <- Spline()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(letters, as.character(1:10)))
+  prior <- Spline()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd", {
@@ -186,7 +186,7 @@ test_that("'is_comparable_prior' returns TRUE when priors same (and not specific
 
 test_that("'is_comparable_prior' works with RW2)", {
     expect_true(is_comparable_prior(RW2(), RW2(s = 3)))
-    expect_false(is_comparable_prior(RW2(flat = TRUE), RW2()))
+    expect_false(is_comparable_prior(RW2(sd = 0.3), RW2()))
 })
 
 test_that("'is_comparable_prior' works with spline)", {
@@ -482,9 +482,9 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
     expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(flat = TRUE)), "RW2(flat=TRUE)")
+    expect_identical(str_call_prior(RW2(sd = 0.5)), "RW2(sd=0.5)")
     expect_identical(str_call_prior(RW2(s = 0.95)), "RW2(s=0.95)")
-    expect_identical(str_call_prior(RW2(flat = TRUE, s = 0.95)), "RW2(s=0.95,flat=TRUE)")
+    expect_identical(str_call_prior(RW2(sd = 0.1, s = 0.95)), "RW2(s=0.95,sd=0.1)")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {

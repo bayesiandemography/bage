@@ -364,39 +364,33 @@ test_that("'draw_vals_rw' works", {
 })
 
 
-## ## draw_vals_rw2 --------------------------------------------------------------
+## draw_vals_rw2 --------------------------------------------------------------
 
-## test_that("'draw_vals_rw2' works", {
-##     set.seed(0)
-##     prior <- RW2()
-##     n_sim <- 1000
-##     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-##     sd_intercept <- 0.001
-##     sd_slope <- 1
-##     labels <- 1:100
-##     set.seed(0)
-##     ans <- draw_vals_rw2(sd = sd,
-##                          sd_intercept = sd_intercept,
-##                          sd_slope = sd_slope,
-##                          labels = labels)
-##     expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, diff = 2)))),
-##                  sd,
-##                  tolerance = 0.1)
-##     expect_equal(sd(colMeans(ans)),
-##                  sd_intercept,
-##                  tolerance = 0.1)
-##     get_slope <- function(x) {
-##         h <- seq(from = -1, to = 1, along.with = x)
-##         coef(lm(x ~ h))[["h"]]
-##     }
-##     expect_equal(sd(apply(ans, 2, get_slope)),
-##                  sd_slope,
-##                  tolerance = 0.1)
-##     expect_identical(dim(ans), c(100L, 1000L))
-##     expect_identical(dimnames(ans),
-##                      list(as.character(seq_len(100)),
-##                           as.character(seq_len(1000))))
-## })
+test_that("'draw_vals_rw2' works", {
+  set.seed(0)
+  prior <- RW2()
+  n_sim <- 1000
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  sd_slope <- 0.5
+  labels <- 1:100
+  set.seed(0)
+  ans <- draw_vals_rw2(sd = sd,
+                       sd_slope = sd_slope,
+                       labels = labels)
+  expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, diff = 2)))),
+               sd,
+               tolerance = 0.1)
+  expect_equal(sd(ans[1,]),
+               1,
+               tolerance = 0.1)
+  expect_equal(sd(ans[2,]),
+               sqrt(1 + sd_slope^2),
+               tolerance = 0.1)
+  expect_identical(dim(ans), c(100L, 1000L))
+  expect_identical(dimnames(ans),
+                   list(as.character(seq_len(100)),
+                        as.character(seq_len(1000))))
+})
 
 
 ## ## draw_vals_sd ---------------------------------------------------------------

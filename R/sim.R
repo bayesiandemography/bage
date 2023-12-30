@@ -405,17 +405,14 @@ draw_vals_effect_mod <- function(mod, vals_hyper, n_sim) {
 draw_vals_rw <- function(sd, labels) {
   n_effect <- length(labels)
   n_sim <- length(sd)
-  first <- stats::rnorm(n = n_sim)
-  diff <- matrix(stats::rnorm(n = (n_effect - 1L) * n_sim,
-                              sd = rep(sd, each = n_effect - 1L)),
-                 nrow = n_effect - 1L,
-                 ncol = n_sim)
-  cumdiff <- apply(diff, 2L, cumsum)
-  ans <- matrix(rep(first, each = n_effect),
-                nrow = n_effect,
+  ans <- matrix(nrow = n_effect,
                 ncol = n_sim,
                 dimnames = list(labels, seq_len(n_sim)))
-  ans[-1L, ] <- ans[-1L, ] + cumdiff
+  ans[1L, ] <- stats::rnorm(n = n_sim)
+  for (i_effect in seq.int(from = 2L, to = n_effect))
+    ans[i_effect, ] <- stats::rnorm(n = n_sim,
+                                    mean = ans[i_effect - 1L, ],
+                                    sd = sd)
   ans
 }
 
@@ -426,29 +423,27 @@ draw_vals_rw <- function(sd, labels) {
 #' Each column is one draw.
 #'
 #' @param sd Vector of values
-#' @param sd_intercept Scalar
 #' @param sd_slope Scalar
 #' @param labels Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw2 <- function(sd, sd_intercept, sd_slope, labels) {
-    n_effect <- length(labels)
-    n_sim <- length(sd)
-    A <- make_rw2_matrix(n_effect)
-    sd_v <- rbind(matrix(sd,
-                         nrow = n_effect - 2L,
-                         ncol = n_sim,
-                         byrow = TRUE),
-                  sd_intercept,
-                  sd_slope)
-    v <- matrix(stats::rnorm(n = n_effect * n_sim, sd = sd_v),
-                nrow = n_effect,
-                ncol = n_sim)
-    ans <- solve(A, v)
-    dimnames(ans) <- list(labels, seq_len(n_sim))
-    ans
+draw_vals_rw2 <- function(sd, sd_slope, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n_effect,
+                ncol = n_sim,
+                dimnames = list(labels, seq_len(n_sim)))
+  ans[1L, ] <- stats::rnorm(n = n_sim)
+  ans[2L, ] <- stats::rnorm(n = n_sim,
+                            mean = ans[1L, ],
+                            sd = sd_slope)
+  for (i_effect in seq.int(from = 3L, to = n_effect))
+    ans[i_effect, ] <- stats::rnorm(n = n_sim,
+                                    mean = 2 * ans[i_effect - 1L, ] - ans[i_effect - 2L, ],
+                                    sd = sd)
+  ans
 }
 
 
