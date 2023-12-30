@@ -208,7 +208,7 @@ test_that("'make_agesex_inner' works with valid inputs", {
 test_that("'make_const' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_const(mod)
-    ans_expected <- c(1, 1, 0.001, 1)
+    ans_expected <- c(1, 1, 1)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
 })
@@ -725,7 +725,7 @@ test_that("'make_submatrix' works - dimension not in term", {
 test_that("'make_terms_const' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = Known(1:3), d = N()))
     ans_obtained <- make_terms_const(mod)
-    ans_expected <- factor(c("a", "b", "b", "c", "d"), levels = c("a", "b", "c", "d"))
+    ans_expected <- factor(c("a", "b", "c", "d"), levels = c("a", "b", "c", "d"))
     expect_identical(ans_obtained, ans_expected)
 })
 

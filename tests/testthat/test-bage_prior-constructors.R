@@ -102,9 +102,9 @@ test_that("'new_bage_prior_rw' works", {
     expect_s3_class(obj, "bage_prior_rw")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 3L)
-    expect_identical(obj$const, c(scale = 1, sd_intercept = 0.001))
+    expect_identical(obj$const, c(scale = 1))
     expect_identical(obj$n_hyper, 1L)
-    expect_identical(obj$specific, list(scale = 1, sd_intercept = 0.001))
+    expect_identical(obj$specific, list(scale = 1))
 })
 
 test_that("'new_bage_prior_rw2' works", {

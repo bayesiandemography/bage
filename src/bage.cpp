@@ -43,18 +43,16 @@ Type logpost_rw(vector<Type> effectfree,
 		vector<Type> hyper,
 		vector<Type> consts) {
   Type scale = consts[0];
-  Type sd_intercept = consts[1];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   int n = effectfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans += dnorm(effectfree[0], Type(0), Type(1), true);
   for (int i = 1; i < n; i++) {
     Type diff = effectfree[i] - effectfree[i-1];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type effectfree_total = effectfree.sum();
-  ans += dnorm(effectfree_total, Type(0), Type(n * sd_intercept), true);
   return ans;
 }
 
