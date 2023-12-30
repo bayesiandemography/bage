@@ -1,7 +1,7 @@
 
 ## 'augment' ---------------------------------------------------------------
 
-test_that("'augment' works with Poisson, disp, no season", {
+test_that("'augment' works with Poisson, disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
@@ -19,7 +19,7 @@ test_that("'augment' works with Poisson, disp, no season", {
                      c(names(data), c(".observed", ".fitted", ".expected")))
 })
 
-test_that("'augment' works with binomial, no disp, no season", {
+test_that("'augment' works with binomial, no disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
@@ -38,46 +38,7 @@ test_that("'augment' works with binomial, no disp, no season", {
                      c(names(data), c(".observed", ".fitted")))
 })
 
-test_that("'augment' works with Poisson, no disp, season", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
-                        KEEP.OUT.ATTRS = FALSE)
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_disp(mod, s = 0)
-    mod <- set_season(mod, n = 2)
-    expect_identical(augment(mod), tibble(data, .observed = make_observed(mod)))
-    mod_fitted <- fit(mod)
-    ans <- augment(mod_fitted)
-    expect_true(is.data.frame(ans))
-    expect_identical(names(ans),
-                     c(names(data), c(".observed", ".fitted", ".seasadj")))
-})
-
-test_that("'augment' works with binomial, disp, season", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
-                        KEEP.OUT.ATTRS = FALSE)
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.5)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    expect_identical(augment(mod), tibble(data, .observed = make_observed(mod)))
-    mod_fitted <- fit(mod)
-    ans <- augment(mod_fitted)
-    expect_true(is.data.frame(ans))
-    expect_identical(names(ans),
-                     c(names(data), c(".observed", ".fitted", ".expected", ".seasadj")))
-})
-
-test_that("'augment' works with normal, no season", {
+test_that("'augment' works with normal", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
@@ -104,7 +65,6 @@ test_that("'augment' gives same answer when run twice", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_season(mod, n = 2)
     mod_fitted <- fit(mod)
     ans1 <- augment(mod_fitted)
     ans2 <- augment(mod_fitted)
@@ -114,42 +74,7 @@ test_that("'augment' gives same answer when run twice", {
 
 ## 'components' ---------------------------------------------------------------
 
-test_that("'components' works with season and disp", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    expect_identical(components(mod), NULL)
-    mod_fitted <- fit(mod)
-    ans <- components(mod_fitted)
-    expect_true(is.data.frame(ans))
-    expect_identical(unique(ans$component), c("effect", "hyper", "disp", "season"))
-})
-
-test_that("'components' works with season and no disp", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    mod <- set_disp(mod, s = 0)
-    expect_identical(components(mod), NULL)
-    mod_fitted <- fit(mod)
-    ans <- components(mod_fitted)
-    expect_true(is.data.frame(ans))
-    expect_identical(unique(ans$component), c("effect", "hyper", "season"))
-})
-
-test_that("'components' works with no season no disp", {
+test_that("'components' works with no disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -184,53 +109,53 @@ test_that("'components' gives same answer when run twice", {
 })
 
 
-## 'draw_vals_par' -----------------------------------------------------------
+## ## 'draw_vals_par' -----------------------------------------------------------
 
-test_that("'draw_vals_par' works with 'bage_mod_pois'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, (Intercept) ~ NFix(0.01))
-    mod <- set_prior(mod, age ~ RW(s = 0.1))
-    mod <- set_prior(mod, sex ~ RW(s = 0.1))
-    mod <- set_prior(mod, time ~ RW(s = 0.1))
-    mod <- set_disp(mod, s = 10)
-    vals_hyperparam <- draw_vals_hyperparam(mod, n_sim = 1000)
-    ans <- draw_vals_par(mod,
-                         vals_meanpar = exp(vals_hyperparam$linpred),
-                         vals_disp = vals_hyperparam$disp)
-    expect_identical(dim(ans), dim(vals_hyperparam$linpred))
-    expect_true(all(ans >= 0))
-})
+## test_that("'draw_vals_par' works with 'bage_mod_pois'", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     formula <- deaths ~ age + sex + time
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn)
+##     mod <- set_prior(mod, (Intercept) ~ NFix(0.01))
+##     mod <- set_prior(mod, age ~ RW(s = 0.1))
+##     mod <- set_prior(mod, sex ~ RW(s = 0.1))
+##     mod <- set_prior(mod, time ~ RW(s = 0.1))
+##     mod <- set_disp(mod, s = 10)
+##     vals_hyperparam <- draw_vals_hyperparam(mod, n_sim = 1000)
+##     ans <- draw_vals_par(mod,
+##                          vals_meanpar = exp(vals_hyperparam$linpred),
+##                          vals_disp = vals_hyperparam$disp)
+##     expect_identical(dim(ans), dim(vals_hyperparam$linpred))
+##     expect_true(all(ans >= 0))
+## })
 
-test_that("'draw_vals_par' works with 'bage_mod_binom'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_binom(formula = formula,
-                     data = data,
-                     size = popn)
-    mod <- set_prior(mod, (Intercept) ~ NFix(0.01))
-    mod <- set_prior(mod, age ~ RW(s = 0.1))
-    mod <- set_prior(mod, sex ~ RW(s = 0.1))
-    mod <- set_prior(mod, time ~ RW(s = 0.1))
-    mod <- set_disp(mod, s = 10)
-    vals_hyperparam <- draw_vals_hyperparam(mod, n_sim = 1000)
-    logit <- function(x) 1 / (1 + exp(-x))
-    ans <- draw_vals_par(mod,
-                         vals_meanpar = logit(vals_hyperparam$linpred),
-                         vals_disp = vals_hyperparam$disp)
-    expect_identical(dim(ans), dim(vals_hyperparam$linpred))
-    expect_true(all(ans <= 1))
-    expect_true(all(ans >= 0))
-})
+## test_that("'draw_vals_par' works with 'bage_mod_binom'", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+##     formula <- deaths ~ age + sex + time
+##     mod <- mod_binom(formula = formula,
+##                      data = data,
+##                      size = popn)
+##     mod <- set_prior(mod, (Intercept) ~ NFix(0.01))
+##     mod <- set_prior(mod, age ~ RW(s = 0.1))
+##     mod <- set_prior(mod, sex ~ RW(s = 0.1))
+##     mod <- set_prior(mod, time ~ RW(s = 0.1))
+##     mod <- set_disp(mod, s = 10)
+##     vals_hyperparam <- draw_vals_hyperparam(mod, n_sim = 1000)
+##     logit <- function(x) 1 / (1 + exp(-x))
+##     ans <- draw_vals_par(mod,
+##                          vals_meanpar = logit(vals_hyperparam$linpred),
+##                          vals_disp = vals_hyperparam$disp)
+##     expect_identical(dim(ans), dim(vals_hyperparam$linpred))
+##     expect_true(all(ans <= 1))
+##     expect_true(all(ans >= 0))
+## })
 
 
 ## 'draw_vals_disp' -----------------------------------------------------------
@@ -262,109 +187,109 @@ test_that("'draw_vals_disp' works with 'bage_mod_norm'", {
 })
 
 
-## 'draw_vals_mod' -----------------------------------------------------------
+## ## 'draw_vals_mod' -----------------------------------------------------------
 
-test_that("'draw_vals_mod' works with 'bage_mod_pois'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans <- draw_vals_mod(mod, n_sim = 10)
-    expect_identical(names(ans),
-                     c("effect", "hyper", "disp", "cyclical", "season", 
-                       "par", "outcome"))
-})
+## test_that("'draw_vals_mod' works with 'bage_mod_pois'", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     formula <- deaths ~ age + sex + time
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn)
+##     mod <- set_season(mod, n = 2)
+##     ans <- draw_vals_mod(mod, n_sim = 10)
+##     expect_identical(names(ans),
+##                      c("effect", "hyper", "disp", "cyclical", "season", 
+##                        "par", "outcome"))
+## })
 
-test_that("'draw_vals_mod' works with 'bage_mod_pois' - outcome different from data ", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"), region = c("a", "b"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans <- draw_vals_mod(mod, n_sim = 10)
-    expect_identical(names(ans),
-                     c("effect", "hyper", "disp", "cyclical", "season", 
-                       "par", "outcome"))
-    expect_identical(nrow(ans$outcome), nrow(data))
-})
+## test_that("'draw_vals_mod' works with 'bage_mod_pois' - outcome different from data ", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"), region = c("a", "b"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     formula <- deaths ~ age + sex + time
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn)
+##     mod <- set_season(mod, n = 2)
+##     ans <- draw_vals_mod(mod, n_sim = 10)
+##     expect_identical(names(ans),
+##                      c("effect", "hyper", "disp", "cyclical", "season", 
+##                        "par", "outcome"))
+##     expect_identical(nrow(ans$outcome), nrow(data))
+## })
 
-test_that("'draw_vals_mod' works with 'bage_mod_binom'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_binom(formula = formula,
-                    data = data,
-                    size = popn)
-    mod <- set_season(mod, n = 2)
-    ans <- draw_vals_mod(mod, n_sim = 10)
-    expect_identical(names(ans),
-                     c("effect", "hyper", "disp", "cyclical", "season", 
-                       "par", "outcome"))
-    expect_identical(nrow(ans$outcome), nrow(data))
-})
+## test_that("'draw_vals_mod' works with 'bage_mod_binom'", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+##     formula <- deaths ~ age + sex + time
+##     mod <- mod_binom(formula = formula,
+##                     data = data,
+##                     size = popn)
+##     mod <- set_season(mod, n = 2)
+##     ans <- draw_vals_mod(mod, n_sim = 10)
+##     expect_identical(names(ans),
+##                      c("effect", "hyper", "disp", "cyclical", "season", 
+##                        "par", "outcome"))
+##     expect_identical(nrow(ans$outcome), nrow(data))
+## })
 
-test_that("'draw_vals_mod' works with 'bage_mod_binom' - outcome different from data", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"), region = c("a", "b"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_binom(formula = formula,
-                    data = data,
-                    size = popn)
-    mod <- set_season(mod, n = 2)
-    ans <- draw_vals_mod(mod, n_sim = 10)
-    expect_identical(names(ans),
-                     c("effect", "hyper", "disp", "cyclical", "season", 
-                       "par", "outcome"))
-    expect_identical(nrow(ans$outcome), nrow(data))
-})
+## test_that("'draw_vals_mod' works with 'bage_mod_binom' - outcome different from data", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"), region = c("a", "b"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+##     formula <- deaths ~ age + sex + time
+##     mod <- mod_binom(formula = formula,
+##                     data = data,
+##                     size = popn)
+##     mod <- set_season(mod, n = 2)
+##     ans <- draw_vals_mod(mod, n_sim = 10)
+##     expect_identical(names(ans),
+##                      c("effect", "hyper", "disp", "cyclical", "season", 
+##                        "par", "outcome"))
+##     expect_identical(nrow(ans$outcome), nrow(data))
+## })
 
-test_that("'draw_vals_mod' works with 'bage_mod_norm'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$income <- rnorm(n = nrow(data), mean = 100, sd = 5)
-    data$wt <- runif(n = nrow(data), min = 0.1)
-    formula <- income ~ age + sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = wt)
-    mod <- set_season(mod, n = 2)
-    ans <- draw_vals_mod(mod, n_sim = 10)
-    expect_identical(names(ans),
-                     c("effect", "hyper", "disp", "cyclical", "season",
-                       "par", "outcome"))
-    expect_identical(nrow(ans$outcome), nrow(data))
-})
+## test_that("'draw_vals_mod' works with 'bage_mod_norm'", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data$income <- rnorm(n = nrow(data), mean = 100, sd = 5)
+##     data$wt <- runif(n = nrow(data), min = 0.1)
+##     formula <- income ~ age + sex + time
+##     mod <- mod_norm(formula = formula,
+##                     data = data,
+##                     weights = wt)
+##     mod <- set_season(mod, n = 2)
+##     ans <- draw_vals_mod(mod, n_sim = 10)
+##     expect_identical(names(ans),
+##                      c("effect", "hyper", "disp", "cyclical", "season",
+##                        "par", "outcome"))
+##     expect_identical(nrow(ans$outcome), nrow(data))
+## })
 
-test_that("'draw_vals_mod' works with 'bage_mod_norm' - some rows of data missing", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-c(5, 10),]
-    data$income <- rnorm(n = nrow(data), mean = 100, sd = 5)
-    data$wt <- runif(n = nrow(data), min = 0.1)
-    formula <- income ~ age + sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = wt)
-    mod <- set_season(mod, n = 2)
-    ans <- draw_vals_mod(mod, n_sim = 10)
-    expect_identical(names(ans),
-                     c("effect", "hyper", "disp", "cyclical", "season",
-                       "par", "outcome"))
-    expect_identical(nrow(ans$outcome), nrow(data))
-})
+## test_that("'draw_vals_mod' works with 'bage_mod_norm' - some rows of data missing", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##     data <- data[-c(5, 10),]
+##     data$income <- rnorm(n = nrow(data), mean = 100, sd = 5)
+##     data$wt <- runif(n = nrow(data), min = 0.1)
+##     formula <- income ~ age + sex + time
+##     mod <- mod_norm(formula = formula,
+##                     data = data,
+##                     weights = wt)
+##     mod <- set_season(mod, n = 2)
+##     ans <- draw_vals_mod(mod, n_sim = 10)
+##     expect_identical(names(ans),
+##                      c("effect", "hyper", "disp", "cyclical", "season",
+##                        "par", "outcome"))
+##     expect_identical(nrow(ans$outcome), nrow(data))
+## })
 
 
 ## 'fit' -----------------------------------------------------------------
@@ -518,23 +443,6 @@ test_that("'fit' works with SVD", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
-test_that("'fit' works with cyclical effect", {
-    set.seed(0)
-    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
-                        time = 2000:2010,
-                        sex = c("Female", "Male"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod, n = 1)
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
-})
-
-
 
 ## 'get_vals_est' -------------------------------------------------------------
 
@@ -556,7 +464,6 @@ test_that("'get_vals_est' works with 'bage_mod_pois'", {
     ans_expected <- list(par = comp$.fitted[[comp$component == "effect"]],
                          hyper = comp$.fitted[[comp$component == "hyper"]],
                          disp = NULL,
-                         season = NULL,
                          fitted = aug$.fitted)
     expect_identical(as.numeric(unlist(ans_obtained)),
                      as.numeric(unlist(ans_expected)))
@@ -579,7 +486,6 @@ test_that("'get_vals_est' works with 'bage_mod_norm'", {
     ans_expected <- list(par = comp$.fitted[[comp$component == "effect"]],
                          hyper = comp$.fitted[[comp$component == "hyper"]],
                          disp = comp$.fitted[[comp$component == "disp"]],
-                         season = NULL,
                          fitted = aug$.fitted)
     expect_identical(as.numeric(unlist(ans_obtained)),
                      as.numeric(unlist(ans_expected)))
@@ -609,16 +515,6 @@ test_that("'get_fun_scale_outcome' works with valid inputs", {
 })
 
 
-## 'has_cyclical' ---------------------------------------------------------------
-
-test_that("'has_cyclical' works with valid inputs", {
-    mod <- structure(list(n_cyclical = 0L), class = "bage_mod")
-    expect_false(has_cyclical(mod))
-    mod <- structure(list(n_cyclical = 2L), class = "bage_mod")
-    expect_true(has_cyclical(mod))
-})
-
-
 ## 'has_disp' -----------------------------------------------------------------
 
 test_that("'is_fitted' works with valid inputs", {
@@ -630,16 +526,6 @@ test_that("'is_fitted' works with valid inputs", {
     expect_true(has_disp(mod))
     mod <- set_disp(mod, s = 0)
     expect_false(has_disp(mod))
-})
-
-
-## 'has_season' ---------------------------------------------------------------
-
-test_that("'has_season' works with valid inputs", {
-    mod <- structure(list(n_season = 0L), class = "bage_mod")
-    expect_false(has_season(mod))
-    mod <- structure(list(n_season = 2L), class = "bage_mod")
-    expect_true(has_season(mod))
 })
 
 

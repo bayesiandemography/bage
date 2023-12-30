@@ -26,11 +26,9 @@ Imports:
     methods,
     parallel,
     poputils,
-    rlang,
     rvec,
     stats,
     tibble,
-    tidyselect,
     TMB,
     vctrs
 Suggests:

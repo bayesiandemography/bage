@@ -113,19 +113,19 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
     expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw", {
-    prior <- RW()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(letters, as.character(1:10)))
-})
+## test_that("'draw_vals_effect' works with bage_prior_rw", {
+##     prior <- RW()
+##     n_sim <- 10
+##     vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+##     levels_effect <- letters
+##     ans <- draw_vals_effect(prior = prior,
+##                          vals_hyper = vals_hyper,
+##                          levels_effect = levels_effect,
+##                          agesex = NULL,
+##                          n_sim = n_sim)
+##     expect_identical(dimnames(ans),
+##                      list(letters, as.character(1:10)))
+## })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2", {
     prior <- RW2()

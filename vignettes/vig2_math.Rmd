@@ -114,7 +114,7 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 \begin{equation}
   y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2)
 \end{equation}
-where the $w_i$ are some form of weights, with the possibility that $w_i \equiv 1$.
+where the $w_i$ are weights.
 
 Response $y_i$ is standardized to have mean 0 and standard deviation 1. We set
 \begin{equation}
@@ -127,67 +127,60 @@ where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
-  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\chi}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta} (\#eq:means)
+  \pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} (\#eq:means)
 \end{equation}
 where
 
-- $g$ is a log function in Poisson models, a logit function in binomial models, and an identity function in normal models;
 - $\beta^{(0)}$ is an intercept;
 - $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a vector with $J_m$ elements describing a main effect or interaction formed from the dimensions of data $\pmb{y}$;
-- $\pmb{\chi}^{(m)}$ is a cyclical effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
-- $\pmb{\lambda}^{(m)}$ is a seasonal effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
-- $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ and (if $\pmb{\lambda}^{(m)}$ exists) of $\pmb{\lambda}^{(m)}$, that is used with cell $i$;
+- $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ that is used with cell $i$;
 - $\pmb{Z}$ is a $n \times P$ matrix of covariates; and
 - $\pmb{\zeta}$ is a coefficent vector with $P$ elements.
 
-Priors for the $\pmb{\beta}^{(m)}$ are discussed in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact), priors for seasonal effect $\pmb{\lambda}^{(m)}$ are discussed in Section \@ref(sec:pr-season), and priors for coefficient vector $\pmb{\zeta}$ are discussed in Section \@ref(sec:pr-cov).
-
-
-# Design of priors for main effects {#sec:pr-main-over}
-
-## Model
-
-## Contribution to posterior density
-
-TMB requires that we provide a function to calculate contribution to the posterior density of each prior. The function does not need to be normalised: any quantities that do not vary with the parameters can be omitted.
-
-In TMB itself, densitities are specified on the log scale. Here, however, we present them on the original scale.
-
-## Simulation
-
-All priors are proper, allowing us to draw from them for simulation.
-
-## Prediction
-
-In some applications, we need to predict outside that data, which requires generating values $\beta_{J_m + h}^{(m)}$, $h = 1, 2, \cdots$. We do not allow predicted values with P-Spline priors (Section \@ref(sec:pr-spline)) or SVD priors (Section \@ref(sec:pr-svd)). For all other priors, we are able to obtain expressions for
+If a main effect or interaction contains includes a time dimensions, then prior for the term can be decomposed into a trend, cyclical, and seasonal terms,
 \begin{equation}
-  p(\beta_{J_m+h+1}^{(m)} \mid \beta_{J_m+h}^{(m)}, \cdots, \beta_1^{(m)}, \pmb{\psi}^{(m)}), \quad h = 0, 1, \cdots, (\#eq:predict) 
+  \pmb{\beta}^{(m)} = \pmb{\psi}^{(m)} + \pmb{\chi}^{(m)} + \pmb{\lambda}^{(m)}
 \end{equation}
-where $\pmb{\psi}^{(m)}$ is a vector containing hyper-parameters. Equation \@ref(eq:predict) can be applied recursively to generate predictions for any prediction interval. Index $J_m+h$ normally refers to time, but can refer to any dimension.
+where
 
-Predicted values are not centered or constrained, and in general,
+- $\pmb{\psi}^{(m)}$ is a trend;
+- $\pmb{\chi}^{(m)}$ is a cyclical effect;
+- $\pmb{\lambda}^{(m)}$ is a seasonal effect.
+
+When a term is decomposed, the trend term is required, and the cyclical and seasonal effects are both optional.
+
+
+# Standardization {#sec:standard}
+
+We adopt notation from @gelman2014bayesian [p. 395]. Let $\beta_{j_i^m}^{(m)}$ denote the element of $\pmb{\beta}^{(m)}$ that contributes to element $i$ of $\pmb{\mu}$.
+
+- $\mu_i$ well identified by data
+- For some combinations of prior model for $\pmb{\beta}^{(m)}$ and terms, eg random walk prior, only weakly identify level terms; result is that individual $\beta_{j_i^m}^{(m)}$ are weakly identified; data cannot distinguish between
 \begin{equation}
-  \text{E}\left(\sum_{j=1}^{J_m + h} \beta_j^{(m)}\right) \neq 0.
+  \beta^{(0)} + \beta_{j_i^1}^{(1)} + \cdots + \beta_{j_i^M}^{(M)}
 \end{equation}
+and
+\begin{equation}
+  (\beta^{(0)} + \Delta_0) + (\beta_{j_i^1}^{(1)} + \Delta_1) + \cdots + (\beta_{j_i^M}^{(M)} + \Delta_M),
+\end{equation}
+where $\sum_{m=0}^M \Delta_m = 0$.
+- One solution would be to make stronger priors: eg sum-to-zero constraints; but this sacrifices sparsity, and leads to much slower calculations in TMB
+- alternative: postprocessing. Rescale each draw from posterior distribution. For each draw, choose a set of $\Delta_m$ that make draws consistent
+
+Define $\phi_j^m$ as the set of $i$ such that $j_i^m = j$, and $n_j^m$ as the number of elements in $\phi_j^m$.
+
+Algorithm for processing a single draw from the posterior distribution:
+
+- Set $\hat{\beta}^{(0)} = \sum_{i=1}^n \mu_i \big/ n$ and $\epsilon_i^{(0)} = \mu_i - \hat{\beta}^{(0)}$
+- For $m = 1, \cdots, M$: Set $\hat{\beta}_j^{(m)} = \sum_{i \in \phi_j^m} \epsilon_i^{(m-1)} \big/ n_j^m$ and $\epsilon_i^{(m)} = \epsilon_i^{(m-1)} - \hat{\beta}_{j_i^m}^{(m)}$
 
 
-## Code
-
-```
-set_prior(formula)
-```
-
-- `formula` is a two-sided R formula with the name of the main effect on the left hand side, and the call to the prior function on the right
-
-eg
-
-```
-set_prior(region ~ N())
-set_prior(time ~ Lin(scale = 0.2))
-```
+Proof that $\sum_{m=0}^M \hat{\beta}_{j_i^m} = \sum_{m=0}^M \beta_{j_i^m}$. Proof by induction. When $M = 0$, $\hat{\beta}^0 = \sum_{i=1}^n \mu_i \big/ n = \sum_{i=1}^n \beta^0 \big/ n = \beta^0$. Assume true for $k-1$. Then $\sum_{m=0}^k \hat{\beta}_{j_i^m} = \sum_{m=0}^{k-1} \beta_{j_i^m} + \hat{\beta}_{j_i^k}$
 
 
-# Priors for main effects {#sec:pr-main-specific}
+
+
+# Priors for $\pmb{\beta}$ {#sec:priors}
 
 ## Independent normal {#sec:pr-inorm}
 
@@ -940,6 +933,7 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\omega_p$ | Local shrinkage parameter in shrinkage prior. |
 | $p_0$ | Expected number of non-zero coefficients in $\pmb{\zeta}$. |
 | $\hat{\sigma}$ | Empirical scale estimate in prior for $\varphi$. |
+| $\pi$ | Vector of hyper-parameters |
 
  
 ## SVD prior for age  {#app:svd}

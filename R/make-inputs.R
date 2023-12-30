@@ -191,56 +191,6 @@ make_const <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make 'const_cyclical'
-#'
-#' Make vector to hold constants for cyclical effect.
-#'
-#' We generate 'const_cyclical' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when cyclical effect changes  via 'set_cyclical'.
-#' 
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_const_cyclical <- function(mod) {
-    shape1 <- 2
-    shape2 <- 2
-    scale <- mod$scale_cyclical
-    c(shape1, shape2, scale)
-}
-
-
-## HAS_TESTS
-#' Make 'const_season'
-#'
-#' Make vector to hold constants for seasonal effect.
-#'
-#' We generate 'const_season' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when seasonal effect changes  via 'set_season'.
-#' 
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_const_season <- function(mod) {
-    sd_intercept <- 0.0001
-    has_season <- has_season(mod)
-    if (has_season)
-        ans <- mod$scale_season
-    else
-        ans <- 0
-    ans <- c(ans, sd_intercept)
-    ans
-}
-
-
-## HAS_TESTS
 #' Make 'hyper'
 #'
 #' Make vector to hold hyper-parameters
@@ -262,41 +212,6 @@ make_hyper <- function(mod) {
     lengths <- vapply(priors, function(x) x$n_hyper, 0L)
     ans <- rep(ans, times = lengths)
     ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing hyper-parameters for
-#' cyclical effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_hyper_cyclical <- function(mod) {
-    ans <- c(log_sd = 0)
-    if (has_cyclical(mod)) {
-        n_cyclical <- mod$n_cyclical
-        coef <- rep(0, times = n_cyclical)
-        names(coef) <- paste0("coef", seq_len(n_cyclical))
-        ans <- c(coef, ans)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing hyper-parameters for
-#' seasonal effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_hyper_season <- function(mod) {
-    c(log_sd = 0)
 }
 
 
@@ -454,7 +369,6 @@ make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) 
 #' Return value is non-NULL if
 #' (i) any priors are "bage_prior_known", or
 #' (ii) 'scale_disp' is 0, or
-#' (iii) the model does not include season effects.
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -464,16 +378,12 @@ make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) 
 make_map <- function(mod) {
     priors <- mod$priors
     scale_disp <- mod$scale_disp
-    n_cyclical <- mod$n_cyclical
-    n_season <- mod$n_season
     ## determine whether any parameters fixed
     is_known <- vapply(priors, is_known, FALSE)
     is_effectfree_fixed <- any(is_known)
     is_disp_fixed <- scale_disp == 0
-    is_cyclical_fixed <- n_cyclical == 0L
-    is_season_fixed <- n_season == 0L
     ## return NULL if nothing fixed
-    if (!is_effectfree_fixed && !is_disp_fixed && !is_cyclical_fixed && !is_season_fixed)
+    if (!is_effectfree_fixed && !is_disp_fixed)
         return(NULL)
     ## otherwise construct named list
     ans <- list()
@@ -481,94 +391,6 @@ make_map <- function(mod) {
         ans$effectfree <- make_map_effectfree_fixed(mod)
     if (is_disp_fixed)
         ans$log_disp <- factor(NA)
-    if (is_cyclical_fixed) {
-        ans$effect_cyclical <- make_map_effect_cyclical_fixed(mod)
-        ans$hyper_cyclical <- make_map_hyper_cyclical_fixed(mod)
-    }
-    if (is_season_fixed) {
-        ans$effect_season <- make_map_effect_season_fixed(mod)
-        ans$hyper_season <- make_map_hyper_season_fixed(mod)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make 'hyper_cyclical' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' cyclical effect (implying that 'hyper_cyclical'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns Factor with single NA
-#'
-#' @noRd
-make_map_hyper_cyclical_fixed <- function(mod) {
-    factor(NA)
-}
-
-
-## HAS_TESTS
-#' Make 'hyper_season' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' seasonal effect (implying that 'hyper_season'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns Factor with single NA
-#'
-#' @noRd
-make_map_hyper_season_fixed <- function(mod) {
-    factor(NA)
-}
-
-
-## HAS_TESTS
-#' Make 'effect_cyclical' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' cyclical effect (implying that 'effect_cyclical'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of NAs
-#'
-#' @noRd
-make_map_effect_cyclical_fixed <- function(mod) {
-    effect_cyclical <- make_effect_cyclical(mod)
-    n_effect <- length(effect_cyclical)
-    ans <- rep(NA, times = n_effect)
-    ans <- factor(ans)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make 'effect_season' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' seasonal effect (implying that 'effect_season'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of NAs
-#'
-#' @noRd
-make_map_effect_season_fixed <- function(mod) {
-    effect_season <- make_effect_season(mod)
-    n_effect <- length(effect_season)
-    ans <- rep(NA, times = n_effect)
-    ans <- factor(ans)
     ans
 }
 
@@ -677,56 +499,6 @@ make_matrices_effectfree_effect <- function(mod) {
     ans    
 }
 
-## NO_TESTS
-#' Make matrix mapping cyclical effect to outcome
-#'
-#' @param x Object of class 'bage_mod'
-#'
-#' @returns Sparse matrix
-#'
-#' @noRd
-make_matrix_cyclical_outcome <- function(x) {
-    data <- x$data
-    var_time <- x$var_time
-    data <- data[var_time]
-    data[] <- lapply(data, factor)
-    contrasts <- lapply(data, stats::contrasts, contrast = FALSE)
-    formula <- paste0("~", var_time, "-1")
-    formula <- stats::as.formula(formula)
-    ans <- Matrix::sparse.model.matrix(formula,
-                                       data = data,
-                                       contrasts.arg = contrasts,
-                                       row.names = FALSE)
-    colnames(ans) <- levels(data[[1L]])
-    ans
-}
-
-## HAS_TESTS
-#' Make matrix mapping season effect to outcome
-#'
-#' @param x Object of class 'bage_mod'
-#' @param by Variable names (tidyselect style) or NULL.
-#'
-#' @returns Sparse matrix
-#'
-#' @noRd
-make_matrix_season_outcome <- function(x, by) {
-    data <- x$data
-    var_time <- x$var_time
-    nms_season <- c(by, var_time)
-    data_season <- data[nms_season]
-    data_season[] <- lapply(data_season, factor)
-    contrasts_season <- lapply(data_season, stats::contrasts, contrast = FALSE)
-    formula_season <- paste(nms_season, collapse = ":")
-    formula_season <- paste0("~", formula_season, "-1")
-    formula_season <- stats::as.formula(formula_season)
-    ans <- Matrix::sparse.model.matrix(formula_season,
-                                       data = data_season,
-                                       contrasts.arg = contrasts_season,
-                                       row.names = FALSE)
-    colnames(ans) <- levels(interaction(data_season))
-    ans
-}
 
 ## HAS_TESTS
 #' Make an empty sparse matrix
@@ -823,44 +595,6 @@ make_outcome <- function(formula, data) {
 
 ## HAS_TESTS
 #' Make vector containing parameters for
-#' cyclical effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_effect_cyclical <- function(mod) {
-    matrix <- mod$matrix_cyclical_outcome
-    matrix <- Matrix::as.matrix(matrix)
-    n <- ncol(matrix)
-    ans <- rep(0, times = n)
-    names(ans) <- colnames(matrix)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing parameters for
-#' seasonal effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_effect_season <- function(mod) {
-    matrix <- mod$matrix_season_outcome
-    matrix <- Matrix::as.matrix(matrix)
-    n <- ncol(matrix)
-    ans <- rep(0, times = n)
-    names(ans) <- colnames(matrix)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing parameters for
 #' intercept, main effects, and interactions
 #'
 #' Return value is 0 where a parameter is being estimated,
@@ -928,8 +662,6 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 #' Make 'random' argument to MakeADFun function
 #'
 #' Return value always includes "effectfree".
-#' Also contains "effect_season" if the model has
-#' a seasonal effect.
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -937,13 +669,7 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 #'
 #' @noRd
 make_random <- function(mod) {
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
     ans <- "effectfree"
-    if (has_cyclical)
-        ans <- c(ans, "effect_cyclical")
-    if (has_season)
-        ans <- c(ans, "effect_season")
     ans
 }
 

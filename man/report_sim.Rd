@@ -86,10 +86,6 @@ following components:
 \item \code{"hyper"} Hyper-parameters from priors for intercept,
 main effects, and interactions.
 \item \code{"effect"} Intercept, main effects, and interactions.
-\item \code{"cyclical"} Parameters and hyper-parameters for
-cyclical effect, if included in model.
-\item \code{"season"} Parameters and hyper-parameters for
-seasonal effect, if included in model.
 \item \code{"meanpar"} Expected value for rates probabilities.
 Poisson and binomial models only.
 \item \code{"disp"} Dispersion term, if included in model.
@@ -97,8 +93,8 @@ Poisson and binomial models only.
 }
 
 When \code{mod_est} and \code{mod_sim} differ, the
-report omits \code{"hyper"}, \code{"effect"}, \code{"cyclical"},
-and \code{"season"} since, for most model specifications,
+report omits \code{"hyper"}, and \code{"effect"},
+since, for most model specifications,
 these terms are not comparable across models.
 }
 

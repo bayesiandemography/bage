@@ -335,7 +335,7 @@ ggplot(age_sex_interact,
 # Model testing
 
 ```{r, fig.width = 7, fig.height = 7}
-rep_data_base <- replicate_data(mod_base, condition_on = "expected")
+rep_data_base <- replicate_data(mod_base, condition_on = "meanpar")
 
 data <- rep_data_base |>
   filter(time == 2022) |>
@@ -351,7 +351,7 @@ ggplot(data, aes(x = age_mid(age), y = diff)) +
 ```
 
 ```{r, fig.width = 7, fig.height = 7}
-rep_data_hmd <- replicate_data(mod_hmd, condition_on = "expected")
+rep_data_hmd <- replicate_data(mod_hmd, condition_on = "meanpar")
 
 data <- rep_data_hmd |>
   filter(time == 2022) |>
@@ -382,35 +382,4 @@ lifeexp_hmd <- mod_hmd |>
   augment() |>
   lifeexp(mx = .fitted,
           by = c(time, sex))
-```
-
-```{r, eval = F}
-lifeexp <- bind_rows(Base = lifeexp_base, 
-                     HMD = lifeexp_hmd, 
-                     .id = "model") %>%
-  mutate(draws_ci(ex))
-lifeexp
-```
-
-```{r, eval = F}
-ggplot(lifeexp,
-       aes(x = time,
-             ymin = ex.lower,
-             y = ex.mid,
-             ymax = ex.upper)) +
-  facet_wrap(vars(sex)) +
-  geom_ribbon(aes(fill = model), 
-              alpha = 0.3) +
-  geom_line(aes(color = model))
-```
->>>>>>> eqn
-
-```{r}
-mod_hmd |>
-  augment() |>
-  filter(sex == "Female",
-         time == "2022") |>
-  lifetab(mx = .fitted) |>
-  select(age, qx, lx, ex) %>%
-  filter(age %in% c("0", "20", "50", "80"))
 ```

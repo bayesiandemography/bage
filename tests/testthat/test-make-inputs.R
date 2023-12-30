@@ -214,86 +214,12 @@ test_that("'make_const' works with valid inputs", {
 })
 
 
-## 'make_const_cyclical' -------------------------------------------------------- 
-
-test_that("'make_const_cyclical' works with non-NULL cyclical effect", {
-    mod <- structure(list(scale_cyclical = 1.3, n_cyclical = 3L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_cyclical(mod)
-    ans_expected <- c(2, 2, 1.3)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-test_that("'make_const_cyclical' works with NULL cyclical effect", {
-    mod <- structure(list(scale_cyclical = NULL, n_cyclical = 0L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_cyclical(mod)
-    ans_expected <- c(2, 2)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-
-## 'make_const_season' -------------------------------------------------------- 
-
-test_that("'make_const_season' works with non-NULL seasonal effect", {
-    mod <- structure(list(scale_season = 1.3, n_season = 3L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_season(mod)
-    ans_expected <- c(1.3, 0.0001)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-test_that("'make_const_season' works with NULL seasonal effect", {
-    mod <- structure(list(scale_season = NULL, n_season = 0L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_season(mod)
-    ans_expected <- c(0, 0.0001)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-
 ## 'make_hyper' ---------------------------------------------------------------
 
 test_that("'make_hyper' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_hyper(mod)
     ans_expected <- rep(0, 3L)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-
-## 'make_hyper_cyclical' ------------------------------------------------------
-
-test_that("'make_hyper_cyclical' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:9,
-                        time = 2000:2005,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_hyper_cyclical(mod)
-    ans_expected <- c(coef1 = 0, coef2 = 0, log_sd = 0)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_hyper_season' --------------------------------------------------------
-
-test_that("'make_hyper_season' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()))
-    ans_obtained <- make_hyper_season(mod)
-    ans_expected <- c(log_sd = 0)
     expect_identical(ans_obtained, ans_expected)
     expect_true(is.double(ans_expected))
 })
@@ -461,8 +387,6 @@ test_that("'make_map' works with no parameters fixed", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_season(mod, n = 2, s = 0.2)
-    mod <- set_cyclical(mod)
     ans_obtained <- make_map(mod)
     ans_expected <- NULL
     expect_identical(ans_obtained, ans_expected)
@@ -479,8 +403,6 @@ test_that("'make_map' works when 'effectfree' contains known values", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
-    mod <- set_cyclical(mod)
-    mod <- set_season(mod, n = 2)
     ans_obtained <- make_map(mod)
     ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
                                             time = 2,
@@ -511,49 +433,13 @@ test_that("'make_map' works dispersion is 0", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_cyclical(mod)
-    mod <- set_season(mod, n = 2, s = 0.2)
     mod <- set_disp(mod, s = 0)
     ans_obtained <- make_map(mod)
     ans_expected <- list(log_disp = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_map' works when there is no cyclical effect", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(effect_cyclical = factor(logical()),
-                         hyper_cyclical = factor(NA))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works when there is no season effect", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(effect_season = factor(logical()),
-                         hyper_season = factor(NA))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works when effectfree has known values and there is no season or cyclical effect", {
+test_that("'make_map' works when effectfree has known values", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -579,88 +465,14 @@ test_that("'make_map' works when effectfree has known values and there is no sea
                                             "time:SEX" = 10,
                                             "time:SEX" = 11,
                                             "time:SEX" = 12,
-                                            "time:SEX" = 13)),
-                         effect_cyclical = factor(logical()),
-                         hyper_cyclical = factor(NA),
-                         effect_season = factor(logical()),
-                         hyper_season = factor(NA))
+                                            "time:SEX" = 13)))
     expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_map_hyper_cyclical_fixed' --------------------------------------------
-
-test_that("'make_map_hyper_cyclical_fixed' works", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:9,
-                        time = 2000:2005,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_identical(make_map_hyper_cyclical_fixed(mod), factor(NA))
-    expect_identical(length(make_map_hyper_cyclical_fixed(mod)),
-                     length(make_hyper_cyclical(mod)))
-})
-
-
-## 'make_map_hyper_season_fixed' ----------------------------------------------
-
-test_that("'make_map_hyper_season_fixed' works", {
-    mod <- list()
-    expect_identical(make_map_hyper_season_fixed(mod), factor(NA))
-    expect_identical(length(make_map_hyper_season_fixed(mod)),
-                     length(make_hyper_season(mod)))
-})
-
-
-## 'make_map_effect_cyclical_fixed' ----------------------------------------------
-
-test_that("'make_map_effect_cyclical_fixed' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(time = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_map_effect_cyclical_fixed(mod)
-    ans_expected <- factor(logical())
-    expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_effect_cyclical_fixed(mod)),
-                     length(make_effect_cyclical(mod)))
-})
-
-
-## 'make_map_effect_season_fixed' ------------------------------------------------
-
-test_that("'make_map_effect_season_fixed' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(time = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_map_effect_season_fixed(mod)
-    ans_expected <- factor(logical())
-    expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_effect_season_fixed(mod)),
-                     length(make_effect_season(mod)))
 })
 
 
 ## 'make_map_effectfree_fixed' ---------------------------------------------------
 
-test_that("'make_map_effect_season_fixed' works with valid inputs", {
+test_that("'make_map_effectfree_fixed' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(time = 0:2,
                         SEX = c("F", "M"))
@@ -726,110 +538,6 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
                          SEX = Matrix::.sparseDiagonal(2),
                          region = Matrix::.sparseDiagonal(2),
                          "agegp:SEX" = Matrix::.sparseDiagonal(20))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrix_cyclical_outcome' ---------------------------------------------
-
-test_that("'make_matrix_cyclical_outcome' works with bage_mod_pois", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_cyclical_outcome(mod)
-    ans_expected <- mod$matrices_effect_outcome[["time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrix_season_outcome' ------------------------------------------------------------
-
-test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is NULL", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_season_outcome(mod, by = NULL)
-    ans_expected <- mod$matrices_effect_outcome[["time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is 1-dimensional", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + age:time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_season_outcome(mod, by = "age")
-    ans_expected <- mod$matrices_effect_outcome[["age:time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is 2-dimensional", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + age:sex:time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_season_outcome(mod, by = c("age", "sex"))
-    ans_expected <- mod$matrices_effect_outcome[["age:sex:time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-    
-test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is NULL", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-2,]
-    data$income <- rnorm(n = nrow(data), mean = 10)
-    formula <- income ~ age:sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    ans_obtained <- make_matrix_season_outcome(mod, by = NULL)
-    ans_expected <- mod$matrices_effect_outcome[["time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is 1-dim", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-2,]
-    data$income <- rnorm(n = nrow(data), mean = 10)
-    formula <- income ~ age:sex + sex:time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    ans_obtained <- make_matrix_season_outcome(mod, by = "sex")
-    ans_expected <- mod$matrices_effect_outcome[["sex:time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is 1-dim", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-2,]
-    data$income <- rnorm(n = nrow(data), mean = 10)
-    formula <- income ~ age:sex + age:sex:time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    ans_obtained <- make_matrix_season_outcome(mod, by = c("age", "sex"))
-    ans_expected <- mod$matrices_effect_outcome[["age:sex:time"]]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -917,78 +625,6 @@ test_that("'make_outcome' works with valid inputs", {
 })
 
 
-## 'make_effect_cyclical' -----------------------------------------------------
-
-test_that("'make_effect_cyclical' works when has cyclical effect", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_effect_cyclical(mod)
-    ans_expected <- c(0.0, 0.0, 0.0, 0.0)
-    names(ans_expected) <- 0:3
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_effect_season' ----------------------------------------------------------
-
-test_that("'make_effect_season' works when has season effect, by is NULL", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans_obtained <- make_effect_season(mod)
-    ans_expected <- c(0.0, 0.0, 0.0, 0.0)
-    names(ans_expected) <- 0:3
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_effect_season' works when has season effect, by has dim 1", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2, by = "SEX")
-    ans_obtained <- make_effect_season(mod)
-    ans_expected <- rep(0.0, 8)
-    names(ans_expected) <- paste(c("F", "M"), rep(0:3, each = 2), sep = ".")
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_effect_season' works when no season", {
-    set.seed(0)
-    data <- expand.grid(age = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_effect_season(mod)
-    ans_expected <- double()
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_effectfree' -------------------------------------------------------------
 
 test_that("'make_effectfree' works with valid inputs", {
@@ -1038,24 +674,11 @@ test_that("'make_priors' works with valid inputs - no intercept", {
 
 ## 'make_random' --------------------------------------------------------------
 
-test_that("'make_random' works when no cyclical, season effect", {
+test_that("'make_random' works", {
     mod <- structure(list(n_cyclical = 0L, n_season = 0L),
                      class = "bage_mod")
     expect_identical(make_random(mod), "effectfree")
 })
-
-test_that("'make_random' works when has cyclical, no seasonal effect", {
-    mod <- structure(list(n_cyclical = 2L, n_season = 0L),
-                     class = "bage_mod")
-    expect_identical(make_random(mod), c("effectfree", "effect_cyclical"))
-})
-
-test_that("'make_random' works when has season, no cyclical effect", {
-    mod <- structure(list(n_cyclical = 0L, n_season = 2L),
-                     class = "bage_mod")
-    expect_identical(make_random(mod), c("effectfree", "effect_season"))
-})
-
 
 
 ## 'make_seed' --------------------------------------------------------------

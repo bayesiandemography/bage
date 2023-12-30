@@ -171,62 +171,6 @@ Type logpost_uses_hyper(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_cyclical(vector<Type> effect_cyclical,
-		      vector<Type> hyper_cyclical,
-		      vector<Type> consts_cyclical,
-		      int n_cyclical) {
-  Type shape1 = consts_cyclical[0];
-  Type shape2 = consts_cyclical[1];
-  Type scale = consts_cyclical[2];
-  vector<Type> logit_coef = hyper_cyclical.head(n_cyclical);
-  Type log_sd = hyper_cyclical[n_cyclical];
-  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
-  vector<Type> coef = 2 * coef_raw - 1;
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  ans += dbeta(coef_raw, shape1, shape2, true).sum()
-    + log(coef_raw).sum() + log(1 - coef_raw).sum();
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(ARk(coef), sd)(effect_cyclical); // ARk returns neg log-lik
-  return ans;
-}
-
-template <class Type>
-Type logpost_season(vector<Type> effect_season,
-		    vector<Type> hyper_season,
-		    vector<Type> consts_season,
-		    int n_time,
-		    int n_season) {
-  Type scale = consts_season[0];
-  Type sd_intercept = consts_season[1];
-  Type log_sd = hyper_season[0];
-  Type sd = exp(log_sd);
-  int n_effect = effect_season.size();
-  int n_by = n_effect / n_time;
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_time = 0; i_time < n_season; i_time++) {
-      int idx = i_by + i_time * n_by;
-      ans += dnorm(effect_season[idx], Type(0), Type(1), true);
-    }      
-    for (int i_time = n_season; i_time < n_time; i_time++) {
-      int idx_curr = i_by + i_time * n_by;
-      int idx_prev = i_by + (i_time - n_season) * n_by;
-      Type diff = effect_season[idx_curr] - effect_season[idx_prev];
-      ans += dnorm(diff, Type(0), sd, true);
-    }
-    // Type sum_by = 0;
-    // for (int i_time = 0; i_time < n_time; i_time ++) {
-    //   int idx = i_by + i_time * n_by;
-    //   sum_by += effect_season[idx];
-    // }
-    // ans += dnorm(sum_by, Type(0), Type(n_time * sd_intercept), true);
-  }
-  return ans;
-}
-
-template <class Type>
 Type logpost_betabinom(Type x,
 		       Type n,
 		       Type logit_mu,
@@ -283,21 +227,10 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
   DATA_SCALAR(scale_disp);
-  DATA_INTEGER(n_cyclical);
-  DATA_VECTOR(consts_cyclical);
-  DATA_SPARSE_MATRIX(matrix_cyclical_outcome);
-  DATA_INTEGER(n_time);
-  DATA_INTEGER(n_season);
-  DATA_VECTOR(consts_season);
-  DATA_SPARSE_MATRIX(matrix_season_outcome);
 
   PARAMETER_VECTOR(effectfree); 
   PARAMETER_VECTOR(hyper);
   PARAMETER(log_disp);
-  PARAMETER_VECTOR(effect_cyclical);
-  PARAMETER_VECTOR(hyper_cyclical);
-  PARAMETER_VECTOR(effect_season);
-  PARAMETER_VECTOR(hyper_season);
   
 
   // intermediate quantities
@@ -310,8 +243,6 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > consts_split = split(consts, terms_consts);
   int has_disp = scale_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
-  int has_cyclical = n_cyclical > 0;
-  int has_season = n_season > 0;
 
 
   // linear predictor
@@ -336,13 +267,6 @@ Type objective_function<Type>::operator() ()
     }
     linear_pred = linear_pred + matrix_effect_outcome * effect_term;
   }
-  if (has_cyclical) {
-    linear_pred = linear_pred + matrix_cyclical_outcome * effect_cyclical;
-  }
-  if (has_season) {
-    linear_pred = linear_pred + matrix_season_outcome * effect_season;
-  }
-
 
   // negative log posterior
   
@@ -362,21 +286,6 @@ Type objective_function<Type>::operator() ()
 	ans -= logpost_not_uses_hyper(effectfree_term, consts_term, i_prior_term);
     }
   }
-
-  // contribution to log posterior from cyclical effect
-  if (has_cyclical)
-    ans -= logpost_cyclical(effect_cyclical,
-			    hyper_cyclical,
-			    consts_cyclical,
-			    n_cyclical);
-
-  // contribution to log posterior from seasonal effect
-  if (has_season)
-    ans -= logpost_season(effect_season,
-			  hyper_season,
-			  consts_season,
-			  n_time,
-			  n_season);
 
   // contribution to log posterior from dispersion term
   if (has_disp) {
