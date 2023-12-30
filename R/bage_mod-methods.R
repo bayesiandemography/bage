@@ -54,24 +54,10 @@ augment.bage_mod <- function(x, ...) {
     transform <- function(x)
         align_to_data(inv_transform(x))
     ## extract quantities needed in calculations
-    has_cyclical <- has_cyclical(x)
-    has_season <- has_season(x)
     has_disp <- has_disp(x)
     components <- components(x)
     linpred <- make_linpred_effect(mod = x,
                                    components = components)
-    if (has_cyclical) {
-        trend <- transform(linpred)
-        linpred_cyclical <- make_linpred_cyclical(mod = x,
-                                                  components = components)
-        linpred <- linpred + linpred_cyclical
-    }
-    if (has_season) {
-        seasadj <- transform(linpred)
-        linpred_season <- make_linpred_season(mod = x,
-                                              components = components)
-        linpred <- linpred + linpred_season
-    }
     if (has_disp) {
         expected <- transform(linpred)
         is_disp <- components$component == "disp"
@@ -85,50 +71,30 @@ augment.bage_mod <- function(x, ...) {
     ans$.fitted <- fitted
     if (has_disp)
         ans$.expected <- expected
-    if (has_season)
-        ans$.seasadj <- seasadj
-    if (has_cyclical)
-        ans$.trend <- trend
     ans
 }
 
 ## HAS_TESTS
 #' @export
 augment.bage_mod_norm <- function(x, ...) {
-    is_fitted <- is_fitted(x)
-    ans <- x$data
-    ## if model not fitted, stop here
-    if (!is_fitted)
-        return(ans)
-    ## make transformation from scale/ordering of effect
-    ## to scale/ordering of outcome
-    align_to_data <- get_fun_align_to_data(x)
-    scale_outcome <- get_fun_scale_outcome(x)
-    transform <- function(x)
-        scale_outcome(align_to_data(x))
-    ## extract quantities needed in calculations
-    components <- components(x)
-    linpred_effect <- make_linpred_effect(mod = x,
-                                    components = components)
-    has_season <- has_season(x)
-    if (has_season) {
-        linpred_season <- make_linpred_season(mod = x,
-                                              components = components)
-        linpred <- linpred_effect + linpred_season
-        fitted <- transform(linpred)
-        seasadj <- transform(linpred_effect)
-    }
-    else
-        fitted <- transform(linpred_effect)
-    ## deal with case with and without seasonal effect
-    if (has_season) {
-        ans$.fitted <- fitted
-        ans$.seasadj <- seasadj
-    }
-    else { 
-        ans$.fitted <- fitted
-    }
-    ans
+  is_fitted <- is_fitted(x)
+  ans <- x$data
+  ## if model not fitted, stop here
+  if (!is_fitted)
+    return(ans)
+  ## make transformation from scale/ordering of effect
+  ## to scale/ordering of outcome
+  align_to_data <- get_fun_align_to_data(x)
+  scale_outcome <- get_fun_scale_outcome(x)
+  transform <- function(x)
+    scale_outcome(align_to_data(x))
+  ## extract quantities needed in calculations
+  components <- components(x)
+  linpred_effect <- make_linpred_effect(mod = x,
+                                        components = components)
+  fitted <- transform(linpred_effect)
+  ans$.fitted <- fitted
+  ans
 }
 
 
@@ -144,15 +110,11 @@ generics::components
 #' Extract components from a fitted object
 #' of class `bage_mod`.
 #'
-#' There are five types of component:
+#' There are XXX types of component:
 #' - `"effect"` Intercept, main effects, and interactions.
 #' - `"hyper"` Hyper-parameters from priors for intercept,
 #'   main effects, and interactions.
 #' - `"disp"` Dispersion term.
-#' - `"cyclical"` Parameters and hyper-parameters for
-#'   cyclical effect, if included in model.
-#' - `"season"` Parameters and hyper-parameters for
-#'   seasonal effect, if included in model.
 #'
 #' For each component, `components()` returns three things:
 #' - `term` Name of the effect or interaction
@@ -181,24 +143,24 @@ generics::components
 #'          term == "age")
 #' @export
 components.bage_mod <- function(object, ...) {
-    if (is_fitted(object)) {
-        seed_components <- object$seed_components
-        comp <- make_comp_components(object)
-        term <- make_term_components(object)
-        level <- make_level_components(object)
-        seed_restore <- make_seed() ## randomly generate seed
-        set.seed(seed_components)   ## set pre-determined seed
-        draws <- make_draws_components(object)  ## given seed, calculations deterministic
-        set.seed(seed_restore)      ## use randomly-generated seed, to restore randomness 
-        draws <- as.matrix(draws)
-        .fitted <- rvec::rvec_dbl(draws)
-        tibble::tibble(component = comp,
-                       term = term,
-                       level = level,
-                       .fitted = .fitted)
-    }
-    else
-        NULL
+  if (is_fitted(object)) {
+    seed_components <- object$seed_components
+    comp <- make_comp_components(object)
+    term <- make_term_components(object)
+    level <- make_level_components(object)
+    seed_restore <- make_seed() ## randomly generate seed
+    set.seed(seed_components)   ## set pre-determined seed
+    draws <- make_draws_components(object)  ## given seed, calculations deterministic
+    set.seed(seed_restore)      ## use randomly-generated seed, to restore randomness 
+    draws <- as.matrix(draws)
+    .fitted <- rvec::rvec_dbl(draws)
+    tibble::tibble(component = comp,
+                   term = term,
+                   level = level,
+                   .fitted = .fitted)
+  }
+  else
+    NULL
 }
 
 
@@ -275,21 +237,21 @@ draw_vals_par.bage_mod_pois <- function(mod, vals_meanpar, vals_disp) {
 ## HAS_TESTS
 #' @export
 draw_vals_par.bage_mod_binom <- function(mod, vals_meanpar, vals_disp) {
-    eps <- 1e-10
-    n_outcome <- nrow(vals_meanpar)
-    n_sim <- ncol(vals_meanpar)
-    vals_disp <- rep(vals_disp, each = n_outcome)
-    shape1 <- vals_meanpar / vals_disp
-    shape2 <- (1 - vals_meanpar) / vals_disp
-    ans <- vals_meanpar
-    is_nonzero_disp <- vals_disp > eps
-    ans[is_nonzero_disp] <- stats::rbeta(n = sum(is_nonzero_disp),
-                                         shape1 = shape1[is_nonzero_disp],
-                                         shape2 = shape2[is_nonzero_disp])
-    ans <- matrix(ans,
-                  nrow = n_outcome,
-                  ncol = n_sim)
-    ans
+  eps <- 1e-10
+  n_outcome <- nrow(vals_meanpar)
+  n_sim <- ncol(vals_meanpar)
+  vals_disp <- rep(vals_disp, each = n_outcome)
+  shape1 <- vals_meanpar / vals_disp
+  shape2 <- (1 - vals_meanpar) / vals_disp
+  ans <- vals_meanpar
+  is_nonzero_disp <- vals_disp > eps
+  ans[is_nonzero_disp] <- stats::rbeta(n = sum(is_nonzero_disp),
+                                       shape1 = shape1[is_nonzero_disp],
+                                       shape2 = shape2[is_nonzero_disp])
+  ans <- matrix(ans,
+                nrow = n_outcome,
+                ncol = n_sim)
+  ans
 }
 
 
@@ -342,8 +304,6 @@ draw_vals_mod.bage_mod_pois <- function(mod, n_sim) {
     c(vals_hyperparam["effect"],
       vals_hyperparam["hyper"],
       vals_hyperparam["disp"],
-      vals_hyperparam["cyclical"],
-      vals_hyperparam["season"],
       list(par = vals_par,
            outcome = vals_outcome))
 }
@@ -382,8 +342,6 @@ draw_vals_mod.bage_mod_binom <- function(mod, n_sim) {
     c(vals_hyperparam["effect"],
       vals_hyperparam["hyper"],
       vals_hyperparam["disp"],
-      vals_hyperparam["cyclical"],
-      vals_hyperparam["season"],
       list(par = vals_par,
            outcome = vals_outcome))
 }
@@ -410,8 +368,6 @@ draw_vals_mod.bage_mod_norm <- function(mod, n_sim) {
     c(vals_hyperparam["effect"],
       vals_hyperparam["hyper"],
       vals_hyperparam["disp"],
-      vals_hyperparam["cyclical"],
-      vals_hyperparam["season"],
       list(par = par,
            outcome = vals_outcome))
 }
@@ -442,102 +398,80 @@ generics::fit
 #'
 #' @export    
 fit.bage_mod <- function(object, ...) {
-    ## data
-    nm_distn <- nm_distn(object)
-    outcome <- object$outcome
-    offset <- object$offset
-    terms_effect <- object$terms_effect
-    is_in_lik <- make_is_in_lik(object)
-    terms_effectfree <- make_terms_effectfree(object)
-    uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(object)
-    matrices_effectfree_effect <- make_matrices_effectfree_effect(object)
-    uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(object)
-    offsets_effectfree_effect <- make_offsets_effectfree_effect(object)
-    matrices_effect_outcome <- object$matrices_effect_outcome
-    i_prior <- make_i_prior(object)
-    uses_hyper <- make_uses_hyper(object)
-    terms_hyper <- make_terms_hyper(object)
-    const <- make_const(object)
-    terms_const <- make_terms_const(object)
-    scale_disp <- object$scale_disp
-    has_disp <- scale_disp > 0
-    n_cyclical <- object$n_cyclical
-    const_cyclical <- make_const_cyclical(object)
-    matrix_cyclical_outcome <- object$matrix_cyclical_outcome
-    n_time <- n_time(object)
-    n_season <- object$n_season
-    const_season <- make_const_season(object)
-    matrix_season_outcome <- object$matrix_season_outcome
-    data <- list(nm_distn = nm_distn,
-                 outcome = outcome,
-                 offset = offset,
-                 is_in_lik = is_in_lik,
-                 terms_effect = terms_effect,
-                 terms_effectfree = terms_effectfree,
-                 uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
-                 matrices_effectfree_effect = matrices_effectfree_effect,
-                 uses_offset_effectfree_effect = uses_offset_effectfree_effect,
-                 offsets_effectfree_effect = offsets_effectfree_effect,
-                 matrices_effect_outcome = matrices_effect_outcome,
-                 i_prior = i_prior,
-                 uses_hyper = uses_hyper,
-                 terms_hyper = terms_hyper,
-                 consts = const, ## 'const' is reserved word in C
-                 terms_consts = terms_const,
-                 scale_disp = scale_disp,
-                 n_cyclical = n_cyclical,
-                 consts_cyclical = const_cyclical,
-                 matrix_cyclical_outcome = matrix_cyclical_outcome,
-                 n_time = n_time,
-                 n_season = n_season,
-                 consts_season = const_season,
-                 matrix_season_outcome = matrix_season_outcome)
-    ## parameters
-    effectfree <- make_effectfree(object)
-    hyper <- make_hyper(object)
-    log_disp <- 0
-    effect_cyclical <- make_effect_cyclical(object)
-    hyper_cyclical <- make_hyper_cyclical(object)
-    effect_season <- make_effect_season(object)
-    hyper_season <- make_hyper_season(object)
-    parameters <- list(effectfree = effectfree,   
-                       hyper = hyper,
-                       log_disp = log_disp,
-                       effect_cyclical = effect_cyclical,
-                       hyper_cyclical = hyper_cyclical,
-                       effect_season = effect_season,
-                       hyper_season = hyper_season)
-    ## MakeADFun
-    map <- make_map(object)
-    random <- make_random(object)
-    f <- TMB::MakeADFun(data = data,
-                        parameters = parameters,
-                        map = map,
-                        DLL = "bage",
-                        random = random,
-                        silent = TRUE)
-    ## optimise
-    stats::nlminb(start = f$par,
-                  objective = f$fn,
-                  gradient = f$gr,
-                  silent = TRUE)
-    ## extract results
-    sdreport <- TMB::sdreport(f,
-                              bias.correct = TRUE,
-                              getJointPrecision = TRUE)
-    est <- as.list(sdreport, what = "Est")
-    attr(est, "what") <- NULL
-    is_fixed <- make_is_fixed(est = est, map = map)
-    prec <- sdreport$jointPrecision
-    R_prec <- tryCatch(chol(prec),
-                       error = function(e) e)
-    if (is.matrix(R_prec))
-        object$R_prec <- R_prec
-    else
-        object$scaled_eigen <- make_scaled_eigen(prec)
-    object$est <- est
-    object$is_fixed <- is_fixed
-    object
+  ## data
+  nm_distn <- nm_distn(object)
+  outcome <- object$outcome
+  offset <- object$offset
+  terms_effect <- object$terms_effect
+  is_in_lik <- make_is_in_lik(object)
+  terms_effectfree <- make_terms_effectfree(object)
+  uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(object)
+  matrices_effectfree_effect <- make_matrices_effectfree_effect(object)
+  uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(object)
+  offsets_effectfree_effect <- make_offsets_effectfree_effect(object)
+  matrices_effect_outcome <- object$matrices_effect_outcome
+  i_prior <- make_i_prior(object)
+  uses_hyper <- make_uses_hyper(object)
+  terms_hyper <- make_terms_hyper(object)
+  const <- make_const(object)
+  terms_const <- make_terms_const(object)
+  scale_disp <- object$scale_disp
+  has_disp <- scale_disp > 0
+  data <- list(nm_distn = nm_distn,
+               outcome = outcome,
+               offset = offset,
+               is_in_lik = is_in_lik,
+               terms_effect = terms_effect,
+               terms_effectfree = terms_effectfree,
+               uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
+               matrices_effectfree_effect = matrices_effectfree_effect,
+               uses_offset_effectfree_effect = uses_offset_effectfree_effect,
+               offsets_effectfree_effect = offsets_effectfree_effect,
+               matrices_effect_outcome = matrices_effect_outcome,
+               i_prior = i_prior,
+               uses_hyper = uses_hyper,
+               terms_hyper = terms_hyper,
+               consts = const, ## 'const' is reserved word in C
+               terms_consts = terms_const,
+               scale_disp = scale_disp)
+  ## parameters
+  effectfree <- make_effectfree(object)
+  hyper <- make_hyper(object)
+  log_disp <- 0
+  parameters <- list(effectfree = effectfree,   
+                     hyper = hyper,
+                     log_disp = log_disp)
+  ## MakeADFun
+  map <- make_map(object)
+  random <- make_random(object)
+  f <- TMB::MakeADFun(data = data,
+                      parameters = parameters,
+                      map = map,
+                      DLL = "bage",
+                      random = random,
+                      silent = TRUE)
+  ## optimise
+  stats::nlminb(start = f$par,
+                objective = f$fn,
+                gradient = f$gr,
+                silent = TRUE)
+  ## extract results
+  sdreport <- TMB::sdreport(f,
+                            bias.correct = TRUE,
+                            getJointPrecision = TRUE)
+  est <- as.list(sdreport, what = "Est")
+  attr(est, "what") <- NULL
+  is_fixed <- make_is_fixed(est = est, map = map)
+  prec <- sdreport$jointPrecision
+  R_prec <- tryCatch(chol(prec),
+                     error = function(e) e)
+  if (is.matrix(R_prec))
+    object$R_prec <- R_prec
+  else
+    object$scaled_eigen <- make_scaled_eigen(prec)
+  object$est <- est
+  object$is_fixed <- is_fixed
+  object
 }
 
 
@@ -547,31 +481,25 @@ fit.bage_mod <- function(object, ...) {
 #' @export
 generics::forecast
 
-## NO_TESTS
-#' Forecast a model
-#'
-#' @param object A `bage_mod` object,
-#' typically created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param ... Not currently used.
-#'
-#' @returns A `bage_mod` object
-#'
-#' @export    
-forecast.bage_mod <- function(object, n, ...) {
-    var_time <- object$var_time
-    if (is.null(var_time))
-        cli::cli_abort(c("Can't forecast when time variable not identified.",
-                         i = "Please use {.fun set_var_time} to identify time variable."))
-    check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
-    levels_time <- 
-    time_extra <- 
-    n <- as.integer(n)
-    
-    
-    has_cyclical <- has_cyclical(object)
-    has_season <- has_season(object)
-    
+## ## NO_TESTS
+## #' Forecast a model
+## #'
+## #' @param object A `bage_mod` object,
+## #' typically created with [mod_pois()],
+## #' [mod_binom()], or [mod_norm()].
+## #' @param ... Not currently used.
+## #'
+## #' @returns A `bage_mod` object
+## #'
+## #' @export    
+## forecast.bage_mod <- function(object, n, ...) {
+##   stop("not written yet")
+##   var_time <- object$var_time
+##   if (is.null(var_time))
+##     cli::cli_abort(c("Can't forecast when time variable not identified.",
+##                      i = "Please use {.fun set_var_time} to identify time variable."))
+##   check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
+## }    
 
 
 
@@ -668,8 +596,6 @@ get_vals_est.bage_mod <- function(mod) {
     list(effect = vals_hyperparam[["effect"]],
          hyper = vals_hyperparam[["hyper"]],
          disp = vals_hyperparam[["disp"]],
-         cyclical = vals_hyperparam[["cyclical"]],
-         season = vals_hyperparam[["season"]],
          par = par)
 }
 
@@ -684,34 +610,7 @@ get_vals_est.bage_mod_norm <- function(mod) {
     list(effect = vals_hyperparam[["effect"]],
          hyper = vals_hyperparam[["hyper"]],
          disp = vals_hyperparam[["disp"]],
-         cyclical = vals_hyperparam[["cyclical"]],
-         season = vals_hyperparam[["season"]],
          par = par)
-}
-
-
-## 'has_cyclical' ----------------------------------------------------------------
-
-## HAS_TESTS
-#' Test whether a model includes a cyclical effect
-#'
-#' Test whether a cyclicalal effect has been added
-#' to a model (via [set_cyclical()]).
-#'
-#' @param x A model object.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-has_cyclical <- function(mod) {
-    UseMethod("has_cyclical")
-}
-
-## HAS_TESTS
-#' @export
-has_cyclical.bage_mod <- function(mod) {
-    n_cyclical <- mod$n_cyclical
-    n_cyclical > 0L
 }
 
 
@@ -733,30 +632,6 @@ has_disp <- function(mod) {
 has_disp.bage_mod <- function(mod) {
     scale_disp <- mod$scale_disp
     scale_disp > 0L
-}
-
-
-## 'has_season' ----------------------------------------------------------------
-
-#' Test whether a model includes a seasonal effect
-#'
-#' Test whether a seasonal effect has been added
-#' to a model (via [set_season()]).
-#'
-#' @param x A model object.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-has_season <- function(mod) {
-    UseMethod("has_season")
-}
-
-## HAS_TESTS
-#' @export
-has_season.bage_mod <- function(mod) {
-    n_season <- mod$n_season
-    n_season > 0L
 }
 
 
@@ -1025,8 +900,6 @@ print.bage_mod <- function(x, ...) {
     var_sexgender <- x$var_sexgender
     var_time <- x$var_time
     scale_disp <- x$scale_disp
-    n_season <- x$n_season
-    scale_season <- x$scale_season
     is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -1041,13 +914,6 @@ print.bage_mod <- function(x, ...) {
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
     str_priors <- paste(str_priors, collapse = "\n")
     str_disp <- sprintf("% *s: s=%s", nchar_offset, "dispersion", scale_disp)
-    has_season <- n_season > 0L
-    if (has_season) {
-        nm_season <- sprintf("% *s", nchar_offset, "seasonal effect")
-        str_season <- sprintf("%s: n=%d", nm_season, n_season)
-        if (scale_season != 1)
-            str_season <- sprintf("%s, s=%s", str_season, scale_season)
-    }
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
         nm_offset <- nm_offset(x)
@@ -1064,10 +930,6 @@ print.bage_mod <- function(x, ...) {
     cat("\n\n")
     cat(str_disp)
     cat("\n")
-    if (has_season) {
-        cat(str_season)
-        cat("\n")
-    }
     if (has_offset) {
         cat(str_offset)
         cat("\n")

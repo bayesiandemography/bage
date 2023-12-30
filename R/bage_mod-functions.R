@@ -1,74 +1,6 @@
 
 ## User-visible functions that look like methods, but technically are not
 
-## Cyclical effect ------------------------------------------------------------
-
-## HAS_TESTS
-#' Add a cyclical effect
-#'
-#' Add a cyclical effect to a model.
-#'
-#' TODO - description
-#'
-#' If the `mod` argument to `set_cyclical` is
-#' a fitted model, then `set_cyclical` 'unfits'
-#' the model, by deleting existing estimates.
-#' 
-#' @param mod A `bage_mod` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param n Number of terms in model.
-#' Default is 2. Minimum is 1.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
-#'
-#' @returns A modified `bage_mod` object.
-#'
-#' @seealso
-#' - [is_fitted()]
-#' 
-#' @examples
-#' mod <- mod_pois(deaths ~ month,
-#'                 data = us_acc_deaths,
-#'                 exposure = 1)
-#' mod
-#' mod |> set_cyclical()
-#' @export
-set_cyclical <- function(mod, n = 2, s = 1) {
-    check_bage_mod(x = mod, nm_x = "mod")
-    formula <- mod$formula
-    data <- mod$data
-    priors <- mod$priors
-    var_time <- mod$var_time
-    if (is.null(var_time))
-        cli::cli_abort(c("Can't specify cyclical effect when time variable not identified.",
-                         i = "Please use {.fun set_var_time} to identify time variable."))
-    check_n(n,
-            nm_n = "n",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
-    n_cyclical <- as.integer(n)
-    check_scale(s,
-                x_arg = "s",
-                zero_ok = FALSE)
-    scale <- as.double(s)
-    n_time <- n_time(mod)
-    if (n_cyclical >= n_time)
-        cli::cli_abort(c(paste("Estimation period not long enough to use cyclical effect",
-                               "with {n_cyclical} terms."),
-                         i = "Must have more time points than terms.",
-                         i = "Data has {n_time} time points."))
-    matrix_cyclical_outcome <- make_matrix_cyclical_outcome(mod)
-    mod$n_cyclical <- n_cyclical
-    mod$scale_cyclical <- s
-    mod$matrix_cyclical_outcome <- matrix_cyclical_outcome
-    mod <- unfit(mod)
-    mod
-}
-
-
 ## 'set_disp' -----------------------------------------------------------------
 
 ## HAS_TESTS
@@ -86,7 +18,9 @@ set_cyclical <- function(mod, n = 2, s = 1) {
 #' a fitted model, then `set_disp` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @param mod A `bage_mod` object, typically
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
 #' @param s Scale term. In Poisson and
 #' binomial models, `s` must be non-negative.
 #' In normal models, `s` must be positive.
@@ -133,7 +67,7 @@ set_disp <- function(mod, s) {
 #' model fitting: it only affects posterior
 #' summaries.
 #'
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param n_draw Number of draws.
 #'
 #' @returns A `bage_mod` object
@@ -243,82 +177,6 @@ set_prior <- function(mod, formula) {
 }
 
 
-## Seasonal effect ------------------------------------------------------------
-
-## HAS_TESTS
-#' Add a seasonal effect
-#'
-#' Add a seasonal effect to a model.
-#'
-#' TODO - description
-#'
-#' If the `mod` argument to `set_season` is
-#' a fitted model, then `set_season` 'unfits'
-#' the model, by deleting existing estimates.
-#' 
-#' @inheritParams set_cyclical
-#' @param n Number of seasons.
-#' @param by <[`tidyselect`][tidyselect::language]>
-#' Names of dimensions, other than the
-#' time dimension. If a value for `by` is supplied,
-#' then separate seasonal effects are
-#' created for combination of the `by` dimensions.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
-#'
-#' @returns A modified `bage_mod` object.
-#'
-#' @seealso
-#' - [is_fitted()]
-#' 
-#' @examples
-#' ## single set of seasonal effects
-#' mod <- mod_pois(deaths ~ month,
-#'                 data = us_acc_deaths,
-#'                 exposure = 1)
-#' mod
-#' mod |> set_season(n = 12)
-#'
-#' ## TODO - multiple sets of seasonal effects
-#' @export
-set_season <- function(mod, n, by = NULL, s = 1) {
-    check_bage_mod(x = mod, nm_x = "mod")
-    formula <- mod$formula
-    data <- mod$data
-    priors <- mod$priors
-    var_time <- mod$var_time
-    if (is.null(var_time))
-        cli::cli_abort(c("Can't specify seasonal effect when time variable not identified.",
-                         i = "Please use {.fun set_var_time} to identify time variable."))
-    check_n(n,
-            nm_n = "n",
-            min = 2L,
-            max = NULL,
-            null_ok = FALSE)
-    n <- as.integer(n)
-    by <- rlang::enquo(by)
-    by <- tidyselect::eval_select(by, data = data)
-    by <- names(by)
-    check_by_in_formula(by = by, formula = formula)
-    check_by_excludes_time(by = by, var_time)
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    n_time <- n_time(mod)
-    if (n > (n_time %/% 2L))
-        cli::cli_abort(c(paste("Estimation period not long enough to use seasonal effect",
-                               "with {n} seasons."),
-                         i = "Must have at least two time points for each season.",
-                         i = "Data used for estimation has {n_time} time points."))
-    matrix_season_outcome <- make_matrix_season_outcome(mod, by = by)
-    mod$n_season <- n
-    mod$scale_season <- s
-    mod$matrix_season_outcome <- matrix_season_outcome
-    mod <- unfit(mod)
-    mod
-}
-
-
 ## 'set_var_age' --------------------------------------------------------------
 
 #' Set the age variable
@@ -345,7 +203,7 @@ set_season <- function(mod, n, by = NULL, s = 1) {
 #' a fitted model, then `set_var_age` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param name The name of the age variable.
 #'
 #' @returns A `bage_mod` object
@@ -403,7 +261,7 @@ set_var_age <- function(mod, name) {
 #' a fitted model, then `set_var_sexgender` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param name The name of the sex or gender variable.
 #'
 #' @returns A `"bage_mod"` object
@@ -468,7 +326,7 @@ set_var_sexgender <- function(mod, name) {
 #' a fitted model, then `set_var_time` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param name The name of the time variable.
 #'
 #' @returns A `bage_mod` object

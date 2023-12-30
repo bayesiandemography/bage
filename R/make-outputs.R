@@ -154,21 +154,11 @@ make_comp_components <- function(mod) {
     est <- mod$est
     offset <- make_offsets_effectfree_effect(mod)
     has_disp <- has_disp(mod)
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
-    vals <- c("effect", "hyper", "disp", "cyclical", "season")
+    vals <- c("effect", "hyper", "disp")
     n_effect <- length(offset)
     n_hyper <- length(est$hyper)
     n_disp <- as.integer(has_disp)
-    if (has_cyclical)
-        n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
-    else
-        n_cyclical <- 0L
-    if (has_season)
-        n_season <- length(est$effect_season) + length(est$hyper_season)
-    else
-        n_season <- 0L
-    times <- c(n_effect, n_hyper, n_disp, n_cyclical, n_season)
+    times <- c(n_effect, n_hyper, n_disp)
     rep(vals, times = times)
 }
 
@@ -255,61 +245,39 @@ make_draws_components <- function(mod) {
                                     offset = offset_effectfree_effect)
     n <- nrow(draws)
     keep <- rep(TRUE, n)
-    n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
-    n_season <- length(est$effect_season) + length(est$hyper_season)
     if (!has_disp(mod)) {
-        i_disp <- n - n_cyclical - n_season
+        i_disp <- n
         keep[i_disp] <- FALSE
-    }
-    if (!has_cyclical(mod)) {
-        i_cyclical <- seq.int(to = n - n_season, length.out = n_cyclical)
-        keep[i_cyclical] <- FALSE
-    }
-    if (!has_season(mod)) {
-        i_season <- seq.int(to = n, length.out = n_season)
-        keep[i_season] <- FALSE
     }
     draws <- draws[keep, , drop = FALSE]
     draws
 }
 
 
+#' Recenter Estimates of Main Effects and Interactions
+#'
+#' @param mod Object of class `"bage_mod"`
+#'
+#' @returns List of numeric vectors
+#'
+#' @noRd
+standardize_effects <- function(mod) {
+  linpred <- make_linpred_effect(mod)
+  matrices <- mod$matrices_effect_outcome
+  resid <- linpred$total
+  n_effect <- length(matrices)
+  effects <- vector(mode = "list", length = n_effect)
+  for (i_effect in seq_len(n_effect)) {
+    M <- matrices[[i_effect]]
+    n <- colSums(M)
+    effect <- (t(M) %*% resid) / n ## works with Matrix
+    resid <- resid - M %*% effect
+    effects[[i_effect]] <- drop(effect)
+  }
+  effects
+}
 
-rescale_effects <- function(mod) {
-    linpred_all <- make_linpred_all(mod)
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
-    var_time <- mod$var_time
-    matrices_effect <- mod$matrices_effect_outcome
-    matrix_season <- mod$matrix_season_outcome
-    ## rescale effects
-    mu <- linpred_all$total
-    n_effect <- length(matrices_effect)
-    effects <- vector(mode = "list", length = n_effect)
-    for (i_effect in seq_len(n_effect)) {
-        M <- matrices[[i_effect]]
-        n <- colSums(M)
-        effect <- (t(M) %*% mu) / n
-        mu <- mu - M %*% effect
-        effects[[i_effect]] <- drop(effect)
-    }
-    ## rescale cyclical
-    if (has_cyclical) {
-        mu <- linpred_all$cyclical
-        M <- mod$matrix_cyclical_outcome
-        n <- colSums(M)
-        cyclical <- (t(M) %*% mu) / n
-        mu <- mu - M %*% effect
-        effects[[i_effect]] <- drop(effect)
-        
-        
-        m
-        
-        
-    
-    
-    expected <- expected - mean(expected)
-    
+
     
 
 ## 'make_par_disp' ------------------------------------------------------------
@@ -410,38 +378,6 @@ make_level_components <- function(mod) {
     ans <- c(effect, hyper)
     if (has_disp(mod))
         ans <- c(ans, "disp")
-    if (has_cyclical(mod)) {
-        cyclical <- make_levels_cyclical(mod)
-        cyclical <- as.character(cyclical)
-        ans <- c(ans, cyclical)
-    }
-    if (has_season(mod)) {
-        season <- make_levels_season(mod)
-        season <- as.character(season)
-        ans <- c(ans, season)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make levels for parameters and hyper-parameter of
-#' cyclical effect
-#'
-#' @param mod A fitted object of class 'bage_mod'.
-#'
-#' @returns A character vector.
-#'
-#' @noRd
-make_levels_cyclical <- function(mod) {
-    if (!has_cyclical(mod))
-        return(character())
-    n_cyclical <- mod$n_cyclical
-    levels_hyper <- c(paste0("coef", seq_len(n_cyclical)),
-                      "sd")
-    matrix <- mod$matrix_cyclical_outcome
-    levels_effect <- colnames(matrix)
-    ans <- c(levels_effect, levels_hyper)
     ans
 }
 
@@ -484,51 +420,7 @@ make_levels_replicate <- function(n, n_row_data) {
 
 
 ## HAS_TESTS
-#' Make levels for parameters and hyper-parameter of
-#' seasonal effect
-#'
-#' @param mod A fitted object of class 'bage_mod'.
-#'
-#' @returns A character vector.
-#'
-#' @noRd
-make_levels_season <- function(mod) {
-    level_hyper <- "sd"
-    if (!has_season(mod))
-        return(character())
-    matrix <- mod$matrix_season_outcome
-    levels_effect <- colnames(matrix)
-    ans <- c(levels_effect, level_hyper)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make linear predictor from cyclical.
-#'
-#' Return value aligned to outcome, not data.
-#'
-#' @param mod Object of class "bage_mod"
-#' @param components Data frame produced by
-#' call to `components()`.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_linpred_cyclical <- function(mod, components) {
-    matrix_cyclical_outcome <- mod$matrix_cyclical_outcome
-    matrix_cyclical_outcome <- Matrix::as.matrix(matrix_cyclical_outcome)
-    is_cyclical <- ((components$component == "cyclical")
-        & (components$term == "effect"))
-    cyclical <- components$.fitted[is_cyclical]
-    matrix_cyclical_outcome %*% cyclical
-}
-
-
-## HAS_TESTS
 #' Make linear predictor from effect.
-#'
-#' Does not include cyclical or seasonal effect.
 #'
 #' Return value aligned to outcome, not data.
 #'
@@ -545,28 +437,6 @@ make_linpred_effect <- function(mod, components) {
     is_effect <- components$component == "effect"
     effect <- components$.fitted[is_effect]
     matrix_effect_outcome %*% effect
-}
-
-
-## HAS_TESTS
-#' Make linear predictor from season.
-#'
-#' Return value aligned to outcome, not data.
-#'
-#' @param mod Object of class "bage_mod"
-#' @param components Data frame produced by
-#' call to `components()`.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_linpred_season <- function(mod, components) {
-    matrix_season_outcome <- mod$matrix_season_outcome
-    matrix_season_outcome <- Matrix::as.matrix(matrix_season_outcome)
-    is_season <- ((components$component == "season")
-        & (components$term == "effect"))
-    season <- components$.fitted[is_season]
-    matrix_season_outcome %*% season
 }
 
 
@@ -615,66 +485,6 @@ make_term_components <- function(mod) {
     ans <- c(effect, hyper)
     if (has_disp(mod))
         ans <- c(ans, "disp")
-    if (has_cyclical(mod)) {
-        cyclical <- make_terms_cyclical(mod)
-        cyclical <- as.character(cyclical)
-        ans <- c(ans, cyclical)
-    }
-    if (has_season(mod)) {
-        season <- make_terms_season(mod)
-        season <- as.character(season)
-        ans <- c(ans, season)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make factor identifying components of 'cyclical'
-#'
-#' Make factor distinguishing parameters
-#' and hyper-parmeters in 'cyclical'
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor.
-#'
-#' @noRd
-make_terms_cyclical <- function(mod) {
-    if (!has_cyclical(mod))
-        return(factor())
-    effect <- make_effect_cyclical(mod)
-    hyper <- make_hyper_cyclical(mod)
-    n_effect <- length(effect)
-    n_hyper <- length(hyper)
-    levels <- c("effect", "hyper")
-    times <- c(n_effect, n_hyper)
-    ans <- rep(levels, times = times)
-    ans <- factor(ans, levels = levels)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make factor identifying components of 'season'
-#'
-#' Make factor distinguishing parameters
-#' and hyper-parmeters in 'season'
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor.
-#'
-#' @noRd
-make_terms_season <- function(mod) {
-    if (!has_season(mod))
-        return(factor())
-    effect <- make_effect_season(mod)
-    n_effect <- length(effect)
-    levels <- c("effect", "hyper")
-    times <- c(n_effect, 1L)
-    ans <- rep(levels, times = times)
-    ans <- factor(ans, levels = levels)
     ans
 }
 
@@ -683,9 +493,7 @@ make_terms_season <- function(mod) {
 #' Make list of transforms to be applied to
 #' hyper-parameters 
 #'
-#' Includes dispersion, if present,
-#' and hyper-parameters for cyclical and
-#' seasonal effects.
+#' Includes dispersion, if present.
 #' Result applied to *all* parameters, and
 #' includes NULLs for parameters that are
 #' not hyper-parameters.
@@ -703,46 +511,17 @@ make_transforms_hyper <- function(mod) {
     est <- mod$est
     priors <- mod$priors
     has_disp <- has_disp(mod)
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
     n_effectfree <- length(est$effectfree)
-    n_effect_cyclical <- length(est$effect_cyclical)
-    n_effect_season <- length(est$effect_season)
-    n_hyper_cyclical <- length(est$hyper_cyclical)
-    n_hyper_season <- length(est$hyper_season)
     nms_effectfree <- names(est$effectfree)
-    nms_effect_cyclical <- names(est$effect_cyclical)
-    nms_effect_season <- names(est$effect_season)
-    nms_hyper_cyclical <- names(est$hyper_cyclical)
-    nms_hyper_season <- names(est$hyper_season)
     ans_effectfree <- rep(list(NULL), times = n_effectfree)
     names(ans_effectfree) <- nms_effectfree
     ans_hyper <- lapply(priors, transform_hyper)
     ans_hyper <- unlist(ans_hyper, recursive = FALSE)
     ans_log_disp <- if (has_disp) exp else NULL
     ans_log_disp = list(log_disp = ans_log_disp)
-    ans_effect_cyclical <- rep(list(NULL), times = n_effect_cyclical)
-    ans_effect_season <- rep(list(NULL), times = n_effect_season)
-    names(ans_effect_cyclical) <- nms_effect_cyclical
-    names(ans_effect_season) <- nms_effect_season
-    if (has_cyclical) {
-        ans_hyper_cyclical <- list(invlogit2, exp)
-        ans_hyper_cyclical <- rep(ans_hyper_cyclical,
-                                  times = c(n_hyper_cyclical - 1L, 1L))
-    }
-    else
-        ans_hyper_cyclical <- rep(list(NULL), times = n_hyper_cyclical)
-    names(ans_hyper_cyclical) <- nms_hyper_cyclical
-    ans_hyper_season <- if (has_season) exp else NULL
-    ans_hyper_season <- rep(list(ans_hyper_season), times = n_hyper_season)
-    names(ans_hyper_season) <- nms_hyper_season
     c(ans_effectfree,
       ans_hyper,
-      ans_log_disp,
-      ans_effect_cyclical,
-      ans_hyper_cyclical,
-      ans_effect_season,
-      ans_hyper_season)
+      ans_log_disp)
 }
 
 
@@ -790,8 +569,7 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 ## HAS_TESTS
 #' Transform hyper-parameters, and possibly dispersion
 #'
-#' Transform hyper-parameters, including any
-#' hyper-parameters for season, as well as 
+#' Transform hyper-parameters, as well as 
 #' any dispersion term.
 #'
 #' @param mod Object of class 'bage_mod'
