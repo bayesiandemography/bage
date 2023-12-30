@@ -151,10 +151,8 @@ draw_vals_effect.bage_prior_rw <- function(prior, vals_hyper, levels_effect, age
 #' @export
 draw_vals_effect.bage_prior_rw2 <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
     sd <- vals_hyper$sd
-    sd_intercept <- prior$specific$sd_intercept
     sd_slope <- prior$specific$sd_slope
     draw_vals_rw2(sd = sd,
-                  sd_intercept = sd_intercept,
                   sd_slope = sd_slope,
                   labels = levels_effect)
 }
@@ -162,18 +160,16 @@ draw_vals_effect.bage_prior_rw2 <- function(prior, vals_hyper, levels_effect, ag
 ## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_spline <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
-    sd <- vals_hyper$sd
-    sd_intercept <- prior$specific$sd_intercept
-    sd_slope <- prior$specific$sd_slope
-    m <- make_matrix_effectfree_effect(prior = prior,
-                                 levels_effect = levels_effect,
-                                 agesex = NULL)
-    labels <- seq_len(ncol(m))
-    effect <- draw_vals_rw2(sd = sd,
-                         sd_intercept = sd_intercept,
-                         sd_slope = sd_slope,
-                         labels = labels)
-    m %*% effect
+  sd <- vals_hyper$sd
+  sd_slope <- prior$specific$sd_slope
+  m <- make_matrix_effectfree_effect(prior = prior,
+                                     levels_effect = levels_effect,
+                                     agesex = NULL)
+  labels <- seq_len(ncol(m))
+  effect <- draw_vals_rw2(sd = sd,
+                          sd_slope = sd_slope,
+                          labels = labels)
+  m %*% effect
 }
 
 ## HAS_TESTS
@@ -368,12 +364,12 @@ is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, length_effect, agesex)
 ## HAS_TESTS
 #' @export
 is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, length_effect, agesex) {
-    check_is_main_effect(nm = nm, prior = prior)
-    check_length_effect_gt(length_effect = length_effect,
-                        min = 3L,
-                        nm = nm,
-                        prior = prior)
-    invisible(TRUE)
+  check_is_main_effect(nm = nm, prior = prior)
+  check_length_effect_gt(length_effect = length_effect,
+                         min = 3L,
+                         nm = nm,
+                         prior = prior)
+  invisible(TRUE)
 }
 
 ## HAS_TESTS
@@ -705,18 +701,18 @@ str_call_prior.bage_prior_rw <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2 <- function(prior) {
     scale <- prior$specific$scale
-    flat <- prior$const[[3L]] < 1
+    sd_slope <- prior$specific$sd_slope
     if (isTRUE(all.equal(scale, 1))) {
-        if (flat)
-            "RW2(flat=TRUE)"
-        else
+        if (isTRUE(all.equal(sd_slope, 1)))
             "RW2()"
+        else
+            sprintf("RW2(sd=%s)", sd_slope)
     }
     else {
-        if (flat)
-            sprintf("RW2(s=%s,flat=TRUE)", scale)
-        else
+        if (isTRUE(all.equal(sd_slope, 1)))
             sprintf("RW2(s=%s)", scale)
+        else
+            sprintf("RW2(s=%s,sd=%s)", scale, sd_slope)
     }
 }
 

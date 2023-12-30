@@ -61,28 +61,19 @@ Type logpost_rw2(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts) {
   Type scale = consts[0];
-  Type sd_intercept = consts[1];
-  Type sd_slope = consts[2];
+  Type sd_slope = consts[1];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   int n = effectfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans += dnorm(effectfree[0], Type(0), Type(1), true);
+  Type diff = effectfree[1] - effectfree[0];
+  ans += dnorm(diff, Type(0), sd_slope, true);
   for (int i = 2; i < n; i++) {
     Type diff = effectfree[i] - 2 * effectfree[i-1] + effectfree[i-2];
     ans += dnorm(diff, Type(0), sd, true);
   }
-  Type effectfree_total = effectfree.sum();
-  ans += dnorm(effectfree_total, Type(0), Type(n * sd_intercept), true);
-  Type num = 0;
-  Type den = 0;
-  for (int i = 0; i < n; i++) {
-    Type h = -1 + i * 2 / (n - 1);
-    num += effectfree[i] * h;
-    den += h * h;
-  }
-  Type slope = num / den;
-  ans += dnorm(slope, Type(0), sd_slope, true);
   return ans;
 }
 

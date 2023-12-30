@@ -179,12 +179,9 @@ NFix <- function(sd = 1) {
 #' random waok. Increments between neighbouring
 #' `x`s are assumed to be normally distibuted,
 #'
+#' \deqn{x_1 \sim \text{N}(0, 1)}
 #' \deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2), i = 2, \cdots, n}
 #'
-#' For identifiability,
-#' the mean value for the $x_i$ is assumed to be
-#' (almost) exactly equal to zero.
-#' 
 #' Standard deviation \eqn{\sigma} is drawn from a
 #' half-normal distribution,
 #' 
@@ -228,18 +225,11 @@ RW <- function(s = 1) {
 #' Prior in which units follow a random walk with drift.
 #' Second-order differences are normally distributed,
 #' 
+#' \deqn{x_1 \sim \text{N}(0, 1)}
+#' \deqn{x_2 \sim \text{N}(x_1, sd^2)}
 #' \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, \sigma^2),
 #'       i = 3, \cdots, n}
 #'
-#' For identifiability,
-#' the mean value for the $x_i$ is assumed to be
-#' (almost) exactly equal to zero.
-#'
-#' When `flat` is `FALSE` (the default),
-#' no constraint is placed on the overall slope of the $x_i$.
-#' When `flat` is `TRUE`, a line through the middle of the
-#' $x_i$ must be be horizontal.
-#' 
 #' Standard deviation \eqn{\sigma} is drawn from a
 #' half-normal distribution,
 #' 
@@ -248,16 +238,19 @@ RW <- function(s = 1) {
 #' (A half-normal distribution has the same shape as a normal
 #' distribution, but is defined only for non-negative
 #' values.)
+#' 
 #'
 #' The scale for the half-normal distribution, `s`, defaults
 #' to 1, but can be set to other values. Lower values
 #' for `scale` lead to smoother series of `x`s, and
 #' higher values lead to rougher series.
 #'
+#' Parameter `sd` governs the expected size of
+#' increments between neighbouring units.
+#' It defaults to 1, but can be set to other values.
+#'
 #' @param s A positive, finite number. Default is 1.
-#' @param flat Whether the overall slope of the
-#' terms is constrained to be zero. Default
-#' is `FALSE`.
+#' @param sd A positive, finite number. Default is 1.
 #'
 #' @returns An object of class `bage_prior_rw`
 #' or `bage_prior_rw2`.
@@ -269,14 +262,15 @@ RW <- function(s = 1) {
 #'
 #' @examples
 #' RW2()
-#' RW2(flat = TRUE)
+#' RW2(s = 0.2)
 #' @export
-RW2 <- function(s = 1, flat = FALSE) {
+RW2 <- function(s = 1, sd = 1) {
     check_scale(s, x_arg = "s", zero_ok = FALSE)
+    check_scale(sd, x_arg = "sd", zero_ok = FALSE)
     scale <- as.double(s)
-    check_flag(flat)
+    sd_slope <- as.double(sd)
     new_bage_prior_rw2(scale = scale,
-                       flat = flat)
+                       sd_slope = sd_slope)
 }
 
 
@@ -469,16 +463,12 @@ new_bage_prior_rw <- function(scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale, flat) {
-    sd_intercept <- 0.001
-    sd_slope <- if (flat) sd_intercept else 1
+new_bage_prior_rw2 <- function(scale, sd_slope) {
     ans <- list(i_prior = 4L,
                 const = c(scale = scale,
-                          sd_intercept = sd_intercept,
                           sd_slope = sd_slope),
                 n_hyper = 1L, ## log_sd
                 specific = list(scale = scale,
-                                sd_intercept = sd_intercept,
                                 sd_slope = sd_slope))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
@@ -486,15 +476,14 @@ new_bage_prior_rw2 <- function(scale, flat) {
 
 ## HAS_TESTS
 new_bage_prior_spline <- function(n, scale) {
-    sd_intercept <- 0.001
     sd_slope <- 1
     ans <- list(i_prior = 6L,
                 const = c(scale = scale,
-                          sd_intercept = sd_intercept,
                           sd_slope = sd_slope),
                 n_hyper = 1L, ## log_sd
                 specific = list(n = n,
-                                scale = scale))
+                                scale = scale,
+                                sd_slope = sd_slope))
     class(ans) <- c("bage_prior_spline", "bage_prior")
     ans
 }

@@ -303,26 +303,17 @@ RW(s = 1)
 
 ### Model
 
-\begin{equation}
-  \beta_{j+2}^{(m)} \sim \text{N}(2 \beta_{j+1}^{(m)} - \beta_{j}^{(m)}, \tau_m^2),
-\end{equation}
-  $j = 1, \cdots, J_m - 2$, together with the soft constraints
 \begin{align}
- \eta_0^{(m)} & \sim \text{N}(0, A_{\eta, 0}^{(m)2}) \\
- \eta_1^{(m)} & \sim \text{N}(0, A_{\eta, 1}^{(m)2})
-\end{align}
-where
-\begin{align}
-  \eta_0^{(m)} & = \frac{1}{J_m} \sum_{j=1}^{J_m} \beta_j^{(m)} \\
-  \eta_1^{(m)} & = \frac{\sum_{j=1}^{J_m} \beta_j^{(m)} h_j^{(m)}}{\sum_{j=1}^{J_m} h_j^{(m)2}} \\
-  h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_2^{(m)} & \sim \text{N}(\beta_1^{(m)}, A_{\eta}^{(m)2}) \\
+  \beta_{j}^{(m)} & \sim \text{N}(2 \beta_{j-1}^{(m)} - \beta_{j-2}^{(m)}, \tau_m^2), \quad j = 3, \cdots, J_m
 \end{align}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)2}) \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)2}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\beta_1^{(m)} \mid 0, 1) \text{N}(\beta_2^{(m)}  \mid \beta_1^{(m)}, A_{\eta}^{(m)2}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -330,21 +321,10 @@ where
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \pmb{\beta}^{(m)} & = \pmb{A}^{-1} \pmb{v}
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_2^{(m)} & \sim \text{N}(\beta_1^{(m)}, A_{\eta}^{(m)2}) \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
 \end{align}
-where
-\begin{align}
-  \pmb{A} & = \begin{bmatrix} \pmb{R} \\ J_m^{-1} \pmb{1}^{\top} \\ \tilde{\pmb{h}}^{\top} \end{bmatrix} \\
-  \pmb{v} & \sim \text{N}\left(\begin{bmatrix} \pmb{0} \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} \tau_m^2 \pmb{I} & \pmb{0} & \pmb{0}\\ \pmb{0}^{\top} & A_{\eta_0}^{(m)2} & 0 \\
-  \pmb{0}^{\top} & 0 & A_{\eta_1}^{(m)2} \end{bmatrix} \right) \\
-\tilde{\pmb{h}} & = \left(\sum_{j=1}^{J_m} h_j^{(m)2} \right)^{-1} \begin{bmatrix} h_1^{(m)} \\ \vdots \\ h_{J_m}^{(m)} \end{bmatrix}
-\end{align}
-and $\pmb{R}$ is a second-order difference matrix of the form
-\begin{equation}
-  \begin{bmatrix} 1 & -2 & 1 & 0 & 0 \\
-                  0 & 1 & -2 & 1 & 0 \\
-		  0 & 0 & 1 & -2 & 1 \end{bmatrix}
-\end{equation}
 
 ### Prediction
 
@@ -356,12 +336,11 @@ and $\pmb{R}$ is a second-order difference matrix of the form
 ### Code
 
 ```
-RW2(s = 1, flat = FALSE)
+RW2(s = 1, sd = 1)
 ```
 
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- Internally, $A_{\eta,0}^{(m)}$ is set to 0.001.
-- If `flat` is `FALSE` (the default) then, internally, $A_{\eta,1}^{(m)}$ is set to 1. Otherwise it is set to 0.001.
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_{\eta}^{(m)}$
 
 
 ## AR1 {#sec:pr-ar1}
