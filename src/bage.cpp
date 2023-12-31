@@ -106,11 +106,32 @@ Type logpost_spline(vector<Type> effectfree,
   return logpost_rw2(effectfree, hyper, consts);
 }
 
-
 template <class Type>
 Type logpost_svd(vector<Type> effectfree,
 		 vector<Type> consts) {
   return dnorm(effectfree, Type(0), Type(1), true).sum();
+}
+
+template <class Type>
+Type logpost_lin(vector<Type> effectfree,
+		 vector<Type> hyper,
+		 vector<Type> consts) {
+  Type scale = consts[0];
+  Type sd_slope = consts[1];
+  Type slope = hyper[0];
+  Type log_sd = hyper[1];
+  Type sd = exp(log_sd);
+  int n = effectfree.size();
+  Type ans = 0;
+  ans += dnorm(slope, Type(0), sd_slope, true);
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  Type a0 = -1 * (n + 1) / (n - 1);
+  Type a1 = 2 / (n - 1);
+  for (int i = 0; i < n; i++) {
+    Type q = a0 + a1 * (i + 1);
+    ans += dnorm(effectfree[i], q * slope, sd, true);
+  }
+  return ans;
 }
 
 template <class Type>
@@ -152,6 +173,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 6:
     ans = logpost_spline(effectfree, hyper, consts);
+    break;
+  case 8:
+    ans = logpost_lin(effectfree, hyper, consts);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);

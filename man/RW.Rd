@@ -14,7 +14,7 @@ An object of class \code{bage_prior_rw}.
 }
 \description{
 Prior in which units follow a (first order)
-random waok. Increments between neighbouring
+random walk. Increments between neighbouring
 \code{x}s are assumed to be normally distibuted,
 }
 \details{

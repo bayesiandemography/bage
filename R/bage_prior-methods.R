@@ -3,74 +3,6 @@
 ## even when the generic function is not exported
 ## https://github.com/r-lib/devtools/issues/2293
 
-
-
-## 'draw_vals_hyper' ----------------------------------------------------------
-
-#' Draw values for hyper-parameters
-#'
-#' @param prior Object of class 'bage_prior'
-#'
-#' @returns A named list.
-#'
-#' @noRd
-draw_vals_hyper <- function(prior, n_sim) {
-  UseMethod("draw_vals_hyper")
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_ar1 <- function(prior, n_sim) {
-    coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
-    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-    list(coef = coef,
-         sd = sd)
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_known <- function(prior, n_sim)
-    list()
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_norm <- function(prior, n_sim) {
-    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-    list(sd = sd)
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_normfixed <- function(prior, n_sim)
-    list()
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_rw <- function(prior, n_sim) {
-    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-    list(sd = sd)
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_rw2 <- function(prior, n_sim) {
-    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-    list(sd = sd)
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_spline <- function(prior, n_sim) {
-    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-    list(sd = sd)
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
-    list()
-
-
 ## 'draw_vals_effect' ------------------------------------------------------------
 
 #' Draw Values for Main Effect or Interactions
@@ -108,6 +40,16 @@ draw_vals_effect.bage_prior_known <- function(prior, vals_hyper, levels_effect, 
            nrow = n_effect,
            ncol = n_sim,
            dimnames = list(levels_effect, seq_len(n_sim)))
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_lin <- function(prior, vals_hyper, levels_effect, agesex, n_sim) {
+    slope <- vals_hyper$slope
+    sd <- vals_hyper$sd
+    draw_vals_lin(slope = slope,
+                  sd = sd,
+                  labels = levels_effect)
 }
 
 ## HAS_TESTS
@@ -197,6 +139,81 @@ draw_vals_effect.bage_prior_svd <- function(prior, vals_hyper, levels_effect, ag
     dimnames(ans) <- list(levels_effect, seq_len(n_sim))
     ans    
 }                             
+
+
+## 'draw_vals_hyper' ----------------------------------------------------------
+
+#' Draw values for hyper-parameters
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns A named list.
+#'
+#' @noRd
+draw_vals_hyper <- function(prior, n_sim) {
+  UseMethod("draw_vals_hyper")
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_ar1 <- function(prior, n_sim) {
+    coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(coef = coef,
+         sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_known <- function(prior, n_sim)
+    list()
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_lin <- function(prior, n_sim) {
+  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(slope = slope,
+       sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_norm <- function(prior, n_sim) {
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_normfixed <- function(prior, n_sim)
+    list()
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw <- function(prior, n_sim) {
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2 <- function(prior, n_sim) {
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_spline <- function(prior, n_sim) {
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
+    list()
 
 
 ## 'is_comparable_prior' ------------------------------------------------------
@@ -332,12 +349,23 @@ is_prior_ok_for_term.bage_prior_known <- function(prior, nm, length_effect, ages
 
 ## HAS_TESTS
 #' @export
+is_prior_ok_for_term.bage_prior_lin <- function(prior, nm, length_effect, agesex) {
+  check_is_main_effect(nm = nm, prior = prior)
+  check_length_effect_gt(length_effect = length_effect,
+                         min = 2L,
+                         nm = nm,
+                         prior = prior)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
 is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, length_effect, agesex) {
-    check_length_effect_gt(length_effect = length_effect,
-                        min = 2L,
-                        nm = nm,
-                        prior = prior)
-    invisible(TRUE)
+  check_length_effect_gt(length_effect = length_effect,
+                         min = 2L,
+                         nm = nm,
+                         prior = prior)
+  invisible(TRUE)
 }
 
 ## HAS_TESTS
@@ -440,6 +468,11 @@ levels_hyper.bage_prior_ar1 <- function(prior)
 #' @export
 levels_hyper.bage_prior_known <- function(prior)
     character()
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_lin <- function(prior)
+    c("slope", "sd")
 
 ## HAS_TESTS
 #' @export
@@ -669,6 +702,25 @@ str_call_prior.bage_prior_known <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_call_prior.bage_prior_lin <- function(prior) {
+    scale <- prior$specific$scale
+    sd_slope <- prior$specific$sd_slope
+    if (isTRUE(all.equal(scale, 1))) {
+        if (isTRUE(all.equal(sd_slope, 1)))
+            "Lin()"
+        else
+            sprintf("Lin(sd=%s)", sd_slope)
+    }
+    else {
+        if (isTRUE(all.equal(sd_slope, 1)))
+            sprintf("Lin(s=%s)", scale)
+        else
+            sprintf("Lin(s=%s,sd=%s)", scale, sd_slope)
+    }
+}
+
+## HAS_TESTS
+#' @export
 str_call_prior.bage_prior_norm <- function(prior) {
     scale <- prior$specific$scale
     if (isTRUE(all.equal(scale, 1)))
@@ -780,6 +832,11 @@ transform_hyper.bage_prior_ar1 <- function(prior)
 #' @export
 transform_hyper.bage_prior_known <- function(prior)
     list()
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_lin <- function(prior)
+    list(identity, exp)
 
 ## HAS_TESTS
 #' @export

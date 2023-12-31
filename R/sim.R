@@ -365,6 +365,31 @@ draw_vals_hyperparam <- function(mod, n_sim) {
 
 
 ## HAS_TESTS
+#' Generate Draws from Lin
+#'
+#' Each column is one draw.
+#'
+#' @param slope Vector of values
+#' @param sd Vector of values
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_lin <- function(slope, sd, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(slope)
+  q <- seq(from = -1, to = 1, length.out = n_effect)
+  mean <- outer(q, slope)
+  error <- stats::rnorm(n = n_effect * n_sim,
+                        sd = rep(sd, each = n_effect))
+  ans <- mean + error
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
 #' Draw values for hyper-parameters for all priors in a model
 #'
 #' @param mod Object of class "bage_mod"
@@ -392,7 +417,7 @@ draw_vals_effect_mod <- function(mod, vals_hyper, n_sim) {
 
 
 ## HAS_TESTS
-#' Generate a RW Vector
+#' Generate Draws from RW 
 #'
 #' Each column is one draw.
 #'
@@ -418,7 +443,7 @@ draw_vals_rw <- function(sd, labels) {
 
 
 ## HAS_TESTS
-#' Generate a RW2 vector
+#' Generate Draws from RW2
 #'
 #' Each column is one draw.
 #'
@@ -461,6 +486,21 @@ draw_vals_sd <- function(prior, n_sim) {
     ans <- stats::rnorm(n = n_sim, sd = scale)
     ans <- abs(ans)
     ans
+}
+
+
+## HAS_TESTS
+#' Draw Values for the 'slope' Parameter of a Prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_slope <- function(prior, n_sim) {
+    sd_slope <- prior$specific$sd_slope
+    stats::rnorm(n = n_sim, sd = sd_slope)
 }
 
 

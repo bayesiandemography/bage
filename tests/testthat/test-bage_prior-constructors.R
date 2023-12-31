@@ -16,6 +16,11 @@ test_that("'Known' works with valid inputs", {
                      new_bage_prior_known(values = as.double(1:3)))
 })
 
+test_that("'Lin' works with valid inputs", {
+    expect_identical(Lin(), new_bage_prior_lin(scale = 1, sd_slope = 1))
+    expect_identical(Lin(s = 0.3, sd = 0.1), new_bage_prior_lin(scale = 0.3, sd_slope = 0.1))
+})
+
 test_that("'N' works with valid inputs", {
     expect_identical(N(), new_bage_prior_norm(scale = 1))
 })
@@ -29,7 +34,7 @@ test_that("'RW' works with valid inputs", {
 })
 
 test_that("'RW2' works with valid inputs", {
-    expect_identical(RW2(), new_bage_prior_rw2(scale = 1, sd = 1))
+    expect_identical(RW2(), new_bage_prior_rw2(scale = 1, sd_slope = 1))
 })
 
 test_that("'Sp' works with valid inputs", {
@@ -76,6 +81,16 @@ test_that("'new_bage_prior_known' works", {
     expect_identical(obj$const, 0)
     expect_identical(obj$n_hyper, 0L)
     expect_identical(obj$specific, list(values = 1.0))
+})
+
+test_that("'new_bage_prior_lin' works", {
+    obj <- new_bage_prior_lin(scale = 1, sd = 1)
+    expect_s3_class(obj, "bage_prior_lin")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 8L)
+    expect_identical(obj$const, c(scale = 1, sd_slope = 1))
+    expect_identical(obj$n_hyper, 2L)
+    expect_identical(obj$specific, list(scale = 1, sd_slope = 1))
 })
 
 test_that("'new_bage_prior_norm' works", {
