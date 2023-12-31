@@ -443,6 +443,21 @@ test_that("'fit' works with SVD", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' works with Lin", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ sex + age + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, time ~ Lin())
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+
 
 ## 'get_vals_est' -------------------------------------------------------------
 

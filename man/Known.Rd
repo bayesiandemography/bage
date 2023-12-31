@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{Known}
 \alias{Known}
-\title{Treat a model term as known}
+\title{Treat an Intercept, Main Effect, or Interaction as Known}
 \usage{
 Known(values)
 }
@@ -14,7 +14,7 @@ An object of class \code{bage_prior_known}.
 }
 \description{
 Treat the intercept, a main effect, or an interaction
-in an model as known.
+in an model as fixed and known.
 }
 \examples{
 Known(-2.3)

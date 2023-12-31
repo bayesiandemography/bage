@@ -65,10 +65,10 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 ## 'bage_prior_known' only ever created via 'set_prior()'
 
 ## HAS_TESTS
-#' Treat a model term as known
+#' Treat an Intercept, Main Effect, or Interaction as Known
 #'
 #' Treat the intercept, a main effect, or an interaction
-#' in an model as known.
+#' in an model as fixed and known.
 #'
 #' @param values A numeric vector
 #'
@@ -90,6 +90,63 @@ Known <- function(values) {
     new_bage_prior_known(values = values)
 }
 
+
+## 'bage_prior_lin' only ever created via 'set_prior()'
+
+## HAS_TESTS
+#' Linear Prior
+#'
+#' Prior in which units are assumed to follow a
+#' straight line (with idiosyncratic errors around
+#' the line).
+#'
+#' \deqn{x_j \sim \text{N}(\text{slope} q_j, \sigma^2)}
+#'
+#' where \eqn{q_j} is a rescaled version of \eqn{j}, with mean 0,
+#' minimum -1, and maximum 1: \eqn{q_j = - (J+1)/(J-1) + 2j/(J-1)}.
+#'
+#' The slope term is drawn from a normal distribution,
+#'
+#' \deqn{\text{slope} ~ \text{N}(0, \text{sd}^2)}.
+#' 
+#' The standard deviation for the normal distribution,
+#' `sd`, defaults to 1, but can be set to other values.
+#' Lower values for `sd` lead to smaller values for
+#' the slope term.
+#'
+#' Standard deviation \eqn{\sigma} is drawn from a
+#' half-normal distribution,
+#' 
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (A half-normal distribution has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' The scale for the half-normal distribution, `s`, defaults
+#' to 1, but can be set to other values. Lower values
+#' for `scale` lead to a smoother line.
+#'
+#' @param s A positive number. Default is 1.
+#' @param sd A postive number. Default is 1.
+#'
+#' @returns An object of class `bage_prior_known`.
+#'
+#' @seealso
+#' - [N()] etc
+#'
+#' @examples
+#' Lin()
+#' Lin(s = 0.5, sd = 2)
+#' @export
+Lin <- function(s = 1, sd = 1) {
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  scale <- as.double(s)
+  sd_slope <- as.double(sd)
+  new_bage_prior_lin(scale = scale,
+                     sd_slope = sd_slope)
+}
 
 ## 'bage_prior_norm' can be created during initial call to mod_* function
 
@@ -176,7 +233,7 @@ NFix <- function(sd = 1) {
 #' Random walk prior
 #'
 #' Prior in which units follow a (first order)
-#' random waok. Increments between neighbouring
+#' random walk. Increments between neighbouring
 #' `x`s are assumed to be normally distibuted,
 #'
 #' \deqn{x_1 \sim \text{N}(0, 1)}
@@ -425,6 +482,18 @@ new_bage_prior_known <- function(values) {
     ans
 }
 
+## NO_TESTS
+new_bage_prior_lin <- function(scale, sd_slope) {
+    ans <- list(i_prior = 8L,
+                const = c(scale = scale,
+                          sd_slope = sd_slope),
+                n_hyper = 2L, ## slope, log_sd
+                specific = list(scale = scale,
+                                sd_slope = sd_slope))
+    class(ans) <- c("bage_prior_lin", "bage_prior")
+    ans
+}
+
 ## HAS_TESTS
 new_bage_prior_norm <- function(scale) {
     ans <- list(i_prior = 1L,
@@ -492,3 +561,5 @@ new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, indep) {
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans
 }
+
+

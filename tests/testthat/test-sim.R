@@ -258,6 +258,26 @@
 ##     expect_equal(mean(ans$cyclical), 0, tolerance = 0.05)
 ## })
 
+test_that("'draw_vals_lin' works", {
+  set.seed(0)
+  prior <- Lin()
+  n_sim <- 10
+  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  labels <- 1:20
+  set.seed(0)
+  ans_obtained <- draw_vals_lin(slope = slope,
+                                sd = sd,
+                                labels = labels)
+  q <- -(20 + 1) / (20 - 1) + (1:20) * 2 / (20 - 1)
+  ans_expected <- matrix(rep(q, times = n_sim) * rep(slope, each = 20),
+                         nrow = 20)
+  set.seed(0)
+  ans_expected <- ans_expected + rnorm(n = n_sim * 20, sd = rep(sd, each = 20))
+  dimnames(ans_expected) <- list(1:20, 1:n_sim)
+  expect_equal(ans_obtained, ans_expected)  
+})
+
 
 ## ## draw_vals_hyper_mod --------------------------------------------------------
 
@@ -393,17 +413,30 @@ test_that("'draw_vals_rw2' works", {
 })
 
 
-## ## draw_vals_sd ---------------------------------------------------------------
+## draw_vals_sd ---------------------------------------------------------------
 
-## test_that("'draw_vals_sd' works", {
-##     prior <- N(s = 0.2)
-##     n_sim <- 10
-##     set.seed(0)
-##     ans_obtained <- draw_vals_sd(prior = prior, n_sim = n_sim)
-##     set.seed(0)
-##     ans_expected <- abs(rnorm(n = 10, sd = 0.2))
-##     expect_identical(ans_obtained, ans_expected)
-## })
+test_that("'draw_vals_sd' works", {
+  prior <- N(s = 0.2)
+  n_sim <- 10
+  set.seed(0)
+  ans_obtained <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- abs(rnorm(n = 10, sd = 0.2))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## draw_vals_slope ------------------------------------------------------------
+
+test_that("'draw_vals_slope' works", {
+  prior <- Lin(sd = 0.2)
+  n_sim <- 10
+  set.seed(0)
+  ans_obtained <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- rnorm(n = 10, sd = 0.2)
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## ## 'draw_vals_season' ---------------------------------------------------------
