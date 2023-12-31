@@ -723,15 +723,15 @@ str_call_prior.bage_prior_spline <- function(prior) {
     scale <- prior$specific$scale
     if (isTRUE(all.equal(scale, 1))) {
         if (is.null(n))
-            "Spline()"
+            "Sp()"
         else
-            sprintf("Spline(n=%d)", n)
+            sprintf("Sp(n=%d)", n)
     }
     else {
         if (is.null(n))
-            sprintf("Spline(s=%s)", scale)
+            sprintf("Sp(s=%s)", scale)
         else
-            sprintf("Spline(n=%d,s=%s)", n, scale)
+            sprintf("Sp(n=%d,s=%s)", n, scale)
     }
 }
 

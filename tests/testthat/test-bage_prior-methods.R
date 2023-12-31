@@ -42,7 +42,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2", {
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_spline", {
-    prior <- Spline()
+    prior <- Sp()
     ans <- draw_vals_hyper(prior = prior, n_sim = 10)
     expect_identical(names(ans), "sd")
     expect_identical(length(ans$sd), 10L)
@@ -142,7 +142,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline", {
-  prior <- Spline()
+  prior <- Sp()
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
   levels_effect <- letters
@@ -190,8 +190,8 @@ test_that("'is_comparable_prior' works with RW2)", {
 })
 
 test_that("'is_comparable_prior' works with spline)", {
-    expect_true(is_comparable_prior(Spline(), Spline(s = 3)))
-    expect_false(is_comparable_prior(Spline(n = 4), Spline(n = 5)))
+    expect_true(is_comparable_prior(Sp(), Sp(s = 3)))
+    expect_false(is_comparable_prior(Sp(n = 4), Sp(n = 5)))
 })
 
 test_that("'is_comparable_prior' works with SVD)", {
@@ -262,7 +262,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
-    expect_true(is_prior_ok_for_term(prior = Spline(),
+    expect_true(is_prior_ok_for_term(prior = Sp(),
                                      nm = "time",
                                      length_effect = 2,
                                      agesex = "other"))
@@ -330,7 +330,7 @@ test_that("'levels_hyper' works with 'bage_prior_rw2'", {
 })
 
 test_that("'levels_hyper' works with 'bage_prior_spline'", {
-    expect_identical(levels_hyper(Spline()), "sd")
+    expect_identical(levels_hyper(Sp()), "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
@@ -352,7 +352,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1", {
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n supplied", {
-    prior <- Spline(n = 5)
+    prior <- Sp(n = 5)
     levels_effect <- 1:10
     ans_obtained <- make_matrix_effectfree_effect(prior = prior,
                                             levels_effect = levels_effect,
@@ -364,7 +364,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n supp
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n NULL", {
-    prior <- Spline()
+    prior <- Sp()
     levels_effect <- 1:10
     ans_obtained <- make_matrix_effectfree_effect(prior = prior,
                                             levels_effect = levels_effect,
@@ -488,10 +488,10 @@ test_that("'str_call_prior' works with bage_prior_rw2", {
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {
-    expect_identical(str_call_prior(Spline()), "Spline()")
-    expect_identical(str_call_prior(Spline(n = 5L)), "Spline(n=5)")
-    expect_identical(str_call_prior(Spline(s = 0.1)), "Spline(s=0.1)")
-    expect_identical(str_call_prior(Spline(s = 3,n = 5L)), "Spline(n=5,s=3)")
+    expect_identical(str_call_prior(Sp()), "Sp()")
+    expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n=5)")
+    expect_identical(str_call_prior(Sp(s = 0.1)), "Sp(s=0.1)")
+    expect_identical(str_call_prior(Sp(s = 3,n = 5L)), "Sp(n=5,s=3)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
@@ -538,7 +538,7 @@ test_that("'transform_hyper' works with 'bage_prior_rw2'", {
 })
 
 test_that("'transform_hyper' works with 'bage_prior_spline'", {
-    l <- transform_hyper(Spline())
+    l <- transform_hyper(Sp())
     expect_equal(0.35, l[[1]](log(0.35)))
 })
 
@@ -552,7 +552,7 @@ test_that("'transform_hyper' works with 'bage_prior_svd'", {
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
     expect_false(uses_matrix_effectfree_effect(N()))
-    expect_true(uses_matrix_effectfree_effect(Spline()))
+    expect_true(uses_matrix_effectfree_effect(Sp()))
     expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
 })
 
@@ -561,7 +561,7 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
 
 test_that("'uses_offset_effectfree_effect' works with valid inputs", {
     expect_false(uses_offset_effectfree_effect(N()))
-    expect_false(uses_offset_effectfree_effect(Spline()))
+    expect_false(uses_offset_effectfree_effect(Sp()))
     expect_true(uses_offset_effectfree_effect(SVD(HMD)))
 })
 

@@ -159,7 +159,7 @@ test_that("'make_draws_components' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age ~ Spline())
+    mod <- set_prior(mod, age ~ Sp())
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
     set.seed(0)
@@ -413,7 +413,7 @@ test_that("'make_term_components' works", {
                     data = data,
                     exposure = popn)
     mod <- set_disp(mod, s = 0)
-    mod <- set_prior(mod, age ~ Spline())
+    mod <- set_prior(mod, age ~ Sp())
     mod <- set_n_draw(mod, n = 1)       
     mod <- fit(mod)
     comp <- make_comp_components(mod)
@@ -497,7 +497,7 @@ test_that("'transform_draws_effect' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age ~ Spline())
+  mod <- set_prior(mod, age ~ Sp())
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   est <- mod$est

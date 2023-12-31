@@ -818,7 +818,7 @@ test_that("'make_uses_matrix_effectfree_effect' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) %>%
-        set_prior(agegp ~ Spline())
+        set_prior(agegp ~ Sp())
     ans_obtained <- make_uses_matrix_effectfree_effect(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 1L,
@@ -842,7 +842,7 @@ test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) %>%
-        set_prior(agegp ~ Spline())
+        set_prior(agegp ~ Sp())
     ans_obtained <- make_uses_offset_effectfree_effect(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 0L,

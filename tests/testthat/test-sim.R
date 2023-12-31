@@ -247,7 +247,7 @@
 ##                     data = data,
 ##                     exposure = popn)
 ##     mod <- set_cyclical(mod, n = 2)
-##     mod <- set_prior(mod, age ~ Spline())
+##     mod <- set_prior(mod, age ~ Sp())
 ##     mod <- set_prior(mod, time ~ RW2())
 ##     ans <- draw_vals_cyclical(mod, n_sim = 100)
 ##     expect_identical(length(ans$sd), 100L)
@@ -418,7 +418,7 @@ test_that("'draw_vals_rw2' works", {
 ##                     data = data,
 ##                     exposure = popn)
 ##     mod <- set_season(mod, n = 2)
-##     mod <- set_prior(mod, age ~ Spline())
+##     mod <- set_prior(mod, age ~ Sp())
 ##     mod <- set_prior(mod, time ~ RW2())
 ##     ans <- draw_vals_season(mod, n_sim = 100)
 ##     expect_identical(length(ans$sd), 100L)

@@ -349,8 +349,7 @@ RW2(s = 1, sd = 1)
 
 \begin{align}
   \beta_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \beta_j^{(m)} & = \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
-  \epsilon_j^{(m)} & \sim \text{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \beta_j^{(m)} & \sim \text{N}(\phi_m \beta_{j-1}^{(m)}, (1 - \phi^2) \tau_m^2), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right).
@@ -368,7 +367,7 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
+  \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
 \end{equation}
 
 
@@ -391,36 +390,82 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
-   h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
-  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
+  \beta_j^{(m)} & \sim \text{N}(q_j^{(m)} \eta^{(m)}, \tau_m^2) \\
+  \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
+where
+\begin{equation}
+   q_j^{(m)} = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j
+\end{equation}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2})   \text{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \text{N}\left(\beta_j^{(m)} \mid h_j^{(m)} \eta_m, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2})   \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \text{N}\left(\beta_j^{(m)} \mid q_j^{(m)} \eta^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \text{N}(\beta_{J_m + h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m, \tau_m^2)
+  \beta_{J_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
 \end{equation}
 
 
 ### Code
 
 ```
-Lin(sd = NULL, s = 1)
+Lin(sd = 1, s = 1)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `sd` is $A_{\eta}^{(m)}$.
+- `s` is $A_{\tau}^{(m)}$.
+
+## Multivariate Linear {#sec:pr-mlin}
+
+### Model
+
+\begin{align}
+  \beta_{uv}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_c^{(m)}, \tau_m^2) \\
+  \eta_c^{(m)} & \sim \text{N}\left(\eta^{(m)}, \omega^{(m)2}\right) \\
+  \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
+\end{align}
+where
+\begin{equation}
+   q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v
+\end{equation}
+
+### Contribution to posterior density
+
+\begin{equation}
+  \begin{split}
+  & \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\omega_m | 0, A_{\omega}^{(m)2})   \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) \\
+  & \quad \times \prod_{u=1}^{U_m} \text{N}\left(\eta_u^{(m)} \mid 0, \omega_m^2 \right) \\
+  & \quad \times \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right) 
+  \end{split}
+\end{equation}
+
+
+### Prediction
+
+\begin{equation}
+  \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
+\end{equation}
+
+
+### Code
+
+```
+MLin(sd = 1, s = 1, ms = 1)
+```
+
+- `sd` is $A_{\eta}^{(m)}$
+- `s` is $A_{\tau}^{(m)}$
+- `ms` is $A_{\omega}^{(m)}$
 
 
 ## P-Spline {#sec:pr-spline}
@@ -443,8 +488,8 @@ $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j})
 where
 \begin{align}
   \eta_0^{(m)} & = \frac{1}{K_m} \sum_{k=1}^{K_m} \alpha_k^{(m)} \\
-  \eta_1^{(m)} & = \frac{\sum_{k=1}^{K_m} \alpha_k^{(m)} h_k^{(m)}}{\sum_{k=1}^{K_m} h_k^{(m)2}} \\
-  h_k^{(m)} & = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} j \\
+  \eta_1^{(m)} & = \frac{\sum_{k=1}^{K_m} \alpha_k^{(m)} q_k^{(m)}}{\sum_{k=1}^{K_m} q_k^{(m)2}} \\
+  q_k^{(m)} & = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} j \\
 \end{align}
 
 
@@ -456,7 +501,7 @@ Main effects with a P-Spline prior cannot be predicted.
 ### Code
 
 ```
-Spline(n = NULL, s = 1)
+Sp(n = NULL, s = 1)
 ```
 
 - `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
@@ -640,8 +685,8 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 Regularised horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
-  \zeta_p | \omega_p, \varphi & \sim \text{N}(0, \omega_p^2 \varphi^2) \\
-  \omega_p & \sim \text{Cauchy}^+(0, 1) \\
+  \zeta_p | \vartheta_p, \varphi & \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
+  \vartheta_p & \sim \text{Cauchy}^+(0, 1) \\
   \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
   A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}
 \end{align}
@@ -788,7 +833,7 @@ To generate one set of simulated values, we start with values for exposure, tria
 1. Draw values for any parameters in the priors for the $\pmb{\beta}^{(m)}$, $m = 1, \cdots, M$.
 1. Conditional on the values drawn in Step 1, draw values the $\pmb{\beta}^{(m)}$, $m = 0, \cdots, M$.
 1. If the model contains seasonal effects, draw the standard deviation $\kappa_m$, and then the effects $\pmb{\lambda}^{(m)}$.
-1. If the model contains covariates, draw $\varphi$ and $\omega_p$ where necessary, draw coefficient vector $\pmb{\zeta}$.
+1. If the model contains covariates, draw $\varphi$ and $\vartheta_p$ where necessary, draw coefficient vector $\pmb{\zeta}$.
 1. Use values from steps 2--4 to form the linear predictor $\sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta}$.
 1. Back-transform the linear predictor, to obtain vector of cell-specific parameters $\pmb{\mu}$.
 1. If the model contains a dispersion parameter $\xi$, draw values from the prior for $\xi$.
@@ -861,6 +906,9 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\xi$   | Dispersion parameter. |
 | $g()$ | Log, logit, or identity function. |
 | $m$ | Index for intercept, main effect, or interaction. $m = 0, \cdots, M$. |
+| $j$ | Index for element of a main effect or interaction. |
+| $u$ | Index for combination of 'by' variables for an interaction. $u = 1, \cdots U_m$. $U_m V_m = J_m$ |
+| $v$ | Index for the 'along' dimension of an interaction. $v = 1, \cdots V_m$. $U_m V_m = J_m$ |
 | $\beta^{(0)}$ | Intercept. |
 | $\pmb{\beta}^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
 | $\beta_j^{(m)}$ | $j$th element of $\pmb{\beta}^{(m)}$. $j = 1, \cdots, J_m$. |
@@ -874,8 +922,10 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\alpha_k^{(m)}$ | $k$th element of $\pmb{\alpha}^{(m)}$. $k = 1, \cdots, K_m$. |
 | $\pmb{V}^{(m)}$ | Covariance matrix for multivariate normal prior. |
 | $h_j^{(m)}$ | Linear covariate |
-| $\eta^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
+| $\eta^{(m)}$ | Parameter specific to main effect or interaction $\pmb{\beta}^{(m)}$. |
+| $\eta_u^{(m)}$ | Parameter specific to $u$th combination of 'by' variables in interaction $\pmb{\beta}^{(m)}$. |
 | $A_{\eta}^{(m)}$ | Standard deviation in normal prior for $\eta_m$. |
+| $\omega_m$ | Standard deviation of parameter $\eta_c$ in multivariate priors. |
 | $\phi_m$ | Correlation coefficient in AR1 densities. |
 | $a_{0m}$, $a_{1m}$ | Minimum and maximum values for $\phi_m$. |
 | $\pmb{B}^{(m)}$ | B-spline matrix in P-spline prior. |
@@ -890,7 +940,7 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\tau_{\lambda}$ | Standard deviation parameter for seasonal effect. |
 | $\varphi$ | Global shrinkage parameter in shrinkage prior. |
 | $A_{\varphi}$ | Scale term in prior for $\varphi$. |
-| $\omega_p$ | Local shrinkage parameter in shrinkage prior. |
+| $\vartheta_p$ | Local shrinkage parameter in shrinkage prior. |
 | $p_0$ | Expected number of non-zero coefficients in $\pmb{\zeta}$. |
 | $\hat{\sigma}$ | Empirical scale estimate in prior for $\varphi$. |
 | $\pi$ | Vector of hyper-parameters |
