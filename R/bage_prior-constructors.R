@@ -297,24 +297,14 @@ RW2 <- function(s = 1, sd = 1) {
 #' with `n` elements.
 #'
 #' The elements of \eqn{\gamma} are assumed to follow
-#' a second order random walk,
+#' a second order random walk (see [RW2()]).
 #'
-#' \deqn{(\gamma_j - \gamma_{j-1}) - (\gamma_{j-1} - \gamma_{j-2}) \sim \text{N}(0, \sigma^2)}
-#'
-#' Parameter \eqn{\sigma} has prior
-#'
-#' \deqn{\sigma \sim \text{N}^+(0, s^2)}
-#'
-#' where \eqn{\text{N}^+} denotes a half-normal distribution,
-#' and a value for \eqn{s} is supplied by the user.
-#'
+#' @inheritParams RW2
 #' @param n Number of spline vectors.
 #' By default is `NULL`, in which case the number of
 #' vectors is set to `max(ceiling(0.7 * k), 4)`
 #' where `k` is the number
 #' of elements in the term being modelled.
-#' @param s Scale for error term.
-#' Default is 1.
 #'
 #' @returns An object of class `"bage_prior_spline"`.
 #'
@@ -322,10 +312,10 @@ RW2 <- function(s = 1, sd = 1) {
 #' - [RW2()] etc
 #'
 #' @examples
-#' Spline()
-#' Spline(n = 10)
+#' Sp()
+#' Sp(n = 10)
 #' @export
-Spline <- function(n = NULL, s = 1) {
+Sp <- function(n = NULL, s = 1, sd = 1) {
     check_n(n,
             nm_n = "n",
             min = 4L,
@@ -334,9 +324,12 @@ Spline <- function(n = NULL, s = 1) {
     if (!is.null(n))
         n <- as.integer(n)
     check_scale(s, x_arg = "s", zero_ok = FALSE)
+    check_scale(sd, x_arg = "sd", zero_ok = FALSE)
     scale <- as.double(s)
+    sd_slope <- as.double(sd)
     new_bage_prior_spline(n = n,
-                          scale = scale)
+                          scale = scale,
+                          sd_slope = sd_slope)
 }
 
 
@@ -475,8 +468,7 @@ new_bage_prior_rw2 <- function(scale, sd_slope) {
 }
 
 ## HAS_TESTS
-new_bage_prior_spline <- function(n, scale) {
-    sd_slope <- 1
+new_bage_prior_spline <- function(n, scale, sd_slope) {
     ans <- list(i_prior = 6L,
                 const = c(scale = scale,
                           sd_slope = sd_slope),

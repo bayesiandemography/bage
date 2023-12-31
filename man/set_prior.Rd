@@ -47,7 +47,7 @@ mod |> set_prior(age ~ RW2())
 \item \code{\link[=AR1]{AR1()}}
 \item \code{\link[=Known]{Known()}}
 \item \code{\link[=SVD]{SVD()}}
-\item \code{\link[=Spline]{Spline()}}
+\item \code{\link[=Sp]{Sp()}}
 \item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

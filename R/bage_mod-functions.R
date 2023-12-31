@@ -127,7 +127,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' - [AR1()]
 #' - [Known()]
 #' - [SVD()]
-#' - [Spline()]
+#' - [Sp()]
 #' - [is_fitted()]
 #'
 #' @examples
