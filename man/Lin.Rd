@@ -12,14 +12,15 @@ Lin(s = 1, sd = 1)
 \item{sd}{A postive number. Default is 1.}
 }
 \value{
-An object of class \code{bage_prior_known}.
+An object of class \code{bage_prior_lin}.
 }
 \description{
-Prior in which units are assumed to follow a
-straight line (with idiosyncratic errors around
-the line).
+Prior for a main effect where the elements
+follow (approximately) a straight line.
 }
 \details{
+The model is
+
 \deqn{x_j \sim \text{N}(\text{slope} q_j, \sigma^2)}
 
 where \eqn{q_j} is a rescaled version of \eqn{j}, with mean 0,
@@ -39,13 +40,10 @@ half-normal distribution,
 
 \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
 
-(A half-normal distribution has the same shape as a normal
+(\eqn{\text{N}^} denotes a half-normal distribution,
+which has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)
-
-The scale for the half-normal distribution, \code{s}, defaults
-to 1, but can be set to other values. Lower values
-for \code{scale} lead to a smoother line.
 }
 \examples{
 Lin()

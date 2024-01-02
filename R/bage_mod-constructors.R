@@ -58,86 +58,40 @@
 #'                 exposure = 1)
 #' @export
 mod_pois <- function(formula, data, exposure) {
-    n_draw <- 1000L
-    nm_distn <- "pois"
-    nm_offset <- "exposure"
-    ## check individual inputs
-    checkmate::assert_formula(formula)
-    check_formula_has_response(formula)
-    check_formula_has_predictors(formula)
-    checkmate::assert_data_frame(data)
-    ## process 'exposure'
-    exposure <- deparse1(substitute(exposure))
-    exposure <- gsub("^\\\"|\\\"$", "", exposure)
-    is_offset_specified <- !identical(exposure, "1")
-    vname_offset <- if (is_offset_specified) exposure else NULL
-    ## check consistency between inputs
-    check_formula_vnames_in_data(formula = formula,
-                                 data = data)
-    check_response_nonneg(formula = formula,
-                          data = data,
-                          nm_distn = nm_distn)
-    if (is_offset_specified) {
-        check_offset_in_data(vname_offset = vname_offset,
-                             nm_offset = nm_offset,
-                             data = data)
-        check_offset_nonneg(vname_offset = vname_offset,
-                            nm_offset = nm_offset,
-                            data = data)
-        check_resp_zero_if_offset_zero(formula = formula,
-                                       vname_offset = vname_offset,
-                                       data = data)                                       
-    }
-    ## process inputs
-    data <- tibble(data)
-    outcome <- make_outcome(formula = formula,
-                            data = data)
-    if (is_offset_specified)
-        offset <- make_offset(vname_offset = vname_offset,
-                              data = data)
-    else
-        offset <- make_offset_ones(data)
-    var_age <- infer_var_age(formula)
-    var_sexgender <- infer_var_sexgender(formula)
-    var_time <- infer_var_time(formula)
-    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
-                                                      data = data)
-    levels_effect <- make_levels_effect(formula = formula,
-                                  matrices_effect_outcome = matrices_effect_outcome,
-                                  outcome = outcome,
-                                  data = data)
-    lengths_effect <- make_lengths_effect(matrices_effect_outcome)
-    terms_effect <- make_terms_effect(matrices_effect_outcome)
-    priors <- make_priors(formula = formula,
-                          var_age = var_age,
-                          var_time = var_time,
-                          lengths_effect = lengths_effect)
-    seed_components <- make_seed()
-    seed_fitted <- make_seed()
-    ## create object and return
-    ans <- list(formula = formula,
-                data = data,
-                outcome = outcome,
-                offset = offset,
-                vname_offset = vname_offset,
-                priors = priors,
-                var_age = var_age,
-                var_sexgender = var_sexgender,
-                var_time = var_time,
-                matrices_effect_outcome = matrices_effect_outcome,
-                levels_effect = levels_effect,
-                lengths_effect = lengths_effect,
-                terms_effect = terms_effect,
-                scale_disp = 1,
-                est = NULL,
-                is_fixed = NULL,
-                R_prec = NULL,
-                scaled_eigen = NULL,
-                n_draw = n_draw,
-                seed_components = seed_components,
-                seed_fitted = seed_fitted)
-    class(ans) <- c("bage_mod_pois", "bage_mod")
-    ans
+  ## processing common to all models
+  args <- mod_helper(formula = formula,
+                     data = data,
+                     n_draw = 1000L)
+  ## input checks specific to Poisson
+  check_response_nonneg(formula = formula,
+                        data = data,
+                        nm_distn = "Poisson")
+  ## process 'exposure'
+  exposure <- deparse1(substitute(exposure))
+  exposure <- gsub("^\\\"|\\\"$", "", exposure)
+  is_offset_specified <- !identical(exposure, "1")
+  vname_offset <- if (is_offset_specified) exposure else NULL
+  if (is_offset_specified) {
+    check_offset_in_data(vname_offset = vname_offset,
+                         nm_offset = "exposure",
+                         data = data)
+    check_offset_nonneg(vname_offset = vname_offset,
+                        nm_offset = "exposure",
+                        data = data)
+    check_resp_zero_if_offset_zero(formula = formula,
+                                   vname_offset = vname_offset,
+                                   data = data)                                       
+    offset <- make_offset(vname_offset = vname_offset,
+                          data = data)
+  }
+  else
+    offset <- make_offset_ones(data)
+  ## create object and return
+  ans <- c(args,
+           list(offset = offset,
+                vname_offset = vname_offset))
+  class(ans) <- c("bage_mod_pois", "bage_mod")
+  ans
 }
 
 
@@ -187,83 +141,38 @@ mod_pois <- function(formula, data, exposure) {
 #'                  size = total)
 #' @export
 mod_binom <- function(formula, data, size) {
-    n_draw <- 1000L
-    nm_distn <- "binom"
-    nm_offset <- "size"
-    ## check individual inputs
-    checkmate::assert_formula(formula)
-    check_formula_has_response(formula)
-    check_formula_has_predictors(formula)
-    checkmate::assert_data_frame(data)
-    ## process 'size'
-    size <- deparse1(substitute(size))
-    size <- gsub("^\\\"|\\\"$", "", size)
-    vname_offset <- size
-    ## check consistency between inputs
-    check_formula_vnames_in_data(formula = formula,
+  ## processing common to all models
+  args <- mod_helper(formula = formula,
+                     data = data,
+                     n_draw = 1000L)
+  ## input checks specific to binomial
+  check_response_nonneg(formula = formula,
+                        data = data,
+                        nm_distn = "Binomial")
+  ## process 'size'
+  size <- deparse1(substitute(size))
+  size <- gsub("^\\\"|\\\"$", "", size)
+  vname_offset <- size
+  check_offset_in_data(vname_offset = vname_offset,
+                       nm_offset = "size",
+                       data = data)
+  check_offset_nonneg(vname_offset = vname_offset,
+                      nm_offset = "size",
+                      data = data)
+  check_resp_zero_if_offset_zero(formula = formula,
+                                 vname_offset = vname_offset,
                                  data = data)
-    check_response_nonneg(formula = formula,
-                          data = data,
-                          nm_distn = nm_distn)
-    check_offset_in_data(vname_offset = vname_offset,
-                         nm_offset = nm_offset,
-                         data = data)
-    check_offset_nonneg(vname_offset = vname_offset,
-                        nm_offset = nm_offset,
+  check_resp_le_offset(formula = formula,
+                       vname_offset = vname_offset,
+                       data = data)
+  offset <- make_offset(vname_offset = vname_offset,
                         data = data)
-    check_resp_zero_if_offset_zero(formula = formula,
-                                   vname_offset = vname_offset,
-                                   data = data)
-    check_resp_le_offset(formula = formula,
-                         vname_offset = vname_offset,
-                         data = data)
-    ## process inputs
-    data <- tibble(data)
-    outcome <- make_outcome(formula = formula,
-                            data = data)
-    offset <- make_offset(vname_offset = vname_offset,
-                          data = data)
-    var_age <- infer_var_age(formula)
-    var_sexgender <- infer_var_sexgender(formula)
-    var_time <- infer_var_time(formula)
-    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
-                                                      data = data)
-    levels_effect <- make_levels_effect(formula = formula,
-                                  matrices_effect_outcome = matrices_effect_outcome,
-                                  outcome = outcome,
-                                  data = data)
-    lengths_effect <- make_lengths_effect(matrices_effect_outcome)
-    terms_effect <- make_terms_effect(matrices_effect_outcome)
-    priors <- make_priors(formula = formula,
-                          var_age = var_age,
-                          var_time = var_time,
-                          lengths_effect = lengths_effect)
-    seed_components <- make_seed()
-    seed_fitted <- make_seed()
-    ## create object and return
-    ans <- list(formula = formula,
-                data = data,
-                outcome = outcome,
-                offset = offset,
-                vname_offset = vname_offset,
-                priors = priors,
-                var_age = var_age,
-                var_sexgender = var_sexgender,
-                var_time = var_time,
-                matrices_effect_outcome = matrices_effect_outcome,
-                levels_effect = levels_effect,
-                lengths_effect = lengths_effect,
-                terms_effect = terms_effect,
-                scale_disp = 1,
-                est = NULL,
-                is_fixed = NULL,
-                R_prec = NULL,
-                scaled_eigen = NULL,
-                seed_components = seed_components,
-                seed_fitted = seed_fitted,
-                n_draw = n_draw)
-    class(ans) <- c("bage_mod_binom", "bage_mod")
-    ans
+  ## create object and return
+  ans <- c(args,
+           list(offset = offset,
+                vname_offset = vname_offset))
+  class(ans) <- c("bage_mod_binom", "bage_mod")
+  ans
 }
 
 
@@ -321,85 +230,105 @@ mod_binom <- function(formula, data, size) {
 #'                 weights = 1)
 #' @export
 mod_norm <- function(formula, data, weights) {
-    n_draw <- 1000L
-    nm_offset <- "weights"
-    ## check individual inputs
-    checkmate::assert_formula(formula)
-    check_formula_has_response(formula)
-    check_formula_has_predictors(formula)
-    checkmate::assert_data_frame(data)
-    ## process 'weights'
-    weights <- deparse1(substitute(weights))
-    weights <- gsub("^\\\"|\\\"$", "", weights)
-    is_offset_specified <- !identical(weights, "1")
-    vname_offset <- if (is_offset_specified) weights else NULL
-    ## check consistency between inputs
-    check_formula_vnames_in_data(formula = formula,
-                                 data = data)
-    if (is_offset_specified) {
-        check_offset_in_data(vname_offset = vname_offset,
-                             nm_offset = nm_offset,
-                             data = data)
-        check_offset_nonneg(vname_offset = vname_offset,
-                            nm_offset = nm_offset,
-                            data = data)
-    }
-    ## process inputs
-    data <- tibble(data)
-    outcome <- make_outcome(formula = formula,
-                            data = data)
-    outcome_mean <- mean(outcome, na.rm = TRUE)
-    outcome_sd <- stats::sd(outcome, na.rm = TRUE)
-    outcome <- (outcome - outcome_mean) / outcome_sd
-    if (is_offset_specified)
-        offset <- make_offset(vname_offset = vname_offset,
-                              data = data)
-    else
-        offset <- make_offset_ones(data)
-    var_age <- infer_var_age(formula)
-    var_sexgender <- infer_var_sexgender(formula)
-    var_time <- infer_var_time(formula)
-    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
-                                                         data = data)
-    levels_effect <- make_levels_effect(formula = formula,
-                                  matrices_effect_outcome = matrices_effect_outcome,
-                                  outcome = outcome,
-                                  data = data)
-    lengths_effect <- make_lengths_effect(matrices_effect_outcome)
-    terms_effect <- make_terms_effect(matrices_effect_outcome)
-    priors <- make_priors(formula = formula,
-                          var_age = var_age,
-                          var_time = var_time,
-                          lengths_effect = lengths_effect)
-    seed_components <- make_seed()
-    seed_fitted <- make_seed()
-    ## create object and return
-    ans <- list(formula = formula,
-                data = data,
-                outcome = outcome,
-                outcome_mean = outcome_mean,
-                outcome_sd = outcome_sd,
-                offset = offset,
+  ## processing common to all models
+  args <- mod_helper(formula = formula,
+                     data = data,
+                     n_draw = 1000L)
+  ## process 'weights'
+  weights <- deparse1(substitute(weights))
+  weights <- gsub("^\\\"|\\\"$", "", weights)
+  is_offset_specified <- !identical(weights, "1")
+  vname_offset <- if (is_offset_specified) weights else NULL
+  if (is_offset_specified) {
+    check_offset_in_data(vname_offset = vname_offset,
+                         nm_offset = "weights",
+                         data = data)
+    check_offset_nonneg(vname_offset = vname_offset,
+                        nm_offset = "weights",
+                        data = data)
+    offset <- make_offset(vname_offset = vname_offset,
+                          data = data)
+  }
+  else
+    offset <- make_offset_ones(data)
+  ## process outcome
+  outcome <- args[["outcome"]]
+  outcome_mean <- mean(outcome, na.rm = TRUE)
+  outcome_sd <- stats::sd(outcome, na.rm = TRUE)
+  outcome <- (outcome - outcome_mean) / outcome_sd
+  args[["outcome"]] <- outcome
+  ## create object and return
+  ans <- c(args,
+           list(offset = offset,
                 vname_offset = vname_offset,
-                priors = priors,
-                var_age = var_age,
-                var_sexgender = var_sexgender,
-                var_time = var_time,
-                matrices_effect_outcome = matrices_effect_outcome,
-                levels_effect = levels_effect,
-                lengths_effect = lengths_effect,
-                terms_effect = terms_effect,
-                scale_disp = 1,
-                est = NULL,
-                is_fixed = NULL,
-                R_prec = NULL,
-                scaled_eigen = NULL,
-                seed_components = seed_components,
-                n_draw = n_draw)
-    class(ans) <- c("bage_mod_norm", "bage_mod")
-    ans
+                outcome_mean = outcome_mean,
+                outcome_sd = outcome_sd))
+  class(ans) <- c("bage_mod_norm", "bage_mod")
+  ans
 }
 
 
-
-
+## HAS_TESTS
+#' Helper Function for Model Constructors
+#'
+#' Deals with tasks common across all
+#' three models
+#' 
+#' @param formula An R formula
+#' @param data A data frame
+#' @param n_draw Positive integer
+#'
+#' @returns A named list
+#'
+#' @noRd
+mod_helper <- function(formula, data, n_draw) {
+  ## check individual inputs
+  checkmate::assert_formula(formula)
+  check_formula_has_response(formula)
+  check_formula_has_predictors(formula)
+  checkmate::assert_data_frame(data)
+  ## check consistency between inputs
+  check_formula_vnames_in_data(formula = formula,
+                               data = data)
+  ## process inputs
+  data <- tibble(data)
+  outcome <- make_outcome(formula = formula,
+                          data = data)
+  var_age <- infer_var_age(formula)
+  var_sexgender <- infer_var_sexgender(formula)
+  var_time <- infer_var_time(formula)
+  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
+                                                          data = data)
+  levels_effect <- make_levels_effect(matrices_effect_outcome)
+  lengths_effect <- make_lengths_effect(matrices_effect_outcome)
+  terms_effect <- make_terms_effect(matrices_effect_outcome)
+  priors <- make_priors(formula = formula,
+                        var_age = var_age,
+                        var_time = var_time,
+                        lengths_effect = lengths_effect)
+  matrices_along_by <- make_matrices_along_by(formula = formula,
+                                              data = data)
+  seed_components <- make_seed()
+  seed_fitted <- make_seed()
+  ## create list of arguments and return
+  list(formula = formula,
+       data = data,
+       outcome = outcome,
+       priors = priors,
+       var_age = var_age,
+       var_sexgender = var_sexgender,
+       var_time = var_time,
+       matrices_effect_outcome = matrices_effect_outcome,
+       levels_effect = levels_effect,
+       lengths_effect = lengths_effect,
+       terms_effect = terms_effect,
+       matrices_along_by = matrices_along_by,
+       scale_disp = 1,
+       est = NULL,
+       is_fixed = NULL,
+       R_prec = NULL,
+       scaled_eigen = NULL,
+       n_draw = n_draw,
+       seed_components = seed_components,
+       seed_fitted = seed_fitted)
+}

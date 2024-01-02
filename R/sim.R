@@ -326,10 +326,14 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @noRd
 draw_vals_hyper_mod <- function(mod, n_sim) {
-    priors <- mod$priors
-    lapply(priors,
-           draw_vals_hyper,
-           n_sim = n_sim)
+  priors <- mod$priors
+  matrices_along_by <- mod$matrices_along_by
+  ans <- .mapply(draw_vals_hyper,
+                 dots = list(prior = priors,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list(n_sim = n_sim))
+  names(ans) <- names(priors)
+  ans
 }
 
 
@@ -390,8 +394,43 @@ draw_vals_lin <- function(slope, sd, labels) {
 
 
 ## HAS_TESTS
+#' Generate Draws from ILin
+#'
+#' Each column is one draw.
+#'
+#' @param mslope Matrix of values
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_ilin <- function(mslope, sd, matrix_along_by, labels) {
+  n_sim <- ncol(mslope)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  q <- seq(from = -1, to = 1, length.out = n_along)
+  q <- rep(q, times = n_by * n_sim)
+  mslope <- rep(mslope, each = n_along)
+  sd <- rep(sd, each = n_along * n_by)
+  ans <- stats::rnorm(n = n_along * n_by * n_sim,
+                      mean = q * mslope,
+                      sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
 #' Draw values for hyper-parameters for all priors in a model
 #'
+
 #' @param mod Object of class "bage_mod"
 #' @param vals_hyper List of lists.
 #' @param n_sim Number of draws
@@ -413,6 +452,43 @@ draw_vals_effect_mod <- function(mod, vals_hyper, n_sim) {
                    MoreArgs = list(n_sim = n_sim))
     names(ans) <- names(priors)
     ans
+}
+
+
+## HAS_TESTS
+#' Draw Values for the 'msd' Hyper-Parameters of a Prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_msd <- function(prior, n_sim) {
+  mscale <- prior$specific$mscale
+  abs(stats::rnorm(n = n_sim, sd = mscale))
+}
+
+
+## HAS_TESTS
+#' Draw Values for the 'mslope' Hyper-Parameters of a Prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param slope Vector of mean slopes
+#' @param msd Vector of standard deviations
+#' @param matrix_along_by Matrix with mapping for along and by dimensions
+#' @param n_sim Number of draws
+#'
+#' @returns A matrix
+#'
+#' @noRd
+draw_vals_mslope <- function(slope, msd, matrix_along_by, n_sim) {
+  n_by <- ncol(matrix_along_by)
+  ans <- stats::rnorm(n = n_by * n_sim,
+                      mean = rep(slope, each = n_by),
+                      sd = rep(msd, each = n_by))
+  ans <- matrix(ans, nrow = n_by, ncol = n_sim)
+  ans
 }
 
 

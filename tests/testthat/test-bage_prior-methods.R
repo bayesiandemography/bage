@@ -2,84 +2,120 @@
 ## draw_vals_effect --------------------------------------------------------------
 
 test_that("'draw_vals_effect' works with bage_prior_ar1", {
-    prior <- AR1()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior,
-                                  n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans), list(letters, as.character(1:10)))
-})
-
-test_that("'draw_vals_effect' works with bage_prior_known", {
-    prior <- Known(c(-0.1, 0, 0.1))
-    n_sim <- 10
-    levels_effect <- c("a", "b", "c")
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = NULL,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
-})
-
-test_that("'draw_vals_effect' works with bage_prior_lin", {
-  prior <- Lin()
+  prior <- AR1()
   n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  matrix_along_by <- matrix(0:25, nc = 1)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,                                
+                                n_sim = n_sim)
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
                           agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_ilin", {
+  prior <- ILin(s = 0.01)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_known", {
+  prior <- Known(c(-0.1, 0, 0.1))
+  n_sim <- 10
+  levels_effect <- c("a", "b", "c")
+  matrix_along_by <- matrix(0:2, nc = 1)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = NULL,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_lin", {
+  prior <- Lin()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
+  matrix_along_by <- matrix(0:25, nc = 1)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_norm", {
-    prior <- N()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior,
-                                  n_sim = n_sim)
-    levels_effect <- seq_len(1000)
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(as.character(1:1000), as.character(1:10)))
-    expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
+  prior <- N()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:999, nc = 10)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
+  levels_effect <- seq_len(1000)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(as.character(1:1000), as.character(1:10)))
+  expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
 })
 
 test_that("'draw_vals_effect' works with bage_prior_normfixed", {
-    prior <- NFix(sd = 0.3)
-    n_sim <- 10
-    levels_effect <- seq_len(1000)
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = NULL,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(as.character(1:1000), as.character(1:10)))
-    expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
+  prior <- NFix(sd = 0.3)
+  n_sim <- 10
+  levels_effect <- seq_len(1000)
+  matrix_along_by <- matrix(0:999, nc = 10)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = NULL,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(as.character(1:1000), as.character(1:10)))
+  expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw", {
   prior <- RW()
+  matrix_along_by <- matrix(0:25, nc = 1)
   n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
                           agesex = NULL,
+                          matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -88,12 +124,16 @@ test_that("'draw_vals_effect' works with bage_prior_rw", {
 test_that("'draw_vals_effect' works with bage_prior_rw2", {
   prior <- RW2()
   n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  matrix_along_by <- matrix(0:25, nc = 1)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
                           agesex = NULL,
+                          matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -101,13 +141,17 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
 
 test_that("'draw_vals_effect' works with bage_prior_spline", {
   prior <- Sp()
+  matrix_along_by <- matrix(0:25, nc = 1)
   n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
                           agesex = NULL,
+                          matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -115,78 +159,123 @@ test_that("'draw_vals_effect' works with bage_prior_spline", {
 
 test_that("'draw_vals_effect' works with bage_prior_svd", {
   prior <- SVD(HMD)
+  matrix_along_by <- matrix(0:80, nc = 1)
   n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
   levels_effect <- c(0:79, "80+")
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
                           agesex = "age",
+                          matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(levels_effect, as.character(1:10)))
 })
 
+
 ## draw_vals_hyper ------------------------------------------------------------
 
 test_that("'draw_vals_hyper' works with bage_prior_ar1", {
-    prior <- AR1()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), c("coef", "sd"))
-    expect_identical(length(ans$coef), 10L)
+  prior <- AR1()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), c("coef", "sd"))
+  expect_identical(length(ans$coef), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_ilin", {
+  set.seed(0)
+  prior <- ILin()
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = n_sim)
+  expect_identical(names(ans), c("slope", "mslope", "sd", "msd"))
+  expect_identical(lengths(ans),
+                   c(slope = 10L, mslope = 40L, sd = 10L, msd = 10L))
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_known", {
-    prior <- Known(c(0.1, 0.3))
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(ans, list())
+  prior <- Known(c(0.1, 0.3))
+  matrix_along_by <- matrix(0:1, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(ans, list())
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_lin", {
-    prior <- Lin()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), c("slope", "sd"))
-    expect_identical(length(ans$sd), 10L)
+  prior <- Lin()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), c("slope", "sd"))
+  expect_identical(length(ans$sd), 10L)
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_norm", {
-    prior <- N()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
+  prior <- N()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_normfixed", {
-    prior <- NFix()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(ans, list())
+  prior <- NFix()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(ans, list())
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rw", {
-    prior <- RW()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
+  prior <- RW()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rw2", {
-    prior <- RW2()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
+  prior <- RW2()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_spline", {
-    prior <- Sp()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
+  prior <- Sp()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_svd", {
-    prior <- SVD(HMD)
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(ans, list())
+  prior <- SVD(HMD)
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(ans, list())
 })
 
 
@@ -234,28 +323,28 @@ test_that("'is_known' works with valid inputs", {
 test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
     expect_true(is_prior_ok_for_term(prior = AR1(),
                                      nm = "time",
-                                     length_effect = 4L,
+                                     matrix_along_by = matrix(0:3, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
     expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
                                      nm = "sex",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_lin", {
     expect_true(is_prior_ok_for_term(prior = Lin(),
                                      nm = "sex",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
     expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
                                       nm = "sex",
-                                      length_effect = 3,
+                                     matrix_along_by = matrix(0:2, nc = 1),
                                       agesex = "other"),
                  "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
 })
@@ -263,42 +352,42 @@ test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", 
 test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
     expect_true(is_prior_ok_for_term(prior = N(),
                                      nm = "sex",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
     expect_true(is_prior_ok_for_term(prior = NFix(),
                                      nm = "sex",
-                                     length_effect = 1,
+                                     matrix_along_by = matrix(0, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw", {
     expect_true(is_prior_ok_for_term(prior = RW(),
                                      nm = "time",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
     expect_true(is_prior_ok_for_term(prior = RW2(),
                                      nm = "time",
-                                     length_effect = 3,
+                                     matrix_along_by = matrix(0:2, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
     expect_true(is_prior_ok_for_term(prior = Sp(),
                                      nm = "time",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
     expect_true(is_prior_ok_for_term(prior = SVD(sim_scaled_svd()),
                                      nm = "age:sex",
-                                     length_effect = 10,
+                                     matrix_along_by = matrix(0:9, nc = 2),
                                      agesex = "age:sex"))
 })
 
@@ -306,7 +395,7 @@ test_that("'is_prior_ok_for_term' throws correct error with main effect, agesex 
     s <- sim_scaled_svd()
     expect_error(is_prior_ok_for_term(prior = SVD(s),
                                      nm = "bla",
-                                     length_effect = 10,
+                                     matrix_along_by = matrix(0:9, nc = 1),
                                      agesex = NULL),
                 "Problem with `SVD\\(s\\)` prior for `bla` term.")
 })
@@ -315,57 +404,82 @@ test_that("'is_prior_ok_for_term' throws correct error with interaction, agesex 
     s <- sim_scaled_svd()
     expect_error(is_prior_ok_for_term(prior = SVD(s),
                                      nm = "bla:bleh",
-                                     length_effect = 10,
+                                     matrix_along_by = matrix(0:9, nc = 2),
                                      agesex = NULL),
                 "Problem with `SVD\\(s\\)` prior for `bla:bleh` term.")
 })
 
 test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, agesex 'other'", {
-    s <- sim_scaled_svd()
-    expect_error(is_prior_ok_for_term(prior = SVD(s),
-                                      nm = "bla:bleh:blu",
-                                      length_effect = 10,
-                                      agesex = "other"),
-                 "Problem with `SVD\\(s\\)` prior for `bla:bleh:blu` term.")
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = SVD(s),
+                                    nm = "bla:bleh:blu",
+                                    matrix_along_by = matrix(0:11, nc = 2),
+                                    agesex = "other"),
+               "Problem with `SVD\\(s\\)` prior for `bla:bleh:blu` term.")
 })
 
 
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar1'", {
-    expect_identical(levels_hyper(AR1()), c("coef", "sd"))
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = AR1(), matrix_along_by = matrix_along_by),
+                   c("coef", "sd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_ilin'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = ILin(), matrix_along_by = matrix_along_by),
+                   c("slope", "mslope", "sd", "msd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_known'", {
-    expect_identical(levels_hyper(Known(1)), character())
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Known(1), matrix_along_by = matrix_along_by),
+                   character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_lin'", {
-    expect_identical(levels_hyper(Lin()), c("slope", "sd"))
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Lin(), matrix_along_by = matrix_along_by),
+                   c("slope", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_norm'", {
-    expect_identical(levels_hyper(N()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = N(), matrix_along_by = matrix_along_by),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_normfixed'", {
-    expect_identical(levels_hyper(NFix()), character())
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = NFix(), matrix_along_by = matrix_along_by),
+                   character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw'", {
-    expect_identical(levels_hyper(RW()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = RW(), matrix_along_by = matrix_along_by),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
-    expect_identical(levels_hyper(RW2()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = RW2(), matrix_along_by = matrix_along_by),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_spline'", {
-    expect_identical(levels_hyper(Sp()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Sp(), matrix_along_by = matrix_along_by),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
-    expect_identical(levels_hyper(SVD(sim_scaled_svd())), character())
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = SVD(sim_scaled_svd()),
+                                matrix_along_by = matrix_along_by),
+                   character())
 })
 
 
@@ -485,7 +599,13 @@ test_that("'str_call_prior' works with bage_prior_ar1", {
     expect_identical(str_call_prior(AR1(max = 0.95)), "AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
     expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, s = 0.3)),
-                     "AR1(min=0.5, max=0.95, s=0.3)")
+                     "AR1(min=0.5,max=0.95,s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_ilin", {
+    expect_identical(str_call_prior(ILin()), "ILin()")
+    expect_identical(str_call_prior(ILin(sd = 0.5, s = 2, ms = 1.2, along = "a")),
+                     "ILin(s=2,sd=0.5,ms=1.2,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -544,55 +664,83 @@ test_that("'str_call_prior' works with bage_prior_svd", {
 ## transform_hyper ------------------------------------------------------------
 
 test_that("'transform_hyper' works with 'bage_prior_ar1'", {
-    logit <- function(x) log(x / (1 - x))
-    l <- transform_hyper(AR1())
-    expect_equal(0.35, l[[1]](logit(0.35)))
-    expect_equal(0.35, l[[2]](log(0.35)))
+  matrix_along_by <- matrix(0:9, nc = 1)
+  logit <- function(x) log(x / (1 - x))
+  l <- transform_hyper(prior = AR1(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](logit(0.35)))
+  expect_equal(0.35, l[[2]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ilin'", {
+  matrix_along_by <- matrix(0:9, nc = 2)
+  l <- transform_hyper(prior = ILin(),
+                       matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](0.35))
+  expect_equal(0.35, l[[2]](0.35))
+  expect_equal(0.35, l[[3]](0.35))
+  expect_equal(exp(0.35), l[[4]](0.35))
+  expect_equal(exp(0.35), l[[5]](0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_known'", {
-    l <- transform_hyper(Known(1))
-    expect_identical(l, list())
+  matrix_along_by <- matrix(0, nc = 1)
+  l <- transform_hyper(prior = Known(1), matrix_along_by = matrix_along_by)
+  expect_identical(l, list())
 })
 
 test_that("'transform_hyper' works with 'bage_prior_lin'", {
-    l <- transform_hyper(Lin())
-    expect_equal(0.35, l[[1]](0.35))
-    expect_equal(exp(0.35), l[[2]](0.35))
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = Lin(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](0.35))
+  expect_equal(exp(0.35), l[[2]](0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_norm'", {
-    l <- transform_hyper(N())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = N(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_normfixed'", {
-    l <- transform_hyper(NFix())
-    expect_identical(l, list())
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = NFix(), matrix_along_by = matrix_along_by)
+  expect_identical(l, list())
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw'", {
-    l <- transform_hyper(RW())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = RW(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw2'", {
-    l <- transform_hyper(RW2())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = RW2(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_spline'", {
-    l <- transform_hyper(Sp())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = Sp(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_svd'", {
-    l <- transform_hyper(SVD(HMD))
-    expect_identical(l, list())
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = SVD(HMD), matrix_along_by = matrix_along_by)
+  expect_identical(l, list())
 })
 
 
-## uses_matrix_effectfree_effect ----------------------------------------------------
+## uses_along -----------------------------------------------------------------
+
+test_that("'uses_along' works with valid inputs", {
+    expect_false(uses_along(N()))
+    expect_true(uses_along(ILin()))
+})
+
+
+## uses_matrix_effectfree_effect ----------------------------------------------
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
     expect_false(uses_matrix_effectfree_effect(N()))
@@ -601,7 +749,7 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
 })
 
 
-## uses_offset_effectfree_effect ----------------------------------------------------
+## uses_offset_effectfree_effect ----------------------------------------------
 
 test_that("'uses_offset_effectfree_effect' works with valid inputs", {
     expect_false(uses_offset_effectfree_effect(N()))

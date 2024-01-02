@@ -223,10 +223,22 @@ test_that("'check_is_fitted' works", {
 })
 
 
+## 'check_is_interaction' -----------------------------------------------------
+
+test_that("'check_is_interaction' returns TRUE with valid inputs", {
+    expect_true(check_is_interaction("age:sex", ILin))
+})
+
+test_that("'check_is_interaction' throws correct error when interaction", {
+    expect_error(check_is_interaction("age", ILin()),
+                 "`ILin\\(\\)` prior cannot be used for `age` term.")
+})
+
+
 ## 'check_is_main_effect' -----------------------------------------------------
 
 test_that("'check_is_main_effect' returns TRUE with valid inputs", {
-    expect_true(check_is_main_effect("age", N()))
+    expect_true(check_is_main_effect("age", AR1()))
 })
 
 test_that("'check_is_main_effect' throws correct error when interaction", {
@@ -235,17 +247,35 @@ test_that("'check_is_main_effect' throws correct error when interaction", {
 })    
 
 
-## 'check_length_effect_gt' ------------------------------------------------------
+## 'check_length_along_ge' ----------------------------------------------------
 
-test_that("'check_length_effect_gt' returns TRUE with valid inputs", {
-    expect_true(check_length_effect_gt(length_effect = 10L,
+test_that("'check_length_along_ge' returns TRUE with valid inputs", {
+  expect_true(check_length_along_ge(length_along = 10L,
+                                    min = 3L,
+                                    nm = "age:sex",
+                                    prior = ILin()))
+})
+
+test_that("'check_length_along_ge' throws correct error with length less than min", {
+  expect_error(check_length_along_ge(length_along = 1L,
+                                     min = 2L,
+                                     nm = "age:sex",
+                                     prior = ILin()),
+               "`ILin\\(\\)` prior cannot be used for `age:sex` term.")                
+})
+
+
+## 'check_length_effect_ge' ------------------------------------------------------
+
+test_that("'check_length_effect_ge' returns TRUE with valid inputs", {
+    expect_true(check_length_effect_ge(length_effect = 10L,
                                        min = 3L,
                                        nm = "age",
                                        prior = N()))
 })
 
-test_that("'check_length_effect_gt' throws correct error with length less than min", {
-    expect_error(check_length_effect_gt(length_effect = 1L,
+test_that("'check_length_effect_ge' throws correct error with length less than min", {
+    expect_error(check_length_effect_ge(length_effect = 1L,
                                         min = 2L,
                                         nm = "age",
                                         prior = N()),
@@ -540,6 +570,33 @@ test_that("'check_scale' returns correct error with non-positive", {
                  "`x` is non-positive.")
     expect_error(check_scale(-1, x_arg = "x", zero_ok = FALSE),
                  "`x` is non-positive.")
+})
+
+
+## 'check_string' --------------------------------------------------------------
+
+test_that("'check_string' returns TRUE with valid inputs", {
+    expect_true(check_string("age", nm_x = "x"))
+})
+
+test_that("'check_string' returns correct error with non-numeric", {
+    expect_error(check_string(1, nm_x = "x"),
+                 "`x` is non-character.")
+})
+
+test_that("'check_string' returns correct error with wrong length", {
+    expect_error(check_string(c("a", "b"), nm_x = "x"),
+                 "`x` does not have length 1.")
+})
+
+test_that("'check_string' returns correct error with NA", {
+    expect_error(check_string(NA_character_, nm_x = "x"),
+                 "`x` is NA.")
+})
+
+test_that("'check_string' returns correct error with blank", {
+    expect_error(check_string("", nm_x = "x"),
+                 "`x` is blank.")
 })
 
 

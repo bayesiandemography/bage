@@ -150,7 +150,10 @@ When a term is decomposed, the trend term is required, and the cyclical and seas
 
 # Standardization {#sec:standard}
 
-We adopt notation from @gelman2014bayesian [p. 395]. Let $\beta_{j_i^m}^{(m)}$ denote the element of $\pmb{\beta}^{(m)}$ that contributes to element $i$ of $\pmb{\mu}$.
+We adopt notation from @gelman2014bayesian [p. 395]. Let $\beta_{j_i^m}^{(m)}$ denote the element of $\pmb{\beta}^{(m)}$ that contributes to $\mu_i$. Under our model of means,
+\begin{equation}
+  \mu_i = \sum_{m=0}^M \beta_{j_i^m}^{(m)}
+\end{equation}
 
 - $\mu_i$ well identified by data
 - For some combinations of prior model for $\pmb{\beta}^{(m)}$ and terms, eg random walk prior, only weakly identify level terms; result is that individual $\beta_{j_i^m}^{(m)}$ are weakly identified; data cannot distinguish between
@@ -165,22 +168,34 @@ where $\sum_{m=0}^M \Delta_m = 0$.
 - One solution would be to make stronger priors: eg sum-to-zero constraints; but this sacrifices sparsity, and leads to much slower calculations in TMB
 - alternative: postprocessing. Rescale each draw from posterior distribution. For each draw, choose a set of $\Delta_m$ that make draws consistent
 
-Define $\phi_j^m$ as the set of $i$ such that $j_i^m = j$, and $n_j^m$ as the number of elements in $\phi_j^m$.
+Define $\phi_j^m$ as the set of $i$ such that $j_i^m = j$, and $n^{(m)}$ as the number of elements in $\phi_j^m$ (which is identical for $j = 1, \cdots, J_m$).
 
 Algorithm for processing a single draw from the posterior distribution:
 
-- Set $\hat{\beta}^{(0)} = \sum_{i=1}^n \mu_i \big/ n$ and $\epsilon_i^{(0)} = \mu_i - \hat{\beta}^{(0)}$
-- For $m = 1, \cdots, M$: Set $\hat{\beta}_j^{(m)} = \sum_{i \in \phi_j^m} \epsilon_i^{(m-1)} \big/ n_j^m$ and $\epsilon_i^{(m)} = \epsilon_i^{(m-1)} - \hat{\beta}_{j_i^m}^{(m)}$
+- Set $\tilde{\beta}^{(0)} = \sum_{i=1}^n \mu_i \big/ n$, set $r_i^{(0)} = \mu_i$, and set $r_i^{(1)} = r_i^{(0)} - \tilde{\beta}^{(0)}$
+- For $m = 1, \cdots, M$: set $\tilde{\beta}_j^{(m)} = \sum_{i \in \phi_j^m} r_i^{(m)} \big/ n^{(m)}$ and set $r_i^{(m+1)} = r_i^{(m)} - \tilde{\beta}_{j_i^m}^{(m)}$.
 
+Note that $r_i^{(M+1)} = 0$. **Or at least I think so. I can't figure out how to prove it.**
 
-Proof that $\sum_{m=0}^M \hat{\beta}_{j_i^m} = \sum_{m=0}^M \beta_{j_i^m}$. Proof by induction. When $M = 0$, $\hat{\beta}^0 = \sum_{i=1}^n \mu_i \big/ n = \sum_{i=1}^n \beta^0 \big/ n = \beta^0$. Assume true for $k-1$. Then $\sum_{m=0}^k \hat{\beta}_{j_i^m} = \sum_{m=0}^{k-1} \beta_{j_i^m} + \hat{\beta}_{j_i^k}$
+Let
+\begin{equation}
+  \tilde{\mu}_i = \sum_{m=0}^M \tilde{\beta}_{j_i^m}^{(m)}
+\end{equation}
 
+Then $\tilde{\mu}_i = \mu_i$. Proof.
+
+\begin{align}
+  \tilde{\mu}_i & = \sum_{m=0}^M \tilde{\beta}_{j_i^m}^{(m)} \\
+  & = \sum_{m=0}^M r_i^{(m)} - r_i^{(m+1)} \\
+  & = r_i^{(0)} - r_i^{(M+1)} \\
+  & = \mu_i
+\end{align}
 
 
 
 # Priors for Main Effects and Interactions {#sec:priors}
 
-## Independent normal {#sec:pr-inorm}
+## Normal {#sec:pr-norm}
 
 ### Model
 
@@ -417,13 +432,14 @@ where
 ### Code
 
 ```
-Lin(sd = 1, s = 1)
+Lin(s = 1, sd = 1)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$.
-- `s` is $A_{\tau}^{(m)}$.
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_{\eta}^{(m)}$
 
-## Multivariate Linear {#sec:pr-mlin}
+
+## Independent Linear {#sec:pr-ilin}
 
 ### Model
 
@@ -453,19 +469,23 @@ where
 ### Prediction
 
 \begin{equation}
-  \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
+  \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
 \end{equation}
 
 
 ### Code
 
 ```
-MLin(sd = 1, s = 1, ms = 1)
+ILin(s = 1, sd = 1, ms = 1, along = NULL)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$
 - `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_{\eta}^{(m)}$
 - `ms` is $A_{\omega}^{(m)}$
+- `along` is the name of the "along" dimension. If no value given, the algorithm is:
+    - if interaction includes a time dimension, use that;
+    - otherwise, if the interaction includes an age dimension, use that;
+    - otherwise, throw an error.
 
 
 ## P-Spline {#sec:pr-spline}

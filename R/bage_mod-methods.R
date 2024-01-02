@@ -415,6 +415,7 @@ fit.bage_mod <- function(object, ...) {
   terms_hyper <- make_terms_hyper(object)
   const <- make_const(object)
   terms_const <- make_terms_const(object)
+  matrices_along_by <- choose_matrices_along_by(object)
   scale_disp <- object$scale_disp
   has_disp <- scale_disp > 0
   data <- list(nm_distn = nm_distn,
@@ -433,6 +434,7 @@ fit.bage_mod <- function(object, ...) {
                terms_hyper = terms_hyper,
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
+               matrices_along_by = matrices_along_by,
                scale_disp = scale_disp)
   ## parameters
   effectfree <- make_effectfree(object)

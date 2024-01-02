@@ -62,6 +62,110 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 }
 
 
+## 'bage_prior_ilin' only ever created via 'set_prior()'
+
+## HAS_TESTS
+#' Independent Linear Prior
+#'
+#' Prior for an interaction where, within each combination
+#' of the 'by' variables, the elements of the 'along'
+#' variable follow (approximately) a straight line.
+#' The slopes of the line vary across
+#' different combinations of 'by' variables'.
+#'
+#' @section 'Along' and 'by' variables:
+#'
+#' Multivariate priors for interactions distinguish
+#' between 'along' and 'by' variables. The 'along'
+#' variable is typically time, or, in interactions
+#' not involving time, is typically age. The 'by'
+#' variables are everything else. In an interaction
+#' between region, sex, and time, for instance,
+#' the by variables are likely to be region and sex.
+#'
+#' If no `along` argument is supplied, then:
+#'
+#' - if the interaction contains a time variable, then
+#'   it is assumed to be the 'along' variable;
+#' - otherwise, if the interaction contains an
+#'   age variable, then it is assumed to be
+#'   the 'along' variable;
+#' - otherwise, an error is raised.
+#'
+#' @section Statistical model:
+#' 
+#' The model is
+#' 
+#' \deqn{x_{uv} \sim \text{N}(\text{slope}_u q_v, \sigma^2)}
+#'
+#' where
+#' - \eqn{u} is the index for a combination of 'by' variables,
+#' - \eqn{v} is the index of the 'along' variable,
+#' - \eqn{q_j} is a rescaled version of \eqn{j}, with mean 0,
+#' minimum -1, and maximum 1: \eqn{q_j = - (J+1)/(J-1) + 2j/(J-1)}.
+#'
+#' The slopes are drawn from a common distribution with mean
+#' \eqn{\text{slope}}.
+#'
+#' \deqn{\text{slope}_u \sim \text{N}(\text{slope}, \omega^2)}
+#'
+#' Larger absolute values for \eqn{\text{slope}} imply
+#' steeper lines. The absolute value of \eqn{slope}
+#' is governed by parameter `s`:
+#'
+#' \deqn{\text{slope} ~ \text{N}(0, \text{s}^2)}.
+#'
+#' Larger values for \eqn{\omega} imply more variability
+#' in slopes across different combinations of the 'by'
+#' variables. The size of \eqn{\omega} is governed by
+#' parameter `ms`
+#'
+#' \deqn{\omega \sim \text{N}^+(0, \text{ms}^2)}
+#' 
+#' Larger values for \eqn{\sigma} imply more variability
+#' around each line. The size of \eqn{\sigma} is
+#' governed by parameter `s`:
+#'
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (\eqn{\text{N}^} denotes a half-normal distribution,
+#' which has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' @param s A positive number. Default is 1.
+#' @param sd A postive number. Default is 1.
+#' @param ms A positive number. Default is 1.
+#' @param along Name of one of the dimensions
+#' in the interaction. Optional, provided
+#' the data contain a time or age dimension.
+#'
+#' @returns An object of class `bage_prior_ilin`.
+#'
+#' @seealso
+#' - [N()] etc
+#' - [set_var_time()] to specify the time variable
+#' - [set_var_age()] to specify the age variable
+#'
+#' @examples
+#' ILin()
+#' ILin(s = 0.5, sd = 2, ms = 0.1, along = "cohort")
+#' @export
+ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  check_scale(ms, x_arg = "ms", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  scale <- as.double(s)
+  sd_slope <- as.double(sd)
+  mscale <- as.double(ms)
+  new_bage_prior_ilin(scale = scale,
+                      sd_slope = sd_slope,
+                      mscale = mscale,
+                      along = along)
+}
+
 ## 'bage_prior_known' only ever created via 'set_prior()'
 
 ## HAS_TESTS
@@ -96,9 +200,10 @@ Known <- function(values) {
 ## HAS_TESTS
 #' Linear Prior
 #'
-#' Prior in which units are assumed to follow a
-#' straight line (with idiosyncratic errors around
-#' the line).
+#' Prior for a main effect where the elements
+#' follow (approximately) a straight line.
+#'
+#' The model is
 #'
 #' \deqn{x_j \sim \text{N}(\text{slope} q_j, \sigma^2)}
 #'
@@ -119,18 +224,15 @@ Known <- function(values) {
 #' 
 #' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
 #'
-#' (A half-normal distribution has the same shape as a normal
+#' (\eqn{\text{N}^} denotes a half-normal distribution,
+#' which has the same shape as a normal
 #' distribution, but is defined only for non-negative
 #' values.)
-#'
-#' The scale for the half-normal distribution, `s`, defaults
-#' to 1, but can be set to other values. Lower values
-#' for `scale` lead to a smoother line.
 #'
 #' @param s A positive number. Default is 1.
 #' @param sd A postive number. Default is 1.
 #'
-#' @returns An object of class `bage_prior_known`.
+#' @returns An object of class `bage_prior_lin`.
 #'
 #' @seealso
 #' - [N()] etc
@@ -147,6 +249,7 @@ Lin <- function(s = 1, sd = 1) {
   new_bage_prior_lin(scale = scale,
                      sd_slope = sd_slope)
 }
+
 
 ## 'bage_prior_norm' can be created during initial call to mod_* function
 
@@ -445,9 +548,8 @@ SVD <- function(scaled_svd, n = 5, indep = TRUE) {
 ##
 ## 'const' is a vector of doubles holding constants
 ## used in calculation of log-posterior.
-##
-## 'n_hyper' is the number of elements in the 'hyper'
-## vector that are associated with this prior
+## We cannot pass a zero-length vector to TMB,
+## so when there are no constants, we use single 0.
 ##
 ## 'specific' is a general list of objects
 ## contained in this prior
@@ -462,7 +564,6 @@ new_bage_prior_ar1 <- function(scale, min, max) {
                           min = min,
                           max = max,
                           scale = scale),
-                n_hyper = 2L, ## logit_coef, log_sd
                 specific = list(shape1 = shape1,
                                 shape2 = shape2,
                                 min = min,
@@ -473,21 +574,33 @@ new_bage_prior_ar1 <- function(scale, min, max) {
 }
 
 ## HAS_TESTS
+new_bage_prior_ilin <- function(scale, sd_slope, mscale, along) {
+    ans <- list(i_prior = 9L,
+                const = c(scale = scale,
+                          sd_slope = sd_slope,
+                          mscale = mscale),
+                specific = list(scale = scale,
+                                sd_slope = sd_slope,
+                                mscale = mscale,
+                                along = along))
+    class(ans) <- c("bage_prior_ilin", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
 new_bage_prior_known <- function(values) {
     ans <- list(i_prior = 0L,
                 const = 0, ## not used
-                n_hyper = 0L,
                 specific = list(values = values))
     class(ans) <- c("bage_prior_known", "bage_prior")
     ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 new_bage_prior_lin <- function(scale, sd_slope) {
     ans <- list(i_prior = 8L,
                 const = c(scale = scale,
                           sd_slope = sd_slope),
-                n_hyper = 2L, ## slope, log_sd
                 specific = list(scale = scale,
                                 sd_slope = sd_slope))
     class(ans) <- c("bage_prior_lin", "bage_prior")
@@ -498,7 +611,6 @@ new_bage_prior_lin <- function(scale, sd_slope) {
 new_bage_prior_norm <- function(scale) {
     ans <- list(i_prior = 1L,
                 const = c(scale = scale),
-                n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_norm", "bage_prior")
     ans
@@ -508,7 +620,6 @@ new_bage_prior_norm <- function(scale) {
 new_bage_prior_normfixed <- function(sd) {
     ans <- list(i_prior = 2L,
                 const = c(sd = sd),
-                n_hyper = 0L, ## log_sd
                 specific = list(sd = sd))
     class(ans) <- c("bage_prior_normfixed", "bage_prior")
     ans
@@ -518,7 +629,6 @@ new_bage_prior_normfixed <- function(sd) {
 new_bage_prior_rw <- function(scale) {
     ans <- list(i_prior = 3L,
                 const = c(scale = scale),
-                n_hyper = 1L, ## log_sd
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
@@ -529,7 +639,6 @@ new_bage_prior_rw2 <- function(scale, sd_slope) {
     ans <- list(i_prior = 4L,
                 const = c(scale = scale,
                           sd_slope = sd_slope),
-                n_hyper = 1L, ## log_sd
                 specific = list(scale = scale,
                                 sd_slope = sd_slope))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
@@ -541,7 +650,6 @@ new_bage_prior_spline <- function(n, scale, sd_slope) {
     ans <- list(i_prior = 6L,
                 const = c(scale = scale,
                           sd_slope = sd_slope),
-                n_hyper = 1L, ## log_sd
                 specific = list(n = n,
                                 scale = scale,
                                 sd_slope = sd_slope))
@@ -553,7 +661,6 @@ new_bage_prior_spline <- function(n, scale, sd_slope) {
 new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, indep) {
     ans <- list(i_prior = 7L,
                 const = 0, ## not used
-                n_hyper = 0L,
                 specific = list(scaled_svd = scaled_svd,
                                 nm_scaled_svd = nm_scaled_svd,
                                 n = n,
@@ -561,5 +668,3 @@ new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, indep) {
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans
 }
-
-

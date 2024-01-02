@@ -19,7 +19,8 @@ using namespace tmbutils;
 template <class Type>
 Type logpost_norm(vector<Type> effectfree,
 		  vector<Type> hyper,
-		  vector<Type> consts) {
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
   Type scale = consts[0];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
@@ -31,7 +32,8 @@ Type logpost_norm(vector<Type> effectfree,
 
 template <class Type>
 Type logpost_normfixed(vector<Type> effectfree,
-		       vector<Type> consts) {
+		       vector<Type> consts,
+		       matrix<int> matrix_along_by) {
   Type sd = consts[0];
   Type ans = 0;
   ans += dnorm(effectfree, Type(0), sd, true).sum();
@@ -41,7 +43,8 @@ Type logpost_normfixed(vector<Type> effectfree,
 template <class Type>
 Type logpost_rw(vector<Type> effectfree,
 		vector<Type> hyper,
-		vector<Type> consts) {
+		vector<Type> consts,
+		matrix<int> matrix_along_by) {
   Type scale = consts[0];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
@@ -59,7 +62,8 @@ Type logpost_rw(vector<Type> effectfree,
 template <class Type>
 Type logpost_rw2(vector<Type> effectfree,
 		 vector<Type> hyper,
-		 vector<Type> consts) {
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
   Type scale = consts[0];
   Type sd_slope = consts[1];
   Type log_sd = hyper[0];
@@ -80,7 +84,8 @@ Type logpost_rw2(vector<Type> effectfree,
 template <class Type>
 Type logpost_ar1(vector<Type> effectfree,
 		 vector<Type> hyper,
-		 vector<Type> consts) {
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
   Type shape1 = consts[0];
   Type shape2 = consts[1];
   Type min = consts[2];
@@ -102,20 +107,23 @@ Type logpost_ar1(vector<Type> effectfree,
 template <class Type>
 Type logpost_spline(vector<Type> effectfree,
    		    vector<Type> hyper,
-		    vector<Type> consts) {
-  return logpost_rw2(effectfree, hyper, consts);
+		    vector<Type> consts,
+		    matrix<int> matrix_along_by) {
+  return logpost_rw2(effectfree, hyper, consts, matrix_along_by);
 }
 
 template <class Type>
 Type logpost_svd(vector<Type> effectfree,
-		 vector<Type> consts) {
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
   return dnorm(effectfree, Type(0), Type(1), true).sum();
 }
 
 template <class Type>
 Type logpost_lin(vector<Type> effectfree,
 		 vector<Type> hyper,
-		 vector<Type> consts) {
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
   Type scale = consts[0];
   Type sd_slope = consts[1];
   Type slope = hyper[0];
@@ -135,16 +143,50 @@ Type logpost_lin(vector<Type> effectfree,
 }
 
 template <class Type>
+Type logpost_ilin(vector<Type> effectfree,
+		  vector<Type> hyper,
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type sd_slope = consts[1];
+  Type mscale = consts[2];
+  int n_by = hyper.size() - 3;
+  Type slope = hyper[0];
+  vector<Type> mslope = hyper.segment(1, n_by);
+  Type log_sd = hyper[n_by+1];
+  Type log_msd = hyper[n_by+2];
+  Type sd = exp(log_sd);
+  Type msd = exp(log_msd);
+  int n_along = effectfree.size() / n_by;
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans += dnorm(msd, Type(0), mscale, true) + log_msd;
+  ans += dnorm(slope, Type(0), sd_slope, true);
+  ans += dnorm(mslope, slope, msd, true).sum();
+  Type a0 = -1 * (n_along + 1) / (n_along - 1);
+  Type a1 = 2 / (n_along - 1);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      Type q = a0 + a1 * (i_along + 1);
+      ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
 Type logpost_not_uses_hyper(vector<Type> effectfree,
 			    vector<Type> consts,
+			    matrix<int> matrix_along_by,
 			    int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 2:
-    ans = logpost_normfixed(effectfree, consts);
+    ans = logpost_normfixed(effectfree, consts, matrix_along_by);
     break;
   case 7:
-    ans = logpost_svd(effectfree, consts);
+    ans = logpost_svd(effectfree, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -156,26 +198,30 @@ template <class Type>
 Type logpost_uses_hyper(vector<Type> effectfree,
 			vector<Type> hyper,
 			vector<Type> consts,
+			matrix<int> matrix_along_by,
 			int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 1:
-    ans = logpost_norm(effectfree, hyper, consts);
+    ans = logpost_norm(effectfree, hyper, consts, matrix_along_by);
     break;
   case 3:
-    ans = logpost_rw(effectfree, hyper, consts);
+    ans = logpost_rw(effectfree, hyper, consts, matrix_along_by);
     break;
   case 4:
-    ans = logpost_rw2(effectfree, hyper, consts);
+    ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by);
     break;
   case 5:
-    ans = logpost_ar1(effectfree, hyper, consts);
+    ans = logpost_ar1(effectfree, hyper, consts, matrix_along_by);
     break;
   case 6:
-    ans = logpost_spline(effectfree, hyper, consts);
+    ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
     break;
   case 8:
-    ans = logpost_lin(effectfree, hyper, consts);
+    ans = logpost_lin(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 9:
+    ans = logpost_ilin(effectfree, hyper, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -197,7 +243,7 @@ Type logpost_betabinom(Type x,
 }
 
 
-// List object to hold matrices -----------------------------------------------
+// List objects to hold matrices ----------------------------------------------
 
 // Modified from code at https://github.com/kaskr/adcomp/issues/96
 
@@ -210,6 +256,17 @@ struct LIST_SM_t : vector<SparseMatrix<Type> > {
       if(!isValidSparseMatrix(sm))
         error("Internal error: not a sparse matrix");
       (*this)(i) = asSparseMatrix<Type>(sm);
+    }
+  }
+};
+
+template<class Type>
+struct LIST_M_t : vector<matrix<int> > {
+  LIST_M_t(SEXP x){
+    (*this).resize(LENGTH(x));
+    for (int i = 0; i < LENGTH(x); i++){
+      SEXP m = VECTOR_ELT(x, i);
+      (*this)(i) = asMatrix<int>(m);
     }
   }
 };
@@ -239,6 +296,7 @@ Type objective_function<Type>::operator() ()
   DATA_FACTOR(terms_hyper);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
+  DATA_STRUCT(matrices_along_by, LIST_M_t);
   DATA_SCALAR(scale_disp);
 
   PARAMETER_VECTOR(effectfree); 
@@ -291,12 +349,20 @@ Type objective_function<Type>::operator() ()
     if (i_prior_term > 0) { // i_prior_term == 0 when prior is "Known"
       vector<Type> effectfree_term = effectfree_split[i_term];
       vector<Type> consts_term = consts_split[i_term];
+      matrix<int> matrix_along_by = matrices_along_by[i_term];
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
-	ans -= logpost_uses_hyper(effectfree_term, hyper_term, consts_term, i_prior_term);
+	ans -= logpost_uses_hyper(effectfree_term,
+				  hyper_term,
+				  consts_term,
+				  matrix_along_by,
+				  i_prior_term);
       }
       else
-	ans -= logpost_not_uses_hyper(effectfree_term, consts_term, i_prior_term);
+	ans -= logpost_not_uses_hyper(effectfree_term,
+				      consts_term,
+				      matrix_along_by,
+				      i_prior_term);
     }
   }
 
