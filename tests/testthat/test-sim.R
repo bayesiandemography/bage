@@ -278,6 +278,73 @@ test_that("'draw_vals_lin' works", {
   expect_equal(ans_obtained, ans_expected)  
 })
 
+test_that("'draw_vals_ilin' works - along dimension is first", {
+  set.seed(0)
+  prior <- ILin()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:11, nr = 3)
+  slope <- draw_vals_slope(prior = prior,
+                           n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  msd <- draw_vals_msd(prior = prior,
+                       n_sim = n_sim)
+  mslope <- draw_vals_mslope(slope = slope,
+                             msd = msd,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  labels <- 1:12
+  set.seed(0)
+  ans_obtained <- draw_vals_ilin(mslope = mslope,
+                                 sd = sd,
+                                 matrix_along_by = matrix_along_by,
+                                 labels = labels)
+  q <- -(3 + 1) / (3 - 1) + (1:3) * 2 / (3 - 1)
+  mean <- matrix(q, nrow = 12, ncol = n_sim) *
+    matrix(rep(mslope, each = 3), nrow = 12)
+  sd <- matrix(rep(sd, each = 12), ncol = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
+                         ncol = n_sim)
+  dimnames(ans_expected) <- list(1:12, 1:n_sim)
+  expect_equal(ans_obtained, ans_expected)  
+})
+
+test_that("'draw_vals_ilin' works - along dimension is second", {
+  set.seed(0)
+  prior <- ILin()
+  n_sim <- 10
+  matrix_along_by <- t(matrix(0:11, nr = 3))
+  slope <- draw_vals_slope(prior = prior,
+                           n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  msd <- draw_vals_msd(prior = prior,
+                       n_sim = n_sim)
+  mslope <- draw_vals_mslope(slope = slope,
+                             msd = msd,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  labels <- 1:12
+  set.seed(0)
+  ans_obtained <- draw_vals_ilin(mslope = mslope,
+                                 sd = sd,
+                                 matrix_along_by = matrix_along_by,
+                                 labels = labels)
+  q <- -(4 + 1) / (4 - 1) + (1:4) * 2 / (4 - 1)
+  mean <- matrix(q, nrow = 12, ncol = n_sim) *
+    matrix(rep(mslope, each = 4), nrow = 12)
+  sd <- matrix(rep(sd, each = 12), ncol = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
+                         ncol = n_sim)
+  ans_expected <- ans_expected[c(1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12),]
+  dimnames(ans_expected) <- list(1:12, 1:n_sim)
+  expect_equal(ans_obtained, ans_expected)  
+})
+
+
+
 
 ## ## draw_vals_hyper_mod --------------------------------------------------------
 
@@ -359,7 +426,42 @@ test_that("'draw_vals_lin' works", {
 ##     expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
 ## })
 
+## draw_vals_msd --------------------------------------------------------------
 
+test_that("'draw_vals_msd' works", {
+  prior <- ILin(ms = 0.5)
+  n_sim <- 1000
+  set.seed(0)
+  ans_obtained <- draw_vals_msd(prior = prior, n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- abs(rnorm(n = 1000, sd = 0.5))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## draw_vals_mslope -----------------------------------------------------------
+
+test_that("'draw_vals_mslope' works", {
+  set.seed(0)
+  prior <- ILin(ms = 0.5)
+  n_sim <- 1000
+  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  msd <- draw_vals_msd(prior = prior, n_sim = n_sim)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  set.seed(0)
+  ans_obtained <- draw_vals_mslope(slope = slope,
+                                   msd = msd,
+                                   matrix_along_by = matrix_along_by,
+                                   n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(n = 4000,
+                               mean = rep(slope, each = 4),
+                               sd = rep(msd, each = 4)),
+                         nr = 4)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+  
 ## draw_vals_rw ---------------------------------------------------------------
 
 test_that("'draw_vals_rw' works", {

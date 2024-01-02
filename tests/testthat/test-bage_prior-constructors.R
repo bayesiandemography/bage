@@ -11,6 +11,14 @@ test_that("'AR1' throws current error when min >= max", {
                  "`min` not less than `max`")
 })
 
+test_that("'ILin' works with valid inputs", {
+  expect_identical(ILin(), new_bage_prior_ilin(scale = 1, sd_slope = 1,
+                                               mscale = 1, along = NULL))
+  expect_identical(ILin(s = 0.3, sd = 0.1, along = "reg"),
+                   new_bage_prior_ilin(scale = 0.3, sd_slope = 0.1,
+                                       mscale = 1, along = "reg"))
+})
+
 test_that("'Known' works with valid inputs", {
     expect_identical(Known(values = 1:3),
                      new_bage_prior_known(values = as.double(1:3)))
@@ -65,12 +73,21 @@ test_that("'new_bage_prior_ar1' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 5L)
     expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = 0.8, max = 0.98, scale = 1))
-    expect_identical(obj$n_hyper, 2L)
     expect_identical(obj$specific, list(shape1 = 2,
                                         shape2 = 2,
                                         min = 0.8,
                                         max = 0.98,
                                         scale = 1))
+})
+
+test_that("'new_bage_prior_ilin' works", {
+    obj <- new_bage_prior_ilin(scale = 1, sd = 1, mscale = 1, along = NULL)
+    expect_s3_class(obj, "bage_prior_ilin")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 9L)
+    expect_identical(obj$const, c(scale = 1, sd_slope = 1, mscale = 1))
+    expect_identical(obj$specific, list(scale = 1, sd_slope = 1,
+                                        mscale = 1, along = NULL))
 })
 
 test_that("'new_bage_prior_known' works", {
@@ -79,7 +96,6 @@ test_that("'new_bage_prior_known' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 0L)
     expect_identical(obj$const, 0)
-    expect_identical(obj$n_hyper, 0L)
     expect_identical(obj$specific, list(values = 1.0))
 })
 
@@ -89,7 +105,6 @@ test_that("'new_bage_prior_lin' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 8L)
     expect_identical(obj$const, c(scale = 1, sd_slope = 1))
-    expect_identical(obj$n_hyper, 2L)
     expect_identical(obj$specific, list(scale = 1, sd_slope = 1))
 })
 
@@ -99,7 +114,6 @@ test_that("'new_bage_prior_norm' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 1L)
     expect_identical(obj$const, c(scale = 1.0))
-    expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))
 })
 
@@ -109,7 +123,6 @@ test_that("'new_bage_prior_normfixed' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 2L)
     expect_identical(obj$const, c(sd = 1.0))
-    expect_identical(obj$n_hyper, 0L)
     expect_identical(obj$specific, list(sd = 1))
 })
 
@@ -119,7 +132,6 @@ test_that("'new_bage_prior_rw' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 3L)
     expect_identical(obj$const, c(scale = 1))
-    expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1))
 })
 
@@ -129,7 +141,6 @@ test_that("'new_bage_prior_rw2' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 4L)
     expect_identical(obj$const, c(scale = 1, sd_slope = 1))
-    expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(scale = 1, sd_slope = 1))
 })
 
@@ -139,7 +150,6 @@ test_that("'new_bage_prior_spline' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 6L)
     expect_identical(obj$const, c(scale = 1, sd_slope = 1))
-    expect_identical(obj$n_hyper, 1L)
     expect_identical(obj$specific, list(n = 10L, scale = 1, sd_slope = 1))
 })
 
@@ -152,7 +162,6 @@ test_that("'new_bage_prior_svd' works", {
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 7L)
     expect_identical(obj$const, 0)
-    expect_identical(obj$n_hyper, 0L)
     expect_identical(obj$specific,
                      list(scaled_svd = HMD,
                           nm_scaled_svd = "HMD",

@@ -393,10 +393,14 @@ make_level_components <- function(mod) {
 #'
 #' @noRd
 make_levels_hyper <- function(mod) {
-    priors <- mod$priors
-    ans <- lapply(priors, levels_hyper)
-    ans <- unlist(ans, use.names = FALSE)
-    ans
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  ans <- .mapply(levels_hyper,
+                 dots = list(prior = priors,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list())
+  ans <- unlist(ans)
+  ans
 }
 
 
@@ -510,12 +514,16 @@ make_transforms_hyper <- function(mod) {
     }
     est <- mod$est
     priors <- mod$priors
+    matrices_along_by <- choose_matrices_along_by(mod)
     has_disp <- has_disp(mod)
     n_effectfree <- length(est$effectfree)
     nms_effectfree <- names(est$effectfree)
     ans_effectfree <- rep(list(NULL), times = n_effectfree)
     names(ans_effectfree) <- nms_effectfree
-    ans_hyper <- lapply(priors, transform_hyper)
+    ans_hyper <- .mapply(transform_hyper,
+                         dots = list(prior = priors,
+                                     matrix_along_by = matrices_along_by),
+                         MoreArgs = list())
     ans_hyper <- unlist(ans_hyper, recursive = FALSE)
     ans_log_disp <- if (has_disp) exp else NULL
     ans_log_disp = list(log_disp = ans_log_disp)

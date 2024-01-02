@@ -262,6 +262,24 @@ check_is_fitted <- function(x, x_arg) {
 
 
 ## HAS_TESTS
+#' Check, Based on its Name, that a Term is an Interaction
+#'
+#' @param nm Name of the term.
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_is_interaction <- function(nm, prior) {
+    nms_dims <- strsplit(nm, split = ":")[[1L]]
+    is_interaction <- length(nms_dims) > 1L
+    if (!is_interaction)
+        cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used for {.var {nm}} term.",
+                         i = "{.var {str_call_prior(prior)}} prior can only be used with interactions."))
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check, based on its name, that a term is a main effect
 #'
 #' @param nm Name of the term.
@@ -280,6 +298,28 @@ check_is_main_effect <- function(nm, prior) {
     
         
 ## HAS_TESTS
+#' Check that Along Dimension of Interaction has at Least 'min' Elements
+#'
+#' @param length_along Number of elements
+#' @param min Minimum number of elements
+#' @param nm Name of term
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_length_along_ge <- function(length_along, min, nm, prior) {
+    if (length_along < min)
+        cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
+                               "used for {.var {nm}} term."),
+                         i = paste("{.var {str_call_prior(prior)}} prior can only be",
+                                   "used with interactions where the 'along' dimension has at least {min} element{?s}."),
+                         i = "The 'along' dimension of {.var {nm}} has {length_along} element{?s}."))
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that term has has least 'min' elements
 #'
 #' @param length_effect Number of elements
@@ -290,7 +330,7 @@ check_is_main_effect <- function(nm, prior) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_length_effect_gt <- function(length_effect, min, nm, prior) {
+check_length_effect_ge <- function(length_effect, min, nm, prior) {
     if (length_effect < min)
         cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
                                "used for {.var {nm}} term."),
@@ -584,6 +624,34 @@ check_scale <- function(x, x_arg, zero_ok) {
             cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
                              i = "{.arg {x_arg}} equals {.val {x}}."))
     }
+    invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check a String
+#'
+#' Check that `x` is a character vector
+#' of length 1, not blank and not NA.
+#'
+#' @param x A string
+#' @param nm_x Name for `x` to be
+#' used in error messages.
+#'
+#' @return TRUE, invisibly
+#'
+#' @noRd
+check_string <- function(x, nm_x) {
+    if (!is.character(x))
+        cli::cli_abort(c("{.arg {nm_x}} is non-character.",
+                         i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
+    if (length(x) != 1L)
+        cli::cli_abort(c("{.arg {nm_x}} does not have length 1.",
+                         i = "{.arg {nm_x}} has length {.val {length(x)}}."))
+    if (is.na(x))
+        cli::cli_abort("{.arg {nm_x}} is {.val {NA}}.")
+    if (!nzchar(x))
+        cli::cli_abort("{.arg {nm_x}} is blank.")
     invisible(TRUE)
 }
 

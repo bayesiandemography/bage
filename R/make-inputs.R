@@ -1,5 +1,82 @@
 
 ## HAS_TESTS
+#' Choose Values for 'matrix_along_by'
+#' for All Priors to Pass to TMB
+#'
+#' @param x Object of class 'bage_mod'
+#'
+#' @returns A named list of matrices
+#'
+#' @noRd
+choose_matrices_along_by <- function(x) {
+  priors <- x$priors
+  matrices_along_by <- x$matrices_along_by
+  var_time <- x$var_time
+  var_age <- x$var_age
+  ans <- .mapply(choose_matrix_along_by,
+                 dots = list(prior = priors,
+                             matrices = matrices_along_by),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age))
+  names(ans) <- names(priors)
+  ans
+}
+                      
+
+## HAS_TESTS
+#' Choose Value for 'matrix_along_by'
+#' for Single Prior to Pass to TMB
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param matrices Named list of matrices
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#'
+#' @returns A matrix
+#'
+#' @noRd
+choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
+  n <- length(matrices)
+  if (n == 1L)
+    return(matrices[[1L]])
+  nms <- names(matrices)
+  nm_prior <- paste(nms, collapse = ":")
+  along <- prior$specific$along
+  if (is.null(along)) {
+    has_time <- !is.null(var_time)
+    if (has_time) {
+      i_time <- match(var_time, nms, nomatch = 0L)
+      if (i_time > 0L)
+        return(matrices[[i_time]])
+    }
+    has_age <- !is.null(var_age)
+    if (has_age) {
+      i_age <- match(var_age, nms, nomatch = 0L)
+      if (i_age > 0L)
+        return(matrices[[i_age]])
+    }
+    msg <- c("Prior for {.var {nm_prior}} does not have a value for {.arg along}.",
+             i = "Choices for {.arg along}: {.val {nms}}.")
+    if (!has_time)
+      msg <- c(msg,
+               i = "Can't default to time variable, since {.var var_time} not specified.")
+    if (!has_age)
+      msg <- c(msg,
+               i = "Can't default to age variable, since {.var var_age} not specified.")
+    cli::cli_abort(msg)
+  }
+  else {
+    i_along <- match(along, nms, nomatch = 0L)
+    if (i_along > 0L)
+      return(matrices[[i_along]])
+    cli::cli_abort(c("Prior for {.var {nm_prior}} has invalid value for {.arg along}.",
+                     i = "Value supplied: {.val {along}}.",
+                     i = "Valid choices: {.val {nms}}."))
+  }
+}
+
+
+## HAS_TESTS
 #' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term
@@ -170,7 +247,7 @@ make_agesex_inner <- function(nm, var_age, var_sexgender) {
 ## HAS_TESTS
 #' Make 'const'
 #'
-#' Make vector to hold constants for priors.
+#' Make vector to hold real-valued constants for priors.
 #'
 #' We generate 'const' when function 'fit'
 #' is called, rather than storing it in the
@@ -186,6 +263,37 @@ make_const <- function(mod) {
     priors <- mod$priors
     ans <- lapply(priors, function(x) x$const)
     ans <- unlist(ans, use.names = FALSE)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make vector containing parameters for
+#' intercept, main effects, and interactions
+#'
+#' Return value is 0 where a parameter is being estimated,
+#' and potentially non-zero where a parameter is
+#' being treated as known.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_effectfree <- function(mod) {
+    priors <- mod$priors
+    lengths_effectfree <- make_lengths_effectfree(mod)
+    ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
+    for (i_term in seq_along(priors)) {
+        prior <- priors[[i_term]]
+        is_known <- is_known(prior)
+        if (is_known) {
+            values <- values_known(prior)
+            ans[[i_term]] <- values
+        }
+    }
+    ans <- unlist(ans)
+    names(ans) <- rep(names(priors), times = lengths_effectfree)
     ans
 }
 
@@ -209,7 +317,7 @@ make_const <- function(mod) {
 make_hyper <- function(mod) {
     priors <- mod$priors
     ans <- rep(0, times = length(priors))
-    lengths <- vapply(priors, function(x) x$n_hyper, 0L)
+    lengths <- make_lengths_hyper(mod)
     ans <- rep(ans, times = lengths)
     ans
 }
@@ -313,6 +421,27 @@ make_lengths_effectfree <- function(mod) {
 }
 
 
+## NO_TESTS
+#' Lengths of Vectors of Hyper-Parameters
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named integer vector
+#'
+#' @noRd
+make_lengths_hyper <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  levels <- .mapply(levels_hyper,
+                 dots = list(prior = priors,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list())
+  ans <- lengths(levels)
+  names(ans) <- names(priors)
+  ans
+}
+
+
 ## HAS_TESTS
 #' Make levels associated with each element of 'effect'
 #'
@@ -321,44 +450,19 @@ make_lengths_effectfree <- function(mod) {
 #' used to map levels to the outcome, to
 #' ensure that the levels are correct (rather than
 #' relying on undocumented properties of 'xtabs' etc),
-#' though this makes the function a bit complicated.
 #'
-#' @param formula Model formula
 #' @param matrices_effect_outcome List of matrices mapping
-#' parameters to outcome
-#' @param outcome Array or data frame with outcome
-#' @param data Data frame
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) {
-    nms <- names(matrices_effect_outcome)
-    n <- length(nms)
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, , drop = FALSE] ## exclude response
-    factors <- factors > 0L
-    if (is.array(outcome))
-        dim_levels <- expand.grid(dimnames(outcome))
-    else
-        dim_levels <- data[rownames(factors)]
-    ans <- vector(mode = "list", length = n)
-    for (i in seq_len(n)) {
-        nm <- nms[[i]]
-        if (nm == "(Intercept)")
-            ans[[i]] <- "(Intercept)"
-        else {
-            i_dim <- factors[, nm, drop = TRUE]
-            paste_dot <- function(...) paste(..., sep = ".")
-            term_levels <- do.call(paste_dot, dim_levels[i_dim])
-            matrix_effect <- matrices_effect_outcome[[i]]
-            matrix_effect <- Matrix::as.matrix(matrix_effect)
-            i_term_level <- apply(matrix_effect, 2L, function(x) match(1L, x))
-            ans[[i]] <- term_levels[i_term_level]
-        }
-    }
-    ans <- unlist(ans, use.names = FALSE)
-    ans
+make_levels_effect <- function(matrices_effect_outcome) {
+  ans <- lapply(matrices_effect_outcome, colnames)
+  nms <- names(matrices_effect_outcome)
+  if (identical(nms[[1L]], "(Intercept)"))
+    ans[[1L]] <- "(Intercept)"
+  ans <- unlist(ans, use.names = FALSE)
+  ans
 }
 
 
@@ -422,6 +526,43 @@ make_map_effectfree_fixed <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make Matrices Mapping Values of 'along' and 'by'
+#' to Positions in Intercepts, Main Effects,
+#' and Interactions
+#'
+#' @param formula An R formula
+#' @param data A data frame
+#'
+#' @returns A named list of named lists of matrices
+#' 
+#' @noRd
+make_matrices_along_by <- function(formula, data) {
+  factors <- attr(stats::terms(formula), "factors")
+  factors <- factors[-1L, , drop = FALSE]
+  factors <- factors > 0L
+  nms_vars <- rownames(factors)
+  nms_terms <- colnames(factors)
+  ans <- vector(mode = "list", length = length(nms_terms))
+  for (i_term in seq_along(nms_terms)) {
+    nms_vars_term <- nms_vars[factors[, i_term]]
+    data_term <- data[nms_vars_term]
+    dim <- lengths(lapply(data_term, unique))
+    i_along <- seq_along(dim)
+    val <- lapply(i_along, make_matrix_along_by, dim = dim)
+    names(val) <- nms_vars_term
+    ans[[i_term]] <- val
+  }
+  names(ans) <- nms_terms
+  has_intercept <- attr(stats::terms(formula), "intercept")
+  if (has_intercept) {
+    val <- list("(Intercept)" = matrix(0L, nrow = 1L))
+    ans <- c(list("(Intercept)" = val), ans)
+  }
+  ans        
+}
+
+
+## HAS_TESTS
 #' Make list of matrices mapping terms to outcome vector
 #'
 #' Make list of matrices mapping main effects or
@@ -444,7 +585,7 @@ make_matrices_effect_outcome <- function(formula, data) {
     for (i_term in seq_along(nms_terms)) {
         nms_vars_term <- nms_vars[factors[, i_term]]
         data_term <- data[nms_vars_term]
-        data_term[] <- lapply(data_term, factor)
+        data_term[] <- lapply(data_term, to_factor)
         contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
         nm_term <- nms_terms[[i_term]]
         formula_term <- paste0("~", nm_term, "-1")
@@ -497,6 +638,32 @@ make_matrices_effectfree_effect <- function(mod) {
                    MoreArgs = list())
     names(ans) <- names(priors)
     ans    
+}
+
+
+#' Create along-by Matrix for a Single Dimension
+#' of a Main Effect or Interaction
+#'
+#' Create a matrix where entry (i,j) is
+#' the position in an array (using
+#' zero-based indexing) of 'along'
+#' value i and 'by' value j.
+#'
+#' @param i_along Index of the along dimension
+#' @param dim Dimensions of the array
+#'
+#' @returns A matrix of integers.
+#'
+#' @noRd
+make_matrix_along_by <- function(i_along, dim) {
+  n_dim <- length(dim)
+  i <- seq.int(from = 0L, length.out = prod(dim))
+  a <- array(i, dim = dim)
+  s <- seq_along(dim)
+  perm <- c(i_along, s[-i_along])
+  ans <- aperm(a, perm = perm)
+  ans <- matrix(ans, nrow = nrow(ans))
+  ans
 }
 
 
@@ -589,37 +756,6 @@ make_outcome <- function(formula, data) {
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
     ans <- as.double(ans)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing parameters for
-#' intercept, main effects, and interactions
-#'
-#' Return value is 0 where a parameter is being estimated,
-#' and potentially non-zero where a parameter is
-#' being treated as known.
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_effectfree <- function(mod) {
-    priors <- mod$priors
-    lengths_effectfree <- make_lengths_effectfree(mod)
-    ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
-    for (i_term in seq_along(priors)) {
-        prior <- priors[[i_term]]
-        is_known <- is_known(prior)
-        if (is_known) {
-            values <- values_known(prior)
-            ans[[i_term]] <- values
-        }
-    }
-    ans <- unlist(ans)
-    names(ans) <- rep(names(priors), times = lengths_effectfree)
     ans
 }
 
@@ -772,37 +908,6 @@ make_terms_const <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make factor identifying components of 'hyper'
-#'
-#' Make factor the same length as 'hyper',
-#' giving the name of the term
-#' that the each element belongs to.
-#' Note that the levels of the factor
-#' includes all priors, not just those
-#' with constants.
-#'
-#' We generate 'terms_hyper' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when priors change  via 'set_prior'.
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor, the same length
-#' as 'hyper'.
-#'
-#' @noRd
-make_terms_hyper <- function(mod) {
-    priors <- mod$priors
-    nms_terms <- names(priors)
-    lengths <- vapply(priors, function(x) x$n_hyper, 0L)
-    ans <- rep(nms_terms, times = lengths)
-    ans <- factor(ans, levels = nms_terms)
-    ans
-}
-
-
-## HAS_TESTS
 #' Make factor identifying components of
 #' combined parameter vector
 #'
@@ -852,6 +957,37 @@ make_terms_effectfree <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make factor identifying components of 'hyper'
+#'
+#' Make factor the same length as 'hyper',
+#' giving the name of the term
+#' that the each element belongs to.
+#' Note that the levels of the factor
+#' includes all priors, not just those
+#' with constants.
+#'
+#' We generate 'terms_hyper' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor, the same length
+#' as 'hyper'.
+#'
+#' @noRd
+make_terms_hyper <- function(mod) {
+    priors <- mod$priors
+    nms_terms <- names(priors)
+    lengths <- make_lengths_hyper(mod)
+    ans <- rep(nms_terms, times = lengths)
+    ans <- factor(ans, levels = nms_terms)
+    ans
+}
+
+
+## HAS_TESTS
 #' Make integer vector of flags for whether
 #' each prior uses hyper-parameters
 #'
@@ -861,12 +997,10 @@ make_terms_effectfree <- function(mod) {
 #'
 #' @noRd
 make_uses_hyper <- function(mod) {
-    priors <- mod$priors
-    has_hyper <- function(x) x$n_hyper > 0L
-    ans <- vapply(priors, has_hyper, TRUE)
-    ans <- as.integer(ans)
-    names(ans) <- names(priors)
-    ans
+  lengths <- make_lengths_hyper(mod)
+  ans <- lengths > 0L
+  ans <- 1L * ans
+  ans
 }
 
 
@@ -905,3 +1039,25 @@ make_uses_offset_effectfree_effect <- function(mod) {
     names(ans) <- names(priors)
     ans    
 }
+
+
+## HAS_TESTS
+#' Function Used to Convert Variables in Data to Factors
+#'
+#' If a variable is already a factor, leave it unchanged.
+#' If a variable is numeric, order levels by value.
+#' Otherwise, order levels by first appearance.
+#'
+#' @param x A vector
+#'
+#' @returns A factor
+#'
+#' @noRd
+to_factor <- function(x) {
+  if (is.factor(x))
+    x
+  else if (is.numeric(x))
+    factor(x)
+  else
+    factor(x, levels = unique(x))
+}  

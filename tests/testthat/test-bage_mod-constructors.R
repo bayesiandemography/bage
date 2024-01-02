@@ -121,3 +121,17 @@ test_that("'mod_norm' works with valid inputs - no weights", {
 })
 
 
+## 'mod_helper' ---------------------------------------------------------------
+
+test_that("'mod_helper' works with valid inputs", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$income <- rnorm(nrow(data))
+  formula <- income ~ age:sex + time
+  ans <- mod_helper(formula = formula,
+                    data = data,
+                    n_draw = 5L)
+  expect_identical(ans$n_draw, 5L)
+  expect_identical(length(names(ans)), length(ans))
+  expect_false(any(duplicated(names(ans))))
+})
