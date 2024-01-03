@@ -175,89 +175,56 @@ Type logpost_ilin(vector<Type> effectfree,
   return ans;
 }
 
-// 'hyper' cannot have length 0, implying that at least
-// one component prior has to use hyper-parameters
 template <class Type>
 Type logpost_combine(vector<Type> effectfree,
 		     vector<Type> hyper,
 		     vector<Type> consts,
 		     matrix<int> matrix_along_by) {
-  int n_comb = consts[0];
+  int n_effect = effectfree.size();
+  int n_comp = consts[0]; // number of priors contained within combined prior
   Type ans = 0;
-  int n_slice = 6;
-  for (int i_comb = 0; i_comb < n_comb; i_comb++) {
-    int offset = i_comb * n_slice + 1;
-    int i_prior = consts[offset];
-    int start = consts[offset + 1];
-    int length = consts[offset + 2];
-    vector<Type> effectfree_comb = effectfree.sequence(start, length);
-    int start = consts[offset + 3];
-    int length = consts[offset + 4];
-    vector<Type> consts_comb = consts.sequence(start, length);
-    int start = consts[offset + 5];
-    int length = consts[offset + 6];
-    int uses_hyper = length > 0;
-    if (uses_hyper) {
-      hyper_comb = hyper.sequence(start, length);
-      ans += logpost_uses_hyper(effectfree_comb,
-				hyper_comb,
-				consts_comb,
-				matrix_along_by,
-				i_prior_comb);
+  int n_indices = 6;
+  vector<Type> effect_free_comp(n_effect);      // effects for components
+  vector<Type> effectfree_comp_total(n_effect); // sum to 'effectfree'
+  for (int i_effect = 0; i < n_effect; i_effect++)
+    effectfree_total[i] = 0;
+  for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+    int offset_comp = i_comp * n_indices + 1;
+    // extract 'effect_free'
+    bool is_comp_last = i_comp == n_comp - 1;
+    if (is_comp_last) {
+      effectfree_comp = effectfree - effectfree_comp_total;
     }
     else {
-      ans += logpost_not_uses_hyper(effectfree_comb,
-				    consts_comb,
-				    matrix_along_by,
-				    i_prior_comb);
+      int start_effect = consts[offset_comp + 1];
+      int length_effect = consts[offset_comp + 2];
+      effectfree_comp = hyper.sequence(start_effect, length_effect);
+      effectfree_comp_total += effectfree_comp;
     }
-  }
-  return ans;
-}
-
-
-    
-    int offset = consts[i_prior * 2] + 1;
-    int length = consts[i_prior * 2] + 2;
-    vector<Type> effectfree_prior = effectfree.segment(offset, length);
-    int offset = consts[i_prior * 2] + 1;
-
-
-    ans += 
-    
-  int n_outcome = outcome.size();
-  int n_term = i_prior.size();
-  vector<vector<Type> > effectfree_split = split(effectfree, terms_effectfree);
-  vector<vector<Type> > offsets_effectfree_effect_split = split(offsets_effectfree_effect, terms_effect);
-  vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
-  vector<vector<Type> > consts_split = split(consts, terms_consts);
-  int has_disp = scale_disp > 0;
-  Type disp = has_disp ? exp(log_disp) : 0;
-
-  
-  Type scale = consts[0];
-  Type sd_slope = consts[1];
-  Type mscale = consts[2];
-  int n_by = hyper.size() - 3;
-  Type slope = hyper[0];
-  vector<Type> mslope = hyper.segment(1, n_by);
-  Type log_sd = hyper[n_by+1];
-  Type log_msd = hyper[n_by+2];
-  Type sd = exp(log_sd);
-  Type msd = exp(log_msd);
-  int n_along = effectfree.size() / n_by;
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(msd, Type(0), mscale, true) + log_msd;
-  ans += dnorm(slope, Type(0), sd_slope, true);
-  ans += dnorm(mslope, slope, msd, true).sum();
-  Type a0 = -1 * (n_along + 1) / (n_along - 1);
-  Type a1 = 2 / (n_along - 1);
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_along = 0; i_along < n_along; i_along++) {
-      int i = matrix_along_by(i_along, i_by);
-      Type q = a0 + a1 * (i_along + 1);
-      ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
+    // extract 'consts'
+    int start_consts = consts[offset + 3];
+    int length_consts = consts[offset + 4];
+    vector<Type> consts_comp = consts.sequence(start_consts, length_consts);
+    // extract info about 'hyper'
+    int start_hyper = consts[offset + 5];
+    int length_hyper = consts[offset + 6];
+    bool uses_hyper = length_hyper > 0;
+    // extract 'i_prior'
+    int i_prior_comp = consts[offset_comp];
+    // calculate log posterior density
+    if (uses_hyper) {
+      vector<Type> hyper_comp = hyper.sequence(start, length);
+      ans += logpost_uses_hyper(effectfree_comp,
+				hyper_comp,
+				consts_comp,
+				matrix_along_by,
+				i_prior_comp);
+    }
+    else {
+      ans += logpost_not_uses_hyper(effectfree_comp,
+				    consts_comp,
+				    matrix_along_by,
+				    i_prior_comp);
     }
   }
   return ans;
