@@ -261,6 +261,22 @@ check_is_fitted <- function(x, x_arg) {
 }
 
 
+#' Check that an Object is a Formula
+#'
+#' @param formula An R formula
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_is_formula <- function(formula) {
+  if (!inherits(formula, "formula"))
+    cli::cli_abort(c("{.arg formula} is not an R formula.",
+                     i = "{.arg formula} has class {.cls {class(formula)}}."))
+  invisible(TRUE)
+}
+  
+
+
 ## HAS_TESTS
 #' Check, Based on its Name, that a Term is an Interaction
 #'

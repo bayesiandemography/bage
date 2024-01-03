@@ -223,6 +223,19 @@ test_that("'check_is_fitted' works", {
 })
 
 
+## 'check_is_formula' ---------------------------------------------------------
+
+test_that("'check_is_formula' returns TRUE when 'formula' is a formula", {
+    expect_true(check_is_formula(deaths ~ age + sex))
+    expect_true(check_is_formula(~ age))
+})
+
+test_that("'check_is_formula' throws correct error when not formula", {
+    expect_error(check_is_formula("~age"),
+                 "`formula` is not an R formula.")
+})
+
+
 ## 'check_is_interaction' -----------------------------------------------------
 
 test_that("'check_is_interaction' returns TRUE with valid inputs", {

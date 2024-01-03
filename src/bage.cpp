@@ -184,10 +184,10 @@ Type logpost_combine(vector<Type> effectfree,
   int n_comp = consts[0]; // number of priors contained within combined prior
   Type ans = 0;
   int n_indices = 6;
-  vector<Type> effect_free_comp(n_effect);      // effects for components
-  vector<Type> effectfree_comp_total(n_effect); // sum to 'effectfree'
-  for (int i_effect = 0; i < n_effect; i_effect++)
-    effectfree_total[i] = 0;
+  vector<Type> effectfree_comp(n_effect);       
+  vector<Type> effectfree_comp_total(n_effect); 
+  for (int i_effect = 0; i_effect < n_effect; i_effect++)
+    effectfree_comp_total[i_effect] = 0;
   for (int i_comp = 0; i_comp < n_comp; i_comp++) {
     int offset_comp = i_comp * n_indices + 1;
     // extract 'effect_free'
@@ -198,22 +198,22 @@ Type logpost_combine(vector<Type> effectfree,
     else {
       int start_effect = consts[offset_comp + 1];
       int length_effect = consts[offset_comp + 2];
-      effectfree_comp = hyper.sequence(start_effect, length_effect);
+      effectfree_comp = hyper.segment(start_effect, length_effect);
       effectfree_comp_total += effectfree_comp;
     }
     // extract 'consts'
-    int start_consts = consts[offset + 3];
-    int length_consts = consts[offset + 4];
-    vector<Type> consts_comp = consts.sequence(start_consts, length_consts);
+    int start_consts = consts[offset_comp + 3];
+    int length_consts = consts[offset_comp + 4];
+    vector<Type> consts_comp = consts.segment(start_consts, length_consts);
     // extract info about 'hyper'
-    int start_hyper = consts[offset + 5];
-    int length_hyper = consts[offset + 6];
+    int start_hyper = consts[offset_comp + 5];
+    int length_hyper = consts[offset_comp + 6];
     bool uses_hyper = length_hyper > 0;
     // extract 'i_prior'
     int i_prior_comp = consts[offset_comp];
     // calculate log posterior density
     if (uses_hyper) {
-      vector<Type> hyper_comp = hyper.sequence(start, length);
+      vector<Type> hyper_comp = hyper.segment(start_hyper, length_hyper);
       ans += logpost_uses_hyper(effectfree_comp,
 				hyper_comp,
 				consts_comp,
