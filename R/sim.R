@@ -199,7 +199,7 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
 
 
 ## HAS_TESTS
-#' Generate values from an AR-k series
+#' Generate Values for a Single AR-k Series of Length 'n'
 #'
 #' Note that 'sd' is the marginal
 #' variance of the k'th term, not the
@@ -210,7 +210,7 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
 #' the initial values, using brute force,
 #' rather than direct calculation.
 #' 
-#' @param n Number of values to generate
+#' @param n Length of series (not order of series)
 #' @param coef Numeric vector with autocorrelation
 #' coefficients
 #' @param sd Marginal standard deviation
@@ -218,21 +218,20 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
 #' @returns A numeric vector
 #'
 #' @noRd
-draw_vals_ar <- function(n, coef, sd) {
-    n_unnorm <- 1000L
-    model <- list(ar = coef)
-    val_unnorm <- stats::arima.sim(model = model,
-                                   n = n_unnorm)
-    sd_unnorm <- sd(val_unnorm)
-    sd_innov <- sd / sd_unnorm
-    rand.gen <- function(n) stats::rnorm(n = n, sd = sd_innov)
-    ans <- stats::arima.sim(model = model,
-                            n = n,
-                            rand.gen = rand.gen)
-    as.numeric(ans)
+draw_vals_ar_one <- function(n, coef, sd) {
+  n_unnorm <- 1000L
+  model <- list(ar = coef)
+  val_unnorm <- stats::arima.sim(model = model,
+                                 n = n_unnorm)
+  sd_unnorm <- sd(val_unnorm)
+  sd_innov <- sd / sd_unnorm
+  rand.gen <- function(n) stats::rnorm(n = n, sd = sd_innov)
+  ans <- stats::arima.sim(model = model,
+                          n = n,
+                          rand.gen = rand.gen)
+  as.numeric(ans)
 }
     
-
 ## HAS_TESTS
 #' Draw values for AR coefficients
 #'
@@ -240,81 +239,40 @@ draw_vals_ar <- function(n, coef, sd) {
 #' that can be used as coefficients for AR-k model.
 #' Rejected if lead to non-stationary series.
 #'
-#' @param p Number of terms
+#' @param n Number of terms
 #' @param shape1,shape2 Parameters for beta distribution
+#' @param min,max Limits on parameter values
 #'
-#' @returns A vector of length 'p'
-#'
-#' @noRd
-draw_vals_ar_coef <- function(p, shape1, shape2) {
-    max_attempt <- 1000L
-    found_ans <- FALSE
-    for (i_attempt in seq_len(max_attempt)) {
-        ans <- stats::rbeta(n = p,
-                            shape1 = shape1,
-                            shape2 = shape2)
-        ans <- 2 * ans - 1
-        min_root <- min(Mod(polyroot(c(1, -ans)))) ## taken from stats::arima.sim()
-        found_ans <- min_root > 1
-        if (found_ans)
-            break
-    }
-    if (!found_ans)
-        cli::cli_abort("Internal error: coud not generate stationary distribution.")
-    ans
-}
-
-
-## HAS_TESTS
-#' Generate an AR1 vector
-#'
-#' Each column is one draw.
-#'
-#' @param coef Vector of values
-#' @param sd Vector of values
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_ar1 <- function(coef, sd, labels) {
-    n_sim <- length(coef)
-    n_effect <- length(labels)
-    sd_scaled <- sqrt(1 - coef^2) * sd
-    ans <- matrix(nrow = n_effect,
-                  ncol = n_sim,
-                  dimnames = list(labels, seq_len(n_sim)))
-    ans[1L, ] <- stats::rnorm(n = n_sim, sd = sd)
-    for (i in seq_len(n_effect - 1L))
-        ans[i + 1L, ] <- stats::rnorm(n = n_sim,
-                                      mean = coef * ans[i, ],
-                                      sd =  sd_scaled)
-    ans
-}
-
-
-## HAS_TESTS
-#' Draw the 'coef' parameter for a prior
-#'
-#' @param prior An object of class 'bage_prior'
-#' @param n_sim Number of draws
-#'
-#' @returns A numeric vector
+#' @returns A vector of length 'n'
 #'
 #' @noRd
 draw_vals_coef <- function(prior, n_sim) {
-    specific <- prior$specific
-    shape1 <- specific$shape1
-    shape2 <- specific$shape2
-    min <- specific$min
-    max <- specific$max
-    ans_raw <- stats::rbeta(n = n_sim,
-                            shape1 = shape1,
-                            shape2 = shape2)
-    ans <- min + ans_raw * (max - min)
-    ans
+  max_attempt <- 1000L
+  specific <- prior$specific
+  n <- specific$n
+  shape1 <- specific$shape1
+  shape2 <- specific$shape2
+  min <- specific$min
+  max <- specific$max
+  ans <- matrix(nrow = n, ncol = n_sim)
+  for (i_sim in seq_len(n_sim)) {
+    found_val <- FALSE
+    for (i_attempt in seq_len(max_attempt)) {
+      val_raw <- stats::rbeta(n = n,
+                              shape1 = shape1,
+                              shape2 = shape2)
+      val <- min + (max - min) * val_raw
+      min_root <- min(Mod(polyroot(c(1, -val)))) ## taken from stats::arima.sim()
+      found_val <- min_root > 1
+      if (found_val)
+        break
+    }
+    if (!found_val)
+      cli::cli_abort("Internal error: coud not generate stationary distribution.")
+    ans[, i_sim] <- val
+  }
+  ans
 }
-
 
 ## HAS_TESTS
 #' Draw values for hyper-parameters for all priors in a model

@@ -150,113 +150,49 @@
 ##     expect_equal(ans_obtained, ans_expected)
 ## })                                       
 
+## 'draw_vals_ar_one' ---------------------------------------------------------
 
-## ## draw_vals_ar ---------------------------------------------------------------
-
-## test_that("'draw_vals_ar' works with p = 1", {
-##     set.seed(0)
-##     coef <- draw_vals_ar_coef(p = 1, shape1 = 2, shape2 = 2)
-##     ans <- draw_vals_ar(n = 1000, coef = coef, sd = 0.3)
-##     expect_equal(sd(ans), 0.3, tolerance = 0.01)
-## })
-
-## test_that("'draw_vals_ar' works with p = 2", {
-##     set.seed(0)
-##     coef <- draw_vals_ar_coef(p = 2, shape1 = 2, shape2 = 2)
-##     ans <- draw_vals_ar(n = 1000, coef = coef, sd = 0.3)
-##     expect_equal(sd(ans), 0.3, tolerance = 0.01)
-## })
-
-## test_that("'draw_vals_ar' works with p = 10", {
-##     set.seed(0)
-##     coef <- draw_vals_ar_coef(p = 10, shape1 = 2, shape2 = 2)
-##     ans <- draw_vals_ar(n = 10000, coef = coef, sd = 0.3)
-##     expect_equal(sd(ans), 0.3, tolerance = 0.02)
-## })
+test_that("'draw_vals_ar_one' works", {
+    set.seed(0)
+    prior <- AR(n = 2)
+    coef <- draw_vals_coef(prior, n_sim = 1L)
+    ans <- draw_vals_ar_one(n = 1000, coef = coef, sd = 0.5)
+    expect_identical(length(ans), 1000L)
+    expect_equal(sd(ans), 0.5, tolerance = 0.01)
+})
 
 
-## ## draw_vals_ar_coef ----------------------------------------------------------
+## 'draw_vals_coef' -----------------------------------------------------------
 
-## test_that("'draw_vals_ar_coef' works with p = 1", {
-##     set.seed(0)
-##     ans <- draw_vals_ar_coef(p = 1, shape1 = 2, shape2 = 2)
-##     expect_true(abs(ans) < 1)
-## })
+test_that("'draw_vals_coef' works with n = 1", {
+  set.seed(0)
+  prior <- AR1()
+  ans <- draw_vals_coef(prior, n_sim = 5)
+  expect_true(all(ans > 0.8))
+  expect_true(all(ans < 0.98))
+  prior <- AR(n = 1)
+  ans <- draw_vals_coef(prior, n_sim = 5)
+  expect_true(all(ans > -1))
+  expect_true(all(ans < 1))
+})
 
-## test_that("'draw_vals_ar_coef' works with p = 2", {
-##     set.seed(0)
-##     ans <- draw_vals_ar_coef(p = 2, shape1 = 2, shape2 = 2)
-##     expect_true(all(abs(ans) < 1))
-## })
+test_that("'draw_vals_coef' works with n = 2", {
+  set.seed(0)
+  prior <- AR(n = 2)
+  ans <- draw_vals_coef(prior, n_sim = 3)
+  expect_true(all(abs(ans) < 1))
+  expect_identical(dim(ans), c(2L, 3L))
+})
 
-## test_that("'draw_vals_ar_coef' works with p = 10", {
-##     ans <- draw_vals_ar_coef(p = 2, shape1 = 2, shape2 = 2)
-##     expect_true(all(abs(ans) < 1))
-## })
+test_that("'draw_vals_coef' works with n = 10", {
+  set.seed(0)
+  prior <- AR(n = 10)
+  ans <- draw_vals_coef(prior, n_sim = 3)
+  expect_true(all(abs(ans) < 1))
+  expect_identical(dim(ans), c(10L, 3L))
+})
 
-
-## ## draw_vals_ar1 --------------------------------------------------------------
-
-## test_that("'draw_vals_ar1' works", {
-##     set.seed(0)
-##     prior <- AR1()
-##     n_sim <- 10
-##     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-##     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
-##     labels <- 1:10000
-##     set.seed(0)
-##     ans <- draw_vals_ar1(coef = coef,
-##                          sd = sd,
-##                          labels = labels)
-##     expect_equal(unname(apply(ans, 2, sd)), sd, tolerance = 0.05)
-##     get_slope <- function(x) {
-##         v1 <- x[-length(x)]
-##         v2 <- x[-1]
-##         coef(lm(v2 ~ v1))[["v1"]]
-##     }
-##     expect_equal(unname(apply(ans, 2, get_slope)), coef, tolerance = 0.05)
-##     expect_identical(dim(ans), c(10000L, 10L))
-##     expect_identical(dimnames(ans),
-##                      list(as.character(seq_len(10000)),
-##                           as.character(seq_len(10))))
-## })
-
-
-## ## draw_vals_coef -------------------------------------------------------------
-
-## test_that("'draw_vals_coef' works", {
-##     prior <- AR1()
-##     n_sim <- 10
-##     set.seed(0)
-##     ans_obtained <- draw_vals_coef(prior = prior, n_sim = n_sim)
-##     set.seed(0)
-##     ans_expected <- 0.8 + 0.18 * rbeta(n = 10, shape1 = 2, shape2 = 2)
-##     expect_equal(ans_obtained, ans_expected)
-## })
-
-
-## ## 'draw_vals_cyclical' -------------------------------------------------------
-
-## test_that("'draw_vals_cyclical' works", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_cyclical(mod, n = 2)
-##     mod <- set_prior(mod, age ~ Sp())
-##     mod <- set_prior(mod, time ~ RW2())
-##     ans <- draw_vals_cyclical(mod, n_sim = 100)
-##     expect_identical(length(ans$sd), 100L)
-##     expect_identical(nrow(ans$coef), 2L)
-##     expect_identical(ncol(ans$coef), 100L)
-##     expect_identical(nrow(ans$cyclical), 7L)
-##     expect_identical(ncol(ans$cyclical), 100L)
-##     expect_equal(mean(ans$cyclical), 0, tolerance = 0.05)
-## })
+## 'draw_vals_lin' ------------------------------------------------------------
 
 test_that("'draw_vals_lin' works", {
   set.seed(0)
@@ -277,6 +213,9 @@ test_that("'draw_vals_lin' works", {
   dimnames(ans_expected) <- list(1:20, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
 })
+
+
+## 'draw_vals_ilin' -----------------------------------------------------------
 
 test_that("'draw_vals_ilin' works - along dimension is first", {
   set.seed(0)
