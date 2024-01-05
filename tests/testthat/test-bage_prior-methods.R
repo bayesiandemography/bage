@@ -1,8 +1,8 @@
 
 ## draw_vals_effect --------------------------------------------------------------
 
-test_that("'draw_vals_effect' works with bage_prior_ar1", {
-  prior <- AR1()
+test_that("'draw_vals_effect' works with bage_prior_ar", {
+  prior <- AR(n = 3)
   n_sim <- 10
   matrix_along_by <- matrix(0:25, nc = 1)
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -178,14 +178,14 @@ test_that("'draw_vals_effect' works with bage_prior_svd", {
 
 ## draw_vals_hyper ------------------------------------------------------------
 
-test_that("'draw_vals_hyper' works with bage_prior_ar1", {
-  prior <- AR1()
+test_that("'draw_vals_hyper' works with bage_prior_ar", {
+  prior <- AR(n = 3)
   matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
                          matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), c("coef", "sd"))
-  expect_identical(length(ans$coef), 10L)
+  expect_identical(dim(ans$coef), c(3L, 10L))
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_ilin", {
@@ -421,10 +421,10 @@ test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, ages
 
 ## levels_hyper ---------------------------------------------------------------
 
-test_that("'levels_hyper' works with 'bage_prior_ar1'", {
+test_that("'levels_hyper' works with 'bage_prior_ar'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = AR1(), matrix_along_by = matrix_along_by),
-                   c("coef", "sd"))
+  expect_identical(levels_hyper(prior = AR(n = 2), matrix_along_by = matrix_along_by),
+                   c("coef", "coef", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_ilin'", {
@@ -593,13 +593,20 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex i
 
 ## 'str_call_prior' -----------------------------------------------------------
 
-test_that("'str_call_prior' works with bage_prior_ar1", {
+test_that("'str_call_prior' works with bage_prior_ar - AR1", {
     expect_identical(str_call_prior(AR1()), "AR1()")
     expect_identical(str_call_prior(AR1(min = 0.5)), "AR1(min=0.5)")
     expect_identical(str_call_prior(AR1(max = 0.95)), "AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
     expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, s = 0.3)),
                      "AR1(min=0.5,max=0.95,s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_ar - AR", {
+    expect_identical(str_call_prior(AR(n = 1)), "AR(n=1)")
+    expect_identical(str_call_prior(AR(n = 3, s = 0.3)), "AR(n=3,s=0.3)")
+    expect_identical(str_call_prior(AR(s = 0.3, n = 2)),
+                     "AR(n=2,s=0.3)")
 })
 
 test_that("'str_call_prior' works with bage_prior_ilin", {
@@ -663,12 +670,27 @@ test_that("'str_call_prior' works with bage_prior_svd", {
 
 ## transform_hyper ------------------------------------------------------------
 
-test_that("'transform_hyper' works with 'bage_prior_ar1'", {
+test_that("'transform_hyper' works with 'bage_prior_ar - AR1'", {
   matrix_along_by <- matrix(0:9, nc = 1)
-  logit <- function(x) log(x / (1 - x))
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
   l <- transform_hyper(prior = AR1(), matrix_along_by = matrix_along_by)
-  expect_equal(0.35, l[[1]](logit(0.35)))
-  expect_equal(0.35, l[[2]](log(0.35)))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    2 * ans - 1
+  }
+  l <- transform_hyper(prior = AR(n = 2), matrix_along_by = matrix_along_by)
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ilin'", {

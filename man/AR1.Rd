@@ -19,9 +19,11 @@ Defaults to 1.}
 An object of class \code{bage_prior_ar1}.
 }
 \description{
-Autoregression prior.
+Autoregressive prior of order 1
 }
-\details{
+\section{Mathematical description}{
+
+
 The model is
 \deqn{x_0 \sim \text{N}(0, \sigma^2)}
 \deqn{x_i = \phi x_{i-1} + \sqrt{1 - \phi^2}\epsilon_i}
@@ -39,6 +41,7 @@ is
 where
 \deqn{\phi' \sim \text{beta}(2, 2)}.
 }
+
 \examples{
 AR1()
 AR1(min = 0, max = 1, s = 2.4)
@@ -48,6 +51,7 @@ TMB documentation of
 \href{http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details}{AR1}
 }
 \seealso{
+\code{\link[=AR]{AR()}},
 \code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
 The values for \code{min} and \code{max} are based on the
 defaults for function \code{forecast::ets()}.

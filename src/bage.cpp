@@ -82,25 +82,27 @@ Type logpost_rw2(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_ar1(vector<Type> effectfree,
-		 vector<Type> hyper,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
+Type logpost_ar(vector<Type> effectfree,
+		vector<Type> hyper,
+		vector<Type> consts,
+		matrix<int> matrix_along_by) {
   Type shape1 = consts[0];
   Type shape2 = consts[1];
   Type min = consts[2];
   Type max = consts[3];
   Type scale = consts[4];
-  Type logit_coef = hyper[0];
-  Type log_sd = hyper[1];
-  Type coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
-  Type coef = (max - min) * coef_raw + min;
+  int k = hyper.size() - 1;
+  vector<Type> logit_coef = hyper.head(k);
+  Type log_sd = hyper[k];
+  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  vector<Type> coef = (max - min) * coef_raw + min;
   Type sd = exp(log_sd);
   Type ans = 0;
-  ans += dbeta(coef_raw, shape1, shape2, true)
-    + log(coef_raw) + log(1 - coef_raw);
+  ans += dbeta(coef_raw, shape1, shape2, true).sum()
+    + log(coef_raw).sum()
+    + log(1 - coef_raw).sum();
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(AR1(coef), sd)(effectfree); // AR1 returns neg log-lik
+  ans -= SCALE(ARk(coef), sd)(effectfree); // ARk returns neg log-lik
   return ans;
 }
 
@@ -267,7 +269,7 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by);
     break;
   case 5:
-    ans = logpost_ar1(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_ar(effectfree, hyper, consts, matrix_along_by);
     break;
   case 6:
     ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
