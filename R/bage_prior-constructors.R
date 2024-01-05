@@ -1,12 +1,67 @@
 
 ## User-visible constructors --------------------------------------------------
 
+## 'bage_prior_ar' only ever created via 'set_prior()'
+
+## NO_TESTS
+#' Autoregressive Prior
+#'
+#' Autoregressive prior with order `k`.
+#'
+#' @section Mathematical description:
+#'
+#' The model is
+#'
+#' \deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-1} + \epsilon_i}
+#' \deqn{\epsilon_i \sim \text{N}(0, \omega^2)}
+#'
+#' where \eqn{\omega} is chosen so that each \eqn{x_i} has
+#' marginal variance \eqn{\sigma^2}. The value of
+#' \eqn{\sigma} has prior
+#'
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' The \eqn{\phi_j} are contrained values between -1 and 1.
+#' 
+#' @param n The order of the model.
+#' @param s Scale of half-normal prior for
+#' standard deviation (\eqn{\sigma}).
+#' Defaults to 1.
+#'
+#' @returns An object of class `bage_prior_ar1`.
+#'
+#' @seealso [N()], [RW()], [RW2()], [Known()].
+#' The values for `min` and `max` are based on the
+#' defaults for function `forecast::ets()`.
+#'
+#' @references TMB documentation for
+#' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
+#'
+#' @examples
+#' AR(n = 3)
+#' AR(n = 3, s = 2.4)
+#' @export
+AR <- function(n, s = 1) {
+  check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  n <- as.integer(n)
+  scale <- as.double(s)
+  new_bage_prior_ar(n = n,
+                    min = -1,
+                    max = 1,
+                    scale = scale,
+                    nm = "AR")
+}
+
+
 ## 'bage_prior_ar1' only ever created via 'set_prior()'
 
 ## HAS_TESTS
 #' AR1 prior
 #'
-#' Autoregression prior.
+#' Autoregressive prior of order 1
+#'
+#' @section Mathematical description:
 #'
 #' The model is
 #' \deqn{x_0 \sim \text{N}(0, \sigma^2)}
@@ -34,7 +89,8 @@
 #'
 #' @returns An object of class `bage_prior_ar1`.
 #'
-#' @seealso [N()], [RW()], [RW2()], [Known()].
+#' @seealso [AR()],
+#' [N()], [RW()], [RW2()], [Known()].
 #' The values for `min` and `max` are based on the
 #' defaults for function `forecast::ets()`.
 #'
@@ -56,9 +112,11 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
                          i = "{.arg max} is {.val {max}}."))
     min <- as.double(min)
     max <- as.double(max)
-    new_bage_prior_ar1(min = min,
-                       max = max,
-                       scale = scale)
+    new_bage_prior_ar(n = 1L,
+                      min = min,
+                      max = max,
+                      scale = scale,
+                      nm = "AR1")
 }
 
 
@@ -554,23 +612,26 @@ SVD <- function(scaled_svd, n = 5, indep = TRUE) {
 ## 'specific' is a general list of objects
 ## contained in this prior
 
+
 ## HAS_TESTS
-new_bage_prior_ar1 <- function(scale, min, max) {
-    shape1 <- 2.0
-    shape2 <- 2.0
-    ans <- list(i_prior = 5L,
-                const = c(shape1 = shape1,
-                          shape2 = shape2,
-                          min = min,
-                          max = max,
-                          scale = scale),
-                specific = list(shape1 = shape1,
-                                shape2 = shape2,
-                                min = min,
-                                max = max,
-                                scale = scale))
-    class(ans) <- c("bage_prior_ar1", "bage_prior")
-    ans
+new_bage_prior_ar <- function(n, scale, min, max, nm) {
+  shape1 <- 2.0
+  shape2 <- 2.0
+  ans <- list(i_prior = 5L,
+              const = c(shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max,
+                        scale = scale),
+              specific = list(n = n,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              scale = scale,
+                              nm = nm))
+  class(ans) <- c("bage_prior_ar", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS

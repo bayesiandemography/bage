@@ -2,8 +2,28 @@
 
 ## User-visible constructors --------------------------------------------------
 
+test_that("'AR' works with valid inputs", {
+  expect_identical(AR(n = 3),
+                   new_bage_prior_ar(n = 3L,
+                                     min = -1,
+                                     max = 1,
+                                     scale = 1,
+                                     nm = "AR"))
+  expect_identical(AR(n = 1, s = 0.01),
+                   new_bage_prior_ar(n = 1L,
+                                     min = -1,
+                                     max = 1,
+                                     scale = 0.01,
+                                     nm = "AR"))
+})
+
 test_that("'AR1' works with valid inputs", {
-    expect_identical(AR1(), new_bage_prior_ar1(min = 0.8, max = 0.98, scale = 1))
+  expect_identical(AR1(),
+                   new_bage_prior_ar(n = 1L,
+                                     min = 0.8,
+                                     max = 0.98,
+                                     scale = 1,
+                                     nm = "AR1"))
 })
 
 test_that("'AR1' throws current error when min >= max", {
@@ -67,17 +87,34 @@ test_that("'SVD' works with valid inputs", {
 
 ## Internal constructors ------------------------------------------------------
 
-test_that("'new_bage_prior_ar1' works", {
-    obj <- new_bage_prior_ar1(min = 0.8, max = 0.98, scale = 1.0)
-    expect_s3_class(obj, "bage_prior_ar1")
-    expect_s3_class(obj, "bage_prior")
-    expect_identical(obj$i_prior, 5L)
-    expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = 0.8, max = 0.98, scale = 1))
-    expect_identical(obj$specific, list(shape1 = 2,
-                                        shape2 = 2,
-                                        min = 0.8,
-                                        max = 0.98,
-                                        scale = 1))
+test_that("'new_bage_prior_ar' works - AR interface", {
+  obj <- new_bage_prior_ar(n = 2L, min = -1, max = 1, scale = 1.0, nm = "AR")
+  expect_s3_class(obj, "bage_prior_ar")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 5L)
+  expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = -1, max = 1, scale = 1))
+  expect_identical(obj$specific, list(n = 2L,
+                                      shape1 = 2,
+                                      shape2 = 2,
+                                      min = -1,
+                                      max = 1,
+                                      scale = 1,
+                                      nm = "AR"))
+})
+
+test_that("'new_bage_prior_ar' works - AR1 interface", {
+  obj <- new_bage_prior_ar(n = 1L, min = 0.8, max = 0.98, scale = 1.0, nm = "AR1")
+  expect_s3_class(obj, "bage_prior_ar")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 5L)
+  expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = 0.8, max = 0.98, scale = 1))
+  expect_identical(obj$specific, list(n = 1L,
+                                      shape1 = 2,
+                                      shape2 = 2,
+                                      min = 0.8,
+                                      max = 0.98,
+                                      scale = 1,
+                                      nm = "AR1"))
 })
 
 test_that("'new_bage_prior_ilin' works", {

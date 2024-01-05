@@ -30,17 +30,22 @@ draw_vals_effect <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_effect.bage_prior_ar1 <- function(prior,
-                                            vals_hyper,
-                                            levels_effect,
-                                            agesex,
-                                            matrix_along_by,
-                                            n_sim) {
-    coef <- vals_hyper$coef
-    sd <- vals_hyper$sd
-    draw_vals_ar1(coef = coef,
-                  sd = sd,
-                  labels = levels_effect)
+draw_vals_effect.bage_prior_ar <- function(prior,
+                                           vals_hyper,
+                                           levels_effect,
+                                           agesex,
+                                           matrix_along_by,
+                                           n_sim) {
+  coef <- vals_hyper$coef
+  sd <- vals_hyper$sd
+  n <- length(levels_effect)
+  ans <- matrix(nrow = n, ncol = n_sim)
+  for (i_sim in seq_len(n_sim))
+    ans[, i_sim] <- draw_vals_ar_one(n = n,
+                                     coef = coef[, i_sim],
+                                     sd = sd[i_sim])
+  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  ans
 }
 
 ## NO_TESTS
@@ -227,7 +232,7 @@ draw_vals_hyper <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_ar1 <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_ar <- function(prior, matrix_along_by, n_sim) {
     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(coef = coef,
@@ -413,7 +418,7 @@ is_prior_ok_for_term <- function(prior, nm, matrix_along_by, agesex) {
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_ar1 <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_ar <- function(prior, nm, matrix_along_by, agesex) {
   check_is_main_effect(nm = nm,
                        prior = prior)
   length_effect <- length(matrix_along_by)
@@ -574,8 +579,10 @@ levels_hyper <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_ar1 <- function(prior, matrix_along_by)
-    c("coef", "sd")
+levels_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
+  n <- prior$specific$n
+  rep(c("coef", "sd"), times = c(n, 1L))
+}
 
 ## HAS_TESTS
 #' @export
@@ -814,20 +821,33 @@ str_call_prior <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_ar1 <- function(prior) {
-    min <- prior$specific$min
-    max <- prior$specific$max
-    scale <- prior$specific$scale
-    args <- character(3)
-    if (min != 0.8)
-        args[[1L]] <- sprintf("min=%s", min)
-    if (max != 0.98)
-        args[[2L]] <- sprintf("max=%s", max)
+str_call_prior.bage_prior_ar <- function(prior) {
+  specific <- prior$specific
+  n <- specific$n
+  min <- specific$min
+  max <- specific$max
+  scale <- specific$scale
+  nm <- specific$nm
+  if (nm == "AR") {
+    args <- character(2L)
+    args[[1L]] <- sprintf("n=%d", n)
     if (scale != 1)
-        args[[3L]] <- sprintf("s=%s", scale)
-    args <- args[nzchar(args)]
-    args <- paste(args, collapse = ",")
-    sprintf("AR1(%s)", args)
+      args[[2L]] <- sprintf("s=%s", scale)
+  }
+  else if (nm == "AR1") {
+    args <- character(3L)
+    if (min != 0.8)
+      args[[1L]] <- sprintf("min=%s", min)
+    if (max != 0.98)
+      args[[2L]] <- sprintf("max=%s", max)
+    if (scale != 1)
+      args[[3L]] <- sprintf("s=%s", scale)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for 'nm'.")
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("%s(%s)", nm, args)
 }
 
 ## HAS_TESTS
@@ -979,9 +999,19 @@ transform_hyper <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_ar1 <- function(prior, matrix_along_by)
-    list(coef = function(x) ifelse(x > 0, 1 / (1 + exp(-x)), exp(x) / (exp(x) + 1)),
-         sd = exp)
+transform_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
+  specific <- prior$specific
+  n <- specific$n
+  min <- specific$min
+  max <- specific$max
+  shifted_inv_logit <- function(x) {
+    ans_raw <- exp(x) / (1 + exp(x))
+    ans <- (max - min) * ans_raw + min
+    ans
+  }
+  rep(list(coef = shifted_inv_logit, sd = exp),
+      times = c(n, 1L))
+}
 
 ## HAS_TESTS
 #' @export
