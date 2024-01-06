@@ -165,6 +165,21 @@ draw_vals_effect.bage_prior_rw2 <- function(prior,
 
 ## HAS_TESTS
 #' @export
+draw_vals_effect.bage_prior_seas <- function(prior,
+                                             vals_hyper,
+                                             levels_effect,
+                                             agesex,
+                                             matrix_along_by,
+                                             n_sim) {
+  n <- prior$specific$n
+  sd <- vals_hyper$sd
+  draw_vals_seas(n = n,
+                 sd = sd,
+                 labels = levels_effect)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_effect.bage_prior_spline <- function(prior,
                                                vals_hyper,
                                                levels_effect,
@@ -294,6 +309,13 @@ draw_vals_hyper.bage_prior_rw <- function(prior, matrix_along_by, n_sim) {
 ## HAS_TESTS
 #' @export
 draw_vals_hyper.bage_prior_rw2 <- function(prior, matrix_along_by, n_sim) {
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_seas <- function(prior, matrix_along_by, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
@@ -516,6 +538,13 @@ is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, matrix_along_by, ages
 
 ## HAS_TESTS
 #' @export
+is_prior_ok_for_term.bage_prior_seas <- function(prior, nm, matrix_along_by, agesex) {
+  cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used on its own.",
+                   i = "{.var {str_call_prior(prior)}} prior can only be inside function {.fun bage::combine}."))
+}
+
+## HAS_TESTS
+#' @export
 is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, matrix_along_by, agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
@@ -620,6 +649,11 @@ levels_hyper.bage_prior_rw <- function(prior, matrix_along_by)
 ## HAS_TESTS
 #' @export
 levels_hyper.bage_prior_rw2 <- function(prior, matrix_along_by)
+  "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_seas <- function(prior, matrix_along_by)
     "sd"
 
 ## HAS_TESTS
@@ -951,6 +985,20 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_call_prior.bage_prior_seas <- function(prior) {
+  n <- prior$specific$n
+  scale <- prior$specific$scale
+  args <- character(2L)
+  args[[1]] <- sprintf("n=%d", n)
+  if (scale != 1)
+    args[[2L]] <- sprintf("s=%s", scale)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("Seas(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
 str_call_prior.bage_prior_spline <- function(prior) {
   n <- prior$specific$n
   scale <- prior$specific$scale
@@ -1051,6 +1099,11 @@ transform_hyper.bage_prior_rw <- function(prior, matrix_along_by)
 ## HAS_TESTS
 #' @export
 transform_hyper.bage_prior_rw2 <- function(prior, matrix_along_by)
+  list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_seas <- function(prior, matrix_along_by)
     list(sd = exp)
 
 ## HAS_TESTS

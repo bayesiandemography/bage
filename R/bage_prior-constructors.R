@@ -492,6 +492,56 @@ RW2 <- function(s = 1, sd = 1) {
 }
 
 
+
+## HAS_TESTS
+#' Prior for Seasonal Effect
+#'
+#' Prior for seasonal effect, where the size of
+#' the effects evolve over time. Each season follows its
+#' own random walk.
+#'
+#' @section Mathematical description:
+#'
+#' \deqn{x_j \sim \text{N}(0, 1), j = 1, \cdots, \text{n}}
+#' \deqn{x_j - x_{j-n} \sim \text{N}(x_{j - n}, \sigma^2), j = n+1, \cdots, J}
+#'
+#' Standard deviation \eqn{\sigma} is drawn from a
+#' half-normal distribution,
+#' 
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (A half-normal distribution has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' The scale for the half-normal distribution, `s`, defaults
+#' to 1, but can be set to other values. Lower values
+#' for `scale` lead to smoother series.
+#'
+#' @param n The number of seasons.
+#' @param s A positive, finite number. Default is 1.
+#'
+#' @returns An object of class `"bage_prior_seas"`.
+#'
+#' @seealso
+#' - [RW()] for an ordinary random walk.
+#'
+#' @examples
+#' Seas(n = 4)
+#' Seas(n = 12, s = 0.5)
+#' @export
+Seas <- function(n, s = 1) {
+  check_n(n = n, nm_n = "n", min = 2L, max = NULL, null_ok = FALSE)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  n <- as.integer(n)
+  scale <- as.double(s)
+  new_bage_prior_seas(n = n,
+                      scale = scale)
+}
+
+
+
+
 ## 'bage_prior_spline' only ever created by call to 'set_prior' function
 
 ## HAS_TESTS
@@ -703,6 +753,16 @@ new_bage_prior_rw2 <- function(scale, sd_slope) {
                 specific = list(scale = scale,
                                 sd_slope = sd_slope))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_seas <- function(n, scale) {
+    ans <- list(i_prior = 10L,
+                const = c(scale = scale),
+                specific = list(n = n,
+                                scale = scale))
+    class(ans) <- c("bage_prior_seas", "bage_prior")
     ans
 }
 

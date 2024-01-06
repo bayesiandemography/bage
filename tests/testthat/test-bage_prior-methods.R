@@ -139,6 +139,24 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
                    list(letters, as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_seas", {
+  prior <- Seas(n = 4)
+  matrix_along_by <- matrix(0:25, nc = 1)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_spline", {
   prior <- Sp()
   matrix_along_by <- matrix(0:25, nc = 1)
@@ -251,6 +269,16 @@ test_that("'draw_vals_hyper' works with bage_prior_rw", {
 
 test_that("'draw_vals_hyper' works with bage_prior_rw2", {
   prior <- RW2()
+  matrix_along_by <- matrix(0:9, nc = 1)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_seas", {
+  prior <- Seas(n = 4)
   matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
                          matrix_along_by = matrix_along_by,
@@ -377,6 +405,14 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
                                      agesex = "other"))
 })
 
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
+  expect_error(is_prior_ok_for_term(prior = Seas(n = 4),
+                                    nm = "time",
+                                    matrix_along_by = matrix(0:3, nc = 1),
+                                    agesex = "other"),
+               "`Seas\\(n=4\\)` prior cannot be used on its own.")
+})
+
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
     expect_true(is_prior_ok_for_term(prior = Sp(),
                                      nm = "time",
@@ -466,6 +502,12 @@ test_that("'levels_hyper' works with 'bage_prior_rw'", {
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = RW2(), matrix_along_by = matrix_along_by),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_seas'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Seas(n = 2), matrix_along_by = matrix_along_by),
                    "sd")
 })
 
@@ -652,6 +694,11 @@ test_that("'str_call_prior' works with bage_prior_rw2", {
     expect_identical(str_call_prior(RW2(sd = 0.1, s = 0.95)), "RW2(s=0.95,sd=0.1)")
 })
 
+test_that("'str_call_prior' works with bage_prior_seas", {
+    expect_identical(str_call_prior(Seas(n = 2)), "Seas(n=2)")
+    expect_identical(str_call_prior(Seas(s = 3.2, n = 2)), "Seas(n=2,s=3.2)")
+})
+
 test_that("'str_call_prior' works with bage_prior_spline", {
     expect_identical(str_call_prior(Sp()), "Sp()")
     expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n=5)")
@@ -738,6 +785,12 @@ test_that("'transform_hyper' works with 'bage_prior_rw'", {
 test_that("'transform_hyper' works with 'bage_prior_rw2'", {
   matrix_along_by <- matrix(0:9, nc = 1)
   l <- transform_hyper(prior = RW2(), matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_seas'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  l <- transform_hyper(prior = Seas(n = 4), matrix_along_by = matrix_along_by)
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 

@@ -522,6 +522,31 @@ draw_vals_sd <- function(prior, n_sim) {
     ans
 }
 
+## HAS_TESTS
+#' Generate Draws from Seas
+#'
+#' Each column is one draw.
+#'
+#' @param n Number of seasons
+#' @param sd Vector of values
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_seas <- function(n, sd, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n_effect,
+                ncol = n_sim,
+                dimnames = list(labels, seq_len(n_sim)))
+  ans[seq_len(n), ] <- stats::rnorm(n = n_sim)
+  for (i_effect in seq.int(from = n + 1L, to = n_effect))
+    ans[i_effect, ] <- stats::rnorm(n = n_sim,
+                                    mean = ans[i_effect - n, ],
+                                    sd = sd)
+  ans
+}
 
 ## HAS_TESTS
 #' Draw Values for the 'slope' Parameter of a Prior

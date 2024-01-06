@@ -152,14 +152,14 @@ Type logpost_ilin(vector<Type> effectfree,
   Type scale = consts[0];
   Type sd_slope = consts[1];
   Type mscale = consts[2];
-  int n_by = hyper.size() - 3;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
   Type slope = hyper[0];
   vector<Type> mslope = hyper.segment(1, n_by);
   Type log_sd = hyper[n_by+1];
   Type log_msd = hyper[n_by+2];
   Type sd = exp(log_sd);
   Type msd = exp(log_msd);
-  int n_along = effectfree.size() / n_by;
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   ans += dnorm(msd, Type(0), mscale, true) + log_msd;
@@ -173,6 +173,30 @@ Type logpost_ilin(vector<Type> effectfree,
       Type q = a0 + a1 * (i_along + 1);
       ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
     }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_seas(vector<Type> effectfree,
+		  vector<Type> hyper,
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  int n_season = consts.size(); // size of 'consts' used to record 'n_season'
+  int n_effect = effectfree.size();
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_effect = 0; i_effect < n_season; i_effect++) {
+    Type effect_curr = effectfree[i_effect];
+    ans += dnorm(effect_curr, Type(0), Type(1), true);
+  }
+  for (int i_effect = n_season; i_effect < n_effect; i_effect++) {
+    Type effect_curr = effectfree[i_effect];
+    Type effect_prev = effectfree[i_effect - n_season];
+    ans += dnorm(effect_curr, effect_prev, sd, true);
   }
   return ans;
 }
@@ -279,6 +303,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 9:
     ans = logpost_ilin(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 10:
+    ans = logpost_seas(effectfree, hyper, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
