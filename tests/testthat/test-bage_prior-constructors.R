@@ -65,6 +65,11 @@ test_that("'RW2' works with valid inputs", {
     expect_identical(RW2(), new_bage_prior_rw2(scale = 1, sd_slope = 1))
 })
 
+test_that("'Seas' works with valid inputs", {
+    expect_identical(Seas(n = 2), new_bage_prior_seas(n = 2L, scale = 1))
+    expect_identical(Seas(n = 12L, s = 0.1), new_bage_prior_seas(n = 12L, scale = 0.1))
+})
+
 test_that("'Sp' works with valid inputs", {
     expect_identical(Sp(), new_bage_prior_spline(n = NULL, scale = 1, sd_slope = 1))
     expect_identical(Sp(n = 6, s = 3, sd = 0.2),
@@ -179,6 +184,15 @@ test_that("'new_bage_prior_rw2' works", {
     expect_identical(obj$i_prior, 4L)
     expect_identical(obj$const, c(scale = 1, sd_slope = 1))
     expect_identical(obj$specific, list(scale = 1, sd_slope = 1))
+})
+
+test_that("'new_bage_prior_seas' works", {
+    obj <- new_bage_prior_seas(n = 4L, scale = 1)
+    expect_s3_class(obj, "bage_prior_seas")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 10L)
+    expect_identical(obj$const, c(scale = 1))
+    expect_identical(obj$specific, list(n = 4L, scale = 1))
 })
 
 test_that("'new_bage_prior_spline' works", {

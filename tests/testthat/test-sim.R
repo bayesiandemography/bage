@@ -467,6 +467,31 @@ test_that("'draw_vals_sd' works", {
 })
 
 
+## draw_vals_seas -------------------------------------------------------------
+
+test_that("'draw_vals_seas' works", {
+  set.seed(0)
+  prior <- Seas(n = 4)
+  n_sim <- 1000
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  labels <- 1:200
+  set.seed(0)
+  ans <- draw_vals_seas(n = 4L,
+                        sd = sd,
+                        labels = labels)
+  expect_equal(mean(ans[1:4, ]),
+               0,
+               tolerance = 0.02)
+  expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, lag = 4)))),
+               sd,
+               tolerance = 0.05)
+  expect_identical(dim(ans), c(200L, 1000L))
+  expect_identical(dimnames(ans),
+                   list(as.character(seq_len(200)),
+                        as.character(seq_len(1000))))
+})
+
+
 ## draw_vals_slope ------------------------------------------------------------
 
 test_that("'draw_vals_slope' works", {

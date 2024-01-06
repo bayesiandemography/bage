@@ -304,7 +304,7 @@ NFix(sd = 1)
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\beta_{J_m+h}^{(m)}, \tau_m^2)
+  \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-1}^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -347,7 +347,7 @@ RW(s = 1)
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(2 \beta_{J_m + h}^{(m)} - \beta_{J_m + h -1}^{(m)}, \tau_m^2)
+  \beta_{J_m+h}^{(m)} \sim \text{N}(2 \beta_{J_m+h-1}^{(m)} - \beta_{J_m+h-2}^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -390,18 +390,18 @@ where $p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, 
 ### Prediction
 
 \begin{equation}
-  \chi_{J_m + h } \sim \text{N}\left(\phi_1^{(\chi)} \chi_{J_m + h - 1} + \cdots + \phi_{K_m}^{(\chi)} \chi_{J_m + h - {K_m}}, \tau_{\chi}^2\right)
+  \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{J_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{J_m+h-K_m}^{(m)}, \tau_m^2\right)
 \end{equation}
 
 
 ### Code
 
 ```
-AR(n, s = 1)
+AR(n = 2, s = 1)
 ```
 
 - `n` is $K_m$
-- `s` is $A_{\chi}$
+- `s` is $A_{\tau}^{(m)}$
 
 
 ## AR1 {#sec:pr-ar1}
@@ -444,6 +444,54 @@ AR1(min = 0.8, max = 0.98, s = 1)
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
+
+
+## Independent Autoregressive {#sec:pr-iar}
+
+
+### Model
+
+\begin{equation}
+  \beta_{uv}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m; v = V_m + 1, \cdots, V_m.
+\end{equation}
+Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_{uv}^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
+\begin{equation}
+  \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
+\end{equation}
+Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(m)}$ the prior
+\begin{align}
+  \phi_k^{(m)\prime} & \sim \text{Beta}(2, 2) \\
+  \phi_k^{(m)} & =  2 \phi_k^{(m)\prime} - 1.
+\end{align}
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+\end{equation}
+where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
+
+### Prediction
+
+\begin{equation}
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
+\end{equation}
+
+
+### Code
+
+```
+IAR(n = 2, s = 1, along = NULL)
+```
+
+- `n` is $K_m$
+- `s` is $A_{\tau}^{(m)}$
+- `along` is the name of the "along" dimension. If no value given, the algorithm is:
+    - if interaction includes a time dimension, use that;
+    - otherwise, if the interaction includes an age dimension, use that;
+    - otherwise, throw an error.
+
 
 
 ## Linear {#sec:pr-lin}
@@ -627,52 +675,44 @@ Known(values)
 - `values` is a vector containing the $\beta_j^{(m)}$.
 
 
+## Seasonal effects {#sec:pr-season}
+
+### Model
+
+\begin{align}
+  \beta_j^{(m)} & \sim \text{N}(0, 1), \quad j = 1, \cdots, S_m - 1 \\
+  \beta_{S_m}^{(m)} & = - \sum_{j=1}^{S_m - 1} \beta_j^{(m)} \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j - S_m}^{(m)}, \tau_m^2 ), \quad j = S_m+1, \cdots, J_m \\ 
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
+\end{align}
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m-1} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
+\end{equation}
+
+### Prediction
+
+\begin{equation}
+  \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-S_m}^{(m)}, \tau_m^2)
+\end{equation}
+
+### Code
+
+```
+Seas(n, s = 1)
+```
+
+- `n` is $S_m$
+- `s` is $A_{\tau}^{(m)}$
+
+
 # Priors for intercept {#sec:pr-int}
 
 The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)). If a fixed-norm prior is used, the default value for scale $A_{\beta}^{(0)}$ is 10 rather than 1.
 
-
-# Priors for interactions {#sec:pr-interact}
-
-*Not written yet*
-
-
-
-
-
-
-# Seasonal effects {#sec:pr-season}
-
-## Model
-
-Seasonal effects are applied to a single main effect or interaction $\pmb{\beta}^{(m)}$. They are modelled by a vector $\pmb{\lambda}$ with $J_m$ elements. Seasonal effects are divided into $S$ batches, corresponding to $S$ seasons, where $2 \le S \le \tfrac{1}{2} J_m$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
-
-\begin{align}
-  \lambda_j & \sim \text{N}(\lambda_{j - S}, \tau_{\lambda}^2 ) \\ 
-  \tau_{\lambda} & \sim \text{N}^+\left(0, A_{\lambda}^2 \right) \\
-  \sum_{j=1}^{J_m} \lambda_j & \sim \text{N}(0, 1)
-\end{align}
-
-
-## Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_{\lambda} | 0, A_{\lambda}^2) \text{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j \mid 0, 1 \right)  \prod_{j=2}^{J_m} \text{N}\left(\lambda_j - \lambda_{j-1} \mid 0, \tau_{\lambda}^2 \right) 
-\end{equation}
-
-## Prediction
-
-TODO - write
-
-## Code
-
-```
-set_season(x, n, s = 1)
-```
-
-- `x` is the model object
-- `n` is $S$
-- `s` is $A_{\lambda}$
 
 
 # Covariates {#sec:pr-cov}
