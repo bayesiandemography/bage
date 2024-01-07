@@ -7,14 +7,224 @@ using namespace density;
 using namespace Eigen;
 using namespace tmbutils;
 
+// Helper functions -----------------------------------------------------------
 
-// Functions for calculating prior density ------------------------------------
+template <class Type>
+Type logpost_betabinom(Type x,
+		       Type n,
+		       Type logit_mu,
+		       Type disp) {
+  Type mu = 1 / (1 + exp(-logit_mu));
+  Type alpha = mu / disp;
+  Type beta = (1 - mu) / disp;
+  Type log_num = lgamma(x + alpha) + lgamma(n - x + beta) - lgamma(n + alpha + beta);
+  Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
+  return log_num - log_den;
+}
 
-// Functions to calculation log-density of priors
-// for main effects and interactions.
+
+// "methods" for 'logpost' function  ------------------------------------------
+
 // Assume inputs all valid (checking done in R).
 // Note that the 'Known' prior does not have
-// an associated 'logpost' function.
+// an associated 'logpost' method.
+
+template <class Type>
+Type logpost_ar(vector<Type> effectfree,
+		vector<Type> hyper,
+		vector<Type> consts,
+		matrix<int> matrix_along_by) {
+  Type shape1 = consts[0];
+  Type shape2 = consts[1];
+  Type min = consts[2];
+  Type max = consts[3];
+  Type scale = consts[4];
+  int n_coef = hyper.size() - 1;
+  vector<Type> logit_coef = hyper.head(n_coef);
+  Type log_sd = hyper[n_coef];
+  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  vector<Type> coef = (max - min) * coef_raw + min;
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dbeta(coef_raw, shape1, shape2, true).sum()
+    + log(coef_raw).sum()
+    + log(1 - coef_raw).sum();
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans -= SCALE(ARk(coef), sd)(effectfree); // ARk returns neg log-lik
+  return ans;
+}
+
+template <class Type>
+Type logpost_combine(vector<Type> effectfree,
+		     vector<Type> hyper,
+		     vector<Type> consts,
+		     matrix<int> matrix_along_by) {
+  int n_effect = effectfree.size();
+  int n_comp = consts[0]; // number of priors contained within combined prior
+  Type ans = 0;
+  int n_indices = 6;
+  vector<Type> effectfree_comp(n_effect);       
+  vector<Type> effectfree_comp_total(n_effect); 
+  for (int i_effect = 0; i_effect < n_effect; i_effect++)
+    effectfree_comp_total[i_effect] = 0;
+  for (int i_comp = 0; i_comp < n_comp; i_comp++) {
+    int offset_comp = i_comp * n_indices + 1;
+    // extract 'effect_free'
+    bool is_comp_last = i_comp == n_comp - 1;
+    if (is_comp_last) {
+      effectfree_comp = effectfree - effectfree_comp_total;
+    }
+    else {
+      int start_effect = consts[offset_comp + 1];
+      int length_effect = consts[offset_comp + 2];
+      effectfree_comp = hyper.segment(start_effect, length_effect);
+      effectfree_comp_total += effectfree_comp;
+    }
+    // extract 'consts'
+    int start_consts = consts[offset_comp + 3];
+    int length_consts = consts[offset_comp + 4];
+    vector<Type> consts_comp = consts.segment(start_consts, length_consts);
+    // extract info about 'hyper'
+    int start_hyper = consts[offset_comp + 5];
+    int length_hyper = consts[offset_comp + 6];
+    bool uses_hyper = length_hyper > 0;
+    // extract 'i_prior'
+    int i_prior_comp = consts[offset_comp];
+    // calculate log posterior density
+    if (uses_hyper) {
+      vector<Type> hyper_comp = hyper.segment(start_hyper, length_hyper);
+      ans += logpost_uses_hyper(effectfree_comp,
+				hyper_comp,
+				consts_comp,
+				matrix_along_by,
+				i_prior_comp);
+    }
+    else {
+      ans += logpost_not_uses_hyper(effectfree_comp,
+				    consts_comp,
+				    matrix_along_by,
+				    i_prior_comp);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_iar(vector<Type> effectfree,
+		 vector<Type> hyper,
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
+  Type shape1 = consts[0];
+  Type shape2 = consts[1];
+  Type min = consts[2];
+  Type max = consts[3];
+  Type scale = consts[4];
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  int n_coef = hyper.size() - 1;
+  vector<Type> logit_coef = hyper.head(n_coef);
+  Type log_sd = hyper[n_coef];
+  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  vector<Type> coef = (max - min) * coef_raw + min;
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dbeta(coef_raw, shape1, shape2, true).sum()
+    + log(coef_raw).sum()
+    + log(1 - coef_raw).sum();
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    vector<Type> effect_along(n_along);
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      effect_along[i_along] = effectfree[i];
+    }
+    ans -= SCALE(ARk(coef), sd)(effect_along); // ARk returns neg log-lik
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_ilin(vector<Type> effectfree,
+		  vector<Type> hyper,
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type sd_slope = consts[1];
+  Type mscale = consts[2];
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type slope = hyper[0];
+  vector<Type> mslope = hyper.segment(1, n_by);
+  Type log_sd = hyper[n_by+1];
+  Type log_msd = hyper[n_by+2];
+  Type sd = exp(log_sd);
+  Type msd = exp(log_msd);
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans += dnorm(msd, Type(0), mscale, true) + log_msd;
+  ans += dnorm(slope, Type(0), sd_slope, true);
+  ans += dnorm(mslope, slope, msd, true).sum();
+  Type a0 = -1 * (n_along + 1) / (n_along - 1);
+  Type a1 = 2 / (n_along - 1);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      Type q = a0 + a1 * (i_along + 1);
+      ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_iseas(vector<Type> effectfree,
+		   vector<Type> hyper,
+		   vector<Type> consts,
+		   matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  int n_season = consts.size(); // size of 'consts' used to record 'n_season'
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_season; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      ans += dnorm(effectfree[i], Type(0), Type(1), true);
+    }
+    for (int i_along = n_season; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - n_season, i_by);
+      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_lin(vector<Type> effectfree,
+		 vector<Type> hyper,
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type sd_slope = consts[1];
+  Type slope = hyper[0];
+  Type log_sd = hyper[1];
+  Type sd = exp(log_sd);
+  int n = effectfree.size();
+  Type ans = 0;
+  ans += dnorm(slope, Type(0), sd_slope, true);
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  Type a0 = -1 * (n + 1) / (n - 1);
+  Type a1 = 2 / (n - 1);
+  for (int i = 0; i < n; i++) {
+    Type q = a0 + a1 * (i + 1);
+    ans += dnorm(effectfree[i], q * slope, sd, true);
+  }
+  return ans;
+}
 
 template <class Type>
 Type logpost_norm(vector<Type> effectfree,
@@ -82,102 +292,6 @@ Type logpost_rw2(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_ar(vector<Type> effectfree,
-		vector<Type> hyper,
-		vector<Type> consts,
-		matrix<int> matrix_along_by) {
-  Type shape1 = consts[0];
-  Type shape2 = consts[1];
-  Type min = consts[2];
-  Type max = consts[3];
-  Type scale = consts[4];
-  int k = hyper.size() - 1;
-  vector<Type> logit_coef = hyper.head(k);
-  Type log_sd = hyper[k];
-  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
-  vector<Type> coef = (max - min) * coef_raw + min;
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  ans += dbeta(coef_raw, shape1, shape2, true).sum()
-    + log(coef_raw).sum()
-    + log(1 - coef_raw).sum();
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(ARk(coef), sd)(effectfree); // ARk returns neg log-lik
-  return ans;
-}
-
-template <class Type>
-Type logpost_spline(vector<Type> effectfree,
-   		    vector<Type> hyper,
-		    vector<Type> consts,
-		    matrix<int> matrix_along_by) {
-  return logpost_rw2(effectfree, hyper, consts, matrix_along_by);
-}
-
-template <class Type>
-Type logpost_svd(vector<Type> effectfree,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
-  return dnorm(effectfree, Type(0), Type(1), true).sum();
-}
-
-template <class Type>
-Type logpost_lin(vector<Type> effectfree,
-		 vector<Type> hyper,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type sd_slope = consts[1];
-  Type slope = hyper[0];
-  Type log_sd = hyper[1];
-  Type sd = exp(log_sd);
-  int n = effectfree.size();
-  Type ans = 0;
-  ans += dnorm(slope, Type(0), sd_slope, true);
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  Type a0 = -1 * (n + 1) / (n - 1);
-  Type a1 = 2 / (n - 1);
-  for (int i = 0; i < n; i++) {
-    Type q = a0 + a1 * (i + 1);
-    ans += dnorm(effectfree[i], q * slope, sd, true);
-  }
-  return ans;
-}
-
-template <class Type>
-Type logpost_ilin(vector<Type> effectfree,
-		  vector<Type> hyper,
-		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type sd_slope = consts[1];
-  Type mscale = consts[2];
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type slope = hyper[0];
-  vector<Type> mslope = hyper.segment(1, n_by);
-  Type log_sd = hyper[n_by+1];
-  Type log_msd = hyper[n_by+2];
-  Type sd = exp(log_sd);
-  Type msd = exp(log_msd);
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(msd, Type(0), mscale, true) + log_msd;
-  ans += dnorm(slope, Type(0), sd_slope, true);
-  ans += dnorm(mslope, slope, msd, true).sum();
-  Type a0 = -1 * (n_along + 1) / (n_along - 1);
-  Type a1 = 2 / (n_along - 1);
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_along = 0; i_along < n_along; i_along++) {
-      int i = matrix_along_by(i_along, i_by);
-      Type q = a0 + a1 * (i_along + 1);
-      ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
-    }
-  }
-  return ans;
-}
-
-template <class Type>
 Type logpost_seas(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts,
@@ -197,86 +311,22 @@ Type logpost_seas(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_iseas(vector<Type> effectfree,
-		   vector<Type> hyper,
-		   vector<Type> consts,
-		   matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  int n_season = consts.size(); // size of 'consts' used to record 'n_season'
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type log_sd = hyper[0];
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_along = 0; i_along < n_season; i_along++) {
-      int i = matrix_along_by(i_along, i_by);
-      ans += dnorm(effectfree[i], Type(0), Type(1), true);
-    }
-    for (int i_along = n_season; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - n_season, i_by);
-      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
-    }
-  }
-  return ans;
+Type logpost_spline(vector<Type> effectfree,
+   		    vector<Type> hyper,
+		    vector<Type> consts,
+		    matrix<int> matrix_along_by) {
+  return logpost_rw2(effectfree, hyper, consts, matrix_along_by);
 }
 
 template <class Type>
-Type logpost_combine(vector<Type> effectfree,
-		     vector<Type> hyper,
-		     vector<Type> consts,
-		     matrix<int> matrix_along_by) {
-  int n_effect = effectfree.size();
-  int n_comp = consts[0]; // number of priors contained within combined prior
-  Type ans = 0;
-  int n_indices = 6;
-  vector<Type> effectfree_comp(n_effect);       
-  vector<Type> effectfree_comp_total(n_effect); 
-  for (int i_effect = 0; i_effect < n_effect; i_effect++)
-    effectfree_comp_total[i_effect] = 0;
-  for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-    int offset_comp = i_comp * n_indices + 1;
-    // extract 'effect_free'
-    bool is_comp_last = i_comp == n_comp - 1;
-    if (is_comp_last) {
-      effectfree_comp = effectfree - effectfree_comp_total;
-    }
-    else {
-      int start_effect = consts[offset_comp + 1];
-      int length_effect = consts[offset_comp + 2];
-      effectfree_comp = hyper.segment(start_effect, length_effect);
-      effectfree_comp_total += effectfree_comp;
-    }
-    // extract 'consts'
-    int start_consts = consts[offset_comp + 3];
-    int length_consts = consts[offset_comp + 4];
-    vector<Type> consts_comp = consts.segment(start_consts, length_consts);
-    // extract info about 'hyper'
-    int start_hyper = consts[offset_comp + 5];
-    int length_hyper = consts[offset_comp + 6];
-    bool uses_hyper = length_hyper > 0;
-    // extract 'i_prior'
-    int i_prior_comp = consts[offset_comp];
-    // calculate log posterior density
-    if (uses_hyper) {
-      vector<Type> hyper_comp = hyper.segment(start_hyper, length_hyper);
-      ans += logpost_uses_hyper(effectfree_comp,
-				hyper_comp,
-				consts_comp,
-				matrix_along_by,
-				i_prior_comp);
-    }
-    else {
-      ans += logpost_not_uses_hyper(effectfree_comp,
-				    consts_comp,
-				    matrix_along_by,
-				    i_prior_comp);
-    }
-  }
-  return ans;
+Type logpost_svd(vector<Type> effectfree,
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
+  return dnorm(effectfree, Type(0), Type(1), true).sum();
 }
+
+
+// Equivalent of method dispatch ----------------------------------------------
 
 template <class Type>
 Type logpost_not_uses_hyper(vector<Type> effectfree,
@@ -332,23 +382,13 @@ Type logpost_uses_hyper(vector<Type> effectfree,
   case 11:
     ans = logpost_iseas(effectfree, hyper, consts, matrix_along_by);
     break;
+  case 12:
+    ans = logpost_iar(effectfree, hyper, consts, matrix_along_by);
+    break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
   }
   return ans;
-}
-
-template <class Type>
-Type logpost_betabinom(Type x,
-		       Type n,
-		       Type logit_mu,
-		       Type disp) {
-  Type mu = 1 / (1 + exp(-logit_mu));
-  Type alpha = mu / disp;
-  Type beta = (1 - mu) / disp;
-  Type log_num = lgamma(x + alpha) + lgamma(n - x + beta) - lgamma(n + alpha + beta);
-  Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
-  return log_num - log_den;
 }
 
 

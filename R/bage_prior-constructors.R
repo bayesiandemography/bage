@@ -12,7 +12,7 @@
 #'
 #' The model is
 #'
-#' \deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-1} + \epsilon_i}
+#' \deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-k} + \epsilon_i}
 #' \deqn{\epsilon_i \sim \text{N}(0, \omega^2)}
 #'
 #' where \eqn{\omega} is chosen so that each \eqn{x_i} has
@@ -24,15 +24,17 @@
 #' The \eqn{\phi_j} are contrained values between -1 and 1.
 #' 
 #' @param n The order of the model.
+#' Default is `2`.
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
+#' Default is `1`.
 #'
-#' @returns An object of class `bage_prior_ar1`.
+#' @returns An object of class `bage_prior_ar`.
 #'
 #' @seealso [N()], [RW()], [RW2()], [Known()].
 #' The values for `min` and `max` are based on the
 #' defaults for function `forecast::ets()`.
+#' [AR1()]
 #'
 #' @references TMB documentation for
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
@@ -41,7 +43,7 @@
 #' AR(n = 3)
 #' AR(n = 3, s = 2.4)
 #' @export
-AR <- function(n, s = 1) {
+AR <- function(n = 2, s = 1) {
   check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   n <- as.integer(n)
@@ -82,12 +84,12 @@ AR <- function(n, s = 1) {
 #'
 #' @param min,max Minimum and maximum values
 #' for autocorrelation parameter (\eqn{\phi}).
-#' Default to 0.8 and 0.98.
+#' Defaults are `0.8` and `0.98`.
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
+#' Default is `1`.
 #'
-#' @returns An object of class `bage_prior_ar1`.
+#' @returns An object of class `bage_prior_ar`.
 #'
 #' @seealso [AR()],
 #' [N()], [RW()], [RW2()], [Known()].
@@ -120,17 +122,17 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 }
 
 
-## 'bage_prior_ilin' only ever created via 'set_prior()'
-
-## HAS_TESTS
-#' Independent Linear Prior
+#' Independent Autoregressive Prior
 #'
-#' Prior for an interaction where, within each combination
-#' of the 'by' variables, the elements of the 'along'
-#' variable follow (approximately) a straight line.
-#' The slopes of the line vary across
-#' different combinations of 'by' variables'.
-#'
+#' Prior for an interaction,
+#' where an autoregression model
+#' of order `n` is applied
+#' to the "along" variable, within each
+#' combination of values of the "by" variable.
+#' The damping coefficients are shared across
+#' different combinations of the "by" variables,
+#' but the models are otherwise independent.
+#' 
 #' @section 'Along' and 'by' variables:
 #'
 #' Multivariate priors for interactions distinguish
@@ -149,6 +151,139 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #'   age variable, then it is assumed to be
 #'   the 'along' variable;
 #' - otherwise, an error is raised.
+#' 
+#' @section Mathematical description:
+#'
+#' The model is
+#'
+#' \deqn{x_{u,v} = \phi_1 x_{u,i-1} + \cdots + \phi_k x_{u,i-k} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
+#'
+#' where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
+#' marginal variance \eqn{\sigma^2}. The value of
+#' \eqn{\sigma} has prior
+#'
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' The \eqn{\phi_j} are constrained to the interval
+#' between -1 and 1.
+#' 
+#' @param n The order of the model.
+#' @param s Scale of half-normal prior for
+#' standard deviation (\eqn{\sigma}).
+#' Defaults to 1.
+#'
+#' @returns An object of class `bage_prior_iar`.
+#'
+#' @seealso [N()], [RW()], [RW2()], [Known()].
+#' The values for `min` and `max` are based on the
+#' defaults for function `forecast::ets()`.
+#' [AR1()]
+#'
+#' @references TMB documentation for
+#' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
+#'
+#' @examples
+#' IAR(n = 3)
+#' IAR(n = 3, s = 2.4)
+#' @export
+IAR <- function(n = 2, s = 1) {
+  check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  n <- as.integer(n)
+  scale <- as.double(s)
+  new_bage_prior_iar(n = n,
+                     min = -1,
+                     max = 1,
+                     scale = scale,
+                     nm = "IAR")
+}
+
+
+#' Independent AR1 Prior
+#'
+#' Autogressive prior for an interaction,
+#' where an AR model order 1 is applied
+#' to the "along" variable, within each
+#' combination of values of the "by" variable.
+#' The damping coefficient is shared across
+#' different combinations of the "by" variables,
+#' but the models are otherwise independent.
+#' 
+#' @inheritSection IAR 'Along' and 'by' variables
+#'
+#' @section Mathematical description:
+#'
+#' The model is
+#'
+#' \deqn{x_{u,v} = \phi x_{u,i-1} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
+#'
+#' where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
+#' marginal variance \eqn{\sigma^2}. The value of
+#' \eqn{\sigma} has prior
+#'
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' Correlation parameter \eqn{\phi} is constrained
+#' to lie in the interval `(a, b)`,
+#' where \eqn{a} = `min` and \eqn{b} = `max`.
+#' The prior distribution is for \eqn{\phi} is
+#' \deqn{\phi = (b - a) \phi' - a}
+#' where
+#' \deqn{\phi' \sim \text{beta}(2, 2)}.
+#'
+#' @param min,max Minimum and maximum values
+#' for autocorrelation parameter (\eqn{\phi}).
+#' Defaults are `0.8` and `0.98`.
+#' @param s Scale of half-normal prior for
+#' standard deviation (\eqn{\sigma}).
+#' Default is `1`.
+#'
+#' @returns An object of class `bage_prior_iar`.
+#'
+#' @seealso [N()], [RW()], [RW2()], [Known()].
+#' The values for `min` and `max` are based on the
+#' defaults for function `forecast::ets()`.
+#' [IAR()]
+#'
+#' @references TMB documentation for
+#' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
+#'
+#' @examples
+#' IAR1()
+#' IAR1( min = 0, max = 1, s = 2.4)
+#' @export
+function(min = 0.8, max = 0.98, s = 1) {
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  checkmate::assert_number(min, lower = 0, upper = 1)
+  checkmate::assert_number(max, lower = 0, upper = 1)
+  if (min >= max)
+    cli::cli_abort(c("{.arg min} not less than {.arg max}",
+                     i = "{.arg min} is {.val {min}}.",
+                     i = "{.arg max} is {.val {max}}."))
+  min <- as.double(min)
+  max <- as.double(max)
+  new_bage_prior_iar(n = 1L,
+                     min = min,
+                     max = max,
+                     scale = scale,
+                     nm = "IAR1")
+}
+
+## 'bage_prior_ilin' only ever created via 'set_prior()'
+
+## HAS_TESTS
+#' Independent Linear Prior
+#'
+#' Prior for an interaction where, within each combination
+#' of the 'by' variables, the elements of the 'along'
+#' variable follow (approximately) a straight line.
+#' The slopes of the line vary across
+#' different combinations of 'by' variables'.
+#'
+#' @inheritSection IAR 'Along' and 'by' variables
 #'
 #' @section Statistical model:
 #' 
@@ -236,7 +371,7 @@ ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' The `along` variable is almost always
 #' time.
 #'
-#' @inheritSection ILin 'Along' and 'by' variables
+#' @inheritSection IAR 'Along' and 'by' variables
 #'
 #' @section Statistical model:
 #' 
@@ -747,6 +882,28 @@ new_bage_prior_ar <- function(n, scale, min, max, nm) {
                               scale = scale,
                               nm = nm))
   class(ans) <- c("bage_prior_ar", "bage_prior")
+  ans
+}
+
+
+## HAS_TESTS
+new_bage_prior_iar <- function(n, scale, min, max, nm) {
+  shape1 <- 2.0
+  shape2 <- 2.0
+  ans <- list(i_prior = 12L,
+              const = c(shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max,
+                        scale = scale),
+              specific = list(n = n,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              scale = scale,
+                              nm = nm))
+  class(ans) <- c("bage_prior_iar", "bage_prior")
   ans
 }
 
