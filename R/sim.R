@@ -384,6 +384,38 @@ draw_vals_ilin <- function(mslope, sd, matrix_along_by, labels) {
   ans
 }
 
+## HAS_TESTS
+#' Generate Draws from ISeas
+#'
+#' Each column is one draw.
+#'
+#' @param n Number of seasons
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_iseas <- function(n, sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  for (i_along in seq.int(from = n + 1L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - n, ],
+                                   sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
 
 ## HAS_TESTS
 #' Draw values for hyper-parameters for all priors in a model
