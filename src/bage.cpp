@@ -189,14 +189,36 @@ Type logpost_seas(vector<Type> effectfree,
   Type sd = exp(log_sd);
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_effect = 0; i_effect < n_season; i_effect++) {
-    Type effect_curr = effectfree[i_effect];
-    ans += dnorm(effect_curr, Type(0), Type(1), true);
-  }
-  for (int i_effect = n_season; i_effect < n_effect; i_effect++) {
-    Type effect_curr = effectfree[i_effect];
-    Type effect_prev = effectfree[i_effect - n_season];
-    ans += dnorm(effect_curr, effect_prev, sd, true);
+  for (int i = 0; i < n_season; i++)
+    ans += dnorm(effectfree[i], Type(0), Type(1), true);
+  for (int i = n_season; i < n_effect; i++)
+    ans += dnorm(effectfree[i], effectfree[i-n_season], sd, true);
+  return ans;
+}
+
+template <class Type>
+Type logpost_iseas(vector<Type> effectfree,
+		   vector<Type> hyper,
+		   vector<Type> consts,
+		   matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  int n_season = consts.size(); // size of 'consts' used to record 'n_season'
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_season; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      ans += dnorm(effectfree[i], Type(0), Type(1), true);
+    }
+    for (int i_along = n_season; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - n_season, i_by);
+      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
+    }
   }
   return ans;
 }
@@ -306,6 +328,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 10:
     ans = logpost_seas(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 11:
+    ans = logpost_iseas(effectfree, hyper, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);

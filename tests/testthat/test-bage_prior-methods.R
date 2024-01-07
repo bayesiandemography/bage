@@ -36,6 +36,24 @@ test_that("'draw_vals_effect' works with bage_prior_ilin", {
                    list(letters[1:12], as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_iseas", {
+  prior <- ISeas(n = 2, s = 0.01)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,
+                                n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_known", {
   prior <- Known(c(-0.1, 0, 0.1))
   n_sim <- 10
@@ -219,6 +237,19 @@ test_that("'draw_vals_hyper' works with bage_prior_ilin", {
                    c(slope = 10L, mslope = 40L, sd = 10L, msd = 10L))
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_iseas", {
+  set.seed(0)
+  prior <- ISeas(n = 2)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = n_sim)
+  expect_identical(names(ans), "sd")
+  expect_identical(lengths(ans),
+                   c(sd = 10L))
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_known", {
   prior <- Known(c(0.1, 0.3))
   matrix_along_by <- matrix(0:1, nc = 1)
@@ -355,6 +386,21 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
                                      agesex = "other"))
 })
 
+test_that("'is_prior_ok_for_term' works with bage_prior_ilin", {
+    expect_true(is_prior_ok_for_term(prior = ILin(),
+                                     nm = "sex:time",
+                                     matrix_along_by = matrix(0:11, nc = 2),
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_iseas", {
+  expect_error(is_prior_ok_for_term(prior = ISeas(n = 4),
+                                    nm = "time",
+                                    matrix_along_by = matrix(0:12, nc = 3),
+                                    agesex = "other"),
+               "`ISeas\\(n=4\\)` prior cannot be used on its own.")
+})
+
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
     expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
                                      nm = "sex",
@@ -467,6 +513,12 @@ test_that("'levels_hyper' works with 'bage_prior_ilin'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = ILin(), matrix_along_by = matrix_along_by),
                    c("slope", "mslope", "sd", "msd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_iseas'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = ISeas(n = 3), matrix_along_by = matrix_along_by),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_known'", {
@@ -655,6 +707,12 @@ test_that("'str_call_prior' works with bage_prior_ilin", {
     expect_identical(str_call_prior(ILin()), "ILin()")
     expect_identical(str_call_prior(ILin(sd = 0.5, s = 2, ms = 1.2, along = "a")),
                      "ILin(s=2,sd=0.5,ms=1.2,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_iseas", {
+    expect_identical(str_call_prior(ISeas(n = 4)), "ISeas(n=4)")
+    expect_identical(str_call_prior(ISeas(s = 2, along = "a", n = 2)),
+                     "ISeas(n=2,s=2,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {

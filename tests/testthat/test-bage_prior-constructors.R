@@ -39,6 +39,17 @@ test_that("'ILin' works with valid inputs", {
                                        mscale = 1, along = "reg"))
 })
 
+test_that("'ISeas' works with valid inputs", {
+  expect_identical(ISeas(n = 4),
+                   new_bage_prior_iseas(n = 4L,
+                                        scale = 1, 
+                                        along = NULL))
+  expect_identical(ISeas(s = 0.3, n = 2, along = "reg"),
+                   new_bage_prior_iseas(n = 2L,
+                                        scale = 0.3,
+                                        along = "reg"))
+})
+
 test_that("'Known' works with valid inputs", {
     expect_identical(Known(values = 1:3),
                      new_bage_prior_known(values = as.double(1:3)))
@@ -123,13 +134,25 @@ test_that("'new_bage_prior_ar' works - AR1 interface", {
 })
 
 test_that("'new_bage_prior_ilin' works", {
-    obj <- new_bage_prior_ilin(scale = 1, sd = 1, mscale = 1, along = NULL)
-    expect_s3_class(obj, "bage_prior_ilin")
-    expect_s3_class(obj, "bage_prior")
-    expect_identical(obj$i_prior, 9L)
-    expect_identical(obj$const, c(scale = 1, sd_slope = 1, mscale = 1))
-    expect_identical(obj$specific, list(scale = 1, sd_slope = 1,
-                                        mscale = 1, along = NULL))
+  obj <- new_bage_prior_ilin(scale = 1, sd = 1, mscale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_ilin")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 9L)
+  expect_identical(obj$const, c(scale = 1, sd_slope = 1, mscale = 1))
+  expect_identical(obj$specific, list(scale = 1, sd_slope = 1,
+                                      mscale = 1, along = NULL))
+})
+
+test_that("'new_bage_prior_iseas' works", {
+  obj <- new_bage_prior_iseas(n = 2L, scale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_iseas")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 11L)
+  expect_identical(obj$const, c(scale = 1, "<unused>" = 0))
+  expect_identical(length(obj$const), obj$specific$n)
+  expect_identical(obj$specific, list(n = 2L,
+                                      scale = 1,
+                                      along = NULL))
 })
 
 test_that("'new_bage_prior_known' works", {

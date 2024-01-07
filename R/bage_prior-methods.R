@@ -48,7 +48,7 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_ilin <- function(prior,
                                              vals_hyper,
@@ -62,6 +62,22 @@ draw_vals_effect.bage_prior_ilin <- function(prior,
                  sd = sd,
                  matrix_along_by = matrix_along_by,
                  labels = levels_effect)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_iseas <- function(prior,
+                                              vals_hyper,
+                                              levels_effect,
+                                              agesex,
+                                              matrix_along_by,
+                                              n_sim) {
+  n <- prior$specific$n
+  sd <- vals_hyper$sd
+  draw_vals_iseas(n = n,
+                  sd = sd,
+                  matrix_along_by = matrix_along_by,
+                  labels = levels_effect)
 }
 
 ## HAS_TESTS
@@ -275,6 +291,14 @@ draw_vals_hyper.bage_prior_ilin <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_iseas <- function(prior, matrix_along_by, n_sim) {
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_known <- function(prior, matrix_along_by, n_sim)
     list()
 
@@ -465,6 +489,13 @@ is_prior_ok_for_term.bage_prior_ilin <- function(prior, nm, matrix_along_by, age
 
 ## HAS_TESTS
 #' @export
+is_prior_ok_for_term.bage_prior_iseas <- function(prior, nm, matrix_along_by, agesex) {
+  cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used on its own.",
+                   i = "{.var {str_call_prior(prior)}} prior can only be inside function {.fun bage::combine}."))
+}
+
+## HAS_TESTS
+#' @export
 is_prior_ok_for_term.bage_prior_known <- function(prior, nm, matrix_along_by, agesex) {
   values <- prior$specific$values
   n_values <- length(values)
@@ -623,6 +654,11 @@ levels_hyper.bage_prior_ilin <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
+levels_hyper.bage_prior_iseas <- function(prior, matrix_along_by)
+  "sd"
+
+## HAS_TESTS
+#' @export
 levels_hyper.bage_prior_known <- function(prior, matrix_along_by)
     character()
 
@@ -765,77 +801,6 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, a
 }
 
 
-## 'uses_along' ---------------------------------------------------------------
-
-#' Whether Prior uses an 'along' Dimension
-#'
-#' @param prior Object of class 'bage_prior'
-#'
-#' @returns TRUE or FALSE.
-#'
-#' @noRd
-uses_along <- function(prior) {
-    UseMethod("uses_along")
-}
-
-## HAS_TESTS
-#' @export
-uses_along.bage_prior <- function(prior) FALSE
-
-## HAS_TESTS
-#' @export
-uses_along.bage_prior_ilin <- function(prior) TRUE
-
-
-
-## 'uses_matrix_effectfree_effect' --------------------------------------------------
-
-#' Whether prior uses matrix to convert effectfree to effect
-#'
-#' @param prior Object of class 'bage_prior'
-#'
-#' @returns TRUE or FALSE.
-#'
-#' @noRd
-uses_matrix_effectfree_effect <- function(prior) {
-    UseMethod("uses_matrix_effectfree_effect")
-}
-
-## HAS_TESTS
-#' @export
-uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
-
-## HAS_TESTS
-#' @export
-uses_matrix_effectfree_effect.bage_prior_spline <- function(prior) TRUE
-
-## HAS_TESTS
-#' @export
-uses_matrix_effectfree_effect.bage_prior_svd <- function(prior) TRUE
-
-
-## 'uses_offset_effectfree_effect' --------------------------------------------------
-
-#' Whether prior uses offset to convert effectfree to effect
-#'
-#' @param prior Object of class 'bage_prior'
-#'
-#' @returns TRUE or FALSE.
-#'
-#' @noRd
-uses_offset_effectfree_effect <- function(prior) {
-    UseMethod("uses_offset_effectfree_effect")
-}
-
-## HAS_TESTS
-#' @export
-uses_offset_effectfree_effect.bage_prior <- function(prior) FALSE
-
-## HAS_TESTS
-#' @export
-uses_offset_effectfree_effect.bage_prior_svd <- function(prior) TRUE
-
-
 ## 'str_call_prior' -----------------------------------------------------------
 
 #' Create string describing prior
@@ -903,6 +868,23 @@ str_call_prior.bage_prior_ilin <- function(prior) {
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("ILin(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_iseas <- function(prior) {
+  n <- prior$specific$n
+  scale <- prior$specific$scale
+  along <- prior$specific$along
+  args <- character(3L)
+  args[[1L]] <- sprintf("n=%d", n)
+  if (scale != 1)
+    args[[2L]] <- sprintf("s=%s", scale)
+  if (!is.null(along))
+    args[[3L]] <- sprintf('along="%s"', along)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("ISeas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -1073,6 +1055,12 @@ transform_hyper.bage_prior_ilin <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
+transform_hyper.bage_prior_iseas <- function(prior, matrix_along_by) {
+  list(sd = exp)
+}
+
+## HAS_TESTS
+#' @export
 transform_hyper.bage_prior_known <- function(prior, matrix_along_by)
     list()
 
@@ -1115,6 +1103,77 @@ transform_hyper.bage_prior_spline <- function(prior, matrix_along_by)
 #' @export
 transform_hyper.bage_prior_svd <- function(prior, matrix_along_by)
     list()
+
+
+## 'uses_along' ---------------------------------------------------------------
+
+#' Whether Prior uses an 'along' Dimension
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+uses_along <- function(prior) {
+    UseMethod("uses_along")
+}
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_ilin <- function(prior) TRUE
+
+
+## 'uses_matrix_effectfree_effect' --------------------------------------------------
+
+#' Whether prior uses matrix to convert effectfree to effect
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+uses_matrix_effectfree_effect <- function(prior) {
+    UseMethod("uses_matrix_effectfree_effect")
+}
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_spline <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_svd <- function(prior) TRUE
+
+
+## 'uses_offset_effectfree_effect' --------------------------------------------------
+
+#' Whether prior uses offset to convert effectfree to effect
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+uses_offset_effectfree_effect <- function(prior) {
+    UseMethod("uses_offset_effectfree_effect")
+}
+
+## HAS_TESTS
+#' @export
+uses_offset_effectfree_effect.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_offset_effectfree_effect.bage_prior_svd <- function(prior) TRUE
+
 
 
 ## 'uses_matrix_effectfree_effect' --------------------------------------------------

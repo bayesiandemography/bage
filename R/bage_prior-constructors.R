@@ -224,6 +224,72 @@ ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
                       along = along)
 }
 
+
+## 'bage_prior_iseas' only ever created via 'set_prior()'
+
+## HAS_TESTS
+#' Independent Seasonal Prior
+#'
+#' Prior for a seasonal effect, within an interaction.
+#' Each combination of the 'by' variables,
+#' has a separate seasonal effect.
+#' The `along` variable is almost always
+#' time.
+#'
+#' @inheritSection ILin 'Along' and 'by' variables
+#'
+#' @section Statistical model:
+#' 
+#' The model is
+#' 
+#' \deqn{x_{uv} \sim \text{N}(x_{u,v-n}, \sigma^2)}
+#'
+#' where
+#' - \eqn{u} is the index for a combination of 'by' variables,
+#' - \eqn{v} is the index of the 'along' variable,
+#' - \eqn{n} is the number of seasons
+#'
+#' Larger values for \eqn{\sigma} imply more variability
+#' in seasonal effects over time. The size of \eqn{\sigma} is
+#' governed by parameter `s`:
+#'
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (\eqn{\text{N}^} denotes a half-normal distribution,
+#' which has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' @param n Number of seasons.
+#' @param s A positive number. Default is 1.
+#' @param along Name of one of the dimensions
+#' in the interaction. Optional, provided
+#' the data contain a time or age dimension.
+#'
+#' @returns An object of class `bage_prior_iseas`.
+#'
+#' @seealso
+#' - [Seas()] etc
+#' - [set_var_time()] to specify the time variable
+#' - [set_var_age()] to specify the age variable
+#'
+#' @examples
+#' ISeas(n = 4)
+#' ISeas(n = 12, s = 0.5, along = "cohort")
+#' @export
+ISeas <- function(n, s = 1, along = NULL) {
+  check_n(n = n, nm_n = "n", min = 2L, max = NULL, null_ok = FALSE)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  n <- as.integer(n)
+  scale <- as.double(s)
+  new_bage_prior_iseas(n = n,
+                       scale = scale,
+                       along = along)
+}
+
+
 ## 'bage_prior_known' only ever created via 'set_prior()'
 
 ## HAS_TESTS
@@ -695,6 +761,18 @@ new_bage_prior_ilin <- function(scale, sd_slope, mscale, along) {
                                 mscale = mscale,
                                 along = along))
     class(ans) <- c("bage_prior_ilin", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_iseas <- function(n, scale, along) {
+    ans <- list(i_prior = 11L,
+                const = c(scale = scale,
+                          rep(c("<unused>" = 0), times = n - 1L)),
+                specific = list(n = n,
+                                scale = scale,
+                                along = along))
+    class(ans) <- c("bage_prior_iseas", "bage_prior")
     ans
 }
 
