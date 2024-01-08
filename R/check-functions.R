@@ -358,6 +358,43 @@ check_length_effect_ge <- function(length_effect, min, nm, prior) {
 
 
 ## HAS_TESTS
+#' Check that 'min' and 'max' Arguments for AR Valid
+#'
+#' @param min Minimum value for damping coefficient(s)
+#' @param max Maximum value for damping coefficient(s)
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_min_max_ar <- function(min, max) {
+  for (nm in c("min", "max")) {
+    val <- get(nm)
+    if (!is.numeric(val))
+      cli::cli_abort(c("{.arg {nm}} is non-numeric.",
+                       i = "{.arg {nm}} has class {.cls {class(val)}}."))
+    if (length(val) != 1L)
+      cli::cli_abort(c("{.arg {nm}} does not have length 1.",
+                       i = "{.arg {nm}} has length {.val {length(val)}}."))
+    if (is.na(val))
+      cli::cli_abort("{.arg {nm}} is {.val {NA}}.")
+    if (val < -1)
+      cli::cli_abort(c("{.arg {nm}} is less than -1.",
+                       i = "{.arg {nm}} should be between -1 and 1.",
+                       i = "{.arg {nm}}: {.val {val}}"))
+    if (val > 1)
+      cli::cli_abort(c("{.arg {nm}} is greater than 1.",
+                       i = "{.arg {nm}} should be between -1 and 1.",
+                       i = "{.arg {nm}}: {.val {val}}"))
+  }    
+  if (max <= min)
+    cli::cli_abort(c("{.arg max} is less than or equal to {.arg min}.",
+                     i = "{.arg min}: {.val {min}}",
+                     i = "{.arg max}: {.val {max}}"))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that 'mod_est' and 'mod_sim' meet minimum
 #' requirements for 'report_sim'
 #'
@@ -442,6 +479,29 @@ check_n <- function(n, nm_n, min, max, null_ok) {
         cli::cli_abort(c("{.arg {nm_n}} is greater than {max}.",
                          i = "{.arg {nm_n}} is {.val {n}}."))
     invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that Vector is Numeric, Non-NA, Finite, Non-Zero Length
+#'
+#' @param x A vector
+#' @param nm_x Name to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#' 
+#' @noRd
+check_numeric <- function(x, nm_x) {
+  if (!is.numeric(x))
+    cli::cli_abort(c("{.arg {nm_x}} is non-numeric.",
+                     i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
+  if (length(x) == 0L)
+    cli::cli_abort("{.arg {nm_x}} has length 0.")
+  if (anyNA(x))
+    cli::cli_abort("{.arg {nm_x}} has {.val {NA}}.")
+  if (any(is.infinite(x)))
+    cli::cli_abort("{.arg {nm_x}} has non-finite value.")
+  invisible(TRUE)
 }
 
 

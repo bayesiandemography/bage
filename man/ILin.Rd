@@ -27,28 +27,6 @@ variable follow (approximately) a straight line.
 The slopes of the line vary across
 different combinations of 'by' variables'.
 }
-\section{'Along' and 'by' variables}{
-
-
-Multivariate priors for interactions distinguish
-between 'along' and 'by' variables. The 'along'
-variable is typically time, or, in interactions
-not involving time, is typically age. The 'by'
-variables are everything else. In an interaction
-between region, sex, and time, for instance,
-the by variables are likely to be region and sex.
-
-If no \code{along} argument is supplied, then:
-\itemize{
-\item if the interaction contains a time variable, then
-it is assumed to be the 'along' variable;
-\item otherwise, if the interaction contains an
-age variable, then it is assumed to be
-the 'along' variable;
-\item otherwise, an error is raised.
-}
-}
-
 \section{Statistical model}{
 
 
@@ -92,6 +70,28 @@ governed by parameter \code{s}:
 which has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)
+}
+
+\section{'Along' and 'by' variables}{
+
+
+Multivariate priors for interactions distinguish
+between 'along' and 'by' variables. The 'along'
+variable is typically time, or, in interactions
+not involving time, is typically age. The 'by'
+variables are everything else. In an interaction
+between region, sex, and time, for instance,
+the by variables are likely to be region and sex.
+
+If no \code{along} argument is supplied, then:
+\itemize{
+\item if the interaction contains a time variable, then
+it is assumed to be the 'along' variable;
+\item otherwise, if the interaction contains an
+age variable, then it is assumed to be
+the 'along' variable;
+\item otherwise, an error is raised.
+}
 }
 
 \examples{

@@ -18,6 +18,23 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_iar", {
+  prior <- AR(n = 3)
+  n_sim <- 10
+  matrix_along_by <- matrix(0:25, nc = 2)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                matrix_along_by = matrix_along_by,                                
+                                n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_ilin", {
   prior <- ILin(s = 0.01)
   matrix_along_by <- matrix(0:11, nr = 3)
@@ -224,6 +241,16 @@ test_that("'draw_vals_hyper' works with bage_prior_ar", {
   expect_identical(dim(ans$coef), c(3L, 10L))
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_iar", {
+  prior <- IAR(n = 3)
+  matrix_along_by <- matrix(0:9, nc = 2)
+  ans <- draw_vals_hyper(prior = prior,
+                         matrix_along_by = matrix_along_by,
+                         n_sim = 10)
+  expect_identical(names(ans), c("coef", "sd"))
+  expect_identical(dim(ans$coef), c(3L, 10L))
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_ilin", {
   set.seed(0)
   prior <- ILin()
@@ -386,6 +413,13 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
                                      agesex = "other"))
 })
 
+test_that("'is_prior_ok_for_term' works with bage_prior_iar", {
+    expect_true(is_prior_ok_for_term(prior = IAR(n = 3),
+                                     nm = "time:region",
+                                     matrix_along_by = matrix(0:29, nc = 3),
+                                     agesex = "other"))
+})
+
 test_that("'is_prior_ok_for_term' works with bage_prior_ilin", {
     expect_true(is_prior_ok_for_term(prior = ILin(),
                                      nm = "sex:time",
@@ -506,6 +540,12 @@ test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, ages
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = AR(n = 2), matrix_along_by = matrix_along_by),
+                   c("coef", "coef", "sd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_iar'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = IAR(n = 2), matrix_along_by = matrix_along_by),
                    c("coef", "coef", "sd"))
 })
 
@@ -703,6 +743,22 @@ test_that("'str_call_prior' works with bage_prior_ar - AR", {
                      "AR(n=2,s=0.3)")
 })
 
+test_that("'str_call_prior' works with bage_prior_ar - IAR1", {
+    expect_identical(str_call_prior(IAR1()), "IAR1()")
+    expect_identical(str_call_prior(IAR1(min = 0.5)), "IAR1(min=0.5)")
+    expect_identical(str_call_prior(IAR1(max = 0.95)), "IAR1(max=0.95)")
+    expect_identical(str_call_prior(IAR1(s = 0.3)), "IAR1(s=0.3)")
+    expect_identical(str_call_prior(IAR1(min = 0.5, max = 0.95, s = 0.3)),
+                     "IAR1(min=0.5,max=0.95,s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_ar - IAR", {
+    expect_identical(str_call_prior(IAR(n = 1)), "IAR(n=1)")
+    expect_identical(str_call_prior(IAR(n = 3, s = 0.3)), "IAR(n=3,s=0.3)")
+    expect_identical(str_call_prior(IAR(s = 0.3, n = 2)),
+                     "IAR(n=2,s=0.3)")
+})
+
 test_that("'str_call_prior' works with bage_prior_ilin", {
     expect_identical(str_call_prior(ILin()), "ILin()")
     expect_identical(str_call_prior(ILin(sd = 0.5, s = 2, ms = 1.2, along = "a")),
@@ -793,6 +849,29 @@ test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
     2 * ans - 1
   }
   l <- transform_hyper(prior = AR(n = 2), matrix_along_by = matrix_along_by)
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ar - IAR1'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = IAR1(), matrix_along_by = matrix_along_by)
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ar - IAR'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    2 * ans - 1
+  }
+  l <- transform_hyper(prior = IAR(n = 2), matrix_along_by = matrix_along_by)
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))

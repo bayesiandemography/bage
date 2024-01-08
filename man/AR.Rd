@@ -4,17 +4,18 @@
 \alias{AR}
 \title{Autoregressive Prior}
 \usage{
-AR(n, s = 1)
+AR(n = 2, s = 1)
 }
 \arguments{
-\item{n}{The order of the model.}
+\item{n}{The order of the model.
+Default is \code{2}.}
 
 \item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
-Defaults to 1.}
+Default is \code{1}.}
 }
 \value{
-An object of class \code{bage_prior_ar1}.
+An object of class \code{bage_prior_ar}.
 }
 \description{
 Autoregressive prior with order \code{k}.
@@ -24,7 +25,7 @@ Autoregressive prior with order \code{k}.
 
 The model is
 
-\deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-1} + \epsilon_i}
+\deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-k} + \epsilon_i}
 \deqn{\epsilon_i \sim \text{N}(0, \omega^2)}
 
 where \eqn{\omega} is chosen so that each \eqn{x_i} has
@@ -48,4 +49,5 @@ TMB documentation for
 \code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
 The values for \code{min} and \code{max} are based on the
 defaults for function \code{forecast::ets()}.
+\code{\link[=AR1]{AR1()}}
 }

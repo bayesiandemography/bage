@@ -39,12 +39,31 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   coef <- vals_hyper$coef
   sd <- vals_hyper$sd
   n <- length(levels_effect)
-  ans <- matrix(nrow = n, ncol = n_sim)
-  for (i_sim in seq_len(n_sim))
-    ans[, i_sim] <- draw_vals_ar_one(n = n,
-                                     coef = coef[, i_sim],
-                                     sd = sd[i_sim])
+  ans <- draw_vals_ar(n = n, coef = coef, sd = sd)
   dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_iar <- function(prior,
+                                           vals_hyper,
+                                           levels_effect,
+                                           agesex,
+                                           matrix_along_by,
+                                           n_sim) {
+  coef <- vals_hyper$coef
+  sd <- vals_hyper$sd
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  s <- rep(seq_len(n_sim), each = n_by)
+  coef <- coef[, s]
+  sd <- sd[s]
+  ans <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
   ans
 }
 
@@ -272,6 +291,15 @@ draw_vals_hyper.bage_prior_ar <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_iar <- function(prior, matrix_along_by, n_sim) {
+    coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(coef = coef,
+         sd = sd)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_ilin <- function(prior, matrix_along_by, n_sim) {
   slope <- draw_vals_slope(prior = prior,
                            n_sim = n_sim)
@@ -468,10 +496,25 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior, nm, matrix_along_by, agese
   check_is_main_effect(nm = nm,
                        prior = prior)
   length_effect <- length(matrix_along_by)
+  n <- prior$specific$n
   check_length_effect_ge(length_effect = length_effect,
-                         min = 2L,
+                         min = n,
                          nm = nm,
                          prior = prior)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_iar <- function(prior, nm, matrix_along_by, agesex) {
+  check_is_interaction(nm = nm,
+                       prior = prior)
+  length_along <- nrow(matrix_along_by)
+  n <- prior$specific$n
+  check_length_along_ge(length_along = length_along,
+                        min = n,
+                        nm = nm,
+                        prior = prior)
   invisible(TRUE)
 }
 
@@ -640,6 +683,13 @@ levels_hyper <- function(prior, matrix_along_by) {
 ## HAS_TESTS
 #' @export
 levels_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
+  n <- prior$specific$n
+  rep(c("coef", "sd"), times = c(n, 1L))
+}
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_iar <- function(prior, matrix_along_by) {
   n <- prior$specific$n
   rep(c("coef", "sd"), times = c(n, 1L))
 }
@@ -851,6 +901,37 @@ str_call_prior.bage_prior_ar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_call_prior.bage_prior_iar <- function(prior) {
+  specific <- prior$specific
+  n <- specific$n
+  min <- specific$min
+  max <- specific$max
+  scale <- specific$scale
+  nm <- specific$nm
+  if (nm == "IAR") {
+    args <- character(2L)
+    args[[1L]] <- sprintf("n=%d", n)
+    if (scale != 1)
+      args[[2L]] <- sprintf("s=%s", scale)
+  }
+  else if (nm == "IAR1") {
+    args <- character(3L)
+    if (min != 0.8)
+      args[[1L]] <- sprintf("min=%s", min)
+    if (max != 0.98)
+      args[[2L]] <- sprintf("max=%s", max)
+    if (scale != 1)
+      args[[3L]] <- sprintf("s=%s", scale)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for 'nm'.")
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("%s(%s)", nm, args)
+}
+
+## HAS_TESTS
+#' @export
 str_call_prior.bage_prior_ilin <- function(prior) {
   scale <- prior$specific$scale
   sd_slope <- prior$specific$sd_slope
@@ -1030,6 +1111,22 @@ transform_hyper <- function(prior, matrix_along_by) {
 ## HAS_TESTS
 #' @export
 transform_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
+  specific <- prior$specific
+  n <- specific$n
+  min <- specific$min
+  max <- specific$max
+  shifted_inv_logit <- function(x) {
+    ans_raw <- exp(x) / (1 + exp(x))
+    ans <- (max - min) * ans_raw + min
+    ans
+  }
+  rep(list(coef = shifted_inv_logit, sd = exp),
+      times = c(n, 1L))
+}
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_iar <- function(prior, matrix_along_by) {
   specific <- prior$specific
   n <- specific$n
   min <- specific$min

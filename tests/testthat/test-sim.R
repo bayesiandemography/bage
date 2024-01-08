@@ -150,6 +150,19 @@
 ##     expect_equal(ans_obtained, ans_expected)
 ## })                                       
 
+## 'draw_vals_ar' -------------------------------------------------------------
+
+test_that("'draw_vals_ar' works", {
+    set.seed(0)
+    prior <- AR(n = 2)
+    coef <- draw_vals_coef(prior, n_sim = 5L)
+    ans <- draw_vals_ar(n = 10000, coef = coef, sd = seq(0.6, 1, 0.1))
+    expect_identical(nrow(ans), 10000L)
+    expect_identical(ncol(ans), 5L)
+    expect_equal(apply(ans, 2, sd), seq(0.6, 1, 0.1), tolerance = 0.02)
+})
+
+
 ## 'draw_vals_ar_one' ---------------------------------------------------------
 
 test_that("'draw_vals_ar_one' works", {

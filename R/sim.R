@@ -198,6 +198,28 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
 }
 
 
+#' Generate Values for Multiple AR-k Series of Length 'n'
+#'
+#' @param n Length of series (not order of series)
+#' @param coef Matrix, each column of which is a vector
+#' of autocorellation coefficients
+#' @param sd Vector, each element of which is a
+#' marginal standard deviation
+#'
+#' @returns A matrix with 'n' rows and 'length(sd)' columns
+#'
+#' @noRd
+draw_vals_ar <- function(n, coef, sd) {
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n, ncol = n_sim)
+  for (i_sim in seq_len(n_sim))
+    ans[, i_sim] <- draw_vals_ar_one(n = n,
+                                     coef = coef[, i_sim],
+                                     sd = sd[i_sim])
+  ans
+}
+
+
 ## HAS_TESTS
 #' Generate Values for a Single AR-k Series of Length 'n'
 #'
