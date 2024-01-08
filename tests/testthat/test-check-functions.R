@@ -296,6 +296,8 @@ test_that("'check_length_effect_ge' throws correct error with length less than m
 })
 
 
+
+
 ## 'check_mod_est_sim_compatible' ---------------------------------------------
 
 test_that("'check_mod_est_sim_compatible' returns TRUE with indentical models", {
@@ -378,8 +380,42 @@ test_that("'check_mod_est_sim_compatible' raises correct error when data have di
 })
 
 
+## 'check_min_max_ar' --------------------------------------------------------------
 
+test_that("'check_min_max_ar' returns TRUE with valid inputs", {
+    expect_true(check_min_max_ar(min = -1, max = 1))
+    expect_true(check_min_max_ar(min = 0, max = 0.9))
+})
 
+test_that("'check_min_max_ar' returns correct error with non-numeric", {
+    expect_error(check_min_max_ar(min = "-1", max = 1),
+                 "`min` is non-numeric.")
+})
+
+test_that("'check_min_max_ar' returns correct error with wrong length", {
+    expect_error(check_min_max_ar(min = -1, max = 1:2),
+                 "`max` does not have length 1.")
+})
+
+test_that("'check_min_max_ar' returns correct error with NA", {
+    expect_error(check_min_max_ar(min = NA_real_, max = 1),
+                 "`min` is NA.")
+})
+
+test_that("'check_min_max_ar' returns correct error with min < -1", {
+    expect_error(check_min_max_ar(min = -1.00001, max = 1),
+                 "`min` is less than -1.")
+})
+
+test_that("'check_min_max_ar' returns correct error with max < 1.0001", {
+    expect_error(check_min_max_ar(min = -1, max = 1.00001),
+                 "`max` is greater than 1.")
+})
+
+test_that("'check_min_max_ar' returns correct error with max <= min", {
+    expect_error(check_min_max_ar(min = 0, max = 0),
+                 "`max` is less than or equal to `min`.")
+})
 
 
 ## 'check_offset_in_data' -----------------------------------------------------
@@ -442,6 +478,34 @@ test_that("'check_n' throws correct error when greater than max", {
                  "`n` is greater than 10")
 })
 
+
+
+## 'check_numeric' ------------------------------------------------------------------
+
+test_that("'check_numeric' returns TRUE with valid inputs", {
+    expect_true(check_numeric(x = 1:4, nm_x = "x"))
+    expect_true(check_numeric(x = c(-1, 0), nm_x = "x"))
+})
+
+test_that("'check_numeric' throws correct error with non-numeric", {
+    expect_error(check_numeric(x = "4", nm_x = "x"),
+                 "`x` is non-numeric")
+})
+
+test_that("'check_numeric' throws correct error with 0 length", {
+    expect_error(check_numeric(x = integer(), nm_x = "x"), 
+                 "`x` has length 0")
+})
+
+test_that("'check_numeric' throws correct error with NA", {
+    expect_error(check_numeric(x = c(1, NA), nm_x = "x"),
+                 "`x` has NA")
+})
+
+test_that("'check_numeric' throws correct error with Inf", {
+    expect_error(check_numeric(x = c(100, -1, Inf), nm_x = "x"),
+                 "`x` has non-finite value.")
+})
 
 
 ## 'check_offset_nonneg' ----------------------------------------------------

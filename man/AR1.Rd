@@ -9,14 +9,14 @@ AR1(min = 0.8, max = 0.98, s = 1)
 \arguments{
 \item{min, max}{Minimum and maximum values
 for autocorrelation parameter (\eqn{\phi}).
-Default to 0.8 and 0.98.}
+Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
-Defaults to 1.}
+Default is \code{1}.}
 }
 \value{
-An object of class \code{bage_prior_ar1}.
+An object of class \code{bage_prior_ar}.
 }
 \description{
 Autoregressive prior of order 1

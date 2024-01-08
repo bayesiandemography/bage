@@ -3,7 +3,7 @@
 
 ## 'bage_prior_ar' only ever created via 'set_prior()'
 
-## NO_TESTS
+## HAS_TESTS
 #' Autoregressive Prior
 #'
 #' Autoregressive prior with order `k`.
@@ -104,24 +104,20 @@ AR <- function(n = 2, s = 1) {
 #' AR1(min = 0, max = 1, s = 2.4)
 #' @export
 AR1 <- function(min = 0.8, max = 0.98, s = 1) {
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    checkmate::assert_number(min, lower = 0, upper = 1)
-    checkmate::assert_number(max, lower = 0, upper = 1)
-    if (min >= max)
-        cli::cli_abort(c("{.arg min} not less than {.arg max}",
-                         i = "{.arg min} is {.val {min}}.",
-                         i = "{.arg max} is {.val {max}}."))
-    min <- as.double(min)
-    max <- as.double(max)
-    new_bage_prior_ar(n = 1L,
-                      min = min,
-                      max = max,
-                      scale = scale,
-                      nm = "AR1")
+  check_min_max_ar(min = min, max = max)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  min <- as.double(min)
+  max <- as.double(max)
+  new_bage_prior_ar(n = 1L,
+                    min = min,
+                    max = max,
+                    scale = scale,
+                    nm = "AR1")
 }
 
 
+## HAS_TESTS
 #' Independent Autoregressive Prior
 #'
 #' Prior for an interaction,
@@ -200,6 +196,7 @@ IAR <- function(n = 2, s = 1) {
 }
 
 
+## HAS_TESTS
 #' Independent AR1 Prior
 #'
 #' Autogressive prior for an interaction,
@@ -254,17 +251,12 @@ IAR <- function(n = 2, s = 1) {
 #' IAR1()
 #' IAR1( min = 0, max = 1, s = 2.4)
 #' @export
-function(min = 0.8, max = 0.98, s = 1) {
+IAR1 <- function(min = 0.8, max = 0.98, s = 1) {
+  check_min_max_ar(min = min, max = max)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
-  scale <- as.double(s)
-  checkmate::assert_number(min, lower = 0, upper = 1)
-  checkmate::assert_number(max, lower = 0, upper = 1)
-  if (min >= max)
-    cli::cli_abort(c("{.arg min} not less than {.arg max}",
-                     i = "{.arg min} is {.val {min}}.",
-                     i = "{.arg max} is {.val {max}}."))
   min <- as.double(min)
   max <- as.double(max)
+  scale <- as.double(s)
   new_bage_prior_iar(n = 1L,
                      min = min,
                      max = max,
@@ -445,12 +437,9 @@ ISeas <- function(n, s = 1, along = NULL) {
 #'
 #' @export
 Known <- function(values) {
-    values <- checkmate::assert_numeric(values,
-                                        finite = TRUE,
-                                        any.missing = FALSE,
-                                        min.len = 1L)
-    values <- as.double(values)
-    new_bage_prior_known(values = values)
+  check_numeric(x = values, nm_x = values)
+  values <- as.double(values)
+  new_bage_prior_known(values = values)
 }
 
 
@@ -739,8 +728,6 @@ Seas <- function(n, s = 1) {
   new_bage_prior_seas(n = n,
                       scale = scale)
 }
-
-
 
 
 ## 'bage_prior_spline' only ever created by call to 'set_prior' function
