@@ -687,6 +687,20 @@ levels_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
   rep(c("coef", "sd"), times = c(n, 1L))
 }
 
+## NO_TESTS
+#' @export
+levels_hyper.bage_prior_compose <- function(prior, matrix_along_by) {
+  priors <- prior$specific$priors
+  levels_hyper <- lapply(priors, levels_hyper, matrix_along_by = matrix_along_by)
+  n_prior <- length(priors)
+  n_effect <- length(matrix_along_by)
+  for (i_prior in seq_len(n_prior - 1L))
+    levels_hyper[[i]] <- c(rep("effect", times = n_effect),
+                           levels_hyper[[i]])
+  unlist(levels_hyper)
+}
+    
+
 ## HAS_TESTS
 #' @export
 levels_hyper.bage_prior_iar <- function(prior, matrix_along_by) {
@@ -848,6 +862,80 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, a
                                        agesex = agesex,
                                        get_matrix = FALSE,
                                        n_comp = NULL)
+}
+
+
+## 'indices_priors' ----------------------------------------------------------------
+
+#' Information
+#'
+#' Creates index vector giving indices_priors
+#' of subvectors used by sub-priors making
+#' up a larger prior.
+#'
+#' @param prior An object of class "bage_prior"
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+indices_priors <- function(prior) {
+    UseMethod("str_call_prior")
+}
+
+#' @export
+indices_priors <- function(prior, levels_effect, matrix_along_by) {
+  integer()
+}
+
+#' @export
+indices_priors.bage_prior_compose <- function(prior, levels_effect, matrix_along_by) {
+  priors <- prior$specific$priors
+  n_prior <- length(priors)
+  n_effect <- length(levels_effect)
+  levels_hyper <- lapply(priors, levels_hyper, matrix_along_by = matrix_along_by)
+  lengths_hyper <- lengths(levels_hyper)
+  consts <- lapply(priors, function(x) x$const)
+  lengths_consts <- lengths(consts)
+  ans <- c(effect_start = 0L,
+           effect_length = n_effect,
+           hyper_start = n_effect,
+           hyper_length = lengths_hyper[[1L]],
+           consts_start = 0L,
+           consts_length = lengths_consts[[1L]],
+           i_prior = priors[[1L]]$i_prior)
+  if (n_prior == 2L) {
+    ans <- c(ans,
+             effect_start = lengths_hyper[[1L]],
+             effect_length = 0L,
+             hyper_start = lengths_hyper[[1L]],
+             hyper_length = lengths_hyper_hyper[[2L]],
+             consts_start = lengths_consts[[1L]],
+             consts_length = lengths_conts[[2L]],
+             i_prior = priors[[2]]$i_prior)
+  }
+  else if (n_prior == 3L) {
+    ans <- c(ans,
+             ## prior 2
+             effect_start = lengths_hyper[[1L]],
+             effect_length = n_effect,
+             hyper_start = lengths_hyper[[1L]] + n_effect,
+             hyper_length = lengths_hyper_hyper[[2L]],
+             consts_start = lengths_consts[[1L]],
+             consts_length = lengths_conts[[2L]],
+             i_prior = priors[[2]]$i_prior,
+             ## prior 3
+             effect_start = lengths_hyper[[1L]] + n_effect + lengths_hyper[[2L]],
+             effect_length = 0L,
+             hyper_start = lengths_hyper[[1L]] + n_effect + lengths_hyper[[2L]],
+             hyper_length = lengths_hyper[[3L]],
+             consts_start = lengths_consts[[1L]] + lengths_conts[[2L]],
+             consts_length = lengths_consts[[3L]],
+             i_prior = priors[[3]]$i_prior)
+  }
+  else {
+    cli::cli_abort("Internal error: Unexpected value for 'n_prior'")
+  }
+  ans
 }
 
 

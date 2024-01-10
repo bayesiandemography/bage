@@ -416,6 +416,8 @@ fit.bage_mod <- function(object, ...) {
   const <- make_const(object)
   terms_const <- make_terms_const(object)
   matrices_along_by <- choose_matrices_along_by(object)
+  indices_priors <- make_indices_priors(object)
+  terms_indices_priors <- make_terms_indices_priors(object)
   scale_disp <- object$scale_disp
   has_disp <- scale_disp > 0
   data <- list(nm_distn = nm_distn,
@@ -435,6 +437,8 @@ fit.bage_mod <- function(object, ...) {
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
                matrices_along_by = matrices_along_by,
+               indices_priors = indices_priors,
+               terms_indices_priors = terms_indices_priors,
                scale_disp = scale_disp)
   ## parameters
   effectfree <- make_effectfree(object)

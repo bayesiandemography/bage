@@ -433,9 +433,9 @@ make_lengths_hyper <- function(mod) {
   priors <- mod$priors
   matrices_along_by <- choose_matrices_along_by(mod)
   levels <- .mapply(levels_hyper,
-                 dots = list(prior = priors,
-                             matrix_along_by = matrices_along_by),
-                 MoreArgs = list())
+                    dots = list(prior = priors,
+                                matrix_along_by = matrices_along_by),
+                    MoreArgs = list())
   ans <- lengths(levels)
   names(ans) <- names(priors)
   ans
