@@ -7,6 +7,26 @@ using namespace density;
 using namespace Eigen;
 using namespace tmbutils;
 
+
+// declare 'method dispatch' functions here because
+// by 'logpost_compose'
+
+template <class Type>
+Type logpost_not_uses_hyper(vector<Type> effectfree,
+			    vector<Type> consts,
+			    matrix<int> matrix_along_by,
+			    vector<int> indices_priors,
+			    int i_prior);
+
+template <class Type>
+Type logpost_uses_hyper(vector<Type> effectfree,
+			vector<Type> hyper,
+			vector<Type> consts,
+			matrix<int> matrix_along_by,
+			vector<int> indices_priors,
+			int i_prior);
+
+
 // Helper functions -----------------------------------------------------------
 
 template <class Type>
@@ -33,7 +53,8 @@ template <class Type>
 Type logpost_ar(vector<Type> effectfree,
 		vector<Type> hyper,
 		vector<Type> consts,
-		matrix<int> matrix_along_by) {
+		matrix<int> matrix_along_by,
+		vector<int> indices_priors) {
   Type shape1 = consts[0];
   Type shape2 = consts[1];
   Type min = consts[2];
@@ -55,65 +76,68 @@ Type logpost_ar(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_combine(vector<Type> effectfree,
+Type logpost_compose(vector<Type> effectfree,
 		     vector<Type> hyper,
 		     vector<Type> consts,
-		     matrix<int> matrix_along_by) {
+		     matrix<int> matrix_along_by,
+		     vector<int> indices_priors) {
+  constexpr int n_position = 7;
+  int n_comp = indices_priors.size() / n_position;
   int n_effect = effectfree.size();
-  int n_comp = consts[0]; // number of priors contained within combined prior
   Type ans = 0;
-  int n_indices = 6;
   vector<Type> effectfree_comp(n_effect);       
-  vector<Type> effectfree_comp_total(n_effect); 
+  vector<Type> effectfree_total(n_effect); 
   for (int i_effect = 0; i_effect < n_effect; i_effect++)
-    effectfree_comp_total[i_effect] = 0;
+    effectfree_total[i_effect] = 0;
   for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-    int offset_comp = i_comp * n_indices + 1;
+    int effect_start = indices_priors[i_comp * n_position];
+    int effect_length = indices_priors[i_comp * n_position + 1];
+    int hyper_start = indices_priors[i_comp * n_position + 2];
+    int hyper_length = indices_priors[i_comp * n_position + 3];
+    int consts_start = indices_priors[i_comp * n_position + 4];
+    int consts_length = indices_priors[i_comp * n_position + 5];
+    int i_prior_comp = indices_priors[i_comp * n_position + 6];
     // extract 'effect_free'
     bool is_comp_last = i_comp == n_comp - 1;
     if (is_comp_last) {
-      effectfree_comp = effectfree - effectfree_comp_total;
+      effectfree_comp = effectfree - effectfree_total;
     }
     else {
-      int start_effect = consts[offset_comp + 1];
-      int length_effect = consts[offset_comp + 2];
-      effectfree_comp = hyper.segment(start_effect, length_effect);
-      effectfree_comp_total += effectfree_comp;
+      effectfree_comp = hyper.segment(effect_start, effect_length);
+      effectfree_total += effectfree_comp;
     }
     // extract 'consts'
-    int start_consts = consts[offset_comp + 3];
-    int length_consts = consts[offset_comp + 4];
-    vector<Type> consts_comp = consts.segment(start_consts, length_consts);
+    vector<Type> consts_comp = consts.segment(consts_start, consts_length);
     // extract info about 'hyper'
-    int start_hyper = consts[offset_comp + 5];
-    int length_hyper = consts[offset_comp + 6];
-    bool uses_hyper = length_hyper > 0;
-    // extract 'i_prior'
-    int i_prior_comp = consts[offset_comp];
+    bool uses_hyper = hyper_length > 0;
     // calculate log posterior density
     if (uses_hyper) {
-      vector<Type> hyper_comp = hyper.segment(start_hyper, length_hyper);
+      vector<Type> hyper_comp = hyper.segment(hyper_start, hyper_length);
       ans += logpost_uses_hyper(effectfree_comp,
 				hyper_comp,
 				consts_comp,
 				matrix_along_by,
+				indices_priors,
 				i_prior_comp);
     }
     else {
       ans += logpost_not_uses_hyper(effectfree_comp,
 				    consts_comp,
 				    matrix_along_by,
+				    indices_priors,
 				    i_prior_comp);
     }
   }
   return ans;
 }
 
+
 template <class Type>
 Type logpost_iar(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
+		 matrix<int> matrix_along_by,
+		 vector<int> indices_priors) {
   Type shape1 = consts[0];
   Type shape2 = consts[1];
   Type min = consts[2];
@@ -147,7 +171,8 @@ template <class Type>
 Type logpost_ilin(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
+		  matrix<int> matrix_along_by,
+		  vector<int> indices_priors) {
   Type scale = consts[0];
   Type sd_slope = consts[1];
   Type mscale = consts[2];
@@ -180,7 +205,8 @@ template <class Type>
 Type logpost_iseas(vector<Type> effectfree,
 		   vector<Type> hyper,
 		   vector<Type> consts,
-		   matrix<int> matrix_along_by) {
+		   matrix<int> matrix_along_by,
+		   vector<int> indices_priors) {
   Type scale = consts[0];
   int n_season = consts.size(); // size of 'consts' used to record 'n_season'
   int n_along = matrix_along_by.rows();
@@ -207,7 +233,8 @@ template <class Type>
 Type logpost_lin(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
+		 matrix<int> matrix_along_by,
+		 vector<int> indices_priors) {
   Type scale = consts[0];
   Type sd_slope = consts[1];
   Type slope = hyper[0];
@@ -230,7 +257,8 @@ template <class Type>
 Type logpost_norm(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
+		  matrix<int> matrix_along_by,
+		  vector<int> indices_priors) {
   Type scale = consts[0];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
@@ -243,7 +271,8 @@ Type logpost_norm(vector<Type> effectfree,
 template <class Type>
 Type logpost_normfixed(vector<Type> effectfree,
 		       vector<Type> consts,
-		       matrix<int> matrix_along_by) {
+		       matrix<int> matrix_along_by,
+		       vector<int> indices_priors) {
   Type sd = consts[0];
   Type ans = 0;
   ans += dnorm(effectfree, Type(0), sd, true).sum();
@@ -254,7 +283,8 @@ template <class Type>
 Type logpost_rw(vector<Type> effectfree,
 		vector<Type> hyper,
 		vector<Type> consts,
-		matrix<int> matrix_along_by) {
+		matrix<int> matrix_along_by,
+		vector<int> indices_priors) {
   Type scale = consts[0];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
@@ -273,7 +303,8 @@ template <class Type>
 Type logpost_rw2(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
+		 matrix<int> matrix_along_by,
+		 vector<int> indices_priors) {
   Type scale = consts[0];
   Type sd_slope = consts[1];
   Type log_sd = hyper[0];
@@ -295,7 +326,8 @@ template <class Type>
 Type logpost_seas(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
+		  matrix<int> matrix_along_by,
+		  vector<int> indices_priors) {
   Type scale = consts[0];
   int n_season = consts.size(); // size of 'consts' used to record 'n_season'
   int n_effect = effectfree.size();
@@ -314,14 +346,16 @@ template <class Type>
 Type logpost_spline(vector<Type> effectfree,
    		    vector<Type> hyper,
 		    vector<Type> consts,
-		    matrix<int> matrix_along_by) {
-  return logpost_rw2(effectfree, hyper, consts, matrix_along_by);
+		    matrix<int> matrix_along_by,
+		    vector<int> indices_priors) {
+  return logpost_rw2(effectfree, hyper, consts, matrix_along_by, indices_priors);
 }
 
 template <class Type>
 Type logpost_svd(vector<Type> effectfree,
 		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
+		 matrix<int> matrix_along_by,
+		 vector<int> indices_priors) {
   return dnorm(effectfree, Type(0), Type(1), true).sum();
 }
 
@@ -332,14 +366,15 @@ template <class Type>
 Type logpost_not_uses_hyper(vector<Type> effectfree,
 			    vector<Type> consts,
 			    matrix<int> matrix_along_by,
+			    vector<int> indices_priors,
 			    int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 2:
-    ans = logpost_normfixed(effectfree, consts, matrix_along_by);
+    ans = logpost_normfixed(effectfree, consts, matrix_along_by, indices_priors);
     break;
   case 7:
-    ans = logpost_svd(effectfree, consts, matrix_along_by);
+    ans = logpost_svd(effectfree, consts, matrix_along_by, indices_priors);
     break;
   default:
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -352,38 +387,42 @@ Type logpost_uses_hyper(vector<Type> effectfree,
 			vector<Type> hyper,
 			vector<Type> consts,
 			matrix<int> matrix_along_by,
+			vector<int> indices_priors,
 			int i_prior) {
   Type ans = 0;
   switch(i_prior) {
   case 1:
-    ans = logpost_norm(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_norm(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 3:
-    ans = logpost_rw(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_rw(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 4:
-    ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 5:
-    ans = logpost_ar(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_ar(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 6:
-    ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_spline(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 8:
-    ans = logpost_lin(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_lin(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 9:
-    ans = logpost_ilin(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_ilin(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 10:
-    ans = logpost_seas(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_seas(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 11:
-    ans = logpost_iseas(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_iseas(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   case 12:
-    ans = logpost_iar(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_iar(effectfree, hyper, consts, matrix_along_by, indices_priors);
+    break;
+  case 1000:
+    ans = logpost_compose(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -446,6 +485,8 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
   DATA_STRUCT(matrices_along_by, LIST_M_t);
+  DATA_IVECTOR(indices_priors);
+  DATA_FACTOR(terms_indices_priors);
   DATA_SCALAR(scale_disp);
 
   PARAMETER_VECTOR(effectfree); 
@@ -461,6 +502,7 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > offsets_effectfree_effect_split = split(offsets_effectfree_effect, terms_effect);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
   vector<vector<Type> > consts_split = split(consts, terms_consts);
+  vector<vector<int> > indices_priors_split = split(indices_priors, terms_indices_priors);
   int has_disp = scale_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
 
@@ -499,18 +541,21 @@ Type objective_function<Type>::operator() ()
       vector<Type> effectfree_term = effectfree_split[i_term];
       vector<Type> consts_term = consts_split[i_term];
       matrix<int> matrix_along_by = matrices_along_by[i_term];
+      vector<int> indices_priors = indices_priors_split[i_term];
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
 	ans -= logpost_uses_hyper(effectfree_term,
 				  hyper_term,
 				  consts_term,
 				  matrix_along_by,
+				  indices_priors,
 				  i_prior_term);
       }
       else
 	ans -= logpost_not_uses_hyper(effectfree_term,
 				      consts_term,
 				      matrix_along_by,
+				      indices_priors,
 				      i_prior_term);
     }
   }

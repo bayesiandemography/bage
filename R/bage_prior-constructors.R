@@ -116,6 +116,48 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
                     nm = "AR1")
 }
 
+compose_time <- function(trend, cyclical = NULL, seasonal = NULL) {
+  check_compose_prior(prior = base,
+                      nm_arg = "base",
+                      nm_fun = "compose_time",
+                      choices = c("bage_prior_ar",
+                                  "bage_prior_iar",
+                                  "bage_prior_ilin",
+                                  "bage_prior_irw",
+                                  "bage_prior_irw2",
+                                  "bage_prior_rw",
+                                  "bage_prior_rw2",
+                                  "bage_prior_spline"))
+                                  
+  priors <- list(bage)
+  has_cyclical <- !is.null(cyclical)
+  if (has_cyclical) {
+    check_compose_prior(prior = error,
+                        nm_arg = "cyclical",
+                        nm_fun = "compose_time",
+                        choices = c("bage_prior_ar",
+                                    "bage_prior_iar"))
+    priors <- c(priors, list(cyclical))
+  }
+  has_seasonal <- !is.null(seasonal)
+  if (has_seasonal) {
+    check_compose_prior(prior = error,
+                        nm_arg = "seasonal",
+                        nm_fun = "compose_time",
+                        choices = c("bage_prior_seas",
+                                    "bage_prior_iseas"))
+    priors <- c(priors, list(seasonal))
+  }
+  is_main_effect(base)
+  if (is_main_effect)
+    check_compose_main_effect(priors)
+  else
+    check_compose_interaction(priors)
+  new_prior_compose(priors = priors,
+                    nm = "compose_time")
+}
+
+    
 
 ## HAS_TESTS
 #' Independent Autoregressive Prior
