@@ -453,8 +453,8 @@ make_lengths_effectfree <- function(mod) {
 }
 
 
-## NO_TESTS
-#' Lengths of Vectors of Hyper-Parameters
+## HAS_TESTS
+#' Lengths of Vectors of Ordinary Hyper-Parameters
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -463,8 +463,25 @@ make_lengths_effectfree <- function(mod) {
 #' @noRd
 make_lengths_hyper <- function(mod) {
   priors <- mod$priors
+  levels <- lapply(priors, levels_hyper)
+  ans <- lengths(levels)
+  names(ans) <- names(priors)
+  ans
+}
+
+## HAS_TESTS
+#' Lengths of Vectors of Hyper-Parameters that Can
+#' be Treated as Random Effects
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named integer vector
+#'
+#' @noRd
+make_lengths_hyperrand <- function(mod) {
+  priors <- mod$priors
   matrices_along_by <- choose_matrices_along_by(mod)
-  levels <- .mapply(levels_hyper,
+  levels <- .mapply(levels_hyperrand,
                     dots = list(prior = priors,
                                 matrix_along_by = matrices_along_by),
                     MoreArgs = list())

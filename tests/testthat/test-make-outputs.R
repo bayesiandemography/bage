@@ -346,8 +346,26 @@ test_that("'make_levels_hyper' works", {
     expect_identical(ans_obtained, ans_expected)                      
 })
 
+## 'make_levels_hyperrand' ----------------------------------------------------
 
-## 'make_levels_replicate' -------------------------------------------------------
+test_that("'make_levels_hyperrand' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- fit(mod)
+    ans_obtained <- make_levels_hyperrand(mod)
+    ans_expected <- c("mslope", "mslope")
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_levels_replicate' ----------------------------------------------------
 
 test_that("'make_levels_replicate' works", {
     ans_obtained <- make_levels_replicate(n = 2, n_row_data = 3)

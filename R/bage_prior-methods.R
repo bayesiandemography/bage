@@ -9,7 +9,9 @@
 #' Draw Values for Main Effect or Interactions
 #'
 #' @param prior Object of class 'bage_prior'
-#' @param vals_hyper Named list with values of hyper-parameters
+#' @param vals_hyper Named list with values of ordinary hyper-parameters
+#' @param vals_hyperrand Named list with values of hyper-parameters
+#' that can be treated as random effects
 #' @param levels_effect Character vector with labels for effect
 #' @param agesex String. One of "age", "age:sex",
 #' "sex:age" or "other"
@@ -21,6 +23,7 @@
 #' @noRd
 draw_vals_effect <- function(prior,
                              vals_hyper,
+                             vals_hyperrand,
                              levels_effect,
                              agesex,
                              matrix_along_by,
@@ -32,6 +35,7 @@ draw_vals_effect <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_ar <- function(prior,
                                            vals_hyper,
+                                           vals_hyperrand,
                                            levels_effect,
                                            agesex,
                                            matrix_along_by,
@@ -44,10 +48,31 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   ans
 }
 
+## NO_TESTS
+#' @export
+draw_vals_effect.bage_prior_compose <- function(prior,
+                                                vals_hyper,
+                                                vals_hyperrand,
+                                                levels_effect,
+                                                agesex,
+                                                matrix_along_by,
+                                                n_sim) {
+  priors <- prior$specific$priors
+  ans <- .mapply(draw_vals_effect,
+                 dots = list(prior = priors,
+                             vals_hyper = vals_hyper,
+                             vals_hyperrand = vals_hyperrand),
+                 MoreArgs = list(levels_effect = levels_effect,
+                                 agesex = agesex,
+                                 matrix_along_by = matrix_along_by))
+  Reduce("+", ans)
+}
+
 ## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_iar <- function(prior,
                                            vals_hyper,
+                                           vals_hyperrand,
                                            levels_effect,
                                            agesex,
                                            matrix_along_by,
@@ -71,11 +96,12 @@ draw_vals_effect.bage_prior_iar <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_ilin <- function(prior,
                                              vals_hyper,
+                                             vals_hyperrand,
                                              levels_effect,
                                              agesex,
                                              matrix_along_by,
                                              n_sim) {
-  mslope <- vals_hyper$mslope
+  mslope <- vals_hyperrand$mslope
   sd <- vals_hyper$sd
   draw_vals_ilin(mslope = mslope,
                  sd = sd,
@@ -87,6 +113,7 @@ draw_vals_effect.bage_prior_ilin <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_iseas <- function(prior,
                                               vals_hyper,
+                                              vals_hyperrand,
                                               levels_effect,
                                               agesex,
                                               matrix_along_by,
@@ -103,31 +130,33 @@ draw_vals_effect.bage_prior_iseas <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_known <- function(prior,
                                               vals_hyper,
+                                              vals_hyperrand,
                                               levels_effect,
                                               agesex,
                                               matrix_along_by,
                                               n_sim) {
-    values <- prior$specific$values
-    n_effect <- length(levels_effect)
-    matrix(values,
-           nrow = n_effect,
-           ncol = n_sim,
-           dimnames = list(levels_effect, seq_len(n_sim)))
+  values <- prior$specific$values
+  n_effect <- length(levels_effect)
+  matrix(values,
+         nrow = n_effect,
+         ncol = n_sim,
+         dimnames = list(levels_effect, seq_len(n_sim)))
 }
 
 ## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_lin <- function(prior,
                                             vals_hyper,
+                                            vals_hyperrand,
                                             levels_effect,
                                             agesex,
                                             matrix_along_by,
                                             n_sim) {
-    slope <- vals_hyper$slope
-    sd <- vals_hyper$sd
-    draw_vals_lin(slope = slope,
-                  sd = sd,
-                  labels = levels_effect)
+  slope <- vals_hyper$slope
+  sd <- vals_hyper$sd
+  draw_vals_lin(slope = slope,
+                sd = sd,
+                labels = levels_effect)
 }
 
 
@@ -135,26 +164,28 @@ draw_vals_effect.bage_prior_lin <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_norm <- function(prior,
                                              vals_hyper,
+                                             vals_hyperrand,
                                              levels_effect,
                                              agesex,
                                              matrix_along_by,
                                              n_sim) {
-    sd <- vals_hyper$sd
-    n_effect <- length(levels_effect)
-    n <- n_effect * n_sim
-    sd <- rep(sd, each = n_effect)
-    ans <- stats::rnorm(n = n, sd = sd)
-    ans <- matrix(ans,
-                  nrow = n_effect,
-                  ncol = n_sim,
-                  dimnames = list(levels_effect, seq_len(n_sim)))
-    ans
+  sd <- vals_hyper$sd
+  n_effect <- length(levels_effect)
+  n <- n_effect * n_sim
+  sd <- rep(sd, each = n_effect)
+  ans <- stats::rnorm(n = n, sd = sd)
+  ans <- matrix(ans,
+                nrow = n_effect,
+                ncol = n_sim,
+                dimnames = list(levels_effect, seq_len(n_sim)))
+  ans
 }
 
 ## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_normfixed <- function(prior,
                                                   vals_hyper,
+                                                  vals_hyperrand,
                                                   levels_effect,
                                                   agesex,
                                                   matrix_along_by,
@@ -174,6 +205,7 @@ draw_vals_effect.bage_prior_normfixed <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_rw <- function(prior,
                                            vals_hyper,
+                                           vals_hyperrand,
                                            levels_effect,
                                            agesex,
                                            matrix_along_by,
@@ -187,6 +219,7 @@ draw_vals_effect.bage_prior_rw <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_rw2 <- function(prior,
                                             vals_hyper,
+                                            vals_hyperrand,
                                             levels_effect,
                                             agesex,
                                             matrix_along_by,
@@ -202,6 +235,7 @@ draw_vals_effect.bage_prior_rw2 <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_seas <- function(prior,
                                              vals_hyper,
+                                             vals_hyperrand,
                                              levels_effect,
                                              agesex,
                                              matrix_along_by,
@@ -217,6 +251,7 @@ draw_vals_effect.bage_prior_seas <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_spline <- function(prior,
                                                vals_hyper,
+                                               vals_hyperrand,
                                                levels_effect,
                                                agesex,
                                                matrix_along_by,
@@ -237,31 +272,32 @@ draw_vals_effect.bage_prior_spline <- function(prior,
 #' @export
 draw_vals_effect.bage_prior_svd <- function(prior,
                                             vals_hyper,
+                                            vals_hyperrand,
                                             levels_effect,
                                             agesex,
                                             matrix_along_by,
                                             n_sim) {
-    scaled_svd <- prior$specific$scaled_svd
-    indep <- prior$specific$indep
-    n_comp <- prior$specific$n
-    m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                  levels_effect = levels_effect,
-                                  indep = indep,
-                                  agesex = agesex,
-                                  get_matrix = TRUE,
-                                  n_comp = n_comp)
-    b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                  levels_effect = levels_effect,
-                                  indep = indep,
-                                  agesex = agesex,
-                                  get_matrix = FALSE,
-                                  n_comp = n_comp)
-    n_par <- ncol(m)
-    z <- stats::rnorm(n = n_par * n_sim)
-    z <- matrix(nrow = n_par, ncol = n_sim)
-    ans <- m %*% z + b
-    dimnames(ans) <- list(levels_effect, seq_len(n_sim))
-    ans    
+  scaled_svd <- prior$specific$scaled_svd
+  indep <- prior$specific$indep
+  n_comp <- prior$specific$n
+  m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                levels_effect = levels_effect,
+                                indep = indep,
+                                agesex = agesex,
+                                get_matrix = TRUE,
+                                n_comp = n_comp)
+  b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                levels_effect = levels_effect,
+                                indep = indep,
+                                agesex = agesex,
+                                get_matrix = FALSE,
+                                n_comp = n_comp)
+  n_par <- ncol(m)
+  z <- stats::rnorm(n = n_par * n_sim)
+  z <- matrix(nrow = n_par, ncol = n_sim)
+  ans <- m %*% z + b
+  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  ans    
 }                             
 
 
@@ -270,19 +306,18 @@ draw_vals_effect.bage_prior_svd <- function(prior,
 #' Draw values for hyper-parameters
 #'
 #' @param prior Object of class 'bage_prior'
-#' @param matrix_along_by Matrix with map for along and by dimensions
 #' @param n_sim Number of simulation draws
 #'
 #' @returns A named list.
 #'
 #' @noRd
-draw_vals_hyper <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper <- function(prior, n_sim) {
   UseMethod("draw_vals_hyper")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_ar <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_ar <- function(prior, n_sim) {
     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(coef = coef,
@@ -291,7 +326,7 @@ draw_vals_hyper.bage_prior_ar <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_iar <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_iar <- function(prior, n_sim) {
     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(coef = coef,
@@ -300,26 +335,21 @@ draw_vals_hyper.bage_prior_iar <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_ilin <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_ilin <- function(prior, n_sim) {
   slope <- draw_vals_slope(prior = prior,
                            n_sim = n_sim)
   msd <- draw_vals_msd(prior = prior,
                        n_sim = n_sim)
-  mslope <- draw_vals_mslope(slope = slope,
-                             msd = msd,
-                             matrix_along_by = matrix_along_by,
-                             n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
   list(slope = slope,
-       mslope = mslope,
        sd = sd,
        msd = msd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_iseas <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_iseas <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
   list(sd = sd)
@@ -327,12 +357,12 @@ draw_vals_hyper.bage_prior_iseas <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_known <- function(prior, matrix_along_by, n_sim)
+draw_vals_hyper.bage_prior_known <- function(prior, n_sim)
     list()
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_lin <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_lin <- function(prior, n_sim) {
   slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(slope = slope,
@@ -341,48 +371,83 @@ draw_vals_hyper.bage_prior_lin <- function(prior, matrix_along_by, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_norm <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_norm <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_normfixed <- function(prior, matrix_along_by, n_sim)
+draw_vals_hyper.bage_prior_normfixed <- function(prior, n_sim)
     list()
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_rw <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw2 <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_rw2 <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_seas <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_seas <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_spline <- function(prior, matrix_along_by, n_sim) {
+draw_vals_hyper.bage_prior_spline <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_svd <- function(prior, matrix_along_by, n_sim)
+draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
     list()
+
+
+## 'draw_vals_hyperrand' ------------------------------------------------------
+
+#' Draw Values for Hyper-Parameters that can be Treated as Random Effects
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param vals_hyper Named list of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param n_sim Number of simulation draws
+#'
+#' @returns A named list.
+#'
+#' @noRd
+draw_vals_hyperrand <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+  UseMethod("draw_vals_hyperrand")
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+  list()
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_ilin <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+  slope <- vals_hyper$slope
+  msd <- vals_hyper$msd
+  mslope <- draw_vals_mslope(slope = slope,
+                             msd = msd,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  list(mslope = mslope)
+}
 
 
 ## 'is_comparable_prior' ------------------------------------------------------
@@ -671,100 +736,135 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, matrix_along_by, ages
 #' Names of hyper-parameters
 #'
 #' @param prior An object of class 'bage_prior'.
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-levels_hyper <- function(prior, matrix_along_by) {
+levels_hyper <- function(prior) {
     UseMethod("levels_hyper")
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
+levels_hyper.bage_prior_ar <- function(prior) {
   n <- prior$specific$n
   rep(c("coef", "sd"), times = c(n, 1L))
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_compose <- function(prior, matrix_along_by) {
+levels_hyper.bage_prior_compose <- function(prior) {
   priors <- prior$specific$priors
-  levels_hyper <- lapply(priors, levels_hyper, matrix_along_by = matrix_along_by)
-  n_prior <- length(priors)
-  n_effect <- length(matrix_along_by)
-  for (i_prior in seq_len(n_prior - 1L))
-    levels_hyper[[i]] <- c(rep("effect", times = n_effect),
-                           levels_hyper[[i]])
-  unlist(levels_hyper)
+  ans <- lapply(priors, levels_hyper)
+  unlist(ans)
 }
-    
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_iar <- function(prior, matrix_along_by) {
+levels_hyper.bage_prior_iar <- function(prior) {
   n <- prior$specific$n
   rep(c("coef", "sd"), times = c(n, 1L))
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_ilin <- function(prior, matrix_along_by) {
-  n_by <- ncol(matrix_along_by)
-  rep(c("slope", "mslope", "sd", "msd"),
-      times = c(1L, n_by, 1L, 1L))
+levels_hyper.bage_prior_ilin <- function(prior) {
+  c("slope", "sd", "msd")
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_iseas <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_iseas <- function(prior)
   "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_known <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_known <- function(prior)
     character()
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_lin <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_lin <- function(prior)
     c("slope", "sd")
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_norm <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_norm <- function(prior)
     "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_normfixed <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_normfixed <- function(prior)
     character()
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rw <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_rw <- function(prior)
     "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rw2 <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_rw2 <- function(prior)
   "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_seas <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_seas <- function(prior)
     "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_spline <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_spline <- function(prior)
     "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_svd <- function(prior, matrix_along_by)
+levels_hyper.bage_prior_svd <- function(prior)
     character()
+
+
+## 'levels_hyperrand' ---------------------------------------------------------
+
+#' Names of Hyper-Parameters that Can Be Treated as Random Effects
+#'
+#' Most priors don't have hyper-parameters that can be treated
+#' as random effects, so default value is a character vector
+#' of length 0.
+#' 
+#' @param prior An object of class 'bage_prior'.
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+levels_hyperrand <- function(prior, matrix_along_by) {
+    UseMethod("levels_hyperrand")
+}
+
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior <- function(prior, matrix_along_by) {
+  character()
+}
+
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior_compose <- function(prior, matrix_along_by) {
+  priors <- prior$specific$priors
+  ans <- lapply(priors, levels_hyperrand, matrix_along_by = matrix_along_by)
+  n_prior <- length(priors)
+  n_effect <- length(matrix_along_by)
+  for (i_prior in seq_len(n_prior - 1L))
+    ans[[i_prior]] <- c(rep("effect", times = n_effect), ans[[i_prior]])
+  unlist(ans, use.names = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior_ilin <- function(prior, matrix_along_by) {
+  n_by <- ncol(matrix_along_by)
+  rep.int("mslope", times = n_by)
+}
 
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------

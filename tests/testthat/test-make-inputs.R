@@ -506,7 +506,7 @@ test_that("'make_lengths_effectfree' works with valid inputs", {
 
 ## 'make_lengths_hyper' -------------------------------------------------------
 
-test_that("'make_lengths_effectfree' works with valid inputs", {
+test_that("'make_lengths_hyper' works with valid inputs", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = 1:2,
@@ -524,7 +524,32 @@ test_that("'make_lengths_effectfree' works with valid inputs", {
                     age = 1L,
                     sex = 0L,
                     region = 1L,
-                    "age:sex" = 5L)
+                    "age:sex" = 3L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_lengths_hyperrand' -------------------------------------------------------
+
+test_that("'make_lengths_hyperrand' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:2,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ ILin())
+  mod <- set_prior(mod, sex ~ NFix())
+  ans_obtained <- make_lengths_hyperrand(mod)
+  ans_expected <- c("(Intercept)" = 0L,
+                    age = 0L,
+                    sex = 0L,
+                    region = 0L,
+                    "age:sex" = 2L)
   expect_identical(ans_obtained, ans_expected)
 })
 
