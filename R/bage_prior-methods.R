@@ -967,7 +967,8 @@ str_call_prior.bage_prior_ar <- function(prior) {
   nm <- specific$nm
   if (nm == "AR") {
     args <- character(2L)
-    args[[1L]] <- sprintf("n=%d", n)
+    if (n != 2L)
+      args[[1L]] <- sprintf("n=%d", n)
     if (scale != 1)
       args[[2L]] <- sprintf("s=%s", scale)
   }
@@ -985,6 +986,17 @@ str_call_prior.bage_prior_ar <- function(prior) {
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
+}
+
+## NO_TESTS
+#' @export
+str_call_prior.bage_prior_compose <- function(prior) {
+  priors <- prior$specific$priors
+  nm <- prior$specific$nm
+  str_priors <- vapply(priors, str_call_prior, "")
+  str_priors <- paste(names(priors), str_priors, sep = "=")
+  str_priors <- paste(str_priors, collapse = ", ")
+  sprintf("%s(%s)", nm, str_priors)
 }
 
 ## HAS_TESTS
@@ -1290,6 +1302,175 @@ transform_hyper.bage_prior_svd <- function(prior, matrix_along_by)
     list()
 
 
+## 'use_for_compose_cyclical' -------------------------------------------------
+
+## HAS_TESTS
+#' Whether a Prior can Be Used as a 'cyclical' Argument in 'compose_time' and 'compose_age'
+#'
+#' @param prior Object of class `"bage_prior"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+use_for_compose_cyclical <- function(prior) {
+  UseMethod("use_for_compose_cyclical")
+}
+
+#' @export
+use_for_compose_cyclical.bage_prior <- function(prior) FALSE
+
+#' @export
+use_for_compose_cyclical.bage_prior_ar <- function(prior) TRUE
+
+#' @export
+use_for_compose_cyclical.bage_prior_iar <- function(prior) TRUE
+
+
+## 'use_for_compose_error' -------------------------------------------------
+
+## HAS_TESTS
+#' Whether a Prior can Be Used as a 'error' Argument in 'compose_time' and 'compose_age'
+#'
+#' @param prior Object of class `"bage_prior"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+use_for_compose_error <- function(prior) {
+  UseMethod("use_for_compose_error")
+}
+
+#' @export
+use_for_compose_error.bage_prior <- function(prior) FALSE
+
+#' @export
+use_for_compose_error.bage_prior_norm <- function(prior) TRUE
+
+
+## 'use_for_compose_seasonal' -------------------------------------------------
+
+## HAS_TESTS
+#' Whether a Prior can Be Used as a 'seasonal' Argument in 'compose_time'
+#'
+#' @param prior Object of class `"bage_prior"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+use_for_compose_seasonal <- function(prior) {
+  UseMethod("use_for_compose_seasonal")
+}
+
+#' @export
+use_for_compose_seasonal.bage_prior <- function(prior) FALSE
+
+#' @export
+use_for_compose_seasonal.bage_prior_seas <- function(prior) TRUE
+
+#' @export
+use_for_compose_seasonal.bage_prior_iseas <- function(prior) TRUE
+
+
+## 'use_for_compose_trend' ----------------------------------------------------
+
+## HAS_TESTS
+#' Whether a Prior can Be Used as a 'trend' Argument in 'compose_time'
+#'
+#' @param prior Object of class `"bage_prior"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+use_for_compose_trend <- function(prior) {
+  UseMethod("use_for_compose_trend")
+}
+
+#' @export
+use_for_compose_trend.bage_prior <- function(prior) FALSE
+
+#' @export
+use_for_compose_trend.bage_prior_ilin <- function(prior) TRUE
+
+#' @export
+use_for_compose_trend.bage_prior_lin <- function(prior) TRUE
+
+#' @export
+use_for_compose_trend.bage_prior_rw <- function(prior) TRUE
+
+#' @export
+use_for_compose_trend.bage_prior_rw2 <- function(prior) TRUE
+
+#' @export
+use_for_compose_trend.bage_prior_spline <- function(prior) TRUE
+
+
+
+## 'use_for_interaction' ------------------------------------------------------
+
+## HAS_TESTS
+#' Whether a Prior is Used Exclusively to Model Interactions
+#'
+#' If a prior is used to model interactions *and* main effects,
+#' then the function returns `FALSE`.
+#' 
+#' @param prior Object of class `"bage_prior"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+use_for_interaction <- function(prior) {
+  UseMethod("use_for_interaction")
+}
+
+#' @export
+use_for_interaction.bage_prior <- function(prior) FALSE
+
+#' @export
+use_for_interaction.bage_prior_iar <- function(prior) TRUE
+
+#' @export
+use_for_interaction.bage_prior_ilin <- function(prior) TRUE
+
+#' @export
+use_for_interaction.bage_prior_iseas <- function(prior) TRUE
+
+
+## 'use_for_main_effect' ------------------------------------------------------
+
+## HAS_TESTS
+#' Whether a Prior is Used Exclusively to Model Main Effects
+#'
+#' If a prior is used to model main effects *and* interactions,
+#' then the function returns `FALSE`.
+#' 
+#' @param prior Object of class `"bage_prior"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+use_for_main_effect <- function(prior) {
+  UseMethod("use_for_main_effect")
+}
+
+#' @export
+use_for_main_effect.bage_prior <- function(prior) FALSE
+
+#' @export
+use_for_main_effect.bage_prior_ar <- function(prior) TRUE
+
+#' @export
+use_for_main_effect.bage_prior_lin <- function(prior) TRUE
+
+#' @export
+use_for_main_effect.bage_prior_rw <- function(prior) TRUE
+
+#' @export
+use_for_main_effect.bage_prior_rw2 <- function(prior) TRUE
+
+#' @export
+use_for_main_effect.bage_prior_spline <- function(prior) TRUE
+
+
 ## 'uses_along' ---------------------------------------------------------------
 
 #' Whether Prior uses an 'along' Dimension
@@ -1309,7 +1490,15 @@ uses_along.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
+uses_along.bage_prior_iar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
 uses_along.bage_prior_ilin <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_iseas <- function(prior) TRUE
 
 
 ## 'uses_matrix_effectfree_effect' --------------------------------------------------

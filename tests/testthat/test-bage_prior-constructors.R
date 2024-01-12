@@ -31,6 +31,35 @@ test_that("'AR1' throws current error when min >= max", {
                  "`max` is less than or equal to `min`")
 })
 
+test_that("'compose_time' works with valid inputs", {
+  ans_obtained <- compose_time(error = N(), trend = ILin(s = 0.3))
+  ans_expected <- new_bage_prior_compose(priors = list(trend = ILin(s = 0.3),
+                                                       error = N()),
+                                         along = NULL,
+                                         nm = "compose_time")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'compose_time' throws correct error when 'trend' non-prior", {
+  expect_error(compose_time(trend = "wrong"),
+               "`trend` has class <character>")
+})
+
+test_that("'compose_time' throws correct error when 'trend' invalid prior", {
+  expect_error(compose_time(trend = Seas(n = 3)),
+               "`Seas\\(n=3\\)` prior cannot be used for `trend`")
+})
+
+test_that("'compose_time' throws correct error when 'cyclical' non-prior", {
+  expect_error(compose_time(trend = RW(), seasonal = "wrong"),
+               "`seasonal` has class <character>")
+})
+
+test_that("'compose_time' throws correct error when 'cyclical' invalid prior", {
+  expect_error(compose_time(trend = Lin(), cyclical = N()),
+               "`N\\(\\)` prior cannot be used for `cyclical`")
+})  
+
 test_that("'IAR' works with valid inputs", {
   expect_identical(IAR(n = 3),
                    new_bage_prior_iar(n = 3L,
@@ -161,6 +190,38 @@ test_that("'new_bage_prior_ar' works - AR1 interface", {
                                       max = 0.98,
                                       scale = 1,
                                       nm = "AR1"))
+})
+
+test_that("'new_bage_prior_compose' works - main effect", {
+  priors <- list(trend = Lin(),
+                 cyclical = AR(),
+                 seasonal = Seas(n = 12))
+  obj <- new_bage_prior_compose(priors = priors,
+                                along = NULL,
+                                nm = "compose_time")
+  expect_s3_class(obj, "bage_prior_compose")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 1000L)
+  expect_identical(obj$const, 0L)
+  expect_identical(obj$specific, list(priors = priors,
+                                      along = NULL,
+                                      nm = "compose_time"))
+})
+
+test_that("'new_bage_prior_compose' works - interaction", {
+  priors <- list(trend = ILin(),
+                 cyclical = IAR(),
+                 seasonal = ISeas(n = 12, along = "year"))
+  obj <- new_bage_prior_compose(priors = priors,
+                                along = "year",
+                                nm = "compose_time")
+  expect_s3_class(obj, "bage_prior_compose")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 1000L)
+  expect_identical(obj$const, 0L)
+  expect_identical(obj$specific, list(priors = priors,
+                                      along = "year",
+                                      nm = "compose_time"))
 })
 
 test_that("'new_bage_prior_iar' works - IAR interface", {
@@ -302,6 +363,3 @@ test_that("'new_bage_prior_svd' works", {
                           n = 3L,
                           indep = TRUE))
 })
-
-
-

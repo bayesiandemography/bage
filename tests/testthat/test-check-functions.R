@@ -296,6 +296,39 @@ test_that("'check_length_effect_ge' throws correct error with length less than m
 })
 
 
+## 'check_main_effect_interaction' --------------------------------------------
+
+test_that("'check_main_effect_interaction' returns TRUE with compatible priors", {
+  expect_true(check_main_effect_interaction(x1 = AR1(),
+                                            x2 = N(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+  expect_true(check_main_effect_interaction(x1 = IAR1(),
+                                            x2 = N(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+  expect_true(check_main_effect_interaction(x1 = AR1(),
+                                            x2 = Lin(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+  expect_true(check_main_effect_interaction(x1 = IAR1(),
+                                            x2 = ILin(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+})
+
+test_that("'check_main_effect_interaction' raises correct error with incompatible priors", {
+  expect_error(check_main_effect_interaction(x1 = AR1(),
+                                            x2 = IAR1(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"),
+               "`x1` uses prior `AR1\\(\\)` but `x2` uses prior `IAR1\\(\\)`")
+  expect_error(check_main_effect_interaction(x1 = IAR1(),
+                                            x2 = AR(n = 3),
+                                            nm1 = "x1",
+                                            nm2 = "x2"),
+               "`x1` uses prior `IAR1\\(\\)` but `x2` uses prior `AR\\(n=3\\)`")
+})  
 
 
 ## 'check_mod_est_sim_compatible' ---------------------------------------------

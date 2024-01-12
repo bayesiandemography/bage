@@ -346,6 +346,35 @@ test_that("'make_agesex_inner' works with valid inputs", {
 })
 
 
+## 'make_compose_along' -------------------------------------------------------
+
+test_that("'make_compose_along' returns NULL with all main effects", {
+  priors <- list(Lin(), AR(), Seas(n = 4))
+  expect_identical(make_compose_along(priors), NULL)
+})
+
+test_that("'make_compose_along' returns NULL with interactions with no along", {
+  priors <- list(ILin(), IAR(), ISeas(n = 4))
+  expect_identical(make_compose_along(priors), NULL)
+})
+
+test_that("'make_compose_along' returns NULL with interactions with consistent", {
+  priors <- list(ILin(along = "tm"), IAR(), ISeas(n = 4, along = "tm"))
+  expect_identical(make_compose_along(priors), "tm")
+})
+
+test_that("'make_compose_along' throws correct error with inconsistent alongs", {
+  priors <- list(ILin(along = "tm"), IAR(), ISeas(n = 4, along = "wrong"))
+  expect_error(make_compose_along(priors),
+               '`ILin\\(along="tm"\\)` and `ISeas\\(n=4,along="wrong"\\)` have different \'along\' dimensions')
+})
+
+
+
+
+
+
+
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
