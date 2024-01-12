@@ -4,13 +4,13 @@
 test_that("'draw_vals_effect' works with bage_prior_ar", {
   prior <- AR(n = 3)
   n_sim <- 10
-  matrix_along_by <- matrix(0:25, nc = 1)
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,                                
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -21,13 +21,13 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
 test_that("'draw_vals_effect' works with bage_prior_iar", {
   prior <- AR(n = 3)
   n_sim <- 10
-  matrix_along_by <- matrix(0:25, nc = 2)
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,                                
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -40,11 +40,15 @@ test_that("'draw_vals_effect' works with bage_prior_ilin", {
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -55,14 +59,14 @@ test_that("'draw_vals_effect' works with bage_prior_ilin", {
 
 test_that("'draw_vals_effect' works with bage_prior_iseas", {
   prior <- ISeas(n = 2, s = 0.01)
-  matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -74,10 +78,11 @@ test_that("'draw_vals_effect' works with bage_prior_iseas", {
 test_that("'draw_vals_effect' works with bage_prior_known", {
   prior <- Known(c(-0.1, 0, 0.1))
   n_sim <- 10
+  vals_hyperrand <- list()
   levels_effect <- c("a", "b", "c")
-  matrix_along_by <- matrix(0:2, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = NULL,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -88,13 +93,13 @@ test_that("'draw_vals_effect' works with bage_prior_known", {
 test_that("'draw_vals_effect' works with bage_prior_lin", {
   prior <- Lin()
   n_sim <- 10
+  vals_hyperrand <- list()
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
-  matrix_along_by <- matrix(0:25, nc = 1)
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -106,12 +111,12 @@ test_that("'draw_vals_effect' works with bage_prior_lin", {
 test_that("'draw_vals_effect' works with bage_prior_norm", {
   prior <- N()
   n_sim <- 10
-  matrix_along_by <- matrix(0:999, nc = 10)
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- seq_len(1000)
   ans <- draw_vals_effect(prior = prior,
+                          vals_hyperrand = vals_hyperrand,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
                           agesex = NULL,
@@ -125,10 +130,11 @@ test_that("'draw_vals_effect' works with bage_prior_norm", {
 test_that("'draw_vals_effect' works with bage_prior_normfixed", {
   prior <- NFix(sd = 0.3)
   n_sim <- 10
+  vals_hyperrand <- list()
   levels_effect <- seq_len(1000)
-  matrix_along_by <- matrix(0:999, nc = 10)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = NULL,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -140,14 +146,14 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
 
 test_that("'draw_vals_effect' works with bage_prior_rw", {
   prior <- RW()
-  matrix_along_by <- matrix(0:25, nc = 1)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -159,13 +165,13 @@ test_that("'draw_vals_effect' works with bage_prior_rw", {
 test_that("'draw_vals_effect' works with bage_prior_rw2", {
   prior <- RW2()
   n_sim <- 10
-  matrix_along_by <- matrix(0:25, nc = 1)
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -176,14 +182,14 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
 
 test_that("'draw_vals_effect' works with bage_prior_seas", {
   prior <- Seas(n = 4)
-  matrix_along_by <- matrix(0:25, nc = 1)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -194,14 +200,14 @@ test_that("'draw_vals_effect' works with bage_prior_seas", {
 
 test_that("'draw_vals_effect' works with bage_prior_spline", {
   prior <- Sp()
-  matrix_along_by <- matrix(0:25, nc = 1)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = NULL,
                           matrix_along_by = matrix_along_by,
@@ -212,14 +218,14 @@ test_that("'draw_vals_effect' works with bage_prior_spline", {
 
 test_that("'draw_vals_effect' works with bage_prior_svd", {
   prior <- SVD(HMD)
-  matrix_along_by <- matrix(0:80, nc = 1)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
-                                matrix_along_by = matrix_along_by,
                                 n_sim = n_sim)
+  vals_hyperrand <- list()
   levels_effect <- c(0:79, "80+")
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = "age",
                           matrix_along_by = matrix_along_by,
@@ -233,9 +239,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd", {
 
 test_that("'draw_vals_hyper' works with bage_prior_ar", {
   prior <- AR(n = 3)
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), c("coef", "sd"))
   expect_identical(dim(ans$coef), c(3L, 10L))
@@ -243,9 +247,7 @@ test_that("'draw_vals_hyper' works with bage_prior_ar", {
 
 test_that("'draw_vals_hyper' works with bage_prior_iar", {
   prior <- IAR(n = 3)
-  matrix_along_by <- matrix(0:9, nc = 2)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), c("coef", "sd"))
   expect_identical(dim(ans$coef), c(3L, 10L))
@@ -254,23 +256,19 @@ test_that("'draw_vals_hyper' works with bage_prior_iar", {
 test_that("'draw_vals_hyper' works with bage_prior_ilin", {
   set.seed(0)
   prior <- ILin()
-  matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = n_sim)
-  expect_identical(names(ans), c("slope", "mslope", "sd", "msd"))
+  expect_identical(names(ans), c("slope", "sd", "msd"))
   expect_identical(lengths(ans),
-                   c(slope = 10L, mslope = 40L, sd = 10L, msd = 10L))
+                   c(slope = 10L, sd = 10L, msd = 10L))
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_iseas", {
   set.seed(0)
   prior <- ISeas(n = 2)
-  matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = n_sim)
   expect_identical(names(ans), "sd")
   expect_identical(lengths(ans),
@@ -279,18 +277,14 @@ test_that("'draw_vals_hyper' works with bage_prior_iseas", {
 
 test_that("'draw_vals_hyper' works with bage_prior_known", {
   prior <- Known(c(0.1, 0.3))
-  matrix_along_by <- matrix(0:1, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(ans, list())
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_lin", {
   prior <- Lin()
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), c("slope", "sd"))
   expect_identical(length(ans$sd), 10L)
@@ -298,9 +292,7 @@ test_that("'draw_vals_hyper' works with bage_prior_lin", {
 
 test_that("'draw_vals_hyper' works with bage_prior_norm", {
   prior <- N()
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
   expect_identical(length(ans$sd), 10L)
@@ -308,18 +300,14 @@ test_that("'draw_vals_hyper' works with bage_prior_norm", {
 
 test_that("'draw_vals_hyper' works with bage_prior_normfixed", {
   prior <- NFix()
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(ans, list())
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rw", {
   prior <- RW()
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
   expect_identical(length(ans$sd), 10L)
@@ -327,9 +315,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw", {
 
 test_that("'draw_vals_hyper' works with bage_prior_rw2", {
   prior <- RW2()
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
   expect_identical(length(ans$sd), 10L)
@@ -337,9 +323,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2", {
 
 test_that("'draw_vals_hyper' works with bage_prior_seas", {
   prior <- Seas(n = 4)
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
   expect_identical(length(ans$sd), 10L)
@@ -347,9 +331,7 @@ test_that("'draw_vals_hyper' works with bage_prior_seas", {
 
 test_that("'draw_vals_hyper' works with bage_prior_spline", {
   prior <- Sp()
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
   expect_identical(length(ans$sd), 10L)
@@ -357,10 +339,41 @@ test_that("'draw_vals_hyper' works with bage_prior_spline", {
 
 test_that("'draw_vals_hyper' works with bage_prior_svd", {
   prior <- SVD(HMD)
-  matrix_along_by <- matrix(0:9, nc = 1)
   ans <- draw_vals_hyper(prior = prior,
-                         matrix_along_by = matrix_along_by,
                          n_sim = 10)
+  expect_identical(ans, list())
+})
+
+
+## 'draw_vals_hyperrand' ------------------------------------------------------
+
+test_that("'draw_vals_hyperrand' works with bage_prior_ilin", {
+  set.seed(0)
+  prior <- ILin()
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  expect_identical(names(ans), "mslope")
+  expect_identical(lengths(ans),
+                   c(mslope = 40L))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
+  set.seed(0)
+  prior <- Lin()
+  matrix_along_by <- matrix(0:11, nr = 12)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
   expect_identical(ans, list())
 })
 
@@ -538,84 +551,133 @@ test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, ages
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = AR(n = 2), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = AR(n = 2)),
                    c("coef", "coef", "sd"))
 })
 
+test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
+  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 4))
+  expect_identical(levels_hyper(prior),
+                   c(trend = levels_hyper(Lin()),
+                     cyclical = levels_hyper(AR()),
+                     seasonal = levels_hyper(Seas(n = 4))))
+})
+
 test_that("'levels_hyper' works with 'bage_prior_iar'", {
-  matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyper(prior = IAR(n = 2), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = IAR(n = 2)),
                    c("coef", "coef", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_ilin'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = ILin(), matrix_along_by = matrix_along_by),
-                   c("slope", "mslope", "sd", "msd"))
+  expect_identical(levels_hyper(prior = ILin()),
+                   c("slope", "sd", "msd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_iseas'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = ISeas(n = 3), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = ISeas(n = 3)),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_known'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = Known(1), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = Known(1)),
                    character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_lin'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = Lin(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = Lin()),
                    c("slope", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_norm'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = N(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = N()),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_normfixed'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = NFix(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = NFix()),
                    character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = RW(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = RW()),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = RW2(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = RW2()),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_seas'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = Seas(n = 2), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = Seas(n = 2)),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_spline'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = Sp(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = Sp()), 
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = SVD(sim_scaled_svd()),
-                                matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyper(prior = SVD(sim_scaled_svd())),
                    character())
 })
 
+
+## levels_hyperrand ---------------------------------------------------------------
+
+test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyperrand(prior = AR(n = 2), matrix_along_by = matrix_along_by),
+                   character())
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 1 prior", {
+  prior <- compose_time(ILin())
+  matrix_along_by <- matrix(0:99, ncol = 5)
+  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
+                   rep("mslope", 5))
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 2 priors", {
+  prior <- compose_time(ILin(), seasonal = ISeas(n = 4))
+  matrix_along_by <- matrix(0:99, ncol = 5)
+  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
+                   c(rep("effect", 100), rep("mslope", 5)))
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
+  prior <- compose_time(ILin(), seasonal = ISeas(n = 4), cyclical = IAR())
+  matrix_along_by <- matrix(0:99, ncol = 5)
+  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
+                   c(rep("effect", 100),
+                     rep("mslope", 5),
+                     rep("effect", 100)))
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
+  prior <- compose_time(ILin(), seasonal = ISeas(n = 4), cyclical = IAR(), error = N())
+  matrix_along_by <- matrix(0:99, ncol = 5)
+  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
+                   c(rep("effect", 100),
+                     rep("mslope", 5),
+                     rep("effect", 200)))
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_ilin'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyperrand(prior = ILin(), matrix_along_by = matrix_along_by),
+                   c("mslope", "mslope"))
+})
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
@@ -740,7 +802,7 @@ test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n = 1)), "AR(n=1)")
     expect_identical(str_call_prior(AR(n = 3, s = 0.3)), "AR(n=3,s=0.3)")
     expect_identical(str_call_prior(AR(s = 0.3, n = 2)),
-                     "AR(n=2,s=0.3)")
+                     "AR(s=0.3)")
 })
 
 test_that("'str_call_prior' works with bage_prior_compose", {
@@ -963,8 +1025,6 @@ test_that("'use_for_compose_cyclical' returns TRUE with priors that can be used 
 test_that("'use_for_compose_cyclical' returns FALSE with priors that cannot be used for cyclical", {
   expect_false(use_for_compose_cyclical(Seas(n = 4)))
   expect_false(use_for_compose_cyclical(ISeas(n = 12)))
-  expect_false(use_for_compose_cyclical(AR1()))
-  expect_false(use_for_compose_cyclical(IAR1()))
   expect_false(use_for_compose_cyclical(ILin()))
   expect_false(use_for_compose_cyclical(Lin()))
   expect_false(use_for_compose_cyclical(NFix()))

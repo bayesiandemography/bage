@@ -26,6 +26,15 @@ Type logpost_uses_hyper(vector<Type> effectfree,
 			vector<int> indices_priors,
 			int i_prior);
 
+template <class Type>
+Type logpost_uses_hyperrand(vector<Type> effectfree,
+			    vector<Type> hyper,
+			    vector<Type> hyperrand,
+			    vector<Type> consts,
+			    matrix<int> matrix_along_by,
+			    vector<int> indices_priors,
+			    int i_prior);
+
 
 // Helper functions -----------------------------------------------------------
 
@@ -78,6 +87,7 @@ Type logpost_ar(vector<Type> effectfree,
 template <class Type>
 Type logpost_compose(vector<Type> effectfree,
 		     vector<Type> hyper,
+		     vector<Type> hyperrand,
 		     vector<Type> consts,
 		     matrix<int> matrix_along_by,
 		     vector<int> indices_priors) {
@@ -90,35 +100,49 @@ Type logpost_compose(vector<Type> effectfree,
   for (int i_effect = 0; i_effect < n_effect; i_effect++)
     effectfree_total[i_effect] = 0;
   for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-    int effect_start = indices_priors[i_comp * n_position];
-    int effect_length = indices_priors[i_comp * n_position + 1];
-    int hyper_start = indices_priors[i_comp * n_position + 2];
-    int hyper_length = indices_priors[i_comp * n_position + 3];
-    int consts_start = indices_priors[i_comp * n_position + 4];
-    int consts_length = indices_priors[i_comp * n_position + 5];
-    int i_prior_comp = indices_priors[i_comp * n_position + 6];
+    int offset = i_comp * n_position;
+    int hyper_start = indices_priors[offset];
+    int hyper_length = indices_priors[offset + 1];
+    int hyperrand_start = indices_priors[offset + 2];
+    int hyperrand_length = indices_priors[offset + 3];
+    int consts_start = indices_priors[offset + 4];
+    int consts_length = indices_priors[offset + 5];
+    int i_prior_comp = indices_priors[offset + 6];
     // extract 'effect_free'
     bool is_comp_last = i_comp == n_comp - 1;
     if (is_comp_last) {
       effectfree_comp = effectfree - effectfree_total;
     }
     else {
-      effectfree_comp = hyper.segment(effect_start, effect_length);
+      effectfree_comp = hyperrand.segment(hyperrand_start, n_effect);
       effectfree_total += effectfree_comp;
     }
     // extract 'consts'
     vector<Type> consts_comp = consts.segment(consts_start, consts_length);
-    // extract info about 'hyper'
+    // extract info about 'hyper' and 'hyperrand'
     bool uses_hyper = hyper_length > 0;
+    bool uses_hyperrand = hyperrand_length > n_effect;
     // calculate log posterior density
     if (uses_hyper) {
       vector<Type> hyper_comp = hyper.segment(hyper_start, hyper_length);
-      ans += logpost_uses_hyper(effectfree_comp,
-				hyper_comp,
-				consts_comp,
-				matrix_along_by,
-				indices_priors,
-				i_prior_comp);
+      if (uses_hyperrand) {
+	vector<Type> hyperrand_comp = hyperrand.segment(hyperrand_start + n_effect, hyper_length);
+	ans += logpost_uses_hyperrand(effectfree_comp,
+				      hyper_comp,
+				      hyperrand_comp,
+				      consts_comp,
+				      matrix_along_by,
+				      indices_priors,
+				      i_prior_comp);
+      }
+      else {
+	ans += logpost_uses_hyper(effectfree_comp,
+				  hyper_comp,
+				  consts_comp,
+				  matrix_along_by,
+				  indices_priors,
+				  i_prior_comp);
+      }
     }
     else {
       ans += logpost_not_uses_hyper(effectfree_comp,
@@ -170,6 +194,7 @@ Type logpost_iar(vector<Type> effectfree,
 template <class Type>
 Type logpost_ilin(vector<Type> effectfree,
 		  vector<Type> hyper,
+		  vector<Type> hyperrand,
 		  vector<Type> consts,
 		  matrix<int> matrix_along_by,
 		  vector<int> indices_priors) {
@@ -179,9 +204,9 @@ Type logpost_ilin(vector<Type> effectfree,
   int n_along = matrix_along_by.rows();
   int n_by = matrix_along_by.cols();
   Type slope = hyper[0];
-  vector<Type> mslope = hyper.segment(1, n_by);
-  Type log_sd = hyper[n_by+1];
-  Type log_msd = hyper[n_by+2];
+  Type log_sd = hyper[1];
+  Type log_msd = hyper[2];
+  vector<Type> mslope = hyperrand;
   Type sd = exp(log_sd);
   Type msd = exp(log_msd);
   Type ans = 0;
@@ -409,9 +434,6 @@ Type logpost_uses_hyper(vector<Type> effectfree,
   case 8:
     ans = logpost_lin(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
-  case 9:
-    ans = logpost_ilin(effectfree, hyper, consts, matrix_along_by, indices_priors);
-    break;
   case 10:
     ans = logpost_seas(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
@@ -421,11 +443,30 @@ Type logpost_uses_hyper(vector<Type> effectfree,
   case 12:
     ans = logpost_iar(effectfree, hyper, consts, matrix_along_by, indices_priors);
     break;
-  case 1000:
-    ans = logpost_compose(effectfree, hyper, consts, matrix_along_by, indices_priors);
-    break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_uses_hyperrand(vector<Type> effectfree,
+			    vector<Type> hyper,
+			    vector<Type> hyperrand,
+			    vector<Type> consts,
+			    matrix<int> matrix_along_by,
+			    vector<int> indices_priors,
+			    int i_prior) {
+  Type ans = 0;
+  switch(i_prior) {
+  case 9:
+    ans = logpost_ilin(effectfree, hyper, hyperrand, consts, matrix_along_by, indices_priors);
+    break;
+  case 1000:
+    ans = logpost_compose(effectfree, hyper, hyperrand, consts, matrix_along_by, indices_priors);
+    break;
+  default:
+    error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior);
   }
   return ans;
 }
@@ -482,6 +523,8 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(i_prior);
   DATA_IVECTOR(uses_hyper);
   DATA_FACTOR(terms_hyper);
+  DATA_IVECTOR(uses_hyperrand);
+  DATA_FACTOR(terms_hyperrand);
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
   DATA_STRUCT(matrices_along_by, LIST_M_t);
@@ -491,6 +534,7 @@ Type objective_function<Type>::operator() ()
 
   PARAMETER_VECTOR(effectfree); 
   PARAMETER_VECTOR(hyper);
+  PARAMETER_VECTOR(hyperrand);
   PARAMETER(log_disp);
   
 
@@ -501,6 +545,7 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > effectfree_split = split(effectfree, terms_effectfree);
   vector<vector<Type> > offsets_effectfree_effect_split = split(offsets_effectfree_effect, terms_effect);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper); 
+  vector<vector<Type> > hyperrand_split = split(hyperrand, terms_hyperrand); 
   vector<vector<Type> > consts_split = split(consts, terms_consts);
   vector<vector<int> > indices_priors_split = split(indices_priors, terms_indices_priors);
   int has_disp = scale_disp > 0;
@@ -544,19 +589,32 @@ Type objective_function<Type>::operator() ()
       vector<int> indices_priors = indices_priors_split[i_term];
       if (uses_hyper[i_term]) {
 	vector<Type> hyper_term = hyper_split[i_term];
-	ans -= logpost_uses_hyper(effectfree_term,
-				  hyper_term,
-				  consts_term,
-				  matrix_along_by,
-				  indices_priors,
-				  i_prior_term);
+	if (uses_hyperrand[i_term]) { // if a prior uses hyperrand, then it uses hyper
+	  vector<Type> hyperrand_term = hyperrand_split[i_term];
+	  ans -= logpost_uses_hyperrand(effectfree_term,
+					hyper_term,
+					hyperrand_term,
+					consts_term,
+					matrix_along_by,
+					indices_priors,
+					i_prior_term);
+	}
+	else {
+	  ans -= logpost_uses_hyper(effectfree_term,
+				    hyper_term,
+				    consts_term,
+				    matrix_along_by,
+				    indices_priors,
+				    i_prior_term);
+	}
       }
-      else
+      else {
 	ans -= logpost_not_uses_hyper(effectfree_term,
 				      consts_term,
 				      matrix_along_by,
 				      indices_priors,
 				      i_prior_term);
+      }
     }
   }
 

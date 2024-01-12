@@ -404,6 +404,28 @@ make_levels_hyper <- function(mod) {
 }
 
 
+## NO_TESTS
+#' Make Levels Associated with Each Element of 'hyperrand'
+#'
+#' Make levels for hyperparameters for each term
+#'
+#' @param mod An object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_hyperrand <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  ans <- .mapply(levels_hyperrand,
+                 dots = list(prior = priors,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list())
+  ans <- unlist(ans)
+  ans
+}
+
+
 ## HAS_TEST
 #' Make labels for replicate datasets
 #'
