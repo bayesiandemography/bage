@@ -1,4 +1,5 @@
 
+
 ## HAS_TESTS
 #' Choose Values for 'matrix_along_by'
 #' for All Priors to Pass to TMB
@@ -241,6 +242,37 @@ make_agesex_inner <- function(nm, var_age, var_sexgender) {
     }
     else
         "other"
+}
+
+
+## HAS_TESTS
+#' Make 'along' Value for 'compose' Priors
+#'
+#' @param priors List of objects of class 'bage_prior'
+#'
+#' @returns NULL or a string
+#'
+#' @noRd
+make_compose_along <- function(priors) {
+  ans <- NULL
+  for (prior in priors) {
+    if (uses_along(prior)) {
+      along <- prior$specific$along
+      if (!is.null(along)) {
+        if (is.null(ans)) {
+          str_ans <- str_call_prior(prior)
+          ans <- along
+        }
+        else {
+          if (!identical(along, ans)) {
+            str_oth <- str_call_prior(prior)
+            cli::cli_abort("{.var {str_ans}} and {.var {str_oth}} have different 'along' dimensions.")
+          }
+        }
+      }
+    }
+  }
+  ans
 }
 
 

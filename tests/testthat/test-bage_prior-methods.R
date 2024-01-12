@@ -743,7 +743,16 @@ test_that("'str_call_prior' works with bage_prior_ar - AR", {
                      "AR(n=2,s=0.3)")
 })
 
-test_that("'str_call_prior' works with bage_prior_ar - IAR1", {
+test_that("'str_call_prior' works with bage_prior_compose", {
+  expect_identical(str_call_prior(compose_time(Lin())),
+                   "compose_time(trend=Lin())")
+  expect_identical(str_call_prior(compose_time(trend = Lin(), seasonal = Seas(n = 3))),
+                   "compose_time(trend=Lin(), seasonal=Seas(n=3))")
+  expect_identical(str_call_prior(compose_time(error = N(s = 0.1), trend = ILin())),
+                   "compose_time(trend=ILin(), error=N(s=0.1))")
+})
+
+test_that("'str_call_prior' works with bage_prior_iar - IAR1", {
     expect_identical(str_call_prior(IAR1()), "IAR1()")
     expect_identical(str_call_prior(IAR1(min = 0.5)), "IAR1(min=0.5)")
     expect_identical(str_call_prior(IAR1(max = 0.95)), "IAR1(max=0.95)")
@@ -752,7 +761,7 @@ test_that("'str_call_prior' works with bage_prior_ar - IAR1", {
                      "IAR1(min=0.5,max=0.95,s=0.3)")
 })
 
-test_that("'str_call_prior' works with bage_prior_ar - IAR", {
+test_that("'str_call_prior' works with bage_prior_iar - IAR", {
     expect_identical(str_call_prior(IAR(n = 1)), "IAR(n=1)")
     expect_identical(str_call_prior(IAR(n = 3, s = 0.3)), "IAR(n=3,s=0.3)")
     expect_identical(str_call_prior(IAR(s = 0.3, n = 2)),
@@ -944,11 +953,142 @@ test_that("'transform_hyper' works with 'bage_prior_svd'", {
 })
 
 
+## use_for_compose_cyclical ------------------------------------------------------
+
+test_that("'use_for_compose_cyclical' returns TRUE with priors that can be used for cyclical", {
+  expect_true(use_for_compose_cyclical(AR1()))
+  expect_true(use_for_compose_cyclical(IAR()))
+})
+
+test_that("'use_for_compose_cyclical' returns FALSE with priors that cannot be used for cyclical", {
+  expect_false(use_for_compose_cyclical(Seas(n = 4)))
+  expect_false(use_for_compose_cyclical(ISeas(n = 12)))
+  expect_false(use_for_compose_cyclical(AR1()))
+  expect_false(use_for_compose_cyclical(IAR1()))
+  expect_false(use_for_compose_cyclical(ILin()))
+  expect_false(use_for_compose_cyclical(Lin()))
+  expect_false(use_for_compose_cyclical(NFix()))
+  expect_false(use_for_compose_cyclical(RW()))
+  expect_false(use_for_compose_cyclical(RW2()))
+  expect_false(use_for_compose_cyclical(Sp()))
+  expect_false(use_for_compose_cyclical(Known(c(a = 1, b = -1))))
+  expect_false(use_for_compose_cyclical(SVD(HMD)))
+})
+
+
+## use_for_compose_error ------------------------------------------------------
+
+test_that("'use_for_compose_error' returns TRUE with priors that can be used for error", {
+  expect_true(use_for_compose_error(N()))
+})
+
+test_that("'use_for_compose_error' returns FALSE with priors that cannot be used for error", {
+  expect_false(use_for_compose_error(Seas(n = 4)))
+  expect_false(use_for_compose_error(ISeas(n = 12)))
+  expect_false(use_for_compose_error(AR1()))
+  expect_false(use_for_compose_error(IAR1()))
+  expect_false(use_for_compose_error(ILin()))
+  expect_false(use_for_compose_error(Lin()))
+  expect_false(use_for_compose_error(NFix()))
+  expect_false(use_for_compose_error(RW()))
+  expect_false(use_for_compose_error(RW2()))
+  expect_false(use_for_compose_error(Sp()))
+  expect_false(use_for_compose_error(Known(c(a = 1, b = -1))))
+  expect_false(use_for_compose_error(SVD(HMD)))
+})
+
+
+## use_for_compose_seasonal ------------------------------------------------------
+
+test_that("'use_for_compose_seasonal' returns TRUE with priors that can be used for seasonal", {
+    expect_true(use_for_compose_seasonal(Seas(n = 4)))
+    expect_true(use_for_compose_seasonal(ISeas(n = 12)))
+})
+
+test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be used for seasonal", {
+    expect_false(use_for_compose_seasonal(AR1()))
+    expect_false(use_for_compose_seasonal(IAR1()))
+    expect_false(use_for_compose_seasonal(ILin()))
+    expect_false(use_for_compose_seasonal(Lin()))
+    expect_false(use_for_compose_seasonal(N()))
+    expect_false(use_for_compose_seasonal(NFix()))
+    expect_false(use_for_compose_seasonal(RW()))
+    expect_false(use_for_compose_seasonal(RW2()))
+    expect_false(use_for_compose_seasonal(Sp()))
+    expect_false(use_for_compose_trend(Known(c(a = 1, b = -1))))
+    expect_false(use_for_compose_trend(SVD(HMD)))
+})
+
+
+## use_for_compose_trend ------------------------------------------------------
+
+test_that("'use_for_compose_trend' returns TRUE with priors that can be used for trend", {
+    expect_true(use_for_compose_trend(ILin()))
+    expect_true(use_for_compose_trend(Lin()))
+    expect_true(use_for_compose_trend(RW()))
+    expect_true(use_for_compose_trend(RW2()))
+    expect_true(use_for_compose_trend(Sp()))
+})
+
+test_that("'use_for_compose_trend' returns FALSE with priors that cannot be used for trend", {
+    expect_false(use_for_compose_trend(AR1()))
+    expect_false(use_for_compose_trend(IAR1()))
+    expect_false(use_for_compose_trend(Known(c(a = 1, b = -1))))
+    expect_false(use_for_compose_trend(N()))
+    expect_false(use_for_compose_trend(NFix()))
+    expect_false(use_for_compose_trend(Seas(n = 4)))
+    expect_false(use_for_compose_trend(ISeas(n = 12)))
+    expect_false(use_for_compose_trend(SVD(HMD)))
+})
+
+
+## use_for_interaction --------------------------------------------------------
+
+test_that("'use_for_interaction' returns FALSE with priors that are not necessarily interactions", {
+    expect_false(use_for_interaction(AR1()))
+    expect_false(use_for_interaction(Lin()))
+    expect_false(use_for_interaction(RW()))
+    expect_false(use_for_interaction(RW2()))
+    expect_false(use_for_interaction(Sp()))
+    expect_false(use_for_interaction(N()))
+    expect_false(use_for_interaction(NFix()))
+    expect_false(use_for_interaction(Seas(n = 3)))
+})
+
+test_that("'use_for_interaction' returns TRUE with priors that are always interactions", {
+    expect_true(use_for_interaction(IAR()))
+    expect_true(use_for_interaction(ILin()))
+    expect_true(use_for_interaction(ISeas(n = 12)))
+})
+
+
+## use_for_main_effect --------------------------------------------------------
+
+test_that("'use_for_main_effect' returns FALSE with priors that are not necessarily main effects", {
+    expect_false(use_for_main_effect(IAR1()))
+    expect_false(use_for_main_effect(ILin()))
+    expect_false(use_for_main_effect(ISeas(n = 12)))
+    expect_false(use_for_main_effect(N()))
+    expect_false(use_for_main_effect(NFix()))
+    expect_false(use_for_main_effect(Seas(n = 3)))
+})
+
+test_that("'use_for_main_effect' returns TRUE with priors that are always main effects", {
+    expect_true(use_for_main_effect(AR1()))
+    expect_true(use_for_main_effect(Lin()))
+    expect_true(use_for_main_effect(RW()))
+    expect_true(use_for_main_effect(RW2()))
+    expect_true(use_for_main_effect(Sp()))
+})
+
+
 ## uses_along -----------------------------------------------------------------
 
 test_that("'uses_along' works with valid inputs", {
     expect_false(uses_along(N()))
+    expect_true(uses_along(IAR()))
     expect_true(uses_along(ILin()))
+    expect_true(uses_along(ISeas(n = 2)))
 })
 
 

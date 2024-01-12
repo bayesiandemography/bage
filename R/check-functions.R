@@ -358,6 +358,38 @@ check_length_effect_ge <- function(length_effect, min, nm, prior) {
 
 
 ## HAS_TESTS
+#' Check that Not Mixing Priors for Main Effects with Priors for Interactions
+#'
+#' @param x1,x2 Objects of class `"bage_prior"`
+#' @param nm1,nm2 Names to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_main_effect_interaction <- function(x1, x2, nm1, nm2) {
+  is_main_1 <- use_for_main_effect(x1)
+  is_main_2 <- use_for_main_effect(x2)
+  is_int_1 <- use_for_interaction(x1)
+  is_int_2 <- use_for_interaction(x2)
+  str1 <- str_call_prior(x1)
+  str2 <- str_call_prior(x2)
+  msg <- "{.arg {nm1}} uses prior {.var {str1}} but {.arg {nm2}} uses prior {.var {str2}}."
+  if (is_main_1 && is_int_2) {
+    cli::cli_abort(c(msg,
+                     i = "{.var {str1}} is only used for main effects.",
+                     i = "{.var {str2}} is only used for interactions."))
+  }
+  if (is_int_1 && is_main_2) {
+    cli::cli_abort(c(msg,
+                     i = "{.var {str1}} is only used for interactions.",
+                     i = "{.var {str2}} is only used for main effects."))
+  }
+  invisible(TRUE)
+}
+
+
+
+## HAS_TESTS
 #' Check that 'min' and 'max' Arguments for AR Valid
 #'
 #' @param min Minimum value for damping coefficient(s)

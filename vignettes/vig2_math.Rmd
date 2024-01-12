@@ -876,6 +876,40 @@ Next we convert any transformed hyper-parameters back to the original units, and
 
 Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Section \@ref(sec:lik).
 
+# Standardization - second version
+
+NOTE - ignoring covariates for the moment. I suspect we can just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
+
+Under our model for means
+\begin{equation}
+ \pmb{\mu} = \sum_{m=0}^{(m)} \pmb{X}^{(m)} \pmb{\beta^{(m)}}
+\end{equation}
+where each $\pmb{X}^{(m)}$ is an incidence matrix of 0s and 1s.
+
+Let
+\begin{equation}
+  \pmb{A}_m = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top}
+\end{equation}
+and let
+\begin{align}
+  \pmb{P}_0 & = \pmb{A}_0 \\
+  \pmb{P}_m & = \pmb{A}_m (\pmb{I} - \pmb{X}^{(m-1)} \pmb{P}_{m-1}), \quad m = 1, \cdots, M.
+\end{align}
+We set
+\begin{equation}
+  \tilde{\pmb{\beta}}^{(m)} = \pmb{P}_m \pmb{\mu}
+\end{equation}
+
+Note that
+\begin{align}
+  \sum_{m=0}^M \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)} & =   \sum_{m=0}^M \pmb{X}^{(m)} \pmb{P}_m \pmb{\mu} \\
+  & =
+\end{align}
+  
+
+
+
+
 
 
 # Simulation
