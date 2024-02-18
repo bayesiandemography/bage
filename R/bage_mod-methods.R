@@ -434,6 +434,8 @@ fit.bage_mod <- function(object, ...) {
                i_prior = i_prior,
                uses_hyper = uses_hyper,
                terms_hyper = terms_hyper,
+               uses_hyperrand = uses_hyperrand,
+               terms_hyperrand = terms_hyperrand,
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
                matrices_along_by = matrices_along_by,

@@ -27,7 +27,7 @@ An object of class \code{"bage_prior_compose"}
 \description{
 Create a composite prior for a time main effect,
 or for an interaction involving time.
-The composite prior always containsa a trend,
+The composite prior always contains a trend,
 and may contain a cyclical effect,
 a seasonal effect, and an error.
 }

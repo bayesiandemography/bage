@@ -122,17 +122,17 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #'
 #' Create a composite prior for a time main effect,
 #' or for an interaction involving time.
-#' The composite prior always containsa a trend,
+#' The composite prior always contains a trend,
 #' and may contain a cyclical effect,
 #' a seasonal effect, and an error.
 #'
 #'
-#' | Term       | Main effects | Interactions |
-#' |------------|--------------|--------------|
-#' | `trend`    | [Lin()], [RW()], [RW2()], [Sp()] | [ILin()] |
-#' | `seasonal` | [Seas()]     | [ISeas()]    |
-#' | `cyclical` | [AR()], [AR1()] | [IAR()], [IAR1()] |
-#' | `error`    | [N()]        | [N()]        |
+#' | Term       | Main effects                     | Interactions      |
+#' |------------|----------------------------------|-------------------|
+#' | `trend`    | [Lin()], [RW()], [RW2()], [Sp()] | [ILin()]          |
+#' | `seasonal` | [Seas()]                         | [ISeas()]         |
+#' | `cyclical` | [AR()], [AR1()]                  | [IAR()], [IAR1()] |
+#' | `error`    | [N()]                            | [N()]             |
 #' 
 #'
 #' @param trend Prior describing the long-run behavior

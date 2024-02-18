@@ -403,6 +403,27 @@ make_idx_time <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make Indices to Priors Used within 'compose' Priors
+#'
+#' @param mod Object of class "bage_mod".
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_indices_priors <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  ans <- .mapply(indices_priors,
+                 dots = list(priors,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list())
+  names(ans) <- names(priors)
+  ans <- unlist(ans)
+  ans
+}
+
+
+## HAS_TESTS
 #' Make vector of indicators showing whether
 #' cell contributes to likelihood
 #'
@@ -854,8 +875,12 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 #'
 #' @noRd
 make_random <- function(mod) {
-    ans <- "effectfree"
-    ans
+  priors <- mod$priors
+  ans <- "effectfree"
+  has_hyperrand <- vapply(priors, has_hyperrand, FALSE)
+  if (any(has_hyperrand))
+    ans <- c(ans, "hyperrand")
+  ans
 }
 
 
@@ -1033,6 +1058,29 @@ make_terms_hyper <- function(mod) {
     ans <- rep(nms_terms, times = lengths)
     ans <- factor(ans, levels = nms_terms)
     ans
+}
+
+
+## HAS_TESTS
+#' Make Factor Indentifying Components of 'indices_priors'
+#'
+#' @param mod Object of class "bage_mod".
+#'
+#' @returns A factor
+#'
+#' @noRd
+make_terms_indices_priors <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  nms_terms <- names(priors)
+  indices <- .mapply(indices_priors,
+                     dots = list(priors,
+                                 matrix_along_by = matrices_along_by),
+                     MoreArgs = list())
+  lengths <- lengths(indices)
+  ans <- rep(nms_terms, times = lengths)
+  ans <- factor(ans, levels = nms_terms)
+  ans
 }
 
 
