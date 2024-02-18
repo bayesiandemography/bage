@@ -182,6 +182,9 @@ set_prior <- function(mod, formula) {
   is_prior_ok_for_term(prior = prior,
                        nm = nm_response,
                        matrix_along_by = matrix_along_by,
+                       var_time = var_time,
+                       var_age = var_age,
+                       is_in_compose = FALSE,
                        agesex = agesex)
   mod$priors[[i]] <- prior
   mod <- unfit(mod)

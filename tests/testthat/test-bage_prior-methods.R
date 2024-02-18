@@ -64,6 +64,7 @@ test_that("'draw_vals_effect' works with bage_prior_iseas", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- letters[1:12]
+  matrix_along_by = matrix(0:11, nc = 2)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
@@ -378,6 +379,101 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
 })
 
 
+## 'has_hyperrand' ------------------------------------------------------------
+
+test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
+  prior <- N()
+  expect_false(has_hyperrand(prior))
+})
+
+test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
+  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
+  expect_true(has_hyperrand(prior))
+  prior <- ILin()
+  expect_true(has_hyperrand(prior))
+})
+
+
+## 'indices_priors' -----------------------------------------------------------
+
+test_that("'indices_priors' works with non-compose prior", {
+  prior <- Lin()
+  matrix_along_by <- matrix(0:9, nr = 10)
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  expect_identical(ans_obtained, integer())                                 
+})
+
+test_that("'indices_priors' works with compose time prior - 1 prior", {
+  prior <- compose_time(trend = RW2())
+  matrix_along_by <- matrix(0:9, nr = 10)
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  ans_expected <- c(hyper_start = 0L,
+                    hyper_length = 1L,
+                    hyperrand_start = 0L,
+                    hyperrand_length = 0L,
+                    consts_start = 0L,
+                    consts_length = 2L,
+                    i_prior = 4L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'indices_priors' works with compose time prior - 2 priors", {
+  prior <- compose_time(trend = RW2(),
+                        cyclical = AR())
+  matrix_along_by <- matrix(0:9, nr = 10)
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  ans_expected <- c(hyper_start = 0L,
+                    hyper_length = 1L,
+                    hyperrand_start = 0L,
+                    hyperrand_length = 10L,
+                    consts_start = 0L,
+                    consts_length = 2L,
+                    i_prior = 4L,
+                    hyper_start = 1L,
+                    hyper_length = 3L,
+                    hyperrand_start = 10L,
+                    hyperrand_length = 0L,
+                    consts_start = 2L,
+                    consts_length = 5L,
+                    i_prior = 5L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'indices_priors' works with compose time prior - 3 priors", {
+  prior <- compose_time(trend = RW2(),
+                        cyclical = AR(),
+                        error = N())
+  matrix_along_by <- matrix(0:9, nr = 10)
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  ans_expected <- c(hyper_start = 0L,
+                    hyper_length = 1L,
+                    hyperrand_start = 0L,
+                    hyperrand_length = 10L,
+                    consts_start = 0L,
+                    consts_length = 2L,
+                    i_prior = 4L,
+                    hyper_start = 1L,
+                    hyper_length = 3L,
+                    hyperrand_start = 10L,
+                    hyperrand_length = 10L,
+                    consts_start = 2L,
+                    consts_length = 5L,
+                    i_prior = 5L,
+                    hyper_start = 4L,
+                    hyper_length = 1L,
+                    hyperrand_start = 20L,
+                    hyperrand_length = 0L,
+                    consts_start = 7L,
+                    consts_length = 1L,
+                    i_prior = 1L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## is_comparable_prior --------------------------------------------------------
 
 test_that("'is_comparable_prior' returns FALSE when priors differ", {
@@ -423,13 +519,32 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
     expect_true(is_prior_ok_for_term(prior = AR1(),
                                      nm = "time",
                                      matrix_along_by = matrix(0:3, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_compose - time", {
+  prior <- compose_time(trend = RW2(),
+                        cyclical = AR(),
+                        seas = Seas(n = 4))
+  expect_true(is_prior_ok_for_term(prior = prior,
+                                   nm = "time",
+                                   matrix_along_by = matrix(0:9, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_iar", {
     expect_true(is_prior_ok_for_term(prior = IAR(n = 3),
                                      nm = "time:region",
                                      matrix_along_by = matrix(0:29, nc = 3),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -437,43 +552,71 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ilin", {
     expect_true(is_prior_ok_for_term(prior = ILin(),
                                      nm = "sex:time",
                                      matrix_along_by = matrix(0:11, nc = 2),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_iseas", {
+  expect_true(is_prior_ok_for_term(prior = ISeas(n = 4),
+                                   nm = "time",
+                                   matrix_along_by = matrix(0:12, nc = 3),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = TRUE,
+                                   agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' throws correct error with bage_prior_iseas", {
   expect_error(is_prior_ok_for_term(prior = ISeas(n = 4),
                                     nm = "time",
                                     matrix_along_by = matrix(0:12, nc = 3),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "`ISeas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
-    expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
-                                     nm = "sex",
-                                     matrix_along_by = matrix(0:1, nc = 1),
-                                     agesex = "other"))
+  expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
+                                   nm = "sex",
+                                   matrix_along_by = matrix(0:1, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_lin", {
-    expect_true(is_prior_ok_for_term(prior = Lin(),
-                                     nm = "sex",
-                                     matrix_along_by = matrix(0:1, nc = 1),
-                                     agesex = "other"))
+  expect_true(is_prior_ok_for_term(prior = Lin(),
+                                   nm = "sex",
+                                   matrix_along_by = matrix(0:1, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
-    expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
-                                      nm = "sex",
-                                     matrix_along_by = matrix(0:2, nc = 1),
-                                      agesex = "other"),
-                 "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
+  expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
+                                    nm = "sex",
+                                    matrix_along_by = matrix(0:2, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
     expect_true(is_prior_ok_for_term(prior = N(),
                                      nm = "sex",
                                      matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -481,6 +624,9 @@ test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
     expect_true(is_prior_ok_for_term(prior = NFix(),
                                      nm = "sex",
                                      matrix_along_by = matrix(0, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -488,6 +634,9 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw", {
     expect_true(is_prior_ok_for_term(prior = RW(),
                                      nm = "time",
                                      matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -495,13 +644,29 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
     expect_true(is_prior_ok_for_term(prior = RW2(),
                                      nm = "time",
                                      matrix_along_by = matrix(0:2, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
+  expect_true(is_prior_ok_for_term(prior = Seas(n = 4),
+                                   nm = "time",
+                                   matrix_along_by = matrix(0:3, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = TRUE,
+                                   agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
   expect_error(is_prior_ok_for_term(prior = Seas(n = 4),
                                     nm = "time",
                                     matrix_along_by = matrix(0:3, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "`Seas\\(n=4\\)` prior cannot be used on its own.")
 })
@@ -510,6 +675,9 @@ test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
     expect_true(is_prior_ok_for_term(prior = Sp(),
                                      nm = "time",
                                      matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -517,6 +685,9 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
     expect_true(is_prior_ok_for_term(prior = SVD(sim_scaled_svd()),
                                      nm = "age:sex",
                                      matrix_along_by = matrix(0:9, nc = 2),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "age:sex"))
 })
 
@@ -525,6 +696,9 @@ test_that("'is_prior_ok_for_term' throws correct error with main effect, agesex 
     expect_error(is_prior_ok_for_term(prior = SVD(s),
                                      nm = "bla",
                                      matrix_along_by = matrix(0:9, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = NULL),
                 "Problem with `SVD\\(s\\)` prior for `bla` term.")
 })
@@ -534,6 +708,9 @@ test_that("'is_prior_ok_for_term' throws correct error with interaction, agesex 
     expect_error(is_prior_ok_for_term(prior = SVD(s),
                                      nm = "bla:bleh",
                                      matrix_along_by = matrix(0:9, nc = 2),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = NULL),
                 "Problem with `SVD\\(s\\)` prior for `bla:bleh` term.")
 })
@@ -543,6 +720,9 @@ test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, ages
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "bla:bleh:blu",
                                     matrix_along_by = matrix(0:11, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `SVD\\(s\\)` prior for `bla:bleh:blu` term.")
 })

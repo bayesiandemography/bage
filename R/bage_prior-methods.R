@@ -450,6 +450,94 @@ draw_vals_hyperrand.bage_prior_ilin <- function(prior, vals_hyper, matrix_along_
 }
 
 
+## 'has_hyperrand' ------------------------------------------------------
+
+#' Has Hyper-Parameters that can be Treated as Random Effects
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE or FALSE.
+#'
+#' @noRd
+has_hyperrand <- function(prior) {
+  UseMethod("has_hyperrand")
+}
+
+## HAS_TESTS
+#' @export
+has_hyperrand.bage_prior <- function(prior) FALSE
+
+
+## HAS_TESTS
+#' @export
+has_hyperrand.bage_prior_compose <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+has_hyperrand.bage_prior_ilin <- function(prior) TRUE
+
+
+## 'indices_priors' ----------------------------------------------------------------
+
+#' Information on Priors Making Up Compose Prior
+#'
+#' Creates index vector describing priors
+#' making up an object of class 'bage_prior_compose'.
+#'
+#' @param prior An object of class "bage_prior"
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+indices_priors <- function(prior, matrix_along_by) {
+    UseMethod("indices_priors")
+}
+
+## HAS_TESTS
+#' @export
+indices_priors.bage_prior <- function(prior, matrix_along_by) {
+  integer()
+}
+
+## HAS_TESTS
+#' @export
+indices_priors.bage_prior_compose <- function(prior, matrix_along_by) {
+  priors <- prior$specific$priors
+  n_prior <- length(priors)
+  n_effect <- length(matrix_along_by)
+  levels_hyper <- lapply(priors, levels_hyper)
+  lengths_hyper <- lengths(levels_hyper)
+  levels_hyperrand <- lapply(priors, levels_hyperrand)
+  lengths_hyperrand <- lengths(levels_hyperrand)
+  lengths_hyperrand[-n_prior] <- lengths_hyperrand[-n_prior] + n_effect
+  consts <- lapply(priors, function(x) x$const)
+  lengths_consts <- lengths(consts)
+  ans <- integer()
+  hyper_start <- 0L
+  hyperrand_start <- 0L
+  consts_start <- 0L
+  for (i_prior in seq_len(n_prior)) {
+    hyper_length <- lengths_hyper[[i_prior]]
+    hyperrand_length <- lengths_hyperrand[[i_prior]]
+    consts_length <- lengths_consts[[i_prior]]
+    i_prior_index = priors[[i_prior]]$i_prior
+    ans <- c(ans,
+             hyper_start = hyper_start,
+             hyper_length = hyper_length,
+             hyperrand_start = hyperrand_start,
+             hyperrand_length = hyperrand_length,
+             consts_start = consts_start,
+             consts_length = consts_length,
+             i_prior = i_prior_index)
+    hyper_start <- hyper_start + hyper_length
+    hyperrand_start <- hyperrand_start + hyperrand_length
+    consts_start <- consts_start + consts_length
+  }
+  ans
+}
+
+
 ## 'is_comparable_prior' ------------------------------------------------------
 
 #' Test Whether Priors can be Meaningfully Compared
@@ -545,19 +633,35 @@ is_known.bage_prior_known <- function(prior) TRUE
 #' @param prior Object of class 'bage_prior'
 #' @param nm Name of term.
 #' @param matrix_along_by Matrix with mapping to along, by dimensions
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param is_in_compose Whether prior is being used as an
+#' argument in a call to a 'compose' function
 #' @param agesex String. One of "age", "age:sex",
 #' "sex:age" or "other"
 #'
 #' @returns TRUE or raises an error
 #'
 #' @noRd
-is_prior_ok_for_term <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term <- function(prior,
+                                 nm,
+                                 matrix_along_by,
+                                 var_time,
+                                 var_age,
+                                 is_in_compose,
+                                 agesex) {
     UseMethod("is_prior_ok_for_term")
 }
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_ar <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_ar <- function(prior,
+                                               nm,
+                                               matrix_along_by,
+                                               var_time,
+                                               var_age,
+                                               is_in_compose,
+                                               agesex) {
   check_is_main_effect(nm = nm,
                        prior = prior)
   length_effect <- length(matrix_along_by)
@@ -571,7 +675,46 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior, nm, matrix_along_by, agese
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_iar <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_compose <- function(prior,
+                                                    nm,
+                                                    matrix_along_by,
+                                                    var_time,
+                                                    var_age,
+                                                    is_in_compose,
+                                                    agesex) {
+  priors <- prior$specific$priors
+  nm_compose <- prior$specific$nm
+  nm_split <- strsplit(nm, split = ":")[[1L]]
+  if (nm_compose == "compose_time") {
+    if (!(var_time %in% nm_split)) {
+      msg <- c("Problem with call to {.fun bage::compose_time}.",
+               i = "Term {.val {nm}} does not include a time dimension.")
+      if (!is.null(var_time))
+        msg <- c(msg, i = "Time dimension: {.val {var_time}}.")
+      cli::cli_abort(msg)
+    }
+  }
+  vapply(priors,
+         is_prior_ok_for_term,
+         TRUE,
+         nm = nm,
+         matrix_along_by = matrix_along_by,
+         var_time = var_time,
+         var_age = var_age,
+         is_in_compose = TRUE,
+         agesex = agesex)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_iar <- function(prior,
+                                                nm,
+                                                matrix_along_by,
+                                                var_time,
+                                                var_age,
+                                                is_in_compose,
+                                                agesex) {
   check_is_interaction(nm = nm,
                        prior = prior)
   length_along <- nrow(matrix_along_by)
@@ -585,7 +728,13 @@ is_prior_ok_for_term.bage_prior_iar <- function(prior, nm, matrix_along_by, ages
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_ilin <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_ilin <- function(prior,
+                                                 nm,
+                                                 matrix_along_by,
+                                                 var_time,
+                                                 var_age,
+                                                 is_in_compose,
+                                                 agesex) {
   check_is_interaction(nm = nm, prior = prior)
   length_along <- nrow(matrix_along_by)
   check_length_along_ge(length_along = length_along,
@@ -597,14 +746,30 @@ is_prior_ok_for_term.bage_prior_ilin <- function(prior, nm, matrix_along_by, age
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_iseas <- function(prior, nm, matrix_along_by, agesex) {
-  cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used on its own.",
-                   i = "{.var {str_call_prior(prior)}} prior can only be inside function {.fun bage::combine}."))
+is_prior_ok_for_term.bage_prior_iseas <- function(prior,
+                                                  nm,
+                                                  matrix_along_by,
+                                                  var_time,
+                                                  var_age,
+                                                  is_in_compose,
+                                                  agesex) {
+  if (!is_in_compose) {
+    str <- str_call_prior(prior)
+    cli::cli_abort(c("{.var {str}} prior cannot be used on its own.",
+                     i = "{.var {str}} prior can only be inside 'compose' function."))
+  }
+  invisible(TRUE)
 }
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_known <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_known <- function(prior,
+                                                  nm,
+                                                  matrix_along_by,
+                                                  var_time,
+                                                  var_age,
+                                                  is_in_compose,
+                                                  agesex) {
   values <- prior$specific$values
   n_values <- length(values)
   length_effect <- length(matrix_along_by)
@@ -619,7 +784,13 @@ is_prior_ok_for_term.bage_prior_known <- function(prior, nm, matrix_along_by, ag
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_lin <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_lin <- function(prior,
+                                                nm,
+                                                matrix_along_by,
+                                                var_time,
+                                                var_age,
+                                                is_in_compose,
+                                                agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
@@ -631,7 +802,13 @@ is_prior_ok_for_term.bage_prior_lin <- function(prior, nm, matrix_along_by, ages
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_norm <- function(prior,
+                                                 nm,
+                                                 matrix_along_by,
+                                                 var_time,
+                                                 var_age,
+                                                 is_in_compose,
+                                                 agesex) {
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
                          min = 2L,
@@ -642,7 +819,13 @@ is_prior_ok_for_term.bage_prior_norm <- function(prior, nm, matrix_along_by, age
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_normfixed <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_normfixed <- function(prior,
+                                                      nm,
+                                                      matrix_along_by,
+                                                      var_time,
+                                                      var_age,
+                                                      is_in_compose,
+                                                      agesex) {
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
                          min = 1L,
@@ -653,7 +836,13 @@ is_prior_ok_for_term.bage_prior_normfixed <- function(prior, nm, matrix_along_by
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_rw <- function(prior,
+                                               nm,
+                                               matrix_along_by,
+                                               var_time,
+                                               var_age,
+                                               is_in_compose,
+                                               agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
@@ -665,7 +854,13 @@ is_prior_ok_for_term.bage_prior_rw <- function(prior, nm, matrix_along_by, agese
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_rw2 <- function(prior,
+                                                nm,
+                                                matrix_along_by,
+                                                var_time,
+                                                var_age,
+                                                is_in_compose,
+                                                agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
@@ -677,14 +872,30 @@ is_prior_ok_for_term.bage_prior_rw2 <- function(prior, nm, matrix_along_by, ages
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_seas <- function(prior, nm, matrix_along_by, agesex) {
-  cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used on its own.",
-                   i = "{.var {str_call_prior(prior)}} prior can only be inside function {.fun bage::combine}."))
+is_prior_ok_for_term.bage_prior_seas <- function(prior,
+                                                 nm,
+                                                 matrix_along_by,
+                                                 var_time,
+                                                 var_age,
+                                                 is_in_compose,
+                                                 agesex) {
+  if (!is_in_compose) {
+    str <- str_call_prior(prior)
+    cli::cli_abort(c("{.var {str}} prior cannot be used on its own.",
+                     i = "{.var {str}} prior can only be inside 'compose' function."))
+  }
+  invisible(TRUE)
 }
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_spline <- function(prior,
+                                                   nm,
+                                                   matrix_along_by,
+                                                   var_time,
+                                                   var_age,
+                                                   is_in_compose,
+                                                   agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
@@ -696,7 +907,13 @@ is_prior_ok_for_term.bage_prior_spline <- function(prior, nm, matrix_along_by, a
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_svd <- function(prior, nm, matrix_along_by, agesex) {
+is_prior_ok_for_term.bage_prior_svd <- function(prior,
+                                                nm,
+                                                matrix_along_by,
+                                                var_time,
+                                                var_age,
+                                                is_in_compose,
+                                                agesex) {
   has_agesex <- !is.null(agesex)
   n_dim <- length(strsplit(nm, split = ":")[[1L]])
   str <- str_call_prior(prior)
@@ -962,80 +1179,6 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, a
                                        agesex = agesex,
                                        get_matrix = FALSE,
                                        n_comp = NULL)
-}
-
-
-## 'indices_priors' ----------------------------------------------------------------
-
-#' Information
-#'
-#' Creates index vector giving indices_priors
-#' of subvectors used by sub-priors making
-#' up a larger prior.
-#'
-#' @param prior An object of class "bage_prior"
-#'
-#' @returns An integer vector
-#'
-#' @noRd
-indices_priors <- function(prior) {
-    UseMethod("str_call_prior")
-}
-
-#' @export
-indices_priors <- function(prior, levels_effect, matrix_along_by) {
-  integer()
-}
-
-#' @export
-indices_priors.bage_prior_compose <- function(prior, levels_effect, matrix_along_by) {
-  priors <- prior$specific$priors
-  n_prior <- length(priors)
-  n_effect <- length(levels_effect)
-  levels_hyper <- lapply(priors, levels_hyper, matrix_along_by = matrix_along_by)
-  lengths_hyper <- lengths(levels_hyper)
-  consts <- lapply(priors, function(x) x$const)
-  lengths_consts <- lengths(consts)
-  ans <- c(effect_start = 0L,
-           effect_length = n_effect,
-           hyper_start = n_effect,
-           hyper_length = lengths_hyper[[1L]],
-           consts_start = 0L,
-           consts_length = lengths_consts[[1L]],
-           i_prior = priors[[1L]]$i_prior)
-  if (n_prior == 2L) {
-    ans <- c(ans,
-             effect_start = lengths_hyper[[1L]],
-             effect_length = 0L,
-             hyper_start = lengths_hyper[[1L]],
-             hyper_length = lengths_hyper_hyper[[2L]],
-             consts_start = lengths_consts[[1L]],
-             consts_length = lengths_conts[[2L]],
-             i_prior = priors[[2]]$i_prior)
-  }
-  else if (n_prior == 3L) {
-    ans <- c(ans,
-             ## prior 2
-             effect_start = lengths_hyper[[1L]],
-             effect_length = n_effect,
-             hyper_start = lengths_hyper[[1L]] + n_effect,
-             hyper_length = lengths_hyper_hyper[[2L]],
-             consts_start = lengths_consts[[1L]],
-             consts_length = lengths_conts[[2L]],
-             i_prior = priors[[2]]$i_prior,
-             ## prior 3
-             effect_start = lengths_hyper[[1L]] + n_effect + lengths_hyper[[2L]],
-             effect_length = 0L,
-             hyper_start = lengths_hyper[[1L]] + n_effect + lengths_hyper[[2L]],
-             hyper_length = lengths_hyper[[3L]],
-             consts_start = lengths_consts[[1L]] + lengths_conts[[2L]],
-             consts_length = lengths_consts[[3L]],
-             i_prior = priors[[3]]$i_prior)
-  }
-  else {
-    cli::cli_abort("Internal error: Unexpected value for 'n_prior'")
-  }
-  ans
 }
 
 
