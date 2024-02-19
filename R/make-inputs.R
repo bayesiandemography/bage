@@ -1,5 +1,4 @@
 
-
 ## HAS_TESTS
 #' Choose Values for 'matrix_along_by'
 #' for All Priors to Pass to TMB
@@ -349,9 +348,36 @@ make_effectfree <- function(mod) {
 make_hyper <- function(mod) {
     priors <- mod$priors
     ans <- rep(0, times = length(priors))
+    names(ans) <- names(priors)
     lengths <- make_lengths_hyper(mod)
     ans <- rep(ans, times = lengths)
     ans
+}
+
+
+## HAS_TESTS
+#' Make 'hyperrand'
+#'
+#' Make Vector to Hold Hyper-Parameters
+#' for Priors that can be Treated as Random Effects.
+#'
+#' We generate 'hyperrand' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of zeros, of type 'double'.
+#'
+#' @noRd
+make_hyperrand <- function(mod) {
+  priors <- mod$priors
+  ans <- rep(0, times = length(priors))
+  names(ans) <- names(priors)
+  lengths <- make_lengths_hyperrand(mod)
+  ans <- rep(ans, times = lengths)
+  ans
 }
 
 
@@ -562,7 +588,7 @@ make_map <- function(mod) {
     ## otherwise construct named list
     ans <- list()
     if (is_effectfree_fixed)
-        ans$effectfree <- make_map_effectfree_fixed(mod)
+      ans$effectfree <- make_map_effectfree_fixed(mod)
     if (is_disp_fixed)
         ans$log_disp <- factor(NA)
     ans
@@ -1038,7 +1064,7 @@ make_terms_effectfree <- function(mod) {
 #' that the each element belongs to.
 #' Note that the levels of the factor
 #' includes all priors, not just those
-#' with constants.
+#' with hyper.
 #'
 #' We generate 'terms_hyper' when function 'fit'
 #' is called, rather than storing it in the
@@ -1058,6 +1084,37 @@ make_terms_hyper <- function(mod) {
     ans <- rep(nms_terms, times = lengths)
     ans <- factor(ans, levels = nms_terms)
     ans
+}
+
+
+## HAS_TESTS
+#' Make Factor Identifying Components of 'hyperrand'
+#'
+#' Make factor the same length as 'hyperrand',
+#' giving the name of the term
+#' that the each element belongs to.
+#' Note that the levels of the factor
+#' includes all priors, not just those
+#' with hyperrand.
+#'
+#' We generate 'terms_hyperrand' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor, the same length
+#' as 'hyperrand'.
+#'
+#' @noRd
+make_terms_hyperrand <- function(mod) {
+  priors <- mod$priors
+  nms_terms <- names(priors)
+  lengths <- make_lengths_hyperrand(mod)
+  ans <- rep(nms_terms, times = lengths)
+  ans <- factor(ans, levels = nms_terms)
+  ans
 }
 
 
@@ -1097,6 +1154,52 @@ make_uses_hyper <- function(mod) {
   lengths <- make_lengths_hyper(mod)
   ans <- lengths > 0L
   ans <- 1L * ans
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Integer Vector of Flags for Whether
+#' Each Prior Uses Hyper-Parameters that
+#' Can Be Treated as Random Effects
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_hyperrand <- function(mod) {
+  priors <- mod$priors
+  lengths <- make_lengths_hyperrand(mod)
+  ans <- lengths > 0L
+  ans <- 1L * ans
+  names(ans) <- names(priors)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Integer Vector of Flags for Whether
+#' Each Prior Uses 'indices_priors'
+#'
+#' Currently only 'compose' priors
+#' use 'indices_priors'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_indices_priors <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  indices_priors <- .mapply(indices_priors,
+                            dots = list(priors,
+                                        matrix_along_by = matrices_along_by),
+                            MoreArgs = list())
+  lengths <- lengths(indices_priors)
+  ans <- lengths > 0L
+  names(ans) <- names(priors)
   ans
 }
 

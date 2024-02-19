@@ -413,9 +413,12 @@ fit.bage_mod <- function(object, ...) {
   i_prior <- make_i_prior(object)
   uses_hyper <- make_uses_hyper(object)
   terms_hyper <- make_terms_hyper(object)
+  uses_hyperrand <- make_uses_hyperrand(object)
+  terms_hyperrand <- make_terms_hyperrand(object)
   const <- make_const(object)
   terms_const <- make_terms_const(object)
   matrices_along_by <- choose_matrices_along_by(object)
+  uses_indices_priors <- make_uses_indices_priors(object)
   indices_priors <- make_indices_priors(object)
   terms_indices_priors <- make_terms_indices_priors(object)
   scale_disp <- object$scale_disp
@@ -439,15 +442,18 @@ fit.bage_mod <- function(object, ...) {
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
                matrices_along_by = matrices_along_by,
+               uses_indices_priors = uses_indices_priors,
                indices_priors = indices_priors,
                terms_indices_priors = terms_indices_priors,
                scale_disp = scale_disp)
   ## parameters
   effectfree <- make_effectfree(object)
   hyper <- make_hyper(object)
+  hyperrand <- make_hyperrand(object)
   log_disp <- 0
   parameters <- list(effectfree = effectfree,   
                      hyper = hyper,
+                     hyperrand = hyperrand,
                      log_disp = log_disp)
   ## MakeADFun
   map <- make_map(object)
