@@ -420,7 +420,43 @@ test_that("'make_hyper' works with valid inputs", {
                   data = data,
                   exposure = popn)
   ans_obtained <- make_hyper(mod)
-  ans_expected <- rep(0, 3)
+  ans_expected <- c(agegp = 0, SEX = 0, "agegp:SEX" = 0)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_hyperrand' ---------------------------------------------------------------
+
+test_that("'make_hyperrand' works with valid inputs - no hyperrand", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_hyperrand(mod)
+  ans_expected <- numeric()
+  names(ans_expected) <- character()
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:2,
+                      SEX = c("F", "M"),
+                      time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+  ans_obtained <- make_hyperrand(mod)
+  ans_expected <- rep(c(time = 0), 5)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1153,6 +1189,30 @@ test_that("'make_terms_hyper' works with valid inputs", {
 })
 
 
+## 'make_terms_hyperrand' ---------------------------------------------------------
+
+test_that("'make_uses_hyperrand' works - compose_time has two components", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex*time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+    ans_obtained <- make_terms_hyperrand(mod)
+    ans_expected <- factor(c(rep("time", 6), rep("sex:time", 2)),
+                           levels = c("(Intercept)",
+                                      "age",
+                                      "sex",
+                                      "time",
+                                      "sex:time"))
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+
 ## 'make_uses_hyper' ----------------------------------------------------------
 
 test_that("'make_uses_hyper' works with valid inputs", {
@@ -1176,8 +1236,94 @@ test_that("'make_uses_hyper' works with valid inputs", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+## 'make_uses_hyperrand' ------------------------------------------------------
 
-## 'make_uses_matrix_effectfree_effect' ---------------------------------------------
+test_that("'make_uses_hyperrand' works - compose_time has single component", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex*time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, time ~ compose_time(trend = RW2()))
+    ans_obtained <- make_uses_hyperrand(mod)
+    ans_expected <- c("(Intercept)" = 0L,
+                      age = 0L,
+                      sex = 0L,
+                      time = 0L,
+                      "sex:time" = 1L)
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+test_that("'make_uses_hyperrand' works - compose_time has two components", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex*time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+    ans_obtained <- make_uses_hyperrand(mod)
+    ans_expected <- c("(Intercept)" = 0L,
+                      age = 0L,
+                      sex = 0L,
+                      time = 1L,
+                      "sex:time" = 1L)
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_uses_indices_priors' -------------------------------------------------
+
+test_that("'make_uses_indices_priors' works - compose_time has single component", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ ILin())
+  mod <- set_prior(mod, time ~ compose_time(trend = RW2()))
+  ans_obtained <- make_uses_indices_priors(mod)
+  ans_expected <- c("(Intercept)" = 0L,
+                    age = 0L,
+                    sex = 0L,
+                    time = 1L,
+                    "sex:time" = 0L)
+  expect_identical(ans_obtained, ans_expected)                      
+})
+
+test_that("'make_uses_indices_priors' works - compose_time has two components", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ ILin())
+  mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+  ans_obtained <- make_uses_indices_priors(mod)
+  ans_expected <- c("(Intercept)" = 0L,
+                    age = 0L,
+                    sex = 0L,
+                    time = 1L,
+                    "sex:time" = 0L)
+  expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+
+## 'make_uses_matrix_effectfree_effect' ---------------------------------------
 
 test_that("'make_uses_matrix_effectfree_effect' works with valid inputs", {
     set.seed(0)
