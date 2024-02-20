@@ -36,6 +36,27 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_compose", {
+  prior <- compose_time(trend = RW(), error = N())
+  matrix_along_by <- matrix(0:25, nr = 26)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_iar", {
   prior <- AR(n = 3)
   n_sim <- 10
@@ -264,6 +285,14 @@ test_that("'draw_vals_hyper' works with bage_prior_ar", {
   expect_identical(dim(ans$coef), c(3L, 10L))
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_compose", {
+  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 2))
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("trend", "cyclical", "seasonal"))
+  expect_identical(length(ans$trend$slope), 10L)
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_iar", {
   prior <- IAR(n = 3)
   ans <- draw_vals_hyper(prior = prior,
@@ -365,6 +394,20 @@ test_that("'draw_vals_hyper' works with bage_prior_svd", {
 
 
 ## 'draw_vals_hyperrand' ------------------------------------------------------
+
+test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
+  set.seed(0)
+  prior <- compose_time(trend = ILin(), seasonal = ISeas(n = 2))
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  expect_identical(names(ans), c("trend", "seasonal"))
+})
 
 test_that("'draw_vals_hyperrand' works with bage_prior_ilin", {
   set.seed(0)
@@ -1121,6 +1164,15 @@ test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_compose'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  prior <- compose_time(trend = Lin(), cyclical = AR())
+  ans_obtained <- transform_hyper(prior = prior, matrix_along_by = matrix_along_by)
+  ans_expected <- unlist(c(list(trend = transform_hyper(Lin(), matrix_along_by)),
+                           list(cyclical = transform_hyper(AR(), matrix_along_by))))
+  expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ar - IAR1'", {
