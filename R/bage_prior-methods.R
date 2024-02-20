@@ -4,6 +4,31 @@
 ## https://github.com/r-lib/devtools/issues/2293
 
 
+## 'const' -------------------------------------------------------------------
+
+#' Extract Constants from Prior Spec
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns A named numeric vector.
+#'
+#' @noRd
+const <- function(prior) {
+  UseMethod("const")
+}
+
+#' @export
+const.bage_prior <- function(prior) prior$const
+
+#' @export
+const.bage_prior_compose <- function(prior) {
+  priors <- prior$specific$priors
+  ans <- lapply(priors, const)
+  ans <- unlist(ans)
+  ans
+}
+
+
 ## 'draw_vals_effect' ------------------------------------------------------------
 
 #' Draw Values for Main Effect or Interactions
@@ -511,7 +536,7 @@ indices_priors.bage_prior_compose <- function(prior, matrix_along_by) {
   levels_hyperrand <- lapply(priors, levels_hyperrand)
   lengths_hyperrand <- lengths(levels_hyperrand)
   lengths_hyperrand[-n_prior] <- lengths_hyperrand[-n_prior] + n_effect
-  consts <- lapply(priors, function(x) x$const)
+  consts <- lapply(priors, const)
   lengths_consts <- lengths(consts)
   ans <- integer()
   hyper_start <- 0L

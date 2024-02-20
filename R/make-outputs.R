@@ -394,11 +394,7 @@ make_level_components <- function(mod) {
 #' @noRd
 make_levels_hyper <- function(mod) {
   priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
-  ans <- .mapply(levels_hyper,
-                 dots = list(prior = priors,
-                             matrix_along_by = matrices_along_by),
-                 MoreArgs = list())
+  ans <- lapply(priors, levels_hyper)
   ans <- unlist(ans)
   ans
 }
