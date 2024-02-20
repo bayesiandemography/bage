@@ -342,7 +342,10 @@ test_that("'make_levels_hyper' works", {
                     exposure = popn)
     mod <- fit(mod)
     ans_obtained <- make_levels_hyper(mod)
-    ans_expected <- c("sd", "sd", "sd", "sd")
+    ans_expected <- c(age = "sd",
+                      sex = "sd",
+                      time = "sd",
+                      "age:sex" = "sd")
     expect_identical(ans_obtained, ans_expected)                      
 })
 

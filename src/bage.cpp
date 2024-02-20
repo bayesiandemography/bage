@@ -37,8 +37,7 @@ Type logpost_compose(vector<Type> effectfree,
 		     vector<Type> hyperrand,
 		     vector<Type> consts,
 		     matrix<int> matrix_along_by,
-		     vector<int> indices_priors,
-		     int i_prior);
+		     vector<int> indices_priors);
 
 
 // Helper functions -----------------------------------------------------------
@@ -582,8 +581,7 @@ Type objective_function<Type>::operator() ()
 				   hyperrand_term,
 				   consts_term,
 				   matrix_along_by,
-				   indices_priors_term,
-				   i_prior_term);
+				   indices_priors_term);
 	  }
 	  else
 	    ans -= logpost_uses_hyperrand(effectfree_term,

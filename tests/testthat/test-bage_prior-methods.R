@@ -1,4 +1,22 @@
 
+## const ----------------------------------------------------------------------
+
+test_that("'const' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  ans_obtained <- const(prior)
+  ans_expected <- prior$const
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
+  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
+  ans_obtained <- const(prior)
+  ans_expected <- unlist(c(list(trend = const(Lin())),
+                           list(seasonal = const(Seas(n = 3)))))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## draw_vals_effect --------------------------------------------------------------
 
 test_that("'draw_vals_effect' works with bage_prior_ar", {

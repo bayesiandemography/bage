@@ -292,8 +292,8 @@ make_compose_along <- function(priors) {
 #' @noRd
 make_const <- function(mod) {
     priors <- mod$priors
-    ans <- lapply(priors, function(x) x$const)
-    ans <- unlist(ans, use.names = FALSE)
+    ans <- lapply(priors, const)
+    ans <- unlist(ans)
     ans
 }
 
@@ -1000,7 +1000,8 @@ make_submatrix <- function(d, is_in) {
 make_terms_const <- function(mod) {
     priors <- mod$priors
     nms_terms <- names(priors)
-    lengths <- vapply(priors, function(x) length(x$const), 0L)
+    consts <- lapply(priors, const)
+    lengths <- lengths(consts)
     ans <- rep(nms_terms, times = lengths)
     ans <- factor(ans, levels = nms_terms)
     ans
@@ -1199,6 +1200,7 @@ make_uses_indices_priors <- function(mod) {
                             MoreArgs = list())
   lengths <- lengths(indices_priors)
   ans <- lengths > 0L
+  ans <- 1L * ans
   names(ans) <- names(priors)
   ans
 }

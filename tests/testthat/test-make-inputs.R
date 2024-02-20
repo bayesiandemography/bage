@@ -370,19 +370,24 @@ test_that("'make_compose_along' throws correct error with inconsistent alongs", 
 })
 
 
-
-
-
-
-
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+        set_prior((Intercept) ~ Known(3))
     ans_obtained <- make_const(mod)
-    ans_expected <- c(1, 1, 1)
+    ans_expected <- c("(Intercept)" = 0,
+                      agegp.scale = 1,
+                      SEX.scale = 1)
     expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
 })
 
 
@@ -397,7 +402,7 @@ test_that("'make_effectfree' works with valid inputs", {
     formula <- deaths ~ agegp + SEX
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = popn) %>%
+                    exposure = popn) |>
         set_prior((Intercept) ~ Known(3))
     ans_obtained <- make_effectfree(mod)
     ans_expected <- c("(Intercept)" = 3,
@@ -1100,9 +1105,20 @@ test_that("'make_submatrix' works - dimension not in term", {
 ## 'make_terms_const' ---------------------------------------------------------
 
 test_that("'make_terms_const' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = Known(1:3), d = N()))
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, agegp ~ AR1())
     ans_obtained <- make_terms_const(mod)
-    ans_expected <- factor(c("a", "b", "c", "d"), levels = c("a", "b", "c", "d"))
+    ans_expected <- factor(c("(Intercept)", rep("agegp", 5), "SEX", "region", "agegp:SEX"),
+                           levels = c("(Intercept)", "agegp", "SEX", "region", "agegp:SEX"))
     expect_identical(ans_obtained, ans_expected)
 })
 
