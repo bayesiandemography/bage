@@ -950,7 +950,7 @@ new_bage_prior_ar <- function(n, scale, min, max, nm) {
   ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 new_bage_prior_compose <- function(priors, along, nm) {
   ans <- list(i_prior = 1000L,
               const = 0L, ## not used

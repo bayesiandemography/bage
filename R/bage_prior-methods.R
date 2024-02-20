@@ -17,9 +17,11 @@ const <- function(prior) {
   UseMethod("const")
 }
 
+## HAS_TESTS
 #' @export
 const.bage_prior <- function(prior) prior$const
 
+## HAS_TESTS
 #' @export
 const.bage_prior_compose <- function(prior) {
   priors <- prior$specific$priors
@@ -73,7 +75,7 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_compose <- function(prior,
                                                 vals_hyper,
@@ -89,7 +91,8 @@ draw_vals_effect.bage_prior_compose <- function(prior,
                              vals_hyperrand = vals_hyperrand),
                  MoreArgs = list(levels_effect = levels_effect,
                                  agesex = agesex,
-                                 matrix_along_by = matrix_along_by))
+                                 matrix_along_by = matrix_along_by,
+                                 n_sim = n_sim))
   Reduce("+", ans)
 }
 
@@ -351,6 +354,13 @@ draw_vals_hyper.bage_prior_ar <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_compose <- function(prior, n_sim) {
+  priors <- prior$specific$priors
+  lapply(priors, draw_vals_hyper, n_sim = n_sim)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_iar <- function(prior, n_sim) {
     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
@@ -460,6 +470,19 @@ draw_vals_hyperrand <- function(prior, vals_hyper, matrix_along_by, n_sim) {
 #' @export
 draw_vals_hyperrand.bage_prior <- function(prior, vals_hyper, matrix_along_by, n_sim) {
   list()
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_compose <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+  priors <- prior$specific$priors
+  ans <- .mapply(draw_vals_hyperrand,
+                 dots = list(prior = priors,
+                             vals_hyper = vals_hyper),
+                 MoreArgs = list(matrix_along_by = matrix_along_by,
+                                 n_sim = n_sim))
+  names(ans) <- names(priors)
+  ans                 
 }
 
 ## HAS_TESTS
@@ -1256,7 +1279,7 @@ str_call_prior.bage_prior_ar <- function(prior) {
   sprintf("%s(%s)", nm, args)
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_compose <- function(prior) {
   priors <- prior$specific$priors
@@ -1490,6 +1513,14 @@ transform_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
   }
   rep(list(coef = shifted_inv_logit, sd = exp),
       times = c(n, 1L))
+}
+
+## NO_TESTS
+#' @export
+transform_hyper.bage_prior_compose <- function(prior, matrix_along_by) {
+  priors <- prior$specific$priors
+  ans <- lapply(priors, transform_hyper, matrix_along_by = matrix_along_by)
+  unlist(ans)
 }
 
 ## HAS_TESTS

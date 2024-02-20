@@ -774,6 +774,7 @@ make_matrix_sparse_empty <- function()
                          j = integer(),
                          x = integer())
 
+
 ## HAS_TESTS
 #' Make vector holding offset variable
 #'
@@ -789,6 +790,7 @@ make_offset <- function(vname_offset, data) {
     ans <- as.double(ans)
     ans
 }
+
 
 ## HAS_TESTS
 #' Make offset consisting entirely of 1s,
@@ -1174,7 +1176,6 @@ make_uses_hyperrand <- function(mod) {
   lengths <- make_lengths_hyperrand(mod)
   ans <- lengths > 0L
   ans <- 1L * ans
-  names(ans) <- names(priors)
   ans
 }
 
