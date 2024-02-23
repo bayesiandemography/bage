@@ -93,7 +93,7 @@ test_that("'make_combined_matrix_effectfree_effect' works with valid inputs", {
 
 ## 'make_comp_components' -----------------------------------------------------
 
-test_that("'make_comp_components' works", {
+test_that("'make_comp_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -109,6 +109,25 @@ test_that("'make_comp_components' works", {
     expect_identical(nrow(draws), length(ans))
     expect_setequal(ans, c("effect", "hyper", "disp"))
 })
+
+test_that("'make_comp_components' works - has hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(time ~ compose_time(trend = Lin(), error = N()))
+    mod <- set_n_draw(mod, n = 1)
+    mod <- fit(mod)
+    draws <- make_draws_components(mod)
+    ans <- make_comp_components(mod)
+    expect_identical(nrow(draws), length(ans))
+    expect_setequal(ans, c("effect", "hyper", "hyperrand", "disp"))
+})
+
 
 ## 'make_copies_repdata' ------------------------------------------------------
 
@@ -161,6 +180,8 @@ test_that("'make_draws_components' works", {
                     exposure = popn)
     mod <- set_prior(mod, age ~ Sp())
     mod <- set_n_draw(mod, n = 1)
+    mod <- set_disp(mod, s = 0)
+    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
     mod <- fit(mod)
     set.seed(0)
     ans_obtained <- make_draws_components(mod)
@@ -179,7 +200,7 @@ test_that("'make_draws_components' works", {
     draws <- transform_draws_effect(draws = draws,
                                  matrix = matrix,
                                  offset = offset)
-    ans_expected <- draws
+    ans_expected <- draws[-nrow(draws),,drop = FALSE]
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -312,7 +333,7 @@ test_that("'make_is_fixed' works when Known prior", {
 
 ## 'make_level_components' ----------------------------------------------------
 
-test_that("'make_level_components' works", {
+test_that("'make_level_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -322,6 +343,23 @@ test_that("'make_level_components' works", {
                     data = data,
                     exposure = popn)
     mod <- set_disp(mod, s = 0)
+    mod <- fit(mod)
+    comp <- make_comp_components(mod)
+    ans <- make_level_components(mod)
+    expect_identical(length(ans), length(comp))
+})
+
+test_that("'make_level_components' works - has hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_disp(mod, s = 0)
+    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), seasonal = Seas(n = 3)))
     mod <- fit(mod)
     comp <- make_comp_components(mod)
     ans <- make_level_components(mod)
@@ -424,7 +462,7 @@ test_that("'make_scaled_eigen' works with non-negative definite matrix", {
 
 ## 'make_term_components' -----------------------------------------------------
 
-test_that("'make_term_components' works", {
+test_that("'make_term_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -442,6 +480,26 @@ test_that("'make_term_components' works", {
     expect_identical(length(ans), length(comp))
 })
 
+test_that("'make_term_components' works - no hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_disp(mod, s = 0)
+    mod <- set_prior(mod, age ~ Sp())
+    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
+    mod <- set_n_draw(mod, n = 1)       
+    mod <- fit(mod)
+    comp <- make_comp_components(mod)
+    ans <- make_term_components(mod)
+    expect_identical(length(ans), length(comp))
+})
+
+
 
 ## 'make_transforms_hyper' ---------------------------------------------------------
 
@@ -454,6 +512,7 @@ test_that("'make_transforms_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- fit(mod)
     ans_obtained <- make_transforms_hyper(mod)
     invlogit2 <- function(x) {
@@ -461,7 +520,8 @@ test_that("'make_transforms_hyper' works", {
         2 * ans - 1
     }
     ans_expected <- c(rep(list(NULL), 19),
-                      rep(list(exp), 3),
+                      rep(list(exp), 4),
+                      rep(list(identity), 6),
                       list(exp))
     expect_identical(unname(ans_obtained), ans_expected,
                      ignore_function_env = TRUE)
@@ -494,6 +554,7 @@ test_that("'transform_draws_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- set_n_draw(mod, 5)
     mod <- fit(mod)
     draws <- make_draws_comp_raw(mod)
@@ -501,8 +562,9 @@ test_that("'transform_draws_hyper' works", {
     ans_obtained <- transform_draws_hyper(draws = draws,
                                           transforms = transforms)
     ans_expected <- rbind(draws[1:19, ],
-                          exp(draws[20:22, ]),
-                          exp(draws[23, ]))
+                          exp(draws[20:23, ]),
+                          draws[24:29, ],
+                          exp(draws[30, ]))
     expect_identical(unname(ans_obtained), ans_expected)
 })
 

@@ -556,7 +556,9 @@ indices_priors.bage_prior_compose <- function(prior, matrix_along_by) {
   n_effect <- length(matrix_along_by)
   levels_hyper <- lapply(priors, levels_hyper)
   lengths_hyper <- lengths(levels_hyper)
-  levels_hyperrand <- lapply(priors, levels_hyperrand)
+  levels_hyperrand <- lapply(priors,
+                             levels_hyperrand,
+                             matrix_along_by = matrix_along_by)
   lengths_hyperrand <- lengths(levels_hyperrand)
   lengths_hyperrand[-n_prior] <- lengths_hyperrand[-n_prior] + n_effect
   consts <- lapply(priors, const)
@@ -1490,18 +1492,17 @@ str_call_prior.bage_prior_svd <- function(prior) {
 #' of parameter back to original units
 #'+
 #' @param prior An object of class 'bage_prior'.
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
 #'
 #' @returns A list of functions.
 #'
 #' @noRd
-transform_hyper <- function(prior, matrix_along_by) {
+transform_hyper <- function(prior) {
     UseMethod("transform_hyper")
 }
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
+transform_hyper.bage_prior_ar <- function(prior) {
   specific <- prior$specific
   n <- specific$n
   min <- specific$min
@@ -1515,17 +1516,17 @@ transform_hyper.bage_prior_ar <- function(prior, matrix_along_by) {
       times = c(n, 1L))
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_compose <- function(prior, matrix_along_by) {
+transform_hyper.bage_prior_compose <- function(prior) {
   priors <- prior$specific$priors
-  ans <- lapply(priors, transform_hyper, matrix_along_by = matrix_along_by)
+  ans <- lapply(priors, transform_hyper)
   unlist(ans)
 }
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_iar <- function(prior, matrix_along_by) {
+transform_hyper.bage_prior_iar <- function(prior) {
   specific <- prior$specific
   n <- specific$n
   min <- specific$min
@@ -1541,64 +1542,107 @@ transform_hyper.bage_prior_iar <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_ilin <- function(prior, matrix_along_by) {
-  n_by <- ncol(matrix_along_by)
-  c(list(slope = identity),
-    rep(list(mslope = identity), times = n_by),
-    sd = exp,
-    msd = exp)
+transform_hyper.bage_prior_ilin <- function(prior) {
+  list(slope = identity,
+       sd = exp,
+       msd = exp)
 }
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_iseas <- function(prior, matrix_along_by) {
+transform_hyper.bage_prior_iseas <- function(prior) {
   list(sd = exp)
 }
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_known <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_known <- function(prior)
     list()
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_lin <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_lin <- function(prior)
     list(slope = identity, sd = exp)
     
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_norm <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_norm <- function(prior)
     list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_normfixed <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_normfixed <- function(prior)
     list()
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rw <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_rw <- function(prior)
     list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rw2 <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_rw2 <- function(prior)
   list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_seas <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_seas <- function(prior)
     list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_spline <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_spline <- function(prior)
     list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_svd <- function(prior, matrix_along_by)
+transform_hyper.bage_prior_svd <- function(prior)
     list()
+
+
+## 'transform_hyperrand' ------------------------------------------------------
+
+#' Transform to convert working TMB version
+#' of parameter back to original units
+#'+
+#' @param prior An object of class 'bage_prior'.
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#'
+#' @returns A list of functions.
+#'
+#' @noRd
+transform_hyperrand <- function(prior, matrix_along_by) {
+    UseMethod("transform_hyperrand")
+}
+
+## HAS_TESTS
+#' @export
+transform_hyperrand.bage_prior <- function(prior, matrix_along_by)
+    list()
+
+## HAS_TESTS
+#' @export
+transform_hyperrand.bage_prior_compose <- function(prior, matrix_along_by) {
+  priors <- prior$specific$priors
+  n_prior <- length(priors)
+  n_effect <- length(matrix_along_by)
+  ans <- lapply(priors,
+                transform_hyperrand,
+                matrix_along_by = matrix_along_by)
+  for (i_prior in seq_len(n_prior - 1L))
+    ans[[i_prior]] <- c(rep(list(effect = identity),
+                            times = n_effect),
+                        ans[[i_prior]])
+  unlist(ans)
+}
+
+## HAS_TESTS
+#' @export
+transform_hyperrand.bage_prior_ilin <- function(prior, matrix_along_by) {
+  n_by <- ncol(matrix_along_by)
+  rep(list(mslope = identity),
+      times = n_by)
+}
 
 
 ## 'use_for_compose_cyclical' -------------------------------------------------
