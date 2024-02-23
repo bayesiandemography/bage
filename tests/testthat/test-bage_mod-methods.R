@@ -108,6 +108,23 @@ test_that("'components' gives same answer when run twice", {
     expect_identical(ans1, ans2)
 })
 
+test_that("'components' works with compose_time", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), error = N()))
+    expect_identical(components(mod), NULL)
+    mod_fitted <- fit(mod)
+    ans <- components(mod_fitted)
+    expect_true(is.data.frame(ans))
+    expect_identical(unique(ans$component), c("effect", "hyper", "hyperrand", "disp"))
+})
+
 
 ## ## 'draw_vals_par' -----------------------------------------------------------
 

@@ -1252,6 +1252,7 @@ test_that("'make_uses_hyper' works with valid inputs", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+
 ## 'make_uses_hyperrand' ------------------------------------------------------
 
 test_that("'make_uses_hyperrand' works - compose_time has single component", {

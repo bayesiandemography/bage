@@ -319,7 +319,7 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 
 ## HAS_TESTS
 #' Draw values for 'effect', 'hyper',
-#' optionally 'disp', and 'linpred'
+#' optionally 'hyperrand', 'disp', and 'linpred'
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws

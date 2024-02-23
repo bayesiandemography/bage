@@ -481,25 +481,25 @@ test_that("'indices_priors' works with compose time prior - 1 prior", {
 })
 
 test_that("'indices_priors' works with compose time prior - 2 priors", {
-  prior <- compose_time(trend = RW2(),
-                        cyclical = AR())
-  matrix_along_by <- matrix(0:9, nr = 10)
+  prior <- compose_time(trend = ILin(),
+                        cyclical = IAR())
+  matrix_along_by <- matrix(0:9, nr = 5)
   ans_obtained <- indices_priors(prior = prior,
                                  matrix_along_by = matrix_along_by)
   ans_expected <- c(hyper_start = 0L,
-                    hyper_length = 1L,
-                    hyperrand_start = 0L,
-                    hyperrand_length = 10L,
-                    consts_start = 0L,
-                    consts_length = 2L,
-                    i_prior = 4L,
-                    hyper_start = 1L,
                     hyper_length = 3L,
-                    hyperrand_start = 10L,
+                    hyperrand_start = 0L,
+                    hyperrand_length = 12L,
+                    consts_start = 0L,
+                    consts_length = 3L,
+                    i_prior = 9L,
+                    hyper_start = 3L,
+                    hyper_length = 3L,
+                    hyperrand_start = 12L,
                     hyperrand_length = 0L,
-                    consts_start = 2L,
+                    consts_start = 3L,
                     consts_length = 5L,
-                    i_prior = 5L)
+                    i_prior = 12L)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1144,128 +1144,140 @@ test_that("'str_call_prior' works with bage_prior_svd", {
 ## transform_hyper ------------------------------------------------------------
 
 test_that("'transform_hyper' works with 'bage_prior_ar - AR1'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
   shifted_invlogit <- function(x) {
     ans <- exp(x) / (1 + exp(x))
     0.18 * ans + 0.8
   }
-  l <- transform_hyper(prior = AR1(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = AR1())
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
   shifted_invlogit <- function(x) {
     ans <- exp(x) / (1 + exp(x))
     2 * ans - 1
   }
-  l <- transform_hyper(prior = AR(n = 2), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = AR(n = 2))
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_compose'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
   prior <- compose_time(trend = Lin(), cyclical = AR())
-  ans_obtained <- transform_hyper(prior = prior, matrix_along_by = matrix_along_by)
-  ans_expected <- unlist(c(list(trend = transform_hyper(Lin(), matrix_along_by)),
-                           list(cyclical = transform_hyper(AR(), matrix_along_by))))
+  ans_obtained <- transform_hyper(prior = prior)
+  ans_expected <- unlist(c(list(trend = transform_hyper(Lin())),
+                           list(cyclical = transform_hyper(AR()))))
   expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ar - IAR1'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
   shifted_invlogit <- function(x) {
     ans <- exp(x) / (1 + exp(x))
     0.18 * ans + 0.8
   }
-  l <- transform_hyper(prior = IAR1(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = IAR1())
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ar - IAR'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
   shifted_invlogit <- function(x) {
     ans <- exp(x) / (1 + exp(x))
     2 * ans - 1
   }
-  l <- transform_hyper(prior = IAR(n = 2), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = IAR(n = 2))
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ilin'", {
-  matrix_along_by <- matrix(0:9, nc = 2)
-  l <- transform_hyper(prior = ILin(),
-                       matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = ILin())
   expect_equal(0.35, l[[1]](0.35))
-  expect_equal(0.35, l[[2]](0.35))
-  expect_equal(0.35, l[[3]](0.35))
-  expect_equal(exp(0.35), l[[4]](0.35))
-  expect_equal(exp(0.35), l[[5]](0.35))
+  expect_equal(exp(0.35), l[[2]](0.35))
+  expect_equal(exp(0.35), l[[3]](0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_known'", {
-  matrix_along_by <- matrix(0, nc = 1)
-  l <- transform_hyper(prior = Known(1), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = Known(1))
   expect_identical(l, list())
 })
 
 test_that("'transform_hyper' works with 'bage_prior_lin'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = Lin(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = Lin())
   expect_equal(0.35, l[[1]](0.35))
   expect_equal(exp(0.35), l[[2]](0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_norm'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = N(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = N())
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_normfixed'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = NFix(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = NFix())
   expect_identical(l, list())
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = RW(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = RW())
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw2'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = RW2(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = RW2())
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_seas'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = Seas(n = 4), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = Seas(n = 4))
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_spline'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = Sp(), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = Sp())
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_svd'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  l <- transform_hyper(prior = SVD(HMD), matrix_along_by = matrix_along_by)
+  l <- transform_hyper(prior = SVD(HMD))
   expect_identical(l, list())
 })
 
 
-## use_for_compose_cyclical ------------------------------------------------------
+## 'transform_hyperrand' ------------------------------------------------------
+
+test_that("'transform_hyper' works with 'bage_prior_ar1'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  prior <- AR1()
+  ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
+  ans_expected <- list()
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'transform_hyper' works with 'bage_prior_compose'", {
+  matrix_along_by <- matrix(0:9, nc = 2)
+  prior <- compose_time(trend = ILin(), cyclical = IAR(), error = N())
+  ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
+  ans_expected <- c(rep(list(trend.effect = identity), times = 10),
+                    rep(list(trend.mslope = identity), times = 2),
+                    rep(list(cyclical.effect = identity), times = 10))
+  expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
+})
+
+test_that("'transform_hyperrand' works with 'bage_prior_ilin'", {
+  matrix_along_by <- matrix(0:9, nc = 2)
+  l <- transform_hyperrand(prior = ILin(),
+                           matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](0.35))
+  expect_equal(0.35, l[[2]](0.35))
+  expect_identical(length(l), 2L)
+})
+
+
+## use_for_compose_cyclical ---------------------------------------------------
 
 test_that("'use_for_compose_cyclical' returns TRUE with priors that can be used for cyclical", {
   expect_true(use_for_compose_cyclical(AR1()))

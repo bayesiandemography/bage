@@ -111,25 +111,25 @@ Type logpost_compose(vector<Type> effectfree,
     int consts_start = indices_priors[offset + 4];
     int consts_length = indices_priors[offset + 5];
     int i_prior_comp = indices_priors[offset + 6];
-    // extract 'effect_free'
+    // extract info
+    bool uses_hyper = hyper_length > 0;
     bool is_comp_last = i_comp == n_comp - 1;
+    bool uses_hyperrand;
     if (is_comp_last) {
       effectfree_comp = effectfree - effectfree_total;
+      uses_hyperrand = hyperrand_length > 0;
     }
     else {
       effectfree_comp = hyperrand.segment(hyperrand_start, n_effect);
       effectfree_total += effectfree_comp;
+      uses_hyperrand = hyperrand_length > n_effect;
     }
-    // extract 'consts'
     vector<Type> consts_comp = consts.segment(consts_start, consts_length);
-    // extract info about 'hyper' and 'hyperrand'
-    bool uses_hyper = hyper_length > 0;
-    bool uses_hyperrand = hyperrand_length > n_effect;
     // calculate log posterior density
     if (uses_hyper) {
       vector<Type> hyper_comp = hyper.segment(hyper_start, hyper_length);
       if (uses_hyperrand) {
-	vector<Type> hyperrand_comp = hyperrand.segment(hyperrand_start + n_effect, hyper_length);
+	vector<Type> hyperrand_comp = hyperrand.segment(hyperrand_start, hyperrand_length);
 	ans += logpost_uses_hyperrand(effectfree_comp,
 				      hyper_comp,
 				      hyperrand_comp,

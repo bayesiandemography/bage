@@ -151,15 +151,16 @@ make_combined_offset_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_comp_components <- function(mod) {
-    est <- mod$est
-    offset <- make_offsets_effectfree_effect(mod)
-    has_disp <- has_disp(mod)
-    vals <- c("effect", "hyper", "disp")
-    n_effect <- length(offset)
-    n_hyper <- length(est$hyper)
-    n_disp <- as.integer(has_disp)
-    times <- c(n_effect, n_hyper, n_disp)
-    rep(vals, times = times)
+  est <- mod$est
+  offset <- make_offsets_effectfree_effect(mod)
+  has_disp <- has_disp(mod)
+  vals <- c("effect", "hyper", "hyperrand", "disp")
+  n_effect <- length(offset)
+  n_hyper <- length(est$hyper)
+  n_hyperrand <- length(est$hyperrand)
+  n_disp <- as.integer(has_disp)
+  times <- c(n_effect, n_hyper, n_hyperrand, n_disp)
+  rep(vals, times = times)
 }
 
 
@@ -227,30 +228,26 @@ make_draws_comp_raw <- function(mod) {
 #'
 #' @noRd
 make_draws_components <- function(mod) {
-    est <- mod$est
-    is_fixed <- mod$is_fixed
-    matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-    offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
-    transforms_hyper <- make_transforms_hyper(mod)
-    ## WARNING The order of the following functions matters:
-    ## each makes assumptions about the rows of 'draws'
-    draws <- make_draws_comp_raw(mod)
-    draws <- insert_draws_known(draws = draws,
-                                est = est,
-                                is_fixed = is_fixed)
-    draws <- transform_draws_hyper(draws = draws,
-                                   transforms = transforms_hyper)
-    draws <- transform_draws_effect(draws = draws,
-                                    matrix = matrix_effectfree_effect,
-                                    offset = offset_effectfree_effect)
-    n <- nrow(draws)
-    keep <- rep(TRUE, n)
-    if (!has_disp(mod)) {
-        i_disp <- n
-        keep[i_disp] <- FALSE
-    }
-    draws <- draws[keep, , drop = FALSE]
-    draws
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+  offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
+  transforms_hyper <- make_transforms_hyper(mod)
+  ## transforms_hyperrand <- make_transforms_hyperrand(mod)
+  ## WARNING The order of the following functions matters:
+  ## each makes assumptions about the rows of 'draws'
+  draws <- make_draws_comp_raw(mod)
+  draws <- insert_draws_known(draws = draws,
+                              est = est,
+                              is_fixed = is_fixed)
+  draws <- transform_draws_hyper(draws = draws,
+                                 transforms = transforms_hyper)
+  draws <- transform_draws_effect(draws = draws,
+                                  matrix = matrix_effectfree_effect,
+                                  offset = offset_effectfree_effect)
+  if (!has_disp(mod))
+    draws <- draws[-nrow(draws), , drop = FALSE]
+  draws
 }
 
 
@@ -371,14 +368,16 @@ make_is_fixed <- function(est, map) {
 #'
 #' @noRd
 make_level_components <- function(mod) {
-    effect <- mod$levels_effect
-    hyper <- make_levels_hyper(mod)
-    effect <- as.character(effect)
-    hyper <- as.character(hyper)
-    ans <- c(effect, hyper)
-    if (has_disp(mod))
-        ans <- c(ans, "disp")
-    ans
+  effect <- mod$levels_effect
+  hyper <- make_levels_hyper(mod)
+  hyperrand <- make_levels_hyperrand(mod)
+  effect <- as.character(effect)
+  hyper <- as.character(hyper)
+  hyperrand <- as.character(hyperrand)
+  ans <- c(effect, hyper, hyperrand)
+  if (has_disp(mod))
+    ans <- c(ans, "disp")
+  ans
 }
 
 
@@ -500,22 +499,27 @@ make_scaled_eigen <- function(prec) {
 #'
 #' @noRd
 make_term_components <- function(mod) {
-    effect <- mod$terms_effect
-    hyper <- make_terms_hyper(mod)
-    effect <- as.character(effect)
-    hyper <- as.character(hyper)
-    ans <- c(effect, hyper)
-    if (has_disp(mod))
-        ans <- c(ans, "disp")
-    ans
+  effect <- mod$terms_effect
+  hyper <- make_terms_hyper(mod)
+  hyperrand <- make_terms_hyperrand(mod)
+  effect <- as.character(effect)
+  hyper <- as.character(hyper)
+  hyperrand <- as.character(hyperrand)
+  ans <- c(effect, hyper, hyperrand)
+  if (has_disp(mod))
+    ans <- c(ans, "disp")
+  ans
 }
 
 
 ## HAS_TESTS
-#' Make list of transforms to be applied to
-#' hyper-parameters 
+#' Make List of Transforms to be Applied to
+#' Hyper-Parameters
 #'
-#' Includes dispersion, if present.
+#' Includes ordinary hyper-parameters
+#' ("hyper"), hyper-parameters that can be
+#' treated as random effects ("hyperrand")
+#' and disperion, if present.
 #' Result applied to *all* parameters, and
 #' includes NULLs for parameters that are
 #' not hyper-parameters.
@@ -526,28 +530,27 @@ make_term_components <- function(mod) {
 #'
 #' @noRd
 make_transforms_hyper <- function(mod) {
-    invlogit2 <- function(x) {
-        ans <- exp(x) / (1 + exp(x))
-        2 * ans - 1
-    }
-    est <- mod$est
-    priors <- mod$priors
-    matrices_along_by <- choose_matrices_along_by(mod)
-    has_disp <- has_disp(mod)
-    n_effectfree <- length(est$effectfree)
-    nms_effectfree <- names(est$effectfree)
-    ans_effectfree <- rep(list(NULL), times = n_effectfree)
-    names(ans_effectfree) <- nms_effectfree
-    ans_hyper <- .mapply(transform_hyper,
-                         dots = list(prior = priors,
-                                     matrix_along_by = matrices_along_by),
-                         MoreArgs = list())
-    ans_hyper <- unlist(ans_hyper, recursive = FALSE)
-    ans_log_disp <- if (has_disp) exp else NULL
-    ans_log_disp = list(log_disp = ans_log_disp)
-    c(ans_effectfree,
-      ans_hyper,
-      ans_log_disp)
+  est <- mod$est
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  has_disp <- has_disp(mod)
+  n_effectfree <- length(est$effectfree)
+  nms_effectfree <- names(est$effectfree)
+  ans_effectfree <- rep(list(NULL), times = n_effectfree)
+  names(ans_effectfree) <- nms_effectfree
+  ans_hyper <- lapply(priors, transform_hyper)
+  ans_hyper <- unlist(ans_hyper, recursive = FALSE)
+  ans_hyperrand <- .mapply(transform_hyperrand,
+                           dots = list(prior = priors,
+                                       matrix_along_by = matrices_along_by),
+                           MoreArgs = list())
+  ans_hyperrand <- unlist(ans_hyperrand, recursive = FALSE)
+  ans_log_disp <- if (has_disp) exp else NULL
+  ans_log_disp = list(log_disp = ans_log_disp)
+  c(ans_effectfree,
+    ans_hyper,
+    ans_hyperrand,
+    ans_log_disp)
 }
 
 
@@ -591,12 +594,12 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 }
 
 
-
 ## HAS_TESTS
 #' Transform hyper-parameters, and possibly dispersion
 #'
-#' Transform hyper-parameters, as well as 
-#' any dispersion term.
+#' Transform hyper-parameters, including
+#' hyper-parameters that can be treated as
+#' random effects and any dispersion term.
 #'
 #' @param mod Object of class 'bage_mod'
 #'
