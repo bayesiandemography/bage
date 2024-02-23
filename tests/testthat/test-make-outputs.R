@@ -398,7 +398,7 @@ test_that("'make_levels_hyperrand' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, sex:time ~ ELin())
     mod <- fit(mod)
     ans_obtained <- make_levels_hyperrand(mod)
     ans_expected <- c("mslope", "mslope")

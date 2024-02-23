@@ -374,7 +374,7 @@ draw_vals_lin <- function(slope, sd, labels) {
 
 
 ## HAS_TESTS
-#' Generate Draws from ILin
+#' Generate Draws from ELin
 #'
 #' Each column is one draw.
 #'
@@ -386,7 +386,7 @@ draw_vals_lin <- function(slope, sd, labels) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_ilin <- function(mslope, sd, matrix_along_by, labels) {
+draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
   n_sim <- ncol(mslope)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
@@ -407,7 +407,7 @@ draw_vals_ilin <- function(mslope, sd, matrix_along_by, labels) {
 }
 
 ## HAS_TESTS
-#' Generate Draws from ISeas
+#' Generate Draws from ESeas
 #'
 #' Each column is one draw.
 #'
@@ -419,7 +419,7 @@ draw_vals_ilin <- function(mslope, sd, matrix_along_by, labels) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_iseas <- function(n, sd, matrix_along_by, labels) {
+draw_vals_eseas <- function(n, sd, matrix_along_by, labels) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)

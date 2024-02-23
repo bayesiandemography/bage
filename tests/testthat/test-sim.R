@@ -228,11 +228,11 @@ test_that("'draw_vals_lin' works", {
 })
 
 
-## 'draw_vals_ilin' -----------------------------------------------------------
+## 'draw_vals_elin' -----------------------------------------------------------
 
-test_that("'draw_vals_ilin' works - along dimension is first", {
+test_that("'draw_vals_elin' works - along dimension is first", {
   set.seed(0)
-  prior <- ILin()
+  prior <- ELin()
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   slope <- draw_vals_slope(prior = prior,
@@ -247,7 +247,7 @@ test_that("'draw_vals_ilin' works - along dimension is first", {
                              n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_ilin(mslope = mslope,
+  ans_obtained <- draw_vals_elin(mslope = mslope,
                                  sd = sd,
                                  matrix_along_by = matrix_along_by,
                                  labels = labels)
@@ -262,9 +262,9 @@ test_that("'draw_vals_ilin' works - along dimension is first", {
   expect_equal(ans_obtained, ans_expected)  
 })
 
-test_that("'draw_vals_ilin' works - along dimension is second", {
+test_that("'draw_vals_elin' works - along dimension is second", {
   set.seed(0)
-  prior <- ILin()
+  prior <- ELin()
   n_sim <- 10
   matrix_along_by <- t(matrix(0:11, nr = 3))
   slope <- draw_vals_slope(prior = prior,
@@ -279,7 +279,7 @@ test_that("'draw_vals_ilin' works - along dimension is second", {
                              n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_ilin(mslope = mslope,
+  ans_obtained <- draw_vals_elin(mslope = mslope,
                                  sd = sd,
                                  matrix_along_by = matrix_along_by,
                                  labels = labels)
@@ -296,18 +296,18 @@ test_that("'draw_vals_ilin' works - along dimension is second", {
 })
 
 
-## 'draw_vals_iseas' ----------------------------------------------------------
+## 'draw_vals_eseas' ----------------------------------------------------------
 
-test_that("'draw_vals_iseas' works - along dimension is first", {
+test_that("'draw_vals_eseas' works - along dimension is first", {
   set.seed(0)
-  prior <- ISeas(n = 4)
+  prior <- ESeas(n = 4)
   n_sim <- 10
   matrix_along_by <- matrix(0:2999, nc = 3)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
   labels <- 1:3000
   set.seed(0)
-  ans <- draw_vals_iseas(n = 4,
+  ans <- draw_vals_eseas(n = 4,
                          sd = sd,
                          matrix_along_by = matrix_along_by,
                          labels = labels)
@@ -322,16 +322,16 @@ test_that("'draw_vals_iseas' works - along dimension is first", {
                tolerance = 0.05)
 })
 
-test_that("'draw_vals_iseas' works - along dimension is second", {
+test_that("'draw_vals_eseas' works - along dimension is second", {
   set.seed(0)
-  prior <- ISeas(n = 4)
+  prior <- ESeas(n = 4)
   n_sim <- 10
   matrix_along_by <- t(matrix(0:2999, nc = 1000))
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
   labels <- 1:3000
   set.seed(0)
-  ans <- draw_vals_iseas(n = 4,
+  ans <- draw_vals_eseas(n = 4,
                          sd = sd,
                          matrix_along_by = matrix_along_by,
                          labels = labels)
@@ -434,7 +434,7 @@ test_that("'draw_vals_iseas' works - along dimension is second", {
 ## draw_vals_msd --------------------------------------------------------------
 
 test_that("'draw_vals_msd' works", {
-  prior <- ILin(ms = 0.5)
+  prior <- ELin(ms = 0.5)
   n_sim <- 1000
   set.seed(0)
   ans_obtained <- draw_vals_msd(prior = prior, n_sim = n_sim)
@@ -448,7 +448,7 @@ test_that("'draw_vals_msd' works", {
 
 test_that("'draw_vals_mslope' works", {
   set.seed(0)
-  prior <- ILin(ms = 0.5)
+  prior <- ELin(ms = 0.5)
   n_sim <- 1000
   slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
   msd <- draw_vals_msd(prior = prior, n_sim = n_sim)

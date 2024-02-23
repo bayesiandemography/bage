@@ -57,7 +57,7 @@ test_that("'draw_vals_effect' works with bage_prior_compose", {
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_iar", {
+test_that("'draw_vals_effect' works with bage_prior_ear", {
   prior <- AR(n = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -74,8 +74,8 @@ test_that("'draw_vals_effect' works with bage_prior_iar", {
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_ilin", {
-  prior <- ILin(s = 0.01)
+test_that("'draw_vals_effect' works with bage_prior_elin", {
+  prior <- ELin(s = 0.01)
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -96,8 +96,8 @@ test_that("'draw_vals_effect' works with bage_prior_ilin", {
                    list(letters[1:12], as.character(1:10)))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_iseas", {
-  prior <- ISeas(n = 2, s = 0.01)
+test_that("'draw_vals_effect' works with bage_prior_eseas", {
+  prior <- ESeas(n = 2, s = 0.01)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -293,17 +293,17 @@ test_that("'draw_vals_hyper' works with bage_prior_compose", {
   expect_identical(length(ans$trend$slope), 10L)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_iar", {
-  prior <- IAR(n = 3)
+test_that("'draw_vals_hyper' works with bage_prior_ear", {
+  prior <- EAR(n = 3)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), c("coef", "sd"))
   expect_identical(dim(ans$coef), c(3L, 10L))
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_ilin", {
+test_that("'draw_vals_hyper' works with bage_prior_elin", {
   set.seed(0)
-  prior <- ILin()
+  prior <- ELin()
   n_sim <- 10
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = n_sim)
@@ -312,9 +312,9 @@ test_that("'draw_vals_hyper' works with bage_prior_ilin", {
                    c(slope = 10L, sd = 10L, msd = 10L))
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_iseas", {
+test_that("'draw_vals_hyper' works with bage_prior_eseas", {
   set.seed(0)
-  prior <- ISeas(n = 2)
+  prior <- ESeas(n = 2)
   n_sim <- 10
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = n_sim)
@@ -397,7 +397,7 @@ test_that("'draw_vals_hyper' works with bage_prior_svd", {
 
 test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
   set.seed(0)
-  prior <- compose_time(trend = ILin(), seasonal = ISeas(n = 2))
+  prior <- compose_time(trend = ELin(), seasonal = ESeas(n = 2))
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -409,9 +409,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
   expect_identical(names(ans), c("trend", "seasonal"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_ilin", {
+test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
   set.seed(0)
-  prior <- ILin()
+  prior <- ELin()
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -450,7 +450,7 @@ test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
 test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
   prior <- compose_time(trend = Lin(), season = Seas(n = 3))
   expect_true(has_hyperrand(prior))
-  prior <- ILin()
+  prior <- ELin()
   expect_true(has_hyperrand(prior))
 })
 
@@ -481,8 +481,8 @@ test_that("'indices_priors' works with compose time prior - 1 prior", {
 })
 
 test_that("'indices_priors' works with compose time prior - 2 priors", {
-  prior <- compose_time(trend = ILin(),
-                        cyclical = IAR())
+  prior <- compose_time(trend = ELin(),
+                        cyclical = EAR())
   matrix_along_by <- matrix(0:9, nr = 5)
   ans_obtained <- indices_priors(prior = prior,
                                  matrix_along_by = matrix_along_by)
@@ -599,8 +599,8 @@ test_that("'is_prior_ok_for_term' works with bage_prior_compose - time", {
                                    agesex = "other"))
 })
 
-test_that("'is_prior_ok_for_term' works with bage_prior_iar", {
-    expect_true(is_prior_ok_for_term(prior = IAR(n = 3),
+test_that("'is_prior_ok_for_term' works with bage_prior_ear", {
+    expect_true(is_prior_ok_for_term(prior = EAR(n = 3),
                                      nm = "time:region",
                                      matrix_along_by = matrix(0:29, nc = 3),
                                      var_time = "time",
@@ -609,8 +609,8 @@ test_that("'is_prior_ok_for_term' works with bage_prior_iar", {
                                      agesex = "other"))
 })
 
-test_that("'is_prior_ok_for_term' works with bage_prior_ilin", {
-    expect_true(is_prior_ok_for_term(prior = ILin(),
+test_that("'is_prior_ok_for_term' works with bage_prior_elin", {
+    expect_true(is_prior_ok_for_term(prior = ELin(),
                                      nm = "sex:time",
                                      matrix_along_by = matrix(0:11, nc = 2),
                                      var_time = "time",
@@ -619,8 +619,8 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ilin", {
                                      agesex = "other"))
 })
 
-test_that("'is_prior_ok_for_term' works with bage_prior_iseas", {
-  expect_true(is_prior_ok_for_term(prior = ISeas(n = 4),
+test_that("'is_prior_ok_for_term' works with bage_prior_eseas", {
+  expect_true(is_prior_ok_for_term(prior = ESeas(n = 4),
                                    nm = "time",
                                    matrix_along_by = matrix(0:12, nc = 3),
                                    var_time = "time",
@@ -629,15 +629,15 @@ test_that("'is_prior_ok_for_term' works with bage_prior_iseas", {
                                    agesex = "other"))
 })
 
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_iseas", {
-  expect_error(is_prior_ok_for_term(prior = ISeas(n = 4),
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_eseas", {
+  expect_error(is_prior_ok_for_term(prior = ESeas(n = 4),
                                     nm = "time",
                                     matrix_along_by = matrix(0:12, nc = 3),
                                     var_time = "time",
                                     var_age = "age",
                                     is_in_compose = FALSE,
                                     agesex = "other"),
-               "`ISeas\\(n=4\\)` prior cannot be used on its own.")
+               "`ESeas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
@@ -804,20 +804,20 @@ test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
                      seasonal = levels_hyper(Seas(n = 4))))
 })
 
-test_that("'levels_hyper' works with 'bage_prior_iar'", {
-  expect_identical(levels_hyper(prior = IAR(n = 2)),
+test_that("'levels_hyper' works with 'bage_prior_ear'", {
+  expect_identical(levels_hyper(prior = EAR(n = 2)),
                    c("coef", "coef", "sd"))
 })
 
-test_that("'levels_hyper' works with 'bage_prior_ilin'", {
+test_that("'levels_hyper' works with 'bage_prior_elin'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = ILin()),
+  expect_identical(levels_hyper(prior = ELin()),
                    c("slope", "sd", "msd"))
 })
 
-test_that("'levels_hyper' works with 'bage_prior_iseas'", {
+test_that("'levels_hyper' works with 'bage_prior_eseas'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyper(prior = ISeas(n = 3)),
+  expect_identical(levels_hyper(prior = ESeas(n = 3)),
                    "sd")
 })
 
@@ -883,21 +883,21 @@ test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 1 prior", {
-  prior <- compose_time(ILin())
+  prior <- compose_time(ELin())
   matrix_along_by <- matrix(0:99, ncol = 5)
   expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
                    rep("mslope", 5))
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 2 priors", {
-  prior <- compose_time(ILin(), seasonal = ISeas(n = 4))
+  prior <- compose_time(ELin(), seasonal = ESeas(n = 4))
   matrix_along_by <- matrix(0:99, ncol = 5)
   expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
                    c(rep("effect", 100), rep("mslope", 5)))
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
-  prior <- compose_time(ILin(), seasonal = ISeas(n = 4), cyclical = IAR())
+  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR())
   matrix_along_by <- matrix(0:99, ncol = 5)
   expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
                    c(rep("effect", 100),
@@ -906,7 +906,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
-  prior <- compose_time(ILin(), seasonal = ISeas(n = 4), cyclical = IAR(), error = N())
+  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR(), error = N())
   matrix_along_by <- matrix(0:99, ncol = 5)
   expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
                    c(rep("effect", 100),
@@ -914,9 +914,9 @@ test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
                      rep("effect", 200)))
 })
 
-test_that("'levels_hyperrand' works with 'bage_prior_ilin'", {
+test_that("'levels_hyperrand' works with 'bage_prior_elin'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyperrand(prior = ILin(), matrix_along_by = matrix_along_by),
+  expect_identical(levels_hyperrand(prior = ELin(), matrix_along_by = matrix_along_by),
                    c("mslope", "mslope"))
 })
 
@@ -1051,36 +1051,36 @@ test_that("'str_call_prior' works with bage_prior_compose", {
                    "compose_time(trend=Lin())")
   expect_identical(str_call_prior(compose_time(trend = Lin(), seasonal = Seas(n = 3))),
                    "compose_time(trend=Lin(), seasonal=Seas(n=3))")
-  expect_identical(str_call_prior(compose_time(error = N(s = 0.1), trend = ILin())),
-                   "compose_time(trend=ILin(), error=N(s=0.1))")
+  expect_identical(str_call_prior(compose_time(error = N(s = 0.1), trend = ELin())),
+                   "compose_time(trend=ELin(), error=N(s=0.1))")
 })
 
-test_that("'str_call_prior' works with bage_prior_iar - IAR1", {
-    expect_identical(str_call_prior(IAR1()), "IAR1()")
-    expect_identical(str_call_prior(IAR1(min = 0.5)), "IAR1(min=0.5)")
-    expect_identical(str_call_prior(IAR1(max = 0.95)), "IAR1(max=0.95)")
-    expect_identical(str_call_prior(IAR1(s = 0.3)), "IAR1(s=0.3)")
-    expect_identical(str_call_prior(IAR1(min = 0.5, max = 0.95, s = 0.3)),
-                     "IAR1(min=0.5,max=0.95,s=0.3)")
+test_that("'str_call_prior' works with bage_prior_ear - EAR1", {
+    expect_identical(str_call_prior(EAR1()), "EAR1()")
+    expect_identical(str_call_prior(EAR1(min = 0.5)), "EAR1(min=0.5)")
+    expect_identical(str_call_prior(EAR1(max = 0.95)), "EAR1(max=0.95)")
+    expect_identical(str_call_prior(EAR1(s = 0.3)), "EAR1(s=0.3)")
+    expect_identical(str_call_prior(EAR1(min = 0.5, max = 0.95, s = 0.3)),
+                     "EAR1(min=0.5,max=0.95,s=0.3)")
 })
 
-test_that("'str_call_prior' works with bage_prior_iar - IAR", {
-    expect_identical(str_call_prior(IAR(n = 1)), "IAR(n=1)")
-    expect_identical(str_call_prior(IAR(n = 3, s = 0.3)), "IAR(n=3,s=0.3)")
-    expect_identical(str_call_prior(IAR(s = 0.3, n = 2)),
-                     "IAR(n=2,s=0.3)")
+test_that("'str_call_prior' works with bage_prior_ear - EAR", {
+    expect_identical(str_call_prior(EAR(n = 1)), "EAR(n=1)")
+    expect_identical(str_call_prior(EAR(n = 3, s = 0.3)), "EAR(n=3,s=0.3)")
+    expect_identical(str_call_prior(EAR(s = 0.3, n = 2)),
+                     "EAR(n=2,s=0.3)")
 })
 
-test_that("'str_call_prior' works with bage_prior_ilin", {
-    expect_identical(str_call_prior(ILin()), "ILin()")
-    expect_identical(str_call_prior(ILin(sd = 0.5, s = 2, ms = 1.2, along = "a")),
-                     "ILin(s=2,sd=0.5,ms=1.2,along=\"a\")")
+test_that("'str_call_prior' works with bage_prior_elin", {
+    expect_identical(str_call_prior(ELin()), "ELin()")
+    expect_identical(str_call_prior(ELin(sd = 0.5, s = 2, ms = 1.2, along = "a")),
+                     "ELin(s=2,sd=0.5,ms=1.2,along=\"a\")")
 })
 
-test_that("'str_call_prior' works with bage_prior_iseas", {
-    expect_identical(str_call_prior(ISeas(n = 4)), "ISeas(n=4)")
-    expect_identical(str_call_prior(ISeas(s = 2, along = "a", n = 2)),
-                     "ISeas(n=2,s=2,along=\"a\")")
+test_that("'str_call_prior' works with bage_prior_eseas", {
+    expect_identical(str_call_prior(ESeas(n = 4)), "ESeas(n=4)")
+    expect_identical(str_call_prior(ESeas(s = 2, along = "a", n = 2)),
+                     "ESeas(n=2,s=2,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -1172,29 +1172,29 @@ test_that("'transform_hyper' works with 'bage_prior_compose'", {
   expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
 })
 
-test_that("'transform_hyper' works with 'bage_prior_ar - IAR1'", {
+test_that("'transform_hyper' works with 'bage_prior_ar - EAR1'", {
   shifted_invlogit <- function(x) {
     ans <- exp(x) / (1 + exp(x))
     0.18 * ans + 0.8
   }
-  l <- transform_hyper(prior = IAR1())
+  l <- transform_hyper(prior = EAR1())
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
-test_that("'transform_hyper' works with 'bage_prior_ar - IAR'", {
+test_that("'transform_hyper' works with 'bage_prior_ar - EAR'", {
   shifted_invlogit <- function(x) {
     ans <- exp(x) / (1 + exp(x))
     2 * ans - 1
   }
-  l <- transform_hyper(prior = IAR(n = 2))
+  l <- transform_hyper(prior = EAR(n = 2))
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
 })
 
-test_that("'transform_hyper' works with 'bage_prior_ilin'", {
-  l <- transform_hyper(prior = ILin())
+test_that("'transform_hyper' works with 'bage_prior_elin'", {
+  l <- transform_hyper(prior = ELin())
   expect_equal(0.35, l[[1]](0.35))
   expect_equal(exp(0.35), l[[2]](0.35))
   expect_equal(exp(0.35), l[[3]](0.35))
@@ -1259,7 +1259,7 @@ test_that("'transform_hyper' works with 'bage_prior_ar1'", {
 
 test_that("'transform_hyper' works with 'bage_prior_compose'", {
   matrix_along_by <- matrix(0:9, nc = 2)
-  prior <- compose_time(trend = ILin(), cyclical = IAR(), error = N())
+  prior <- compose_time(trend = ELin(), cyclical = EAR(), error = N())
   ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
   ans_expected <- c(rep(list(trend.effect = identity), times = 10),
                     rep(list(trend.mslope = identity), times = 2),
@@ -1267,9 +1267,9 @@ test_that("'transform_hyper' works with 'bage_prior_compose'", {
   expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
 })
 
-test_that("'transform_hyperrand' works with 'bage_prior_ilin'", {
+test_that("'transform_hyperrand' works with 'bage_prior_elin'", {
   matrix_along_by <- matrix(0:9, nc = 2)
-  l <- transform_hyperrand(prior = ILin(),
+  l <- transform_hyperrand(prior = ELin(),
                            matrix_along_by = matrix_along_by)
   expect_equal(0.35, l[[1]](0.35))
   expect_equal(0.35, l[[2]](0.35))
@@ -1281,13 +1281,13 @@ test_that("'transform_hyperrand' works with 'bage_prior_ilin'", {
 
 test_that("'use_for_compose_cyclical' returns TRUE with priors that can be used for cyclical", {
   expect_true(use_for_compose_cyclical(AR1()))
-  expect_true(use_for_compose_cyclical(IAR()))
+  expect_true(use_for_compose_cyclical(EAR()))
 })
 
 test_that("'use_for_compose_cyclical' returns FALSE with priors that cannot be used for cyclical", {
   expect_false(use_for_compose_cyclical(Seas(n = 4)))
-  expect_false(use_for_compose_cyclical(ISeas(n = 12)))
-  expect_false(use_for_compose_cyclical(ILin()))
+  expect_false(use_for_compose_cyclical(ESeas(n = 12)))
+  expect_false(use_for_compose_cyclical(ELin()))
   expect_false(use_for_compose_cyclical(Lin()))
   expect_false(use_for_compose_cyclical(NFix()))
   expect_false(use_for_compose_cyclical(RW()))
@@ -1306,10 +1306,10 @@ test_that("'use_for_compose_error' returns TRUE with priors that can be used for
 
 test_that("'use_for_compose_error' returns FALSE with priors that cannot be used for error", {
   expect_false(use_for_compose_error(Seas(n = 4)))
-  expect_false(use_for_compose_error(ISeas(n = 12)))
+  expect_false(use_for_compose_error(ESeas(n = 12)))
   expect_false(use_for_compose_error(AR1()))
-  expect_false(use_for_compose_error(IAR1()))
-  expect_false(use_for_compose_error(ILin()))
+  expect_false(use_for_compose_error(EAR1()))
+  expect_false(use_for_compose_error(ELin()))
   expect_false(use_for_compose_error(Lin()))
   expect_false(use_for_compose_error(NFix()))
   expect_false(use_for_compose_error(RW()))
@@ -1324,13 +1324,13 @@ test_that("'use_for_compose_error' returns FALSE with priors that cannot be used
 
 test_that("'use_for_compose_seasonal' returns TRUE with priors that can be used for seasonal", {
     expect_true(use_for_compose_seasonal(Seas(n = 4)))
-    expect_true(use_for_compose_seasonal(ISeas(n = 12)))
+    expect_true(use_for_compose_seasonal(ESeas(n = 12)))
 })
 
 test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be used for seasonal", {
     expect_false(use_for_compose_seasonal(AR1()))
-    expect_false(use_for_compose_seasonal(IAR1()))
-    expect_false(use_for_compose_seasonal(ILin()))
+    expect_false(use_for_compose_seasonal(EAR1()))
+    expect_false(use_for_compose_seasonal(ELin()))
     expect_false(use_for_compose_seasonal(Lin()))
     expect_false(use_for_compose_seasonal(N()))
     expect_false(use_for_compose_seasonal(NFix()))
@@ -1345,7 +1345,7 @@ test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be u
 ## use_for_compose_trend ------------------------------------------------------
 
 test_that("'use_for_compose_trend' returns TRUE with priors that can be used for trend", {
-    expect_true(use_for_compose_trend(ILin()))
+    expect_true(use_for_compose_trend(ELin()))
     expect_true(use_for_compose_trend(Lin()))
     expect_true(use_for_compose_trend(RW()))
     expect_true(use_for_compose_trend(RW2()))
@@ -1354,12 +1354,12 @@ test_that("'use_for_compose_trend' returns TRUE with priors that can be used for
 
 test_that("'use_for_compose_trend' returns FALSE with priors that cannot be used for trend", {
     expect_false(use_for_compose_trend(AR1()))
-    expect_false(use_for_compose_trend(IAR1()))
+    expect_false(use_for_compose_trend(EAR1()))
     expect_false(use_for_compose_trend(Known(c(a = 1, b = -1))))
     expect_false(use_for_compose_trend(N()))
     expect_false(use_for_compose_trend(NFix()))
     expect_false(use_for_compose_trend(Seas(n = 4)))
-    expect_false(use_for_compose_trend(ISeas(n = 12)))
+    expect_false(use_for_compose_trend(ESeas(n = 12)))
     expect_false(use_for_compose_trend(SVD(HMD)))
 })
 
@@ -1378,18 +1378,18 @@ test_that("'use_for_interaction' returns FALSE with priors that are not necessar
 })
 
 test_that("'use_for_interaction' returns TRUE with priors that are always interactions", {
-    expect_true(use_for_interaction(IAR()))
-    expect_true(use_for_interaction(ILin()))
-    expect_true(use_for_interaction(ISeas(n = 12)))
+    expect_true(use_for_interaction(EAR()))
+    expect_true(use_for_interaction(ELin()))
+    expect_true(use_for_interaction(ESeas(n = 12)))
 })
 
 
 ## use_for_main_effect --------------------------------------------------------
 
 test_that("'use_for_main_effect' returns FALSE with priors that are not necessarily main effects", {
-    expect_false(use_for_main_effect(IAR1()))
-    expect_false(use_for_main_effect(ILin()))
-    expect_false(use_for_main_effect(ISeas(n = 12)))
+    expect_false(use_for_main_effect(EAR1()))
+    expect_false(use_for_main_effect(ELin()))
+    expect_false(use_for_main_effect(ESeas(n = 12)))
     expect_false(use_for_main_effect(N()))
     expect_false(use_for_main_effect(NFix()))
     expect_false(use_for_main_effect(Seas(n = 3)))
@@ -1408,9 +1408,9 @@ test_that("'use_for_main_effect' returns TRUE with priors that are always main e
 
 test_that("'uses_along' works with valid inputs", {
     expect_false(uses_along(N()))
-    expect_true(uses_along(IAR()))
-    expect_true(uses_along(ILin()))
-    expect_true(uses_along(ISeas(n = 2)))
+    expect_true(uses_along(EAR()))
+    expect_true(uses_along(ELin()))
+    expect_true(uses_along(ESeas(n = 2)))
 })
 
 
