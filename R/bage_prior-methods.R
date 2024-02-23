@@ -98,7 +98,7 @@ draw_vals_effect.bage_prior_compose <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_effect.bage_prior_iar <- function(prior,
+draw_vals_effect.bage_prior_ear <- function(prior,
                                            vals_hyper,
                                            vals_hyperrand,
                                            levels_effect,
@@ -122,7 +122,7 @@ draw_vals_effect.bage_prior_iar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_effect.bage_prior_ilin <- function(prior,
+draw_vals_effect.bage_prior_elin <- function(prior,
                                              vals_hyper,
                                              vals_hyperrand,
                                              levels_effect,
@@ -131,7 +131,7 @@ draw_vals_effect.bage_prior_ilin <- function(prior,
                                              n_sim) {
   mslope <- vals_hyperrand$mslope
   sd <- vals_hyper$sd
-  draw_vals_ilin(mslope = mslope,
+  draw_vals_elin(mslope = mslope,
                  sd = sd,
                  matrix_along_by = matrix_along_by,
                  labels = levels_effect)
@@ -139,7 +139,7 @@ draw_vals_effect.bage_prior_ilin <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_effect.bage_prior_iseas <- function(prior,
+draw_vals_effect.bage_prior_eseas <- function(prior,
                                               vals_hyper,
                                               vals_hyperrand,
                                               levels_effect,
@@ -148,7 +148,7 @@ draw_vals_effect.bage_prior_iseas <- function(prior,
                                               n_sim) {
   n <- prior$specific$n
   sd <- vals_hyper$sd
-  draw_vals_iseas(n = n,
+  draw_vals_eseas(n = n,
                   sd = sd,
                   matrix_along_by = matrix_along_by,
                   labels = levels_effect)
@@ -361,7 +361,7 @@ draw_vals_hyper.bage_prior_compose <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_iar <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_ear <- function(prior, n_sim) {
     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(coef = coef,
@@ -370,7 +370,7 @@ draw_vals_hyper.bage_prior_iar <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_ilin <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_elin <- function(prior, n_sim) {
   slope <- draw_vals_slope(prior = prior,
                            n_sim = n_sim)
   msd <- draw_vals_msd(prior = prior,
@@ -384,7 +384,7 @@ draw_vals_hyper.bage_prior_ilin <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_iseas <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_eseas <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
   list(sd = sd)
@@ -487,7 +487,7 @@ draw_vals_hyperrand.bage_prior_compose <- function(prior, vals_hyper, matrix_alo
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_ilin <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+draw_vals_hyperrand.bage_prior_elin <- function(prior, vals_hyper, matrix_along_by, n_sim) {
   slope <- vals_hyper$slope
   msd <- vals_hyper$msd
   mslope <- draw_vals_mslope(slope = slope,
@@ -522,7 +522,7 @@ has_hyperrand.bage_prior_compose <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-has_hyperrand.bage_prior_ilin <- function(prior) TRUE
+has_hyperrand.bage_prior_elin <- function(prior) TRUE
 
 
 ## 'indices_priors' ----------------------------------------------------------------
@@ -758,7 +758,7 @@ is_prior_ok_for_term.bage_prior_compose <- function(prior,
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_iar <- function(prior,
+is_prior_ok_for_term.bage_prior_ear <- function(prior,
                                                 nm,
                                                 matrix_along_by,
                                                 var_time,
@@ -778,7 +778,7 @@ is_prior_ok_for_term.bage_prior_iar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_ilin <- function(prior,
+is_prior_ok_for_term.bage_prior_elin <- function(prior,
                                                  nm,
                                                  matrix_along_by,
                                                  var_time,
@@ -796,7 +796,7 @@ is_prior_ok_for_term.bage_prior_ilin <- function(prior,
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_iseas <- function(prior,
+is_prior_ok_for_term.bage_prior_eseas <- function(prior,
                                                   nm,
                                                   matrix_along_by,
                                                   var_time,
@@ -1028,20 +1028,20 @@ levels_hyper.bage_prior_compose <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_iar <- function(prior) {
+levels_hyper.bage_prior_ear <- function(prior) {
   n <- prior$specific$n
   rep(c("coef", "sd"), times = c(n, 1L))
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_ilin <- function(prior) {
+levels_hyper.bage_prior_elin <- function(prior) {
   c("slope", "sd", "msd")
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_iseas <- function(prior)
+levels_hyper.bage_prior_eseas <- function(prior)
   "sd"
 
 ## HAS_TESTS
@@ -1128,7 +1128,7 @@ levels_hyperrand.bage_prior_compose <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_ilin <- function(prior, matrix_along_by) {
+levels_hyperrand.bage_prior_elin <- function(prior, matrix_along_by) {
   n_by <- ncol(matrix_along_by)
   rep.int("mslope", times = n_by)
 }
@@ -1294,20 +1294,20 @@ str_call_prior.bage_prior_compose <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_iar <- function(prior) {
+str_call_prior.bage_prior_ear <- function(prior) {
   specific <- prior$specific
   n <- specific$n
   min <- specific$min
   max <- specific$max
   scale <- specific$scale
   nm <- specific$nm
-  if (nm == "IAR") {
+  if (nm == "EAR") {
     args <- character(2L)
     args[[1L]] <- sprintf("n=%d", n)
     if (scale != 1)
       args[[2L]] <- sprintf("s=%s", scale)
   }
-  else if (nm == "IAR1") {
+  else if (nm == "EAR1") {
     args <- character(3L)
     if (min != 0.8)
       args[[1L]] <- sprintf("min=%s", min)
@@ -1325,7 +1325,7 @@ str_call_prior.bage_prior_iar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_ilin <- function(prior) {
+str_call_prior.bage_prior_elin <- function(prior) {
   scale <- prior$specific$scale
   sd_slope <- prior$specific$sd_slope
   mscale <- prior$specific$mscale
@@ -1341,12 +1341,12 @@ str_call_prior.bage_prior_ilin <- function(prior) {
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("ILin(%s)", args)
+  sprintf("ELin(%s)", args)
 }
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_iseas <- function(prior) {
+str_call_prior.bage_prior_eseas <- function(prior) {
   n <- prior$specific$n
   scale <- prior$specific$scale
   along <- prior$specific$along
@@ -1358,7 +1358,7 @@ str_call_prior.bage_prior_iseas <- function(prior) {
     args[[3L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("ISeas(%s)", args)
+  sprintf("ESeas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -1526,7 +1526,7 @@ transform_hyper.bage_prior_compose <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_iar <- function(prior) {
+transform_hyper.bage_prior_ear <- function(prior) {
   specific <- prior$specific
   n <- specific$n
   min <- specific$min
@@ -1542,7 +1542,7 @@ transform_hyper.bage_prior_iar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_ilin <- function(prior) {
+transform_hyper.bage_prior_elin <- function(prior) {
   list(slope = identity,
        sd = exp,
        msd = exp)
@@ -1550,7 +1550,7 @@ transform_hyper.bage_prior_ilin <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_iseas <- function(prior) {
+transform_hyper.bage_prior_eseas <- function(prior) {
   list(sd = exp)
 }
 
@@ -1638,7 +1638,7 @@ transform_hyperrand.bage_prior_compose <- function(prior, matrix_along_by) {
 
 ## HAS_TESTS
 #' @export
-transform_hyperrand.bage_prior_ilin <- function(prior, matrix_along_by) {
+transform_hyperrand.bage_prior_elin <- function(prior, matrix_along_by) {
   n_by <- ncol(matrix_along_by)
   rep(list(mslope = identity),
       times = n_by)
@@ -1666,7 +1666,7 @@ use_for_compose_cyclical.bage_prior <- function(prior) FALSE
 use_for_compose_cyclical.bage_prior_ar <- function(prior) TRUE
 
 #' @export
-use_for_compose_cyclical.bage_prior_iar <- function(prior) TRUE
+use_for_compose_cyclical.bage_prior_ear <- function(prior) TRUE
 
 
 ## 'use_for_compose_error' -------------------------------------------------
@@ -1711,7 +1711,7 @@ use_for_compose_seasonal.bage_prior <- function(prior) FALSE
 use_for_compose_seasonal.bage_prior_seas <- function(prior) TRUE
 
 #' @export
-use_for_compose_seasonal.bage_prior_iseas <- function(prior) TRUE
+use_for_compose_seasonal.bage_prior_eseas <- function(prior) TRUE
 
 
 ## 'use_for_compose_trend' ----------------------------------------------------
@@ -1732,7 +1732,7 @@ use_for_compose_trend <- function(prior) {
 use_for_compose_trend.bage_prior <- function(prior) FALSE
 
 #' @export
-use_for_compose_trend.bage_prior_ilin <- function(prior) TRUE
+use_for_compose_trend.bage_prior_elin <- function(prior) TRUE
 
 #' @export
 use_for_compose_trend.bage_prior_lin <- function(prior) TRUE
@@ -1769,13 +1769,13 @@ use_for_interaction <- function(prior) {
 use_for_interaction.bage_prior <- function(prior) FALSE
 
 #' @export
-use_for_interaction.bage_prior_iar <- function(prior) TRUE
+use_for_interaction.bage_prior_ear <- function(prior) TRUE
 
 #' @export
-use_for_interaction.bage_prior_ilin <- function(prior) TRUE
+use_for_interaction.bage_prior_elin <- function(prior) TRUE
 
 #' @export
-use_for_interaction.bage_prior_iseas <- function(prior) TRUE
+use_for_interaction.bage_prior_eseas <- function(prior) TRUE
 
 
 ## 'use_for_main_effect' ------------------------------------------------------
@@ -1833,15 +1833,15 @@ uses_along.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_iar <- function(prior) TRUE
+uses_along.bage_prior_ear <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_ilin <- function(prior) TRUE
+uses_along.bage_prior_elin <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_iseas <- function(prior) TRUE
+uses_along.bage_prior_eseas <- function(prior) TRUE
 
 
 ## 'uses_matrix_effectfree_effect' --------------------------------------------------

@@ -129,9 +129,9 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #'
 #' | Term       | Main effects                     | Interactions      |
 #' |------------|----------------------------------|-------------------|
-#' | `trend`    | [Lin()], [RW()], [RW2()], [Sp()] | [ILin()]          |
-#' | `seasonal` | [Seas()]                         | [ISeas()]         |
-#' | `cyclical` | [AR()], [AR1()]                  | [IAR()], [IAR1()] |
+#' | `trend`    | [Lin()], [RW()], [RW2()], [Sp()] | [ELin()]          |
+#' | `seasonal` | [Seas()]                         | [ESeas()]         |
+#' | `cyclical` | [AR()], [AR1()]                  | [EAR()], [EAR1()] |
 #' | `error`    | [N()]                            | [N()]             |
 #' 
 #'
@@ -160,9 +160,9 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #' )
 #'
 #' compose_time(
-#'   trend = ILin(),
-#'   cyclical = IAR(),
-#'   season = ISeas(n = 4)
+#'   trend = ELin(),
+#'   cyclical = EAR(),
+#'   season = ESeas(n = 4)
 #' )
 #' @export
 compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) {
@@ -196,7 +196,7 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
   
 
 ## HAS_TESTS
-#' Independent Autoregressive Prior
+#' Exchangeable Autoregressive Prior
 #'
 #' Prior for an interaction,
 #' where an autoregression model
@@ -204,8 +204,9 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' to the "along" variable, within each
 #' combination of values of the "by" variable.
 #' The damping coefficients are shared across
-#' different combinations of the "by" variables,
-#' but the models are otherwise independent.
+#' different combinations of the "by" variables.
+#' The time series within each combination of the
+#' 'by' variables are, however, treated as exchangeable.
 #' 
 #' @section 'Along' and 'by' variables:
 #'
@@ -247,7 +248,7 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' standard deviation (\eqn{\sigma}).
 #' Defaults to 1.
 #'
-#' @returns An object of class `bage_prior_iar`.
+#' @returns An object of class `bage_prior_ear`.
 #'
 #' @seealso [N()], [RW()], [RW2()], [Known()].
 #' The values for `min` and `max` are based on the
@@ -258,34 +259,36 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
 #' @examples
-#' IAR(n = 3)
-#' IAR(n = 3, s = 2.4)
+#' EAR(n = 3)
+#' EAR(n = 3, s = 2.4)
 #' @export
-IAR <- function(n = 2, s = 1) {
+EAR <- function(n = 2, s = 1) {
   check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   n <- as.integer(n)
   scale <- as.double(s)
-  new_bage_prior_iar(n = n,
+  new_bage_prior_ear(n = n,
                      min = -1,
                      max = 1,
                      scale = scale,
-                     nm = "IAR")
+                     nm = "EAR")
 }
 
 
 ## HAS_TESTS
-#' Independent AR1 Prior
+#' Exchangeable AR1 Prior
 #'
 #' Autogressive prior for an interaction,
 #' where an AR model order 1 is applied
 #' to the "along" variable, within each
 #' combination of values of the "by" variable.
 #' The damping coefficient is shared across
-#' different combinations of the "by" variables,
-#' but the models are otherwise independent.
-#' 
-#' @inheritSection IAR 'Along' and 'by' variables
+#' different combinations of the "by" variables.
+#' The series within each combination of the
+#' 'by' variables are, however, treated as
+#' exchangeable.
+#'
+#' @inheritSection EAR 'Along' and 'by' variables
 #'
 #' @section Mathematical description:
 #'
@@ -315,37 +318,37 @@ IAR <- function(n = 2, s = 1) {
 #' standard deviation (\eqn{\sigma}).
 #' Default is `1`.
 #'
-#' @returns An object of class `bage_prior_iar`.
+#' @returns An object of class `bage_prior_ear`.
 #'
 #' @seealso [N()], [RW()], [RW2()], [Known()].
 #' The values for `min` and `max` are based on the
 #' defaults for function `forecast::ets()`.
-#' [IAR()]
+#' [EAR()]
 #'
 #' @references TMB documentation for
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
 #' @examples
-#' IAR1()
-#' IAR1( min = 0, max = 1, s = 2.4)
+#' EAR1()
+#' EAR1( min = 0, max = 1, s = 2.4)
 #' @export
-IAR1 <- function(min = 0.8, max = 0.98, s = 1) {
+EAR1 <- function(min = 0.8, max = 0.98, s = 1) {
   check_min_max_ar(min = min, max = max)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   min <- as.double(min)
   max <- as.double(max)
   scale <- as.double(s)
-  new_bage_prior_iar(n = 1L,
+  new_bage_prior_ear(n = 1L,
                      min = min,
                      max = max,
                      scale = scale,
-                     nm = "IAR1")
+                     nm = "EAR1")
 }
 
-## 'bage_prior_ilin' only ever created via 'set_prior()'
+## 'bage_prior_elin' only ever created via 'set_prior()'
 
 ## HAS_TESTS
-#' Independent Linear Prior
+#' Exchangeable Linear Prior
 #'
 #' Prior for an interaction where, within each combination
 #' of the 'by' variables, the elements of the 'along'
@@ -353,7 +356,7 @@ IAR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #' The slopes of the line vary across
 #' different combinations of 'by' variables'.
 #'
-#' @inheritSection IAR 'Along' and 'by' variables
+#' @inheritSection EAR 'Along' and 'by' variables
 #'
 #' @section Statistical model:
 #' 
@@ -403,7 +406,7 @@ IAR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #' in the interaction. Optional, provided
 #' the data contain a time or age dimension.
 #'
-#' @returns An object of class `bage_prior_ilin`.
+#' @returns An object of class `bage_prior_elin`.
 #'
 #' @seealso
 #' - [N()] etc
@@ -411,10 +414,10 @@ IAR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #' - [set_var_age()] to specify the age variable
 #'
 #' @examples
-#' ILin()
-#' ILin(s = 0.5, sd = 2, ms = 0.1, along = "cohort")
+#' ELin()
+#' ELin(s = 0.5, sd = 2, ms = 0.1, along = "cohort")
 #' @export
-ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
+ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   check_scale(sd, x_arg = "sd", zero_ok = FALSE)
   check_scale(ms, x_arg = "ms", zero_ok = FALSE)
@@ -423,14 +426,14 @@ ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
   scale <- as.double(s)
   sd_slope <- as.double(sd)
   mscale <- as.double(ms)
-  new_bage_prior_ilin(scale = scale,
+  new_bage_prior_elin(scale = scale,
                       sd_slope = sd_slope,
                       mscale = mscale,
                       along = along)
 }
 
 
-## 'bage_prior_iseas' only ever created via 'set_prior()'
+## 'bage_prior_eseas' only ever created via 'set_prior()'
 
 ## HAS_TESTS
 #' Independent Seasonal Prior
@@ -441,7 +444,7 @@ ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' The `along` variable is almost always
 #' time.
 #'
-#' @inheritSection IAR 'Along' and 'by' variables
+#' @inheritSection EAR 'Along' and 'by' variables
 #'
 #' @section Statistical model:
 #' 
@@ -471,7 +474,7 @@ ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' in the interaction. Optional, provided
 #' the data contain a time or age dimension.
 #'
-#' @returns An object of class `bage_prior_iseas`.
+#' @returns An object of class `bage_prior_eseas`.
 #'
 #' @seealso
 #' - [Seas()] etc
@@ -479,17 +482,17 @@ ILin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' - [set_var_age()] to specify the age variable
 #'
 #' @examples
-#' ISeas(n = 4)
-#' ISeas(n = 12, s = 0.5, along = "cohort")
+#' ESeas(n = 4)
+#' ESeas(n = 12, s = 0.5, along = "cohort")
 #' @export
-ISeas <- function(n, s = 1, along = NULL) {
+ESeas <- function(n, s = 1, along = NULL) {
   check_n(n = n, nm_n = "n", min = 2L, max = NULL, null_ok = FALSE)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   n <- as.integer(n)
   scale <- as.double(s)
-  new_bage_prior_iseas(n = n,
+  new_bage_prior_eseas(n = n,
                        scale = scale,
                        along = along)
 }
@@ -962,7 +965,7 @@ new_bage_prior_compose <- function(priors, along, nm) {
 }
 
 ## HAS_TESTS
-new_bage_prior_iar <- function(n, scale, min, max, nm) {
+new_bage_prior_ear <- function(n, scale, min, max, nm) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 12L,
@@ -978,12 +981,12 @@ new_bage_prior_iar <- function(n, scale, min, max, nm) {
                               max = max,
                               scale = scale,
                               nm = nm))
-  class(ans) <- c("bage_prior_iar", "bage_prior")
+  class(ans) <- c("bage_prior_ear", "bage_prior")
   ans
 }
 
 ## HAS_TESTS
-new_bage_prior_ilin <- function(scale, sd_slope, mscale, along) {
+new_bage_prior_elin <- function(scale, sd_slope, mscale, along) {
     ans <- list(i_prior = 9L,
                 const = c(scale = scale,
                           sd_slope = sd_slope,
@@ -992,19 +995,19 @@ new_bage_prior_ilin <- function(scale, sd_slope, mscale, along) {
                                 sd_slope = sd_slope,
                                 mscale = mscale,
                                 along = along))
-    class(ans) <- c("bage_prior_ilin", "bage_prior")
+    class(ans) <- c("bage_prior_elin", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_iseas <- function(n, scale, along) {
+new_bage_prior_eseas <- function(n, scale, along) {
     ans <- list(i_prior = 11L,
                 const = c(scale = scale,
                           rep(c("<unused>" = 0), times = n - 1L)),
                 specific = list(n = n,
                                 scale = scale,
                                 along = along))
-    class(ans) <- c("bage_prior_iseas", "bage_prior")
+    class(ans) <- c("bage_prior_eseas", "bage_prior")
     ans
 }
 

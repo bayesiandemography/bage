@@ -239,12 +239,12 @@ test_that("'check_is_formula' throws correct error when not formula", {
 ## 'check_is_interaction' -----------------------------------------------------
 
 test_that("'check_is_interaction' returns TRUE with valid inputs", {
-    expect_true(check_is_interaction("age:sex", ILin))
+    expect_true(check_is_interaction("age:sex", ELin))
 })
 
 test_that("'check_is_interaction' throws correct error when interaction", {
-    expect_error(check_is_interaction("age", ILin()),
-                 "`ILin\\(\\)` prior cannot be used for `age` term.")
+    expect_error(check_is_interaction("age", ELin()),
+                 "`ELin\\(\\)` prior cannot be used for `age` term.")
 })
 
 
@@ -266,15 +266,15 @@ test_that("'check_length_along_ge' returns TRUE with valid inputs", {
   expect_true(check_length_along_ge(length_along = 10L,
                                     min = 3L,
                                     nm = "age:sex",
-                                    prior = ILin()))
+                                    prior = ELin()))
 })
 
 test_that("'check_length_along_ge' throws correct error with length less than min", {
   expect_error(check_length_along_ge(length_along = 1L,
                                      min = 2L,
                                      nm = "age:sex",
-                                     prior = ILin()),
-               "`ILin\\(\\)` prior cannot be used for `age:sex` term.")                
+                                     prior = ELin()),
+               "`ELin\\(\\)` prior cannot be used for `age:sex` term.")                
 })
 
 
@@ -303,7 +303,7 @@ test_that("'check_main_effect_interaction' returns TRUE with compatible priors",
                                             x2 = N(),
                                             nm1 = "x1",
                                             nm2 = "x2"))
-  expect_true(check_main_effect_interaction(x1 = IAR1(),
+  expect_true(check_main_effect_interaction(x1 = EAR1(),
                                             x2 = N(),
                                             nm1 = "x1",
                                             nm2 = "x2"))
@@ -311,23 +311,23 @@ test_that("'check_main_effect_interaction' returns TRUE with compatible priors",
                                             x2 = Lin(),
                                             nm1 = "x1",
                                             nm2 = "x2"))
-  expect_true(check_main_effect_interaction(x1 = IAR1(),
-                                            x2 = ILin(),
+  expect_true(check_main_effect_interaction(x1 = EAR1(),
+                                            x2 = ELin(),
                                             nm1 = "x1",
                                             nm2 = "x2"))
 })
 
 test_that("'check_main_effect_interaction' raises correct error with incompatible priors", {
   expect_error(check_main_effect_interaction(x1 = AR1(),
-                                            x2 = IAR1(),
+                                            x2 = EAR1(),
                                             nm1 = "x1",
                                             nm2 = "x2"),
-               "`x1` uses prior `AR1\\(\\)` but `x2` uses prior `IAR1\\(\\)`")
-  expect_error(check_main_effect_interaction(x1 = IAR1(),
+               "`x1` uses prior `AR1\\(\\)` but `x2` uses prior `EAR1\\(\\)`")
+  expect_error(check_main_effect_interaction(x1 = EAR1(),
                                             x2 = AR(n = 3),
                                             nm1 = "x1",
                                             nm2 = "x2"),
-               "`x1` uses prior `IAR1\\(\\)` but `x2` uses prior `AR\\(n=3\\)`")
+               "`x1` uses prior `EAR1\\(\\)` but `x2` uses prior `AR\\(n=3\\)`")
 })  
 
 

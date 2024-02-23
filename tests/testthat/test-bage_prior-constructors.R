@@ -32,8 +32,8 @@ test_that("'AR1' throws current error when min >= max", {
 })
 
 test_that("'compose_time' works with valid inputs", {
-  ans_obtained <- compose_time(error = N(), trend = ILin(s = 0.3))
-  ans_expected <- new_bage_prior_compose(priors = list(trend = ILin(s = 0.3),
+  ans_obtained <- compose_time(error = N(), trend = ELin(s = 0.3))
+  ans_expected <- new_bage_prior_compose(priors = list(trend = ELin(s = 0.3),
                                                        error = N()),
                                          along = NULL,
                                          nm = "compose_time")
@@ -60,51 +60,51 @@ test_that("'compose_time' throws correct error when 'cyclical' invalid prior", {
                "`N\\(\\)` prior cannot be used for `cyclical`")
 })  
 
-test_that("'IAR' works with valid inputs", {
-  expect_identical(IAR(n = 3),
-                   new_bage_prior_iar(n = 3L,
+test_that("'EAR' works with valid inputs", {
+  expect_identical(EAR(n = 3),
+                   new_bage_prior_ear(n = 3L,
                                       min = -1,
                                       max = 1,
                                       scale = 1,
-                                      nm = "IAR"))
-  expect_identical(IAR(n = 1, s = 0.01),
-                   new_bage_prior_iar(n = 1L,
+                                      nm = "EAR"))
+  expect_identical(EAR(n = 1, s = 0.01),
+                   new_bage_prior_ear(n = 1L,
                                       min = -1,
                                       max = 1,
                                       scale = 0.01,
-                                      nm = "IAR"))
+                                      nm = "EAR"))
 })
 
-test_that("'IAR1' works with valid inputs", {
-  expect_identical(IAR1(),
-                   new_bage_prior_iar(n = 1L,
+test_that("'EAR1' works with valid inputs", {
+  expect_identical(EAR1(),
+                   new_bage_prior_ear(n = 1L,
                                       min = 0.8,
                                       max = 0.98,
                                       scale = 1,
-                                      nm = "IAR1"))
-  expect_identical(IAR1(s = 0.01, min = -1, max = 1),
-                   new_bage_prior_iar(n = 1L,
+                                      nm = "EAR1"))
+  expect_identical(EAR1(s = 0.01, min = -1, max = 1),
+                   new_bage_prior_ear(n = 1L,
                                       min = -1,
                                       max = 1,
                                       scale = 0.01,
-                                      nm = "IAR1"))
+                                      nm = "EAR1"))
 })
 
-test_that("'ILin' works with valid inputs", {
-  expect_identical(ILin(), new_bage_prior_ilin(scale = 1, sd_slope = 1,
+test_that("'ELin' works with valid inputs", {
+  expect_identical(ELin(), new_bage_prior_elin(scale = 1, sd_slope = 1,
                                                mscale = 1, along = NULL))
-  expect_identical(ILin(s = 0.3, sd = 0.1, along = "reg"),
-                   new_bage_prior_ilin(scale = 0.3, sd_slope = 0.1,
+  expect_identical(ELin(s = 0.3, sd = 0.1, along = "reg"),
+                   new_bage_prior_elin(scale = 0.3, sd_slope = 0.1,
                                        mscale = 1, along = "reg"))
 })
 
-test_that("'ISeas' works with valid inputs", {
-  expect_identical(ISeas(n = 4),
-                   new_bage_prior_iseas(n = 4L,
+test_that("'ESeas' works with valid inputs", {
+  expect_identical(ESeas(n = 4),
+                   new_bage_prior_eseas(n = 4L,
                                         scale = 1, 
                                         along = NULL))
-  expect_identical(ISeas(s = 0.3, n = 2, along = "reg"),
-                   new_bage_prior_iseas(n = 2L,
+  expect_identical(ESeas(s = 0.3, n = 2, along = "reg"),
+                   new_bage_prior_eseas(n = 2L,
                                         scale = 0.3,
                                         along = "reg"))
 })
@@ -209,9 +209,9 @@ test_that("'new_bage_prior_compose' works - main effect", {
 })
 
 test_that("'new_bage_prior_compose' works - interaction", {
-  priors <- list(trend = ILin(),
-                 cyclical = IAR(),
-                 seasonal = ISeas(n = 12, along = "year"))
+  priors <- list(trend = ELin(),
+                 cyclical = EAR(),
+                 seasonal = ESeas(n = 12, along = "year"))
   obj <- new_bage_prior_compose(priors = priors,
                                 along = "year",
                                 nm = "compose_time")
@@ -224,9 +224,9 @@ test_that("'new_bage_prior_compose' works - interaction", {
                                       nm = "compose_time"))
 })
 
-test_that("'new_bage_prior_iar' works - IAR interface", {
-  obj <- new_bage_prior_iar(n = 2L, min = -1, max = 1, scale = 1.0, nm = "IAR")
-  expect_s3_class(obj, "bage_prior_iar")
+test_that("'new_bage_prior_ear' works - EAR interface", {
+  obj <- new_bage_prior_ear(n = 2L, min = -1, max = 1, scale = 1.0, nm = "EAR")
+  expect_s3_class(obj, "bage_prior_ear")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
   expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = -1, max = 1, scale = 1))
@@ -236,12 +236,12 @@ test_that("'new_bage_prior_iar' works - IAR interface", {
                                       min = -1,
                                       max = 1,
                                       scale = 1,
-                                      nm = "IAR"))
+                                      nm = "EAR"))
 })
 
-test_that("'new_bage_prior_iar' works - IAR1 interface", {
-  obj <- new_bage_prior_iar(n = 1L, min = 0.8, max = 0.98, scale = 1.0, nm = "IAR1")
-  expect_s3_class(obj, "bage_prior_iar")
+test_that("'new_bage_prior_ear' works - EAR1 interface", {
+  obj <- new_bage_prior_ear(n = 1L, min = 0.8, max = 0.98, scale = 1.0, nm = "EAR1")
+  expect_s3_class(obj, "bage_prior_ear")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
   expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = 0.8, max = 0.98, scale = 1))
@@ -251,12 +251,12 @@ test_that("'new_bage_prior_iar' works - IAR1 interface", {
                                       min = 0.8,
                                       max = 0.98,
                                       scale = 1,
-                                      nm = "IAR1"))
+                                      nm = "EAR1"))
 })
 
-test_that("'new_bage_prior_ilin' works", {
-  obj <- new_bage_prior_ilin(scale = 1, sd = 1, mscale = 1, along = NULL)
-  expect_s3_class(obj, "bage_prior_ilin")
+test_that("'new_bage_prior_elin' works", {
+  obj <- new_bage_prior_elin(scale = 1, sd = 1, mscale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_elin")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 9L)
   expect_identical(obj$const, c(scale = 1, sd_slope = 1, mscale = 1))
@@ -264,9 +264,9 @@ test_that("'new_bage_prior_ilin' works", {
                                       mscale = 1, along = NULL))
 })
 
-test_that("'new_bage_prior_iseas' works", {
-  obj <- new_bage_prior_iseas(n = 2L, scale = 1, along = NULL)
-  expect_s3_class(obj, "bage_prior_iseas")
+test_that("'new_bage_prior_eseas' works", {
+  obj <- new_bage_prior_eseas(n = 2L, scale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_eseas")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 11L)
   expect_identical(obj$const, c(scale = 1, "<unused>" = 0))

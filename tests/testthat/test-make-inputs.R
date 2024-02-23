@@ -41,7 +41,7 @@ test_that("'choose_matrix_along_by' works with main effect", {
 })
 
 test_that("'choose_matrix_along_by' works with interaction - default to time", {
-  prior <- ILin()
+  prior <- ELin()
   matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    time = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -56,7 +56,7 @@ test_that("'choose_matrix_along_by' works with interaction - default to time", {
 })
 
 test_that("'choose_matrix_along_by' works with interaction - default to age", {
-  prior <- ILin()
+  prior <- ELin()
   matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    income = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -71,7 +71,7 @@ test_that("'choose_matrix_along_by' works with interaction - default to age", {
 })
 
 test_that("'choose_matrix_along_by' works with interaction - specify along", {
-  prior <- ILin(along = "reg")
+  prior <- ELin(along = "reg")
   matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    income = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -86,7 +86,7 @@ test_that("'choose_matrix_along_by' works with interaction - specify along", {
 })
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
-  prior <- ILin()
+  prior <- ELin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    time = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -100,7 +100,7 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ti
 })
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
-  prior <- ILin()
+  prior <- ELin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    time = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -114,7 +114,7 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ti
 })
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and age not specified", {
-  prior <- ILin()
+  prior <- ELin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    time = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -128,7 +128,7 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ag
 })
 
 test_that("'choose_matrix_along_by' throws expected error when along invalid", {
-  prior <- ILin(along = "wrong")
+  prior <- ELin(along = "wrong")
   matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
                    time = make_matrix_along_by(i_along = 2L, dim = 2:4),
                    reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
@@ -354,19 +354,19 @@ test_that("'make_compose_along' returns NULL with all main effects", {
 })
 
 test_that("'make_compose_along' returns NULL with interactions with no along", {
-  priors <- list(ILin(), IAR(), ISeas(n = 4))
+  priors <- list(ELin(), EAR(), ESeas(n = 4))
   expect_identical(make_compose_along(priors), NULL)
 })
 
 test_that("'make_compose_along' returns NULL with interactions with consistent", {
-  priors <- list(ILin(along = "tm"), IAR(), ISeas(n = 4, along = "tm"))
+  priors <- list(ELin(along = "tm"), EAR(), ESeas(n = 4, along = "tm"))
   expect_identical(make_compose_along(priors), "tm")
 })
 
 test_that("'make_compose_along' throws correct error with inconsistent alongs", {
-  priors <- list(ILin(along = "tm"), IAR(), ISeas(n = 4, along = "wrong"))
+  priors <- list(ELin(along = "tm"), EAR(), ESeas(n = 4, along = "wrong"))
   expect_error(make_compose_along(priors),
-               '`ILin\\(along="tm"\\)` and `ISeas\\(n=4,along="wrong"\\)` have different \'along\' dimensions')
+               '`ELin\\(along="tm"\\)` and `ESeas\\(n=4,along="wrong"\\)` have different \'along\' dimensions')
 })
 
 
@@ -591,7 +591,7 @@ test_that("'make_lengths_hyper' works with valid inputs", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ ILin())
+  mod <- set_prior(mod, age:sex ~ ELin())
   mod <- set_prior(mod, sex ~ NFix())
   ans_obtained <- make_lengths_hyper(mod)
   ans_expected <- c("(Intercept)" = 0L,
@@ -616,7 +616,7 @@ test_that("'make_lengths_hyperrand' works with valid inputs", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ ILin())
+  mod <- set_prior(mod, age:sex ~ ELin())
   mod <- set_prior(mod, sex ~ NFix())
   ans_obtained <- make_lengths_hyperrand(mod)
   ans_expected <- c("(Intercept)" = 0L,
@@ -1058,7 +1058,7 @@ test_that("'make_random' works when no hyperrand", {
 })
 
 test_that("'make_random' works when hyperrand", {
-    mod <- structure(.Data = list(priors = list(N(), RW2(), ILin())))
+    mod <- structure(.Data = list(priors = list(N(), RW2(), ELin())))
     expect_identical(make_random(mod), c("effectfree", "hyperrand"))
 })
 
@@ -1216,7 +1216,7 @@ test_that("'make_uses_hyperrand' works - compose_time has two components", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, sex:time ~ ELin())
     mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
     ans_obtained <- make_terms_hyperrand(mod)
     ans_expected <- factor(c(rep("time", 6), rep("sex:time", 2)),
@@ -1264,7 +1264,7 @@ test_that("'make_uses_hyperrand' works - compose_time has single component", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, sex:time ~ ELin())
     mod <- set_prior(mod, time ~ compose_time(trend = RW2()))
     ans_obtained <- make_uses_hyperrand(mod)
     ans_expected <- c("(Intercept)" = 0L,
@@ -1284,7 +1284,7 @@ test_that("'make_uses_hyperrand' works - compose_time has two components", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ILin())
+    mod <- set_prior(mod, sex:time ~ ELin())
     mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
     ans_obtained <- make_uses_hyperrand(mod)
     ans_expected <- c("(Intercept)" = 0L,
@@ -1307,7 +1307,7 @@ test_that("'make_uses_indices_priors' works - compose_time has single component"
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, sex:time ~ ILin())
+  mod <- set_prior(mod, sex:time ~ ELin())
   mod <- set_prior(mod, time ~ compose_time(trend = RW2()))
   ans_obtained <- make_uses_indices_priors(mod)
   ans_expected <- c("(Intercept)" = 0L,
@@ -1327,7 +1327,7 @@ test_that("'make_uses_indices_priors' works - compose_time has two components", 
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, sex:time ~ ILin())
+  mod <- set_prior(mod, sex:time ~ ELin())
   mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
   ans_obtained <- make_uses_indices_priors(mod)
   ans_expected <- c("(Intercept)" = 0L,
