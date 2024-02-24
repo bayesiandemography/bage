@@ -42,9 +42,15 @@ test_that("'choose_matrix_along_by' works with main effect", {
 
 test_that("'choose_matrix_along_by' works with interaction - default to time", {
   prior <- ELin()
-  matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   time = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- choose_matrix_along_by(prior = prior,
@@ -57,9 +63,15 @@ test_that("'choose_matrix_along_by' works with interaction - default to time", {
 
 test_that("'choose_matrix_along_by' works with interaction - default to age", {
   prior <- ELin()
-  matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   income = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   income = make_matrix_along_by(i_along = 2L,
+                                                 dim = 2:4,
+                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- choose_matrix_along_by(prior = prior,
@@ -72,9 +84,15 @@ test_that("'choose_matrix_along_by' works with interaction - default to age", {
 
 test_that("'choose_matrix_along_by' works with interaction - specify along", {
   prior <- ELin(along = "reg")
-  matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   income = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   income = make_matrix_along_by(i_along = 2L,
+                                                 dim = 2:4,
+                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- choose_matrix_along_by(prior = prior,
@@ -87,9 +105,15 @@ test_that("'choose_matrix_along_by' works with interaction - specify along", {
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
   prior <- ELin()
-  matrices <- list(bla = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   time = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- NULL
   var_age <- "age"
   expect_error(choose_matrix_along_by(prior = prior,
@@ -101,9 +125,15 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ti
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
   prior <- ELin()
-  matrices <- list(bla = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   time = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- NULL
   var_age <- "age"
   expect_error(choose_matrix_along_by(prior = prior,
@@ -115,9 +145,15 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ti
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and age not specified", {
   prior <- ELin()
-  matrices <- list(bla = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   time = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- NULL
   var_age <- NULL
   expect_error(choose_matrix_along_by(prior = prior,
@@ -129,9 +165,15 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ag
 
 test_that("'choose_matrix_along_by' throws expected error when along invalid", {
   prior <- ELin(along = "wrong")
-  matrices <- list(age = make_matrix_along_by(i_along = 1L, dim = 2:4),
-                   time = make_matrix_along_by(i_along = 2L, dim = 2:4),
-                   reg = make_matrix_along_by(i_along = 3L, dim = 2:4))
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
   var_time <- "time"
   var_age <- "age"
   expect_error(choose_matrix_along_by(prior = prior,
@@ -822,14 +864,27 @@ test_that("'make_matrices_along_by' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_matrices_along_by(formula = formula, data = data)
+    age <- matrix(0:9, nr = 10)
+    rownames(age) <- 0:9
+    names(dimnames(age)) <- "age"
+    sex <- matrix(0:1, nr = 2)
+    rownames(sex) <- c("F", "M")
+    names(dimnames(sex)) <- "sex"
+    time <- matrix(0:1, nr = 2)
+    rownames(time) <- 1:2
+    names(dimnames(time)) <- "time"
+    agesex <- matrix(0:19, nr = 10)
+    dimnames(agesex) <- list(age = 0:9, sex = c("F", "M"))
+    agetime <- matrix(0:19, nr = 10)
+    dimnames(agetime) <- list(age = 0:9, time = 1:2)
     ans_expected <- list("(Intercept)" = list("(Intercept)" = matrix(0L, nr = 1L)),
-                         age = list(age = matrix(0:9, nr = 10)),
-                         sex = list(sex = matrix(0:1, nr = 2)),
-                         time = list(time = matrix(0:1, nr = 2)),
-                         "age:sex" = list(age = matrix(0:19, nr = 10),
-                                          sex = t(matrix(0:19, nr = 10))),
-                         "age:time" = list(age = matrix(0:19, nr = 10),
-                                           time = t(matrix(0:19, nr = 10))))
+                         age = list(age = age),
+                         sex = list(sex = sex),
+                         time = list(time = time),
+                         "age:sex" = list(age = agesex,
+                                          sex = t(agesex)),
+                         "age:time" = list(age = agetime,
+                                           time = t(agetime)))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -884,17 +939,24 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 test_that("'make_matrix_along_by' works when 'i_along' is 1", {
   i_along <- 1L
   dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
   ans_obtained <- make_matrix_along_by(i_along = i_along,
-                                       dim = dim)
-  ans_expected <- matrix(0:23, nr = 2)
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(0:23,
+                         nr = 2,
+                         dimnames = list(a = 1:2,
+                                         b.c = paste(1:3, rep(1:4, each = 3), sep = ".")))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by' works when 'i_along' is 2", {
   i_along <- 2L
   dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
   ans_obtained <- make_matrix_along_by(i_along = i_along,
-                                       dim = dim)
+                                       dim = dim,
+                                       dimnames = dimnames)
   ans_expected <- matrix(c(0L, 2L, 4L,
                            1L, 3L, 5L,
                            6L, 8L, 10L,
@@ -903,40 +965,54 @@ test_that("'make_matrix_along_by' works when 'i_along' is 2", {
                            13L, 15L, 17L,
                            18L, 20L, 22L,
                            19L, 21L, 23L),
-                         nr = 3)
+                         nr = 3,
+                         dimnames = list(b = 1:3,
+                                         a.c = paste(1:2, rep(1:4, each = 2), sep = ".")))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by' works when 'i_along' is 3", {
   i_along <- 3L
   dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
   ans_obtained <- make_matrix_along_by(i_along = i_along,
-                                       dim = dim)
+                                       dim = dim,
+                                       dimnames = dimnames)
   ans_expected <- matrix(c(0L, 6L, 12L, 18L,
                            1L, 7L, 13L, 19L,
                            2L, 8L, 14L, 20L,
                            3L, 9L, 15L, 21L,
                            4L, 10L, 16L, 22L,
                            5L, 11L, 17L, 23L),
-                         nrow = 4)
+                         nrow = 4,
+                         dimnames = list(c = 1:4,
+                                         a.b = paste(1:2, rep(1:3, each = 2), sep = ".")))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by' works when only one dimension", {
   i_along <- 1L
   dim <- 3L
+  dimnames <- list(a = 1:3)
   ans_obtained <- make_matrix_along_by(i_along = i_along,
-                                       dim = dim)
+                                       dim = dim,
+                                       dimnames = dimnames)
   ans_expected <- matrix(0:2, nr = 3)
+  rownames(ans_expected) <- 1:3
+  names(dimnames(ans_expected))[1] <- "a"
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by' works when only one element", {
   i_along <- 1L
   dim <- 1L
+  dimnames <- list(a = 1)
   ans_obtained <- make_matrix_along_by(i_along = i_along,
-                                       dim = dim)
+                                       dim = dim,
+                                       dimnames = dimnames)
   ans_expected <- matrix(0L, nr = 1)
+  rownames(ans_expected) <- 1
+  names(dimnames(ans_expected))[1] <- "a"
   expect_identical(ans_obtained, ans_expected)
 })
 

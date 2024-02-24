@@ -516,6 +516,7 @@ make_lengths_hyper <- function(mod) {
   ans
 }
 
+
 ## HAS_TESTS
 #' Lengths of Vectors of Hyper-Parameters that Can
 #' be Treated as Random Effects
@@ -527,10 +528,14 @@ make_lengths_hyper <- function(mod) {
 #' @noRd
 make_lengths_hyperrand <- function(mod) {
   priors <- mod$priors
+  levels_effect <- mod$levels_effect
+  terms_effect <- mod$terms_effect
   matrices_along_by <- choose_matrices_along_by(mod)
+  levels_effect <- split(levels_effect, terms_effect)
   levels <- .mapply(levels_hyperrand,
                     dots = list(prior = priors,
-                                matrix_along_by = matrices_along_by),
+                                matrix_along_by = matrices_along_by,
+                                levels_effect = levels_effect),
                     MoreArgs = list())
   ans <- lengths(levels)
   names(ans) <- names(priors)
@@ -642,9 +647,13 @@ make_matrices_along_by <- function(formula, data) {
   for (i_term in seq_along(nms_terms)) {
     nms_vars_term <- nms_vars[factors[, i_term]]
     data_term <- data[nms_vars_term]
-    dim <- lengths(lapply(data_term, unique))
+    dimnames <- lapply(data_term, unique)
+    dim <- lengths(dimnames)
     i_along <- seq_along(dim)
-    val <- lapply(i_along, make_matrix_along_by, dim = dim)
+    val <- lapply(i_along,
+                  make_matrix_along_by,
+                  dim = dim,
+                  dimnames = dimnames)
     names(val) <- nms_vars_term
     ans[[i_term]] <- val
   }
@@ -654,7 +663,7 @@ make_matrices_along_by <- function(formula, data) {
     val <- list("(Intercept)" = matrix(0L, nrow = 1L))
     ans <- c(list("(Intercept)" = val), ans)
   }
-  ans        
+  ans
 }
 
 
@@ -751,7 +760,17 @@ make_matrices_effectfree_effect <- function(mod) {
 #' @returns A matrix of integers.
 #'
 #' @noRd
-make_matrix_along_by <- function(i_along, dim) {
+## make_matrix_along_by <- function(i_along, dim) {
+##   n_dim <- length(dim)
+##   i <- seq.int(from = 0L, length.out = prod(dim))
+##   a <- array(i, dim = dim)
+##   s <- seq_along(dim)
+##   perm <- c(i_along, s[-i_along])
+##   ans <- aperm(a, perm = perm)
+##   ans <- matrix(ans, nrow = nrow(ans))
+##   ans
+## }
+make_matrix_along_by <- function(i_along, dim, dimnames) {
   n_dim <- length(dim)
   i <- seq.int(from = 0L, length.out = prod(dim))
   a <- array(i, dim = dim)
@@ -759,6 +778,15 @@ make_matrix_along_by <- function(i_along, dim) {
   perm <- c(i_along, s[-i_along])
   ans <- aperm(a, perm = perm)
   ans <- matrix(ans, nrow = nrow(ans))
+  rownames(ans) <- dimnames[[i_along]]
+  names(dimnames(ans))[[1L]] <- names(dimnames)[[i_along]]
+  if (length(dim) > 1L) {
+    colnames <- expand.grid(dimnames[-i_along])
+    colnames <- Reduce(function(x, y) paste(x, y, sep = "."),
+                       colnames)
+    colnames(ans) <- colnames
+    names(dimnames(ans))[[2L]] <- paste(names(dimnames)[-i_along], collapse = ".")
+  }
   ans
 }
 
