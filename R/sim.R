@@ -406,6 +406,40 @@ draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
   ans
 }
 
+
+## HAS_TESTS
+#' Generate Draws from ERW
+#'
+#' Each column is one draw.
+#'
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_erw <- function(sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  for (i_along in seq.int(from = 2L, to = n_along))
+    ans[i_along, ] <- rnorm(n = n_by * n_sim,
+                            mean = ans[i_along - 1L, ],
+                            sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
 ## HAS_TESTS
 #' Generate Draws from ESeas
 #'

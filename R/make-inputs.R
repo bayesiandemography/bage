@@ -1173,10 +1173,7 @@ make_uses_hyper <- function(mod) {
 #' @noRd
 make_uses_hyperrand <- function(mod) {
   priors <- mod$priors
-  lengths <- make_lengths_hyperrand(mod)
-  ans <- lengths > 0L
-  ans <- 1L * ans
-  ans
+  1L * vapply(priors, uses_hyperrand, FALSE)
 }
 
 

@@ -188,6 +188,9 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
       priors <- c(priors, val)
     }
   }
+  if (length(priors) == 1L)
+    cli::cli_abort(c("Not enough priors specified.",
+                     i = "No values supplied for {.arg cyclical}, {.arg seasonal}, or {.arg error}."))
   along <- make_compose_along(priors)
   new_bage_prior_compose(priors = priors,
                          along = along,
@@ -430,6 +433,65 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
                       sd_slope = sd_slope,
                       mscale = mscale,
                       along = along)
+}
+
+
+## 'bage_prior_rw' can be created during initial call to mod_* function TODO - IMPLEMENT THIS
+
+## HAS_TESTS
+#' Exchangeable Random Walk Prior
+#'
+#' Prior for an interaction,
+#' where a (first order) random walk model
+#' is applied to the "along" variable, within each
+#' combination of values of the "by" variable.
+#' Standard deviations are shared across
+#' different combinations of the "by" variables.
+#' The series within each combination of the
+#' 'by' variables are, however, treated as exchangeable.
+#' 
+#' @inheritSection EAR 'Along' and 'by' variables
+#'
+#' @section Mathematical description:
+#'
+#' The model is
+#'
+#' \deqn{x_{u,v} = x_{u,i-1} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \sigma^2)}
+#'
+#' Standard deviation \eqn{\sigma} is drawn from a
+#' half-normal distribution,
+#' 
+#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (A half-normal distribution has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' The scale for the half-normal distribution, `s`, defaults
+#' to 1, but can be set to other values. Lower values
+#' for `scale` lead to smoother series of `x`s, and
+#' higher values lead to rougher series.
+#' 
+#' @param s Scale of half-normal prior for
+#' standard deviation (\eqn{\sigma}).
+#' Defaults to 1.
+#'
+#' @returns An object of class `bage_prior_erw`.
+#'
+#' @seealso [N()], [RW()], [RW2()], [Known()].
+#'
+#' @examples
+#' ERW()
+#' ERW(s = 0.5)
+#' @export
+ERW <- function(s = 1, along = NULL) {
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  new_bage_prior_erw(scale = scale,
+                     along = along)
 }
 
 
@@ -996,6 +1058,16 @@ new_bage_prior_elin <- function(scale, sd_slope, mscale, along) {
                                 mscale = mscale,
                                 along = along))
     class(ans) <- c("bage_prior_elin", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_erw <- function(scale, along) {
+    ans <- list(i_prior = 13L,
+                const = c(scale = scale),
+                specific = list(scale = scale,
+                                along = along))
+    class(ans) <- c("bage_prior_erw", "bage_prior")
     ans
 }
 
