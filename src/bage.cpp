@@ -31,14 +31,6 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
 			    matrix<int> matrix_along_by,
 			    int i_prior);
 
-template <class Type>
-Type logpost_compose(vector<Type> effectfree,
-		     vector<Type> hyper,
-		     vector<Type> hyperrand,
-		     vector<Type> consts,
-		     matrix<int> matrix_along_by,
-		     vector<int> indices_priors);
-
 
 // Helper functions -----------------------------------------------------------
 
@@ -155,9 +147,8 @@ Type logpost_compose(vector<Type> effectfree,
   return ans;
 }
 
-
 template <class Type>
-Type logpost_iar(vector<Type> effectfree,
+Type logpost_ear(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
 		 matrix<int> matrix_along_by) {
@@ -191,7 +182,7 @@ Type logpost_iar(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_ilin(vector<Type> effectfree,
+Type logpost_elin(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> hyperrand,
 		  vector<Type> consts,
@@ -225,7 +216,31 @@ Type logpost_ilin(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_iseas(vector<Type> effectfree,
+Type logpost_erw(vector<Type> effectfree,
+		 vector<Type> hyper,
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(effectfree[i], Type(0), Type(1), true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_eseas(vector<Type> effectfree,
 		   vector<Type> hyper,
 		   vector<Type> consts,
 		   matrix<int> matrix_along_by) {
@@ -425,10 +440,13 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_seas(effectfree, hyper, consts, matrix_along_by);
     break;
   case 11:
-    ans = logpost_iseas(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_eseas(effectfree, hyper, consts, matrix_along_by);
     break;
   case 12:
-    ans = logpost_iar(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_ear(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 13:
+    ans = logpost_erw(effectfree, hyper, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
@@ -446,7 +464,7 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
   Type ans = 0;
   switch(i_prior) {
   case 9:
-    ans = logpost_ilin(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    ans = logpost_elin(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior);
@@ -583,13 +601,14 @@ Type objective_function<Type>::operator() ()
 				   matrix_along_by,
 				   indices_priors_term);
 	  }
-	  else
+	  else {
 	    ans -= logpost_uses_hyperrand(effectfree_term,
 					  hyper_term,
 					  hyperrand_term,
 					  consts_term,
 					  matrix_along_by,
 					  i_prior_term);
+	  }
 	}
 	else {
 	  ans -= logpost_uses_hyper(effectfree_term,
@@ -598,8 +617,8 @@ Type objective_function<Type>::operator() ()
 				    matrix_along_by,
 				    i_prior_term);
 	}
-      }
-      else {
+      } 
+      else { // not uses hyper
 	ans -= logpost_not_uses_hyper(effectfree_term,
 				      consts_term,
 				      matrix_along_by,
@@ -607,7 +626,6 @@ Type objective_function<Type>::operator() ()
       }
     }
   }
-
   // contribution to log posterior from dispersion term
   if (has_disp) {
     if ((nm_distn == "pois") || (nm_distn == "binom"))
@@ -618,8 +636,6 @@ Type objective_function<Type>::operator() ()
       error("Internal error: invalid 'nm_distn' in logposterior disp");
     ans -= log_disp; // Jacobian
   }
-	     
-
   // contribution to log posterior from data
   for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
     if (is_in_lik[i_outcome]) {

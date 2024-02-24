@@ -296,6 +296,56 @@ test_that("'draw_vals_elin' works - along dimension is second", {
 })
 
 
+## 'draw_vals_erw' ----------------------------------------------------------
+
+test_that("'draw_vals_erw' works - along dimension is first", {
+  set.seed(0)
+  prior <- ERW()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:2999, nc = 3)
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  labels <- 1:3000
+  set.seed(0)
+  ans <- draw_vals_erw(sd = sd,
+                       matrix_along_by = matrix_along_by,
+                       labels = labels)
+  expect_identical(dim(ans), c(3000L, 10L))
+  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(mean(ans[1, ]),
+               0,
+               tolerance = 0.05)
+  expect_equal(unname(apply(ans[-1,], 2, function(x) sd(diff(x)))),
+               rep(sd, each = 3),
+               tolerance = 0.05)
+})
+
+test_that("'draw_vals_erw' works - along dimension is second", {
+  set.seed(0)
+  prior <- ERW()
+  n_sim <- 10
+  matrix_along_by <- t(matrix(0:2999, nc = 1000))
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  labels <- 1:3000
+  set.seed(0)
+  ans <- draw_vals_erw(sd = sd,
+                       matrix_along_by = matrix_along_by,
+                       labels = labels)
+  expect_identical(dim(ans), c(3000L, 10L))
+  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  ans <- array(ans, dim = c(3, 1000, 10))
+  ans <- aperm(ans, perm = c(2, 1, 3))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(mean(ans[1, ]),
+               0,
+               tolerance = 0.05)
+  expect_equal(unname(apply(ans[-1,], 2, function(x) sd(diff(x)))),
+               rep(sd, each = 3),
+               tolerance = 0.03)
+})
+
 ## 'draw_vals_eseas' ----------------------------------------------------------
 
 test_that("'draw_vals_eseas' works - along dimension is first", {

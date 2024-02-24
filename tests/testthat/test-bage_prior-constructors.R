@@ -58,6 +58,11 @@ test_that("'compose_time' throws correct error when 'cyclical' non-prior", {
 test_that("'compose_time' throws correct error when 'cyclical' invalid prior", {
   expect_error(compose_time(trend = Lin(), cyclical = N()),
                "`N\\(\\)` prior cannot be used for `cyclical`")
+})
+
+test_that("'compose_time' throws correct error when not enough priors specified", {
+  expect_error(compose_time(trend = Lin()),
+               "Not enough priors specified.")
 })  
 
 test_that("'EAR' works with valid inputs", {
@@ -96,6 +101,12 @@ test_that("'ELin' works with valid inputs", {
   expect_identical(ELin(s = 0.3, sd = 0.1, along = "reg"),
                    new_bage_prior_elin(scale = 0.3, sd_slope = 0.1,
                                        mscale = 1, along = "reg"))
+})
+
+test_that("'ERW' works with valid inputs", {
+  expect_identical(ERW(), new_bage_prior_erw(scale = 1, along = NULL))
+  expect_identical(ERW(s = 0.3, along = "reg"),
+                   new_bage_prior_erw(scale = 0.3, along = "reg"))
 })
 
 test_that("'ESeas' works with valid inputs", {
@@ -262,6 +273,16 @@ test_that("'new_bage_prior_elin' works", {
   expect_identical(obj$const, c(scale = 1, sd_slope = 1, mscale = 1))
   expect_identical(obj$specific, list(scale = 1, sd_slope = 1,
                                       mscale = 1, along = NULL))
+})
+
+test_that("'new_bage_prior_erw' works", {
+  obj <- new_bage_prior_erw(scale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_erw")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 13L)
+  expect_identical(obj$const, c(scale = 1))
+  expect_identical(obj$specific, list(scale = 1,
+                                      along = NULL))
 })
 
 test_that("'new_bage_prior_eseas' works", {
