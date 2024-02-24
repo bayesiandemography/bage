@@ -399,7 +399,7 @@ make_levels_hyper <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Make Levels Associated with Each Element of 'hyperrand'
 #'
 #' Make levels for hyperparameters for each term
@@ -411,10 +411,14 @@ make_levels_hyper <- function(mod) {
 #' @noRd
 make_levels_hyperrand <- function(mod) {
   priors <- mod$priors
+  levels_effect <- mod$levels_effect
+  terms_effect <- mod$terms_effect
   matrices_along_by <- choose_matrices_along_by(mod)
+  levels_effect <- split(levels_effect, terms_effect)
   ans <- .mapply(levels_hyperrand,
                  dots = list(prior = priors,
-                             matrix_along_by = matrices_along_by),
+                             matrix_along_by = matrices_along_by,
+                             levels_effect = levels_effect),
                  MoreArgs = list())
   ans <- unlist(ans)
   ans

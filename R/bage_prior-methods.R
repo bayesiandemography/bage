@@ -1147,37 +1147,52 @@ levels_hyper.bage_prior_svd <- function(prior)
 #' 
 #' @param prior An object of class 'bage_prior'.
 #' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param levels_effect Labels made from classifying dimensions
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-levels_hyperrand <- function(prior, matrix_along_by) {
+levels_hyperrand <- function(prior, matrix_along_by, levels_effect) {
     UseMethod("levels_hyperrand")
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior <- function(prior, matrix_along_by) {
+levels_hyperrand.bage_prior <- function(prior, matrix_along_by, levels_effect) {
   character()
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_compose <- function(prior, matrix_along_by) {
+levels_hyperrand.bage_prior_compose <- function(prior, matrix_along_by, levels_effect) {
   priors <- prior$specific$priors
-  ans <- lapply(priors, levels_hyperrand, matrix_along_by = matrix_along_by)
-  n_prior <- length(priors)
-  n_effect <- length(matrix_along_by)
-  for (i_prior in seq_len(n_prior - 1L))
-    ans[[i_prior]] <- c(rep("effect", times = n_effect), ans[[i_prior]])
+  nms_comp <- names(priors)
+  levels_effect <- paste("effect", levels_effect, sep = ".")
+  ans <- lapply(priors,
+                levels_hyperrand,
+                matrix_along_by = matrix_along_by,
+                levels_effect = levels_effect)
+  n_comp <- length(ans)
+  for (i_comp in seq_len(n_comp)) {
+    ans_comp <- ans[[i_comp]]
+    nm_comp <- nms_comp[[i_comp]]
+    if (length(ans_comp) > 0L)
+      ans_comp <- paste(nm_comp, ans_comp, sep = ".")
+    if (i_comp < n_comp) {
+      levels_effect_comp <- paste(nm_comp, levels_effect, sep = ".")
+      ans_comp <- c(levels_effect_comp, ans_comp)
+    }
+    ans[[i_comp]] <- ans_comp
+  }
   unlist(ans, use.names = FALSE)
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_elin <- function(prior, matrix_along_by) {
+levels_hyperrand.bage_prior_elin <- function(prior, matrix_along_by, levels_effect) {
   n_by <- ncol(matrix_along_by)
-  rep.int("mslope", times = n_by)
+  nms_by <- colnames(matrix_along_by)
+  paste("mslope", nms_by, sep = ".")
 }
 
 

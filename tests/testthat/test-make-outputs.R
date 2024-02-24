@@ -401,7 +401,7 @@ test_that("'make_levels_hyperrand' works", {
     mod <- set_prior(mod, sex:time ~ ELin())
     mod <- fit(mod)
     ans_obtained <- make_levels_hyperrand(mod)
-    ans_expected <- c("mslope", "mslope")
+    ans_expected <- c("mslope.F", "mslope.M")
     expect_identical(ans_obtained, ans_expected)                      
 })
 

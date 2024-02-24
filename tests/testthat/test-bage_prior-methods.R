@@ -497,7 +497,7 @@ test_that("'indices_priors' works with non-compose prior", {
 test_that("'indices_priors' works with compose time prior - 2 priors", {
   prior <- compose_time(trend = ELin(),
                         cyclical = EAR())
-  matrix_along_by <- matrix(0:9, nr = 5)
+  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(a = 1:5, b = 1:2))
   ans_obtained <- indices_priors(prior = prior,
                                  matrix_along_by = matrix_along_by)
   ans_expected <- c(hyper_start = 0L,
@@ -522,6 +522,8 @@ test_that("'indices_priors' works with compose time prior - 3 priors", {
                         cyclical = AR(),
                         error = N())
   matrix_along_by <- matrix(0:9, nr = 10)
+  rownames(matrix_along_by) <- 1:10
+  names(dimnames(matrix_along_by))[1] <- "x"
   ans_obtained <- indices_priors(prior = prior,
                                  matrix_along_by = matrix_along_by)
   ans_expected <- c(hyper_start = 0L,
@@ -907,41 +909,71 @@ test_that("'levels_hyper' works with 'bage_prior_svd'", {
 ## levels_hyperrand ---------------------------------------------------------------
 
 test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
-  expect_identical(levels_hyperrand(prior = AR(n = 2), matrix_along_by = matrix_along_by),
-                   character())
+  levels_effect <- letters
+  matrix_along_by <- matrix(0:25, nr = 26)
+  rownames(matrix_along_by) <- letters
+  ans_obtained <- levels_hyperrand(prior = AR(n = 2), levels_effect = levels_effect)
+  ans_expected <- character()
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 2 priors", {
   prior <- compose_time(ELin(), seasonal = ESeas(n = 4))
-  matrix_along_by <- matrix(0:99, ncol = 5)
-  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
-                   c(rep("effect", 100), rep("mslope", 5)))
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = prior,
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
+                    c("trend.mslope.a", "trend.mslope.b"))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
   prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR())
-  matrix_along_by <- matrix(0:99, ncol = 5)
-  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
-                   c(rep("effect", 100),
-                     rep("mslope", 5),
-                     rep("effect", 100)))
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = prior,
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
+                    c("trend.mslope.a", "trend.mslope.b"),
+                    paste("cyclical.effect", levels_effect, sep = "."))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
   prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR(), error = N())
-  matrix_along_by <- matrix(0:99, ncol = 5)
-  expect_identical(levels_hyperrand(prior = prior, matrix_along_by = matrix_along_by),
-                   c(rep("effect", 100),
-                     rep("mslope", 5),
-                     rep("effect", 200)))
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = prior,
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
+                     c("trend.mslope.a", "trend.mslope.b"),
+                     paste("cyclical.effect", levels_effect, sep = "."),
+                     paste("seasonal.effect", levels_effect, sep = "."))
+  expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_elin'", {
-  matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyperrand(prior = ELin(), matrix_along_by = matrix_along_by),
-                   c("mslope", "mslope"))
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = ELin(),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c("mslope.a", "mslope.b")
+  expect_identical(ans_obtained, ans_expected)                   
 })
+
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
