@@ -1064,8 +1064,11 @@ levels_hyper.bage_prior_ar <- function(prior) {
 #' @export
 levels_hyper.bage_prior_compose <- function(prior) {
   priors <- prior$specific$priors
+  nms_priors <- names(priors)
   ans <- lapply(priors, levels_hyper)
-  unlist(ans)
+  for (i in seq_along(ans))
+    ans[[i]] <- paste(nms_priors[[i]], ans[[i]], sep = ".")
+  unlist(ans, use.names = FALSE)
 }
 
 ## HAS_TESTS
@@ -1276,8 +1279,8 @@ make_offset_effectfree_effect <- function(prior, levels_effect, agesex) {
 ## HAS_TESTS
 #' @export
 make_offset_effectfree_effect.bage_prior <- function(prior, levels_effect, agesex) {
-    n <- length(levels_effect)
-    rep(0, times = n)
+  n <- length(levels_effect)
+  rep.int(0, times = n)
 }
 
 ## HAS_TESTS
@@ -1292,6 +1295,98 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, a
                                        get_matrix = FALSE,
                                        n_comp = NULL)
 }
+
+
+## 'reformat_hyperrand_one' ---------------------------------------------------
+
+#' Reformat Parts of 'Components' Output Dealing with a
+#' Prior that has Hyper-Parameters Treated as Random Effects
+#'
+#' In all priors with 'hyperrand' elements, the reformatting involves
+#' renaming columns. With 'compose' priors, it also includes adding
+#' rows for an omitted components.
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param nm_prior Name of the prior (ie name of the term).
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+reformat_hyperrand_one <- function(prior, nm_prior, components) {
+  UseMethod("reformat_hyperrand_one")
+}
+
+## HAS_TESTS
+#' @export
+reformat_hyperrand_one.bage_prior <- function(prior, nm_prior, components) components
+
+## HAS_TESTS
+#' @export
+reformat_hyperrand_one.bage_prior_compose <- function(prior, nm_prior, components) {
+  nm_compose <- prior$specific$nm
+  priors <- prior$specific$priors
+  if (nm_compose == "compose_time") {
+    p_hyper <- "^(trend|cyclical|seasonal|error)\\.(.*)$"
+    p_hyperrand <- "^(trend|cyclical|seasonal|error)\\.effect\\.(.*)$"
+  }
+  else
+    cli::cli_abort("Internal error: {.var nm_compose} is {.val {nm_compose}}.")
+  ## extract rows to change
+  is_hyperrand <- with(components, component == "hyperrand" & term == nm_prior)
+  hyperrand_old <- components[is_hyperrand, , drop = FALSE]
+  ## extract and reformat components within prior,
+  ## eg trend, cyclical, seasonal error (if prior for time)
+  is_comp <- grepl(p_hyperrand, hyperrand_old[["level"]])
+  comp_old <- hyperrand_old[is_comp, , drop = FALSE]
+  comp_old$component <- sub(p_hyperrand, "\\1", comp_old$level)
+  comp_old$level <- sub(p_hyperrand, "\\2", comp_old$level)
+  n_comp <- length(unique(comp_old$component))
+  ## add estimates for components
+  if (n_comp > 1L)
+    total <- stats::aggregate(comp_old[".fitted"],
+                              comp_old["level"],
+                              sum)
+  else
+    total <- comp_old[c("level", ".fitted")]
+  ## obtain 'effect' for prior
+  is_effect <- with(components, component == "effect" & term == nm_prior)
+  effect <- components[is_effect, c("level", ".fitted") , drop = FALSE]
+  ## obtain the omitted component
+  nm_missing <- names(priors)[length(priors)]
+  i_total <- match(effect$level, total$level)
+  .fitted_new <- effect$.fitted - total$.fitted[i_total]
+  comp_new <- tibble::tibble(component = rep(nm_missing, times = nrow(total)),
+                             term = rep(nm_prior, times = nrow(total)),
+                             level = effect[["level"]],
+                             .fitted = .fitted_new)
+  ## reformat remaining parts of  'hyperrand'
+  hyper_new <- hyperrand_old[!is_comp, , drop = FALSE]
+  hyper_new$component <- "hyper"
+  ## assemble the new hyperrand
+  hyperrand_new <- vctrs::vec_rbind(hyper_new,
+                                    comp_old,
+                                    comp_new)
+  ## insert into 'components'
+  i_hyperrand <- which(is_hyperrand)
+  i_component <- seq_len(nrow(components))
+  is_before <- i_component < min(i_hyperrand)
+  is_after <- i_component > max(i_hyperrand)
+  ans <- vctrs::vec_rbind(components[is_before, , drop = FALSE],
+                          hyperrand_new,
+                          components[is_after, , drop = FALSE])
+  ## return modified version of 'components'
+  ans
+}
+
+## HAS_TESTS
+#' @export
+reformat_hyperrand_one.bage_prior_elin <- function(prior, nm_prior, components) {
+  is_change <- with(components, component == "hyperrand" & term == nm_prior)
+  components$component[is_change] <- "hyper"
+  components
+} 
+
 
 
 ## 'str_call_prior' -----------------------------------------------------------

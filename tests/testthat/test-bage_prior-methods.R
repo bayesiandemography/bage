@@ -825,9 +825,9 @@ test_that("'levels_hyper' works with 'bage_prior_ar'", {
 test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
   prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 4))
   expect_identical(levels_hyper(prior),
-                   c(trend = levels_hyper(Lin()),
-                     cyclical = levels_hyper(AR()),
-                     seasonal = levels_hyper(Seas(n = 4))))
+                   unname(c(trend = paste("trend", levels_hyper(Lin()), sep = "."),
+                            cyclical = paste("cyclical", levels_hyper(AR()), sep = "."),
+                            seasonal = paste("seasonal", levels_hyper(Seas(n = 4)), sep = "."))))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_ear'", {
@@ -1081,6 +1081,111 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex i
     ans_expected <- s$data$offset[s$data$type == "joint"][[1L]]
     expect_identical(ans_obtained, ans_expected)
 })
+
+
+## 'reformat_hyperrand_one' ---------------------------------------------------
+
+test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ sex * time + age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- fit(mod)
+    comp <- components(mod)
+    ans_obtained <- reformat_hyperrand_one(prior = mod$priors[[2]],
+                                           nm_prior <- names(mod$priors)[[2]],
+                                           components = comp)
+    ans_expected <- comp
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two components", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  comp <- components(mod)
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior <- "sex:time",
+                                         components = comp)
+  hyperrand_comp <- subset(comp,
+                           component == "hyperrand" & grepl("trend\\.effect\\.", level))
+  effect_comp <- subset(comp, component == "effect" & term == "sex:time")
+  hyperrand_new <- hyperrand_comp
+  hyperrand_new$.fitted <- effect_comp$.fitted - hyperrand_comp$.fitted
+  hyperrand_new$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
+  hyperrand_new$component <- "error"
+  hyperrand_comp$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
+  hyperrand_comp$component <- "trend"
+  hyper <- subset(comp,
+                  component == "hyperrand" & grepl("mslope", level))
+  hyper$component <- "hyper"
+  ans_expected <- vctrs::vec_rbind(comp[1:33,],
+                                   hyper,
+                                   hyperrand_comp,
+                                   hyperrand_new,
+                                   comp[48, , drop = FALSE])
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, three components", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ compose_time(ELin(), cyclical = EAR(), error = N())) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  comp <- components(mod)
+  comp_reformatted <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                             nm_prior <- "sex:time",
+                                             components = comp)
+  ans_obtained <- subset(comp_reformatted, component == "effect" & term == "sex:time")
+  ans_expected <- subset(comp_reformatted, component %in% c("trend", "cyclical", "error"))
+  ans_expected <- aggregate(ans_expected[".fitted"], ans_expected["level"], sum)
+  ans_expected <- ans_expected[match(ans_obtained$level, ans_expected$level),]
+  ans_expected <- ans_expected$.fitted
+  ans_obtained <- ans_obtained$.fitted
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_elin", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ ELin()) |>
+                  fit(mod)
+  comp <- components(mod)
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior <- "sex:time",
+                                         components = comp)
+  ans_expected <- comp
+  ans_expected$component[ans_expected$component == "hyperrand" &
+                           ans_expected$term == "sex:time"] <- "hyper"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 
 
 ## 'str_call_prior' -----------------------------------------------------------
