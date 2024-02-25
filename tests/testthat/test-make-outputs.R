@@ -528,6 +528,27 @@ test_that("'make_transforms_hyper' works", {
 })
 
 
+## 'reformat_hyperrand' -------------------------------------------------------
+
+test_that("'reformat_hyperrand' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(time ~ RW2()) |>
+                  set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  components <- components(mod)
+  ans_obtained <- reformat_hyperrand(components = components, mod = mod)
+  expect_setequal(ans_obtained$component, c("effect", "hyper", "disp", "trend", "error"))
+})
+
+
 ## 'rmvnorm_chol', 'rmvnorm_eigen' --------------------------------------------
 
 test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {

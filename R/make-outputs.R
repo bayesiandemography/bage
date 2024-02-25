@@ -558,6 +558,30 @@ make_transforms_hyper <- function(mod) {
 }
 
 
+## NO_TESTS
+#' Reformat Parts of 'components' Data Frame Dealing with
+#' Hyper-Parameters that are Treated as Random Effects
+#'
+#' @param components A data frame
+#' @param mod An object of class 'bage_mod'.
+#'
+#' @returns A modified versino of 'components'
+#'
+#' @noRd
+reformat_hyperrand <- function(components, mod) {
+  priors <- mod$priors
+  nms_priors <- names(priors)
+  for (i_prior in seq_along(priors)) {
+    prior <- priors[[i_prior]]
+    nm_prior <- nms_priors[[i_prior]]
+    components <- reformat_hyperrand_one(prior = prior,
+                                         nm_prior = nm_prior,
+                                         components = components)
+  }
+  components
+}
+                     
+
 ## HAS_TESTS
 #' Draw from multivariate normal, using results
 #' from a Cholesky decomposition
