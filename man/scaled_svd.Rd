@@ -14,7 +14,7 @@ An object of class \code{bage_scaled_svd}.
 }
 \description{
 Create an object of class \code{bage_scaled_svd} to
-hold scaled SVDs (singular value decompositions.)
+hold scaled SVDs (singular value decompositionsk.)
 }
 \details{
 \code{data} has the following columns:

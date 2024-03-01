@@ -85,15 +85,10 @@ draw_vals_effect.bage_prior_compose <- function(prior,
                                                 matrix_along_by,
                                                 n_sim) {
   priors <- prior$specific$priors
-  ans <- .mapply(draw_vals_effect,
-                 dots = list(prior = priors,
-                             vals_hyper = vals_hyper,
-                             vals_hyperrand = vals_hyperrand),
-                 MoreArgs = list(levels_effect = levels_effect,
-                                 agesex = agesex,
-                                 matrix_along_by = matrix_along_by,
-                                 n_sim = n_sim))
-  Reduce("+", ans)
+  nms_priors <- names(priors)
+  components <- vals_hyperrand[nms_priors]
+  ans <- Reduce(function(x, y) x[[1L]] + y[[1L]], components)
+  ans
 }
 
 ## HAS_TESTS
@@ -371,7 +366,7 @@ draw_vals_hyper.bage_prior_ar <- function(prior, n_sim) {
 #' @export
 draw_vals_hyper.bage_prior_compose <- function(prior, n_sim) {
   priors <- prior$specific$priors
-  lapply(priors, draw_vals_hyper, n_sim = n_sim)
+  ans <- lapply(priors, draw_vals_hyper, n_sim = n_sim)
 }
 
 ## HAS_TESTS
@@ -479,38 +474,70 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
 #'
 #' @param prior Object of class 'bage_prior'
 #' @param vals_hyper Named list of values
+#' @param levels_effect Character vector with labels for effect
+#' @param agesex String. One of "age", "age:sex",
+#' "sex:age" or "other"
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #' @param n_sim Number of simulation draws
 #'
 #' @returns A named list.
 #'
 #' @noRd
-draw_vals_hyperrand <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+draw_vals_hyperrand <- function(prior,
+                                vals_hyper,
+                                levels_effect,
+                                agesex,
+                                matrix_along_by,
+                                n_sim) {
   UseMethod("draw_vals_hyperrand")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+draw_vals_hyperrand.bage_prior <- function(prior,
+                                           vals_hyper,
+                                           levels_effect,
+                                           agesex,
+                                           matrix_along_by,
+                                           n_sim) {
   list()
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_compose <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+draw_vals_hyperrand.bage_prior_compose <- function(prior,
+                                                   vals_hyper,
+                                                   levels_effect,
+                                                   agesex,
+                                                   matrix_along_by,
+                                                   n_sim) {
   priors <- prior$specific$priors
-  ans <- .mapply(draw_vals_hyperrand,
+  vals_hyperrand <- .mapply(draw_vals_hyperrand,
+                            dots = list(prior = priors,
+                                        vals_hyper = vals_hyper),
+                            MoreArgs = list(matrix_along_by = matrix_along_by,
+                                            n_sim = n_sim))
+  ans <- .mapply(draw_vals_effect,
                  dots = list(prior = priors,
-                             vals_hyper = vals_hyper),
-                 MoreArgs = list(matrix_along_by = matrix_along_by,
+                             vals_hyper = vals_hyper,
+                             vals_hyperrand = vals_hyperrand),
+                 MoreArgs = list(levels_effect = levels_effect,
+                                 agesex = agesex,
+                                 matrix_along_by = matrix_along_by,
                                  n_sim = n_sim))
+  ans <- lapply(ans, list)
   names(ans) <- names(priors)
   ans                 
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_elin <- function(prior, vals_hyper, matrix_along_by, n_sim) {
+draw_vals_hyperrand.bage_prior_elin <- function(prior,
+                                                vals_hyper,
+                                                levels_effect,
+                                                agesex,
+                                                matrix_along_by,
+                                                n_sim) {
   slope <- vals_hyper$slope
   msd <- vals_hyper$msd
   mslope <- draw_vals_mslope(slope = slope,
@@ -608,70 +635,6 @@ indices_priors.bage_prior_compose <- function(prior, matrix_along_by) {
     consts_start <- consts_start + consts_length
   }
   ans
-}
-
-
-## 'is_comparable_prior' ------------------------------------------------------
-
-#' Test Whether Priors can be Meaningfully Compared
-#' in a Simulation
-#'
-#' Criteria are currently quite conservative:
-#' priors must have the same class, and exactly
-#' the same number of hyper-parameters. This could
-#' in principle be relaxed in future.
-#'
-#' Note that if any two priors are non-compable,
-#' then *no* hyper-parameters are compared in the
-#' simulation.
-#'
-#' @param prior1,prior2 Two objects of class "bage_prior".
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-is_comparable_prior <- function(prior1, prior2) {
-    UseMethod("is_comparable_prior")
-}
-
-## HAS_TESTS
-#' @export
-is_comparable_prior.bage_prior <- function(prior1, prior2) {
-    is_same_class(prior1, prior2)
-}
-
-## HAS_TESTS
-#' @export
-is_comparable_prior.bage_prior_rw2 <- function(prior1, prior2) {
-    if (!is_same_class(prior1, prior2))
-        return(FALSE)
-    sd_slope_1 <- prior1$const[["sd_slope"]]
-    sd_slope_2 <- prior2$const[["sd_slope"]]
-    isTRUE(all.equal(sd_slope_1, sd_slope_2))
-}
-
-## HAS_TESTS
-#' @export
-is_comparable_prior.bage_prior_spline <- function(prior1, prior2) {
-    if (!is_same_class(prior1, prior2))
-        return(FALSE)
-    n_1 <- prior1$specific[["n"]]
-    n_2 <- prior2$specific[["n"]]
-    isTRUE(all.equal(n_1, n_2))
-}
-
-## HAS_TESTS
-#' @export
-is_comparable_prior.bage_prior_svd <- function(prior1, prior2) {
-    if (!is_same_class(prior1, prior2))
-        return(FALSE)
-    n_1 <- prior1$specific[["n"]]
-    n_2 <- prior2$specific[["n"]]
-    if (!isTRUE(all.equal(n_1, n_2)))
-        return(FALSE)
-    indep_1 <- prior1$specific[["indep"]]
-    indep_2 <- prior2$specific[["indep"]]
-    isTRUE(all.equal(indep_1, indep_2))
 }
 
 
@@ -1057,7 +1020,8 @@ levels_hyper <- function(prior) {
 #' @export
 levels_hyper.bage_prior_ar <- function(prior) {
   n <- prior$specific$n
-  rep(c("coef", "sd"), times = c(n, 1L))
+  coef <- paste0("coef", seq_len(n))
+  c(coef, "sd")
 }
 
 ## HAS_TESTS
@@ -1308,22 +1272,33 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, a
 #'
 #' @param prior Object of class 'bage_prior'.
 #' @param nm_prior Name of the prior (ie name of the term).
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
 #' @param components A data frame.
 #'
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
-reformat_hyperrand_one <- function(prior, nm_prior, components) {
+reformat_hyperrand_one <- function(prior,
+                                   nm_prior,
+                                   matrix_along_by,
+                                   components) {
   UseMethod("reformat_hyperrand_one")
 }
 
 ## HAS_TESTS
 #' @export
-reformat_hyperrand_one.bage_prior <- function(prior, nm_prior, components) components
+reformat_hyperrand_one.bage_prior <- function(prior,
+                                              nm_prior,
+                                              matrix_along_by,
+                                              components)
+  components
 
 ## HAS_TESTS
 #' @export
-reformat_hyperrand_one.bage_prior_compose <- function(prior, nm_prior, components) {
+reformat_hyperrand_one.bage_prior_compose <- function(prior,
+                                                      nm_prior,
+                                                      matrix_along_by,
+                                                      components) {
   nm_compose <- prior$specific$nm
   priors <- prior$specific$priors
   if (nm_compose == "compose_time") {
@@ -1341,8 +1316,14 @@ reformat_hyperrand_one.bage_prior_compose <- function(prior, nm_prior, component
   comp_old <- hyperrand_old[is_comp, , drop = FALSE]
   comp_old$component <- sub(p_hyperrand, "\\1", comp_old$level)
   comp_old$level <- sub(p_hyperrand, "\\2", comp_old$level)
-  n_comp <- length(unique(comp_old$component))
+  ## centre components
+  i_along_by <- match(seq_along(matrix_along_by), matrix_along_by + 1L)
+  by <- col(matrix_along_by)[i_along_by]
+  by <- paste(comp_old$component, by)
+  center <- function(x) x - mean(x)
+  split(comp_old$.fitted, by) <- lapply(split(comp_old$.fitted, by), center)
   ## add estimates for components
+  n_comp <- length(unique(comp_old$component))
   if (n_comp > 1L)
     total <- stats::aggregate(comp_old[".fitted"],
                               comp_old["level"],
@@ -1381,7 +1362,10 @@ reformat_hyperrand_one.bage_prior_compose <- function(prior, nm_prior, component
 
 ## HAS_TESTS
 #' @export
-reformat_hyperrand_one.bage_prior_elin <- function(prior, nm_prior, components) {
+reformat_hyperrand_one.bage_prior_elin <- function(prior,
+                                                   nm_prior,
+                                                   matrix_along_by,
+                                                   components) {
   is_change <- with(components, component == "hyperrand" & term == nm_prior)
   components$component[is_change] <- "hyper"
   components
@@ -2139,7 +2123,7 @@ uses_matrix_effectfree_effect.bage_prior_spline <- function(prior) TRUE
 uses_matrix_effectfree_effect.bage_prior_svd <- function(prior) TRUE
 
 
-## 'uses_offset_effectfree_effect' --------------------------------------------------
+## 'uses_offset_effectfree_effect' --------------------------------------------
 
 #' Whether prior uses offset to transform effectfree
 #' to effect
@@ -2160,6 +2144,131 @@ uses_offset_effectfree_effect.bage_prior <- function(prior) FALSE
 ## HAS_TESTS
 #' @export
 uses_offset_effectfree_effect.bage_prior_svd <- function(prior) TRUE
+
+
+## 'vals_hyper_to_dataframe' --------------------------------------------------
+
+#' Convert 'vals_hyper' into Data Frame
+#'
+#' Convert 'vals_hyper' into data frame suitable
+#' for using in 'draw_components'
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm_prior String
+#' @param vals_hyper Named list
+#' @param n_sim Integer
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_hyper_to_dataframe <- function(prior, nm_prior, vals_hyper, n_sim) {
+  UseMethod("vals_hyper_to_dataframe")
+}
+
+## HAS_TESTS
+#' @export
+vals_hyper_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyper, n_sim) {
+  vals <- vctrs::vec_rbind(!!!vals_hyper, .name_repair = "universal_quiet")
+  if (nrow(vals) > 0L) {
+    vals <- as.matrix(vals)
+    dimnames(vals) <- NULL
+  }
+  else
+    vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
+  component <- rep.int("hyper", times = nrow(vals))
+  term <- rep(nm_prior, times = nrow(vals))
+  if (nrow(vals) > 0L) {
+    level <- lapply(vals_hyper, rownames)
+    no_rownames <- vapply(level, is.null, FALSE)
+    level[no_rownames] <- names(vals_hyper[no_rownames])
+    level <- unlist(level, use.names = FALSE)
+  }
+  else
+    level <- character()
+  .fitted <- rvec::rvec(vals)
+  tibble::tibble(component = component,
+                 term = term,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+vals_hyper_to_dataframe.bage_prior_compose <- function(prior, nm_prior, vals_hyper, n_sim) {
+  priors <- prior$specific$priors
+  nms_priors <- names(priors)
+  ans <- .mapply(vals_hyper_to_dataframe,
+                 dots = list(prior = priors,
+                             vals_hyper = vals_hyper),
+                 MoreArgs = list(nm_prior = nm_prior,
+                                 n_sim = n_sim))
+  for (i in seq_along(ans))
+    ans[[i]]$level <- paste(nms_priors[[i]], ans[[i]]$level, sep = ".")
+  vctrs::vec_rbind(!!!ans)
+}
+
+
+## 'vals_hyperrand_to_dataframe' ----------------------------------------------
+
+#' Convert 'vals_hyperrand' into Data Frame
+#'
+#' Convert 'vals_hyperrand' into data frame suitable
+#' for using in 'draw_components'
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm_prior String
+#' @param vals_hyperrand Named list
+#' @param n_sim Integer
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_hyperrand_to_dataframe <- function(prior, nm_prior, vals_hyperrand, n_sim) {
+  UseMethod("vals_hyperrand_to_dataframe")
+}
+
+## HAS_TESTS
+#' @export
+vals_hyperrand_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyperrand, n_sim) {
+  vals <- vctrs::vec_rbind(!!!vals_hyperrand, .name_repair = "universal_quiet")
+  if (nrow(vals) > 0L) {
+    vals <- as.matrix(vals)
+    dimnames(vals) <- NULL
+  }
+  else
+    vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
+  component <- rep.int("hyper", times = nrow(vals))
+  term <- rep(nm_prior, times = nrow(vals))
+  if (nrow(vals) > 0L) {
+    level <- lapply(vals_hyperrand, rownames)
+    no_rownames <- vapply(level, is.null, FALSE)
+    level[no_rownames] <- names(vals_hyperrand[no_rownames])
+    level <- unlist(level, use.names = FALSE)
+  }
+  else
+    level <- character()
+  .fitted <- rvec::rvec(vals)
+  tibble::tibble(component = component,
+                 term = term,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+vals_hyperrand_to_dataframe.bage_prior_compose <- function(prior, nm_prior, vals_hyperrand, n_sim) {
+  priors <- prior$specific$priors
+  nms_priors <- names(priors)
+  ans <- .mapply(vals_hyperrand_to_dataframe,
+                 dots = list(prior = priors,
+                             vals_hyperrand = vals_hyperrand),
+                 MoreArgs = list(nm_prior = nm_prior,
+                                 n_sim = n_sim))
+  for (i in seq_along(ans))
+    ans[[i]]$component <- nms_priors[[i]]
+  vctrs::vec_rbind(!!!ans)
+}
+
 
 
 ## 'values_known' -------------------------------------------------------------

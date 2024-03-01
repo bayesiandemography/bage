@@ -154,10 +154,13 @@ components.bage_mod <- function(object, ...) {
     set.seed(seed_restore)      ## use randomly-generated seed, to restore randomness 
     draws <- as.matrix(draws)
     .fitted <- rvec::rvec_dbl(draws)
-    tibble::tibble(component = comp,
-                   term = term,
-                   level = level,
-                   .fitted = .fitted)
+    ans <- tibble::tibble(component = comp,
+                          term = term,
+                          level = level,
+                          .fitted = .fitted)
+    ans <- reformat_hyperrand(components = ans,
+                              mod = object)
+    ans
   }
   else
     NULL
@@ -591,40 +594,38 @@ get_vals_est <- function(mod) {
 ## HAS_TESTS
 #' @export
 get_vals_est.bage_mod <- function(mod) {
-    has_disp <- has_disp(mod)
-    vals_hyperparam <- get_vals_hyperparam_est(mod)
-    inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
-    transform <- function(x)
-        align_to_data(inv_transform(x))
-    linpred <- vals_hyperparam[["linpred"]]
-    if (has_disp) {
-        disp <- vals_hyperparam[["disp"]]
-        meanpar <- transform(linpred)
-        par <- make_par_disp(x = mod,
-                                   meanpar = meanpar,
-                                   disp = disp)
-    }
-    else
-        par <- transform(linpred)
-    list(effect = vals_hyperparam[["effect"]],
-         hyper = vals_hyperparam[["hyper"]],
-         disp = vals_hyperparam[["disp"]],
-         par = par)
+  has_disp <- has_disp(mod)
+  vals_hyperparam <- get_vals_hyperparam_est(mod)
+  inv_transform <- get_fun_inv_transform(mod)
+  align_to_data <- get_fun_align_to_data(mod)
+  transform <- function(x)
+    align_to_data(inv_transform(x))
+  linpred <- vals_hyperparam[["linpred"]]
+  if (has_disp) {
+    disp <- vals_hyperparam[["disp"]]
+    meanpar <- transform(linpred)
+    par <- make_par_disp(x = mod,
+                         meanpar = meanpar,
+                         disp = disp)
+  }
+  else
+    par <- transform(linpred)
+  ans <- vals_hyperparam[-match("linpred", names(vals_hyperparam))]
+  ans <- c(ans, list(par = par))
+  ans
 }
 
 ## HAS_TESTS
 #' @export
 get_vals_est.bage_mod_norm <- function(mod) {
-    vals_hyperparam <- get_vals_hyperparam_est(mod)
-    linpred <- vals_hyperparam[["linpred"]]
-    align_to_data <- get_fun_align_to_data(mod)
-    scale_outcome <- get_fun_scale_outcome(mod)
-    par <- scale_outcome(align_to_data(linpred))
-    list(effect = vals_hyperparam[["effect"]],
-         hyper = vals_hyperparam[["hyper"]],
-         disp = vals_hyperparam[["disp"]],
-         par = par)
+  vals_hyperparam <- get_vals_hyperparam_est(mod)
+  linpred <- vals_hyperparam[["linpred"]]
+  align_to_data <- get_fun_align_to_data(mod)
+  scale_outcome <- get_fun_scale_outcome(mod)
+  par <- scale_outcome(align_to_data(linpred))
+  ans <- vals_hyperparam[-match("linpred", names(vals_hyperparam))]
+  ans <- c(ans, list(par = par))
+  ans
 }
 
 

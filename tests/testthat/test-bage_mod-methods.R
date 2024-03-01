@@ -122,7 +122,7 @@ test_that("'components' works with compose_time", {
     mod_fitted <- fit(mod)
     ans <- components(mod_fitted)
     expect_true(is.data.frame(ans))
-    expect_identical(unique(ans$component), c("effect", "hyper", "hyperrand", "disp"))
+    expect_identical(unique(ans$component), c("effect", "hyper", "trend", "error", "disp"))
 })
 
 
@@ -559,12 +559,17 @@ test_that("'get_vals_est' works with 'bage_mod_pois'", {
                     exposure = popn)
     mod <- set_disp(mod, s = 0)
     mod <- set_n_draw(mod, n = 5)
+    mod <- set_prior(mod, time ~ compose_time(trend = RW(), cyclical = AR()))
     mod <- fit(mod)
     ans_obtained <- get_vals_est(mod)
     comp <- components(mod)
     aug <- augment(mod)
     ans_expected <- list(par = comp$.fitted[[comp$component == "effect"]],
                          hyper = comp$.fitted[[comp$component == "hyper"]],
+                         trend = comp$.fitted[[comp$component == "trend"]],
+                         cyclical = comp$.fitted[[comp$component == "cyclical"]],
+                         seasonal = NULL,
+                         error = NULL,
                          disp = NULL,
                          fitted = aug$.fitted)
     expect_identical(as.numeric(unlist(ans_obtained)),
@@ -587,12 +592,15 @@ test_that("'get_vals_est' works with 'bage_mod_norm'", {
     aug <- augment(mod)
     ans_expected <- list(par = comp$.fitted[[comp$component == "effect"]],
                          hyper = comp$.fitted[[comp$component == "hyper"]],
+                         trend = NULL,
+                         cyclical = NULL,
+                         seasonal = NULL,
+                         error = NULL,
                          disp = comp$.fitted[[comp$component == "disp"]],
                          fitted = aug$.fitted)
     expect_identical(as.numeric(unlist(ans_obtained)),
                      as.numeric(unlist(ans_expected)))
 })
-
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------

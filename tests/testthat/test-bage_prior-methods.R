@@ -38,20 +38,23 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
 
 test_that("'draw_vals_effect' works with bage_prior_compose", {
   prior <- compose_time(trend = RW(), error = N())
+  agesex <- NULL
+  levels_effect <- letters
   matrix_along_by <- matrix(0:25, nr = 26)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand(prior = prior,
                                         vals_hyper = vals_hyper,
+                                        levels_effect = levels_effect,
+                                        agesex = agesex,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
-  levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = agesex,
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
@@ -77,6 +80,7 @@ test_that("'draw_vals_effect' works with bage_prior_ear", {
 test_that("'draw_vals_effect' works with bage_prior_elin", {
   prior <- ELin(s = 0.01)
   matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 1:4
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -427,12 +431,17 @@ test_that("'draw_vals_hyper' works with bage_prior_svd", {
 test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
   set.seed(0)
   prior <- compose_time(trend = ELin(), seasonal = ESeas(n = 2))
+  levels_effect <- letters[1:12]
+  agesex <- "other"
   matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 1:4
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   ans <- draw_vals_hyperrand(prior = prior,
                              vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
                              matrix_along_by = matrix_along_by,
                              n_sim = n_sim)
   expect_identical(names(ans), c("trend", "seasonal"))
@@ -441,12 +450,17 @@ test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
 test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
   set.seed(0)
   prior <- ELin()
+  levels_effect <- letters[1:12]
+  agesex <- "other"
   matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 1:4
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   ans <- draw_vals_hyperrand(prior = prior,
                              vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
                              matrix_along_by = matrix_along_by,
                              n_sim = n_sim)
   expect_identical(names(ans), "mslope")
@@ -457,12 +471,16 @@ test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
 test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
   set.seed(0)
   prior <- Lin()
+  levels_effect <- letters[1:12]
+  agesex <- "other"
   matrix_along_by <- matrix(0:11, nr = 12)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   ans <- draw_vals_hyperrand(prior = prior,
                              vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
                              matrix_along_by = matrix_along_by,
                              n_sim = n_sim)
   expect_identical(ans, list())
@@ -549,37 +567,6 @@ test_that("'indices_priors' works with compose time prior - 3 priors", {
                     i_prior = 1L)
   expect_identical(ans_obtained, ans_expected)
 })
-
-
-## is_comparable_prior --------------------------------------------------------
-
-test_that("'is_comparable_prior' returns FALSE when priors differ", {
-    expect_false(is_comparable_prior(AR1(), N()))
-})
-
-test_that("'is_comparable_prior' returns TRUE when priors same (and not specific methods)", {
-    expect_true(is_comparable_prior(AR1(), AR1(s = 3)))
-})
-
-test_that("'is_comparable_prior' returns TRUE when priors same (and not specific methods)", {
-    expect_true(is_comparable_prior(AR1(), AR1(s = 3)))
-})
-
-test_that("'is_comparable_prior' works with RW2)", {
-    expect_true(is_comparable_prior(RW2(), RW2(s = 3)))
-    expect_false(is_comparable_prior(RW2(sd = 0.3), RW2()))
-})
-
-test_that("'is_comparable_prior' works with spline)", {
-    expect_true(is_comparable_prior(Sp(), Sp(s = 3)))
-    expect_false(is_comparable_prior(Sp(n = 4), Sp(n = 5)))
-})
-
-test_that("'is_comparable_prior' works with SVD)", {
-    expect_true(is_comparable_prior(SVD(HMD), SVD(HMD)))
-    expect_false(is_comparable_prior(SVD(HMD, n = 4), SVD(HMD, n = 5)))
-    expect_false(is_comparable_prior(SVD(HMD, indep = TRUE), SVD(HMD, indep = FALSE)))
-})    
 
 
 ## is_known -------------------------------------------------------------------
@@ -819,7 +806,7 @@ test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, ages
 
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
   expect_identical(levels_hyper(prior = AR(n = 2)),
-                   c("coef", "coef", "sd"))
+                   c("coef1", "coef2", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
@@ -1095,9 +1082,11 @@ test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
                     data = data,
                     exposure = popn)
     ans_obtained <- fit(mod)
+    matrix_along_by <- choose_matrices_along_by(mod)[[2]]
     comp <- components(mod)
     ans_obtained <- reformat_hyperrand_one(prior = mod$priors[[2]],
                                            nm_prior <- names(mod$priors)[[2]],
+                                           matrix_along_by = matrix_along_by,
                                            components = comp)
     ans_expected <- comp
     expect_identical(ans_obtained, ans_expected)
@@ -1115,28 +1104,41 @@ test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two co
                   set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
                   fit(mod)
   mod <- set_n_draw(mod, 5)
-  comp <- components(mod)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  comp <- make_comp_components(mod)
+  term <- make_term_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(component = comp,
+                               term = term,
+                               level = level,
+                               .fitted = .fitted)
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
                                          nm_prior <- "sex:time",
-                                         components = comp)
-  hyperrand_comp <- subset(comp,
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  hyperrand_comp <- subset(components,
                            component == "hyperrand" & grepl("trend\\.effect\\.", level))
-  effect_comp <- subset(comp, component == "effect" & term == "sex:time")
+  effect_comp <- subset(components, component == "effect" & term == "sex:time")
   hyperrand_new <- hyperrand_comp
   hyperrand_new$.fitted <- effect_comp$.fitted - hyperrand_comp$.fitted
   hyperrand_new$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
   hyperrand_new$component <- "error"
   hyperrand_comp$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
   hyperrand_comp$component <- "trend"
-  hyper <- subset(comp,
+  hyper <- subset(components,
                   component == "hyperrand" & grepl("mslope", level))
   hyper$component <- "hyper"
-  ans_expected <- vctrs::vec_rbind(comp[1:33,],
+  ans_expected <- vctrs::vec_rbind(components[1:33,],
                                    hyper,
                                    hyperrand_comp,
                                    hyperrand_new,
-                                   comp[48, , drop = FALSE])
-  expect_identical(ans_obtained, ans_expected)
+                                   components[48, , drop = FALSE])
+  expect_identical(ans_obtained[1:3], ans_expected[1:3])
+  expect_equal(as.numeric(mean(subset(ans_obtained, component == "trend" & grepl("M", level))$.fitted)),
+               c(0, 0, 0, 0, 0))
 })
 
 test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, three components", {
@@ -1151,10 +1153,21 @@ test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, three 
                   set_prior(sex:time ~ compose_time(ELin(), cyclical = EAR(), error = N())) |>
                   fit(mod)
   mod <- set_n_draw(mod, 5)
-  comp <- components(mod)
+  comp <- make_comp_components(mod)
+  term <- make_term_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(component = comp,
+                               term = term,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   comp_reformatted <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
                                              nm_prior <- "sex:time",
-                                             components = comp)
+                                             matrix_along_by = matrix_along_by,
+                                             components = components)
   ans_obtained <- subset(comp_reformatted, component == "effect" & term == "sex:time")
   ans_expected <- subset(comp_reformatted, component %in% c("trend", "cyclical", "error"))
   ans_expected <- aggregate(ans_expected[".fitted"], ans_expected["level"], sum)
@@ -1176,16 +1189,16 @@ test_that("'reformat_hyperrand_one' works with bage_prior_elin", {
                   set_prior(sex:time ~ ELin()) |>
                   fit(mod)
   comp <- components(mod)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
                                          nm_prior <- "sex:time",
+                                         matrix_along_by = matrix_along_by,
                                          components = comp)
   ans_expected <- comp
   ans_expected$component[ans_expected$component == "hyperrand" &
                            ans_expected$term == "sex:time"] <- "hyper"
   expect_identical(ans_obtained, ans_expected)
 })
-
-
 
 
 ## 'str_call_prior' -----------------------------------------------------------
@@ -1639,6 +1652,136 @@ test_that("'uses_offset_effectfree_effect' works with valid inputs", {
     expect_true(uses_offset_effectfree_effect(SVD(HMD)))
 })
 
+
+## vals_hyper_to_dataframe ----------------------------------------------------
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
+                                          nm_prior = "time",
+                                          vals_hyper = vals_hyper,
+                                          n_sim = 10)
+  ans_expected <- tibble::tibble(component = "hyper",
+                                 term = "time",
+                                 level = c("coef1", "coef2", "coef3", "sd"),
+                                 .fitted = rvec::rvec(unname(rbind(vals_hyper[[1]], vals_hyper[[2]]))))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_compose", {
+  prior <- compose_time(RW2(), cyclical = AR(), seasonal = Seas(n = 2))
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
+                                          nm_prior = "time",
+                                          vals_hyper = vals_hyper,
+                                          n_sim = 10)
+  fitted <- vctrs::vec_rbind(vals_hyper[[1]][[1]],
+                             vals_hyper[[2]][[1]],
+                             vals_hyper[[2]][[2]],
+                             vals_hyper[[3]][[1]],
+                             .name_repair = "universal_quiet")
+  fitted <- as.matrix(fitted)
+  dimnames(fitted) <- NULL
+  ans_expected <- tibble::tibble(component = "hyper",
+                                 term = "time",
+                                 level = c("trend.sd",
+                                           "cyclical.coef1", "cyclical.coef2", "cyclical.sd",
+                                           "seasonal.sd"),
+                                 .fitted = rvec::rvec(fitted))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_fixed", {
+  prior <- NFix()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
+                                          nm_prior = "time",
+                                          vals_hyper = vals_hyper,
+                                          n_sim = 10)
+  ans_expected <- tibble::tibble(component = character(),
+                                 term = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## vals_hyperrand_to_dataframe ----------------------------------------------------
+
+test_that("'vals_hyperrand_to_dataframe' works with bage_prior_elin", {
+  prior <- ELin()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        levels_effect = letters[1:12],
+                                        vals_hyper = vals_hyper,
+                                        agesex = "other",
+                                        matrix_along_by = matrix(0:11, nr = 6,
+                                                                 dimnames = list(NULL, 11:12)),
+                                        n_sim = 10)
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(component = "hyper",
+                                 term = "time",
+                                 level = c("mslope.11", "mslope.12"),
+                                 .fitted = rvec::rvec(unname(vals_hyperrand[[1]])))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyperrand_to_dataframe' works with bage_prior_compose", {
+  prior <- compose_time(RW2(), cyclical = AR(), seasonal = Seas(n = 2))
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        levels_effect = letters[1:12],
+                                        agesex = "other",
+                                        matrix_along_by = matrix(0:11, nr = 12,
+                                                                 dimnames = list(NULL, "a")),
+                                        n_sim = 10)
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  vals_hyperrand <- lapply(vals_hyperrand, function(x) x[[1L]])
+  fitted <- vctrs::vec_rbind(!!!vals_hyperrand,
+                             .name_repair = "universal_quiet")
+  fitted <- as.matrix(fitted)
+  dimnames(fitted) <- NULL
+  ans_expected <- tibble::tibble(component = rep(c("trend", "cyclical", "seasonal"), each = 12),
+                                 term = "time",
+                                 level = rep(letters[1:12], times = 3),
+                                 .fitted = rvec::rvec(fitted))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyperrand_to_dataframe' works with bage_prior_fixed", {
+  prior <- NFix()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        levels_effect = letters[1:12],
+                                        agesex = "other",
+                                        matrix_along_by = matrix(0:11, nr = 6,
+                                                                 dimnames = list(NULL, 11:12)),
+                                        n_sim = 10)
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(component = character(),
+                                 term = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
 
 ## values_known ---------------------------------------------------------------
 

@@ -50,105 +50,106 @@
 ## })
 
 
-## ## calc_error_point_est -------------------------------------------------------
+## calc_error_point_est -------------------------------------------------------
 
-## test_that("'calc_error_point_est' works", {
-##     estimate <- list(a = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-##                      b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-##     truth <- list(a = 1:3, b = 4:6)
-##     point_est_fun <- "mean"
-##     ans_obtained <- calc_error_point_est(estimate = estimate,
-##                                          truth = truth,
-##                                          point_est_fun = point_est_fun)
-##     ans_expected <- list(a = calc_error_point_est_one(estimate = estimate[[1]],
-##                                                       truth = truth[[1]],
-##                                                       rvec_fun = rvec::draws_mean),
-##                          b = calc_error_point_est_one(estimate = estimate[[2]],
-##                                                       truth = truth[[2]],
-##                                                       rvec_fun = rvec::draws_mean))
-##     expect_equal(ans_obtained, ans_expected)
-## })
-
-
-## ## calc_error_point_est_one ---------------------------------------------------
-
-## test_that("'calc_error_point_est_one' works", {
-##     estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
-##     truth <- 1:3
-##     rvec_fun <- rvec::draws_mean
-##     ans_obtained <- calc_error_point_est_one(estimate = estimate,
-##                                              truth = truth,
-##                                              rvec_fun = rvec_fun)
-##     ans_expected <- rowMeans(matrix(1:12, nr = 3)) - 1:3
-##     expect_equal(ans_obtained, ans_expected)
-## })
+test_that("'calc_error_point_est' works", {
+    estimate <- list(a = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(a = 1:3, b = 4:6)
+    point_est_fun <- "mean"
+    ans_obtained <- calc_error_point_est(estimate = estimate,
+                                         truth = truth,
+                                         point_est_fun = point_est_fun)
+    ans_expected <- list(a = calc_error_point_est_one(estimate = estimate[[1]],
+                                                      truth = truth[[1]],
+                                                      rvec_fun = rvec::draws_mean),
+                         b = calc_error_point_est_one(estimate = estimate[[2]],
+                                                      truth = truth[[2]],
+                                                      rvec_fun = rvec::draws_mean))
+    expect_equal(ans_obtained, ans_expected)
+})
 
 
-## ## calc_interval_width --------------------------------------------------------
+## calc_error_point_est_one ---------------------------------------------------
 
-## test_that("'calc_interval_width' works - include_upper is TRUE", {
-##     estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-##                      b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-##     truth <- list(par = 1:3, b = 4:6)
-##     widths <- c(0.5, 0.9, 1)
-##     ans_obtained <- calc_interval_width(estimate = estimate,
-##                                         widths = widths)
-##     ans_expected <- list(par = calc_interval_width_one(estimate = estimate[[1]],
-##                                                        widths = widths),
-##                          b = calc_interval_width_one(estimate = estimate[[2]],
-##                                                      widths = widths))
-##     expect_equal(ans_obtained, ans_expected)
-## })
+test_that("'calc_error_point_est_one' works", {
+    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
+    truth <- 1:3
+    rvec_fun <- rvec::draws_mean
+    ans_obtained <- calc_error_point_est_one(estimate = estimate,
+                                             truth = truth,
+                                             rvec_fun = rvec_fun)
+    ans_expected <- rowMeans(matrix(1:12, nr = 3)) - 1:3
+    expect_equal(ans_obtained, ans_expected)
+})
 
 
-## ## calc_interval_width_one ---------------------------------------------------
+## calc_interval_width --------------------------------------------------------
 
-## test_that("'calc_interval_width_one' works", {
-##     estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
-##     widths <- c(0.9, 1)
-##     ans_obtained <- calc_interval_width_one(estimate = estimate,
-##                                             widths = widths)
-##     ci.0.9 <- rvec::draws_ci(estimate, width = 0.9)
-##     ci.1 <- rvec::draws_ci(estimate, width = 1)
-##     ans_expected <- list("0.9" = ci.0.9$estimate.upper - ci.0.9$estimate.lower,
-##                          "1" = ci.1$estimate.upper - ci.1$estimate.lower)
-##     expect_equal(ans_obtained, ans_expected)
-## })
-
-
-## ## calc_is_in_interval --------------------------------------------------------
-
-## test_that("'calc_is_in_interval' works - include_upper is TRUE", {
-##     estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-##                      b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-##     truth <- list(par = 1:3, b = 4:6)
-##     widths <- c(0.5, 0.9, 1)
-##     ans_obtained <- calc_is_in_interval(estimate = estimate,
-##                                         truth = truth,
-##                                         widths = widths)
-##     ans_expected <- list(par = calc_is_in_interval_one(estimate = estimate[[1]],
-##                                                      truth = truth[[1]],
-##                                                      widths = widths),
-##                          b = calc_is_in_interval_one(estimate = estimate[[2]],
-##                                                      truth = truth[[2]],
-##                                                      widths = widths))
-##     expect_equal(ans_obtained, ans_expected)
-## })
+test_that("'calc_interval_width' works - include_upper is TRUE", {
+    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(par = 1:3, b = 4:6)
+    widths <- c(0.5, 0.9, 1)
+    ans_obtained <- calc_interval_width(estimate = estimate,
+                                        widths = widths)
+    ans_expected <- list(par = calc_interval_width_one(estimate = estimate[[1]],
+                                                       widths = widths),
+                         b = calc_interval_width_one(estimate = estimate[[2]],
+                                                     widths = widths))
+    expect_equal(ans_obtained, ans_expected)
+})
 
 
-## ## calc_is_in_interval_one ---------------------------------------------------
+## calc_interval_width_one ---------------------------------------------------
 
-## test_that("'calc_is_in_interval_one' works", {
-##     estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
-##     truth <- rep(2, 3)
-##     widths <- c(0.9, 1)
-##     ans_obtained <- calc_is_in_interval_one(estimate = estimate,
-##                                             truth = truth,
-##                                             widths = widths)
-##     ans_expected <- list("0.9" = c(TRUE, FALSE, FALSE),
-##                          "1" = c(TRUE, TRUE, FALSE))
-##     expect_equal(ans_obtained, ans_expected)
-## })                                       
+test_that("'calc_interval_width_one' works", {
+    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
+    widths <- c(0.9, 1)
+    ans_obtained <- calc_interval_width_one(estimate = estimate,
+                                            widths = widths)
+    ci.0.9 <- rvec::draws_ci(estimate, width = 0.9)
+    ci.1 <- rvec::draws_ci(estimate, width = 1)
+    ans_expected <- list("0.9" = ci.0.9$estimate.upper - ci.0.9$estimate.lower,
+                         "1" = ci.1$estimate.upper - ci.1$estimate.lower)
+    expect_equal(ans_obtained, ans_expected)
+})
+
+
+## calc_is_in_interval --------------------------------------------------------
+
+test_that("'calc_is_in_interval' works - include_upper is TRUE", {
+    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
+                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
+    truth <- list(par = 1:3, b = 4:6)
+    widths <- c(0.5, 0.9, 1)
+    ans_obtained <- calc_is_in_interval(estimate = estimate,
+                                        truth = truth,
+                                        widths = widths)
+    ans_expected <- list(par = calc_is_in_interval_one(estimate = estimate[[1]],
+                                                     truth = truth[[1]],
+                                                     widths = widths),
+                         b = calc_is_in_interval_one(estimate = estimate[[2]],
+                                                     truth = truth[[2]],
+                                                     widths = widths))
+    expect_equal(ans_obtained, ans_expected)
+})
+
+
+## calc_is_in_interval_one ---------------------------------------------------
+
+test_that("'calc_is_in_interval_one' works", {
+    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
+    truth <- rep(2, 3)
+    widths <- c(0.9, 1)
+    ans_obtained <- calc_is_in_interval_one(estimate = estimate,
+                                            truth = truth,
+                                            widths = widths)
+    ans_expected <- list("0.9" = c(TRUE, FALSE, FALSE),
+                         "1" = c(TRUE, TRUE, FALSE))
+    expect_equal(ans_obtained, ans_expected)
+})                                       
+
 
 ## 'draw_vals_ar' -------------------------------------------------------------
 
@@ -205,27 +206,27 @@ test_that("'draw_vals_coef' works with n = 10", {
   expect_identical(dim(ans), c(10L, 3L))
 })
 
-## 'draw_vals_lin' ------------------------------------------------------------
 
-test_that("'draw_vals_lin' works", {
+## 'draw_vals_components' -----------------------------------------------------
+
+test_that("'draw_vals_components' works", {
   set.seed(0)
-  prior <- Lin()
-  n_sim <- 10
-  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
-  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-  labels <- 1:20
-  set.seed(0)
-  ans_obtained <- draw_vals_lin(slope = slope,
-                                sd = sd,
-                                labels = labels)
-  q <- -(20 + 1) / (20 - 1) + (1:20) * 2 / (20 - 1)
-  ans_expected <- matrix(rep(q, times = n_sim) * rep(slope, each = 20),
-                         nrow = 20)
-  set.seed(0)
-  ans_expected <- ans_expected + rnorm(n = n_sim * 20, sd = rep(sd, each = 20))
-  dimnames(ans_expected) <- list(1:20, 1:n_sim)
-  expect_equal(ans_obtained, ans_expected)  
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
+  n_sim <- 2
+  ans <- draw_vals_components(mod = mod, n_sim = n_sim)
+  ans_est <- components(fit(mod))
+  comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
+                all.y = TRUE)
+  expect_true(identical(nrow(comb), nrow(ans)))
 })
+
 
 
 ## 'draw_vals_elin' -----------------------------------------------------------
@@ -235,6 +236,7 @@ test_that("'draw_vals_elin' works - along dimension is first", {
   prior <- ELin()
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 11:14
   slope <- draw_vals_slope(prior = prior,
                            n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
@@ -267,6 +269,7 @@ test_that("'draw_vals_elin' works - along dimension is second", {
   prior <- ELin()
   n_sim <- 10
   matrix_along_by <- t(matrix(0:11, nr = 3))
+  colnames(matrix_along_by) <- 1:3
   slope <- draw_vals_slope(prior = prior,
                            n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
@@ -346,6 +349,7 @@ test_that("'draw_vals_erw' works - along dimension is second", {
                tolerance = 0.03)
 })
 
+
 ## 'draw_vals_eseas' ----------------------------------------------------------
 
 test_that("'draw_vals_eseas' works - along dimension is first", {
@@ -399,23 +403,42 @@ test_that("'draw_vals_eseas' works - along dimension is second", {
 })
 
 
+## draw_vals_hyper_mod --------------------------------------------------------
+
+test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans <- draw_vals_hyper_mod(mod, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(length(ans$age$sd), 10L)
+})
 
 
-## ## draw_vals_hyper_mod --------------------------------------------------------
+## draw_vals_hyperrand_mod --------------------------------------------------------
 
-## test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age * time + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     ans <- draw_vals_hyper_mod(mod, n_sim = 10)
-##     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
-##     expect_identical(length(ans$age$sd), 10L)
-## })
+test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:time ~ ELin())
+    vals_hyper <- draw_vals_hyper_mod(mod, n_sim = 10)
+    ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(nrow(ans[["age:time"]]$mslope), 10L)
+    expect_identical(sapply(ans, length),
+                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 1L))
+})
 
 
 ## ## draw_vals_hyperparam -------------------------------------------------------
@@ -460,26 +483,54 @@ test_that("'draw_vals_eseas' works - along dimension is second", {
 ## })
 
 
-## ## draw_vals_effect_mod ----------------------------------------------------------
+## draw_vals_effect_mod ----------------------------------------------------------
 
-## test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age * time + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     n_sim <- 10
-##     vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-##     ans <- draw_vals_effect_mod(mod,
-##                                 vals_hyper = vals_hyper,
-##                                 n_sim = n_sim)
-##     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
-##     expect_true(all(sapply(ans, ncol) == n_sim))
-##     expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
-## })
+test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
+                                            n_sim = n_sim)
+  ans <- draw_vals_effect_mod(mod,
+                              vals_hyper = vals_hyper,
+                              vals_hyperrand = vals_hyperrand,
+                              n_sim = n_sim)
+  expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+  expect_true(all(sapply(ans, ncol) == n_sim))
+  expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
+})
+
+
+## 'draw_vals_lin' ------------------------------------------------------------
+
+test_that("'draw_vals_lin' works", {
+  set.seed(0)
+  prior <- Lin()
+  n_sim <- 10
+  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  labels <- 1:20
+  set.seed(0)
+  ans_obtained <- draw_vals_lin(slope = slope,
+                                sd = sd,
+                                labels = labels)
+  q <- -(20 + 1) / (20 - 1) + (1:20) * 2 / (20 - 1)
+  ans_expected <- matrix(rep(q, times = n_sim) * rep(slope, each = 20),
+                         nrow = 20)
+  set.seed(0)
+  ans_expected <- ans_expected + rnorm(n = n_sim * 20, sd = rep(sd, each = 20))
+  dimnames(ans_expected) <- list(1:20, 1:n_sim)
+  expect_equal(ans_obtained, ans_expected)  
+})
 
 ## draw_vals_msd --------------------------------------------------------------
 
@@ -503,6 +554,7 @@ test_that("'draw_vals_mslope' works", {
   slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
   msd <- draw_vals_msd(prior = prior, n_sim = n_sim)
   matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 11:14
   set.seed(0)
   ans_obtained <- draw_vals_mslope(slope = slope,
                                    msd = msd,
@@ -513,6 +565,7 @@ test_that("'draw_vals_mslope' works", {
                                mean = rep(slope, each = 4),
                                sd = rep(msd, each = 4)),
                          nr = 4)
+  rownames(ans_expected) <- paste("mslope", 11:14, sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -643,53 +696,64 @@ test_that("'draw_vals_slope' works", {
 ## })
 
 
-## ## 'get_vals_hyperparam_est' --------------------------------------------------
+## 'get_vals_hyperparam_est' --------------------------------------------------
 
-## test_that("'get_vals_hyperparam_est' works", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_cyclical(mod)
-##     mod <- set_season(mod, n = 2)
-##     mod <- fit(mod)
-##     ans_obtained <- get_vals_hyperparam_est(mod)
-##     components <- components(mod)
-##     ans_expected <- list(effect = subset(components, component == "effect", select = ".fitted")[[1]],
-##                          hyper = subset(components, component == "hyper", select = ".fitted")[[1]],
-##                          disp = subset(components, component == "disp", select = ".fitted")[[1]],
-##                          cyclical = subset(components, component == "cyclical",
-##                                            select = ".fitted")[[1]],
-##                          season = subset(components, component == "season", select = ".fitted")[[1]],
-##                          linpred = make_linpred_effect(mod, components) +
-##                              make_linpred_cyclical(mod, components) +
-##                              make_linpred_season(mod, components))
-##     names(ans_expected[[1L]]) <- paste0(subset(components, component == "effect",
-##                                                select = "term")[[1]],
-##                                         subset(components, component == "effect",
-##                                                select = "level")[[1]])
-##     names(ans_expected[[2L]]) <- paste0(subset(components, component == "hyper",
-##                                                select = "term")[[1]],
-##                                         subset(components, component == "hyper",
-##                                                select = "level")[[1]])
-##     names(ans_expected[[3L]]) <- paste0(subset(components, component == "disp",
-##                                                select = "term")[[1]],
-##                                         subset(components, component == "disp",
-##                                                select = "level")[[1]])
-##     names(ans_expected[[4L]]) <- paste0(subset(components, component == "cyclical",
-##                                                select = "term")[[1]],
-##                                         subset(components, component == "cyclical",
-##                                                select = "level")[[1]])
-##     names(ans_expected[[5L]]) <- paste0(subset(components, component == "season",
-##                                                select = "term")[[1]],
-##                                         subset(components, component == "season",
-##                                                select = "level")[[1]])
-##     expect_identical(ans_obtained, ans_expected)
-## })
+test_that("'get_vals_hyperparam_est' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod,
+                   time ~ compose_time(trend = RW2(), cyclical = AR(), seasonal = Seas(n = 2)))
+  mod <- fit(mod)
+  ans_obtained <- get_vals_hyperparam_est(mod)
+  components <- components(mod)
+  ans_expected <- list(effect = subset(components, component == "effect", select = ".fitted")[[1]],
+                       hyper = subset(components, component == "hyper", select = ".fitted")[[1]],
+                       trend = subset(components, component == "trend", select = ".fitted")[[1]],
+                       cyclical = subset(components, component == "cyclical",
+                                         select = ".fitted")[[1]],
+                       seasonal = subset(components, component == "seasonal",
+                                         select = ".fitted")[[1]],
+                       error = NULL,
+                       disp = subset(components, component == "disp", select = ".fitted")[[1]],
+                       linpred = make_linpred_effect(mod, components))
+  names(ans_expected[[1L]]) <- paste(subset(components, component == "effect",
+                                            select = "term")[[1]],
+                                     subset(components, component == "effect",
+                                            select = "level")[[1]],
+                                     sep = ".")
+  names(ans_expected[[2L]]) <- paste(subset(components, component == "hyper",
+                                            select = "term")[[1]],
+                                     subset(components, component == "hyper",
+                                            select = "level")[[1]],
+                                     sep = ".")
+  names(ans_expected[[3L]]) <- paste(subset(components, component == "trend",
+                                            select = "term")[[1]],
+                                     subset(components, component == "trend",
+                                            select = "level")[[1]],
+                                     sep = ".")
+  names(ans_expected[[4L]]) <- paste(subset(components, component == "cyclical",
+                                            select = "term")[[1]],
+                                     subset(components, component == "cyclical",
+                                            select = "level")[[1]],
+                                     sep = ".")
+  names(ans_expected[[5L]]) <- paste(subset(components, component == "seasonal",
+                                            select = "term")[[1]],
+                                     subset(components, component == "seasonal",
+                                            select = "level")[[1]],
+                                     sep = ".")
+  names(ans_expected[[7L]]) <- paste(subset(components, component == "disp",
+                                            select = "term")[[1]],
+                                     subset(components, component == "disp",
+                                            select = "level")[[1]],
+                                     sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## ## 'get_vals_sim_one' ---------------------------------------------------------
@@ -724,187 +788,6 @@ test_that("'draw_vals_slope' works", {
 ##                  as.numeric(unlist(ans_expected)))
 ## })
 
-
-## ## 'is_comparable_cyclical' ---------------------------------------------------
-
-## test_that("'is_comparable_cyclical' returns TRUE when cyclical effect same", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_cyclical(mod, n = 2)
-##     expect_true(is_comparable_cyclical(mod, mod))
-## })
-
-## test_that("'is_comparable_cyclical' returns FALSE when different n", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod_est <- set_cyclical(mod, n = 2)
-##     mod_sim <- set_cyclical(mod, n = 3)
-##     expect_false(is_comparable_cyclical(mod_est, mod_sim))
-## })
-
-## test_that("'is_comparable_cyclical' returns TRUE when different 'scale'", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod_est <- set_cyclical(mod, n = 2)
-##     mod_sim <- set_cyclical(mod, n = 2, s = 0.1)
-##     expect_true(is_comparable_cyclical(mod_est, mod_sim))
-## })
-
-## test_that("'is_comparable_cyclical' returns FALSE when different matrices", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod_est <- mod_pois(formula = deaths ~ age + sex + time,
-##                         data = data,
-##                         exposure = popn)
-##     mod_sim <- mod_pois(formula = deaths ~ age + sex + time,
-##                         data = subset(data, time != 2005),
-##                         exposure = popn)
-##     mod_est <- set_cyclical(mod_est, n = 2)
-##     mod_sim <- set_cyclical(mod_sim, n = 2)
-##     expect_false(is_comparable_cyclical(mod_est, mod_sim))
-## })
-
-
-## ## 'is_comparable_mod' -----------------------------------------------------
-
-## test_that("'is_comparable_mod' returns TRUE when models same", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     expect_true(is_comparable_season(mod, mod))
-## })
-
-
-## ## 'is_comparable_priors' -----------------------------------------------------
-
-## test_that("'is_comparable_priors' returns TRUE when priors same", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     expect_true(is_comparable_priors(mod, mod))
-## })
-
-## test_that("'is_comparable_priors' returns TRUE when priors same - different order", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod1 <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod2 <- mod_pois(formula = deaths ~ age + time + sex,
-##                     data = data,
-##                     exposure = popn)
-##     expect_true(is_comparable_priors(mod1, mod2))
-## })
-
-## test_that("'is_comparable_priors' returns FALSE when different numbers of priors", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod1 <- mod_pois(formula = deaths ~ age + sex,
-##                     data = data,
-##                     exposure = popn)
-##     mod2 <- mod_pois(formula = deaths ~ age + time + sex,
-##                     data = data,
-##                     exposure = popn)
-##     expect_false(is_comparable_priors(mod1, mod2))
-## })
-
-## test_that("'is_comparable_priors' returns FALSE when priors have different classes", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod1 <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_prior(age ~ N())
-##     mod2 <- mod_pois(formula = deaths ~ age + time + sex,
-##                     data = data,
-##                     exposure = popn)
-##     expect_false(is_comparable_priors(mod1, mod2))
-## })
-
-
-## ## 'is_comparable_season' -----------------------------------------------------
-
-## test_that("'is_comparable_season' returns TRUE when season effect same", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_season(mod, n = 2)
-##     expect_true(is_comparable_season(mod, mod))
-## })
-
-## test_that("'is_comparable_season' returns FALSE when different n", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod_est <- set_season(mod, n = 2)
-##     mod_sim <- set_season(mod, n = 3)
-##     expect_false(is_comparable_season(mod_est, mod_sim))
-## })
-
-## test_that("'is_comparable_season' returns TRUE when different 'by'", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod_est <- set_season(mod, n = 2, by = age)
-##     mod_sim <- set_season(mod, n = 2, by = sex)
-##     expect_false(is_comparable_season(mod_est, mod_sim))
-## })
-
-## test_that("'is_comparable_season' returns TRUE when different 'scale'", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     mod_est <- set_season(mod, n = 2)
-##     mod_sim <- set_season(mod, n = 2, s = 0.1)
-##     expect_true(is_comparable_season(mod_est, mod_sim))
-## })
 
 
 ## ## make_diff_matrix -----------------------------------------------------------
@@ -1127,6 +1010,64 @@ test_that("'draw_vals_slope' works", {
 
 
 
+
+## test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     formula <- deaths ~ age + sex
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn) |>
+##                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
+##     mod_est <- fit(mod)
+##     mod_sim <- fit(mod)
+##     comp_est <- components(mod_est)
+##     comp_sim <- components(mod_sim)
+##     aug_est <- augment(mod_est)
+##     aug_sim <- augment(mod_sim)
+##     comp <- merge(comp_sim, comp_est, by =     
+    
+##     ans_obtained <- report_sim(mod,
+##                                n_sim = 2,
+##                                report_type = "long",
+##                                point_est_fun = "med",
+##                                n_core = 2)
+##     expect_true(is.data.frame(ans_obtained))
+## })
+
+
+
+test_that("'stanardize_vals_effect' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
+                                            n_sim = n_sim)
+  vals_effect <- draw_vals_effect_mod(mod,
+                                      vals_hyper = vals_hyper,
+                                      vals_hyperrand = vals_hyperrand,
+                                      n_sim = n_sim)
+  ans <- standardize_vals_effect(mod = mod, vals_effect = vals_effect)
+  means <- lapply(ans[-1], function(x) colMeans(x))
+  expect_equal(mean(unlist(means)), 0)
+  m <- make_combined_matrix_effect_outcome(mod)
+  x_raw <- do.call(rbind, vals_effect)
+  x_standard <- do.call(rbind, ans)
+  expect_equal(m %*% x_raw, m %*% x_standard)
+})
+
+
 ## ## 'summarise_sim' ---------------------------------------------------------------
 
 ## test_that("'summarise_sim' works with valid inputs", {
@@ -1158,3 +1099,60 @@ test_that("'draw_vals_slope' works", {
 ##                          list(3, 30))
 ##     expect_identical(ans_obtained, ans_expected)
 ## })
+
+
+## 'vals_disp_to_dataframe' ---------------------------------------------------
+
+test_that("'draw_vals_disp' works with 'bage_mod_pois'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    vals_disp <- draw_vals_disp(mod, n_sim = 10)
+    ans_obtained <- vals_disp_to_dataframe(vals_disp)
+    ans_expected <- tibble::tibble(component = "disp",
+                                   term = "disp",
+                                   level = "disp",
+                                   .fitted = rvec::rvec(list(unname(vals_disp))))
+    expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'vals_effect_to_dataframe' -------------------------------------------------
+
+test_that("'vals_effect_to_dataframe' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
+                                            n_sim = n_sim)
+  vals_effect <- draw_vals_effect_mod(mod,
+                                      vals_hyper = vals_hyper,
+                                      vals_hyperrand = vals_hyperrand,
+                                      n_sim = n_sim)
+  vals_effect <- standardize_vals_effect(mod = mod, vals_effect = vals_effect)
+  ans_obtained <- vals_effect_to_dataframe(vals_effect)
+  ans_expected <- tibble::tibble(component = "effect",
+                                 term = rep(c("(Intercept)", "age", "time", "sex", "age:time"),
+                                            times = c(1, 10, 6, 2, 60)),
+                                 level = c("(Intercept)",
+                                           0:9,
+                                           2000:2005,
+                                           c("F", "M"),
+                                           paste(0:9, rep(2000:2005, each = 10), sep = ".")),
+                                 .fitted = rvec::rvec(do.call(rbind, vals_effect)))
+  expect_equal(ans_obtained, ans_expected)
+})

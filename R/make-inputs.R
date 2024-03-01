@@ -712,6 +712,7 @@ make_matrices_effect_outcome <- function(formula, data) {
         m <- Matrix::sparseMatrix(i = i,
                                   j = j,
                                   x = x)
+        colnames(m) <- "(Intercept)"
         ans <- c(list("(Intercept)" = m), ans)
     }
     ans        
