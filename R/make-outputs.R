@@ -1,5 +1,5 @@
 
-## HAS_TESTS
+x## HAS_TESTS
 #' Get function to align vector or matrix to data
 #'
 #' Get function to align a vector or a matrix
@@ -230,6 +230,7 @@ make_draws_comp_raw <- function(mod) {
 make_draws_components <- function(mod) {
   est <- mod$est
   is_fixed <- mod$is_fixed
+  matrices_effect_outcome <- mod$matrices_effect_outcome
   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
   offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
   transforms_hyper <- make_transforms_hyper(mod)
@@ -243,39 +244,15 @@ make_draws_components <- function(mod) {
   draws <- transform_draws_hyper(draws = draws,
                                  transforms = transforms_hyper)
   draws <- transform_draws_effect(draws = draws,
-                                  matrix = matrix_effectfree_effect,
-                                  offset = offset_effectfree_effect)
+                                  matrix_effectfree_effect = matrix_effectfree_effect,
+                                  offset_effectfree_effect = offset_effectfree_effect,
+                                  matrices_effect_outcome = matrices_effect_outcome)
   if (!has_disp(mod))
     draws <- draws[-nrow(draws), , drop = FALSE]
+  rownames(draws) <- NULL
   draws
 }
 
-
-#' Recenter Estimates of Main Effects and Interactions
-#'
-#' @param mod Object of class `"bage_mod"`
-#'
-#' @returns List of numeric vectors
-#'
-#' @noRd
-standardize_effects <- function(mod) {
-  linpred <- make_linpred_effect(mod)
-  matrices <- mod$matrices_effect_outcome
-  resid <- linpred$total
-  n_effect <- length(matrices)
-  effects <- vector(mode = "list", length = n_effect)
-  for (i_effect in seq_len(n_effect)) {
-    M <- matrices[[i_effect]]
-    n <- colSums(M)
-    effect <- (t(M) %*% resid) / n ## works with Matrix
-    resid <- resid - M %*% effect
-    effects[[i_effect]] <- drop(effect)
-  }
-  effects
-}
-
-
-    
 
 ## 'make_par_disp' ------------------------------------------------------------
 
@@ -558,7 +535,7 @@ make_transforms_hyper <- function(mod) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Reformat Parts of 'components' Data Frame Dealing with
 #' Hyper-Parameters that are Treated as Random Effects
 #'
@@ -571,11 +548,14 @@ make_transforms_hyper <- function(mod) {
 reformat_hyperrand <- function(components, mod) {
   priors <- mod$priors
   nms_priors <- names(priors)
+  matrices_along_by <- choose_matrices_along_by(mod)
   for (i_prior in seq_along(priors)) {
     prior <- priors[[i_prior]]
     nm_prior <- nms_priors[[i_prior]]
+    matrix_along_by <- matrices_along_by[[i_prior]]
     components <- reformat_hyperrand_one(prior = prior,
                                          nm_prior = nm_prior,
+                                         matrix_along_by = matrix_along_by,
                                          components = components)
   }
   components
@@ -623,28 +603,6 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 
 
 ## HAS_TESTS
-#' Transform hyper-parameters, and possibly dispersion
-#'
-#' Transform hyper-parameters, including
-#' hyper-parameters that can be treated as
-#' random effects and any dispersion term.
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A list of functions or NULL
-#'
-#' @noRd
-transform_draws_hyper <- function(draws, transforms) {
-    for (i in seq_along(transforms)) {
-        transform <- transforms[[i]]
-        if (!is.null(transform))
-            draws[i, ] <- transform(draws[i, ])
-    }
-    draws
-}
-
-
-## HAS_TESTS
 #' Convert 'effectfree' part of draws to 'effect'
 #'
 #' Use matrices and offset to convert free parameters
@@ -665,19 +623,58 @@ transform_draws_hyper <- function(draws, transforms) {
 #' @returns A matrix
 #'
 #' @noRd
-transform_draws_effect <- function(draws, matrix, offset) {
-    n_effectfree <- ncol(matrix)
-    n_val <- nrow(draws)
-    is_effectfree <- seq_len(n_val) <= n_effectfree
-    effectfree <- draws[is_effectfree, , drop = FALSE]
-    not_effectfree <- draws[!is_effectfree, , drop = FALSE]
-    effect <- matrix %*% effectfree + offset
-    rbind(effect, not_effectfree)
+transform_draws_effect <- function(draws,
+                                   matrix_effectfree_effect,
+                                   offset_effectfree_effect,
+                                   matrices_effect_outcome) {
+  ## extract 'effectfree'
+  n_effectfree <- ncol(matrix_effectfree_effect)
+  n_val <- nrow(draws)
+  is_effectfree <- seq_len(n_val) <= n_effectfree
+  effectfree <- draws[is_effectfree, , drop = FALSE]
+  not_effectfree <- draws[!is_effectfree, , drop = FALSE]
+  ## transform 'effectfree' into 'effect'
+  effects_raw <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
+  ## standardise effects
+  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
+  linpred <- matrix_effect_outcome %*% effects_raw
+  n_effect <- length(matrices_effect_outcome)
+  effects_standard <- vector(mode = "list", length = n_effect)
+  for (i_effect in seq_len(n_effect)) {
+    M <- matrices_effect_outcome[[i_effect]]
+    n <- Matrix::colSums(M)
+    effect <- (Matrix::t(M) %*% linpred) / n ## works with Matrix
+    linpred <- linpred - M %*% effect
+    effects_standard[[i_effect]] <- Matrix::as.matrix(effect)
+  }
+  if (any(abs(linpred) > 0.001))
+    cli::cli_abort("Internal error: Final residual not 0")
+  effects_standard <- do.call(rbind, effects_standard)
+  ## combine and return
+  rbind(effects_standard,
+        not_effectfree)
 }
-    
 
 
-    
-    
-    
-    
+## HAS_TESTS
+#' Transform hyper-parameters, and possibly dispersion
+#'
+#' Transform hyper-parameters, including
+#' hyper-parameters that can be treated as
+#' random effects and any dispersion term.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A list of functions or NULL
+#'
+#' @noRd
+transform_draws_hyper <- function(draws, transforms) {
+    for (i in seq_along(transforms)) {
+        transform <- transforms[[i]]
+        if (!is.null(transform))
+            draws[i, ] <- transform(draws[i, ])
+    }
+    draws
+}
+

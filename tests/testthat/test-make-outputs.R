@@ -170,38 +170,41 @@ test_that("'make_draws_comp_raw' works with valid inputs", {
 ## 'make_draws_components' -----------------------------------------------
 
 test_that("'make_draws_components' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age ~ Sp())
-    mod <- set_n_draw(mod, n = 1)
-    mod <- set_disp(mod, s = 0)
-    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
-    mod <- fit(mod)
-    set.seed(0)
-    ans_obtained <- make_draws_components(mod)
-    set.seed(0)
-    est <- mod$est
-    is_fixed <- mod$is_fixed
-    matrix <- make_combined_matrix_effectfree_effect(mod)
-    offset <- make_offsets_effectfree_effect(mod)
-    transforms <- make_transforms_hyper(mod)
-    draws <- make_draws_comp_raw(mod)
-    draws <- insert_draws_known(draws = draws,
-                                est = est,
-                                is_fixed = is_fixed)
-    draws <- transform_draws_hyper(draws,
-                                   transforms = transforms)
-    draws <- transform_draws_effect(draws = draws,
-                                 matrix = matrix,
-                                 offset = offset)
-    ans_expected <- draws[-nrow(draws),,drop = FALSE]
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_n_draw(mod, n = 1)
+  mod <- set_disp(mod, s = 0)
+  mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
+  mod <- fit(mod)
+  set.seed(0)
+  ans_obtained <- make_draws_components(mod)
+  set.seed(0)
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  matrices <- mod$matrices_effect_outcome
+  matrix <- make_combined_matrix_effectfree_effect(mod)
+  offset <- make_offsets_effectfree_effect(mod)
+  transforms <- make_transforms_hyper(mod)
+  draws <- make_draws_comp_raw(mod)
+  draws <- insert_draws_known(draws = draws,
+                              est = est,
+                              is_fixed = is_fixed)
+  draws <- transform_draws_hyper(draws,
+                                 transforms = transforms)
+  draws <- transform_draws_effect(draws = draws,
+                                  matrix = matrix,
+                                  offset = offset,
+                                  matrices = matrices)
+  ans_expected <- draws[-nrow(draws),,drop = FALSE]
+  rownames(ans_expected) <- NULL
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -420,22 +423,22 @@ test_that("'make_levels_replicate' works", {
 ## 'make_linpred_effect' ---------------------------------------------------------
 
 test_that("'make_linpred_effect' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_n_draw(mod, n_draw = 100L)
-    mod <- fit(mod)
-    comp <- components(mod)
-    set.seed(1)
-    ans <- make_linpred_effect(mod = mod,
-                            components = comp)
-    expect_identical(length(ans), length(mod$outcome))
-    expect_s3_class(ans, "rvec")
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 100L)
+  mod <- fit(mod)
+  comp <- components(mod)
+  set.seed(1)
+  ans <- make_linpred_effect(mod = mod,
+                             components = comp)
+  expect_identical(length(ans), length(mod$outcome))
+  expect_s3_class(ans, "rvec")
 })
 
 
@@ -543,7 +546,16 @@ test_that("'reformat_hyperrand' works", {
                   set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
                   fit(mod)
   mod <- set_n_draw(mod, 5)
-  components <- components(mod)
+  comp <- make_comp_components(mod)
+  term <- make_term_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(component = comp,
+                               term = term,
+                               level = level,
+                               .fitted = .fitted)
   ans_obtained <- reformat_hyperrand(components = components, mod = mod)
   expect_setequal(ans_obtained$component, c("effect", "hyper", "disp", "trend", "error"))
 })
@@ -561,6 +573,42 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
     ans_eigen <- rmvnorm_eigen(n = 100000, mean = mean, scaled_eigen = scaled_eigen)
     expect_equal(rowMeans(ans_chol), rowMeans(ans_eigen), tolerance = 0.02)
     expect_equal(cov(t(ans_chol)), cov(t(ans_eigen)), tolerance = 0.02)
+})
+
+
+## 'transform_draws_effect' ------------------------------------------------------
+
+test_that("'transform_draws_effect' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+  offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  draws <- make_draws_comp_raw(mod)
+  draws <- insert_draws_known(draws = draws,
+                              est = est,
+                              is_fixed = is_fixed)
+  transformed <- transform_draws_effect(draws = draws,
+                                        matrix_effectfree_effect = matrix_effectfree_effect,
+                                        offset_effectfree_effect = offset_effectfree_effect,
+                                        matrices_effect_outcome = matrices_effect_outcome)
+  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  ans_obtained <- matrix_effect_outcome %*% transformed[seq_len(nrow(matrix_effectfree_effect)),]
+  unstandardized <- (matrix_effectfree_effect %*% draws[seq_len(ncol(matrix_effectfree_effect)), ] +
+                       offset_effectfree_effect)
+  ans_expected <- matrix_effect_outcome %*% unstandardized
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -587,35 +635,4 @@ test_that("'transform_draws_hyper' works", {
                           draws[24:29, ],
                           exp(draws[30, ]))
     expect_identical(unname(ans_obtained), ans_expected)
-})
-
-
-## 'transform_draws_effect' ------------------------------------------------------
-
-test_that("'transform_draws_effect' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age ~ Sp())
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  est <- mod$est
-  is_fixed <- mod$is_fixed
-  matrix <- make_combined_matrix_effectfree_effect(mod)
-  offset <- make_offsets_effectfree_effect(mod)
-  draws <- make_draws_comp_raw(mod)
-  draws <- insert_draws_known(draws = draws,
-                              est = est,
-                              is_fixed = is_fixed)
-  ans_obtained <- transform_draws_effect(draws = draws,
-                                         matrix = matrix,
-                                         offset = offset)
-  ans_expected <- rbind(matrix %*% draws[1:16, ] + offset,
-                        draws[17:20, ])
-  expect_identical(ans_obtained, ans_expected)
 })
