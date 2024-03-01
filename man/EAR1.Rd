@@ -4,7 +4,7 @@
 \alias{EAR1}
 \title{Exchangeable AR1 Prior}
 \usage{
-EAR1(min = 0.8, max = 0.98, s = 1)
+EAR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
@@ -13,7 +13,11 @@ Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
-Default is \code{1}.}
+Defaults to 1.}
+
+\item{along}{Name of one of the dimensions
+in the interaction. Optional, provided
+the data contain a time or age dimension.}
 }
 \value{
 An object of class \code{bage_prior_ear}.
@@ -76,7 +80,8 @@ the 'along' variable;
 
 \examples{
 EAR1()
-EAR1( min = 0, max = 1, s = 2.4)
+EAR1(min = 0, max = 1, s = 2.4)
+EAR1(along = "cohort")
 }
 \references{
 TMB documentation for

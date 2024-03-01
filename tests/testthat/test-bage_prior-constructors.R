@@ -71,12 +71,14 @@ test_that("'EAR' works with valid inputs", {
                                       min = -1,
                                       max = 1,
                                       scale = 1,
+                                      along = NULL,
                                       nm = "EAR"))
-  expect_identical(EAR(n = 1, s = 0.01),
+  expect_identical(EAR(n = 1, s = 0.01, along = "time"),
                    new_bage_prior_ear(n = 1L,
                                       min = -1,
                                       max = 1,
                                       scale = 0.01,
+                                      along = "time",
                                       nm = "EAR"))
 })
 
@@ -86,12 +88,14 @@ test_that("'EAR1' works with valid inputs", {
                                       min = 0.8,
                                       max = 0.98,
                                       scale = 1,
+                                      along = NULL,
                                       nm = "EAR1"))
   expect_identical(EAR1(s = 0.01, min = -1, max = 1),
                    new_bage_prior_ear(n = 1L,
                                       min = -1,
                                       max = 1,
                                       scale = 0.01,
+                                      along = NULL,
                                       nm = "EAR1"))
 })
 
@@ -236,7 +240,7 @@ test_that("'new_bage_prior_compose' works - interaction", {
 })
 
 test_that("'new_bage_prior_ear' works - EAR interface", {
-  obj <- new_bage_prior_ear(n = 2L, min = -1, max = 1, scale = 1.0, nm = "EAR")
+  obj <- new_bage_prior_ear(n = 2L, min = -1, max = 1, scale = 1.0, nm = "EAR", along = "age")
   expect_s3_class(obj, "bage_prior_ear")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
@@ -247,11 +251,12 @@ test_that("'new_bage_prior_ear' works - EAR interface", {
                                       min = -1,
                                       max = 1,
                                       scale = 1,
+                                      along = "age",
                                       nm = "EAR"))
 })
 
 test_that("'new_bage_prior_ear' works - EAR1 interface", {
-  obj <- new_bage_prior_ear(n = 1L, min = 0.8, max = 0.98, scale = 1.0, nm = "EAR1")
+  obj <- new_bage_prior_ear(n = 1L, min = 0.8, max = 0.98, scale = 1.0, nm = "EAR1", along = NULL)
   expect_s3_class(obj, "bage_prior_ear")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
@@ -262,6 +267,7 @@ test_that("'new_bage_prior_ear' works - EAR1 interface", {
                                       min = 0.8,
                                       max = 0.98,
                                       scale = 1,
+                                      along = NULL,
                                       nm = "EAR1"))
 })
 

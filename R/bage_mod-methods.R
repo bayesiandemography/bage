@@ -47,19 +47,13 @@ augment.bage_mod <- function(x, ...) {
     ## if model not fitted, stop here
     if (!is_fitted)
         return(ans)
-    ## make transformation from scale/ordering of effect
-    ## to scale/ordering of outcome
     inv_transform <- get_fun_inv_transform(x)
-    align_to_data <- get_fun_align_to_data(x)
-    transform <- function(x)
-        align_to_data(inv_transform(x))
-    ## extract quantities needed in calculations
     has_disp <- has_disp(x)
     components <- components(x)
     linpred <- make_linpred_effect(mod = x,
                                    components = components)
     if (has_disp) {
-        expected <- transform(linpred)
+        expected <- inv_transform(linpred)
         is_disp <- components$component == "disp"
         disp <- components$.fitted[is_disp]
         fitted <- make_par_disp(x = x,
@@ -67,7 +61,7 @@ augment.bage_mod <- function(x, ...) {
                                 disp = disp)
     }
     else
-        fitted <- transform(linpred)
+        fitted <- inv_transform(linpred)
     ans$.fitted <- fitted
     if (has_disp)
         ans$.expected <- expected
@@ -79,20 +73,13 @@ augment.bage_mod <- function(x, ...) {
 augment.bage_mod_norm <- function(x, ...) {
   is_fitted <- is_fitted(x)
   ans <- x$data
-  ## if model not fitted, stop here
   if (!is_fitted)
     return(ans)
-  ## make transformation from scale/ordering of effect
-  ## to scale/ordering of outcome
-  align_to_data <- get_fun_align_to_data(x)
-  scale_outcome <- get_fun_scale_outcome(x)
-  transform <- function(x)
-    scale_outcome(align_to_data(x))
-  ## extract quantities needed in calculations
   components <- components(x)
   linpred_effect <- make_linpred_effect(mod = x,
                                         components = components)
-  fitted <- transform(linpred_effect)
+  scale_outcome <- get_fun_scale_outcome(x)
+  fitted <- scale_outcome(linpred_effect)
   ans$.fitted <- fitted
   ans
 }
@@ -283,20 +270,16 @@ draw_vals_mod.bage_mod_pois <- function(mod, n_sim) {
     disp <- vals_hyperparam$disp
     has_disp <- !is.null(disp)
     inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
     if (has_disp) {
         vals_meanpar <- inv_transform(linpred)
-        vals_meanpar <- align_to_data(vals_meanpar)
         vals_par <- draw_vals_par(mod = mod,
                                         vals_meanpar = vals_meanpar,
                                         vals_disp = disp)
     }
     else {
         vals_par <- inv_transform(linpred)
-        vals_par <- align_to_data(vals_par)
     }
     n_outcome <- nrow(vals_par)
-    exposure <- align_to_data(offset)
     exposure <- rep(exposure, times = n_sim)
     lambda <- vals_par * exposure
     vals_outcome <- stats::rpois(n = n_outcome * n_sim,
@@ -314,39 +297,35 @@ draw_vals_mod.bage_mod_pois <- function(mod, n_sim) {
 ## HAS_TESTS
 #' @export
 draw_vals_mod.bage_mod_binom <- function(mod, n_sim) {
-    offset <- mod$offset
-    vals_hyperparam <- draw_vals_hyperparam(mod = mod,
-                                            n_sim = n_sim)
-    linpred <- vals_hyperparam$linpred
-    disp <- vals_hyperparam$disp
-    has_disp <- !is.null(disp)
-    inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
-    if (has_disp) {
-        vals_meanpar <- inv_transform(linpred)
-        vals_meanpar <- align_to_data(vals_meanpar)
-        vals_par <- draw_vals_par(mod = mod,
-                                        vals_meanpar = vals_meanpar,
-                                        vals_disp = disp)
-    }
-    else {
-        vals_par <- inv_transform(linpred)
-        vals_par <- align_to_data(vals_par)
-    }
-    n_outcome <- nrow(vals_par)
-    size <- align_to_data(offset)
-    size <- rep(size, times = n_sim)
-    vals_outcome <- stats::rbinom(n = n_outcome * n_sim,
-                                  size = size,
-                                  prob = vals_par)
-    vals_outcome <- matrix(vals_outcome,
-                           nrow = n_outcome,
-                           ncol = n_sim)
-    c(vals_hyperparam["effect"],
-      vals_hyperparam["hyper"],
-      vals_hyperparam["disp"],
-      list(par = vals_par,
-           outcome = vals_outcome))
+  offset <- mod$offset
+  vals_hyperparam <- draw_vals_hyperparam(mod = mod,
+                                          n_sim = n_sim)
+  linpred <- vals_hyperparam$linpred
+  disp <- vals_hyperparam$disp
+  has_disp <- !is.null(disp)
+  inv_transform <- get_fun_inv_transform(mod)
+  if (has_disp) {
+    vals_meanpar <- inv_transform(linpred)
+    vals_par <- draw_vals_par(mod = mod,
+                              vals_meanpar = vals_meanpar,
+                              vals_disp = disp)
+  }
+  else {
+    vals_par <- inv_transform(linpred)
+  }
+  n_outcome <- nrow(vals_par)
+  size <- rep(size, times = n_sim)
+  vals_outcome <- stats::rbinom(n = n_outcome * n_sim,
+                                size = size,
+                                prob = vals_par)
+  vals_outcome <- matrix(vals_outcome,
+                         nrow = n_outcome,
+                         ncol = n_sim)
+  c(vals_hyperparam["effect"],
+    vals_hyperparam["hyper"],
+    vals_hyperparam["disp"],
+    list(par = vals_par,
+         outcome = vals_outcome))
 }
 
 ## HAS_TESTS
@@ -357,9 +336,8 @@ draw_vals_mod.bage_mod_norm <- function(mod, n_sim) {
                                             n_sim = n_sim)
     linpred <- vals_hyperparam$linpred
     disp <- vals_hyperparam$disp
-    align_to_data <- get_fun_align_to_data(mod)
     scale_outcome <- get_fun_scale_outcome(mod)
-    par <- scale_outcome(align_to_data(linpred))
+    par <- scale_outcome(linpred)
     n_outcome <- nrow(par)
     sd <- rep(disp, each = n_outcome) / rep(wt, times = n_sim)
     vals_outcome <- stats::rnorm(n = length(par),
@@ -597,19 +575,16 @@ get_vals_est.bage_mod <- function(mod) {
   has_disp <- has_disp(mod)
   vals_hyperparam <- get_vals_hyperparam_est(mod)
   inv_transform <- get_fun_inv_transform(mod)
-  align_to_data <- get_fun_align_to_data(mod)
-  transform <- function(x)
-    align_to_data(inv_transform(x))
   linpred <- vals_hyperparam[["linpred"]]
   if (has_disp) {
     disp <- vals_hyperparam[["disp"]]
-    meanpar <- transform(linpred)
+    meanpar <- inv_transform(linpred)
     par <- make_par_disp(x = mod,
                          meanpar = meanpar,
                          disp = disp)
   }
   else
-    par <- transform(linpred)
+    par <- inv_transform(linpred)
   ans <- vals_hyperparam[-match("linpred", names(vals_hyperparam))]
   ans <- c(ans, list(par = par))
   ans
@@ -620,9 +595,8 @@ get_vals_est.bage_mod <- function(mod) {
 get_vals_est.bage_mod_norm <- function(mod) {
   vals_hyperparam <- get_vals_hyperparam_est(mod)
   linpred <- vals_hyperparam[["linpred"]]
-  align_to_data <- get_fun_align_to_data(mod)
   scale_outcome <- get_fun_scale_outcome(mod)
-  par <- scale_outcome(align_to_data(linpred))
+  par <- scale_outcome(linpred)
   ans <- vals_hyperparam[-match("linpred", names(vals_hyperparam))]
   ans <- c(ans, list(par = par))
   ans
@@ -753,11 +727,7 @@ make_observed <- function(x) {
 make_observed.bage_mod <- function(x) {
     outcome <- x$outcome
     offset <- x$offset
-    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
-    offset <- as.double(offset)   ## so 'align_to_data' works correctly
-    align_to_data <- get_fun_align_to_data(x)
     ans <- as.double(outcome / offset)
-    ans <- align_to_data(ans)
     ans
 }
 

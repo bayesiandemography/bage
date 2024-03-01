@@ -1,53 +1,4 @@
 
-x## HAS_TESTS
-#' Get function to align vector or matrix to data
-#'
-#' Get function to align a vector or a matrix
-#' to the data frame 'data'. If the 'outcome'
-#' of 'mod' is a plain vector, then no alignment
-#' is needed, and none is done. Otherwise,
-#' the function assumes that elements of the vector
-#' or the rows of the matrix are in the same
-#' order as the cells of 'outcome'.
-#'
-#' @param mod An object of class 'bage_mod'
-#'
-#' @returns A function
-#' 
-#' @noRd
-get_fun_align_to_data <- function(mod) {
-    outcome <- mod$outcome
-    if (is.array(outcome)) {
-        data <- mod$data
-        dim <- dim(outcome)
-        n_dim <- length(dim)
-        dn <- dimnames(outcome)
-        nms <- names(dn)
-        nms_data <- names(data)
-        index <- vector(mode = "list", length = n_dim)
-        for (i_dim in seq_len(n_dim)) {
-            nm <- nms[[i_dim]]
-            index[[i_dim]] <- match(data[[nm]], dn[[nm]])
-        }
-        index <- do.call(cbind, index)
-        if (n_dim > 1L) {
-            mult <- c(1L, cumprod(dim[-n_dim]))
-            index <- ((index - 1L) %*% mult) + 1L
-        }
-        index <- as.integer(index)
-        ans <- function(x) {
-            if (is.matrix(x))
-                x[index, ]
-            else
-                x[index]
-        }
-    }
-    else
-        ans <- identity
-    ans
-}
-
-
 ## HAS_TESTS
 #' Insert values for fixed parameters into
 #' random draws for non-fixed parameters
@@ -276,11 +227,6 @@ make_par_disp <- function(x, meanpar, disp) {
     outcome <- x$outcome
     offset <- x$offset
     seed_fitted <- x$seed_fitted
-    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
-    offset <- as.double(offset)   ## so 'align_to_data' works correctly
-    align_to_data <- get_fun_align_to_data(x)
-    outcome <- align_to_data(outcome)
-    offset <- align_to_data(offset)
     n_val <- length(outcome)
     n_draw <- rvec::n_draw(meanpar)
     ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))

@@ -7,7 +7,9 @@
 ELin(s = 1, sd = 1, ms = 1, along = NULL)
 }
 \arguments{
-\item{s}{A positive number. Default is 1.}
+\item{s}{Scale of half-normal prior for
+standard deviation (\eqn{\sigma}).
+Defaults to 1.}
 
 \item{sd}{A postive number. Default is 1.}
 

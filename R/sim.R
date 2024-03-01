@@ -507,9 +507,9 @@ draw_vals_erw <- function(sd, matrix_along_by, labels) {
   ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
   sd <- rep(sd, each = n_by)
   for (i_along in seq.int(from = 2L, to = n_along))
-    ans[i_along, ] <- rnorm(n = n_by * n_sim,
-                            mean = ans[i_along - 1L, ],
-                            sd = sd)
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - 1L, ],
+                                   sd = sd)
   ans <- matrix(ans,
                 nrow = n_along * n_by,
                 ncol = n_sim)
@@ -1212,8 +1212,8 @@ report_sim <- function(mod_est,
         cli::cli_abort("Internal error: Invalid value for 'report_type'.")
 }
 
-report_sim <- function() {
-  vals_prior_predict <- prior_predict(mod_sim, n_sim = n_sim)
+## report_sim <- function() {
+##   vals_prior_predict <- prior_predict(mod_sim, n_sim = n_sim)
   
   
   
