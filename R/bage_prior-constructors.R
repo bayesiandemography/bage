@@ -250,6 +250,9 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
 #' Defaults to 1.
+#' @param along Name of one of the dimensions
+#' in the interaction. Optional, provided
+#' the data contain a time or age dimension.
 #'
 #' @returns An object of class `bage_prior_ear`.
 #'
@@ -264,16 +267,20 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' @examples
 #' EAR(n = 3)
 #' EAR(n = 3, s = 2.4)
+#' EAR(along = "cohort")
 #' @export
-EAR <- function(n = 2, s = 1) {
+EAR <- function(n = 2, s = 1, along = NULL) {
   check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   n <- as.integer(n)
   scale <- as.double(s)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
   new_bage_prior_ear(n = n,
                      min = -1,
                      max = 1,
                      scale = scale,
+                     along = along,
                      nm = "EAR")
 }
 
@@ -314,12 +321,10 @@ EAR <- function(n = 2, s = 1) {
 #' where
 #' \deqn{\phi' \sim \text{beta}(2, 2)}.
 #'
+#' @inheritParams EAR
 #' @param min,max Minimum and maximum values
 #' for autocorrelation parameter (\eqn{\phi}).
 #' Defaults are `0.8` and `0.98`.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
-#' Default is `1`.
 #'
 #' @returns An object of class `bage_prior_ear`.
 #'
@@ -333,18 +338,22 @@ EAR <- function(n = 2, s = 1) {
 #'
 #' @examples
 #' EAR1()
-#' EAR1( min = 0, max = 1, s = 2.4)
+#' EAR1(min = 0, max = 1, s = 2.4)
+#' EAR1(along = "cohort")
 #' @export
-EAR1 <- function(min = 0.8, max = 0.98, s = 1) {
+EAR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   min <- as.double(min)
   max <- as.double(max)
   scale <- as.double(s)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
   new_bage_prior_ear(n = 1L,
                      min = min,
                      max = max,
                      scale = scale,
+                     along = along,
                      nm = "EAR1")
 }
 
@@ -402,12 +411,9 @@ EAR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #' distribution, but is defined only for non-negative
 #' values.)
 #'
-#' @param s A positive number. Default is 1.
+#' @inheritParams EAR
 #' @param sd A postive number. Default is 1.
 #' @param ms A positive number. Default is 1.
-#' @param along Name of one of the dimensions
-#' in the interaction. Optional, provided
-#' the data contain a time or age dimension.
 #'
 #' @returns An object of class `bage_prior_elin`.
 #'
@@ -472,7 +478,8 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' to 1, but can be set to other values. Lower values
 #' for `scale` lead to smoother series of `x`s, and
 #' higher values lead to rougher series.
-#' 
+#'
+#' @inheritParams EAR
 #' @param s Scale of half-normal prior for
 #' standard deviation (\eqn{\sigma}).
 #' Defaults to 1.
@@ -498,7 +505,7 @@ ERW <- function(s = 1, along = NULL) {
 ## 'bage_prior_eseas' only ever created via 'set_prior()'
 
 ## HAS_TESTS
-#' Independent Seasonal Prior
+#' Exchangeable Seasonal Prior
 #'
 #' Prior for a seasonal effect, within an interaction.
 #' Each combination of the 'by' variables,
@@ -530,11 +537,8 @@ ERW <- function(s = 1, along = NULL) {
 #' distribution, but is defined only for non-negative
 #' values.)
 #'
+#' @inheritParams EAR
 #' @param n Number of seasons.
-#' @param s A positive number. Default is 1.
-#' @param along Name of one of the dimensions
-#' in the interaction. Optional, provided
-#' the data contain a time or age dimension.
 #'
 #' @returns An object of class `bage_prior_eseas`.
 #'
@@ -1027,7 +1031,7 @@ new_bage_prior_compose <- function(priors, along, nm) {
 }
 
 ## HAS_TESTS
-new_bage_prior_ear <- function(n, scale, min, max, nm) {
+new_bage_prior_ear <- function(n, scale, min, max, nm, along) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 12L,
@@ -1042,6 +1046,7 @@ new_bage_prior_ear <- function(n, scale, min, max, nm) {
                               min = min,
                               max = max,
                               scale = scale,
+                              along = along,
                               nm = nm))
   class(ans) <- c("bage_prior_ear", "bage_prior")
   ans

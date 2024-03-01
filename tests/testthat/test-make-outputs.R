@@ -1,48 +1,4 @@
 
-## 'get_fun_align_to_data' ----------------------------------------------------
-
-test_that("'get_fun_align_to_data' works with 2 dimensions, 'data' and 'outcome' have same values", {
-    outcome <- array(21:32, dim = 3:4, dimnames = list(a = 1:3, b = 1:4))
-    data <- as.data.frame.table(outcome)
-    data <- data[12:1,]
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(as.integer(outcome))
-    ans_expected <- 32:21
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'get_fun_align_to_data' works with 2 dimensions, 'data' has subset of values in 'outcome'", {
-    outcome <- array(1:6, dim = 3:2, dimnames = list(a = 1:3, b = 1:2))
-    data <- data.frame(b = c(1, 2, 2, 1), a = c(1, 2, 1, 2))
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(as.integer(outcome))
-    ans_expected <- c(1L, 5L, 4L, 2L)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'get_fun_align_to_data' works with 3 dimensions, 'data' has subset of values in 'outcome'", {
-    outcome <- array(1:12, dim = c(3:2, 2), dimnames = list(a = 1:3, b = 1:2, c = 1:2))
-    data <- data.frame(b = c(1, 2, 2, 1), a = c(1, 2, 1, 2), c = c(2, 2, 1, 1))
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(as.integer(outcome))
-    ans_expected <- c(7L, 11L, 4L, 2L)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'get_fun_align_to_data' works with 1 dimension, 'data' has all values in 'outcome'", {
-    outcome <- array(11:14, dim = 4, dimnames = list(a = 1:4))
-    data <- data.frame(b = c(1, 2, 2, 1), a = 4:1)
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(21:24)
-    ans_expected <- 24:21
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'insert_draws_known' -------------------------------------------------------
 
 test_that("'insert_draws_known' works", {

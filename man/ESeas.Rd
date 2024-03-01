@@ -2,14 +2,16 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{ESeas}
 \alias{ESeas}
-\title{Independent Seasonal Prior}
+\title{Exchangeable Seasonal Prior}
 \usage{
 ESeas(n, s = 1, along = NULL)
 }
 \arguments{
 \item{n}{Number of seasons.}
 
-\item{s}{A positive number. Default is 1.}
+\item{s}{Scale of half-normal prior for
+standard deviation (\eqn{\sigma}).
+Defaults to 1.}
 
 \item{along}{Name of one of the dimensions
 in the interaction. Optional, provided

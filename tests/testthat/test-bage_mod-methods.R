@@ -720,8 +720,7 @@ test_that("'make_observed' works with bage_mod_pois", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_observed(mod)
-    align_fun <- get_fun_align_to_data(mod)
-    ans_expected <- align_fun(as.double(mod$outcome / mod$offset))
+    ans_expected <- as.double(mod$outcome / mod$offset)
     expect_equal(ans_obtained, ans_expected)
 })
 
@@ -735,8 +734,7 @@ test_that("'make_observed' works with bage_mod_binom", {
                      data = data,
                      size = popn)
     ans_obtained <- make_observed(mod)
-    align_fun <- get_fun_align_to_data(mod)
-    ans_expected <- align_fun(as.double(mod$outcome / mod$offset))
+    ans_expected <- as.double(mod$outcome / mod$offset)
     expect_equal(ans_obtained, ans_expected)
 })
 

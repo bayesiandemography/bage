@@ -4,7 +4,7 @@
 \alias{EAR}
 \title{Exchangeable Autoregressive Prior}
 \usage{
-EAR(n = 2, s = 1)
+EAR(n = 2, s = 1, along = NULL)
 }
 \arguments{
 \item{n}{The order of the model.}
@@ -12,6 +12,10 @@ EAR(n = 2, s = 1)
 \item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
 Defaults to 1.}
+
+\item{along}{Name of one of the dimensions
+in the interaction. Optional, provided
+the data contain a time or age dimension.}
 }
 \value{
 An object of class \code{bage_prior_ear}.
@@ -70,6 +74,7 @@ between -1 and 1.
 \examples{
 EAR(n = 3)
 EAR(n = 3, s = 2.4)
+EAR(along = "cohort")
 }
 \references{
 TMB documentation for
