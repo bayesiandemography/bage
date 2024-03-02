@@ -442,8 +442,8 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
                          i = "{.arg mod_est} has class {.cls {class(mod_est)}}.",
                          i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}."))
     ## outcome variables are same
-    nm_outcome_sim <- deparse1(mod_est$formula[[2L]])
-    nm_outcome_est <- deparse1(mod_sim$formula[[2L]])
+    nm_outcome_sim <- get_nm_outcome(mod_est)
+    nm_outcome_est <- get_nm_outcome(mod_sim)
     if (!identical(nm_outcome_sim, nm_outcome_est))
         cli::cli_abort(c("{.arg mod_est} and {.arg mod_sim} have different outcome variables.",
                          i = "Outcome variable for {.arg mod_est}: {.val {nm_outcome_sim}}.",

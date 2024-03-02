@@ -814,8 +814,7 @@ make_matrix_sparse_empty <- function()
 #'
 #' @noRd
 make_offset <- function(vname_offset, data) {
-    nms_data <- names(data)
-    ans <- data[[match(vname_offset, nms_data)]]
+    ans <- data[[vname_offset]]
     ans <- as.double(ans)
     ans
 }

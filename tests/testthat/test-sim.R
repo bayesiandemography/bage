@@ -228,7 +228,6 @@ test_that("'draw_vals_components' works", {
 })
 
 
-
 ## 'draw_vals_elin' -----------------------------------------------------------
 
 test_that("'draw_vals_elin' works - along dimension is first", {
@@ -1117,7 +1116,7 @@ test_that("'draw_vals_disp' works with 'bage_mod_pois'", {
     ans_expected <- tibble::tibble(component = "disp",
                                    term = "disp",
                                    level = "disp",
-                                   .fitted = rvec::rvec(list(unname(vals_disp))))
+                                   .fitted = vals_disp)
     expect_equal(ans_obtained, ans_expected)
 })
 

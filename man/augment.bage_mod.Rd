@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{augment.bage_mod}
 \alias{augment.bage_mod}
-\title{Data and values from a fitted model}
+\title{Data and Values from a Model}
 \usage{
 \method{augment}{bage_mod}(x, ...)
 }
@@ -12,32 +12,55 @@
 \item{...}{Unused. Included for generic consistency only.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble},
-consisting of the original \code{data} argument,
-to the original model function (eg \code{\link[=mod_pois]{mod_pois()}})
-plus two new columns:
-\itemize{
-\item \code{.fitted} An \link[rvec:rvec]{rvec} holding
-draws from the posterior distribution.
-\item \code{.observed} Direct estimates of the rate,
-probability, or mean.
-}
+A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Data and values from a fitted model
+Extract data and values from a model object
+with class \code{"bage_mod"}.
+The returne value is a
+\link[tibble:tibble-package]{tibble}
+containing the original data, plus draws from
+the posterior distribution if the model has been
+fitted, or the prior distribution if it has not.
 }
-\section{Warning}{
-
-The tidymodels
-\href{https://www.tidymodels.org/learn/develop/broom/}{website}
-states that the augment function may change soon.
-The method here will be updated to match the new interface.
+\details{
+The return value contains the following columns:
+\itemize{
+\item \code{.observed} 'Direct' estimates of rates or
+probabilities, ie counts divided by exposure/size.
+(Poisson and binomial models only.)
+\item \code{.fitted} Draws of rates, probabilities,
+or means.
+\item \code{expected} Draws of expected values for
+rates or probabilities. (Inly in Poisson
+that include exposure, or in binomial models.)
 }
 
+Uncertain quantities are represented using
+\link[rvec:rvec]{rvecs}.
+}
 \examples{
-mod_pois(injuries ~ age + sex + year,
-         data = injuries,
-         exposure = popn) |>
-  fit() |>
-  augment()
+## specify model
+mod <- mod_pois(injuries ~ age + sex + year,
+                data = injuries,
+                exposure = popn)
+
+## look at prior distribution
+mod |> augment()
+
+## fit model
+mod <- mod |>
+  fit()
+
+## look at posterior distribution
+mod |> augment()
+}
+\seealso{
+\itemize{
+\item \code{\link[=components]{components()}} A tibble with hyper-parameters.
+\item \code{\link[=tidy]{tidy()}} A one-line summary of a model.
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Functions
+to specify a model
+\item \code{\link[=fit]{fit()}} Function to fit a model
+}
 }
