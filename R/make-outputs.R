@@ -226,7 +226,6 @@ make_draws_components <- function(mod) {
 make_par_disp <- function(x, meanpar, disp) {
     outcome <- x$outcome
     offset <- x$offset
-    seed_fitted <- x$seed_fitted
     n_val <- length(outcome)
     n_draw <- rvec::n_draw(meanpar)
     ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
@@ -234,14 +233,11 @@ make_par_disp <- function(x, meanpar, disp) {
     outcome <- outcome[!is_na]
     offset <- offset[!is_na]
     meanpar <- meanpar[!is_na]
-    seed_restore <- make_seed()
-    set.seed(seed_fitted)
     ans[!is_na] <- make_par_disp_inner(x = x,
                                        outcome = outcome,
                                        offset = offset,
                                        meanpar = meanpar,
                                        disp = disp)
-    set.seed(seed_restore)
     ans
 }
 

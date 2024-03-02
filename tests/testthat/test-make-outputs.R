@@ -188,14 +188,16 @@ test_that("'make_par_disp' works with bage_mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_n_draw(mod, n = 10)
     mod <- fit(mod)
     components <- components(mod)
     meanpar <- exp(make_linpred_effect(mod, components = components))
     disp <- components$.fitted[components$component == "disp"]
+    set.seed(1)
     ans_obtained <- make_par_disp(mod,
                                   meanpar = meanpar,
                                   disp = disp)
-    set.seed(mod$seed_fitted)
+    set.seed(1)
     ans_expected <- rvec::rgamma_rvec(n = length(meanpar),
                                       data$deaths + 1/disp,
                                       data$popn + 1/(disp*meanpar))
@@ -212,6 +214,7 @@ test_that("'make_par_disp' works with bage_mod_binom", {
                      data = data,
                      size = popn)
     mod <- fit(mod)
+    mod <- set_n_draw(mod, n = 10)
     components <- components(mod)
     invlogit <- function(x) 1 / (1 + exp(-x))
     meanpar <- invlogit(make_linpred_effect(mod, components = components))
@@ -220,7 +223,7 @@ test_that("'make_par_disp' works with bage_mod_binom", {
     ans_obtained <- make_par_disp(mod,
                                   meanpar = meanpar,
                                   disp = disp)
-    set.seed(mod$seed_fitted)
+    set.seed(1)
     ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
                                      data$deaths + meanpar/disp,
                                      data$popn - data$deaths + (1 - meanpar)/disp)

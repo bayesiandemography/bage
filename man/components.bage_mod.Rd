@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{components.bage_mod}
 \alias{components.bage_mod}
-\title{Extract components from a fitted model}
+\title{Extract Components from a Model}
 \usage{
 \method{components}{bage_mod}(object, ...)
 }
@@ -12,42 +12,48 @@
 \item{...}{Not currently used.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble} with
-variables \code{component}, \code{term}, \code{level}, and \code{.fitted}.
+A \link[tibble:tibble-package]{tibble}
 }
 \description{
-Extract components from a fitted object
-of class \code{bage_mod}.
+Extract batches of hyper-parameters
+from a model object
+with class \code{"bage_mod"}.
+\link[tibble:tibble-package]{tibble}
+draws from the posterior distribution if the model has been
+fitted, or the prior distribution if it has not.
 }
 \details{
-There are XXX types of component:
+The return value contains the following columns:
 \itemize{
-\item \code{"effect"} Intercept, main effects, and interactions.
-\item \code{"hyper"} Hyper-parameters from priors for intercept,
-main effects, and interactions.
-\item \code{"disp"} Dispersion term.
-}
-
-For each component, \code{components()} returns three things:
-\itemize{
-\item \code{term} Name of the effect or interaction
-\item \code{level} Element of term
+\item \code{component} The type of hyper-parameter.
+\item \code{term} The model term that the hyper-parameter belongs to.
+\item \code{level} The element within the term.
 \item \code{.fitted} An \link[rvec:rvec]{rvec} containing
 draws from the posterior distribution.
 }
 }
 \examples{
-library(dplyr)
+## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
                 data = injuries,
-                exposure = popn) \%>\%
+                exposure = popn)
+
+## look at prior distribution
+mod |> components()
+
+## fit model
+mod <- mod |>
   fit()
-mod
-mod \%>\%
-  components() \%>\%
-  filter(component == "effect",
-         term == "age")
+
+## look at posterior distribution
+mod |> components() ## posterior distribution
 }
 \seealso{
-\code{\link[=augment]{augment()}}, \code{\link[=tidy]{tidy()}}
+\itemize{
+\item \code{\link[=augment]{augment()}} A tibble with data and parameters.
+\item \code{\link[=tidy]{tidy()}} A one-line summary of a model.
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Functions
+to specify a model
+\item \code{\link[=fit]{fit()}} Function to fit a model
+}
 }

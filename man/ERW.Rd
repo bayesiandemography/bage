@@ -10,6 +10,10 @@ ERW(s = 1, along = NULL)
 \item{s}{Scale of half-normal prior for
 standard deviation (\eqn{\sigma}).
 Defaults to 1.}
+
+\item{along}{Name of one of the dimensions
+in the interaction. Optional, provided
+the data contain a time or age dimension.}
 }
 \value{
 An object of class \code{bage_prior_erw}.
