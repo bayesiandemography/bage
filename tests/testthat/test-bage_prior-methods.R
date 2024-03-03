@@ -1663,8 +1663,8 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
                                           nm_prior = "time",
                                           vals_hyper = vals_hyper,
                                           n_sim = 10)
-  ans_expected <- tibble::tibble(component = "hyper",
-                                 term = "time",
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
                                  level = c("coef1", "coef2", "coef3", "sd"),
                                  .fitted = rvec::rvec(unname(rbind(vals_hyper[[1]], vals_hyper[[2]]))))
   expect_equal(ans_obtained, ans_expected)
@@ -1685,8 +1685,8 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_compose", {
                              .name_repair = "universal_quiet")
   fitted <- as.matrix(fitted)
   dimnames(fitted) <- NULL
-  ans_expected <- tibble::tibble(component = "hyper",
-                                 term = "time",
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
                                  level = c("trend.sd",
                                            "cyclical.coef1", "cyclical.coef2", "cyclical.sd",
                                            "seasonal.sd"),
@@ -1702,8 +1702,8 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_fixed", {
                                           nm_prior = "time",
                                           vals_hyper = vals_hyper,
                                           n_sim = 10)
-  ans_expected <- tibble::tibble(component = character(),
-                                 term = character(),
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
                                  level = character(),
                                  .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
   expect_equal(ans_obtained, ans_expected)
@@ -1727,8 +1727,8 @@ test_that("'vals_hyperrand_to_dataframe' works with bage_prior_elin", {
                                               nm_prior = "time",
                                               vals_hyperrand = vals_hyperrand,
                                               n_sim = 10)
-  ans_expected <- tibble::tibble(component = "hyper",
-                                 term = "time",
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
                                  level = c("mslope.11", "mslope.12"),
                                  .fitted = rvec::rvec(unname(vals_hyperrand[[1]])))
   expect_equal(ans_obtained, ans_expected)
@@ -1754,8 +1754,8 @@ test_that("'vals_hyperrand_to_dataframe' works with bage_prior_compose", {
                              .name_repair = "universal_quiet")
   fitted <- as.matrix(fitted)
   dimnames(fitted) <- NULL
-  ans_expected <- tibble::tibble(component = rep(c("trend", "cyclical", "seasonal"), each = 12),
-                                 term = "time",
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = rep(c("trend", "cyclical", "seasonal"), each = 12),
                                  level = rep(letters[1:12], times = 3),
                                  .fitted = rvec::rvec(fitted))
   expect_equal(ans_obtained, ans_expected)
@@ -1776,8 +1776,8 @@ test_that("'vals_hyperrand_to_dataframe' works with bage_prior_fixed", {
                                               nm_prior = "time",
                                               vals_hyperrand = vals_hyperrand,
                                               n_sim = 10)
-  ans_expected <- tibble::tibble(component = character(),
-                                 term = character(),
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
                                  level = character(),
                                  .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
   expect_equal(ans_obtained, ans_expected)

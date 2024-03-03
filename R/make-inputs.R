@@ -861,7 +861,6 @@ make_offsets_effectfree_effect <- function(mod) {
                                agesex = agesex),
                    MoreArgs = list())
     names(ans) <- names(priors)
-    ans <- unlist(ans)
     ans    
 }
 

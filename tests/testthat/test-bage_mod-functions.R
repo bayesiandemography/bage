@@ -273,4 +273,6 @@ test_that("'set_n_draw' works with valid inputs", {
     expect_identical(mod$est, mod_fit_unfit$est)
     expect_identical(mod$is_fixed, mod_fit_unfit$is_fixed)
     expect_identical(mod$R_prec, mod_fit_unfit$R_prec)
+    expect_identical(mod$scaled_eigen, mod_fit_unfit$scaled_eigen)
+    expect_identical(mod$components, mod_fit_unfit$components)
 })

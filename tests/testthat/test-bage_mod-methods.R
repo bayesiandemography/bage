@@ -145,7 +145,7 @@ test_that("'components' works with no data", {
     comp_nodata <- components(mod)
     mod_data <- fit(mod)
     comp_data <- components(mod_data)
-    comp_merge <- merge(comp_nodata, comp_data, by = c("component", "term", "level"))
+    comp_merge <- merge(comp_nodata, comp_data, by = c("term", "component", "level"))
     expect_identical(nrow(comp_merge), nrow(comp_data))
 })
 
@@ -242,23 +242,19 @@ test_that("'draw_vals_augment' works with 'bage_mod_pois' - no disp", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
+  mod <- set_disp(mod, s = 0)
   vals_components <- draw_vals_components(mod = mod, n_sim = n_sim)
   set.seed(1)
   ans_obtained <- draw_vals_augment(mod = mod,
                                     vals_components = vals_components)
   set.seed(1)
-  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_effect(mod, components = vals_components))
-  vals_fitted <- draw_vals_fitted(mod = mod,
-                                  vals_expected = vals_expected,
-                                  vals_disp = vals_disp)
+  vals_fitted <- exp(make_linpred_effect(mod, components = vals_components))
   vals_outcome <- draw_vals_outcome(mod,
                                     vals_fitted = vals_fitted)
   ans_expected <- tibble::as_tibble(data)
   ans_expected$deaths <- vals_outcome
   ans_expected$.observed <- vals_outcome / data$popn
   ans_expected$.fitted <- vals_fitted
-  ans_expected$.expected <- vals_expected
   expect_equal(ans_obtained, ans_expected)
   expect_identical(names(augment(fit(mod))), names(ans_obtained))
 })
@@ -900,63 +896,6 @@ test_that("'get_nm_outcome' works with 'bage_mod_pois'", {
 })
 
 
-## 'get_vals_est' -------------------------------------------------------------
-
-test_that("'get_vals_est' works with 'bage_mod_pois'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_disp(mod, s = 0)
-    mod <- set_n_draw(mod, n = 5)
-    mod <- set_prior(mod, time ~ compose_time(trend = RW(), cyclical = AR()))
-    mod <- fit(mod)
-    ans_obtained <- get_vals_est(mod)
-    comp <- components(mod)
-    aug <- augment(mod)
-    ans_expected <- list(par = comp$.fitted[[comp$component == "effect"]],
-                         hyper = comp$.fitted[[comp$component == "hyper"]],
-                         trend = comp$.fitted[[comp$component == "trend"]],
-                         cyclical = comp$.fitted[[comp$component == "cyclical"]],
-                         seasonal = NULL,
-                         error = NULL,
-                         disp = NULL,
-                         fitted = aug$.fitted)
-    expect_identical(as.numeric(unlist(ans_obtained)),
-                     as.numeric(unlist(ans_expected)))
-})
-
-test_that("'get_vals_est' works with 'bage_mod_norm'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$income <- rpois(n = nrow(data), lambda = 100)
-    data$wt <- rpois(n = nrow(data), lambda = 10)
-    formula <- income ~ age + sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = wt)
-    mod <- set_n_draw(mod, n = 5)
-    mod <- fit(mod)
-    ans_obtained <- get_vals_est(mod)
-    comp <- components(mod)
-    aug <- augment(mod)
-    ans_expected <- list(par = comp$.fitted[[comp$component == "effect"]],
-                         hyper = comp$.fitted[[comp$component == "hyper"]],
-                         trend = NULL,
-                         cyclical = NULL,
-                         seasonal = NULL,
-                         error = NULL,
-                         disp = comp$.fitted[[comp$component == "disp"]],
-                         fitted = aug$.fitted)
-    expect_identical(as.numeric(unlist(ans_obtained)),
-                     as.numeric(unlist(ans_expected)))
-})
-
-
 ## 'get_fun_inv_transform' ----------------------------------------------------
 
 test_that("'get_fun_inv_transform' works with valid inputs", {
@@ -1170,6 +1109,23 @@ test_that("'nm_offset' works with valid inputs", {
     expect_identical(nm_offset(structure(1, class = "bage_mod_pois")), "exposure")
     expect_identical(nm_offset(structure(1, class = "bage_mod_binom")), "size")
     expect_identical(nm_offset(structure(1, class = "bage_mod_norm")), "weights")
+})
+
+
+## 'print' --------------------------------------------------------------------
+
+test_that("'print' works with mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 0.4 * data$popn)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_snapshot(print(mod))
+    mod <- fit(mod)
+    expect_snapshot(print(mod))
 })
 
 

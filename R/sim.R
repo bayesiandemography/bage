@@ -67,7 +67,7 @@ calc_error_point_est <- function(estimate, truth, point_est_fun) {
     else if (point_est_fun == "median")
         rvec_fun <- rvec::draws_median
     else
-        cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")
+        cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")  ## nocov
     is_null <- vapply(estimate, is.null, FALSE)
     estimate <- estimate[!is_null]
     truth <- truth[!is_null]
@@ -291,7 +291,7 @@ draw_vals_coef <- function(prior, n_sim) {
         break
     }
     if (!found_val)
-      cli::cli_abort("Internal error: coud not generate stationary distribution.")
+      cli::cli_abort("Internal error: coud not generate stationary distribution.")  ## nocov
     ans[, i_sim] <- val
   }
   rownames(ans) <- paste0("coef", seq_len(n))
@@ -939,7 +939,7 @@ standardize_vals_effect <- function(mod, vals_effect) {
     ans[[i_effect]] <- effect
   }
   if (any(abs(linpred) > 0.001))
-    cli::cli_abort("Internal error: Final residual not 0")
+    cli::cli_abort("Internal error: Final residual not 0")  ## nocov
   names(ans) <- names(vals_effect)
   ans
 }
@@ -1136,7 +1136,7 @@ report_sim <- function(mod_est,
     else if (report_type == "long")
         ans
     else
-        cli::cli_abort("Internal error: Invalid value for 'report_type'.")
+        cli::cli_abort("Internal error: Invalid value for 'report_type'.")  ## nocov
 }
 
 report_sim2 <- function(mod_est,
@@ -1170,7 +1170,7 @@ report_sim2 <- function(mod_est,
   aug_sim <- augment(mod_sim)
   nm_outcome <- get_nm_outcome(mod_sim)
   outcome_sim <- aug_sim[[nm_outcome]]
-  outcome_sim <- rvec::as.matrix(outcome_sim)
+  outcome_sim <- as.matrix(outcome_sim)
   perform_comp <- vector(mode = "list", length = n_sim)
   perform_aug <- vector(mode = "list", length = n_sim)
   for (i_sim in seq_len(n_sim)) {
@@ -1228,8 +1228,8 @@ summarise_sim <- function(data) {
 #' 
 #' @noRd
 vals_disp_to_dataframe <- function(vals_disp) {
-  tibble::tibble(component = "disp",
-                 term = "disp",
+  tibble::tibble(term = "disp",
+                 component = "disp",
                  level = "disp",
                  .fitted = vals_disp)
 }
@@ -1246,14 +1246,14 @@ vals_disp_to_dataframe <- function(vals_disp) {
 #' @noRd
 vals_effect_to_dataframe <- function(vals_effect) {
   nrow <- vapply(vals_effect, nrow, 0L)
-  component <- rep.int("effect", times = sum(nrow))
   term <- rep.int(names(vals_effect), times = nrow)
+  component <- rep.int("effect", times = sum(nrow))
   level <- lapply(vals_effect, rownames)
   level <- unlist(level, use.names = FALSE)
   .fitted <- do.call(rbind, vals_effect)
   .fitted <- rvec::rvec(.fitted)
-  tibble::tibble(component = component,
-                 term = term,
+  tibble::tibble(term = term,
+                 component = component,
                  level = level,
                  .fitted = .fitted)
 }

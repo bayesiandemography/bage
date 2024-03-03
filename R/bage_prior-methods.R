@@ -1306,7 +1306,7 @@ reformat_hyperrand_one.bage_prior_compose <- function(prior,
     p_hyperrand <- "^(trend|cyclical|seasonal|error)\\.effect\\.(.*)$"
   }
   else
-    cli::cli_abort("Internal error: {.var nm_compose} is {.val {nm_compose}}.")
+    cli::cli_abort("Internal error: {.var nm_compose} is {.val {nm_compose}}.") ## nocov
   ## extract rows to change
   is_hyperrand <- with(components, component == "hyperrand" & term == nm_prior)
   hyperrand_old <- components[is_hyperrand, , drop = FALSE]
@@ -1416,7 +1416,7 @@ str_call_prior.bage_prior_ar <- function(prior) {
       args[[3L]] <- sprintf("s=%s", scale)
   }
   else
-    cli::cli_abort("Internal error: Invalid value for 'nm'.")
+    cli::cli_abort("Internal error: Invalid value for 'nm'.") ## nocov
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -1458,7 +1458,7 @@ str_call_prior.bage_prior_ear <- function(prior) {
       args[[3L]] <- sprintf("s=%s", scale)
   }
   else
-    cli::cli_abort("Internal error: Invalid value for 'nm'.")
+    cli::cli_abort("Internal error: Invalid value for 'nm'.") ## nocov
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -2175,8 +2175,8 @@ vals_hyper_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyper, n_si
   }
   else
     vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
-  component <- rep.int("hyper", times = nrow(vals))
   term <- rep(nm_prior, times = nrow(vals))
+  component <- rep.int("hyper", times = nrow(vals))
   if (nrow(vals) > 0L) {
     level <- lapply(vals_hyper, rownames)
     no_rownames <- vapply(level, is.null, FALSE)
@@ -2186,8 +2186,8 @@ vals_hyper_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyper, n_si
   else
     level <- character()
   .fitted <- rvec::rvec(vals)
-  tibble::tibble(component = component,
-                 term = term,
+  tibble::tibble(term = term,
+                 component = component,
                  level = level,
                  .fitted = .fitted)
 }
@@ -2237,8 +2237,8 @@ vals_hyperrand_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyperra
   }
   else
     vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
-  component <- rep.int("hyper", times = nrow(vals))
   term <- rep(nm_prior, times = nrow(vals))
+  component <- rep.int("hyper", times = nrow(vals))
   if (nrow(vals) > 0L) {
     level <- lapply(vals_hyperrand, rownames)
     no_rownames <- vapply(level, is.null, FALSE)
@@ -2248,8 +2248,8 @@ vals_hyperrand_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyperra
   else
     level <- character()
   .fitted <- rvec::rvec(vals)
-  tibble::tibble(component = component,
-                 term = term,
+  tibble::tibble(term = term,
+                 component = component,
                  level = level,
                  .fitted = .fitted)
 }

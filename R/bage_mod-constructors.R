@@ -328,6 +328,7 @@ mod_helper <- function(formula, data, n_draw) {
        is_fixed = NULL,
        R_prec = NULL,
        scaled_eigen = NULL,
+       components = NULL,
        n_draw = n_draw,
        seed_components = seed_components,
        seed_augment = seed_augment)

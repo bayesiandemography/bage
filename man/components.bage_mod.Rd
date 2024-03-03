@@ -25,9 +25,9 @@ fitted, or the prior distribution if it has not.
 \details{
 The return value contains the following columns:
 \itemize{
-\item \code{component} The type of hyper-parameter.
-\item \code{term} The model term that the hyper-parameter belongs to.
-\item \code{level} The element within the term.
+\item \code{term} Model term that the hyper-parameter belongs to.
+\item \code{component} Component within term.
+\item \code{level} Element within component .
 \item \code{.fitted} An \link[rvec:rvec]{rvec} containing
 draws from the posterior distribution.
 }
