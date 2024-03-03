@@ -1139,16 +1139,61 @@ report_sim <- function(mod_est,
         cli::cli_abort("Internal error: Invalid value for 'report_type'.")
 }
 
-## report_sim <- function() {
-##   vals_prior_predict <- prior_predict(mod_sim, n_sim = n_sim)
-  
-  
-  
-  
-
-
-
-
+report_sim2 <- function(mod_est,
+                        mod_sim = NULL,
+                        n_sim = 100,
+                        point_est_fun = c("median", "mean"),
+                        widths = c(0.5, 0.95),
+                        report_type = c("short", "long"),
+                        n_core = 1) {
+  check_bage_mod(x = mod_est, nm_x = "mod_est")
+  if (is.null(mod_sim))
+    mod_sim <- mod_est
+  else
+    check_mod_est_sim_compatible(mod_est = mod_est,
+                                 mod_sim = mod_sim)
+  check_n(n = n_sim,
+          nm_n = "n_sim",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  point_est_fun <- match.arg(point_est_fun)
+  check_widths(widths)
+  report_type <- match.arg(report_type)
+  check_n(n = n_core,
+          nm_n = "n_core",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  mod_sim$n_draw <- n_sim
+  comp_sim <- components(mod_sim)
+  aug_sim <- augment(mod_sim)
+  nm_outcome <- get_nm_outcome(mod_sim)
+  outcome_sim <- aug_sim[[nm_outcome]]
+  outcome_sim <- rvec::as.matrix(outcome_sim)
+  perform_comp <- vector(mode = "list", length = n_sim)
+  perform_aug <- vector(mode = "list", length = n_sim)
+  for (i_sim in seq_len(n_sim)) {
+    outcome <- outcome_sim[, i_sim]
+    mod_est$outcome <- outcome
+    mod_est <- fit(mod_est)
+    comp_est <- components(mod_est)
+    aug_est <- augment(mod_est)
+    perform_comp[[i_sim]] <- performance(est = comp_est,
+                                         sim = comp_sim,
+                                         point_est_fun = point_est_fun,
+                                         widths = widths)
+    perform_aug[[i_sim]] <- performance(est = aug_est,
+                                        sim = aug_sim,
+                                        point_est_fun = point_est_fun,
+                                        widths = widths)
+  }
+  make_report(perform_comp = perform_comp,
+              perform_aug = perform_aug,
+              report_type = report_type)
+}
+    
+    
 ## HAS_TESTS
 #' Summarise detailed output from simulation
 #'
