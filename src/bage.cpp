@@ -501,6 +501,16 @@ struct LIST_M_t : vector<matrix<int> > {
   }
 };
 
+template<class Type>
+struct LIST_Type_t : vector<vector<Type> > {
+  LIST_Type_t(SEXP x){
+    (*this).resize(LENGTH(x));
+    for (int i = 0; i < LENGTH(x); i++){
+      SEXP v = VECTOR_ELT(x, i);
+      (*this)(i) = asVector<Type>(v);
+    }
+  }
+};
 
 // Objective function ---------------------------------------------------------
 
@@ -519,7 +529,7 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(uses_matrix_effectfree_effect);
   DATA_STRUCT(matrices_effectfree_effect, LIST_SM_t);
   DATA_IVECTOR(uses_offset_effectfree_effect);
-  DATA_VECTOR(offsets_effectfree_effect);
+  DATA_STRUCT(offsets_effectfree_effect, LIST_Type_t);
   DATA_STRUCT(matrices_effect_outcome, LIST_SM_t);
   DATA_IVECTOR(i_prior);
   DATA_IVECTOR(uses_hyper);
@@ -545,7 +555,6 @@ Type objective_function<Type>::operator() ()
   int n_outcome = outcome.size();
   int n_term = i_prior.size();
   vector<vector<Type> > effectfree_split = split(effectfree, terms_effectfree);
-  vector<vector<Type> > offsets_effectfree_effect_split = split(offsets_effectfree_effect, terms_effect);
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper);
   vector<vector<Type> > hyperrand_split = split(hyperrand, terms_hyperrand);
   vector<vector<Type> > consts_split = split(consts, terms_consts);
@@ -571,7 +580,7 @@ Type objective_function<Type>::operator() ()
       effect_term = effectfree_term;
     }
     if (uses_offset_effectfree_effect[i_term]) {
-      vector<Type> offset_term = offsets_effectfree_effect_split[i_term];
+      vector<Type> offset_term = offsets_effectfree_effect[i_term];
       effect_term = effect_term + offset_term;
     }
     linear_pred = linear_pred + matrix_effect_outcome * effect_term;

@@ -85,12 +85,27 @@ set_disp <- function(mod, s) {
 #'   set_n_draw(n_draw = 5000)
 #' @export
 set_n_draw <- function(mod, n_draw = 1000L) {
-    check_bage_mod(x = mod, nm_x = "mod")
-    n_draw <- checkmate::assert_int(n_draw,
-                                    lower = 0L,
-                                    coerce = TRUE)
-    mod$n_draw <- n_draw
-    mod
+  check_bage_mod(x = mod, nm_x = "mod")
+  n_draw <- checkmate::assert_int(n_draw,
+                                  lower = 0L,
+                                  coerce = TRUE)
+  n_draw_old <- mod$n_draw
+  if (n_draw > n_draw_old)
+    mod[["components"]] <- NULL
+  if (n_draw < n_draw_old) {
+    comp <- mod[["components"]]
+    if (!is.null(comp)) {
+      fitted <- comp$.fitted
+      fitted <- as.matrix(fitted)
+      s <- seq_len(n_draw)
+      fitted <- fitted[, s, drop = FALSE]
+      fitted <- rvec::rvec(fitted)
+      comp$.fitted <- fitted
+      mod$components <- comp
+    }
+  }
+  mod$n_draw <- n_draw
+  mod
 }
 
 
@@ -461,5 +476,7 @@ unfit <- function(mod) {
     mod["est"] <- list(NULL)
     mod["is_fixed"] <- list(NULL)
     mod["R_prec"] <- list(NULL)
+    mod["scaled_eigen"] <- list(NULL)
+    mod["components"] <- list(NULL)
     mod
 }

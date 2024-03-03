@@ -47,6 +47,23 @@ test_that("'make_combined_matrix_effectfree_effect' works with valid inputs", {
 })
 
 
+## 'make_combined_offset_effectfree_effect' -----------------------------------------
+
+test_that("'make_combined_offset_effectfree_effect' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + age * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_combined_offset_effectfree_effect(mod)
+    expect_identical(length(ans_obtained), length(mod$terms_effect))
+    expect_true(all(ans_obtained == 0))
+})
+
+
 ## 'make_comp_components' -----------------------------------------------------
 
 test_that("'make_comp_components' works - no hyperrand", {
@@ -114,7 +131,7 @@ test_that("'make_draws_comp_raw' works with valid inputs", {
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
-    mod <- set_n_draw(mod, n = 20000)
+    mod <- set_n_draw(mod, n = 200000)
     ans <- make_draws_comp_raw(mod)
     mean <- unlist(mod$est, use.names = FALSE)[!mod$is_fixed]
     prec <- crossprod(mod$R_prec)
@@ -146,7 +163,7 @@ test_that("'make_draws_components' works", {
   is_fixed <- mod$is_fixed
   matrices <- mod$matrices_effect_outcome
   matrix <- make_combined_matrix_effectfree_effect(mod)
-  offset <- make_offsets_effectfree_effect(mod)
+  offset <- make_combined_offset_effectfree_effect(mod)
   transforms <- make_transforms_hyper(mod)
   draws <- make_draws_comp_raw(mod)
   draws <- insert_draws_known(draws = draws,
@@ -535,7 +552,40 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
 })
 
 
-## 'transform_draws_effect' ------------------------------------------------------
+## 'sort_components' ----------------------------------------------------------
+
+test_that("'sort_components' works with valid inputs", {
+  components <- tibble::tribble(~term,         ~component, ~level,
+                                "(Intercept)", "effect",   "(Intercept)",
+                                "time",         "seasonal", "2000",
+                                "sex",          "hyper",    "sd",
+                                "time",         "effect",   "2000",
+                                "sex",          "effect",   "m",
+                                "sex",          "effect",   "f",
+                                "time",         "cyclical", "2000")
+  ans_obtained <- sort_components(components)
+  ans_expected <- tibble::tribble(~term,         ~component, ~level,
+                                  "(Intercept)", "effect",   "(Intercept)",
+                                  "time",         "effect",   "2000",
+                                  "time",         "cyclical", "2000",
+                                  "time",         "seasonal", "2000",
+                                  "sex",          "effect",   "m",
+                                  "sex",          "effect",   "f",
+                                  "sex",          "hyper",    "sd")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'sort_components' raises correct effor with invalid component", {
+  components <- tibble::tribble(~term,         ~component, ~level,
+                                "(Intercept)", "effect",   "(Intercept)",
+                                "time",         "seasonal", "2000",
+                                "sex",          "wrong",    "sd")
+  expect_error(sort_components(components),
+               "Internal error: \"wrong\" not a valid value for `component`.")
+})
+
+
+## 'transform_draws_effect' ---------------------------------------------------
 
 test_that("'transform_draws_effect' works", {
   set.seed(0)
@@ -552,7 +602,7 @@ test_that("'transform_draws_effect' works", {
   est <- mod$est
   is_fixed <- mod$is_fixed
   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-  offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
+  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
   matrices_effect_outcome <- mod$matrices_effect_outcome
   draws <- make_draws_comp_raw(mod)
   draws <- insert_draws_known(draws = draws,

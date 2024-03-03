@@ -1113,8 +1113,8 @@ test_that("'draw_vals_disp' works with 'bage_mod_pois'", {
                     exposure = popn)
     vals_disp <- draw_vals_disp(mod, n_sim = 10)
     ans_obtained <- vals_disp_to_dataframe(vals_disp)
-    ans_expected <- tibble::tibble(component = "disp",
-                                   term = "disp",
+    ans_expected <- tibble::tibble(term = "disp",
+                                   component = "disp",
                                    level = "disp",
                                    .fitted = vals_disp)
     expect_equal(ans_obtained, ans_expected)
@@ -1144,9 +1144,9 @@ test_that("'vals_effect_to_dataframe' works", {
                                       n_sim = n_sim)
   vals_effect <- standardize_vals_effect(mod = mod, vals_effect = vals_effect)
   ans_obtained <- vals_effect_to_dataframe(vals_effect)
-  ans_expected <- tibble::tibble(component = "effect",
-                                 term = rep(c("(Intercept)", "age", "time", "sex", "age:time"),
+  ans_expected <- tibble::tibble(term = rep(c("(Intercept)", "age", "time", "sex", "age:time"),
                                             times = c(1, 10, 6, 2, 60)),
+                                 component = "effect",
                                  level = c("(Intercept)",
                                            0:9,
                                            2000:2005,

@@ -103,10 +103,10 @@ make_combined_offset_effectfree_effect <- function(mod) {
 #' @noRd
 make_comp_components <- function(mod) {
   est <- mod$est
-  offset <- make_offsets_effectfree_effect(mod)
+  terms_effect <- mod$terms_effect
   has_disp <- has_disp(mod)
   vals <- c("effect", "hyper", "hyperrand", "disp")
-  n_effect <- length(offset)
+  n_effect <- length(terms_effect)
   n_hyper <- length(est$hyper)
   n_hyperrand <- length(est$hyperrand)
   n_disp <- as.integer(has_disp)
@@ -183,7 +183,7 @@ make_draws_components <- function(mod) {
   is_fixed <- mod$is_fixed
   matrices_effect_outcome <- mod$matrices_effect_outcome
   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-  offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
+  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
   transforms_hyper <- make_transforms_hyper(mod)
   ## transforms_hyperrand <- make_transforms_hyperrand(mod)
   ## WARNING The order of the following functions matters:
@@ -403,7 +403,7 @@ make_scaled_eigen <- function(prec) {
     vecs <- eigen$vectors
     min_valid_val <- -tolerance * abs(vals[[1L]]) ## based on MASS::mvrnorm
     if (any(vals < min_valid_val))
-        cli::cli_abort("Estimated precision matrix not positive definite.")
+        cli::cli_abort("Estimated precision matrix not positive definite.")  ## nocov
     vals <- pmax(vals, abs(min_valid_val))
     sqrt_inv_vals <- sqrt(1 / vals)
     vecs %*% diag(sqrt_inv_vals)
@@ -544,6 +544,33 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 }
 
 
+
+#' Order 'components' by 'term' and Then By 'term'
+#'
+#' @param components A tibble - typically the output
+#' from function 'components'
+#'
+#' @returns A reordered version of 'components'
+#'
+#' @noRd
+sort_components <- function(components) {
+  levels_component <- c("effect",
+                        "trend", "cyclical", "seasonal", "error",
+                        "disp",
+                        "hyper")
+  term <- components$term
+  component <- components$component
+  i_term <- match(term, unique(term))
+  i_comp <- match(components$component, levels_component, nomatch = 0L)
+  i_invalid_comp <- match(0L, i_comp, nomatch = 0L)
+  if (i_invalid_comp > 0L) {
+    val <- components$component[[i_invalid_comp]]
+    cli::cli_abort("Internal error: {.val {val}} not a valid value for {.var component}.")  ## nocov
+  }
+  ord <- order(i_term, i_comp)
+  components[ord, , drop = FALSE]
+}
+  
 ## HAS_TESTS
 #' Convert 'effectfree' part of draws to 'effect'
 #'
@@ -591,7 +618,7 @@ transform_draws_effect <- function(draws,
     effects_standard[[i_effect]] <- Matrix::as.matrix(effect)
   }
   if (any(abs(linpred) > 0.001))
-    cli::cli_abort("Internal error: Final residual not 0")
+    cli::cli_abort("Internal error: Final residual not 0")  ## nocov
   effects_standard <- do.call(rbind, effects_standard)
   ## combine and return
   rbind(effects_standard,

@@ -146,9 +146,9 @@ generics::components
 #'
 #' The return value contains the following columns:
 #'
-#' - `component` The type of hyper-parameter.
-#' - `term` The model term that the hyper-parameter belongs to.
-#' - `level` The element within the term.
+#' - `term` Model term that the hyper-parameter belongs to.
+#' - `component` Component within term.
+#' - `level` Element within component .
 #' - `.fitted` An [rvec][rvec::rvec()] containing
 #' draws from the posterior distribution.
 #'
@@ -182,19 +182,22 @@ generics::components
 #' mod |> components() ## posterior distribution
 #' @export
 components.bage_mod <- function(object, ...) {
+  previously_computed <- object$components
+  if (!is.null(previously_computed))
+    return(previously_computed)
   is_fitted <- is_fitted(object)
   seed_components <- object$seed_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_components) ## set pre-determined seed
   if (is_fitted) {
-    comp <- make_comp_components(object)
     term <- make_term_components(object)
+    comp <- make_comp_components(object)
     level <- make_level_components(object)
     draws <- make_draws_components(object)
     draws <- as.matrix(draws)
     .fitted <- rvec::rvec_dbl(draws)
-    ans <- tibble::tibble(component = comp,
-                          term = term,
+    ans <- tibble::tibble(term = term,
+                          component = comp,
                           level = level,
                           .fitted = .fitted)
     ans <- reformat_hyperrand(components = ans,
@@ -204,7 +207,8 @@ components.bage_mod <- function(object, ...) {
     n_draw <- object$n_draw
     ans <- draw_vals_components(mod = object, n_sim = n_draw)
   }
-  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness 
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  ans <- sort_components(ans)
   ans
 }
 
@@ -239,11 +243,11 @@ draw_vals_augment.bage_mod <- function(mod, vals_components) {
     vals_fitted <- draw_vals_fitted(mod = mod,
                                     vals_expected = vals_expected,
                                     vals_disp = vals_disp)
-    vals_outcome <- draw_vals_outcome(mod = mod,
-                                      vals_fitted = vals_fitted)
   }
   else
     vals_fitted <- inv_transform(vals_linpred)
+  vals_outcome <- draw_vals_outcome(mod = mod,
+                                    vals_fitted = vals_fitted)
   vals_observed <- vals_outcome / offset
   ans <- mod$data
   ans[[nm_outcome]] <- vals_outcome
@@ -403,36 +407,6 @@ draw_vals_outcome.bage_mod_norm <- function(mod, vals_fitted, vals_disp) {
 }
 
 
-## 'draw_vals_observed' ------------------------------------------------------------
-
-#' Make direct estimates
-#'
-#' @param x A fitted 'bage_mod' object.
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-draw_vals_observed <- function(x) {
-    UseMethod("draw_vals_observed")
-}
-              
-## HAS_TESTS
-#' @export
-draw_vals_observed.bage_mod <- function(x) {
-    outcome <- x$outcome
-    offset <- x$offset
-    ans <- as.double(outcome / offset)
-    ans
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_observed.bage_mod_norm <- function(x) {
-    cli::cli_abort(paste("Internal error: {.fun draw_vals_observed} called on object",
-                         "of class {.cls {class(x)}}."))
-}
-
-
 ## 'equation' -----------------------------------------------------------------
 
 #' @importFrom generics equation
@@ -545,6 +519,7 @@ fit.bage_mod <- function(object, ...) {
     object$scaled_eigen <- make_scaled_eigen(prec)
   object$est <- est
   object$is_fixed <- is_fixed
+  object$components <- components(object)
   object
 }
 
@@ -654,53 +629,6 @@ get_nm_outcome.bage_mod <- function(mod) {
   formula <- mod$formula
   ans <- formula[[2L]]
   ans <- deparse1(ans)
-  ans
-}
-
-
-## 'get_vals_est' -------------------------------------------------------------
-
-#' Extract estimated values from a fitted model
-#'
-#' @param mod A fitted object of class 'bage_mod'
-#'
-#' @returns A named list of rvecs
-#'
-#' @noRd
-get_vals_est <- function(mod) {
-    UseMethod("get_vals_est")
-}
-
-## HAS_TESTS
-#' @export
-get_vals_est.bage_mod <- function(mod) {
-  has_disp <- has_disp(mod)
-  vals_hyperparam <- get_vals_hyperparam_est(mod)
-  inv_transform <- get_fun_inv_transform(mod)
-  linpred <- vals_hyperparam[["linpred"]]
-  if (has_disp) {
-    disp <- vals_hyperparam[["disp"]]
-    meanpar <- inv_transform(linpred)
-    par <- make_par_disp(x = mod,
-                         meanpar = meanpar,
-                         disp = disp)
-  }
-  else
-    par <- inv_transform(linpred)
-  ans <- vals_hyperparam[-match("linpred", names(vals_hyperparam))]
-  ans <- c(ans, list(par = par))
-  ans
-}
-
-## HAS_TESTS
-#' @export
-get_vals_est.bage_mod_norm <- function(mod) {
-  vals_hyperparam <- get_vals_hyperparam_est(mod)
-  linpred <- vals_hyperparam[["linpred"]]
-  scale_outcome <- get_fun_scale_outcome(mod)
-  par <- scale_outcome(linpred)
-  ans <- vals_hyperparam[-match("linpred", names(vals_hyperparam))]
-  ans <- c(ans, list(par = par))
   ans
 }
 
@@ -836,8 +764,8 @@ make_observed.bage_mod <- function(x) {
 ## HAS_TESTS
 #' @export
 make_observed.bage_mod_norm <- function(x) {
-    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",
-                         "of class {.cls {class(x)}}."))
+    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",  ## nocov
+                         "of class {.cls {class(x)}}."))                           ## nocov
 }
 
 
@@ -1191,7 +1119,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
                                     mu = mu)
     }
     else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+        cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
     outcome_rep <- c(outcome, as.numeric(y_rep))
     ans <- make_copies_repdata(data = data, n = n)
     ans[[nm_outcome]] <- outcome_rep
@@ -1240,7 +1168,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
                                    prob = prob)
     }
     else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+        cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
     outcome_rep <- c(outcome, as.numeric(y_rep))
     ans <- make_copies_repdata(data = data, n = n)
     ans[[nm_outcome]] <- outcome_rep
@@ -1316,7 +1244,7 @@ tidy.bage_mod <- function(x, ...) {
     if (is_fitted) {
         effectfree <- x$est$effectfree
         matrix <- make_combined_matrix_effectfree_effect(x)
-        offset <- make_offsets_effectfree_effect(x)
+        offset <- make_combined_offset_effectfree_effect(x)
         effect <- matrix %*% effectfree + offset
         effect <- split(effect, terms)
         ans[["sd"]] <- vapply(effect, stats::sd, 0)

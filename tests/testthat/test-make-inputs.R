@@ -319,6 +319,8 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
                      NULL)
     expect_identical(infer_var_time(deaths ~ age * sex + PERIODX),
                      NULL)
+    expect_identical(infer_var_time(deaths ~ 1),
+                     NULL)
 })
 
 
@@ -1081,7 +1083,6 @@ test_that("'make_offsets_effectfree_effect' works with valid inputs", {
                          SEX = rep(0, 2),
                          region = rep(0, 2),
                          "agegp:SEX" = rep(0, 20))
-    ans_expected <- unlist(ans_expected)
     expect_identical(ans_obtained, ans_expected)
 })
 
