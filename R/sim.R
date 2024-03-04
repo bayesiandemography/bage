@@ -1,203 +1,32 @@
 
 ## HAS_TESTS
-#' Calculate errors and coverage for a single
-#' set of simulated values
+#' Test Whether Interval(s) Contain the Truth
 #'
-#' @param vals_sim List with simulated values
-#' @param mod_est Model being tested. Object
-#' of class 'bage_mod'.
-#' @param point_est_fun Mean or median. Function used
-#' to calculate point estimates
-#' @param include_upper Logical. Whether levels
-#' of model above 'meanpar' and 'disp' are included:
-#' effect, hyper
-#' @param widths Widths of credible intervals.
-#'
-#' @returns Named list
-#'
-#' @noRd
-assess_performance <- function(vals_sim,
-                               mod_est,
-                               point_est_fun,
-                               include_upper,
-                               widths) {
-    nms_upper <- c("hyper", "effect")
-    mod_est[["outcome"]] <- vals_sim[["outcome"]]
-    vals_sim$outcome <- NULL
-    mod_est <- fit(mod_est)
-    vals_est <- get_vals_est(mod_est)
-    if (!include_upper) {
-        is_upper_est <- names(vals_est) %in% nms_upper
-        is_upper_sim <- names(vals_sim) %in% nms_upper
-        vals_est <- vals_est[!is_upper_est]
-        vals_sim <- vals_sim[!is_upper_sim]
-    }
-    error_point_est <- calc_error_point_est(estimate = vals_est,
-                                            truth = vals_sim,
-                                            point_est_fun = point_est_fun)
-    is_in_interval <- calc_is_in_interval(estimate = vals_est,
-                                          truth = vals_sim,
-                                          widths = widths)
-    width_interval <- calc_interval_width(estimate = vals_est,
-                                          widths = widths)
-    is_null <- vapply(vals_sim, is.null, FALSE)
-    vals_sim <- vals_sim[!is_null]
-    list(vals_sim = vals_sim,
-         error_point_est = error_point_est,
-         is_in_interval = is_in_interval,
-         width_interval = width_interval)
-}
-
-
-## HAS_TESTS
-#' Calculate point estimates from rvecs, and then calculate
-#' differences from truth
-#'
-#' @param estimate A list of rvecs holding the estimates
-#' @param truth A list of numeric vectors holding the true values
-#' @param point_est_fun Name of function to use to calculate point
-#' estimates from rvec
-#'
-#' @returns A vector of doubles
-#'
-#' @noRd
-calc_error_point_est <- function(estimate, truth, point_est_fun) {
-    if (point_est_fun == "mean")
-        rvec_fun <- rvec::draws_mean
-    else if (point_est_fun == "median")
-        rvec_fun <- rvec::draws_median
-    else
-        cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")  ## nocov
-    is_null <- vapply(estimate, is.null, FALSE)
-    estimate <- estimate[!is_null]
-    truth <- truth[!is_null]
-    ans <- .mapply(calc_error_point_est_one,
-                   dots = list(estimate = estimate,
-                               truth = truth),
-                   MoreArgs = list(rvec_fun = rvec_fun))
-    names(ans) <- names(estimate)
-    ans
-}
-
-
-## HAS_TESTS
-#' Calculate point estimates from an rvec, and then calculate
-#' difference from truth
-#'
-#' @param estimate An rvec with the estimates
-#' @param truth A numeric vector with the true values
-#' @param rvec_fun Function to use to calculate point
-#' estimates from rvec
-#'
-#' @returns A vector of doubles
-#'
-#' @noRd
-calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
-    point_est <- rvec_fun(estimate)
-    as.double(point_est - truth)
-}
-
-
-## HAS_TESTS
-#' Given a sets of estimates,
-#' for each set, calculate the widths
-#' of the credible intervals
-#'
-#' @param estimate A list of rvecs holding the estimates
+#' @param var_est An rvec holding a posterior distribution
+#' @param var_sim A numeric vector with the simulation-true values
 #' @param widths Widths of intervals (between 0 and 1)
 #'
 #' @returns A list of logical vectors
 #'
 #' @noRd
-calc_interval_width <- function(estimate, widths) {
-    is_null <- vapply(estimate, is.null, FALSE)
-    estimate <- estimate[!is_null]
-    ans <- .mapply(calc_interval_width_one,
-                   dots = list(estimate = estimate),
-                   MoreArgs = list(widths = widths))
-    names(ans) <- names(estimate)
-    ans
-}
-
-## HAS_TESTS
-#' Calculates widths of credible intervals
-#'
-#' @param estimate An rvec holding estimates
-#' @param widths Widths of intervals (between 0 and 1)
-#'
-#' @returns A logical vector
-#'
-#' @noRd
-calc_interval_width_one <- function(estimate, widths) {
+is_in_interval <- function(var_est, var_sim, widths) { 
     n_widths <- length(widths)
     ans <- vector(mode = "list", length = n_widths)
     names(ans) <- widths
     for (i in seq_len(n_widths)) {
         width <- widths[[i]]
         probs <- c(0.5 - width / 2, 0.5 + width / 2)
-        ci <- rvec::draws_quantile(x = estimate, probs = probs)
+        ci <- rvec::draws_quantile(x = var_est, probs = probs)
         lower <- ci[[1L]]
         upper <- ci[[2L]]
-        width <- upper - lower
-        ans[[i]] <- width
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Given a sets estimates and true values,
-#' for each set, see how many true values
-#' lie within intervals implied by estimates
-#'
-#' @param estimate A list of rvecs holding the estimates
-#' @param truth A list of numeric vectors holding the true values
-#' @param widths Widths of intervals (between 0 and 1)
-#'
-#' @returns A list of logical vectors
-#'
-#' @noRd
-calc_is_in_interval <- function(estimate, truth, widths) {
-    is_null <- vapply(estimate, is.null, FALSE)
-    estimate <- estimate[!is_null]
-    truth <- truth[!is_null]
-    ans <- .mapply(calc_is_in_interval_one,
-                   dots = list(estimate = estimate,
-                               truth = truth),
-                   MoreArgs = list(widths = widths))
-    names(ans) <- names(estimate)
-    ans
-}
-
-
-## HAS_TESTS
-#' See which elements of 'truth' lie within intervals
-#' formed from 'estimate'
-#'
-#' @param estimate An rvec holding estimates
-#' @param truth A numeric vector holding the true values
-#' @param widths Widths of intervals (between 0 and 1)
-#'
-#' @returns A logical vector
-#'
-#' @noRd
-calc_is_in_interval_one <- function(estimate, truth, widths) {
-    n_widths <- length(widths)
-    ans <- vector(mode = "list", length = n_widths)
-    names(ans) <- widths
-    for (i in seq_len(n_widths)) {
-        width <- widths[[i]]
-        probs <- c(0.5 - width / 2, 0.5 + width / 2)
-        ci <- rvec::draws_quantile(x = estimate, probs = probs)
-        lower <- ci[[1L]]
-        upper <- ci[[2L]]
-        is_in_interval <- (lower <= truth) & (truth <= upper)
+        is_in_interval <- (lower <= var_sim) & (var_sim <= upper)
         ans[[i]] <- is_in_interval
     }
     ans
 }
 
 
+## HAS_TESTS
 #' Generate Values for Multiple AR-k Series of Length 'n'
 #'
 #' @param n Length of series (not order of series)
@@ -704,6 +533,27 @@ draw_vals_slope <- function(prior, n_sim) {
 
 
 ## HAS_TESTS
+#' Calculate Errors from Using Point Estimates from Posterior Distribution
+#'
+#' @param var_est An rvec holding a posterior distribution.
+#' @param var_sim A numeric vector holding the true valuevalues
+#' @param point_est_fun Name of function to calculate point estimate
+#'
+#' @returns A vector of doubles
+#'
+#' @noRd
+error_point_est <- function(var_est, var_sim, point_est_fun) {
+  if (point_est_fun == "mean")
+    point_est <- rvec::draws_mean(var_est)
+  else if (point_est_fun == "median")
+    point_est <- rvec::draws_median(var_est)
+  else
+    cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")  ## nocov
+  point_est - var_sim
+}
+
+
+## HAS_TESTS
 #' Get estimated values for hyper, effect,
 #' linear predictor, and disp (if present) from a fitted model
 #'
@@ -861,6 +711,64 @@ make_vals_linpred_effect <- function(mod, vals_effect) {
     vals_effect <- do.call(rbind, vals_effect)
     matrix_effect_outcome %*% vals_effect
 }
+
+
+
+## HAS_TESTS
+#' Calculate Performance Measures for a Single 
+#' Set of Simulated Values
+#'
+#' @param est Data frame with 'by' variables
+#' and posterior distribution(s)
+#' @param sim Data frame with 'by' variables
+#' and simulated-true values
+#' @param i_sim Simulation draw to use for performance
+#' measures.
+#' @param point_est_fun Mean or median. Function used
+#' to calculate point estimates
+#' @param widths Widths of credible intervals.
+#' @param compare Names of variables to
+#' compare with simulation-truth.
+#'
+#' @returns Named list
+#'
+#' @noRd
+performance <- function(est,
+                        sim,
+                        i_sim,
+                        point_est_fun,
+                        widths,
+                        compare) {
+  nms <- names(est)
+  nms_compare <- intersect(compare, nms)
+  for (nm in nms_compare) {
+    i_nm <- match(nm, nms)
+    names(est)[[i_nm]] <- paste(nm, "est", sep = "_")
+    names(sim)[[i_nm]] <- paste(nm, "sim", sep = "_")
+    sim[[i_nm]] <- as.matrix(sim[[i_nm]])[, i_sim]
+  }
+  merged <- merge(est, sim, sort = FALSE)
+  ans <- vector(mode = "list", length = length(nms_compare))
+  names(ans) <- nms_compare
+  for (nm in nms_compare) {
+    var_est <- est[[paste(nm, "est", sep = "_")]]
+    var_sim <- sim[[paste(nm, "sim", sep = "_")]]
+    ans[[nm]] <- list(error_point_est = error_point_est(var_est = var_est,
+                                                        var_sim = var_sim,
+                                                        point_est_fun = point_est_fun),
+                      is_in_interval = is_in_interval(var_est = var_est,
+                                                      var_sim = var_sim,
+                                                      widths = widths),
+                      width_interval = width_interval(var_est = var_est,
+                                                      widths = widths))
+  }
+  ans
+}
+
+
+
+
+
 
 
 ## HAS_TESTS
@@ -1146,6 +1054,8 @@ report_sim2 <- function(mod_est,
                         widths = c(0.5, 0.95),
                         report_type = c("short", "long"),
                         n_core = 1) {
+  compare_comp <- ".fitted"
+  compare_aug <- c(".observed", ".fitted", ".expected")
   check_bage_mod(x = mod_est, nm_x = "mod_est")
   if (is.null(mod_sim))
     mod_sim <- mod_est
@@ -1182,11 +1092,13 @@ report_sim2 <- function(mod_est,
     perform_comp[[i_sim]] <- performance(est = comp_est,
                                          sim = comp_sim,
                                          point_est_fun = point_est_fun,
-                                         widths = widths)
+                                         widths = widths,
+                                         compare = ".fitted")
     perform_aug[[i_sim]] <- performance(est = aug_est,
                                         sim = aug_sim,
                                         point_est_fun = point_est_fun,
-                                        widths = widths)
+                                        widths = widths,
+                                        compare = )
   }
   make_report(perform_comp = perform_comp,
               perform_aug = perform_aug,
@@ -1251,9 +1163,38 @@ vals_effect_to_dataframe <- function(vals_effect) {
   level <- lapply(vals_effect, rownames)
   level <- unlist(level, use.names = FALSE)
   .fitted <- do.call(rbind, vals_effect)
+  .fitted <- unname(.fitted)
   .fitted <- rvec::rvec(.fitted)
   tibble::tibble(term = term,
                  component = component,
                  level = level,
                  .fitted = .fitted)
 }
+
+
+## HAS_TESTS
+#' Calculates Widths of Credible Intervals
+#'
+#' @param var_est An rvec with a posterior distributions.
+#' @param widths Widths of intervals (between 0 and 1)
+#'
+#' @returns A list of logical vectors
+#'
+#' @noRd
+width_interval <- function(var_est, widths) {
+  n_widths <- length(widths)
+  ans <- vector(mode = "list", length = n_widths)
+  names(ans) <- widths
+  for (i in seq_len(n_widths)) {
+    width_prob <- widths[[i]]
+    probs <- c(0.5 - 0.5 * width_prob, 0.5 + 0.5 * width_prob)
+    ci <- rvec::draws_quantile(x = var_est, probs = probs)
+    lower <- ci[[1L]]
+    upper <- ci[[2L]]
+    width_units <- upper - lower
+    ans[[i]] <- width_units
+  }
+  ans
+}  
+
+ 

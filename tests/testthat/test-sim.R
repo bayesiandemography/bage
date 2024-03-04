@@ -1,29 +1,44 @@
 
-## ## 'assess_performance' -------------------------------------------------------
+## 'performance' --------------------------------------------------------------
 
-## test_that("'assess_performance' works with valid inputs - include_upper is TRUE", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_season(mod, n = 2)
-##     vals <- draw_vals_mod(mod, n_sim = 3)
-##     vals_sim <- get_vals_sim_one(vals, i_sim = 3)
-##     ans <- assess_performance(vals_sim = vals_sim,
-##                               mod_est = mod,
-##                               point_est_fun = "mean",
-##                               include_upper = TRUE,
-##                               widths = c(0.5, 0.95))
-##     expect_identical(sapply(ans, length),
-##                      c(vals_sim = 5L,
-##                        error_point_est = 5L,
-##                        is_in_interval = 5L,
-##                        width_interval = 5L))
-## })
+test_that("'performance' works with valid inputs - components", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod_sim <- mod
+    mod_est <- mod
+    mod_sim <- set_n_draw(mod, n = 1)
+    comp_sim <- components(mod_sim)
+    mod_est$deaths <- mod_sim$deaths
+    mod_est <- fit(mod_est)
+    comp_est <- components(mod_est)
+    ans_obtained <- performance(est = comp_est,
+                                sim = comp_sim,
+                                i_sim = 1L,
+                                point_est_fun = "median",
+                                widths = c(0.6, 0.8),
+                                compare = ".fitted")
+    names(comp_est)[[4]] <- ".fitted_est"
+    names(comp_sim)[[4]] <- ".fitted_sim"
+    merged <- merge(comp_est, comp_sim, sort = FALSE) 
+    ans_expected <- list(.fitted = list(error_point_est =
+                                          error_point_est(var_est = merged[[".fitted_est"]],
+                                                          var_sim = as.numeric(merged[[".fitted_sim"]]),
+                                                          point_est_fun = "median"),
+                                        is_in_interval =
+                                          is_in_interval(var_est = merged[[".fitted_est"]],
+                                                         var_sim = as.numeric(merged[[".fitted_sim"]]),
+                                                         widths = c(0.6, 0.8)),
+                                        width_interval =
+                                          width_interval(var_est = merged[[".fitted_est"]],
+                                                         widths = c(0.6, 0.8))))
+    expect_equal(ans_obtained, ans_expected)
+})
 
 ## test_that("'assess_performance' works with valid inputs - include_upper is FALSE", {
 ##     set.seed(0)
@@ -49,106 +64,6 @@
 ##                        width_interval = 2L))
 ## })
 
-
-## calc_error_point_est -------------------------------------------------------
-
-test_that("'calc_error_point_est' works", {
-    estimate <- list(a = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-    truth <- list(a = 1:3, b = 4:6)
-    point_est_fun <- "mean"
-    ans_obtained <- calc_error_point_est(estimate = estimate,
-                                         truth = truth,
-                                         point_est_fun = point_est_fun)
-    ans_expected <- list(a = calc_error_point_est_one(estimate = estimate[[1]],
-                                                      truth = truth[[1]],
-                                                      rvec_fun = rvec::draws_mean),
-                         b = calc_error_point_est_one(estimate = estimate[[2]],
-                                                      truth = truth[[2]],
-                                                      rvec_fun = rvec::draws_mean))
-    expect_equal(ans_obtained, ans_expected)
-})
-
-
-## calc_error_point_est_one ---------------------------------------------------
-
-test_that("'calc_error_point_est_one' works", {
-    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
-    truth <- 1:3
-    rvec_fun <- rvec::draws_mean
-    ans_obtained <- calc_error_point_est_one(estimate = estimate,
-                                             truth = truth,
-                                             rvec_fun = rvec_fun)
-    ans_expected <- rowMeans(matrix(1:12, nr = 3)) - 1:3
-    expect_equal(ans_obtained, ans_expected)
-})
-
-
-## calc_interval_width --------------------------------------------------------
-
-test_that("'calc_interval_width' works - include_upper is TRUE", {
-    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-    truth <- list(par = 1:3, b = 4:6)
-    widths <- c(0.5, 0.9, 1)
-    ans_obtained <- calc_interval_width(estimate = estimate,
-                                        widths = widths)
-    ans_expected <- list(par = calc_interval_width_one(estimate = estimate[[1]],
-                                                       widths = widths),
-                         b = calc_interval_width_one(estimate = estimate[[2]],
-                                                     widths = widths))
-    expect_equal(ans_obtained, ans_expected)
-})
-
-
-## calc_interval_width_one ---------------------------------------------------
-
-test_that("'calc_interval_width_one' works", {
-    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
-    widths <- c(0.9, 1)
-    ans_obtained <- calc_interval_width_one(estimate = estimate,
-                                            widths = widths)
-    ci.0.9 <- rvec::draws_ci(estimate, width = 0.9)
-    ci.1 <- rvec::draws_ci(estimate, width = 1)
-    ans_expected <- list("0.9" = ci.0.9$estimate.upper - ci.0.9$estimate.lower,
-                         "1" = ci.1$estimate.upper - ci.1$estimate.lower)
-    expect_equal(ans_obtained, ans_expected)
-})
-
-
-## calc_is_in_interval --------------------------------------------------------
-
-test_that("'calc_is_in_interval' works - include_upper is TRUE", {
-    estimate <- list(par = rvec::rvec_dbl(matrix(1:12, nr = 3)),
-                     b = rvec::rvec_dbl(matrix(13:24, nr = 3)))
-    truth <- list(par = 1:3, b = 4:6)
-    widths <- c(0.5, 0.9, 1)
-    ans_obtained <- calc_is_in_interval(estimate = estimate,
-                                        truth = truth,
-                                        widths = widths)
-    ans_expected <- list(par = calc_is_in_interval_one(estimate = estimate[[1]],
-                                                     truth = truth[[1]],
-                                                     widths = widths),
-                         b = calc_is_in_interval_one(estimate = estimate[[2]],
-                                                     truth = truth[[2]],
-                                                     widths = widths))
-    expect_equal(ans_obtained, ans_expected)
-})
-
-
-## calc_is_in_interval_one ---------------------------------------------------
-
-test_that("'calc_is_in_interval_one' works", {
-    estimate <- rvec::rvec_dbl(matrix(1:12, nr = 3))
-    truth <- rep(2, 3)
-    widths <- c(0.9, 1)
-    ans_obtained <- calc_is_in_interval_one(estimate = estimate,
-                                            truth = truth,
-                                            widths = widths)
-    ans_expected <- list("0.9" = c(TRUE, FALSE, FALSE),
-                         "1" = c(TRUE, TRUE, FALSE))
-    expect_equal(ans_obtained, ans_expected)
-})                                       
 
 
 ## 'draw_vals_ar' -------------------------------------------------------------
@@ -673,6 +588,20 @@ test_that("'draw_vals_slope' works", {
 })
 
 
+## error_point_est -------------------------------------------------------
+
+test_that("'error_point_est' works", {
+  var_est <- rvec::rvec_dbl(matrix(rnorm(300), nr = 3))
+  var_sim <- c(0, -1, 1)
+  point_est_fun <- "mean"
+  ans_obtained <- error_point_est(var_est = var_est,
+                                  var_sim = var_sim,
+                                  point_est_fun = point_est_fun)
+  ans_expected <- rvec::draws_mean(var_est) - var_sim
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## ## 'draw_vals_season' ---------------------------------------------------------
 
 ## test_that("'draw_vals_season' works", {
@@ -693,6 +622,23 @@ test_that("'draw_vals_slope' works", {
 ##     expect_identical(ncol(ans$season), 100L)
 ##     expect_equal(mean(apply(ans$season[c(1, 3, 5, 7),], 2, mean)), 0, tolerance = 0.01)
 ## })
+
+
+## is_in_interval --------------------------------------------------------
+
+test_that("'calc_is_in_interval' works - include_upper is TRUE", {
+  var_est <- rvec::rvec_dbl(matrix(rnorm(300), nr = 3))
+  var_sim <- c(-1, 0, 1)
+  widths <- c(0.5, 0.9, 1)
+  ans_obtained <- is_in_interval(var_est = var_est,
+                                 var_sim = var_sim,
+                                 widths = widths)
+  q <- rvec::draws_quantile(var_est, probs = c(0, 0.05, 0.25, 0.75, 0.95, 1))
+  ans_expected <- list("0.5" = (var_sim >= q[[3]] & var_sim <= q[[4]]),
+                       "0.9" = (var_sim >= q[[2]] & var_sim <= q[[5]]),
+                       "1" = (var_sim >= q[[1]] & var_sim <= q[[6]]))
+  expect_equal(ans_obtained, ans_expected)
+})
 
 
 ## 'get_vals_hyperparam_est' --------------------------------------------------
@@ -1152,6 +1098,24 @@ test_that("'vals_effect_to_dataframe' works", {
                                            2000:2005,
                                            c("F", "M"),
                                            paste(0:9, rep(2000:2005, each = 10), sep = ".")),
-                                 .fitted = rvec::rvec(do.call(rbind, vals_effect)))
+                                 .fitted = rvec::rvec(unname(do.call(rbind, vals_effect))))
   expect_equal(ans_obtained, ans_expected)
 })
+
+
+
+## width_interval -------------------------------------------------------------
+
+test_that("'width_interval' works", {
+  var_est <- rvec::rvec_dbl(matrix(1:300, nr = 3))
+  widths <- c(0.5, 0.9, 1)
+  ans_obtained <- width_interval(var_est = var_est,
+                                 widths = widths)
+  q <- rvec::draws_quantile(var_est, probs = c(0, 0.05, 0.25, 0.75, 0.95, 1))
+  ans_expected <- list("0.5" = q[[4]] - q[[3]],
+                       "0.9" = q[[5]] - q[[2]],
+                       "1" = q[[6]] - q[[1]])
+  expect_equal(ans_obtained, ans_expected)
+})
+
+

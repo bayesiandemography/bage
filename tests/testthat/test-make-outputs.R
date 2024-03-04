@@ -556,14 +556,15 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
 
 test_that("'sort_components' works with valid inputs", {
   components <- tibble::tribble(~term,         ~component, ~level,
-                                "(Intercept)", "effect",   "(Intercept)",
+                                "sex",          "effect",   "m",
                                 "time",         "seasonal", "2000",
                                 "sex",          "hyper",    "sd",
                                 "time",         "effect",   "2000",
-                                "sex",          "effect",   "m",
                                 "sex",          "effect",   "f",
+                                "(Intercept)", "effect",   "(Intercept)",
                                 "time",         "cyclical", "2000")
-  ans_obtained <- sort_components(components)
+  mod <- list(formula = deaths ~ time + sex)
+  ans_obtained <- sort_components(components = components, mod = mod)
   ans_expected <- tibble::tribble(~term,         ~component, ~level,
                                   "(Intercept)", "effect",   "(Intercept)",
                                   "time",         "effect",   "2000",
@@ -580,7 +581,7 @@ test_that("'sort_components' raises correct effor with invalid component", {
                                 "(Intercept)", "effect",   "(Intercept)",
                                 "time",         "seasonal", "2000",
                                 "sex",          "wrong",    "sd")
-  expect_error(sort_components(components),
+  expect_error(sort_components(components, mod = list(formula = deaths ~ age)),
                "Internal error: \"wrong\" not a valid value for `component`.")
 })
 

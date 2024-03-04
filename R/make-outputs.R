@@ -553,14 +553,19 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 #' @returns A reordered version of 'components'
 #'
 #' @noRd
-sort_components <- function(components) {
+sort_components <- function(components, mod) {
   levels_component <- c("effect",
                         "trend", "cyclical", "seasonal", "error",
                         "disp",
                         "hyper")
+  formula <- mod$formula
   term <- components$term
   component <- components$component
-  i_term <- match(term, unique(term))
+  terms_formula <- terms(formula)
+  levels_term <- attr(terms_formula, "term.labels")
+  if (attr(terms_formula, "intercept"))
+    levels_term <- c("(Intercept)", levels_term)
+  i_term <- match(term, levels_term)
   i_comp <- match(components$component, levels_component, nomatch = 0L)
   i_invalid_comp <- match(0L, i_comp, nomatch = 0L)
   if (i_invalid_comp > 0L) {
