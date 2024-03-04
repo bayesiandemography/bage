@@ -208,7 +208,8 @@ components.bage_mod <- function(object, ...) {
     ans <- draw_vals_components(mod = object, n_sim = n_draw)
   }
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  ans <- sort_components(ans)
+  ans <- sort_components(components = ans,
+                         mod = object)
   ans
 }
 
