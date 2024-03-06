@@ -1,68 +1,71 @@
 
-## 'performance' --------------------------------------------------------------
+## 'aggregate_report_aug' -----------------------------------------------------
 
-test_that("'performance' works with valid inputs - components", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod_sim <- mod
-    mod_est <- mod
-    mod_sim <- set_n_draw(mod, n = 1)
-    comp_sim <- components(mod_sim)
-    mod_est$deaths <- mod_sim$deaths
-    mod_est <- fit(mod_est)
-    comp_est <- components(mod_est)
-    ans_obtained <- performance(est = comp_est,
-                                sim = comp_sim,
-                                i_sim = 1L,
-                                point_est_fun = "median",
-                                widths = c(0.6, 0.8),
-                                compare = ".fitted")
-    names(comp_est)[[4]] <- ".fitted_est"
-    names(comp_sim)[[4]] <- ".fitted_sim"
-    merged <- merge(comp_est, comp_sim, sort = FALSE) 
-    ans_expected <- list(.fitted = list(error_point_est =
-                                          error_point_est(var_est = merged[[".fitted_est"]],
-                                                          var_sim = as.numeric(merged[[".fitted_sim"]]),
-                                                          point_est_fun = "median"),
-                                        is_in_interval =
-                                          is_in_interval(var_est = merged[[".fitted_est"]],
-                                                         var_sim = as.numeric(merged[[".fitted_sim"]]),
-                                                         widths = c(0.6, 0.8)),
-                                        width_interval =
-                                          width_interval(var_est = merged[[".fitted_est"]],
-                                                         widths = c(0.6, 0.8))))
-    expect_equal(ans_obtained, ans_expected)
+test_that("'aggregate_report_aug' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  perform_aug <- list(perform_aug(est = aug_est,
+                                  sim = aug_sim,
+                                  i_sim = 1L,
+                                  point_est_fun = "median",
+                                  widths = c(0.6, 0.8)))
+  report_aug <- make_report_aug(perform_aug = perform_aug,
+                                  aug_sim = aug_sim)
+  report_aug <- rvec_to_mean(report_aug)
+  ans_obtained <- aggregate_report_aug(report_aug)
+  expect_identical(names(ans_obtained),
+                   setdiff(names(report_aug),
+                           c("age", "sex", "time", "popn", "deaths")))
+  expect_identical(unique(ans_obtained$.var), unique(report_aug$.var))
 })
 
-## test_that("'assess_performance' works with valid inputs - include_upper is FALSE", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_season(mod, n = 2)
-##     vals <- draw_vals_mod(mod, n_sim = 3)
-##     vals_sim <- get_vals_sim_one(vals, i_sim = 3)
-##     ans <- assess_performance(vals_sim = vals_sim,
-##                               mod_est = mod,
-##                               point_est_fun = "mean",
-##                               include_upper = FALSE,
-##                               widths = c(0.5, 0.95))
-##     expect_identical(sapply(ans, length),
-##                      c(vals_sim = 2L,
-##                        error_point_est = 2L,
-##                        is_in_interval = 2L,
-##                        width_interval = 2L))
-## })
+
+## 'aggregate_report_comp' ----------------------------------------------------
+
+test_that("'aggregate_report_comp' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  comp_sim <- components(mod_sim)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  comp_est <- components(mod_est)
+  perform_comp <- list(perform_comp(est = comp_est,
+                                    sim = comp_sim,
+                                    i_sim = 1L,
+                                    point_est_fun = "median",
+                                    widths = c(0.5, 0.95)))
+  report_comp <- make_report_comp(perform_comp = perform_comp,
+                                  comp_sim = comp_sim)
+  report_comp <- rvec_to_mean(report_comp)
+  ans_obtained <- aggregate_report_comp(report_comp)
+  expect_identical(names(ans_obtained), setdiff(names(report_comp), "level"))
+  expect_identical(unique(ans_obtained$term), unique(report_comp$term))
+})
 
 
 
@@ -602,31 +605,107 @@ test_that("'error_point_est' works", {
 })
 
 
-## ## 'draw_vals_season' ---------------------------------------------------------
+## 'get_error_point_est' ------------------------------------------------------
 
-## test_that("'draw_vals_season' works", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_season(mod, n = 2)
-##     mod <- set_prior(mod, age ~ Sp())
-##     mod <- set_prior(mod, time ~ RW2())
-##     ans <- draw_vals_season(mod, n_sim = 100)
-##     expect_identical(length(ans$sd), 100L)
-##     expect_identical(nrow(ans$season), 7L)
-##     expect_identical(ncol(ans$season), 100L)
-##     expect_equal(mean(apply(ans$season[c(1, 3, 5, 7),], 2, mean)), 0, tolerance = 0.01)
-## })
+test_that("'get_error_point_est' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  perform <- list(perform_aug(est = aug_est,
+                              sim = aug_sim,
+                              i_sim = 1L,
+                              point_est_fun = "median",
+                              widths = c(0.6, 0.8)))
+  ans_obtained <- get_error_point_est(perform)
+  expect_identical(sapply(ans_obtained, names),
+                   c(.fitted = ".error", .expected = ".error"))
+  expect_identical(sapply(ans_obtained, nrow),
+                   c(.fitted = nrow(aug_est), .expected = nrow(aug_est)))
+})
+
+
+## 'get_is_in_interval' -------------------------------------------------------
+
+test_that("'get_is_in_interval' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  perform <- list(perform_aug(est = aug_est,
+                              sim = aug_sim,
+                              i_sim = 1L,
+                              point_est_fun = "median",
+                              widths = c(0.5, 0.95)))
+  ans_obtained <- get_is_in_interval(perform)
+  expect_identical(lapply(ans_obtained, names),
+                   list(.fitted = c(".cover_50", ".cover_95"),
+                        .expected = c(".cover_50", ".cover_95")))
+  expect_identical(sapply(ans_obtained, nrow),
+                   c(.fitted = nrow(aug_est), .expected = nrow(aug_est)))
+})
+
+
+## 'get_length_interval' -------------------------------------------------------
+
+test_that("'get_error_point_est' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  perform <- list(perform_aug(est = aug_est,
+                                  sim = aug_sim,
+                                  i_sim = 1L,
+                                  point_est_fun = "median",
+                                  widths = c(0.5, 0.95)))
+  ans_obtained <- get_length_interval(perform)
+  expect_identical(lapply(ans_obtained, names),
+                   list(.fitted = c(".length_50", ".length_95"),
+                        .expected = c(".length_50", ".length_95")))
+  expect_identical(sapply(ans_obtained, nrow),
+                   c(.fitted = nrow(aug_est), .expected = nrow(aug_est)))
+})
 
 
 ## is_in_interval --------------------------------------------------------
 
-test_that("'calc_is_in_interval' works - include_upper is TRUE", {
+test_that("'is_in_interval' works - include_upper is TRUE", {
   var_est <- rvec::rvec_dbl(matrix(rnorm(300), nr = 3))
   var_sim <- c(-1, 0, 1)
   widths <- c(0.5, 0.9, 1)
@@ -634,9 +713,9 @@ test_that("'calc_is_in_interval' works - include_upper is TRUE", {
                                  var_sim = var_sim,
                                  widths = widths)
   q <- rvec::draws_quantile(var_est, probs = c(0, 0.05, 0.25, 0.75, 0.95, 1))
-  ans_expected <- list("0.5" = (var_sim >= q[[3]] & var_sim <= q[[4]]),
-                       "0.9" = (var_sim >= q[[2]] & var_sim <= q[[5]]),
-                       "1" = (var_sim >= q[[1]] & var_sim <= q[[6]]))
+  ans_expected <- list("50" = (var_sim >= q[[3]] & var_sim <= q[[4]]),
+                       "90" = (var_sim >= q[[2]] & var_sim <= q[[5]]),
+                       "100" = (var_sim >= q[[1]] & var_sim <= q[[6]]))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -701,223 +780,301 @@ test_that("'get_vals_hyperparam_est' works", {
 })
 
 
-## ## 'get_vals_sim_one' ---------------------------------------------------------
+## length_interval ------------------------------------------------------------
 
-## test_that("'get_vals_sim_one' works - include_upper = TRUE", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_season(mod, n = 2)
-##     vals <- draw_vals_mod(mod, n_sim = 10)
-##     ans_obtained <- get_vals_sim_one(i_sim = 3, vals = vals)
-##     ans_expected <- list(effect = list("(Intercept)" = vals$effect[["(Intercept)"]][,3,drop = FALSE],
-##                                        age = vals$effect$age[, 3, drop = FALSE],
-##                                        sex = vals$effect$sex[, 3, drop = FALSE],
-##                                        time = vals$effect$time[, 3, drop = FALSE]),
-##                          hyper = list("(Intercept)" = list(),
-##                                       age = list(sd = vals$hyper$age$sd[3]),
-##                                       sex = list(sd = vals$hyper$sex$sd[3]),
-##                                       time = list(sd = vals$hyper$time$sd[3])),
-##                          disp = vals$disp[3],
-##                          cyclical = NULL,
-##                          season = list(season = vals$season$season[,3,drop = FALSE],
-##                                        sd = vals$season$sd[3]),
-##                          par = vals$par[,3,drop = FALSE],
-##                          outcome = vals$outcome[,3,drop = FALSE])
-##     expect_equal(as.numeric(unlist(ans_obtained)),
-##                  as.numeric(unlist(ans_expected)))
-## })
+test_that("'length_interval' works", {
+  var_est <- rvec::rvec_dbl(matrix(1:300, nr = 3))
+  widths <- c(0.5, 0.9, 1)
+  ans_obtained <- length_interval(var_est = var_est,
+                                  widths = widths)
+  q <- rvec::draws_quantile(var_est, probs = c(0, 0.05, 0.25, 0.75, 0.95, 1))
+  ans_expected <- list("50" = q[[4]] - q[[3]],
+                       "90" = q[[5]] - q[[2]],
+                       "100" = q[[6]] - q[[1]])
+  expect_equal(ans_obtained, ans_expected)
+})
 
 
+## 'make_report_aug' ----------------------------------------------------------
 
-## ## make_diff_matrix -----------------------------------------------------------
-
-## test_that("'make_diff_matrix' works", {
-##     set.seed(0)
-##     m <- make_diff_matrix(10)
-##     x <- rnorm(10)
-##     ans_obtained <- as.numeric(m %*% x)
-##     ans_expected <- diff(x)
-##     expect_equal(ans_obtained, ans_expected)
-## })
-
-
-## ## 'make_id_vars_report' -------------------------------------------------------------
-
-## test_that("'make_id_vars_report' works with include_upper TRUE", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn)
-##     ans_obtained <- make_id_vars_report(mod, include_upper = TRUE)
-##     expect_identical(names(ans_obtained), c("component", "term", "level"))
-##     expect_setequal(ans_obtained$component, c("effect", "hyper", "disp", "par"))
-## })
-
-## test_that("'make_id_vars_report' works with include_upper FALSE", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     mod <- mod_pois(formula = deaths ~ age + sex + time,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_season(n = 2)
-##     ans_obtained <- make_id_vars_report(mod, include_upper = FALSE)
-##     expect_identical(names(ans_obtained), c("component", "term", "level"))
-##     expect_setequal(ans_obtained$component, c("disp", "par"))
-## })
+test_that("'make_report_aug' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  perform_aug <- list(perform_aug(est = aug_est,
+                                  sim = aug_sim,
+                                  i_sim = 1L,
+                                  point_est_fun = "median",
+                                  widths = c(0.6, 0.8)))
+  ans_obtained <- make_report_aug(perform_aug = perform_aug,
+                                  aug_sim = aug_sim)
+  expect_setequal(names(ans_obtained),
+                  c(".var", "age", "time", "sex",
+                    "deaths", "popn", ".observed", ".error",
+                    ".cover_60", ".cover_80",
+                    ".length_60", ".length_80"))
+  expect_identical(nrow(ans_obtained), 2L * nrow(aug_sim))
+})
 
 
-## ## make_sim_season_matrix -----------------------------------------------------
+## 'make_report_comp' ---------------------------------------------------------
 
-## test_that("'make_sim_season_matrix' works", {
-##     set.seed(0)
-##     m <- make_sim_season_matrix(n_time = 10, n_season = 2L)
-##     x <- rnorm(10)
-##     ans_obtained <- as.numeric(m %*% x)
-##     ans_expected <- c(diff(x, lag = 2), mean(x))
-##     expect_equal(ans_obtained, ans_expected)
-## })
-
-
-## ## make_rw2_matrix ------------------------------------------------------------
-
-## test_that("'make_rw2_matrix' works", {
-##     set.seed(0)
-##     m <- make_rw2_matrix(10)
-##     x <- rnorm(10)
-##     ans_obtained <- as.numeric(m %*% x)
-##     h <- seq(from = -1, to = 1, length.out = 10)
-##     slope <- coef(lm(x ~ h))[["h"]]
-##     ans_expected <- c(diff(x, diff = 2), mean(x), slope)
-##     expect_equal(ans_obtained, ans_expected)
-## })
-
-
-## ## 'make_vals_linpred_cylical' ------------------------------------------------
-
-## test_that("'make_vals_linpred_cyclical' works", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2006, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age * time + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_cyclical(mod, n = 2)
-##     n_sim <- 10L
-##     vals_cyclical <- draw_vals_cyclical(mod, n_sim = n_sim)
-##     ans <- make_vals_linpred_cyclical(mod = mod,
-##                                       vals_cyclical = vals_cyclical)
-##     expect_identical(nrow(ans), length(mod$outcome))
-##     expect_identical(ncol(ans), n_sim)
-##     expect_true(all(apply(ans, 2, function(x) length(unique(x))) == 7L))
-## })
+test_that("'make_report_comp' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  comp_sim <- components(mod_sim)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  comp_est <- components(mod_est)
+  perform_comp <- list(perform_comp(est = comp_est,
+                                    sim = comp_sim,
+                                    i_sim = 1L,
+                                    point_est_fun = "median",
+                                    widths = c(0.5, 0.95)))
+  ans_obtained <- make_report_comp(perform_comp = perform_comp,
+                                   comp_sim = comp_sim)
+  expect_setequal(names(ans_obtained),
+                  c("term", "component", "level", ".error",
+                    ".cover_50", ".cover_95",
+                    ".length_50", ".length_95"))
+})
 
 
-## ## make_vals_linpred_effect ------------------------------------------------------
+## 'perform_aug' ------------------------------------------------------
 
-## test_that("'make_vals_linpred_effect' works", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age * time + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     n_sim <- 10L
-##     vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-##     vals_effect <- draw_vals_effect_mod(mod,
-##                                         vals_hyper = vals_hyper,
-##                                         n_sim = n_sim)
-##     ans <- make_vals_linpred_effect(mod = mod,
-##                                     vals_effect = vals_effect)
-##     expect_identical(nrow(ans), length(mod$outcome))
-##     expect_identical(ncol(ans), n_sim)
-## })
+test_that("'perform_aug' works with valid inputs - models same", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  ans_obtained <- perform_aug(est = aug_est,
+                                      sim = aug_sim,
+                                      i_sim = 1L,
+                                      point_est_fun = "median",
+                                      widths = c(0.6, 0.8))
+  names(aug_est)[6:8] <- paste(names(aug_est)[6:8], "est", sep = "_")
+  names(aug_sim)[6:8] <- paste(names(aug_sim)[6:8], "sim", sep = "_")
+  ans_expected <- list(.fitted =
+                         list(error_point_est =
+                                error_point_est(var_est = aug_est[[".fitted_est"]],
+                                                var_sim = as.numeric(aug_sim[[".fitted_sim"]]),
+                                                point_est_fun = "median"),
+                              is_in_interval =
+                                is_in_interval(var_est = aug_est[[".fitted_est"]],
+                                               var_sim = as.numeric(aug_sim[[".fitted_sim"]]),
+                                               widths = c(0.6, 0.8)),
+                              length_interval =
+                                length_interval(var_est = aug_est[[".fitted_est"]],
+                                               widths = c(0.6, 0.8))),
+                       .expected =
+                         list(error_point_est =
+                                error_point_est(var_est = aug_est[[".expected_est"]],
+                                                var_sim = as.numeric(aug_sim[[".expected_sim"]]),
+                                                point_est_fun = "median"),
+                              is_in_interval =
+                                is_in_interval(var_est = aug_est[[".expected_est"]],
+                                               var_sim = as.numeric(aug_sim[[".expected_sim"]]),
+                                               widths = c(0.6, 0.8)),
+                              length_interval =
+                                length_interval(var_est = aug_est[[".expected_est"]],
+                                               widths = c(0.6, 0.8))))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'perform_aug' works with valid inputs - models different", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod_sim <- mod_pois(deaths ~ age + sex + time,
+                      data = data,
+                      exposure = popn) |>
+                      set_prior(`(Intercept)` ~ NFix())
+  mod_est <- mod_pois(deaths ~ age * sex + time,
+                      data = data,
+                      exposure = popn) |>
+                      set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- set_n_draw(mod_sim, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  ans_obtained <- perform_aug(est = aug_est,
+                              sim = aug_sim,
+                              i_sim = 1L,
+                              point_est_fun = "median",
+                              widths = c(0.6, 0.8))
+  names(aug_est)[6:8] <- paste(names(aug_est)[6:8], "est", sep = "_")
+  names(aug_sim)[6:8] <- paste(names(aug_sim)[6:8], "sim", sep = "_")
+  ans_expected <- list(.fitted =
+                         list(error_point_est =
+                                error_point_est(var_est = aug_est[[".fitted_est"]],
+                                                var_sim = as.numeric(aug_sim[[".fitted_sim"]]),
+                                                point_est_fun = "median"),
+                              is_in_interval =
+                                is_in_interval(var_est = aug_est[[".fitted_est"]],
+                                               var_sim = as.numeric(aug_sim[[".fitted_sim"]]),
+                                               widths = c(0.6, 0.8)),
+                              length_interval =
+                                length_interval(var_est = aug_est[[".fitted_est"]],
+                                               widths = c(0.6, 0.8))),
+                       .expected =
+                         list(error_point_est =
+                                error_point_est(var_est = aug_est[[".expected_est"]],
+                                                var_sim = as.numeric(aug_sim[[".expected_sim"]]),
+                                                point_est_fun = "median"),
+                              is_in_interval =
+                                is_in_interval(var_est = aug_est[[".expected_est"]],
+                                               var_sim = as.numeric(aug_sim[[".expected_sim"]]),
+                                               widths = c(0.6, 0.8)),
+                              length_interval =
+                                length_interval(var_est = aug_est[[".expected_est"]],
+                                               widths = c(0.6, 0.8))))
+  expect_equal(ans_obtained, ans_expected)
+})
 
 
-## ## 'make_vals_linpred_season' -------------------------------------------------
+## 'perform_comp' ---------------------------------------------------------
 
-## test_that("'make_vals_linpred_season' works", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2000:2006, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age * time + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_season(mod, n = 2)
-##     n_sim <- 10L
-##     vals_season <- draw_vals_season(mod, n_sim = n_sim)
-##     ans <- make_vals_linpred_season(mod = mod,
-##                                     vals_season = vals_season)
-##     expect_identical(nrow(ans), length(mod$outcome))
-##     expect_identical(ncol(ans), n_sim)
-##     expect_true(all(apply(ans, 2, function(x) length(unique(x))) == 7L))
-## })
+test_that("'perform_comp' works with valid inputs - models same", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(`(Intercept)` ~ NFix())
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  comp_sim <- components(mod_sim)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  comp_est <- components(mod_est)
+  ans_obtained <- perform_comp(est = comp_est,
+                                   sim = comp_sim,
+                                   i_sim = 1L,
+                                   point_est_fun = "median",
+                                   widths = c(0.6, 0.8))
+  names(comp_est)[[4]] <- ".fitted_est"
+  names(comp_sim)[[4]] <- ".fitted_sim"
+  merged <- merge(comp_est, comp_sim, sort = FALSE) 
+  ans_expected <- list(.fitted =
+                         list(error_point_est =
+                                error_point_est(var_est = merged[[".fitted_est"]],
+                                                var_sim = as.numeric(merged[[".fitted_sim"]]),
+                                                point_est_fun = "median"),
+                              is_in_interval =
+                                is_in_interval(var_est = merged[[".fitted_est"]],
+                                               var_sim = as.numeric(merged[[".fitted_sim"]]),
+                                               widths = c(0.6, 0.8)),
+                              length_interval =
+                                length_interval(var_est = merged[[".fitted_est"]],
+                                               widths = c(0.6, 0.8))))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'perform_comp' works with valid inputs - models different", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula_est <- deaths ~ age + sex + time
+  mod_est <- mod_pois(formula = formula_est,
+                      data = data,
+                      exposure = popn) |>
+                      set_prior(`(Intercept)` ~ NFix())
+  formula_sim <- deaths ~ age * sex + time
+  mod_sim <- mod_pois(formula = formula_sim,
+                      data = data,
+                      exposure = popn)
+  mod_sim <- set_n_draw(mod_sim, n = 1)
+  comp_sim <- components(mod_sim)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$deaths)
+  mod_est <- fit(mod_est)
+  comp_est <- components(mod_est)
+  ans_obtained <- perform_comp(est = comp_est,
+                                   sim = comp_sim,
+                                   i_sim = 1L,
+                                   point_est_fun = "median",
+                                   widths = c(0.6, 0.8))
+  names(comp_est)[[4]] <- ".fitted_est"
+  names(comp_sim)[[4]] <- ".fitted_sim"
+  merged <- merge(comp_est, comp_sim, sort = FALSE) 
+  ans_expected <- list(.fitted =
+                         list(error_point_est =
+                                error_point_est(var_est = merged[[".fitted_est"]],
+                                                var_sim = as.numeric(merged[[".fitted_sim"]]),
+                                                point_est_fun = "median"),
+                              is_in_interval =
+                                is_in_interval(var_est = merged[[".fitted_est"]],
+                                               var_sim = as.numeric(merged[[".fitted_sim"]]),
+                                               widths = c(0.6, 0.8)),
+                              length_interval =
+                                length_interval(var_est = merged[[".fitted_est"]],
+                                               widths = c(0.6, 0.8))))
+  expect_equal(ans_obtained, ans_expected)
+})
 
 
-## ## 'reformat_performance_vec' -------------------------------------------------
+## 'report_sim' ---------------------------------------------------------------
 
-## test_that("'reformat_performance_vec' works with valid input", {
-##     x <- list(list(a = c(0, 0.1),
-##                    b = c(1, 1.1, 1.2)),
-##               list(a = c(10, 10.1),
-##                    b = c(11, 11.1, 11.2)))
-##     ans_obtained <- reformat_performance_vec(x)
-##     ans_expected <- rvec::rvec_dbl(cbind(c(0, 0.1, 1, 1.1, 1.2),
-##                                          c(10, 10.1, 11, 11.1, 11.2)))
-##     expect_identical(ans_obtained, ans_expected)
-## })
+test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(`(Intercept)` ~ NFix(s = 0.1))
+    set.seed(0)
+    ans_obtained <- report_sim(mod, n_sim = 2)
+    expect_setequal(names(ans_obtained), c("components", "augment"))
+})
 
-
-## ## 'reformat_interval' --------------------------------------------------
-
-## test_that("'reformat_interval' works with valid input", {
-##     x <- list(list(a = list("0.5" = c(T,F), "0.95" = c(F,T)),
-##                    b = list("0.5" = c(F,T,F), "0.95" = c(T,F,T))),
-##               list(a = list("0.5" = c(T,F), "0.95" = c(F,T)),
-##                    b = list("0.5" = c(F,T,F), "0.95" = c(F,T,F))))
-##     ans_obtained <- reformat_interval(x, nm = "coverage")
-##     ans_expected <- tibble::tibble(coverage.0.5 =
-##                                        rvec::rvec_lgl(cbind(c(T,F,F,T,F),c(T,F,F,T,F))),
-##                                    coverage.0.95 =
-##                                        rvec::rvec_lgl(cbind(c(F,T,T,F,T), c(F,T,F,T,F))))
-##     expect_identical(ans_obtained, ans_expected)
-## })
-
-
-## ## 'report_sim' ---------------------------------------------------------------
-
-## test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
-##     ans_obtained <- report_sim(mod, n_sim = 2)
-##     expect_true(is.data.frame(ans_obtained))
-##     expect_identical(nrow(ans_obtained), 4L)
-## })
-
-## test_that("'report_sim' works when mod_sim is identical to mod_est - long", {
+## test_that("'report_sim' works when mod_sim devis identical to mod_est - long", {
 ##     set.seed(0)
 ##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
 ##     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1101,21 +1258,3 @@ test_that("'vals_effect_to_dataframe' works", {
                                  .fitted = rvec::rvec(unname(do.call(rbind, vals_effect))))
   expect_equal(ans_obtained, ans_expected)
 })
-
-
-
-## width_interval -------------------------------------------------------------
-
-test_that("'width_interval' works", {
-  var_est <- rvec::rvec_dbl(matrix(1:300, nr = 3))
-  widths <- c(0.5, 0.9, 1)
-  ans_obtained <- width_interval(var_est = var_est,
-                                 widths = widths)
-  q <- rvec::draws_quantile(var_est, probs = c(0, 0.05, 0.25, 0.75, 0.95, 1))
-  ans_expected <- list("0.5" = q[[4]] - q[[3]],
-                       "0.9" = q[[5]] - q[[2]],
-                       "1" = q[[6]] - q[[1]])
-  expect_equal(ans_obtained, ans_expected)
-})
-
-

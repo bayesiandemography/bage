@@ -64,6 +64,7 @@ generics::augment
 #' mod |> augment()
 #' @export
 augment.bage_mod <- function(x, ...) {
+  components <- components(x)
   is_fitted <- is_fitted(x)
   seed_augment <- x$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
@@ -76,7 +77,6 @@ augment.bage_mod <- function(x, ...) {
     ## if model not fitted, stop here
     inv_transform <- get_fun_inv_transform(x)
     has_disp <- has_disp(x)
-    components <- components(x)
     linpred <- make_linpred_effect(mod = x,
                                    components = components)
     if (has_disp) {
@@ -94,9 +94,7 @@ augment.bage_mod <- function(x, ...) {
       ans$.expected <- expected
   }
   else {
-    n_draw <- x$n_draw
-    vals_components <- draw_vals_components(mod = x, n_sim = n_draw)
-    ans <- draw_vals_augment(mod = x, vals_components = vals_components)
+    ans <- draw_vals_augment(mod = x, vals_components = components)
   }
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans
@@ -433,6 +431,7 @@ generics::fit
 #'
 #' @export    
 fit.bage_mod <- function(object, ...) {
+  object <- unfit(object)
   ## data
   nm_distn <- nm_distn(object)
   outcome <- object$outcome
