@@ -544,7 +544,22 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 }
 
 
+## HAS_TESTS
+#' Convert Rvec Columns to Numeric Columns by Taking Means
+#'
+#' @param data A data frame
+#'
+#' @return A data frame
+#'
+#' @noRd
+rvec_to_mean <- function(data) {
+  is_rvec <- vapply(data, rvec::is_rvec, TRUE)
+  data[is_rvec] <- lapply(data[is_rvec], rvec::draws_mean)
+  data
+}
 
+
+## HAS_TESTS
 #' Order 'components' by 'term' and Then By 'term'
 #'
 #' @param components A tibble - typically the output

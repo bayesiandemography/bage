@@ -537,6 +537,22 @@ test_that("'reformat_hyperrand' works", {
 })
 
 
+## 'rvec_to_mean' -------------------------------------------------------------
+
+test_that("'rvec_to_mean' works with valid inputs", {
+  data <- tibble::tibble(a = 1:3,
+                         b = rvec::rvec(matrix(1:12, nr = 3)),
+                         c = rvec::rvec(matrix(FALSE, nr = 3, nc = 2)),
+                         d = c("a", "b", "c"))
+  ans_obtained <- rvec_to_mean(data)
+  ans_expected <- tibble::tibble(a = 1:3,
+                         b = rowMeans(matrix(1:12, nr = 3)),
+                         c = rowMeans(matrix(FALSE, nr = 3, nc = 2)),
+                         d = c("a", "b", "c"))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'rmvnorm_chol', 'rmvnorm_eigen' --------------------------------------------
 
 test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
