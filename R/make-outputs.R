@@ -576,7 +576,7 @@ sort_components <- function(components, mod) {
   formula <- mod$formula
   term <- components$term
   component <- components$component
-  terms_formula <- terms(formula)
+  terms_formula <- stats::terms(formula)
   levels_term <- attr(terms_formula, "term.labels")
   if (attr(terms_formula, "intercept"))
     levels_term <- c("(Intercept)", levels_term)

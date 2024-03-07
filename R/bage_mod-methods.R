@@ -362,7 +362,7 @@ draw_vals_outcome <- function(mod, vals_fitted, vals_disp) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_outcome.bage_mod_pois <- function(mod, vals_fitted) {
+draw_vals_outcome.bage_mod_pois <- function(mod, vals_fitted, vals_disp) {
   offset <- mod$offset
   n_val <- length(vals_fitted)
   n_draw <- rvec::n_draw(vals_fitted)
@@ -377,7 +377,7 @@ draw_vals_outcome.bage_mod_pois <- function(mod, vals_fitted) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_outcome.bage_mod_binom <- function(mod, vals_fitted) {
+draw_vals_outcome.bage_mod_binom <- function(mod, vals_fitted, vals_disp) {
   offset <- mod$offset
   n_val <- length(vals_fitted)
   n_draw <- rvec::n_draw(vals_fitted)
@@ -769,32 +769,6 @@ make_observed.bage_mod_norm <- function(x) {
 }
 
 
-## 'make_term_par' ---------------------------------------------------------
-
-#' Name to use for par parameter
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A string
-#'
-#' @noRd
-make_term_par <- function(mod) {
-    UseMethod("make_term_par")
-}
-
-## HAS_TESTS
-#' @export
-make_term_par.bage_mod_pois <- function(mod) "rate"
-
-## HAS_TESTS
-#' @export
-make_term_par.bage_mod_binom <- function(mod) "prob"
-
-## HAS_TESTS
-#' @export
-make_term_par.bage_mod_norm <- function(mod) "mean"
-
-
 ## 'model_descr' -----------------------------------------------------------------
 
 #' Name of distribution used in printing
@@ -819,33 +793,6 @@ model_descr.bage_mod_binom <- function(mod) "binomial"
 ## HAS_TESTS
 #' @export
 model_descr.bage_mod_norm <- function(mod) "normal"
-
-
-## 'n_time' -------------------------------------------------------------------
-
-#' Number of time points in outcome data
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns An integer
-#'
-#' @noRd
-n_time <- function(mod) {
-    UseMethod("n_time")
-}
-
-## HAS_TESTS
-#' @export
-n_time.bage_mod <- function(mod) {
-    var_time <- mod$var_time
-    has_time <- !is.null(var_time)
-    if (has_time) {
-        matrices_effect_outcome <- mod$matrices_effect_outcome
-        ncol(matrices_effect_outcome[[var_time]])
-    }
-    else
-        0L
-}
 
 
 ## 'nm_distn' -----------------------------------------------------------------

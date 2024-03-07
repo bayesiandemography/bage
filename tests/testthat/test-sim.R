@@ -1061,6 +1061,23 @@ test_that("'perform_comp' works with valid inputs - models different", {
 
 test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
     set.seed(0)
+    data <- expand.grid(age = 0:20, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(`(Intercept)` ~ NFix()) |>
+                    set_prior(sex ~ NFix()) |>
+                    set_prior(age ~ Sp())
+    set.seed(0)
+    ans_obtained <- report_sim(mod, n_sim = 2)
+    expect_setequal(names(ans_obtained), c("components", "augment"))
+})
+
+test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
+    set.seed(0)
     data <- expand.grid(age = 0:9, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -1068,80 +1085,20 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-                    set_prior(`(Intercept)` ~ NFix(s = 0.1))
-    set.seed(0)
-    ans_obtained <- report_sim(mod, n_sim = 2)
-    expect_setequal(names(ans_obtained), c("components", "augment"))
+                    set_prior(`(Intercept)` ~ NFix())
+    ans_obtained <- report_sim(mod,
+                               n_sim = 2,
+                               report_type = "long",
+                               point_est_fun = "med",
+                               n_core = 2)
+    expect_identical(names(ans_obtained), c("components", "augment"))
 })
 
-## test_that("'report_sim' works when mod_sim devis identical to mod_est - long", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
-##     ans_obtained <- report_sim(mod,
-##                                n_sim = 2,
-##                                report_type = "long",
-##                                point_est_fun = "med")
-##     expect_true(is.data.frame(ans_obtained))
-## })
 
 
-## test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
-##     ans_obtained <- report_sim(mod,
-##                                n_sim = 2,
-##                                report_type = "long",
-##                                point_est_fun = "med",
-##                                n_core = 2)
-##     expect_true(is.data.frame(ans_obtained))
-## })
+## 'standardize_vals_effect' --------------------------------------------------
 
-
-
-
-## test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
-##     mod_est <- fit(mod)
-##     mod_sim <- fit(mod)
-##     comp_est <- components(mod_est)
-##     comp_sim <- components(mod_sim)
-##     aug_est <- augment(mod_est)
-##     aug_sim <- augment(mod_sim)
-##     comp <- merge(comp_sim, comp_est, by =     
-    
-##     ans_obtained <- report_sim(mod,
-##                                n_sim = 2,
-##                                report_type = "long",
-##                                point_est_fun = "med",
-##                                n_core = 2)
-##     expect_true(is.data.frame(ans_obtained))
-## })
-
-
-
-test_that("'stanardize_vals_effect' works", {
+test_that("'standardize_vals_effect' works", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1168,39 +1125,6 @@ test_that("'stanardize_vals_effect' works", {
   x_standard <- do.call(rbind, ans)
   expect_equal(m %*% x_raw, m %*% x_standard)
 })
-
-
-## ## 'summarise_sim' ---------------------------------------------------------------
-
-## test_that("'summarise_sim' works with valid inputs", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn) |>
-##                     set_prior(`(Intercept)` ~ NFix(sd = 0.01))
-##     data <- report_sim(mod, n_sim = 2, report_type = "long")
-##     ans <- summarise_sim(data)
-##     expect_identical(names(ans), setdiff(names(data), c("term", "level")))
-##     expect_true(all(sapply(ans[-1], is.double)))
-## })
-
-
-
-## ## 'transpose_list' -----------------------------------------------------------
-
-## test_that("'transpose_list' works with valid inputs - all lengths at least 1", {
-##     l <- list(a = list(x = 1, y = 2, z = 3),
-##               b = list(x = 10, y = 20, z = 30))
-##     ans_obtained <- transpose_list(l)
-##     ans_expected <- list(list(1, 10),
-##                          list(2, 20),
-##                          list(3, 30))
-##     expect_identical(ans_obtained, ans_expected)
-## })
 
 
 ## 'vals_disp_to_dataframe' ---------------------------------------------------

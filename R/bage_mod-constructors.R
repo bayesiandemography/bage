@@ -286,7 +286,7 @@ mod_helper <- function(formula, data, n_draw) {
   check_is_formula(formula)
   check_formula_has_response(formula)
   check_formula_has_predictors(formula)
-  checkmate::assert_data_frame(data)
+  check_is_dataframe(x = data, nm_x = "data")
   ## check consistency between inputs
   check_formula_vnames_in_data(formula = formula,
                                data = data)

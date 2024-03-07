@@ -33,9 +33,7 @@ Imports:
     vctrs
 Suggests:
     bookdown,
-    covr,
     dplyr,
-    ggdist,
     ggplot2,
     knitr,
     rmarkdown,

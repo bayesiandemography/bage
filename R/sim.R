@@ -929,6 +929,7 @@ standardize_vals_effect <- function(mod, vals_effect) {
   matrices_effect_outcome <- mod$matrices_effect_outcome
   matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
   matrix_effect_outcome <- Reduce(cbind, matrices_effect_outcome)
+  vals_effect <- lapply(vals_effect, Matrix::as.matrix)
   effects <- do.call(rbind, vals_effect)
   linpred <- matrix_effect_outcome %*% effects
   n_effect <- length(vals_effect)
@@ -944,24 +945,6 @@ standardize_vals_effect <- function(mod, vals_effect) {
     cli::cli_abort("Internal error: Final residual not 0")  ## nocov
   names(ans) <- names(vals_effect)
   ans
-}
-
-
-## HAS_TESTS
-#' Transpose the first two layers of a list
-#'
-#' Transposing removes names.
-#'
-#' @param l A list
-#'
-#' @returns A list
-#'
-#' @noRd
-transpose_list <- function(l) {
-    elements <- unlist(l, recursive = FALSE, use.names = FALSE)
-    m <- matrix(elements, ncol = length(l))
-    m <- t(m)
-    apply(m, 2L, identity, simplify = FALSE)
 }
 
 
@@ -1100,27 +1083,39 @@ report_sim <- function(mod_est,
   nm_outcome <- get_nm_outcome(mod_sim)
   outcome_sim <- aug_sim[[nm_outcome]]
   outcome_sim <- as.matrix(outcome_sim)
-  perform_comp <- vector(mode = "list", length = n_sim)
-  perform_aug <- vector(mode = "list", length = n_sim)
-  names(perform_comp) <- seq_len(n_sim)
-  names(perform_aug) <- seq_len(n_sim)
-  for (i_sim in seq_len(n_sim)) {
+  report_sim_inner <- function(i_sim) {
+    library(bage)
     outcome <- outcome_sim[, i_sim]
     mod_est$outcome <- outcome
     mod_est <- fit(mod_est)
     comp_est <- components(mod_est)
     aug_est <- augment(mod_est)
-    perform_comp[[i_sim]] <- perform_comp(est = comp_est,
-                                          sim = comp_sim,
-                                          i_sim = i_sim,
-                                          point_est_fun = point_est_fun,
-                                          widths = widths)
-    perform_aug[[i_sim]] <- perform_aug(est = aug_est,
-                                        sim = aug_sim,
-                                        i_sim = i_sim,
-                                        point_est_fun = point_est_fun,
-                                        widths = widths)
+    results_comp <- perform_comp(est = comp_est,
+                                 sim = comp_sim,
+                                 i_sim = i_sim,
+                                 point_est_fun = point_est_fun,
+                                 widths = widths)
+    results_aug <- perform_aug(est = aug_est,
+                               sim = aug_sim,
+                               i_sim = i_sim,
+                               point_est_fun = point_est_fun,
+                               widths = widths)
+    list(results_comp, results_aug)
   }
+  s_sim <- seq_len(n_sim)
+  if (n_core > 1L) {
+    iseed <- make_seed()
+    cl <- parallel::makeCluster(n_core)
+    on.exit(parallel::stopCluster(cl))
+    parallel::clusterSetRNGStream(cl, iseed = iseed)
+    results <- parallel::parLapply(cl = cl,
+                                   X = s_sim,
+                                   fun = report_sim_inner)
+  }
+  else
+    results <- lapply(s_sim, report_sim_inner)
+  perform_comp <- lapply(results, `[[`, 1L)
+  perform_aug <- lapply(results, `[[`, 2L)
   report_comp <- make_report_comp(perform_comp = perform_comp,
                                   comp_sim = comp_sim)
   report_aug <- make_report_aug(perform_aug = perform_aug,
@@ -1139,30 +1134,6 @@ report_sim <- function(mod_est,
     return(list(components = report_comp,
                 augment = report_aug))
   cli::cli_abort("Internal error: Invalid value for {.val report_type}.") ## nocov
-}
-
-
-## HAS_TESTS
-#' Summarise detailed output from simulation
-#'
-#' Summaries are means across cells and across simulations
-#'
-#' @param data Tibble with output from simulation
-#'
-#' @returns A tibble
-#'
-#' @noRd
-summarise_sim <- function(data) {
-    x <- data[setdiff(names(data), c("component", "term", "level"))]
-    f <- factor(data$component, levels = unique(data$component))
-    data <- split(x = x, f = f)
-    summarise_one_chunk <- function(y)
-        vapply(y, function(z) mean(as.numeric(z)), 0)
-    ans <- lapply(data, summarise_one_chunk)
-    ans <- do.call(rbind, ans)
-    ans <- data.frame(component = names(data), ans)
-    ans <- tibble::tibble(ans)
-    ans
 }
 
 

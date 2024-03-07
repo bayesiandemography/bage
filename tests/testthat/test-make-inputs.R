@@ -520,21 +520,6 @@ test_that("'make_i_prior' works with valid inputs", {
 })
 
 
-## 'make_idx_time' ------------------------------------------------------------
-
-test_that("'make_idx_time' works with var_time non-NULL", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()),
-                var_time = "b")
-    expect_identical(make_idx_time(mod), 2L)
-})
-
-test_that("'make_idx_time' returns 0 when var_time NULL", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()),
-                var_time = NULL)
-    expect_identical(make_idx_time(mod), 0L)
-})
-
-
 ## 'make_indices_priors' ------------------------------------------------------
 
 test_that("'make_indices_priors' works", {
@@ -1019,16 +1004,6 @@ test_that("'make_matrix_along_by' works when only one element", {
 })
 
 
-## 'make_matrix_sparse_empty' -------------------------------------------------
-
-test_that("'make_matrix_sparse_empty' works", {
-    ans <- make_matrix_sparse_empty()
-    expect_identical(nrow(ans), 0L)
-    expect_identical(ncol(ans), 0L)
-    expect_true(is(ans, "sparseMatrix"))
-})
-
-
 ## 'make_offset' --------------------------------------------------------------
 
 test_that("'make_offset' works with valid inputs - no NA", {
@@ -1160,23 +1135,6 @@ test_that("'make_spline_matrix' works", {
     expect_equal(dim(m), c(10L, 5L))
     expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
 })        
-
-
-## 'make_submatrix' -----------------------------------------------------------
-
-test_that("'make_submatrix' works - dimension in term", {
-    ans_obtained <- make_submatrix(d = 4L, is_in = TRUE)
-    ans_expected <- diag(4L)
-    expect_identical(as.matrix(ans_obtained), ans_expected)
-    expect_s4_class(ans_obtained, "sparseMatrix")
-})
-
-test_that("'make_submatrix' works - dimension not in term", {
-    ans_obtained <- make_submatrix(d = 4L, is_in = FALSE)
-    ans_expected <- matrix(1, nrow = 4, ncol = 1)
-    expect_identical(as.matrix(ans_obtained), ans_expected)
-    expect_s4_class(ans_obtained, "sparseMatrix")
-})    
 
 
 ## 'make_terms_const' ---------------------------------------------------------
