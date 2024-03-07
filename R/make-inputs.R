@@ -209,7 +209,7 @@ make_agesex <- function(mod) {
 #' WARNING. This must be the name that
 #' is used internally, which is not necessarily
 #' the one that appears in the original
-#' formula, as base::terms() and friends
+#' formula, as stats::terms() and friends
 #' switch dimension order.
 #' @param var_age Name of the age variable. A string.
 #' @param var_sexgender Name of the sex/gender
@@ -401,30 +401,6 @@ make_hyperrand <- function(mod) {
 make_i_prior <- function(mod) {
     priors <- mod$priors
     vapply(priors, function(x) x$i_prior, 0L)
-}
-
-
-## HAS_TESTS
-#' Return one-based index of time main effect
-#'
-#' Returns 0 when 'var_time' is NULL, or
-#' no time main effect in model.
-#'
-#' @param mod Object of class "bage_mod".
-#'
-#' @returns Non-negative integer
-#'
-#' @noRd
-make_idx_time <- function(mod) {
-    var_time <- mod$var_time
-    priors <- mod$priors
-    if (is.null(var_time))
-        ans <- 0L 
-    else {
-        nms <- names(priors)
-        ans <- match(var_time, nms)
-    }
-    ans
 }
 
 
@@ -793,18 +769,6 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 
 
 ## HAS_TESTS
-#' Make an empty sparse matrix
-#'
-#' @returns A 0x0 sparse matrix
-#'
-#' @noRd
-make_matrix_sparse_empty <- function()
-    Matrix::sparseMatrix(i = integer(),
-                         j = integer(),
-                         x = integer())
-
-
-## HAS_TESTS
 #' Make vector holding offset variable
 #'
 #' @param vname_offset Name of the offset variable.
@@ -979,29 +943,6 @@ make_spline_matrix <- function(length_effect, n_spline) {
     Matrix::sparseMatrix(i = row(ans),
                          j = col(ans),
                          x = as.double(ans))
-}
-
-
-## HAS_TESTS
-#' Make sparse matrix describing the relationship
-#' between a dimension and the outcome array
-#'
-#' @param d Integer. Length of dimension
-#' @param is_in Logical vector. Whether the dimension
-#' is in the array.
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_submatrix <- function(d, is_in) {
-    i <- seq_len(d)
-    if (is_in)
-        j <- i
-    else
-        j <- rep.int(1L, times = d)
-    Matrix::sparseMatrix(i = i,
-                         j = j,
-                         x = 1)
 }
 
 

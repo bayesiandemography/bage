@@ -29,7 +29,7 @@ check_bage_mod <- function(x, nm_x) {
 #' @noRd
 check_by_in_formula <- function(by, formula) {
     if (!is.null(by)) {
-        terms <- terms(formula)
+        terms <- stats::terms(formula)
         terms <- stats::delete.response(terms)
         nms_dims <- rownames(attr(terms, "factors"))
         nms_invalid <- setdiff(by, nms_dims)
@@ -185,7 +185,7 @@ check_formula_has_variable <- function(name, formula) {
 #'
 #' @noRd
 check_formula_no_functions <- function(formula) {
-    terms <- terms(formula)
+    terms <- stats::terms(formula)
     variables <- attr(terms, "variables")
     is_call <- vapply(variables[-1L], is.call, TRUE)
     i_call <- match(TRUE, is_call, nomatch = 0L)
@@ -244,6 +244,22 @@ check_has_disp_if_condition_on_meanpar <- function(x) {
 }
 
 
+## 
+#' Check that an Object is a Formula
+#'
+#' @param formula An R formula
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_is_dataframe <- function(x, nm_x) {
+  if (!is.data.frame(x))
+    cli::cli_abort(c("{.arg {nm_x}} is not a data frame.",
+                     i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
+  invisible(TRUE)
+}
+
+
 ## HAS_TESTS
 #' Check that a model has been fitted
 #'
@@ -261,6 +277,7 @@ check_is_fitted <- function(x, x_arg) {
 }
 
 
+## HAS_TESTS
 #' Check that an Object is a Formula
 #'
 #' @param formula An R formula
@@ -273,8 +290,7 @@ check_is_formula <- function(formula) {
     cli::cli_abort(c("{.arg formula} is not an R formula.",
                      i = "{.arg formula} has class {.cls {class(formula)}}."))
   invisible(TRUE)
-}
-  
+} 
 
 
 ## HAS_TESTS

@@ -19,7 +19,6 @@ test_that("'check_bage_mod' returns expected error message with invalid model ob
 })
 
 
-
 ## 'check_by_in_formula' ------------------------------------------------------
 
 test_that("'check_by_in_formula' returns TRUE with valid inputs", {
@@ -204,6 +203,19 @@ test_that("'check_has_disp_if_condition_on_meanpar' works", {
                  "`condition_on` is \"meanpar\" but model has no dispersion term")
 })
 
+
+## 'check_is_dataframe' -------------------------------------------------------
+
+test_that("'check_is_dataframe' works with valid inputs", {
+  expect_true(check_is_dataframe(x = data.frame(), nm_x = "data"))
+  expect_true(check_is_dataframe(x = tibble(), nm_x = data))
+})
+
+test_that("'check_is_dataframe' throws correct error with non-dataframe", {
+  expect_error(check_is_dataframe(x = "a", nm_x = "val"),
+               "`val` is not a data frame.")
+})
+          
 
 ## 'check_is_fitted' ----------------------------------------------------------
 

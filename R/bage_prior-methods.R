@@ -332,7 +332,7 @@ draw_vals_effect.bage_prior_svd <- function(prior,
                                 n_comp = n_comp)
   n_par <- ncol(m)
   z <- stats::rnorm(n = n_par * n_sim)
-  z <- matrix(nrow = n_par, ncol = n_sim)
+  z <- matrix(z, nrow = n_par, ncol = n_sim)
   ans <- m %*% z + b
   dimnames(ans) <- list(levels_effect, seq_len(n_sim))
   ans    

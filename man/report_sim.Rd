@@ -10,7 +10,7 @@ report_sim(
   n_sim = 100,
   point_est_fun = c("median", "mean"),
   widths = c(0.5, 0.95),
-  report_type = c("short", "long"),
+  report_type = c("short", "long", "full"),
   n_core = 1
 )
 }
@@ -50,7 +50,7 @@ parameter from the likelihood.
 across all simulations and cells.
 \item \code{error_point_est}. Point estimate minus simulation-true
 value, averaged across all simulations and cells.
-\item \code{coverage}. Actual proportion of simulation-true values
+\item \code{cover}. Actual proportion of simulation-true values
 that fall within each type of interval, averaged across all
 simulations and cells.
 }
@@ -67,7 +67,7 @@ or mean parameter from the likelihood.
 stored in an \link[rvec:rvec]{rvec}.
 \item \code{error_point_est}. Point estimates minus simulation-true
 values, stored in an \link[rvec:rvec]{rvec}.
-\item \code{coverage}. Actual proportions of simulation-true values
+\item \code{cover}. Actual proportions of simulation-true values
 falling within each type of interval, stored in
 an \link[rvec:rvec]{rvec}.
 }

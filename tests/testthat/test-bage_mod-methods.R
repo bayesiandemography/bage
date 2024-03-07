@@ -1045,52 +1045,12 @@ test_that("'make_observed' throws expected with bage_mod_norm", {
 })
 
 
-## 'make_term_par' ---------------------------------------------------------
-
-test_that("'make_term_par' works with valid inputs", {
-    expect_identical(make_term_par(structure(1, class = "bage_mod_pois")), "rate")
-    expect_identical(make_term_par(structure(1, class = "bage_mod_binom")), "prob")
-    expect_identical(make_term_par(structure(1, class = "bage_mod_norm")), "mean")
-})
-
-
 ## 'model_descr' --------------------------------------------------------------
 
 test_that("'model_descr' works with valid inputs", {
     expect_identical(model_descr(structure(1, class = "bage_mod_pois")), "Poisson")
     expect_identical(model_descr(structure(1, class = "bage_mod_binom")), "binomial")
     expect_identical(model_descr(structure(1, class = "bage_mod_norm")), "normal")
-})
-
-
-## 'n_time' -------------------------------------------------------------------
-
-test_that("'n_time' works when outcome has time variable", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- n_time(mod)
-    ans_expected <- 6L
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'n_time' works when outcome does not have time variable", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- n_time(mod)
-    ans_expected <- 0L
-    expect_identical(ans_obtained, ans_expected)
 })
 
 
