@@ -194,21 +194,22 @@ test_that("'default_prior' works with ordinary term", {
                      N())
 })
 
-test_that("'default_prior' works with intercept", {
-    expect_identical(default_prior(nm_term = "(Intercept)",
-                                   var_age = "age",
-                                   var_time = "time",
-                                   length_effect = 1L),
-                     NFix(sd = 10))
-})
-
 test_that("'default_prior' works with term with length 1", {
-    expect_identical(default_prior(nm_term = "region",
+    expect_identical(default_prior(nm_term = "(Intercept)",
                                    var_age = "age",
                                    var_time = "time",
                                    length_effect = 1L),
                      NFix())
 })
+
+test_that("'default_prior' works with term with length 2", {
+    expect_identical(default_prior(nm_term = "reg",
+                                   var_age = "age",
+                                   var_time = "time",
+                                   length_effect = 1L),
+                     NFix())
+})
+
 
 test_that("'default_prior' works with age term", {
     expect_identical(default_prior(nm_term = "AgeGroup",
@@ -430,7 +431,7 @@ test_that("'make_const' works with valid inputs", {
     ans_obtained <- make_const(mod)
     ans_expected <- c("(Intercept)" = 0,
                       agegp.scale = 1,
-                      SEX.scale = 1)
+                      SEX.sd = 1)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -469,7 +470,7 @@ test_that("'make_hyper' works with valid inputs", {
                   data = data,
                   exposure = popn)
   ans_obtained <- make_hyper(mod)
-  ans_expected <- c(agegp = 0, SEX = 0, "agegp:SEX" = 0)
+  ans_expected <- c(agegp = 0, "agegp:SEX" = 0)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -612,7 +613,7 @@ test_that("'make_lengths_effectfree' works with valid inputs", {
 test_that("'make_lengths_hyper' works with valid inputs", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
-                      region = 1:2,
+                      region = 1:3,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -1084,19 +1085,8 @@ test_that("'make_priors' works with valid inputs - has intercept", {
                                 var_age = "age",
                                 var_time = "time",
                                 lengths_effect = c(1L, 10L, 12L))
-    ans_expected <- list("(Intercept)" = NFix(sd = 10),
+    ans_expected <- list("(Intercept)" = NFix(),
                          time = RW(),
-                         "age:sex" = N())
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_priors' works with valid inputs - no intercept", {
-    formula <- deaths ~ age:sex + time - 1
-    ans_obtained <- make_priors(formula,
-                                var_age = "age",
-                                var_time = "time",
-                                lengths_effect = c(10L, 12L))
-    ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
 })
@@ -1225,7 +1215,7 @@ test_that("'make_indices_priors' works", {
 test_that("'make_terms_hyper' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
-                        region = 1:2,
+                        region = 1:3,
                         SEX = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -1234,7 +1224,7 @@ test_that("'make_terms_hyper' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_terms_hyper(mod)
-    ans_expected <- factor(c("agegp", "SEX", "region", "agegp:SEX"),
+    ans_expected <- factor(c("agegp", "region", "agegp:SEX"),
                            levels = c("(Intercept)", "agegp", "SEX", "region", "agegp:SEX"))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -1269,7 +1259,7 @@ test_that("'make_terms_hyperrand' works - compose_time has two components", {
 test_that("'make_uses_hyper' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
-                        region = 1:2,
+                        region = 1:3,
                         SEX = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -1281,7 +1271,7 @@ test_that("'make_uses_hyper' works with valid inputs", {
     ans_obtained <- make_uses_hyper(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 0L,
-                      SEX = 1L,
+                      SEX = 0L,
                       region = 1L,
                       "agegp:SEX" = 1L)
     expect_identical(ans_obtained, ans_expected)

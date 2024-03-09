@@ -453,7 +453,7 @@ set_var_inner <- function(mod, name, var) {
         priors[[name_old]] <- default_prior(nm_term = name_old,
                                             var_age = var_age, 
                                             var_time = var_time,
-                                            length_effect = length_effect)
+                                            length_effect = length_effect_old)
     }
     ## modify priors
     mod$priors <- priors

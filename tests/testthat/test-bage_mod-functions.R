@@ -174,7 +174,7 @@ test_that("'set_var_sexgender' works with valid inputs - no existing sexgender v
     expect_identical(mod$var_sexgender, NULL)
     mod <- set_var_sexgender(mod, name = "sexx")
     expect_identical(mod$var_sexgender, "sexx")
-    expect_s3_class(mod$priors[["sexx"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sexx"]], "bage_prior_normfixed")
 })
 
 test_that("'set_var_sexgender' works with valid inputs - has existing sexgender var", {
@@ -186,18 +186,18 @@ test_that("'set_var_sexgender' works with valid inputs - has existing sexgender 
                     data = data,
                     exposure = popn)
     expect_identical(mod$var_sexgender, "sex")
-    expect_s3_class(mod$priors[["sex"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sex"]], "bage_prior_normfixed")
     mod <- set_var_sexgender(mod, name = "gend")
     expect_identical(mod$var_sexgender, "gend")
     expect_s3_class(mod$priors[["gend"]], "bage_prior_norm")
-    expect_s3_class(mod$priors[["sex"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sex"]], "bage_prior_normfixed")
 })
 
 
 ## 'set_var_time' --------------------------------------------------------------
 
 test_that("'set_var_time' works with valid inputs", {
-    data <- expand.grid(age = 0:2, timex = 2000:2001, sex = 1:2)
+    data <- expand.grid(age = 0:2, timex = 2000:2011, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
     formula <- deaths ~ age*sex + timex

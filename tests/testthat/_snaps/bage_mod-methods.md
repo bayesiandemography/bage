@@ -7,9 +7,9 @@
       
            deaths ~ age + sex + time
       
-      (Intercept) ~ NFix(sd=10)
+      (Intercept) ~ NFix()
               age ~ RW()
-              sex ~ N()
+              sex ~ NFix()
              time ~ RW()
       
            dispersion: s=1
@@ -28,9 +28,9 @@
       
            deaths ~ age + sex + time
       
-      (Intercept) ~ NFix(sd=10)
+      (Intercept) ~ NFix()
               age ~ RW()
-              sex ~ N()
+              sex ~ NFix()
              time ~ RW()
       
            dispersion: s=1

@@ -360,7 +360,6 @@ test_that("'make_levels_hyper' works", {
     mod <- fit(mod)
     ans_obtained <- make_levels_hyper(mod)
     ans_expected <- c(age = "sd",
-                      sex = "sd",
                       time = "sd",
                       "age:sex" = "sd")
     expect_identical(ans_obtained, ans_expected)                      
@@ -499,7 +498,7 @@ test_that("'make_transforms_hyper' works", {
         2 * ans - 1
     }
     ans_expected <- c(rep(list(NULL), 19),
-                      rep(list(exp), 4),
+                      rep(list(exp), 3),
                       rep(list(identity), 6),
                       list(exp))
     expect_identical(unname(ans_obtained), ans_expected,
@@ -657,8 +656,8 @@ test_that("'transform_draws_hyper' works", {
     ans_obtained <- transform_draws_hyper(draws = draws,
                                           transforms = transforms)
     ans_expected <- rbind(draws[1:19, ],
-                          exp(draws[20:23, ]),
-                          draws[24:29, ],
-                          exp(draws[30, ]))
+                          exp(draws[20:22, ]),
+                          draws[23:28, ],
+                          exp(draws[29, ]))
     expect_identical(unname(ans_obtained), ans_expected)
 })
