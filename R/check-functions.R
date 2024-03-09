@@ -121,17 +121,17 @@ check_format_prior_formula <- function(formula) {
 
 
 ## HAS_TESTS
-#' Check 'formula' has predictors
+#' Check 'formula' has Intercept
 #'
 #' @param formula A formula.
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
-check_formula_has_predictors <- function(formula) {
-    has_predictors <- is.matrix(attr(stats::terms(formula), "factors"))
-    if (!has_predictors)
-        cli::cli_abort(c("{.arg formula} does not include any predictors.",
+check_formula_has_intercept <- function(formula) {
+    has_intercept <- attr(stats::terms(formula), "intercept")
+    if (!has_intercept)
+        cli::cli_abort(c("{.arg formula} does not include an intercept.",
                          i = "{.arg formula}: {.code {deparse1(formula)}}."))
     invisible(TRUE)
 }

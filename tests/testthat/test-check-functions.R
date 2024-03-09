@@ -106,16 +106,16 @@ test_that("'check_format_prior_formula' returns correct error with invalid input
 })
 
 
-## 'check_formula_has_predictors' -----------------------------------------------
+## 'check_formula_has_intercept' ----------------------------------------------
 
-test_that("'check_formula_has_predictors' returns TRUE with valid inputs", {
-    expect_true(check_formula_has_predictors(y ~ x + z))
-    expect_true(check_formula_has_predictors(y ~ x + z - 1))
+test_that("'check_formula_has_intercept' returns TRUE with valid inputs", {
+    expect_true(check_formula_has_intercept(y ~ x + z))
+    expect_true(check_formula_has_intercept(y ~ 1))
 })
 
-test_that("'check_formula_has_predictors' returns correct error with invalid inputs", {
-    expect_error(check_formula_has_predictors(~ 1),
-                 "`formula` does not include any predictors.")
+test_that("'check_formula_has_intercept' returns correct error with invalid inputs", {
+    expect_error(check_formula_has_intercept(y ~ age - 1),
+                 "`formula` does not include an intercept.")
 })
 
 

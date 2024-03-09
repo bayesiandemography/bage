@@ -285,7 +285,7 @@ mod_helper <- function(formula, data, n_draw) {
   ## check individual inputs
   check_is_formula(formula)
   check_formula_has_response(formula)
-  check_formula_has_predictors(formula)
+  check_formula_has_intercept(formula)
   check_is_dataframe(x = data, nm_x = "data")
   ## check consistency between inputs
   check_formula_vnames_in_data(formula = formula,
