@@ -244,10 +244,11 @@ check_has_disp_if_condition_on_meanpar <- function(x) {
 }
 
 
-## 
-#' Check that an Object is a Formula
+## HAS_TESTS
+#' Check that an Object is a Data Frame
 #'
-#' @param formula An R formula
+#' @param x An object
+#' @param nm_x Name to be used in error messages
 #'
 #' @returns TRUE, invisibly
 #'
@@ -327,7 +328,24 @@ check_is_main_effect <- function(nm, prior) {
                          i = "{.var {str_call_prior(prior)}} prior can only be used with main effects."))
     invisible(TRUE)
 }
-    
+
+
+## HAS_TESTS
+#' Check that an Object is a Matrix
+#'
+#' @param x An object
+#' @param nm_x Name to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_is_matrix <- function(x, nm_x) {
+  if (!is.matrix(x))
+    cli::cli_abort(c("{.arg {nm_x}} is not a matrix.",
+                     i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
+  invisible(TRUE)
+}
+
         
 ## HAS_TESTS
 #' Check that Along Dimension of Interaction has at Least 'min' Elements
@@ -402,7 +420,6 @@ check_main_effect_interaction <- function(x1, x2, nm1, nm2) {
   }
   invisible(TRUE)
 }
-
 
 
 ## HAS_TESTS
@@ -567,12 +584,11 @@ check_numeric <- function(x, nm_x) {
 #' @noRd
 check_offset_in_data <- function(vname_offset, nm_offset, data) {
     nms_data <- names(data)
-    if (!(vname_offset %in% nms_data))
-        stop(gettextf("%s variable [%s] not found in '%s'",
-                      nm_offset,
-                      vname_offset,
-                      "data"),
-             call. = FALSE)
+    if (!(vname_offset %in% nms_data)) {
+      Nm_offset <- gsub("\\b(\\w)", "\\U\\1", nm_offset, perl=TRUE)
+      cli::cli_abort(c("{Nm_offset} variable not found in {.arg data}.",
+                       i = "{Nm_offset} variable: {.val {vname_offset}}."))
+    }
     invisible(TRUE)
 }
 
@@ -591,13 +607,13 @@ check_offset_in_data <- function(vname_offset, nm_offset, data) {
 #'
 #' @noRd
 check_offset_nonneg <- function(vname_offset, nm_offset, data) {
-    offset <- data[[vname_offset]]
-    if (any(offset < 0, na.rm = TRUE))
-        stop(gettextf("%s variable [%s] has negative values",
-                      nm_offset,
-                      vname_offset),
-             call. = FALSE)
-    invisible(TRUE)
+  offset <- data[[vname_offset]]
+  if (any(offset < 0, na.rm = TRUE)) {
+    Nm_offset <- gsub("\\b(\\w)", "\\U\\1", nm_offset, perl = TRUE)
+    cli::cli_abort(c("{Nm_offset} variable has negative values.",
+                     i = "{Nm_offset} variable: {.val {vname_offset}}."))
+  }
+  invisible(TRUE)
 }
 
 
@@ -614,14 +630,14 @@ check_offset_nonneg <- function(vname_offset, nm_offset, data) {
 #'
 #' @noRd
 check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
-    nms_formula <- rownames(attr(stats::terms(formula), "factors"))
-    if (vname_offset %in% nms_formula)
-        stop(gettextf("%s variable [%s] included in formula '%s'",
-                      nm_offset,
-                      vname_offset,
-                      deparse1(formula)),
-             call. = FALSE)
-    invisible(TRUE)
+  nms_formula <- rownames(attr(stats::terms(formula), "factors"))
+  if (vname_offset %in% nms_formula) {
+    Nm_offset <- gsub("\\b(\\w)", "\\U\\1", nm_offset, perl = TRUE)
+    cli::cli_abort(c("{Nm_offset} variable included in formula.",
+                     i = "{Nm_offset} variable: {.val {vname_offset}}.",
+                     i = "Formula: {.val {deparse1(formula)}}."))
+  }
+  invisible(TRUE)
 }
 
 
@@ -646,12 +662,9 @@ check_resp_le_offset <- function(formula,
     is_gt_offset <- !is.na(response) & !is.na(offset) & (response > offset)
     i_gt_offset <- match(TRUE, is_gt_offset, nomatch = 0L)
     if (i_gt_offset > 0L) {
-        stop(gettextf("'%s' [%s] is greater than '%s' [%s]",
-                      nm_response,
-                      response[[i_gt_offset]],
-                      vname_offset,
-                      offset[[i_gt_offset]]),
-             call. = FALSE)
+      cli::cli_abort(c("{.var {nm_response}} greater than {.var {vname_offset}}.",
+                       i = "{.var {nm_response}}: {.val {response[[i_gt_offset]]}}.",
+                       i = "{.var {vname_offset}}: {.val {offset[[i_gt_offset]]}}."))
     }
     invisible(TRUE)
 }
@@ -672,21 +685,17 @@ check_resp_le_offset <- function(formula,
 check_resp_zero_if_offset_zero <- function(formula,
                                            vname_offset,
                                            data) {
-    nm_response <- deparse1(formula[[2L]])
-    response <- data[[nm_response]]
-    offset <- data[[vname_offset]]
-    response_pos <- response > 0
-    offset_pos <- offset > 0
-    is_pos_nonpos <- !is.na(response) & !is.na(offset) & response_pos & !offset_pos
-    i_pos_nonpos <- match(TRUE, is_pos_nonpos, nomatch = 0L)
-    if (i_pos_nonpos > 0L) {
-        stop(gettextf("'%s' [%s] is non-zero but '%s' is zero",
-                      nm_response,
-                      response[[i_pos_nonpos]],
-                      vname_offset),
-             call. = FALSE)
-    }
-    invisible(TRUE)
+  nm_response <- deparse1(formula[[2L]])
+  response <- data[[nm_response]]
+  offset <- data[[vname_offset]]
+  response_pos <- response > 0
+  offset_pos <- offset > 0
+  is_pos_nonpos <- !is.na(response) & !is.na(offset) & response_pos & !offset_pos
+  i_pos_nonpos <- match(TRUE, is_pos_nonpos, nomatch = 0L)
+  if (i_pos_nonpos > 0L)
+    cli::cli_abort(c("{.var {nm_response}} is non-zero but {.var {vname_offset}} is zero.",
+                     i = "{.var {nm_response}}: {.val {response[[i_pos_nonpos]]}}."))
+  invisible(TRUE)
 }
 
 
@@ -696,20 +705,20 @@ check_resp_zero_if_offset_zero <- function(formula,
 #'
 #' @param formula A formula
 #' @param data A data frame
-#' @param nm_distn Name of the disribution (eg "pois")
+#' @param nm_distn Name of the distribution (eg "pois")
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
 check_response_nonneg <- function(formula, data, nm_distn) {
-    nm_response <- deparse1(formula[[2L]])
-    response <- data[[nm_response]]
-    if (any(response < 0, na.rm = TRUE))
-        stop(gettextf("distribution is \"%s\" but response variable [%s] has negative values",
-                      nm_distn,
-                      nm_response),
-             call. = FALSE)
-    invisible(TRUE)
+  nm_response <- deparse1(formula[[2L]])
+  response <- data[[nm_response]]
+  n_neg <- sum(response < 0L, na.rm = TRUE)
+  if (n_neg > 0L) 
+    cli::cli_abort(c(paste("Model uses {nm_distn} distribution but response variable",
+                           "has negative {cli::qty(n_neg)}  value{?s}."),
+                     i = "Response variable: {.var {nm_response}}."))
+  invisible(TRUE)
 }
         
     

@@ -83,84 +83,84 @@ scaled_svd_comp <- function(x,
                             n = 10,
                             transform = c("log", "logit", "none"),
                             center = TRUE) {
-    ## check 'n'
-    n <- checkmate::assert_count(n,
-                                 positive = TRUE,
-                                 coerce = TRUE)
-    ## check 'x'
-    checkmate::assert_matrix(x,
-                             mode = "numeric",
-                             any.missing = FALSE,
-                             min.rows = 1L,
-                             min.cols = 1L)
-    if (ncol(x) < n)
-        stop(gettextf("number of columns in '%s' [%d] less than '%s' [%d]",
-                      "x",
-                      ncol(x),
-                      "n",
-                      n),
-             call. = FALSE)
-    ## check 'transform'
-    transform <- match.arg(transform)
-    if (transform %in% c("log", "logit")) {
-        if (any(x < 0))
-            stop(gettextf("'%s' is \"%s\" but '%s' has negative values",
-                          "transform",
-                          transform,
-                          "x"),
-                 call. = FALSE)
-    }
-    if (transform  == "logit") {
-        if (any(x > 1))
-            stop(gettextf("'%s' is \"%s\" but '%s' has values greater than 1",
-                          "transform",
-                          transform,
-                          "x"),
-                 call. = FALSE)
-    }
-    ## check 'center'
-    check_flag(center)
-    ## transform to log or logit scale if necessary
-    if (transform == "log") {
-        x <- replace_zeros(x)
-        x <- log(x)
-    }
-    if (transform == "logit") {
-        x <- replace_zeros_ones(x)
-        x <- log(1 / (1 - x))
-    }
-    ## center, if required
-    if (center) {
-        col_means <- colMeans(x)
-        col_means <- rep(col_means, each = nrow(x))
-        x <- x - col_means
-    }
-    ## apply svd
-    svd <- svd(x = x,
-               nu = n,
-               nv = n)
-    U <- svd$u
-    D <- diag(svd$d[seq_len(n)])
-    V <- svd$v
-    ## standardise
-    m <- colMeans(V)
-    S <- diag(apply(V, MARGIN = 2L, FUN = stats::sd))
-    matrix <- U %*% D %*% S
-    offset <- as.numeric(U %*% D %*% m)
-    ## add names
-    dn <- dimnames(x)
-    if (!is.null(dn[[1L]])) {
-        dimnames(matrix) <- c(dn[1L], list(component = seq_len(n)))
-        names(offset) <- dn[[1L]]
-    }
-    ## convert matrix to sparse matrix
-    matrix <- Matrix::sparseMatrix(i = row(matrix),
-                                   j = col(matrix),
-                                   x = as.double(matrix),
-                                   dimnames = dimnames(matrix))
-    ## return
-    list(matrix = matrix,
-         offset = offset)
+  ## check 'n'
+  check_n(n = n,
+          nm_n = "n",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  n <- as.integer(n)
+  ## check 'x'
+  check_is_matrix(x, nm_x = "x")
+  check_numeric(x, nm_x = "x")
+  if (ncol(x) < n)
+    stop(gettextf("number of columns in '%s' [%d] less than '%s' [%d]",
+                  "x",
+                  ncol(x),
+                  "n",
+                  n),
+         call. = FALSE)
+  ## check 'transform'
+  transform <- match.arg(transform)
+  if (transform %in% c("log", "logit")) {
+    if (any(x < 0))
+      stop(gettextf("'%s' is \"%s\" but '%s' has negative values",
+                    "transform",
+                    transform,
+                    "x"),
+           call. = FALSE)
+  }
+  if (transform  == "logit") {
+    if (any(x > 1))
+      stop(gettextf("'%s' is \"%s\" but '%s' has values greater than 1",
+                    "transform",
+                    transform,
+                    "x"),
+           call. = FALSE)
+  }
+  ## check 'center'
+  check_flag(center)
+  ## transform to log or logit scale if necessary
+  if (transform == "log") {
+    x <- replace_zeros(x)
+    x <- log(x)
+  }
+  if (transform == "logit") {
+    x <- replace_zeros_ones(x)
+    x <- log(1 / (1 - x))
+  }
+  ## center, if required
+  if (center) {
+    col_means <- colMeans(x)
+    col_means <- rep(col_means, each = nrow(x))
+    x <- x - col_means
+  }
+  ## apply svd
+  svd <- svd(x = x,
+             nu = n,
+             nv = n)
+  U <- svd$u
+  D <- diag(svd$d[seq_len(n)])
+  V <- svd$v
+  ## standardise
+  m <- colMeans(V)
+  S <- diag(apply(V, MARGIN = 2L, FUN = stats::sd))
+  matrix <- U %*% D %*% S
+  offset <- as.numeric(U %*% D %*% m)
+  ## add names
+  dn <- dimnames(x)
+  if (!is.null(dn[[1L]])) {
+    dimnames(matrix) <- c(dn[1L], list(component = seq_len(n)))
+    names(offset) <- dn[[1L]]
+  }
+  ## convert matrix to sparse matrix
+  matrix <- Matrix::sparseMatrix(i = row(matrix),
+                                 j = col(matrix),
+                                 x = as.double(matrix),
+                                 dimnames = dimnames(matrix))
+  ## return
+  list(matrix = matrix,
+       offset = offset)
 }
 
 

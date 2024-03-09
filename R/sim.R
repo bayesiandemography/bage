@@ -1085,6 +1085,8 @@ report_sim <- function(mod_est,
   outcome_sim <- as.matrix(outcome_sim)
   report_sim_inner <- function(i_sim) {
     library(bage)
+    perform_comp <- utils::getFromNamespace("perform_comp", ns = "bage")
+    perform_aug <- utils::getFromNamespace("perform_aug", ns = "bage")
     outcome <- outcome_sim[, i_sim]
     mod_est$outcome <- outcome
     mod_est <- fit(mod_est)

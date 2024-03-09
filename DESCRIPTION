@@ -19,7 +19,6 @@ LazyData: true
 Depends:
     R (>= 4.3.0)
 Imports:
-    checkmate,
     cli,
     generics,
     Matrix,
@@ -30,6 +29,7 @@ Imports:
     stats,
     tibble,
     TMB,
+    utils,
     vctrs
 Suggests:
     bookdown,
