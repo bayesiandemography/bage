@@ -9,8 +9,7 @@ test_that("'aggregate_report_aug' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -44,8 +43,7 @@ test_that("'aggregate_report_comp' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -615,8 +613,7 @@ test_that("'get_error_point_est' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -647,8 +644,7 @@ test_that("'get_is_in_interval' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -680,8 +676,7 @@ test_that("'get_error_point_est' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -805,8 +800,7 @@ test_that("'make_report_aug' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -840,8 +834,7 @@ test_that("'make_report_comp' works with valid inputs", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -874,8 +867,7 @@ test_that("'perform_aug' works with valid inputs - models same", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -924,12 +916,10 @@ test_that("'perform_aug' works with valid inputs - models different", {
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   mod_sim <- mod_pois(deaths ~ age + sex + time,
                       data = data,
-                      exposure = popn) |>
-                      set_prior(`(Intercept)` ~ NFix())
+                      exposure = popn)
   mod_est <- mod_pois(deaths ~ age * sex + time,
                       data = data,
-                      exposure = popn) |>
-                      set_prior(`(Intercept)` ~ NFix())
+                      exposure = popn)
   mod_sim <- set_n_draw(mod_sim, n = 1)
   aug_sim <- augment(mod_sim)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
@@ -980,8 +970,7 @@ test_that("'perform_comp' works with valid inputs - models same", {
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn) |>
-                  set_prior(`(Intercept)` ~ NFix())
+                  exposure = popn)
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
@@ -1021,8 +1010,7 @@ test_that("'perform_comp' works with valid inputs - models different", {
   formula_est <- deaths ~ age + sex + time
   mod_est <- mod_pois(formula = formula_est,
                       data = data,
-                      exposure = popn) |>
-                      set_prior(`(Intercept)` ~ NFix())
+                      exposure = popn)
   formula_sim <- deaths ~ age * sex + time
   mod_sim <- mod_pois(formula = formula_sim,
                       data = data,
@@ -1068,8 +1056,6 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-                    set_prior(`(Intercept)` ~ NFix()) |>
-                    set_prior(sex ~ NFix()) |>
                     set_prior(age ~ Sp())
     set.seed(0)
     ans_obtained <- report_sim(mod, n_sim = 2)
@@ -1084,8 +1070,7 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - parallel pr
     formula <- deaths ~ age + sex
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = popn) |>
-                    set_prior(`(Intercept)` ~ NFix())
+                    exposure = popn)
     ans_obtained <- report_sim(mod,
                                n_sim = 2,
                                report_type = "long",
