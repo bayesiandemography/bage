@@ -125,78 +125,50 @@ where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
-  \pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} (\#eq:means)
+  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} (\#eq:means)
 \end{equation}
 where
 
+- $g$ is a log function in Poisson models, a logit function in binomial models, and an identity function in normal models;
 - $\beta^{(0)}$ is an intercept;
 - $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a vector with $J_m$ elements describing a main effect or interaction formed from the dimensions of data $\pmb{y}$;
 - $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ that is used with cell $i$;
 - $\pmb{Z}$ is a $n \times P$ matrix of covariates; and
 - $\pmb{\zeta}$ is a coefficent vector with $P$ elements.
 
-If a main effect or interaction contains includes a time dimensions, then prior for the term can be decomposed into a trend, cyclical, and seasonal terms,
+If a main effect or interaction contains includes a time dimensions, then prior for the term can be composed of a trend, cyclical, seasonal, and error terms,
 \begin{equation}
-  \pmb{\beta}^{(m)} = \pmb{\beta}_{\text{trend}}^{(m)} + \pmb{\beta}_{\text{cyc}}^{(m)} + \pmb{\beta}_{\text{seas}}^{(m)}
+  \pmb{\beta}^{(m)} = \pmb{\beta}_{\text{trend}}^{(m)} + \pmb{\beta}_{\text{cyc}}^{(m)} + \pmb{\beta}_{\text{seas}}^{(m)} + \pmb{\beta}_{\text{err}}^{(m)}.
 \end{equation}
-where
-
-- $\pmb{\beta}_{\text{trend}}^{(m)}$ is a trend;
-- $\pmb{\beta}_{\text{cyc}}^{(m)}$ is a cyclical effect;
-- $\pmb{\beta}_{\text{seas}}^{(m)}$ is a seasonal effect.
-
-When a term is decomposed, the trend term is required, and the cyclical and seasonal effects are both optional.
-
-
-"A cyclic pattern exists when data exhibit rises and falls that are not of fixed period", as opposed to a seasonal pattern that has a fixed period [Hyndman](https://robjhyndman.com/hyndsight/cyclicts/).
-
+The trend term is compulsory. The remaining terms are optional.
 
 # Standardization {#sec:standard}
 
-We adopt notation from @gelman2014bayesian [p. 395]. Let $\beta_{j_i^m}^{(m)}$ denote the element of $\pmb{\beta}^{(m)}$ that contributes to $\mu_i$. Under our model of means,
+NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
+
+Set
 \begin{equation}
-  \mu_i = \sum_{m=0}^M \beta_{j_i^m}^{(m)}
+  \pmb{r}^{(0)} = \pmb{\mu}
 \end{equation}
 
-- $\mu_i$ well identified by data
-- For some combinations of prior model for $\pmb{\beta}^{(m)}$ and terms, eg random walk prior, only weakly identify level terms; result is that individual $\beta_{j_i^m}^{(m)}$ are weakly identified; data cannot distinguish between
-\begin{equation}
-  \beta^{(0)} + \beta_{j_i^1}^{(1)} + \cdots + \beta_{j_i^M}^{(M)}
-\end{equation}
-and
-\begin{equation}
-  (\beta^{(0)} + \Delta_0) + (\beta_{j_i^1}^{(1)} + \Delta_1) + \cdots + (\beta_{j_i^M}^{(M)} + \Delta_M),
-\end{equation}
-where $\sum_{m=0}^M \Delta_m = 0$.
-- One solution would be to make stronger priors: eg sum-to-zero constraints; but this sacrifices sparsity, and leads to much slower calculations in TMB
-- alternative: postprocessing. Rescale each draw from posterior distribution. For each draw, choose a set of $\Delta_m$ that make draws consistent
+For $m = 0, \cdots, M$:
 
-Define $\phi_j^m$ as the set of $i$ such that $j_i^m = j$, and $n^{(m)}$ as the number of elements in $\phi_j^m$ (which is identical for $j = 1, \cdots, J_m$).
-
-Algorithm for processing a single draw from the posterior distribution:
-
-- Set $\tilde{\beta}^{(0)} = \sum_{i=1}^n \mu_i \big/ n$, set $r_i^{(0)} = \mu_i$, and set $r_i^{(1)} = r_i^{(0)} - \tilde{\beta}^{(0)}$
-- For $m = 1, \cdots, M$: set $\tilde{\beta}_j^{(m)} = \sum_{i \in \phi_j^m} r_i^{(m)} \big/ n^{(m)}$ and set $r_i^{(m+1)} = r_i^{(m)} - \tilde{\beta}_{j_i^m}^{(m)}$.
-
-Note that $r_i^{(M+1)} = 0$. **Or at least I think so. I can't figure out how to prove it.**
-
-Let
-\begin{equation}
-  \tilde{\mu}_i = \sum_{m=0}^M \tilde{\beta}_{j_i^m}^{(m)}
-\end{equation}
-
-Then $\tilde{\mu}_i = \mu_i$. Proof.
-
-\begin{align}
-  \tilde{\mu}_i & = \sum_{m=0}^M \tilde{\beta}_{j_i^m}^{(m)} \\
-  & = \sum_{m=0}^M r_i^{(m)} - r_i^{(m+1)} \\
-  & = r_i^{(0)} - r_i^{(M+1)} \\
-  & = \mu_i
-\end{align}
+- Set $\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}$
+- Set $\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}$
 
 
 
-# Priors for Main Effects and Interactions {#sec:priors}
+# Priors for Intercept, Main Effects, and Interactions {#sec:priors}
+
+
+The algorithm for assigning default priors:
+
+- If $\pmb{\beta}^{(m)}$ has one or two elements, assign $\pmb{\beta}^{(m)}$ a fixed-normal prior (Section \@ref(sec:pr-fnorm));
+- otherwise, if $\pmb{\beta}^{(m)}$ is an age or time main effect, assign $\pmb{\beta}^{(m)}$ a random walk prior (Section \@ref(sec:pr-rw));
+- otherwise, assign $\pmb{\beta}^{(m)}$ a normal prior (Section \@ref(sec:pr-norm))
+
+The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)).
+
 
 ## Normal {#sec:pr-norm}
 
@@ -297,7 +269,7 @@ NFix(sd = 1)
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \beta_1^{(m)} & \sim \text{N}(0, 1) \\
-  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, 1), \quad j = 2, \cdots, J_m
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
 \end{align}
 
 
@@ -312,6 +284,49 @@ NFix(sd = 1)
 
 ```
 RW(s = 1)
+```
+
+- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+
+
+
+## Exchangeable first-order random walk {#sec:pr-erw}
+
+### Model
+
+\begin{align}
+  \beta_{u1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
+  \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u1}^{(m)} \mid 0, 1)  \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
+\end{equation}
+
+
+### Simulation
+
+\begin{align}
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m
+\end{align}
+
+
+### Prediction
+
+\begin{equation}
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
+\end{equation}
+
+
+### Code
+
+```
+ERW(s = 1)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
@@ -446,7 +461,7 @@ AR1(min = 0.8, max = 0.98, s = 1)
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
 
-## Independent Autoregressive {#sec:pr-iar}
+## Exchangeable Autoregressive {#sec:pr-ear}
 
 
 ### Model
@@ -482,7 +497,7 @@ where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \c
 ### Code
 
 ```
-IAR(n = 2, s = 1, along = NULL)
+EAR(n = 2, s = 1, along = NULL)
 ```
 
 - `n` is $K_m$
@@ -493,6 +508,9 @@ IAR(n = 2, s = 1, along = NULL)
     - otherwise, throw an error.
 
 
+## Exchangeable AR1 {#sec:pr-ear1}
+
+TODO - complete
 
 ## Linear {#sec:pr-lin}
 
@@ -533,7 +551,7 @@ Lin(s = 1, sd = 1)
 - `sd` is $A_{\eta}^{(m)}$
 
 
-## Independent Linear {#sec:pr-ilin}
+## Exchangeable Linear {#sec:pr-elin}
 
 ### Model
 
@@ -570,7 +588,7 @@ where
 ### Code
 
 ```
-ILin(s = 1, sd = 1, ms = 1, along = NULL)
+ELin(s = 1, sd = 1, ms = 1, along = NULL)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
@@ -680,8 +698,7 @@ Known(values)
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} & \sim \text{N}(0, 1), \quad j = 1, \cdots, S_m - 1 \\
-  \beta_{S_m}^{(m)} & = - \sum_{j=1}^{S_m - 1} \beta_j^{(m)} \\
+  \beta_j^{(m)} & \sim \text{N}(0, 1), \quad j = 1, \cdots, S_m \\
   \beta_j^{(m)} & \sim \text{N}(\beta_{j - S_m}^{(m)}, \tau_m^2 ), \quad j = S_m+1, \cdots, J_m \\ 
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
 \end{align}
@@ -690,8 +707,8 @@ Known(values)
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m-1} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
-\end{equation}
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
+\end{equation}n
 
 ### Prediction
 
@@ -708,11 +725,37 @@ Seas(n, s = 1)
 - `n` is $S_m$
 - `s` is $A_{\tau}^{(m)}$
 
+## Exchangeable seasonal {#sec:pr_eseas}
 
-# Priors for intercept {#sec:pr-int}
+### Model
 
-The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)). If a fixed-norm prior is used, the default value for scale $A_{\beta}^{(0)}$ is 10 rather than 1.
+\begin{align}
+  \beta_{uv}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
+  \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v - S_m}^{(m)}, \tau_m^2 ), \quad u = 1, \cdots, U_m,\quad v = S_m+1, \cdots, V_m \\ 
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
+\end{align}
 
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{u=1}^{U_m} \prod_{v=1}^{S_m} \text{N}(\beta_{uv}^{(m)} \mid 0, 1 ) \right)  \left( \prod_{u=1}^{U_M} \prod_{v=S_m+1}^{V_m} \text{N}(\beta_{uv}^{(m)} \mid \beta_{u,v-S_m}^{(m)}, \tau_m^2) \right) 
+\end{equation}
+
+### Prediction
+
+\begin{equation}
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-S_m}^{(m)}, \tau_m^2)
+\end{equation}
+
+### Code
+
+```
+ESeas(n, s = 1)
+```
+
+- `n` is $S_m$
+- `s` is $A_{\tau}^{(m)}$
 
 
 # Covariates {#sec:pr-cov}
@@ -875,42 +918,6 @@ and setting
 Next we convert any transformed hyper-parameters back to the original units, and insert values for $\pmb{\beta}^{(m)}$ for terms that have Known priors. We denote the resulting vector $\pmb{\theta}$.
 
 Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Section \@ref(sec:lik).
-
-# Standardization - second version
-
-NOTE - ignoring covariates for the moment. I suspect we can just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
-
-Under our model for means
-\begin{equation}
- \pmb{\mu} = \sum_{m=0}^{(m)} \pmb{X}^{(m)} \pmb{\beta^{(m)}}
-\end{equation}
-where each $\pmb{X}^{(m)}$ is an incidence matrix of 0s and 1s.
-
-Let
-\begin{equation}
-  \pmb{A}_m = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top}
-\end{equation}
-and let
-\begin{align}
-  \pmb{P}_0 & = \pmb{A}_0 \\
-  \pmb{P}_m & = \pmb{A}_m (\pmb{I} - \pmb{X}^{(m-1)} \pmb{P}_{m-1}), \quad m = 1, \cdots, M.
-\end{align}
-We set
-\begin{equation}
-  \tilde{\pmb{\beta}}^{(m)} = \pmb{P}_m \pmb{\mu}
-\end{equation}
-
-Note that
-\begin{align}
-  \sum_{m=0}^M \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)} & =   \sum_{m=0}^M \pmb{X}^{(m)} \pmb{P}_m \pmb{\mu} \\
-  & =
-\end{align}
-  
-
-
-
-
-
 
 # Simulation
 
