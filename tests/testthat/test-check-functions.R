@@ -272,6 +272,18 @@ test_that("'check_is_main_effect' throws correct error when interaction", {
 })    
 
 
+## 'check_is_matrix' ----------------------------------------------------------
+
+test_that("'check_is_matrix' works with valid inputs", {
+  expect_true(check_is_matrix(x = matrix(), nm_x = "data"))
+})
+
+test_that("'check_is_matrix' throws correct error with non-matrix", {
+  expect_error(check_is_matrix(x = "a", nm_x = "val"),
+               "`val` is not a matrix.")
+})
+
+
 ## 'check_length_along_ge' ----------------------------------------------------
 
 test_that("'check_length_along_ge' returns TRUE with valid inputs", {
@@ -475,8 +487,16 @@ test_that("'check_offset_in_data' returns correct error with invalid inputs", {
     expect_error(check_offset_in_data(vname_offset = "popn",
                                       nm_offset = "exposure",
                                       data = data.frame(deaths = 1, wrong = 2)),
-                 "exposure variable \\[popn\\] not found in 'data'")
+                 "Exposure variable not found in `data`")
 })
+
+test_that("'check_offset_in_data' returns correct error with invalid inputs", {
+    expect_error(check_offset_in_data(vname_offset = "popn",
+                                      nm_offset = "size",
+                                      data = data.frame(deaths = 1, wrong = 2)),
+                 "Size variable not found in `data`")
+})
+
 
 
 ## 'check_n' ------------------------------------------------------------------
@@ -569,7 +589,7 @@ test_that("'check_offset_nonneg' returns correct error with invalid inputs", {
                                     data = data.frame(sex = 1:2,
                                                       popn = c(-1, 1),
                                                       deaths = 0:1)),
-                 "exposure variable \\[popn\\] has negative values")
+                 "Exposure variable has negative values.")
 })
 
 
@@ -585,7 +605,7 @@ test_that("'check_offset_not_in_formula' returns correct error with invalid inpu
     expect_error(check_offset_not_in_formula(vname_offset = "popn",
                                              nm_offset = "exposure",
                                              formula = popn ~ age + time),
-                 "exposure variable \\[popn\\] included in formula 'popn ~ age \\+ time'")
+                 "Exposure variable included in formula.")
 })
 
 
@@ -607,7 +627,7 @@ test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid in
     expect_error(check_resp_le_offset(formula = deaths ~ sex,
                                       vname_offset = "popn",
                                       data = data),
-                 "'deaths' \\[2\\] is greater than 'popn' \\[1\\]")
+                 "`deaths` greater than `popn`")
 })
 
 
@@ -629,7 +649,7 @@ test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid in
     expect_error(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
                                                vname_offset = "popn",
                                                data = data),
-                 "'deaths' \\[1\\] is non-zero but 'popn' is zero")
+                 "`deaths` is non-zero but `popn` is zero.")
 })
 
 
@@ -644,8 +664,12 @@ test_that("'check_response_nonneg' returns TRUE with valid inputs", {
 test_that("'check_response_nonneg' returns correct error with invalid inputs", {
     expect_error(check_response_nonneg(formula = deaths ~ sex,
                                        data.frame(sex = 1:2, deaths = c(-1, 1)),
-                                       nm_distn = "pois"),
-                 "distribution is \"pois\" but response variable \\[deaths\\] has negative values")
+                                       nm_distn = "Poisson"),
+                 "Model uses Poisson distribution but response variable has negative value.")
+    expect_error(check_response_nonneg(formula = deaths ~ sex,
+                                       data.frame(sex = 1:2, deaths = c(-1, -2)),
+                                       nm_distn = "Poisson"),
+                 "Model uses Poisson distribution but response variable has negative values.")
 })
 
 

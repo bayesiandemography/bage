@@ -86,9 +86,12 @@ set_disp <- function(mod, s) {
 #' @export
 set_n_draw <- function(mod, n_draw = 1000L) {
   check_bage_mod(x = mod, nm_x = "mod")
-  n_draw <- checkmate::assert_int(n_draw,
-                                  lower = 0L,
-                                  coerce = TRUE)
+  check_n(n = n_draw,
+          nm_n = "n_draw",
+          min = 0L,
+          max = NULL,
+          null_ok = FALSE)
+  n_draw <- as.integer(n_draw)
   n_draw_old <- mod$n_draw
   if (n_draw > n_draw_old)
     mod[["components"]] <- NULL
@@ -411,56 +414,56 @@ set_var_time <- function(mod, name) {
 #'
 #' @noRd
 set_var_inner <- function(mod, name, var) {
-    choices <- c("age", "sexgender", "time")
-    check_bage_mod(x = mod, nm_x = "mod")
-    checkmate::assert_choice(var, choices = choices)
-    vars_oth <- setdiff(choices, var)
-    attr_name <- paste0("var_", var)
-    attr_names_oth <- paste0("var_", vars_oth)
-    ## extract values
-    formula <- mod$formula
-    priors <- mod$priors
-    name_old <- mod[[attr_name]]
-    names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
-    has_name_old <- !is.null(name_old)
-    names_priors <- names(priors)
-    matrices_effect_outcome <- mod$matrices_effect_outcome
-    ## check 'name'
-    checkmate::assert_string(name, min.chars = 1L)
-    check_formula_has_variable(name = name, formula = formula)
-    for (i_oth in seq_along(names_oth)) {
-        nm_oth <- names_oth[[i_oth]]
-        if (!is.null(nm_oth)) {
-            if (identical(name, nm_oth)) {
-                cli::cli_abort(c("Variables for {var} and {vars_oth[[i_oth]]} have the same name.",
-                                 i = "{.var {attr_name}} is {.val {name}}.",
-                                 i = "{.var {attr_names_oth[[i_oth]]}} is {.val {name}}."))
-            }
-        }
+  choices <- c("age", "sexgender", "time")
+  check_bage_mod(x = mod, nm_x = "mod")
+  var <- match.arg(var, choices = choices)
+  vars_oth <- setdiff(choices, var)
+  attr_name <- paste0("var_", var)
+  attr_names_oth <- paste0("var_", vars_oth)
+  ## extract values
+  formula <- mod$formula
+  priors <- mod$priors
+  name_old <- mod[[attr_name]]
+  names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
+  has_name_old <- !is.null(name_old)
+  names_priors <- names(priors)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  ## check 'name'
+  check_string(x = name, nm_x = "name")
+  check_formula_has_variable(name = name, formula = formula)
+  for (i_oth in seq_along(names_oth)) {
+    nm_oth <- names_oth[[i_oth]]
+    if (!is.null(nm_oth)) {
+      if (identical(name, nm_oth)) {
+        cli::cli_abort(c("Variables for {var} and {vars_oth[[i_oth]]} have the same name.",
+                         i = "{.var {attr_name}} is {.val {name}}.",
+                         i = "{.var {attr_names_oth[[i_oth]]}} is {.val {name}}."))
+      }
     }
-    ## modify var
-    mod[[attr_name]] <- name
-    ## reset priors
-    var_age <- mod[["var_age"]]
-    var_time <- mod[["var_time"]]
-    length_effect <- ncol(matrices_effect_outcome[[name]])
-    priors[[name]] <- default_prior(nm_term = name,
-                                    var_age = var_age,
-                                    var_time = var_time,
-                                    length_effect = length_effect)
-    if (has_name_old) {
-        length_effect_old <- ncol(matrices_effect_outcome[[name_old]])
-        priors[[name_old]] <- default_prior(nm_term = name_old,
-                                            var_age = var_age, 
-                                            var_time = var_time,
-                                            length_effect = length_effect_old)
-    }
-    ## modify priors
-    mod$priors <- priors
-    ## unfit
-    mod <- unfit(mod)
-    ## return
-    mod
+  }
+  ## modify var
+  mod[[attr_name]] <- name
+  ## reset priors
+  var_age <- mod[["var_age"]]
+  var_time <- mod[["var_time"]]
+  length_effect <- ncol(matrices_effect_outcome[[name]])
+  priors[[name]] <- default_prior(nm_term = name,
+                                  var_age = var_age,
+                                  var_time = var_time,
+                                  length_effect = length_effect)
+  if (has_name_old) {
+    length_effect_old <- ncol(matrices_effect_outcome[[name_old]])
+    priors[[name_old]] <- default_prior(nm_term = name_old,
+                                        var_age = var_age, 
+                                        var_time = var_time,
+                                        length_effect = length_effect_old)
+  }
+  ## modify priors
+  mod$priors <- priors
+  ## unfit
+  mod <- unfit(mod)
+  ## return
+  mod
 }
 
 
