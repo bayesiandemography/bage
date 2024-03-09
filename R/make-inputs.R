@@ -88,18 +88,13 @@ choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
 #'
 #' @noRd
 default_prior <- function(nm_term, var_age, var_time, length_effect) {
-    scale_intercept <- 10
-    is_intercept <- nm_term == "(Intercept)"
-    is_length_1 <- length_effect == 1L
-    is_age_time <- nm_term %in% c(var_age, var_time)
-    if (is_intercept)
-        NFix(sd = scale_intercept)
-    else if (is_length_1)
-        NFix()
-    else if (is_age_time)
-        RW()
-    else
-        N()
+  is_length_le_2 <- length_effect <= 2L
+  is_age_time <- nm_term %in% c(var_age, var_time)
+  if (is_length_le_2)
+    return(NFix())
+  if (is_age_time)
+    return(RW())
+  N()
 }
 
 

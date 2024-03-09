@@ -1116,7 +1116,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two co
                                level = level,
                                .fitted = .fitted)
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior <- "sex:time",
+                                         nm_prior = "sex:time",
                                          matrix_along_by = matrix_along_by,
                                          components = components)
   hyperrand_comp <- subset(components,
@@ -1131,11 +1131,11 @@ test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two co
   hyper <- subset(components,
                   component == "hyperrand" & grepl("mslope", level))
   hyper$component <- "hyper"
-  ans_expected <- vctrs::vec_rbind(components[1:33,],
+  ans_expected <- vctrs::vec_rbind(components[1:32,],
                                    hyper,
                                    hyperrand_comp,
                                    hyperrand_new,
-                                   components[48, , drop = FALSE])
+                                   components[47, , drop = FALSE])
   expect_identical(ans_obtained[1:3], ans_expected[1:3])
   expect_equal(as.numeric(mean(subset(ans_obtained, component == "trend" & grepl("M", level))$.fitted)),
                c(0, 0, 0, 0, 0))

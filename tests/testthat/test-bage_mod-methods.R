@@ -225,7 +225,7 @@ test_that("'draw_vals_augment' works with 'bage_mod_pois' - has disp", {
                                     vals_fitted = vals_fitted)
   ans_expected <- tibble::as_tibble(data)
   ans_expected$deaths <- vals_outcome
-  ans_expected$.observed <- vals_outcome
+  ans_expected$.observed <- vals_outcome / mod$offset
   ans_expected$.fitted <- vals_fitted
   ans_expected$.expected <- vals_expected
   expect_equal(ans_obtained, ans_expected)
