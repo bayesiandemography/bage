@@ -542,7 +542,7 @@ Type objective_function<Type>::operator() ()
   DATA_IVECTOR(uses_indices_priors);
   DATA_IVECTOR(indices_priors);
   DATA_FACTOR(terms_indices_priors);
-  DATA_SCALAR(scale_disp);
+  DATA_SCALAR(mean_disp);
 
   PARAMETER_VECTOR(effectfree); 
   PARAMETER_VECTOR(hyper);
@@ -559,7 +559,7 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > hyperrand_split = split(hyperrand, terms_hyperrand);
   vector<vector<Type> > consts_split = split(consts, terms_consts);
   vector<vector<int> > indices_priors_split = split(indices_priors, terms_indices_priors);
-  int has_disp = scale_disp > 0;
+  int has_disp = mean_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
 
 
@@ -637,12 +637,8 @@ Type objective_function<Type>::operator() ()
   }
   // contribution to log posterior from dispersion term
   if (has_disp) {
-    if ((nm_distn == "pois") || (nm_distn == "binom"))
-      ans -= -1 * scale_disp * sqrt(disp) - 0.5 * log_disp;
-    else if (nm_distn == "norm")
-      ans -= dexp(disp, scale_disp, true);
-    else
-      error("Internal error: invalid 'nm_distn' in logposterior disp");
+    Type rate_disp = 1 / mean_disp;
+    ans -= dexp(disp, rate_disp, true);
     ans -= log_disp; // Jacobian
   }
   // contribution to log posterior from data

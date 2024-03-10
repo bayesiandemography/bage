@@ -544,7 +544,7 @@ make_levels_effect <- function(matrices_effect_outcome) {
 #' Make 'map' argument to be passed to MakeADFun.
 #' Return value is non-NULL if
 #' (i) any priors are "bage_prior_known", or
-#' (ii) 'scale_disp' is 0, or
+#' (ii) 'mean_disp' is 0, or
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -553,11 +553,11 @@ make_levels_effect <- function(matrices_effect_outcome) {
 #' @noRd
 make_map <- function(mod) {
     priors <- mod$priors
-    scale_disp <- mod$scale_disp
+    mean_disp <- mod$mean_disp
     ## determine whether any parameters fixed
     is_known <- vapply(priors, is_known, FALSE)
     is_effectfree_fixed <- any(is_known)
-    is_disp_fixed <- scale_disp == 0
+    is_disp_fixed <- mean_disp == 0
     ## return NULL if nothing fixed
     if (!is_effectfree_fixed && !is_disp_fixed)
         return(NULL)
@@ -609,30 +609,32 @@ make_map_effectfree_fixed <- function(mod) {
 #' 
 #' @noRd
 make_matrices_along_by <- function(formula, data) {
+  ## matrix for intercept
+  val <- list("(Intercept)" = matrix(0L, nrow = 1L))
+  ans <- list("(Intercept)" = val)
+  ## matrices for other terms
   factors <- attr(stats::terms(formula), "factors")
-  factors <- factors[-1L, , drop = FALSE]
-  factors <- factors > 0L
-  nms_vars <- rownames(factors)
-  nms_terms <- colnames(factors)
-  ans <- vector(mode = "list", length = length(nms_terms))
-  for (i_term in seq_along(nms_terms)) {
-    nms_vars_term <- nms_vars[factors[, i_term]]
-    data_term <- data[nms_vars_term]
-    dimnames <- lapply(data_term, unique)
-    dim <- lengths(dimnames)
-    i_along <- seq_along(dim)
-    val <- lapply(i_along,
-                  make_matrix_along_by,
-                  dim = dim,
-                  dimnames = dimnames)
-    names(val) <- nms_vars_term
-    ans[[i_term]] <- val
-  }
-  names(ans) <- nms_terms
-  has_intercept <- attr(stats::terms(formula), "intercept")
-  if (has_intercept) {
-    val <- list("(Intercept)" = matrix(0L, nrow = 1L))
-    ans <- c(list("(Intercept)" = val), ans)
+  if (length(factors) > 0L) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
+    for (i_term in seq_along(nms_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      data_term <- data[nms_vars_term]
+      dimnames <- lapply(data_term, unique)
+      dim <- lengths(dimnames)
+      i_along <- seq_along(dim)
+      val <- lapply(i_along,
+                    make_matrix_along_by,
+                    dim = dim,
+                    dimnames = dimnames)
+      names(val) <- nms_vars_term
+      ans_terms[[i_term]] <- val
+    }
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
   }
   ans
 }
@@ -652,41 +654,43 @@ make_matrices_along_by <- function(formula, data) {
 #'
 #' @noRd
 make_matrices_effect_outcome <- function(formula, data) {
-    factors <- attr(stats::terms(formula), "factors")
+  ## make intercept
+  n_data <- nrow(data)
+  i <- seq_len(n_data)
+  j <- rep.int(1L, times = n_data)
+  x <- rep.int(1L, times = n_data)
+  m <- Matrix::sparseMatrix(i = i,
+                            j = j,
+                            x = x)
+  colnames(m) <- "(Intercept)"
+  ans <- list("(Intercept)" = m)
+  ## make other terms
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 0L) {
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
     nms_vars <- rownames(factors)
     nms_terms <- colnames(factors)
-    ans <- vector(mode = "list", length = length(nms_terms))
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
     for (i_term in seq_along(nms_terms)) {
-        nms_vars_term <- nms_vars[factors[, i_term]]
-        data_term <- data[nms_vars_term]
-        data_term[] <- lapply(data_term, to_factor)
-        contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-        nm_term <- nms_terms[[i_term]]
-        formula_term <- paste0("~", nm_term, "-1")
-        formula_term <- stats::as.formula(formula_term)
-        m_term <- Matrix::sparse.model.matrix(formula_term,
-                                              data = data_term,
-                                              contrasts.arg = contrasts_term,
-                                              row.names = FALSE)
-        colnames(m_term) <- levels(interaction(data_term))
-        ans[[i_term]] <- m_term
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      data_term <- data[nms_vars_term]
+      data_term[] <- lapply(data_term, to_factor)
+      contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
+      nm_term <- nms_terms[[i_term]]
+      formula_term <- paste0("~", nm_term, "-1")
+      formula_term <- stats::as.formula(formula_term)
+      m_term <- Matrix::sparse.model.matrix(formula_term,
+                                            data = data_term,
+                                            contrasts.arg = contrasts_term,
+                                            row.names = FALSE)
+      colnames(m_term) <- levels(interaction(data_term))
+      ans_terms[[i_term]] <- m_term
     }
-    names(ans) <- nms_terms
-    has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept) {
-        n_data <- nrow(data)
-        i <- seq_len(n_data)
-        j <- rep.int(1L, times = n_data)
-        x <- rep.int(1L, times = n_data)
-        m <- Matrix::sparseMatrix(i = i,
-                                  j = j,
-                                  x = x)
-        colnames(m) <- "(Intercept)"
-        ans <- c(list("(Intercept)" = m), ans)
-    }
-    ans        
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
+  }
+  ans        
 }
 
 

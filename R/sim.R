@@ -192,6 +192,25 @@ draw_vals_components <- function(mod, n_sim) {
 
 
 ## HAS_TESTS
+#' Draw Values for 'disp' from Prior
+#'
+#' @param mod Obejct of class 'bage_mod'
+#' @param n_sim Number of draws
+#'
+#' @returns An rvec
+#'
+#' @noRd
+draw_vals_disp <- function(mod, n_sim) {
+  mean <- mod$mean_disp
+  rate <- 1 / mean
+  ans <- stats::rexp(n = n_sim, rate = rate)
+  ans <- matrix(ans, nrow = 1L)
+  ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
+
+## HAS_TESTS
 #' Draw Values for all Effects
 #'
 #' Draw values for intercept, main effects, interactions.
@@ -953,6 +972,11 @@ standardize_vals_effect <- function(mod, vals_effect) {
 #'
 #' Use simulated data to assess the performance of
 #' and estimated model.
+#'
+#' @section Warning:
+#'
+#' The interface for `report_sim` is still
+#' experimental, and may change in future.
 #'
 #' @section Comparisons included in report:
 #'

@@ -840,52 +840,29 @@ set_covariates(~ ., data = cov_data, n_coef = 5)
 ```
 
 
-# Priors for dispersion terms
+# Prior for dispersion terms
 
 ## Model
 
-### Poisson
-
+Use exponential distribution, parameterised using mean,
 \begin{equation}
-  p(\xi) = \frac{A_{\xi}}{2 \sqrt{\xi}}e^{-A_{\xi} \sqrt{\xi}} (\#eq:prior-xi-pois)
-\end{equation}
-[@simpson2022priors]
-
-TODO - choice of $A_{\xi}$.
-
-To draw from $p(\xi)$, we use inverse sampling. We have
-\begin{equation}
-  F(\xi) = \int_0^{\xi} \frac{A_{\xi}}{2 \sqrt{\xi}} e^{-A_{\xi} \sqrt{\xi}} = 1 - e^{-A_{\xi} \sqrt{\xi}}.
+  \xi \sim \text{Exp}(\mu_{\xi})
 \end{equation}
 
-Inverting gives
-\begin{equation}
-  F^{-1}(p) = \left(\frac{\log(1 - p)}{A}\right)^2 (\#eq:prior-xi-inv).
-\end{equation}
 
-Drawing $u \sim \text{Unif}(0, 1)$ and plugging the value into \@ref(eq:prior-xi-inv) yields variates with the required distribution.
-
-
-### Binomial
-
-It seems sensible to use the same prior for $\xi$ as we do with the Poisson likelihood, since in both cases, the $\xi^{-1}$ is the number of prior cases. But we need to verify this. I started in Appendix \@ref(app:disp), but got stuck.
-
-
-### Normal
+## Contribution to prior density
 
 \begin{equation}
-  \xi \sim \text{Exp}(A_{\xi})
+  p(\xi) = \frac{1}{\mu_{\xi}} \exp\left(\frac{-\xi}{\mu_{\xi}}\right)
 \end{equation}
-
-[@simpson2022priors]
 
 ## Code
 
 ```
-set_disp(s = 1)
+set_disp(mean = 1)
 ```
 
-- scale is $A_{\xi}$
+- `mean` is $\mu_{\xi}$
 
 
 # Deriving outputs
@@ -1063,24 +1040,6 @@ Let $\tilde{\pmb{v}}_l$ be a randomly-selected column from $\tilde{\pmb{V}}$. Fr
   \pmb{F} \pmb{z} + \pmb{g}
 \end{equation}
 looks approximately like a randomly-selected column from the original data matrix $\pmb{A}$.
-
-
-## Derivation of prior for dispersion term in binomial model {#app:disp}
-
-
-The Kullback-Liebler divergence $\text{KL}(f_1 || f_0)$ of two beta distributions is
-
-\begin{equation}
-  \log \frac{\Gamma(\alpha_1 + \beta_1) \Gamma(\alpha_0) \Gamma(\beta_0)}{\Gamma(\alpha_0 + \beta_0) \Gamma(\alpha_1) \Gamma(\beta_1)}  + (\alpha_1 - \alpha_0) \left(\psi(\alpha_1) - \psi(\alpha_1 + \beta_1)\right)
-  + (\beta_1 - \beta_0) \left(\psi(\beta_1) - \psi(\alpha_1 + \beta_1)\right) (\#eq:kl-beta) 
-\end{equation}
-https://math.stackexchange.com/questions/257821/kullback-liebler-divergence#comment564291_257821
-
-Using the parameterisation $v = 1 / \xi = \alpha + \beta$, $\mu = \alpha / (\alpha + \beta)$, this becomes
-\begin{equation}
-  \log \frac{\Gamma(v_1) \Gamma(\mu v_0) \Gamma((1 - \mu) v_0)}{\Gamma(v_0) \Gamma(\mu v_1) \Gamma((1 - \mu) v_1)} + (v_1 - v_0) \mu (\psi(\mu v_1) - \psi(v_1)) + (v_1 - v_0) (1 - \mu) (\psi((1-\mu) v_1) - \psi(v_1))
-\end{equation}
-
 
 
 # References

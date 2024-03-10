@@ -153,7 +153,7 @@ test_that("'make_draws_components' works", {
                   exposure = popn)
   mod <- set_prior(mod, age ~ Sp())
   mod <- set_n_draw(mod, n = 1)
-  mod <- set_disp(mod, s = 0)
+  mod <- set_disp(mod, mean = 0)
   mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
   mod <- fit(mod)
   set.seed(0)
@@ -321,7 +321,7 @@ test_that("'make_level_components' works - no hyperrand", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     mod <- fit(mod)
     comp <- make_comp_components(mod)
     ans <- make_level_components(mod)
@@ -337,7 +337,7 @@ test_that("'make_level_components' works - has hyperrand", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     mod <- set_prior(mod, time ~ compose_time(trend = Lin(), seasonal = Seas(n = 3)))
     mod <- fit(mod)
     comp <- make_comp_components(mod)
@@ -449,7 +449,7 @@ test_that("'make_term_components' works - no hyperrand", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     mod <- set_prior(mod, age ~ Sp())
     mod <- set_n_draw(mod, n = 1)       
     mod <- fit(mod)
@@ -467,7 +467,7 @@ test_that("'make_term_components' works - no hyperrand", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     mod <- set_prior(mod, age ~ Sp())
     mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
     mod <- set_n_draw(mod, n = 1)       
