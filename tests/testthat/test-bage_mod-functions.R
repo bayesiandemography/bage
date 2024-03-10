@@ -1,50 +1,3 @@
-## 'set_cyclical' -------------------------------------------------------------
-
-test_that("'set_cyclical' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age*time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_false(has_cyclical(mod))
-    mod <- set_cyclical(mod)
-    expect_identical(mod$n_cyclical, 2L)
-    expect_identical(mod$scale_cyclical, 1)
-    mod <- set_cyclical(mod, n = 4, s = 0.2)
-    expect_true(has_cyclical(mod))
-    expect_identical(mod$n_cyclical, 4L)
-    expect_identical(mod$scale_cyclical, 0.2)
-    expect_identical(mod$matrix_cyclical_outcome, mod$matrices_effect_outcome[["time"]])
-})
-
-test_that("'set_cyclical' throws correct error when no time var", {
-    data <- expand.grid(age = 0:2, wrong = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age*wrong + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_error(set_cyclical(mod),
-                 "Can't specify cyclical effect when time variable not identified.")
-})
-
-test_that("'set_cyclical' throws correct error when too many terms", {
-    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age*time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_error(set_cyclical(mod, 10),
-                 "Estimation period not long enough to use cyclical effect with 10 terms.")
-})
-
-
-
 
 ## 'set_disp' -----------------------------------------------------------------
 
@@ -56,11 +9,11 @@ test_that("'set_disp' works with Poisson", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$scale_disp, 1)
-    mod <- set_disp(mod, s = 0)
-    expect_identical(mod$scale_disp, 0)
-    mod <- set_disp(mod, s = 0.5)
-    expect_identical(mod$scale_disp, 0.5)
+    expect_identical(mod$mean_disp, 1)
+    mod <- set_disp(mod, mean = 0)
+    expect_identical(mod$mean_disp, 0)
+    mod <- set_disp(mod, mean = 0.5)
+    expect_identical(mod$mean_disp, 0.5)
 })
 
 test_that("'set_disp' works with normal", {
@@ -70,10 +23,10 @@ test_that("'set_disp' works with normal", {
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = 1)
-    expect_identical(mod$scale_disp, 1)
-    mod <- set_disp(mod, s = 0.5)
-    expect_identical(mod$scale_disp, 0.5)
-    expect_error(set_disp(mod, s = 0))
+    expect_identical(mod$mean_disp, 1)
+    mod <- set_disp(mod, mean = 0.5)
+    expect_identical(mod$mean_disp, 0.5)
+    expect_error(set_disp(mod, mean = 0))
 })
 
 
@@ -174,65 +127,6 @@ test_that("'set_prior' works with when order of components of interaction change
 })
 
 
-## 'set_season' --------------------------------------------------------------
-
-test_that("'set_season' works with valid inputs - no by", {
-    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age*time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_false(has_season(mod))
-    mod <- set_season(mod, n = 2, s = 0.2)
-    expect_true(has_season(mod))
-    expect_identical(mod$n_season, 2L)
-    expect_identical(mod$scale_season, 0.2)
-    expect_identical(mod$matrix_season_outcome, mod$matrices_effect_outcome[["time"]])
-})
-
-test_that("'set_season' works with valid inputs - with by", {
-    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age*time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_false(has_season(mod))
-    mod <- set_season(mod, n = 2, by = "age", s = 0.2)
-    expect_true(has_season(mod))
-    expect_identical(mod$n_season, 2L)
-    expect_identical(mod$scale_season, 0.2)
-    expect_identical(mod$matrix_season_outcome, mod$matrices_effect_outcome[["age:time"]])
-})
-
-test_that("'set_season' gives expected error when 'var_time' not defined", {
-    data <- expand.grid(age = 0:2, thyme = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age*thyme + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_error(set_season(mod, n = 2),
-                 "Can't specify seasonal effect when time variable not identified.")
-})
-
-test_that("'set_season' gives expected error when too many seasons", {
-    data <- expand.grid(age = 0:2, time = 2000:2005, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_error(set_season(mod, n = 4),
-                 "Estimation period not long enough to use seasonal effect with 4 seasons.")
-})
-
-
 ## 'set_var_age' --------------------------------------------------------------
 
 test_that("'set_var_age' works with valid inputs - no existing age var", {
@@ -280,7 +174,7 @@ test_that("'set_var_sexgender' works with valid inputs - no existing sexgender v
     expect_identical(mod$var_sexgender, NULL)
     mod <- set_var_sexgender(mod, name = "sexx")
     expect_identical(mod$var_sexgender, "sexx")
-    expect_s3_class(mod$priors[["sexx"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sexx"]], "bage_prior_normfixed")
 })
 
 test_that("'set_var_sexgender' works with valid inputs - has existing sexgender var", {
@@ -292,18 +186,18 @@ test_that("'set_var_sexgender' works with valid inputs - has existing sexgender 
                     data = data,
                     exposure = popn)
     expect_identical(mod$var_sexgender, "sex")
-    expect_s3_class(mod$priors[["sex"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sex"]], "bage_prior_normfixed")
     mod <- set_var_sexgender(mod, name = "gend")
     expect_identical(mod$var_sexgender, "gend")
     expect_s3_class(mod$priors[["gend"]], "bage_prior_norm")
-    expect_s3_class(mod$priors[["sex"]], "bage_prior_norm")
+    expect_s3_class(mod$priors[["sex"]], "bage_prior_normfixed")
 })
 
 
 ## 'set_var_time' --------------------------------------------------------------
 
 test_that("'set_var_time' works with valid inputs", {
-    data <- expand.grid(age = 0:2, timex = 2000:2001, sex = 1:2)
+    data <- expand.grid(age = 0:2, timex = 2000:2011, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
     formula <- deaths ~ age*sex + timex
@@ -379,4 +273,6 @@ test_that("'set_n_draw' works with valid inputs", {
     expect_identical(mod$est, mod_fit_unfit$est)
     expect_identical(mod$is_fixed, mod_fit_unfit$is_fixed)
     expect_identical(mod$R_prec, mod_fit_unfit$R_prec)
+    expect_identical(mod$scaled_eigen, mod_fit_unfit$scaled_eigen)
+    expect_identical(mod$components, mod_fit_unfit$components)
 })

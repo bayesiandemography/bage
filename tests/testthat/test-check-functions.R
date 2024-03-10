@@ -19,7 +19,6 @@ test_that("'check_bage_mod' returns expected error message with invalid model ob
 })
 
 
-
 ## 'check_by_in_formula' ------------------------------------------------------
 
 test_that("'check_by_in_formula' returns TRUE with valid inputs", {
@@ -107,16 +106,16 @@ test_that("'check_format_prior_formula' returns correct error with invalid input
 })
 
 
-## 'check_formula_has_predictors' -----------------------------------------------
+## 'check_formula_has_intercept' ----------------------------------------------
 
-test_that("'check_formula_has_predictors' returns TRUE with valid inputs", {
-    expect_true(check_formula_has_predictors(y ~ x + z))
-    expect_true(check_formula_has_predictors(y ~ x + z - 1))
+test_that("'check_formula_has_intercept' returns TRUE with valid inputs", {
+    expect_true(check_formula_has_intercept(y ~ x + z))
+    expect_true(check_formula_has_intercept(y ~ 1))
 })
 
-test_that("'check_formula_has_predictors' returns correct error with invalid inputs", {
-    expect_error(check_formula_has_predictors(~ 1),
-                 "`formula` does not include any predictors.")
+test_that("'check_formula_has_intercept' returns correct error with invalid inputs", {
+    expect_error(check_formula_has_intercept(y ~ age - 1),
+                 "`formula` does not include an intercept.")
 })
 
 
@@ -199,11 +198,24 @@ test_that("'check_has_disp_if_condition_on_meanpar' works", {
                     data = data,
                     exposure = popn)
     expect_true(check_has_disp_if_condition_on_meanpar(mod))
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     expect_error(check_has_disp_if_condition_on_meanpar(mod),
                  "`condition_on` is \"meanpar\" but model has no dispersion term")
 })
 
+
+## 'check_is_dataframe' -------------------------------------------------------
+
+test_that("'check_is_dataframe' works with valid inputs", {
+  expect_true(check_is_dataframe(x = data.frame(), nm_x = "data"))
+  expect_true(check_is_dataframe(x = tibble(), nm_x = data))
+})
+
+test_that("'check_is_dataframe' throws correct error with non-dataframe", {
+  expect_error(check_is_dataframe(x = "a", nm_x = "val"),
+               "`val` is not a data frame.")
+})
+          
 
 ## 'check_is_fitted' ----------------------------------------------------------
 
@@ -223,10 +235,35 @@ test_that("'check_is_fitted' works", {
 })
 
 
+## 'check_is_formula' ---------------------------------------------------------
+
+test_that("'check_is_formula' returns TRUE when 'formula' is a formula", {
+    expect_true(check_is_formula(deaths ~ age + sex))
+    expect_true(check_is_formula(~ age))
+})
+
+test_that("'check_is_formula' throws correct error when not formula", {
+    expect_error(check_is_formula("~age"),
+                 "`formula` is not an R formula.")
+})
+
+
+## 'check_is_interaction' -----------------------------------------------------
+
+test_that("'check_is_interaction' returns TRUE with valid inputs", {
+    expect_true(check_is_interaction("age:sex", ELin))
+})
+
+test_that("'check_is_interaction' throws correct error when interaction", {
+    expect_error(check_is_interaction("age", ELin()),
+                 "`ELin\\(\\)` prior cannot be used for `age` term.")
+})
+
+
 ## 'check_is_main_effect' -----------------------------------------------------
 
 test_that("'check_is_main_effect' returns TRUE with valid inputs", {
-    expect_true(check_is_main_effect("age", N()))
+    expect_true(check_is_main_effect("age", AR1()))
 })
 
 test_that("'check_is_main_effect' throws correct error when interaction", {
@@ -235,17 +272,47 @@ test_that("'check_is_main_effect' throws correct error when interaction", {
 })    
 
 
-## 'check_length_effect_gt' ------------------------------------------------------
+## 'check_is_matrix' ----------------------------------------------------------
 
-test_that("'check_length_effect_gt' returns TRUE with valid inputs", {
-    expect_true(check_length_effect_gt(length_effect = 10L,
+test_that("'check_is_matrix' works with valid inputs", {
+  expect_true(check_is_matrix(x = matrix(), nm_x = "data"))
+})
+
+test_that("'check_is_matrix' throws correct error with non-matrix", {
+  expect_error(check_is_matrix(x = "a", nm_x = "val"),
+               "`val` is not a matrix.")
+})
+
+
+## 'check_length_along_ge' ----------------------------------------------------
+
+test_that("'check_length_along_ge' returns TRUE with valid inputs", {
+  expect_true(check_length_along_ge(length_along = 10L,
+                                    min = 3L,
+                                    nm = "age:sex",
+                                    prior = ELin()))
+})
+
+test_that("'check_length_along_ge' throws correct error with length less than min", {
+  expect_error(check_length_along_ge(length_along = 1L,
+                                     min = 2L,
+                                     nm = "age:sex",
+                                     prior = ELin()),
+               "`ELin\\(\\)` prior cannot be used for `age:sex` term.")                
+})
+
+
+## 'check_length_effect_ge' ------------------------------------------------------
+
+test_that("'check_length_effect_ge' returns TRUE with valid inputs", {
+    expect_true(check_length_effect_ge(length_effect = 10L,
                                        min = 3L,
                                        nm = "age",
                                        prior = N()))
 })
 
-test_that("'check_length_effect_gt' throws correct error with length less than min", {
-    expect_error(check_length_effect_gt(length_effect = 1L,
+test_that("'check_length_effect_ge' throws correct error with length less than min", {
+    expect_error(check_length_effect_ge(length_effect = 1L,
                                         min = 2L,
                                         nm = "age",
                                         prior = N()),
@@ -253,21 +320,44 @@ test_that("'check_length_effect_gt' throws correct error with length less than m
 })
 
 
-## 'check_mod_est_est_compatible' ---------------------------------------------
+## 'check_main_effect_interaction' --------------------------------------------
 
-test_that("'check_mod_est_est_compatible' returns TRUE with indentical models", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_true(check_mod_est_est_compatible(mod, mod))
+test_that("'check_main_effect_interaction' returns TRUE with compatible priors", {
+  expect_true(check_main_effect_interaction(x1 = AR1(),
+                                            x2 = N(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+  expect_true(check_main_effect_interaction(x1 = EAR1(),
+                                            x2 = N(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+  expect_true(check_main_effect_interaction(x1 = AR1(),
+                                            x2 = Lin(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
+  expect_true(check_main_effect_interaction(x1 = EAR1(),
+                                            x2 = ELin(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"))
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error with different classes", {
+test_that("'check_main_effect_interaction' raises correct error with incompatible priors", {
+  expect_error(check_main_effect_interaction(x1 = AR1(),
+                                            x2 = EAR1(),
+                                            nm1 = "x1",
+                                            nm2 = "x2"),
+               "`x1` uses prior `AR1\\(\\)` but `x2` uses prior `EAR1\\(\\)`")
+  expect_error(check_main_effect_interaction(x1 = EAR1(),
+                                            x2 = AR(n = 3),
+                                            nm1 = "x1",
+                                            nm2 = "x2"),
+               "`x1` uses prior `EAR1\\(\\)` but `x2` uses prior `AR\\(n=3\\)`")
+})  
+
+
+## 'check_mod_est_sim_compatible' ---------------------------------------------
+
+test_that("'check_mod_est_sim_compatible' returns TRUE with indentical models", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -276,11 +366,23 @@ test_that("'check_mod_est_est_compatible' raises correct error with different cl
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod, 1L),
+    expect_true(check_mod_est_sim_compatible(mod, mod))
+})
+
+test_that("'check_mod_est_sim_compatible' raises correct error with different classes", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(check_mod_est_sim_compatible(mod, 1L),
                  "`mod_est` and `mod_sim` have different classes")
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error with different outcomes", {
+test_that("'check_mod_est_sim_compatible' raises correct error with different outcomes", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -294,11 +396,11 @@ test_that("'check_mod_est_est_compatible' raises correct error with different ou
     mod2 <- mod_pois(formula = formula2,
                     data = data,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod1, mod2),
+    expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different outcome variables")
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error when data have different variables", {
+test_that("'check_mod_est_sim_compatible' raises correct error when data have different variables", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -312,11 +414,11 @@ test_that("'check_mod_est_est_compatible' raises correct error when data have di
     mod2 <- mod_pois(formula = formula,
                     data = data2,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod1, mod2),
+    expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different variables.")
 })
 
-test_that("'check_mod_est_est_compatible' raises correct error when data have different values", {
+test_that("'check_mod_est_sim_compatible' raises correct error when data have different values", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -330,13 +432,47 @@ test_that("'check_mod_est_est_compatible' raises correct error when data have di
     mod2 <- mod_pois(formula = formula,
                     data = data2,
                     exposure = popn)
-    expect_error(check_mod_est_est_compatible(mod1, mod2),
+    expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different data")
 })
 
 
+## 'check_min_max_ar' --------------------------------------------------------------
 
+test_that("'check_min_max_ar' returns TRUE with valid inputs", {
+    expect_true(check_min_max_ar(min = -1, max = 1))
+    expect_true(check_min_max_ar(min = 0, max = 0.9))
+})
 
+test_that("'check_min_max_ar' returns correct error with non-numeric", {
+    expect_error(check_min_max_ar(min = "-1", max = 1),
+                 "`min` is non-numeric.")
+})
+
+test_that("'check_min_max_ar' returns correct error with wrong length", {
+    expect_error(check_min_max_ar(min = -1, max = 1:2),
+                 "`max` does not have length 1.")
+})
+
+test_that("'check_min_max_ar' returns correct error with NA", {
+    expect_error(check_min_max_ar(min = NA_real_, max = 1),
+                 "`min` is NA.")
+})
+
+test_that("'check_min_max_ar' returns correct error with min < -1", {
+    expect_error(check_min_max_ar(min = -1.00001, max = 1),
+                 "`min` is less than -1.")
+})
+
+test_that("'check_min_max_ar' returns correct error with max < 1.0001", {
+    expect_error(check_min_max_ar(min = -1, max = 1.00001),
+                 "`max` is greater than 1.")
+})
+
+test_that("'check_min_max_ar' returns correct error with max <= min", {
+    expect_error(check_min_max_ar(min = 0, max = 0),
+                 "`max` is less than or equal to `min`.")
+})
 
 
 ## 'check_offset_in_data' -----------------------------------------------------
@@ -351,54 +487,90 @@ test_that("'check_offset_in_data' returns correct error with invalid inputs", {
     expect_error(check_offset_in_data(vname_offset = "popn",
                                       nm_offset = "exposure",
                                       data = data.frame(deaths = 1, wrong = 2)),
-                 "exposure variable \\[popn\\] not found in 'data'")
+                 "Exposure variable not found in `data`")
 })
+
+test_that("'check_offset_in_data' returns correct error with invalid inputs", {
+    expect_error(check_offset_in_data(vname_offset = "popn",
+                                      nm_offset = "size",
+                                      data = data.frame(deaths = 1, wrong = 2)),
+                 "Size variable not found in `data`")
+})
+
 
 
 ## 'check_n' ------------------------------------------------------------------
 
 test_that("'check_n' returns TRUE with valid inputs", {
-    expect_true(check_n(n = 4, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE))
-    expect_true(check_n(n = NULL, n_arg = "n", min = 4L, max = NULL, null_ok = TRUE))
+    expect_true(check_n(n = 4, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE))
+    expect_true(check_n(n = NULL, nm_n = "n", min = 4L, max = NULL, null_ok = TRUE))
 })
 
 test_that("'check_n' throws correct error with non-numeric", {
-    expect_error(check_n(n = "4", n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = "4", nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is non-numeric")
 })
 
 test_that("'check_n' throws correct error with wrong length", {
-    expect_error(check_n(n = integer(), n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = integer(), nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` does not have length 1")
-    expect_error(check_n(n = 10:11, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 10:11, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` does not have length 1")
 })
 
 test_that("'check_n' throws correct error with NA", {
-    expect_error(check_n(n = NA_real_, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = NA_real_, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is NA")
 })
 
 test_that("'check_n' throws correct error with Inf", {
-    expect_error(check_n(n = Inf, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = Inf, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is Inf")
 })
 
 test_that("'check_n' throws correct error with non-integer", {
-    expect_error(check_n(n = 6.4, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 6.4, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is not an integer")
 })
 
 test_that("'check_n' throws correct error when less than min", {
-    expect_error(check_n(n = 3, n_arg = "n", min = 4L, max = NULL, null_ok = FALSE),
+    expect_error(check_n(n = 3, nm_n = "n", min = 4L, max = NULL, null_ok = FALSE),
                  "`n` is less than 4")
 })
 
 test_that("'check_n' throws correct error when greater than max", {
-    expect_error(check_n(n = 60, n_arg = "n", min = 4, max = 10, null_ok = FALSE),
+    expect_error(check_n(n = 60, nm_n = "n", min = 4, max = 10, null_ok = FALSE),
                  "`n` is greater than 10")
 })
 
+
+
+## 'check_numeric' ------------------------------------------------------------------
+
+test_that("'check_numeric' returns TRUE with valid inputs", {
+    expect_true(check_numeric(x = 1:4, nm_x = "x"))
+    expect_true(check_numeric(x = c(-1, 0), nm_x = "x"))
+})
+
+test_that("'check_numeric' throws correct error with non-numeric", {
+    expect_error(check_numeric(x = "4", nm_x = "x"),
+                 "`x` is non-numeric")
+})
+
+test_that("'check_numeric' throws correct error with 0 length", {
+    expect_error(check_numeric(x = integer(), nm_x = "x"), 
+                 "`x` has length 0")
+})
+
+test_that("'check_numeric' throws correct error with NA", {
+    expect_error(check_numeric(x = c(1, NA), nm_x = "x"),
+                 "`x` has NA")
+})
+
+test_that("'check_numeric' throws correct error with Inf", {
+    expect_error(check_numeric(x = c(100, -1, Inf), nm_x = "x"),
+                 "`x` has non-finite value.")
+})
 
 
 ## 'check_offset_nonneg' ----------------------------------------------------
@@ -417,7 +589,7 @@ test_that("'check_offset_nonneg' returns correct error with invalid inputs", {
                                     data = data.frame(sex = 1:2,
                                                       popn = c(-1, 1),
                                                       deaths = 0:1)),
-                 "exposure variable \\[popn\\] has negative values")
+                 "Exposure variable has negative values.")
 })
 
 
@@ -433,7 +605,7 @@ test_that("'check_offset_not_in_formula' returns correct error with invalid inpu
     expect_error(check_offset_not_in_formula(vname_offset = "popn",
                                              nm_offset = "exposure",
                                              formula = popn ~ age + time),
-                 "exposure variable \\[popn\\] included in formula 'popn ~ age \\+ time'")
+                 "Exposure variable included in formula.")
 })
 
 
@@ -455,7 +627,7 @@ test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid in
     expect_error(check_resp_le_offset(formula = deaths ~ sex,
                                       vname_offset = "popn",
                                       data = data),
-                 "'deaths' \\[2\\] is greater than 'popn' \\[1\\]")
+                 "`deaths` greater than `popn`")
 })
 
 
@@ -477,7 +649,7 @@ test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid in
     expect_error(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
                                                vname_offset = "popn",
                                                data = data),
-                 "'deaths' \\[1\\] is non-zero but 'popn' is zero")
+                 "`deaths` is non-zero but `popn` is zero.")
 })
 
 
@@ -492,8 +664,12 @@ test_that("'check_response_nonneg' returns TRUE with valid inputs", {
 test_that("'check_response_nonneg' returns correct error with invalid inputs", {
     expect_error(check_response_nonneg(formula = deaths ~ sex,
                                        data.frame(sex = 1:2, deaths = c(-1, 1)),
-                                       nm_distn = "pois"),
-                 "distribution is \"pois\" but response variable \\[deaths\\] has negative values")
+                                       nm_distn = "Poisson"),
+                 "Model uses Poisson distribution but response variable has negative value.")
+    expect_error(check_response_nonneg(formula = deaths ~ sex,
+                                       data.frame(sex = 1:2, deaths = c(-1, -2)),
+                                       nm_distn = "Poisson"),
+                 "Model uses Poisson distribution but response variable has negative values.")
 })
 
 
@@ -540,6 +716,33 @@ test_that("'check_scale' returns correct error with non-positive", {
                  "`x` is non-positive.")
     expect_error(check_scale(-1, x_arg = "x", zero_ok = FALSE),
                  "`x` is non-positive.")
+})
+
+
+## 'check_string' --------------------------------------------------------------
+
+test_that("'check_string' returns TRUE with valid inputs", {
+    expect_true(check_string("age", nm_x = "x"))
+})
+
+test_that("'check_string' returns correct error with non-numeric", {
+    expect_error(check_string(1, nm_x = "x"),
+                 "`x` is non-character.")
+})
+
+test_that("'check_string' returns correct error with wrong length", {
+    expect_error(check_string(c("a", "b"), nm_x = "x"),
+                 "`x` does not have length 1.")
+})
+
+test_that("'check_string' returns correct error with NA", {
+    expect_error(check_string(NA_character_, nm_x = "x"),
+                 "`x` is NA.")
+})
+
+test_that("'check_string' returns correct error with blank", {
+    expect_error(check_string("", nm_x = "x"),
+                 "`x` is blank.")
 })
 
 

@@ -1,54 +1,5 @@
 
 ## HAS_TESTS
-#' Get function to align vector or matrix to data
-#'
-#' Get function to align a vector or a matrix
-#' to the data frame 'data'. If the 'outcome'
-#' of 'mod' is a plain vector, then no alignment
-#' is needed, and none is done. Otherwise,
-#' the function assumes that elements of the vector
-#' or the rows of the matrix are in the same
-#' order as the cells of 'outcome'.
-#'
-#' @param mod An object of class 'bage_mod'
-#'
-#' @returns A function
-#' 
-#' @noRd
-get_fun_align_to_data <- function(mod) {
-    outcome <- mod$outcome
-    if (is.array(outcome)) {
-        data <- mod$data
-        dim <- dim(outcome)
-        n_dim <- length(dim)
-        dn <- dimnames(outcome)
-        nms <- names(dn)
-        nms_data <- names(data)
-        index <- vector(mode = "list", length = n_dim)
-        for (i_dim in seq_len(n_dim)) {
-            nm <- nms[[i_dim]]
-            index[[i_dim]] <- match(data[[nm]], dn[[nm]])
-        }
-        index <- do.call(cbind, index)
-        if (n_dim > 1L) {
-            mult <- c(1L, cumprod(dim[-n_dim]))
-            index <- ((index - 1L) %*% mult) + 1L
-        }
-        index <- as.integer(index)
-        ans <- function(x) {
-            if (is.matrix(x))
-                x[index, ]
-            else
-                x[index]
-        }
-    }
-    else
-        ans <- identity
-    ans
-}
-
-
-## HAS_TESTS
 #' Insert values for fixed parameters into
 #' random draws for non-fixed parameters
 #'
@@ -72,6 +23,18 @@ insert_draws_known <- function(draws, est, is_fixed) {
     ans[is_fixed, ] <- est[is_fixed]
     ans
 }
+
+
+#' Test Whether Two Objects Have the Same Class
+#'
+#' @param x,y Objects
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_same_class <- function(x, y)
+    identical(class(x)[[1L]], class(y)[[1L]])
+    
 
 
 ## HAS_TESTS
@@ -139,25 +102,16 @@ make_combined_offset_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_comp_components <- function(mod) {
-    est <- mod$est
-    offset <- make_offsets_effectfree_effect(mod)
-    has_disp <- has_disp(mod)
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
-    vals <- c("effect", "hyper", "disp", "cyclical", "season")
-    n_effect <- length(offset)
-    n_hyper <- length(est$hyper)
-    n_disp <- as.integer(has_disp)
-    if (has_cyclical)
-        n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
-    else
-        n_cyclical <- 0L
-    if (has_season)
-        n_season <- length(est$effect_season) + length(est$hyper_season)
-    else
-        n_season <- 0L
-    times <- c(n_effect, n_hyper, n_disp, n_cyclical, n_season)
-    rep(vals, times = times)
+  est <- mod$est
+  terms_effect <- mod$terms_effect
+  has_disp <- has_disp(mod)
+  vals <- c("effect", "hyper", "hyperrand", "disp")
+  n_effect <- length(terms_effect)
+  n_hyper <- length(est$hyper)
+  n_hyperrand <- length(est$hyperrand)
+  n_disp <- as.integer(has_disp)
+  times <- c(n_effect, n_hyper, n_hyperrand, n_disp)
+  rep(vals, times = times)
 }
 
 
@@ -225,40 +179,29 @@ make_draws_comp_raw <- function(mod) {
 #'
 #' @noRd
 make_draws_components <- function(mod) {
-    est <- mod$est
-    is_fixed <- mod$is_fixed
-    matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-    offset_effectfree_effect <- make_offsets_effectfree_effect(mod)
-    transforms_hyper <- make_transforms_hyper(mod)
-    ## WARNING The order of the following functions matters:
-    ## each makes assumptions about the rows of 'draws'
-    draws <- make_draws_comp_raw(mod)
-    draws <- insert_draws_known(draws = draws,
-                                est = est,
-                                is_fixed = is_fixed)
-    draws <- transform_draws_hyper(draws = draws,
-                                   transforms = transforms_hyper)
-    draws <- transform_draws_effect(draws = draws,
-                                 matrix = matrix_effectfree_effect,
-                                 offset = offset_effectfree_effect)
-    n <- nrow(draws)
-    keep <- rep(TRUE, n)
-    n_cyclical <- length(est$effect_cyclical) + length(est$hyper_cyclical)
-    n_season <- length(est$effect_season) + length(est$hyper_season)
-    if (!has_disp(mod)) {
-        i_disp <- n - n_cyclical - n_season
-        keep[i_disp] <- FALSE
-    }
-    if (!has_cyclical(mod)) {
-        i_cyclical <- seq.int(to = n - n_season, length.out = n_cyclical)
-        keep[i_cyclical] <- FALSE
-    }
-    if (!has_season(mod)) {
-        i_season <- seq.int(to = n, length.out = n_season)
-        keep[i_season] <- FALSE
-    }
-    draws <- draws[keep, , drop = FALSE]
-    draws
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
+  transforms_hyper <- make_transforms_hyper(mod)
+  ## transforms_hyperrand <- make_transforms_hyperrand(mod)
+  ## WARNING The order of the following functions matters:
+  ## each makes assumptions about the rows of 'draws'
+  draws <- make_draws_comp_raw(mod)
+  draws <- insert_draws_known(draws = draws,
+                              est = est,
+                              is_fixed = is_fixed)
+  draws <- transform_draws_hyper(draws = draws,
+                                 transforms = transforms_hyper)
+  draws <- transform_draws_effect(draws = draws,
+                                  matrix_effectfree_effect = matrix_effectfree_effect,
+                                  offset_effectfree_effect = offset_effectfree_effect,
+                                  matrices_effect_outcome = matrices_effect_outcome)
+  if (!has_disp(mod))
+    draws <- draws[-nrow(draws), , drop = FALSE]
+  rownames(draws) <- NULL
+  draws
 }
 
 
@@ -283,12 +226,6 @@ make_draws_components <- function(mod) {
 make_par_disp <- function(x, meanpar, disp) {
     outcome <- x$outcome
     offset <- x$offset
-    seed_fitted <- x$seed_fitted
-    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
-    offset <- as.double(offset)   ## so 'align_to_data' works correctly
-    align_to_data <- get_fun_align_to_data(x)
-    outcome <- align_to_data(outcome)
-    offset <- align_to_data(offset)
     n_val <- length(outcome)
     n_draw <- rvec::n_draw(meanpar)
     ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
@@ -296,14 +233,11 @@ make_par_disp <- function(x, meanpar, disp) {
     outcome <- outcome[!is_na]
     offset <- offset[!is_na]
     meanpar <- meanpar[!is_na]
-    seed_restore <- make_seed()
-    set.seed(seed_fitted)
     ans[!is_na] <- make_par_disp_inner(x = x,
                                        outcome = outcome,
                                        offset = offset,
                                        meanpar = meanpar,
                                        disp = disp)
-    set.seed(seed_restore)
     ans
 }
 
@@ -353,46 +287,16 @@ make_is_fixed <- function(est, map) {
 #'
 #' @noRd
 make_level_components <- function(mod) {
-    effect <- mod$levels_effect
-    hyper <- make_levels_hyper(mod)
-    effect <- as.character(effect)
-    hyper <- as.character(hyper)
-    ans <- c(effect, hyper)
-    if (has_disp(mod))
-        ans <- c(ans, "disp")
-    if (has_cyclical(mod)) {
-        cyclical <- make_levels_cyclical(mod)
-        cyclical <- as.character(cyclical)
-        ans <- c(ans, cyclical)
-    }
-    if (has_season(mod)) {
-        season <- make_levels_season(mod)
-        season <- as.character(season)
-        ans <- c(ans, season)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make levels for parameters and hyper-parameter of
-#' cyclical effect
-#'
-#' @param mod A fitted object of class 'bage_mod'.
-#'
-#' @returns A character vector.
-#'
-#' @noRd
-make_levels_cyclical <- function(mod) {
-    if (!has_cyclical(mod))
-        return(character())
-    n_cyclical <- mod$n_cyclical
-    levels_hyper <- c(paste0("coef", seq_len(n_cyclical)),
-                      "sd")
-    matrix <- mod$matrix_cyclical_outcome
-    levels_effect <- colnames(matrix)
-    ans <- c(levels_effect, levels_hyper)
-    ans
+  effect <- mod$levels_effect
+  hyper <- make_levels_hyper(mod)
+  hyperrand <- make_levels_hyperrand(mod)
+  effect <- as.character(effect)
+  hyper <- as.character(hyper)
+  hyperrand <- as.character(hyperrand)
+  ans <- c(effect, hyper, hyperrand)
+  if (has_disp(mod))
+    ans <- c(ans, "disp")
+  ans
 }
 
 
@@ -407,10 +311,36 @@ make_levels_cyclical <- function(mod) {
 #'
 #' @noRd
 make_levels_hyper <- function(mod) {
-    priors <- mod$priors
-    ans <- lapply(priors, levels_hyper)
-    ans <- unlist(ans, use.names = FALSE)
-    ans
+  priors <- mod$priors
+  ans <- lapply(priors, levels_hyper)
+  ans <- unlist(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Levels Associated with Each Element of 'hyperrand'
+#'
+#' Make levels for hyperparameters for each term
+#'
+#' @param mod An object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_hyperrand <- function(mod) {
+  priors <- mod$priors
+  levels_effect <- mod$levels_effect
+  terms_effect <- mod$terms_effect
+  matrices_along_by <- choose_matrices_along_by(mod)
+  levels_effect <- split(levels_effect, terms_effect)
+  ans <- .mapply(levels_hyperrand,
+                 dots = list(prior = priors,
+                             matrix_along_by = matrices_along_by,
+                             levels_effect = levels_effect),
+                 MoreArgs = list())
+  ans <- unlist(ans)
+  ans
 }
 
 
@@ -434,51 +364,7 @@ make_levels_replicate <- function(n, n_row_data) {
 
 
 ## HAS_TESTS
-#' Make levels for parameters and hyper-parameter of
-#' seasonal effect
-#'
-#' @param mod A fitted object of class 'bage_mod'.
-#'
-#' @returns A character vector.
-#'
-#' @noRd
-make_levels_season <- function(mod) {
-    level_hyper <- "sd"
-    if (!has_season(mod))
-        return(character())
-    matrix <- mod$matrix_season_outcome
-    levels_effect <- colnames(matrix)
-    ans <- c(levels_effect, level_hyper)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make linear predictor from cyclical.
-#'
-#' Return value aligned to outcome, not data.
-#'
-#' @param mod Object of class "bage_mod"
-#' @param components Data frame produced by
-#' call to `components()`.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_linpred_cyclical <- function(mod, components) {
-    matrix_cyclical_outcome <- mod$matrix_cyclical_outcome
-    matrix_cyclical_outcome <- Matrix::as.matrix(matrix_cyclical_outcome)
-    is_cyclical <- ((components$component == "cyclical")
-        & (components$term == "effect"))
-    cyclical <- components$.fitted[is_cyclical]
-    matrix_cyclical_outcome %*% cyclical
-}
-
-
-## HAS_TESTS
 #' Make linear predictor from effect.
-#'
-#' Does not include cyclical or seasonal effect.
 #'
 #' Return value aligned to outcome, not data.
 #'
@@ -495,28 +381,6 @@ make_linpred_effect <- function(mod, components) {
     is_effect <- components$component == "effect"
     effect <- components$.fitted[is_effect]
     matrix_effect_outcome %*% effect
-}
-
-
-## HAS_TESTS
-#' Make linear predictor from season.
-#'
-#' Return value aligned to outcome, not data.
-#'
-#' @param mod Object of class "bage_mod"
-#' @param components Data frame produced by
-#' call to `components()`.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_linpred_season <- function(mod, components) {
-    matrix_season_outcome <- mod$matrix_season_outcome
-    matrix_season_outcome <- Matrix::as.matrix(matrix_season_outcome)
-    is_season <- ((components$component == "season")
-        & (components$term == "effect"))
-    season <- components$.fitted[is_season]
-    matrix_season_outcome %*% season
 }
 
 
@@ -539,7 +403,7 @@ make_scaled_eigen <- function(prec) {
     vecs <- eigen$vectors
     min_valid_val <- -tolerance * abs(vals[[1L]]) ## based on MASS::mvrnorm
     if (any(vals < min_valid_val))
-        cli::cli_abort("Estimated precision matrix not positive definite.")
+        cli::cli_abort("Estimated precision matrix not positive definite.")  ## nocov
     vals <- pmax(vals, abs(min_valid_val))
     sqrt_inv_vals <- sqrt(1 / vals)
     vecs %*% diag(sqrt_inv_vals)
@@ -558,84 +422,27 @@ make_scaled_eigen <- function(prec) {
 #'
 #' @noRd
 make_term_components <- function(mod) {
-    effect <- mod$terms_effect
-    hyper <- make_terms_hyper(mod)
-    effect <- as.character(effect)
-    hyper <- as.character(hyper)
-    ans <- c(effect, hyper)
-    if (has_disp(mod))
-        ans <- c(ans, "disp")
-    if (has_cyclical(mod)) {
-        cyclical <- make_terms_cyclical(mod)
-        cyclical <- as.character(cyclical)
-        ans <- c(ans, cyclical)
-    }
-    if (has_season(mod)) {
-        season <- make_terms_season(mod)
-        season <- as.character(season)
-        ans <- c(ans, season)
-    }
-    ans
+  effect <- mod$terms_effect
+  hyper <- make_terms_hyper(mod)
+  hyperrand <- make_terms_hyperrand(mod)
+  effect <- as.character(effect)
+  hyper <- as.character(hyper)
+  hyperrand <- as.character(hyperrand)
+  ans <- c(effect, hyper, hyperrand)
+  if (has_disp(mod))
+    ans <- c(ans, "disp")
+  ans
 }
 
 
 ## HAS_TESTS
-#' Make factor identifying components of 'cyclical'
+#' Make List of Transforms to be Applied to
+#' Hyper-Parameters
 #'
-#' Make factor distinguishing parameters
-#' and hyper-parmeters in 'cyclical'
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor.
-#'
-#' @noRd
-make_terms_cyclical <- function(mod) {
-    if (!has_cyclical(mod))
-        return(factor())
-    effect <- make_effect_cyclical(mod)
-    hyper <- make_hyper_cyclical(mod)
-    n_effect <- length(effect)
-    n_hyper <- length(hyper)
-    levels <- c("effect", "hyper")
-    times <- c(n_effect, n_hyper)
-    ans <- rep(levels, times = times)
-    ans <- factor(ans, levels = levels)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make factor identifying components of 'season'
-#'
-#' Make factor distinguishing parameters
-#' and hyper-parmeters in 'season'
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor.
-#'
-#' @noRd
-make_terms_season <- function(mod) {
-    if (!has_season(mod))
-        return(factor())
-    effect <- make_effect_season(mod)
-    n_effect <- length(effect)
-    levels <- c("effect", "hyper")
-    times <- c(n_effect, 1L)
-    ans <- rep(levels, times = times)
-    ans <- factor(ans, levels = levels)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make list of transforms to be applied to
-#' hyper-parameters 
-#'
-#' Includes dispersion, if present,
-#' and hyper-parameters for cyclical and
-#' seasonal effects.
+#' Includes ordinary hyper-parameters
+#' ("hyper"), hyper-parameters that can be
+#' treated as random effects ("hyperrand")
+#' and disperion, if present.
 #' Result applied to *all* parameters, and
 #' includes NULLs for parameters that are
 #' not hyper-parameters.
@@ -646,55 +453,56 @@ make_terms_season <- function(mod) {
 #'
 #' @noRd
 make_transforms_hyper <- function(mod) {
-    invlogit2 <- function(x) {
-        ans <- exp(x) / (1 + exp(x))
-        2 * ans - 1
-    }
-    est <- mod$est
-    priors <- mod$priors
-    has_disp <- has_disp(mod)
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
-    n_effectfree <- length(est$effectfree)
-    n_effect_cyclical <- length(est$effect_cyclical)
-    n_effect_season <- length(est$effect_season)
-    n_hyper_cyclical <- length(est$hyper_cyclical)
-    n_hyper_season <- length(est$hyper_season)
-    nms_effectfree <- names(est$effectfree)
-    nms_effect_cyclical <- names(est$effect_cyclical)
-    nms_effect_season <- names(est$effect_season)
-    nms_hyper_cyclical <- names(est$hyper_cyclical)
-    nms_hyper_season <- names(est$hyper_season)
-    ans_effectfree <- rep(list(NULL), times = n_effectfree)
-    names(ans_effectfree) <- nms_effectfree
-    ans_hyper <- lapply(priors, transform_hyper)
-    ans_hyper <- unlist(ans_hyper, recursive = FALSE)
-    ans_log_disp <- if (has_disp) exp else NULL
-    ans_log_disp = list(log_disp = ans_log_disp)
-    ans_effect_cyclical <- rep(list(NULL), times = n_effect_cyclical)
-    ans_effect_season <- rep(list(NULL), times = n_effect_season)
-    names(ans_effect_cyclical) <- nms_effect_cyclical
-    names(ans_effect_season) <- nms_effect_season
-    if (has_cyclical) {
-        ans_hyper_cyclical <- list(invlogit2, exp)
-        ans_hyper_cyclical <- rep(ans_hyper_cyclical,
-                                  times = c(n_hyper_cyclical - 1L, 1L))
-    }
-    else
-        ans_hyper_cyclical <- rep(list(NULL), times = n_hyper_cyclical)
-    names(ans_hyper_cyclical) <- nms_hyper_cyclical
-    ans_hyper_season <- if (has_season) exp else NULL
-    ans_hyper_season <- rep(list(ans_hyper_season), times = n_hyper_season)
-    names(ans_hyper_season) <- nms_hyper_season
-    c(ans_effectfree,
-      ans_hyper,
-      ans_log_disp,
-      ans_effect_cyclical,
-      ans_hyper_cyclical,
-      ans_effect_season,
-      ans_hyper_season)
+  est <- mod$est
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  has_disp <- has_disp(mod)
+  n_effectfree <- length(est$effectfree)
+  nms_effectfree <- names(est$effectfree)
+  ans_effectfree <- rep(list(NULL), times = n_effectfree)
+  names(ans_effectfree) <- nms_effectfree
+  ans_hyper <- lapply(priors, transform_hyper)
+  ans_hyper <- unlist(ans_hyper, recursive = FALSE)
+  ans_hyperrand <- .mapply(transform_hyperrand,
+                           dots = list(prior = priors,
+                                       matrix_along_by = matrices_along_by),
+                           MoreArgs = list())
+  ans_hyperrand <- unlist(ans_hyperrand, recursive = FALSE)
+  ans_log_disp <- if (has_disp) exp else NULL
+  ans_log_disp = list(log_disp = ans_log_disp)
+  c(ans_effectfree,
+    ans_hyper,
+    ans_hyperrand,
+    ans_log_disp)
 }
 
+
+## HAS_TESTS
+#' Reformat Parts of 'components' Data Frame Dealing with
+#' Hyper-Parameters that are Treated as Random Effects
+#'
+#' @param components A data frame
+#' @param mod An object of class 'bage_mod'.
+#'
+#' @returns A modified versino of 'components'
+#'
+#' @noRd
+reformat_hyperrand <- function(components, mod) {
+  priors <- mod$priors
+  nms_priors <- names(priors)
+  matrices_along_by <- choose_matrices_along_by(mod)
+  for (i_prior in seq_along(priors)) {
+    prior <- priors[[i_prior]]
+    nm_prior <- nms_priors[[i_prior]]
+    matrix_along_by <- matrices_along_by[[i_prior]]
+    components <- reformat_hyperrand_one(prior = prior,
+                                         nm_prior = nm_prior,
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  }
+  components
+}
+                     
 
 ## HAS_TESTS
 #' Draw from multivariate normal, using results
@@ -737,27 +545,52 @@ rmvnorm_eigen <- function(n, mean, scaled_eigen) {
 
 
 ## HAS_TESTS
-#' Transform hyper-parameters, and possibly dispersion
+#' Convert Rvec Columns to Numeric Columns by Taking Means
 #'
-#' Transform hyper-parameters, including any
-#' hyper-parameters for season, as well as 
-#' any dispersion term.
+#' @param data A data frame
 #'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A list of functions or NULL
+#' @return A data frame
 #'
 #' @noRd
-transform_draws_hyper <- function(draws, transforms) {
-    for (i in seq_along(transforms)) {
-        transform <- transforms[[i]]
-        if (!is.null(transform))
-            draws[i, ] <- transform(draws[i, ])
-    }
-    draws
+rvec_to_mean <- function(data) {
+  is_rvec <- vapply(data, rvec::is_rvec, TRUE)
+  data[is_rvec] <- lapply(data[is_rvec], rvec::draws_mean)
+  data
 }
 
 
+## HAS_TESTS
+#' Order 'components' by 'term' and Then By 'term'
+#'
+#' @param components A tibble - typically the output
+#' from function 'components'
+#'
+#' @returns A reordered version of 'components'
+#'
+#' @noRd
+sort_components <- function(components, mod) {
+  levels_component <- c("effect",
+                        "trend", "cyclical", "seasonal", "error",
+                        "disp",
+                        "hyper")
+  formula <- mod$formula
+  term <- components$term
+  component <- components$component
+  terms_formula <- stats::terms(formula)
+  levels_term <- attr(terms_formula, "term.labels")
+  if (attr(terms_formula, "intercept"))
+    levels_term <- c("(Intercept)", levels_term)
+  i_term <- match(term, levels_term)
+  i_comp <- match(components$component, levels_component, nomatch = 0L)
+  i_invalid_comp <- match(0L, i_comp, nomatch = 0L)
+  if (i_invalid_comp > 0L) {
+    val <- components$component[[i_invalid_comp]]
+    cli::cli_abort("Internal error: {.val {val}} not a valid value for {.var component}.")  ## nocov
+  }
+  ord <- order(i_term, i_comp)
+  components[ord, , drop = FALSE]
+}
+  
 ## HAS_TESTS
 #' Convert 'effectfree' part of draws to 'effect'
 #'
@@ -779,19 +612,58 @@ transform_draws_hyper <- function(draws, transforms) {
 #' @returns A matrix
 #'
 #' @noRd
-transform_draws_effect <- function(draws, matrix, offset) {
-    n_effectfree <- ncol(matrix)
-    n_val <- nrow(draws)
-    is_effectfree <- seq_len(n_val) <= n_effectfree
-    effectfree <- draws[is_effectfree, , drop = FALSE]
-    not_effectfree <- draws[!is_effectfree, , drop = FALSE]
-    effect <- matrix %*% effectfree + offset
-    rbind(effect, not_effectfree)
+transform_draws_effect <- function(draws,
+                                   matrix_effectfree_effect,
+                                   offset_effectfree_effect,
+                                   matrices_effect_outcome) {
+  ## extract 'effectfree'
+  n_effectfree <- ncol(matrix_effectfree_effect)
+  n_val <- nrow(draws)
+  is_effectfree <- seq_len(n_val) <= n_effectfree
+  effectfree <- draws[is_effectfree, , drop = FALSE]
+  not_effectfree <- draws[!is_effectfree, , drop = FALSE]
+  ## transform 'effectfree' into 'effect'
+  effects_raw <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
+  ## standardise effects
+  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
+  linpred <- matrix_effect_outcome %*% effects_raw
+  n_effect <- length(matrices_effect_outcome)
+  effects_standard <- vector(mode = "list", length = n_effect)
+  for (i_effect in seq_len(n_effect)) {
+    M <- matrices_effect_outcome[[i_effect]]
+    n <- Matrix::colSums(M)
+    effect <- (Matrix::t(M) %*% linpred) / n ## works with Matrix
+    linpred <- linpred - M %*% effect
+    effects_standard[[i_effect]] <- Matrix::as.matrix(effect)
+  }
+  if (any(abs(linpred) > 0.001))
+    cli::cli_abort("Internal error: Final residual not 0")  ## nocov
+  effects_standard <- do.call(rbind, effects_standard)
+  ## combine and return
+  rbind(effects_standard,
+        not_effectfree)
 }
-    
 
 
-    
-    
-    
-    
+## HAS_TESTS
+#' Transform hyper-parameters, and possibly dispersion
+#'
+#' Transform hyper-parameters, including
+#' hyper-parameters that can be treated as
+#' random effects and any dispersion term.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A list of functions or NULL
+#'
+#' @noRd
+transform_draws_hyper <- function(draws, transforms) {
+    for (i in seq_along(transforms)) {
+        transform <- transforms[[i]]
+        if (!is.null(transform))
+            draws[i, ] <- transform(draws[i, ])
+    }
+    draws
+}
+

@@ -1,95 +1,33 @@
 
 ## User-visible functions that look like methods, but technically are not
 
-## Cyclical effect ------------------------------------------------------------
-
-## HAS_TESTS
-#' Add a cyclical effect
-#'
-#' Add a cyclical effect to a model.
-#'
-#' TODO - description
-#'
-#' If the `mod` argument to `set_cyclical` is
-#' a fitted model, then `set_cyclical` 'unfits'
-#' the model, by deleting existing estimates.
-#' 
-#' @param mod A `bage_mod` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
-#' @param n Number of terms in model.
-#' Default is 2. Minimum is 1.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
-#'
-#' @returns A modified `bage_mod` object.
-#'
-#' @seealso
-#' - [is_fitted()]
-#' 
-#' @examples
-#' mod <- mod_pois(deaths ~ month,
-#'                 data = us_acc_deaths,
-#'                 exposure = 1)
-#' mod
-#' mod |> set_cyclical()
-#' @export
-set_cyclical <- function(mod, n = 2, s = 1) {
-    check_bage_mod(x = mod, nm_x = "mod")
-    formula <- mod$formula
-    data <- mod$data
-    priors <- mod$priors
-    var_time <- mod$var_time
-    if (is.null(var_time))
-        cli::cli_abort(c("Can't specify cyclical effect when time variable not identified.",
-                         i = "Please use {.fun set_var_time} to identify time variable."))
-    check_n(n,
-            n_arg = "n",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
-    n_cyclical <- as.integer(n)
-    check_scale(s,
-                x_arg = "s",
-                zero_ok = FALSE)
-    scale <- as.double(s)
-    n_time <- n_time(mod)
-    if (n_cyclical >= n_time)
-        cli::cli_abort(c(paste("Estimation period not long enough to use cyclical effect",
-                               "with {n_cyclical} terms."),
-                         i = "Must have more time points than terms.",
-                         i = "Data has {n_time} time points."))
-    matrix_cyclical_outcome <- make_matrix_cyclical_outcome(mod)
-    mod$n_cyclical <- n_cyclical
-    mod$scale_cyclical <- s
-    mod$matrix_cyclical_outcome <- matrix_cyclical_outcome
-    mod <- unfit(mod)
-    mod
-}
-
-
 ## 'set_disp' -----------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set scale parameter for dispersion
+#' Set Mean Parameter for Dispersion
 #'
-#' Specify the scale parameter `s` in the prior
+#' Specify the mean parameter `mean` in the prior
 #' for dispersion.
 #'
+#' The dispersion parameter has an exponential
+#' distribution with mean \eqn{\mu}.
+#'
+#' \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
+#'
 #' In Poisson and binomial models,
-#' `s` can be set to `0`, implying
+#' `mean` can be set to `0`, implying
 #' that the dispersion term is also `0`.
-#' In normal models, `s` must be non-negative.
+#' In normal models, `mean` must be non-negative.
 #'
 #' If the `mod` argument to `set_disp` is
 #' a fitted model, then `set_disp` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
-#' @param s Scale term. In Poisson and
-#' binomial models, `s` must be non-negative.
-#' In normal models, `s` must be positive.
+#' @param mod A `bage_mod` object, typically
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param mean Mean value for the expoential prior.
+#' In Poisson and binomial models, can be set to 0.
 #'
 #' @returns A `bage_mod` object
 #'
@@ -101,16 +39,16 @@ set_cyclical <- function(mod, n = 2, s = 1) {
 #'                 data = injuries,
 #'                 exposure = popn)
 #' mod
-#' mod |> set_disp(s = 0.1)
-#' mod |> set_disp(s = 0)
+#' mod |> set_disp(mean = 0.1)
+#' mod |> set_disp(mean = 0)
 #' @export
-set_disp <- function(mod, s) {
+set_disp <- function(mod, mean) {
     check_bage_mod(x = mod, nm_x = "mod")
     nm_distn <- nm_distn(mod)
     zero_ok <- nm_distn %in% c("pois", "binom")
-    check_scale(s, x_arg = "s", zero_ok = zero_ok)
-    scale_disp <- as.double(s)
-    mod$scale_disp <- scale_disp
+    check_scale(mean, x_arg = "mean", zero_ok = zero_ok)
+    mean_disp <- as.double(mean)
+    mod$mean_disp <- mean_disp
     mod <- unfit(mod)
     mod
 }
@@ -133,7 +71,7 @@ set_disp <- function(mod, s) {
 #' model fitting: it only affects posterior
 #' summaries.
 #'
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param n_draw Number of draws.
 #'
 #' @returns A `bage_mod` object
@@ -151,12 +89,30 @@ set_disp <- function(mod, s) {
 #'   set_n_draw(n_draw = 5000)
 #' @export
 set_n_draw <- function(mod, n_draw = 1000L) {
-    check_bage_mod(x = mod, nm_x = "mod")
-    n_draw <- checkmate::assert_int(n_draw,
-                                    lower = 0L,
-                                    coerce = TRUE)
-    mod$n_draw <- n_draw
-    mod
+  check_bage_mod(x = mod, nm_x = "mod")
+  check_n(n = n_draw,
+          nm_n = "n_draw",
+          min = 0L,
+          max = NULL,
+          null_ok = FALSE)
+  n_draw <- as.integer(n_draw)
+  n_draw_old <- mod$n_draw
+  if (n_draw > n_draw_old)
+    mod[["components"]] <- NULL
+  if (n_draw < n_draw_old) {
+    comp <- mod[["components"]]
+    if (!is.null(comp)) {
+      fitted <- comp$.fitted
+      fitted <- as.matrix(fitted)
+      s <- seq_len(n_draw)
+      fitted <- fitted[, s, drop = FALSE]
+      fitted <- rvec::rvec(fitted)
+      comp$.fitted <- fitted
+      mod$components <- comp
+    }
+  }
+  mod$n_draw <- n_draw
+  mod
 }
 
 
@@ -193,7 +149,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' - [AR1()]
 #' - [Known()]
 #' - [SVD()]
-#' - [Spline()]
+#' - [Sp()]
 #' - [is_fitted()]
 #'
 #' @examples
@@ -204,114 +160,57 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' mod |> set_prior(age ~ RW2())
 #' @export
 set_prior <- function(mod, formula) {
-    nm_response <- deparse1(formula[[2L]])
-    check_bage_mod(x = mod, nm_x = "mod")
-    check_format_prior_formula(formula)
-    nms_terms <- names(mod$priors)
-    matrices_effect_outcome <- mod$matrices_effect_outcome
-    var_age <- mod$var_age
-    var_sexgender <- mod$var_sexgender
-    nm_response_split <- strsplit(nm_response, split = ":")[[1L]]
-    nms_terms_split <- lapply(nms_terms, strsplit, split = ":")
-    nms_terms_split <- lapply(nms_terms_split, `[[`, 1L)
-    is_matched <- FALSE
-    for (i in seq_along(nms_terms_split)) {
-        is_matched <- setequal(nm_response_split, nms_terms_split[[i]])
-        if (is_matched)
-            break
-    }
-    if (!is_matched)
-        cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
-                         i = "The response must be a term from the model formula {.code {deparse1(mod$formula)}}.",
-                         i = "The model formula contains terms {.val {nms_terms}}."))
-    prior <- tryCatch(eval(formula[[3L]]),
-                      error = function(e) e)
-    if (inherits(prior, "error"))
-        cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
-                         i = prior$message))
+  nm_response <- deparse1(formula[[2L]])
+  check_bage_mod(x = mod, nm_x = "mod")
+  check_format_prior_formula(formula)
+  nms_terms <- names(mod$priors)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  matrices_along_by <- mod$matrices_along_by
+  nm_response_split <- strsplit(nm_response, split = ":")[[1L]]
+  nms_terms_split <- lapply(nms_terms, strsplit, split = ":")
+  nms_terms_split <- lapply(nms_terms_split, `[[`, 1L)
+  is_matched <- FALSE
+  for (i in seq_along(nms_terms_split)) {
+    is_matched <- setequal(nm_response_split, nms_terms_split[[i]])
+    if (is_matched)
+      break
+  }
+  if (!is_matched)
+    cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
+                     i = "The response must be a term from the model formula {.code {deparse1(mod$formula)}}.",
+                     i = "The model formula contains terms {.val {nms_terms}}."))
+  prior <- tryCatch(eval(formula[[3L]]),
+                    error = function(e) e)
+  if (inherits(prior, "error"))
+    cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
+                     i = prior$message))
+  if (uses_along(prior)) {
+    matrix_along_by <- choose_matrix_along_by(prior = prior,
+                                              matrices = matrices_along_by[[i]],
+                                              var_time = var_time,
+                                              var_age = var_age)
+  }
+  else {
     length_effect <- ncol(matrices_effect_outcome[[i]])
-    agesex <- make_agesex_inner(nm = nms_terms[[i]],
-                                var_age = var_age,
-                                var_sexgender = var_sexgender)
-    is_prior_ok_for_term(prior = prior,
-                         nm = nm_response,
-                         length_effect = length_effect,
-                         agesex = agesex)
-    mod$priors[[i]] <- prior
-    mod <- unfit(mod)
-    mod
-}
-
-
-## Seasonal effect ------------------------------------------------------------
-
-## HAS_TESTS
-#' Add a seasonal effect
-#'
-#' Add a seasonal effect to a model.
-#'
-#' TODO - description
-#'
-#' If the `mod` argument to `set_season` is
-#' a fitted model, then `set_season` 'unfits'
-#' the model, by deleting existing estimates.
-#' 
-#' @inheritParams set_cyclical
-#' @param n Number of seasons.
-#' @param by <[`tidyselect`][tidyselect::language]>
-#' Names of dimensions, other than the
-#' time dimension. If a value for `by` is supplied,
-#' then separate seasonal effects are
-#' created for combination of the `by` dimensions.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
-#'
-#' @returns A modified `bage_mod` object.
-#'
-#' @seealso
-#' - [is_fitted()]
-#' 
-#' @examples
-#' ## single set of seasonal effects
-#' mod <- mod_pois(deaths ~ month,
-#'                 data = us_acc_deaths,
-#'                 exposure = 1)
-#' mod
-#' mod |> set_season(n = 12)
-#'
-#' ## TODO - multiple sets of seasonal effects
-#' @export
-set_season <- function(mod, n, by = NULL, s = 1) {
-    check_bage_mod(x = mod, nm_x = "mod")
-    formula <- mod$formula
-    data <- mod$data
-    priors <- mod$priors
-    var_time <- mod$var_time
-    if (is.null(var_time))
-        cli::cli_abort(c("Can't specify seasonal effect when time variable not identified.",
-                         i = "Please use {.fun set_var_time} to identify time variable."))
-    check_n(n, n_arg = "n", min = 2L, max = NULL, null_ok = FALSE)
-    n <- as.integer(n)
-    by <- rlang::enquo(by)
-    by <- tidyselect::eval_select(by, data = data)
-    by <- names(by)
-    check_by_in_formula(by = by, formula = formula)
-    check_by_excludes_time(by = by, var_time)
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    n_time <- n_time(mod)
-    if (n > (n_time %/% 2L))
-        cli::cli_abort(c(paste("Estimation period not long enough to use seasonal effect",
-                               "with {n} seasons."),
-                         i = "Must have at least two time points for each season.",
-                         i = "Data used for estimation has {n_time} time points."))
-    matrix_season_outcome <- make_matrix_season_outcome(mod, by = by)
-    mod$n_season <- n
-    mod$scale_season <- s
-    mod$matrix_season_outcome <- matrix_season_outcome
-    mod <- unfit(mod)
-    mod
+    matrix_along_by <- matrix(seq.int(from = 0L, to = length_effect - 1L),
+                              ncol = 1L)
+  }
+  agesex <- make_agesex_inner(nm = nms_terms[[i]],
+                              var_age = var_age,
+                              var_sexgender = var_sexgender)
+  is_prior_ok_for_term(prior = prior,
+                       nm = nm_response,
+                       matrix_along_by = matrix_along_by,
+                       var_time = var_time,
+                       var_age = var_age,
+                       is_in_compose = FALSE,
+                       agesex = agesex)
+  mod$priors[[i]] <- prior
+  mod <- unfit(mod)
+  mod
 }
 
 
@@ -341,7 +240,7 @@ set_season <- function(mod, n, by = NULL, s = 1) {
 #' a fitted model, then `set_var_age` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param name The name of the age variable.
 #'
 #' @returns A `bage_mod` object
@@ -399,7 +298,7 @@ set_var_age <- function(mod, name) {
 #' a fitted model, then `set_var_sexgender` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param name The name of the sex or gender variable.
 #'
 #' @returns A `"bage_mod"` object
@@ -464,7 +363,7 @@ set_var_sexgender <- function(mod, name) {
 #' a fitted model, then `set_var_time` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_cyclical
+#' @inheritParams set_disp
 #' @param name The name of the time variable.
 #'
 #' @returns A `bage_mod` object
@@ -500,27 +399,6 @@ set_var_time <- function(mod, name) {
 }
 
 
-## generate.bage_mod <- function(x, known = "(Intercept)", ...) {
-##     nm_distn <- x$nm_distn
-##     is_fitted <- !is.null(x$est)
-##     if (!is_fitted)
-##         x <- fit(x)
-##     nms_priors <- names(x$priors)
-##     check_known(known = known,
-##                 nms_priors = nms_priors,
-##                 nm_distn = nm_distn)
-##     if (known == ".")
-##         generate_all(x)
-##     else if (known %in% c("rate", "prob", "mean"))
-##         generate_outcome(x)
-##     else
-##         generate_partial(mod, known = known)
-## }
-
-## fit.bage_mod_sim <- function(x) {
-##     NULL
-## }
-
 
 ## Helper functions -----------------------------------------------------------
 
@@ -540,56 +418,56 @@ set_var_time <- function(mod, name) {
 #'
 #' @noRd
 set_var_inner <- function(mod, name, var) {
-    choices <- c("age", "sexgender", "time")
-    check_bage_mod(x = mod, nm_x = "mod")
-    checkmate::assert_choice(var, choices = choices)
-    vars_oth <- setdiff(choices, var)
-    attr_name <- paste0("var_", var)
-    attr_names_oth <- paste0("var_", vars_oth)
-    ## extract values
-    formula <- mod$formula
-    priors <- mod$priors
-    name_old <- mod[[attr_name]]
-    names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
-    has_name_old <- !is.null(name_old)
-    names_priors <- names(priors)
-    matrices_effect_outcome <- mod$matrices_effect_outcome
-    ## check 'name'
-    checkmate::assert_string(name, min.chars = 1L)
-    check_formula_has_variable(name = name, formula = formula)
-    for (i_oth in seq_along(names_oth)) {
-        nm_oth <- names_oth[[i_oth]]
-        if (!is.null(nm_oth)) {
-            if (identical(name, nm_oth)) {
-                cli::cli_abort(c("Variables for {var} and {vars_oth[[i_oth]]} have the same name.",
-                                 i = "{.var {attr_name}} is {.val {name}}.",
-                                 i = "{.var {attr_names_oth[[i_oth]]}} is {.val {name}}."))
-            }
-        }
+  choices <- c("age", "sexgender", "time")
+  check_bage_mod(x = mod, nm_x = "mod")
+  var <- match.arg(var, choices = choices)
+  vars_oth <- setdiff(choices, var)
+  attr_name <- paste0("var_", var)
+  attr_names_oth <- paste0("var_", vars_oth)
+  ## extract values
+  formula <- mod$formula
+  priors <- mod$priors
+  name_old <- mod[[attr_name]]
+  names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
+  has_name_old <- !is.null(name_old)
+  names_priors <- names(priors)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  ## check 'name'
+  check_string(x = name, nm_x = "name")
+  check_formula_has_variable(name = name, formula = formula)
+  for (i_oth in seq_along(names_oth)) {
+    nm_oth <- names_oth[[i_oth]]
+    if (!is.null(nm_oth)) {
+      if (identical(name, nm_oth)) {
+        cli::cli_abort(c("Variables for {var} and {vars_oth[[i_oth]]} have the same name.",
+                         i = "{.var {attr_name}} is {.val {name}}.",
+                         i = "{.var {attr_names_oth[[i_oth]]}} is {.val {name}}."))
+      }
     }
-    ## modify var
-    mod[[attr_name]] <- name
-    ## reset priors
-    var_age <- mod[["var_age"]]
-    var_time <- mod[["var_time"]]
-    length_effect <- ncol(matrices_effect_outcome[[name]])
-    priors[[name]] <- default_prior(nm_term = name,
-                                    var_age = var_age,
-                                    var_time = var_time,
-                                    length_effect = length_effect)
-    if (has_name_old) {
-        length_effect_old <- ncol(matrices_effect_outcome[[name_old]])
-        priors[[name_old]] <- default_prior(nm_term = name_old,
-                                            var_age = var_age, 
-                                            var_time = var_time,
-                                            length_effect = length_effect)
-    }
-    ## modify priors
-    mod$priors <- priors
-    ## unfit
-    mod <- unfit(mod)
-    ## return
-    mod
+  }
+  ## modify var
+  mod[[attr_name]] <- name
+  ## reset priors
+  var_age <- mod[["var_age"]]
+  var_time <- mod[["var_time"]]
+  length_effect <- ncol(matrices_effect_outcome[[name]])
+  priors[[name]] <- default_prior(nm_term = name,
+                                  var_age = var_age,
+                                  var_time = var_time,
+                                  length_effect = length_effect)
+  if (has_name_old) {
+    length_effect_old <- ncol(matrices_effect_outcome[[name_old]])
+    priors[[name_old]] <- default_prior(nm_term = name_old,
+                                        var_age = var_age, 
+                                        var_time = var_time,
+                                        length_effect = length_effect_old)
+  }
+  ## modify priors
+  mod$priors <- priors
+  ## unfit
+  mod <- unfit(mod)
+  ## return
+  mod
 }
 
 
@@ -605,5 +483,7 @@ unfit <- function(mod) {
     mod["est"] <- list(NULL)
     mod["is_fixed"] <- list(NULL)
     mod["R_prec"] <- list(NULL)
+    mod["scaled_eigen"] <- list(NULL)
+    mod["components"] <- list(NULL)
     mod
 }

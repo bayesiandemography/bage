@@ -1,175 +1,573 @@
 
-## draw_vals_hyper ------------------------------------------------------------
+## const ----------------------------------------------------------------------
 
-test_that("'draw_vals_hyper' works with bage_prior_ar1", {
-    prior <- AR1()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), c("coef", "sd"))
-    expect_identical(length(ans$coef), 10L)
+test_that("'const' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  ans_obtained <- const(prior)
+  ans_expected <- prior$const
+  expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_known", {
-    prior <- Known(c(0.1, 0.3))
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(ans, list())
-})
-
-test_that("'draw_vals_hyper' works with bage_prior_norm", {
-    prior <- N()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
-})
-
-test_that("'draw_vals_hyper' works with bage_prior_normfixed", {
-    prior <- NFix()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(ans, list())
-})
-
-test_that("'draw_vals_hyper' works with bage_prior_rw", {
-    prior <- RW()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
-})
-
-test_that("'draw_vals_hyper' works with bage_prior_rw2", {
-    prior <- RW2()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
-})
-
-test_that("'draw_vals_hyper' works with bage_prior_spline", {
-    prior <- Spline()
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(names(ans), "sd")
-    expect_identical(length(ans$sd), 10L)
-})
-
-test_that("'draw_vals_hyper' works with bage_prior_svd", {
-    prior <- SVD(HMD)
-    ans <- draw_vals_hyper(prior = prior, n_sim = 10)
-    expect_identical(ans, list())
+test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
+  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
+  ans_obtained <- const(prior)
+  ans_expected <- unlist(c(list(trend = const(Lin())),
+                           list(seasonal = const(Seas(n = 3)))))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
 ## draw_vals_effect --------------------------------------------------------------
 
-test_that("'draw_vals_effect' works with bage_prior_ar1", {
-    prior <- AR1()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior,
-                                  n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+test_that("'draw_vals_effect' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_compose", {
+  prior <- compose_time(trend = RW(), error = N())
+  agesex <- NULL
+  levels_effect <- letters
+  matrix_along_by <- matrix(0:25, nr = 26)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        levels_effect = levels_effect,
+                                        agesex = agesex,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = agesex,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_ear", {
+  prior <- EAR(n = 3)
+  matrix_along_by <- matrix(0:25, nr = 13)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_elin", {
+  prior <- ELin(s = 0.01)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 1:4
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_erw", {
+  prior <- ERW(s = 0.01)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_eseas", {
+  prior <- ESeas(n = 2, s = 0.01)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters[1:12]
+  matrix_along_by = matrix(0:11, nc = 2)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_known", {
-    prior <- Known(c(-0.1, 0, 0.1))
-    n_sim <- 10
-    levels_effect <- c("a", "b", "c")
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = NULL,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
+  prior <- Known(c(-0.1, 0, 0.1))
+  n_sim <- 10
+  vals_hyperrand <- list()
+  levels_effect <- c("a", "b", "c")
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = NULL,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_lin", {
+  prior <- Lin()
+  n_sim <- 10
+  vals_hyperrand <- list()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_norm", {
-    prior <- N()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior,
-                                  n_sim = n_sim)
-    levels_effect <- seq_len(1000)
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(as.character(1:1000), as.character(1:10)))
-    expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
+  prior <- N()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- seq_len(1000)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(as.character(1:1000), as.character(1:10)))
+  expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
 })
 
 test_that("'draw_vals_effect' works with bage_prior_normfixed", {
-    prior <- NFix(sd = 0.3)
-    n_sim <- 10
-    levels_effect <- seq_len(1000)
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = NULL,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(as.character(1:1000), as.character(1:10)))
-    expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
+  prior <- NFix(sd = 0.3)
+  n_sim <- 10
+  vals_hyperrand <- list()
+  levels_effect <- seq_len(1000)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = NULL,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(as.character(1:1000), as.character(1:10)))
+  expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw", {
-    prior <- RW()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(letters, as.character(1:10)))
+  prior <- RW()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2", {
-    prior <- RW2()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(letters, as.character(1:10)))
+  prior <- RW2()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_seas", {
+  prior <- Seas(n = 4)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline", {
-    prior <- Spline()
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- letters
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = NULL,
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(letters, as.character(1:10)))
+  prior <- Sp()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = NULL,
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd", {
-    prior <- SVD(HMD)
-    n_sim <- 10
-    vals_hyper <- draw_vals_hyper(prior = prior, n_sim = n_sim)
-    levels_effect <- c(0:79, "80+")
-    ans <- draw_vals_effect(prior = prior,
-                         vals_hyper = vals_hyper,
-                         levels_effect = levels_effect,
-                         agesex = "age",
-                         n_sim = n_sim)
-    expect_identical(dimnames(ans),
-                     list(levels_effect, as.character(1:10)))
+  prior <- SVD(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- c(0:79, "80+")
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "age",
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(levels_effect, as.character(1:10)))
 })
 
 
+## draw_vals_hyper ------------------------------------------------------------
+
+test_that("'draw_vals_hyper' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("coef", "sd"))
+  expect_identical(dim(ans$coef), c(3L, 10L))
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_compose", {
+  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 2))
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("trend", "cyclical", "seasonal"))
+  expect_identical(length(ans$trend$slope), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_ear", {
+  prior <- EAR(n = 3)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("coef", "sd"))
+  expect_identical(dim(ans$coef), c(3L, 10L))
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_elin", {
+  set.seed(0)
+  prior <- ELin()
+  n_sim <- 10
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = n_sim)
+  expect_identical(names(ans), c("slope", "sd", "msd"))
+  expect_identical(lengths(ans),
+                   c(slope = 10L, sd = 10L, msd = 10L))
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_erw", {
+  set.seed(0)
+  prior <- ERW()
+  n_sim <- 10
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = n_sim)
+  expect_identical(names(ans), "sd")
+  expect_identical(lengths(ans), c(sd = 10L))
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_eseas", {
+  set.seed(0)
+  prior <- ESeas(n = 2)
+  n_sim <- 10
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = n_sim)
+  expect_identical(names(ans), "sd")
+  expect_identical(lengths(ans),
+                   c(sd = 10L))
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_known", {
+  prior <- Known(c(0.1, 0.3))
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(ans, list())
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_lin", {
+  prior <- Lin()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("slope", "sd"))
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_norm", {
+  prior <- N()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_normfixed", {
+  prior <- NFix()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(ans, list())
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw", {
+  prior <- RW()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2", {
+  prior <- RW2()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_seas", {
+  prior <- Seas(n = 4)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_spline", {
+  prior <- Sp()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_svd", {
+  prior <- SVD(HMD)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(ans, list())
+})
+
+
+## 'draw_vals_hyperrand' ------------------------------------------------------
+
+test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
+  set.seed(0)
+  prior <- compose_time(trend = ELin(), seasonal = ESeas(n = 2))
+  levels_effect <- letters[1:12]
+  agesex <- "other"
+  matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 1:4
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  expect_identical(names(ans), c("trend", "seasonal"))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
+  set.seed(0)
+  prior <- ELin()
+  levels_effect <- letters[1:12]
+  agesex <- "other"
+  matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 1:4
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  expect_identical(names(ans), "mslope")
+  expect_identical(lengths(ans),
+                   c(mslope = 40L))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
+  set.seed(0)
+  prior <- Lin()
+  levels_effect <- letters[1:12]
+  agesex <- "other"
+  matrix_along_by <- matrix(0:11, nr = 12)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
+                             matrix_along_by = matrix_along_by,
+                             n_sim = n_sim)
+  expect_identical(ans, list())
+})
+
+
+## 'has_hyperrand' ------------------------------------------------------------
+
+test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
+  prior <- N()
+  expect_false(has_hyperrand(prior))
+})
+
+test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
+  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
+  expect_true(has_hyperrand(prior))
+  prior <- ELin()
+  expect_true(has_hyperrand(prior))
+})
+
+
+## 'indices_priors' -----------------------------------------------------------
+
+test_that("'indices_priors' works with non-compose prior", {
+  prior <- Lin()
+  matrix_along_by <- matrix(0:9, nr = 10)
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  expect_identical(ans_obtained, integer())                                 
+})
+
+test_that("'indices_priors' works with compose time prior - 2 priors", {
+  prior <- compose_time(trend = ELin(),
+                        cyclical = EAR())
+  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(a = 1:5, b = 1:2))
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  ans_expected <- c(hyper_start = 0L,
+                    hyper_length = 3L,
+                    hyperrand_start = 0L,
+                    hyperrand_length = 12L,
+                    consts_start = 0L,
+                    consts_length = 3L,
+                    i_prior = 9L,
+                    hyper_start = 3L,
+                    hyper_length = 3L,
+                    hyperrand_start = 12L,
+                    hyperrand_length = 0L,
+                    consts_start = 3L,
+                    consts_length = 5L,
+                    i_prior = 12L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'indices_priors' works with compose time prior - 3 priors", {
+  prior <- compose_time(trend = RW2(),
+                        cyclical = AR(),
+                        error = N())
+  matrix_along_by <- matrix(0:9, nr = 10)
+  rownames(matrix_along_by) <- 1:10
+  names(dimnames(matrix_along_by))[1] <- "x"
+  ans_obtained <- indices_priors(prior = prior,
+                                 matrix_along_by = matrix_along_by)
+  ans_expected <- c(hyper_start = 0L,
+                    hyper_length = 1L,
+                    hyperrand_start = 0L,
+                    hyperrand_length = 10L,
+                    consts_start = 0L,
+                    consts_length = 2L,
+                    i_prior = 4L,
+                    hyper_start = 1L,
+                    hyper_length = 3L,
+                    hyperrand_start = 10L,
+                    hyperrand_length = 10L,
+                    consts_start = 2L,
+                    consts_length = 5L,
+                    i_prior = 5L,
+                    hyper_start = 4L,
+                    hyper_length = 1L,
+                    hyperrand_start = 20L,
+                    hyperrand_length = 0L,
+                    consts_start = 7L,
+                    consts_length = 1L,
+                    i_prior = 1L)
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## is_known -------------------------------------------------------------------
@@ -185,64 +583,194 @@ test_that("'is_known' works with valid inputs", {
 test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
     expect_true(is_prior_ok_for_term(prior = AR1(),
                                      nm = "time",
-                                     length_effect = 4L,
+                                     matrix_along_by = matrix(0:3, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_compose - time", {
+  prior <- compose_time(trend = RW2(),
+                        cyclical = AR(),
+                        seas = Seas(n = 4))
+  expect_true(is_prior_ok_for_term(prior = prior,
+                                   nm = "time",
+                                   matrix_along_by = matrix(0:9, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
+  expect_error(is_prior_ok_for_term(prior = prior,
+                                    nm = "bla:blu",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = TRUE,
+                                    agesex = "other"),
+               "Problem with call to `bage::compose_time\\(\\)`.")
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_ear", {
+    expect_true(is_prior_ok_for_term(prior = EAR(n = 3),
+                                     nm = "time:region",
+                                     matrix_along_by = matrix(0:29, nc = 3),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_elin", {
+    expect_true(is_prior_ok_for_term(prior = ELin(),
+                                     nm = "sex:time",
+                                     matrix_along_by = matrix(0:11, nc = 2),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_erw", {
+  expect_true(is_prior_ok_for_term(prior = ERW(),
+                                   nm = "age:time",
+                                   matrix_along_by = matrix(0:11, nc = 3),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_eseas", {
+  expect_true(is_prior_ok_for_term(prior = ESeas(n = 4),
+                                   nm = "time",
+                                   matrix_along_by = matrix(0:11, nc = 3),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = TRUE,
+                                   agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_eseas", {
+  expect_error(is_prior_ok_for_term(prior = ESeas(n = 4),
+                                    nm = "time",
+                                    matrix_along_by = matrix(0:12, nc = 3),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "`ESeas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
-    expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
-                                     nm = "sex",
-                                     length_effect = 2,
-                                     agesex = "other"))
+  expect_true(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
+                                   nm = "sex",
+                                   matrix_along_by = matrix(0:1, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_lin", {
+  expect_true(is_prior_ok_for_term(prior = Lin(),
+                                   nm = "sex",
+                                   matrix_along_by = matrix(0:1, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
-    expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
-                                      nm = "sex",
-                                      length_effect = 3,
-                                      agesex = "other"),
-                 "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
+  expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
+                                    nm = "sex",
+                                    matrix_along_by = matrix(0:2, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
     expect_true(is_prior_ok_for_term(prior = N(),
                                      nm = "sex",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
     expect_true(is_prior_ok_for_term(prior = NFix(),
                                      nm = "sex",
-                                     length_effect = 1,
+                                     matrix_along_by = matrix(0, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw", {
     expect_true(is_prior_ok_for_term(prior = RW(),
                                      nm = "time",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
     expect_true(is_prior_ok_for_term(prior = RW2(),
                                      nm = "time",
-                                     length_effect = 3,
+                                     matrix_along_by = matrix(0:2, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
+  expect_true(is_prior_ok_for_term(prior = Seas(n = 4),
+                                   nm = "time",
+                                   matrix_along_by = matrix(0:3, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   is_in_compose = TRUE,
+                                   agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
+  expect_error(is_prior_ok_for_term(prior = Seas(n = 4),
+                                    nm = "time",
+                                    matrix_along_by = matrix(0:3, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "`Seas\\(n=4\\)` prior cannot be used on its own.")
+})
+
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
-    expect_true(is_prior_ok_for_term(prior = Spline(),
+    expect_true(is_prior_ok_for_term(prior = Sp(),
                                      nm = "time",
-                                     length_effect = 2,
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
     expect_true(is_prior_ok_for_term(prior = SVD(sim_scaled_svd()),
                                      nm = "age:sex",
-                                     length_effect = 10,
+                                     matrix_along_by = matrix(0:9, nc = 2),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = "age:sex"))
 })
 
@@ -250,7 +778,10 @@ test_that("'is_prior_ok_for_term' throws correct error with main effect, agesex 
     s <- sim_scaled_svd()
     expect_error(is_prior_ok_for_term(prior = SVD(s),
                                      nm = "bla",
-                                     length_effect = 10,
+                                     matrix_along_by = matrix(0:9, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = NULL),
                 "Problem with `SVD\\(s\\)` prior for `bla` term.")
 })
@@ -259,71 +790,202 @@ test_that("'is_prior_ok_for_term' throws correct error with interaction, agesex 
     s <- sim_scaled_svd()
     expect_error(is_prior_ok_for_term(prior = SVD(s),
                                      nm = "bla:bleh",
-                                     length_effect = 10,
+                                     matrix_along_by = matrix(0:9, nc = 2),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     is_in_compose = FALSE,
                                      agesex = NULL),
                 "Problem with `SVD\\(s\\)` prior for `bla:bleh` term.")
 })
 
 test_that("'is_prior_ok_for_term' throws correct error order-3 interaction, agesex 'other'", {
-    s <- sim_scaled_svd()
-    expect_error(is_prior_ok_for_term(prior = SVD(s),
-                                      nm = "bla:bleh:blu",
-                                      length_effect = 10,
-                                      agesex = "other"),
-                 "Problem with `SVD\\(s\\)` prior for `bla:bleh:blu` term.")
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = SVD(s),
+                                    nm = "bla:bleh:blu",
+                                    matrix_along_by = matrix(0:11, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "Problem with `SVD\\(s\\)` prior for `bla:bleh:blu` term.")
 })
 
 
 ## levels_hyper ---------------------------------------------------------------
 
-test_that("'levels_hyper' works with 'bage_prior_ar1'", {
-    expect_identical(levels_hyper(AR1()), c("coef", "sd"))
+test_that("'levels_hyper' works with 'bage_prior_ar'", {
+  expect_identical(levels_hyper(prior = AR(n = 2)),
+                   c("coef1", "coef2", "sd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
+  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 4))
+  expect_identical(levels_hyper(prior),
+                   unname(c(trend = paste("trend", levels_hyper(Lin()), sep = "."),
+                            cyclical = paste("cyclical", levels_hyper(AR()), sep = "."),
+                            seasonal = paste("seasonal", levels_hyper(Seas(n = 4)), sep = "."))))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_ear'", {
+  expect_identical(levels_hyper(prior = EAR(n = 2)),
+                   c("coef", "coef", "sd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_elin'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = ELin()),
+                   c("slope", "sd", "msd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_erw'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = ERW()),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_eseas'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = ESeas(n = 3)),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_known'", {
-    expect_identical(levels_hyper(Known(1)), character())
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Known(1)),
+                   character())
+})
+
+test_that("'levels_hyper' works with 'bage_prior_lin'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Lin()),
+                   c("slope", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_norm'", {
-    expect_identical(levels_hyper(N()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = N()),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_normfixed'", {
-    expect_identical(levels_hyper(NFix()), character())
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = NFix()),
+                   character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw'", {
-    expect_identical(levels_hyper(RW()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = RW()),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
-    expect_identical(levels_hyper(RW2()), "sd")
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = RW2()),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_seas'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = Seas(n = 2)),
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_spline'", {
-    expect_identical(levels_hyper(Spline()), "sd")
+  expect_identical(levels_hyper(prior = Sp()), 
+                   "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
-    expect_identical(levels_hyper(SVD(sim_scaled_svd())), character())
+  expect_identical(levels_hyper(prior = SVD(sim_scaled_svd())),
+                   character())
+})
+
+
+## levels_hyperrand ---------------------------------------------------------------
+
+test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
+  levels_effect <- letters
+  matrix_along_by <- matrix(0:25, nr = 26)
+  rownames(matrix_along_by) <- letters
+  ans_obtained <- levels_hyperrand(prior = AR(n = 2), levels_effect = levels_effect)
+  ans_expected <- character()
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 2 priors", {
+  prior <- compose_time(ELin(), seasonal = ESeas(n = 4))
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = prior,
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
+                    c("trend.mslope.a", "trend.mslope.b"))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
+  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR())
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = prior,
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
+                    c("trend.mslope.a", "trend.mslope.b"),
+                    paste("cyclical.effect", levels_effect, sep = "."))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
+  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR(), error = N())
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = prior,
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
+                     c("trend.mslope.a", "trend.mslope.b"),
+                     paste("cyclical.effect", levels_effect, sep = "."),
+                     paste("seasonal.effect", levels_effect, sep = "."))
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_elin'", {
+  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
+  matrix_along_by <- matrix(0:25,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = c("a", "b")))
+  ans_obtained <- levels_hyperrand(prior = ELin(),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c("mslope.a", "mslope.b")
+  expect_identical(ans_obtained, ans_expected)                   
 })
 
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1", {
-    prior <- AR1()
-    levels_effect <- 2001:2005
-    agesex <- "other"
-    ans_obtained <- make_matrix_effectfree_effect(prior = prior,
-                                            levels_effect = levels_effect,
-                                            agesex = agesex)
-    ans_expected <- Matrix::.sparseDiagonal(5)
-    expect_identical(ans_obtained, ans_expected)
+  prior <- AR1()
+  levels_effect <- 2001:2005
+  agesex <- "other"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                levels_effect = levels_effect,
+                                                agesex = agesex)
+  ans_expected <- Matrix::.sparseDiagonal(5)
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n supplied", {
-    prior <- Spline(n = 5)
+    prior <- Sp(n = 5)
     levels_effect <- 1:10
     ans_obtained <- make_matrix_effectfree_effect(prior = prior,
                                             levels_effect = levels_effect,
@@ -335,7 +997,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n supp
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n NULL", {
-    prior <- Spline()
+    prior <- Sp()
     levels_effect <- 1:10
     ans_obtained <- make_matrix_effectfree_effect(prior = prior,
                                             levels_effect = levels_effect,
@@ -417,23 +1079,211 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex i
 })
 
 
+## 'reformat_hyperrand_one' ---------------------------------------------------
+
+test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ sex * time + age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- fit(mod)
+    matrix_along_by <- choose_matrices_along_by(mod)[[2]]
+    comp <- components(mod)
+    ans_obtained <- reformat_hyperrand_one(prior = mod$priors[[2]],
+                                           nm_prior <- names(mod$priors)[[2]],
+                                           matrix_along_by = matrix_along_by,
+                                           components = comp)
+    ans_expected <- comp
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two components", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  comp <- make_comp_components(mod)
+  term <- make_term_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(component = comp,
+                               term = term,
+                               level = level,
+                               .fitted = .fitted)
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior = "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  hyperrand_comp <- subset(components,
+                           component == "hyperrand" & grepl("trend\\.effect\\.", level))
+  effect_comp <- subset(components, component == "effect" & term == "sex:time")
+  hyperrand_new <- hyperrand_comp
+  hyperrand_new$.fitted <- effect_comp$.fitted - hyperrand_comp$.fitted
+  hyperrand_new$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
+  hyperrand_new$component <- "error"
+  hyperrand_comp$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
+  hyperrand_comp$component <- "trend"
+  hyper <- subset(components,
+                  component == "hyperrand" & grepl("mslope", level))
+  hyper$component <- "hyper"
+  ans_expected <- vctrs::vec_rbind(components[1:32,],
+                                   hyper,
+                                   hyperrand_comp,
+                                   hyperrand_new,
+                                   components[47, , drop = FALSE])
+  expect_identical(ans_obtained[1:3], ans_expected[1:3])
+  expect_equal(as.numeric(mean(subset(ans_obtained, component == "trend" & grepl("M", level))$.fitted)),
+               c(0, 0, 0, 0, 0))
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, three components", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ compose_time(ELin(), cyclical = EAR(), error = N())) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  comp <- make_comp_components(mod)
+  term <- make_term_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(component = comp,
+                               term = term,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  comp_reformatted <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                             nm_prior <- "sex:time",
+                                             matrix_along_by = matrix_along_by,
+                                             components = components)
+  ans_obtained <- subset(comp_reformatted, component == "effect" & term == "sex:time")
+  ans_expected <- subset(comp_reformatted, component %in% c("trend", "cyclical", "error"))
+  ans_expected <- aggregate(ans_expected[".fitted"], ans_expected["level"], sum)
+  ans_expected <- ans_expected[match(ans_obtained$level, ans_expected$level),]
+  ans_expected <- ans_expected$.fitted
+  ans_obtained <- ans_obtained$.fitted
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_elin", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ ELin()) |>
+                  fit(mod)
+  comp <- components(mod)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior <- "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = comp)
+  ans_expected <- comp
+  ans_expected$component[ans_expected$component == "hyperrand" &
+                           ans_expected$term == "sex:time"] <- "hyper"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'str_call_prior' -----------------------------------------------------------
 
-test_that("'str_call_prior' works with bage_prior_ar1", {
+test_that("'str_call_prior' works with bage_prior_ar - AR1", {
     expect_identical(str_call_prior(AR1()), "AR1()")
     expect_identical(str_call_prior(AR1(min = 0.5)), "AR1(min=0.5)")
     expect_identical(str_call_prior(AR1(max = 0.95)), "AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
     expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, s = 0.3)),
-                     "AR1(min=0.5, max=0.95, s=0.3)")
+                     "AR1(min=0.5,max=0.95,s=0.3)")
 })
 
-test_that("'str_call_prior' works with bage_prior_ar1", {
+test_that("'str_call_prior' works with bage_prior_ar - AR", {
+    expect_identical(str_call_prior(AR(n = 1)), "AR(n=1)")
+    expect_identical(str_call_prior(AR(n = 3, s = 0.3)), "AR(n=3,s=0.3)")
+    expect_identical(str_call_prior(AR(s = 0.3, n = 2)),
+                     "AR(s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_compose", {
+  expect_identical(str_call_prior(compose_time(Lin(), error = N())),
+                   "compose_time(trend=Lin(), error=N())")
+  expect_identical(str_call_prior(compose_time(trend = Lin(), seasonal = Seas(n = 3))),
+                   "compose_time(trend=Lin(), seasonal=Seas(n=3))")
+  expect_identical(str_call_prior(compose_time(error = N(s = 0.1), trend = ELin())),
+                   "compose_time(trend=ELin(), error=N(s=0.1))")
+})
+
+test_that("'str_call_prior' works with bage_prior_ear - EAR1", {
+    expect_identical(str_call_prior(EAR1()), "EAR1()")
+    expect_identical(str_call_prior(EAR1(min = 0.5)), "EAR1(min=0.5)")
+    expect_identical(str_call_prior(EAR1(max = 0.95)), "EAR1(max=0.95)")
+    expect_identical(str_call_prior(EAR1(s = 0.3)), "EAR1(s=0.3)")
+    expect_identical(str_call_prior(EAR1(min = 0.5, max = 0.95, s = 0.3)),
+                     "EAR1(min=0.5,max=0.95,s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_ear - EAR", {
+    expect_identical(str_call_prior(EAR(n = 1)), "EAR(n=1)")
+    expect_identical(str_call_prior(EAR(n = 3, s = 0.3)), "EAR(n=3,s=0.3)")
+    expect_identical(str_call_prior(EAR(s = 0.3, n = 2)),
+                     "EAR(n=2,s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_elin", {
+    expect_identical(str_call_prior(ELin()), "ELin()")
+    expect_identical(str_call_prior(ELin(sd = 0.5, s = 2, ms = 1.2, along = "a")),
+                     "ELin(s=2,sd=0.5,ms=1.2,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_erw", {
+    expect_identical(str_call_prior(ERW()), "ERW()")
+    expect_identical(str_call_prior(ERW(along = "a", s = 2)),
+                     "ERW(s=2,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_eseas", {
+    expect_identical(str_call_prior(ESeas(n = 4)), "ESeas(n=4)")
+    expect_identical(str_call_prior(ESeas(s = 2, along = "a", n = 2)),
+                     "ESeas(n=2,s=2,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_known", {
     expect_identical(str_call_prior(Known(1)), "Known(1)")
     expect_identical(str_call_prior(Known(c(2, 3, -2, 0))),
                                     "Known(c(2,3,-2,0))")
     expect_identical(str_call_prior(Known(c(2, 3, -2, 0,7, 3))),
                                     "Known(c(2,...,3))")
+})
+
+test_that("'str_call_prior' works with bage_prior_lin", {
+    expect_identical(str_call_prior(Lin()), "Lin()")
+    expect_identical(str_call_prior(Lin(sd = 0.5)), "Lin(sd=0.5)")
+    expect_identical(str_call_prior(Lin(s = 0.95)), "Lin(s=0.95)")
+    expect_identical(str_call_prior(Lin(sd = 0.1, s = 0.95)), "Lin(s=0.95,sd=0.1)")
 })
 
 test_that("'str_call_prior' works with bage_prior_norm", {
@@ -453,16 +1303,21 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
     expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(flat = TRUE)), "RW2(flat=TRUE)")
+    expect_identical(str_call_prior(RW2(sd = 0.5)), "RW2(sd=0.5)")
     expect_identical(str_call_prior(RW2(s = 0.95)), "RW2(s=0.95)")
-    expect_identical(str_call_prior(RW2(flat = TRUE, s = 0.95)), "RW2(s=0.95,flat=TRUE)")
+    expect_identical(str_call_prior(RW2(sd = 0.1, s = 0.95)), "RW2(s=0.95,sd=0.1)")
+})
+
+test_that("'str_call_prior' works with bage_prior_seas", {
+    expect_identical(str_call_prior(Seas(n = 2)), "Seas(n=2)")
+    expect_identical(str_call_prior(Seas(s = 3.2, n = 2)), "Seas(n=2,s=3.2)")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {
-    expect_identical(str_call_prior(Spline()), "Spline()")
-    expect_identical(str_call_prior(Spline(n = 5L)), "Spline(n=5)")
-    expect_identical(str_call_prior(Spline(s = 0.1)), "Spline(s=0.1)")
-    expect_identical(str_call_prior(Spline(s = 3,n = 5L)), "Spline(n=5,s=3)")
+    expect_identical(str_call_prior(Sp()), "Sp()")
+    expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n=5)")
+    expect_identical(str_call_prior(Sp(s = 0.1)), "Sp(s=0.1)")
+    expect_identical(str_call_prior(Sp(s = 3,n = 5L)), "Sp(n=5,s=3)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
@@ -476,66 +1331,466 @@ test_that("'str_call_prior' works with bage_prior_svd", {
 
 ## transform_hyper ------------------------------------------------------------
 
-test_that("'transform_hyper' works with 'bage_prior_ar1'", {
-    logit <- function(x) log(x / (1 - x))
-    l <- transform_hyper(AR1())
-    expect_equal(0.35, l[[1]](logit(0.35)))
-    expect_equal(0.35, l[[2]](log(0.35)))
+test_that("'transform_hyper' works with 'bage_prior_ar - AR1'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = AR1())
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    2 * ans - 1
+  }
+  l <- transform_hyper(prior = AR(n = 2))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_compose'", {
+  prior <- compose_time(trend = Lin(), cyclical = AR())
+  ans_obtained <- transform_hyper(prior = prior)
+  ans_expected <- unlist(c(list(trend = transform_hyper(Lin())),
+                           list(cyclical = transform_hyper(AR()))))
+  expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ar - EAR1'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = EAR1())
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_ar - EAR'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    2 * ans - 1
+  }
+  l <- transform_hyper(prior = EAR(n = 2))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_elin'", {
+  l <- transform_hyper(prior = ELin())
+  expect_equal(0.35, l[[1]](0.35))
+  expect_equal(exp(0.35), l[[2]](0.35))
+  expect_equal(exp(0.35), l[[3]](0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_erw'", {
+  l <- transform_hyper(prior = ERW())
+  expect_equal(length(l), 1L)
+  expect_equal(exp(0.35), l[[1]](0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_eseas'", {
+  l <- transform_hyper(prior = ESeas(n = 4))
+  expect_equal(length(l), 1L)
+  expect_equal(exp(0.35), l[[1]](0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_known'", {
-    l <- transform_hyper(Known(1))
-    expect_identical(l, list())
+  l <- transform_hyper(prior = Known(1))
+  expect_identical(l, list())
+})
+
+test_that("'transform_hyper' works with 'bage_prior_lin'", {
+  l <- transform_hyper(prior = Lin())
+  expect_equal(0.35, l[[1]](0.35))
+  expect_equal(exp(0.35), l[[2]](0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_norm'", {
-    l <- transform_hyper(N())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  l <- transform_hyper(prior = N())
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_normfixed'", {
-    l <- transform_hyper(NFix())
-    expect_identical(l, list())
+  l <- transform_hyper(prior = NFix())
+  expect_identical(l, list())
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw'", {
-    l <- transform_hyper(RW())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  l <- transform_hyper(prior = RW())
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw2'", {
-    l <- transform_hyper(RW2())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  l <- transform_hyper(prior = RW2())
+  expect_equal(0.35, l[[1]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_seas'", {
+  l <- transform_hyper(prior = Seas(n = 4))
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_spline'", {
-    l <- transform_hyper(Spline())
-    expect_equal(0.35, l[[1]](log(0.35)))
+  l <- transform_hyper(prior = Sp())
+  expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_svd'", {
-    l <- transform_hyper(SVD(HMD))
-    expect_identical(l, list())
+  l <- transform_hyper(prior = SVD(HMD))
+  expect_identical(l, list())
 })
 
 
-## uses_matrix_effectfree_effect ----------------------------------------------------
+## 'transform_hyperrand' ------------------------------------------------------
+
+test_that("'transform_hyperrand' works with 'bage_prior_ar1'", {
+  matrix_along_by <- matrix(0:9, nc = 1)
+  prior <- AR1()
+  ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
+  ans_expected <- list()
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'transform_hyperrand' works with 'bage_prior_compose'", {
+  matrix_along_by <- matrix(0:9, nc = 2)
+  prior <- compose_time(trend = ELin(), cyclical = EAR(), error = N())
+  ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
+  ans_expected <- c(rep(list(trend.effect = identity), times = 10),
+                    rep(list(trend.mslope = identity), times = 2),
+                    rep(list(cyclical.effect = identity), times = 10))
+  expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
+})
+
+test_that("'transform_hyperrand' works with 'bage_prior_elin'", {
+  matrix_along_by <- matrix(0:9, nc = 2)
+  l <- transform_hyperrand(prior = ELin(),
+                           matrix_along_by = matrix_along_by)
+  expect_equal(0.35, l[[1]](0.35))
+  expect_equal(0.35, l[[2]](0.35))
+  expect_identical(length(l), 2L)
+})
+
+
+## use_for_compose_cyclical ---------------------------------------------------
+
+test_that("'use_for_compose_cyclical' returns TRUE with priors that can be used for cyclical", {
+  expect_true(use_for_compose_cyclical(AR1()))
+  expect_true(use_for_compose_cyclical(EAR()))
+})
+
+test_that("'use_for_compose_cyclical' returns FALSE with priors that cannot be used for cyclical", {
+  expect_false(use_for_compose_cyclical(ESeas(n = 12)))
+  expect_false(use_for_compose_cyclical(ELin()))
+  expect_false(use_for_compose_cyclical(ERW()))
+  expect_false(use_for_compose_cyclical(Known(c(a = 1, b = -1))))
+  expect_false(use_for_compose_cyclical(Lin()))
+  expect_false(use_for_compose_cyclical(NFix()))
+  expect_false(use_for_compose_cyclical(RW()))
+  expect_false(use_for_compose_cyclical(RW2()))
+  expect_false(use_for_compose_cyclical(Seas(n = 4)))
+  expect_false(use_for_compose_cyclical(Sp()))
+  expect_false(use_for_compose_cyclical(SVD(HMD)))
+})
+
+
+## use_for_compose_error ------------------------------------------------------
+
+test_that("'use_for_compose_error' returns TRUE with priors that can be used for error", {
+  expect_true(use_for_compose_error(N()))
+})
+
+test_that("'use_for_compose_error' returns FALSE with priors that cannot be used for error", {
+  expect_false(use_for_compose_error(AR1()))
+  expect_false(use_for_compose_error(EAR1()))
+  expect_false(use_for_compose_error(ELin()))
+  expect_false(use_for_compose_error(ERW()))
+  expect_false(use_for_compose_error(ESeas(n = 12)))
+  expect_false(use_for_compose_error(Known(c(a = 1, b = -1))))
+  expect_false(use_for_compose_error(Lin()))
+  expect_false(use_for_compose_error(NFix()))
+  expect_false(use_for_compose_error(RW()))
+  expect_false(use_for_compose_error(RW2()))
+  expect_false(use_for_compose_error(Seas(n = 4)))
+  expect_false(use_for_compose_error(Sp()))
+  expect_false(use_for_compose_error(SVD(HMD)))
+})
+
+
+## use_for_compose_seasonal ------------------------------------------------------
+
+test_that("'use_for_compose_seasonal' returns TRUE with priors that can be used for seasonal", {
+    expect_true(use_for_compose_seasonal(ESeas(n = 12)))
+    expect_true(use_for_compose_seasonal(Seas(n = 4)))
+})
+
+test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be used for seasonal", {
+    expect_false(use_for_compose_seasonal(AR1()))
+    expect_false(use_for_compose_seasonal(EAR1()))
+    expect_false(use_for_compose_seasonal(ELin()))
+    expect_false(use_for_compose_seasonal(ERW()))
+    expect_false(use_for_compose_seasonal(Lin()))
+    expect_false(use_for_compose_seasonal(N()))
+    expect_false(use_for_compose_seasonal(NFix()))
+    expect_false(use_for_compose_seasonal(RW()))
+    expect_false(use_for_compose_seasonal(RW2()))
+    expect_false(use_for_compose_seasonal(Sp()))
+    expect_false(use_for_compose_seasonal(Known(c(a = 1, b = -1))))
+    expect_false(use_for_compose_seasonal(SVD(HMD)))
+})
+
+
+## use_for_compose_trend ------------------------------------------------------
+
+test_that("'use_for_compose_trend' returns TRUE with priors that can be used for trend", {
+    expect_true(use_for_compose_trend(ELin()))
+    expect_true(use_for_compose_trend(ERW()))
+    expect_true(use_for_compose_trend(Lin()))
+    expect_true(use_for_compose_trend(RW()))
+    expect_true(use_for_compose_trend(RW2()))
+    expect_true(use_for_compose_trend(Sp()))
+})
+
+test_that("'use_for_compose_trend' returns FALSE with priors that cannot be used for trend", {
+    expect_false(use_for_compose_trend(AR1()))
+    expect_false(use_for_compose_trend(EAR1()))
+    expect_false(use_for_compose_trend(Known(c(a = 1, b = -1))))
+    expect_false(use_for_compose_trend(N()))
+    expect_false(use_for_compose_trend(NFix()))
+    expect_false(use_for_compose_trend(Seas(n = 4)))
+    expect_false(use_for_compose_trend(ESeas(n = 12)))
+    expect_false(use_for_compose_trend(SVD(HMD)))
+})
+
+
+## use_for_interaction --------------------------------------------------------
+
+test_that("'use_for_interaction' returns FALSE with priors that are not necessarily interactions", {
+    expect_false(use_for_interaction(AR1()))
+    expect_false(use_for_interaction(Lin()))
+    expect_false(use_for_interaction(RW()))
+    expect_false(use_for_interaction(RW2()))
+    expect_false(use_for_interaction(Sp()))
+    expect_false(use_for_interaction(N()))
+    expect_false(use_for_interaction(NFix()))
+    expect_false(use_for_interaction(Seas(n = 3)))
+})
+
+test_that("'use_for_interaction' returns TRUE with priors that are always interactions", {
+    expect_true(use_for_interaction(EAR()))
+    expect_true(use_for_interaction(ELin()))
+    expect_true(use_for_interaction(ERW()))
+    expect_true(use_for_interaction(ESeas(n = 12)))
+})
+
+
+## use_for_main_effect --------------------------------------------------------
+
+test_that("'use_for_main_effect' returns FALSE with priors that are not necessarily main effects", {
+    expect_false(use_for_main_effect(EAR1()))
+    expect_false(use_for_main_effect(ELin()))
+    expect_false(use_for_main_effect(ERW()))
+    expect_false(use_for_main_effect(ESeas(n = 12)))
+    expect_false(use_for_main_effect(N()))
+    expect_false(use_for_main_effect(NFix()))
+    expect_false(use_for_main_effect(Seas(n = 3)))
+})
+
+test_that("'use_for_main_effect' returns TRUE with priors that are always main effects", {
+    expect_true(use_for_main_effect(AR1()))
+    expect_true(use_for_main_effect(Lin()))
+    expect_true(use_for_main_effect(RW()))
+    expect_true(use_for_main_effect(RW2()))
+    expect_true(use_for_main_effect(Sp()))
+})
+
+
+## uses_along -----------------------------------------------------------------
+
+test_that("'uses_along' works with valid inputs", {
+    expect_false(uses_along(N()))
+    expect_true(uses_along(EAR()))
+    expect_true(uses_along(ELin()))
+    expect_true(uses_along(ERW()))
+    expect_true(uses_along(ESeas(n = 2)))
+})
+
+## uses_hyperrand ------------------------------------------------------
+
+test_that("'uses_hyperrand' returns TRUE with priors that can be used for seasonal", {
+  expect_true(uses_hyperrand(compose_time(ERW(), err = N())))
+  expect_true(uses_hyperrand(ELin()))
+})
+
+test_that("'uses_hyperrand' returns FALSE with priors that cannot be used for seasonal", {
+  expect_false(uses_hyperrand(AR1()))
+  expect_false(uses_hyperrand(EAR1()))
+  expect_false(uses_hyperrand(ERW()))
+  expect_false(uses_hyperrand(ESeas(n = 12)))
+  expect_false(uses_hyperrand(Known(c(a = 1, b = -1))))
+  expect_false(uses_hyperrand(Lin()))
+  expect_false(uses_hyperrand(N()))
+  expect_false(uses_hyperrand(NFix()))
+  expect_false(uses_hyperrand(RW()))
+  expect_false(uses_hyperrand(RW2()))
+  expect_false(uses_hyperrand(Seas(n = 4)))
+  expect_false(uses_hyperrand(Sp()))
+  expect_false(uses_hyperrand(SVD(HMD)))
+})
+
+
+## uses_matrix_effectfree_effect ----------------------------------------------
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
     expect_false(uses_matrix_effectfree_effect(N()))
-    expect_true(uses_matrix_effectfree_effect(Spline()))
+    expect_true(uses_matrix_effectfree_effect(Sp()))
     expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
 })
 
 
-## uses_offset_effectfree_effect ----------------------------------------------------
+## uses_offset_effectfree_effect ----------------------------------------------
 
 test_that("'uses_offset_effectfree_effect' works with valid inputs", {
     expect_false(uses_offset_effectfree_effect(N()))
-    expect_false(uses_offset_effectfree_effect(Spline()))
+    expect_false(uses_offset_effectfree_effect(Sp()))
     expect_true(uses_offset_effectfree_effect(SVD(HMD)))
 })
 
+
+## vals_hyper_to_dataframe ----------------------------------------------------
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
+                                          nm_prior = "time",
+                                          vals_hyper = vals_hyper,
+                                          n_sim = 10)
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
+                                 level = c("coef1", "coef2", "coef3", "sd"),
+                                 .fitted = rvec::rvec(unname(rbind(vals_hyper[[1]], vals_hyper[[2]]))))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_compose", {
+  prior <- compose_time(RW2(), cyclical = AR(), seasonal = Seas(n = 2))
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
+                                          nm_prior = "time",
+                                          vals_hyper = vals_hyper,
+                                          n_sim = 10)
+  fitted <- vctrs::vec_rbind(vals_hyper[[1]][[1]],
+                             vals_hyper[[2]][[1]],
+                             vals_hyper[[2]][[2]],
+                             vals_hyper[[3]][[1]],
+                             .name_repair = "universal_quiet")
+  fitted <- as.matrix(fitted)
+  dimnames(fitted) <- NULL
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
+                                 level = c("trend.sd",
+                                           "cyclical.coef1", "cyclical.coef2", "cyclical.sd",
+                                           "seasonal.sd"),
+                                 .fitted = rvec::rvec(fitted))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_fixed", {
+  prior <- NFix()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
+                                          nm_prior = "time",
+                                          vals_hyper = vals_hyper,
+                                          n_sim = 10)
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## vals_hyperrand_to_dataframe ----------------------------------------------------
+
+test_that("'vals_hyperrand_to_dataframe' works with bage_prior_elin", {
+  prior <- ELin()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        levels_effect = letters[1:12],
+                                        vals_hyper = vals_hyper,
+                                        agesex = "other",
+                                        matrix_along_by = matrix(0:11, nr = 6,
+                                                                 dimnames = list(NULL, 11:12)),
+                                        n_sim = 10)
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
+                                 level = c("mslope.11", "mslope.12"),
+                                 .fitted = rvec::rvec(unname(vals_hyperrand[[1]])))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyperrand_to_dataframe' works with bage_prior_compose", {
+  prior <- compose_time(RW2(), cyclical = AR(), seasonal = Seas(n = 2))
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        levels_effect = letters[1:12],
+                                        agesex = "other",
+                                        matrix_along_by = matrix(0:11, nr = 12,
+                                                                 dimnames = list(NULL, "a")),
+                                        n_sim = 10)
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  vals_hyperrand <- lapply(vals_hyperrand, function(x) x[[1L]])
+  fitted <- vctrs::vec_rbind(!!!vals_hyperrand,
+                             .name_repair = "universal_quiet")
+  fitted <- as.matrix(fitted)
+  dimnames(fitted) <- NULL
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = rep(c("trend", "cyclical", "seasonal"), each = 12),
+                                 level = rep(letters[1:12], times = 3),
+                                 .fitted = rvec::rvec(fitted))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyperrand_to_dataframe' works with bage_prior_fixed", {
+  prior <- NFix()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        levels_effect = letters[1:12],
+                                        agesex = "other",
+                                        matrix_along_by = matrix(0:11, nr = 6,
+                                                                 dimnames = list(NULL, 11:12)),
+                                        n_sim = 10)
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
 
 ## values_known ---------------------------------------------------------------
 

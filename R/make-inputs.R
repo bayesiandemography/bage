@@ -1,5 +1,82 @@
 
 ## HAS_TESTS
+#' Choose Values for 'matrix_along_by'
+#' for All Priors to Pass to TMB
+#'
+#' @param x Object of class 'bage_mod'
+#'
+#' @returns A named list of matrices
+#'
+#' @noRd
+choose_matrices_along_by <- function(x) {
+  priors <- x$priors
+  matrices_along_by <- x$matrices_along_by
+  var_time <- x$var_time
+  var_age <- x$var_age
+  ans <- .mapply(choose_matrix_along_by,
+                 dots = list(prior = priors,
+                             matrices = matrices_along_by),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age))
+  names(ans) <- names(priors)
+  ans
+}
+                      
+
+## HAS_TESTS
+#' Choose Value for 'matrix_along_by'
+#' for Single Prior to Pass to TMB
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param matrices Named list of matrices
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#'
+#' @returns A matrix
+#'
+#' @noRd
+choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
+  n <- length(matrices)
+  if (n == 1L)
+    return(matrices[[1L]])
+  nms <- names(matrices)
+  nm_prior <- paste(nms, collapse = ":")
+  along <- prior$specific$along
+  if (is.null(along)) {
+    has_time <- !is.null(var_time)
+    if (has_time) {
+      i_time <- match(var_time, nms, nomatch = 0L)
+      if (i_time > 0L)
+        return(matrices[[i_time]])
+    }
+    has_age <- !is.null(var_age)
+    if (has_age) {
+      i_age <- match(var_age, nms, nomatch = 0L)
+      if (i_age > 0L)
+        return(matrices[[i_age]])
+    }
+    msg <- c("Prior for {.var {nm_prior}} does not have a value for {.arg along}.",
+             i = "Choices for {.arg along}: {.val {nms}}.")
+    if (!has_time)
+      msg <- c(msg,
+               i = "Can't default to time variable, since {.var var_time} not specified.")
+    if (!has_age)
+      msg <- c(msg,
+               i = "Can't default to age variable, since {.var var_age} not specified.")
+    cli::cli_abort(msg)
+  }
+  else {
+    i_along <- match(along, nms, nomatch = 0L)
+    if (i_along > 0L)
+      return(matrices[[i_along]])
+    cli::cli_abort(c("Prior for {.var {nm_prior}} has invalid value for {.arg along}.",
+                     i = "Value supplied: {.val {along}}.",
+                     i = "Valid choices: {.val {nms}}."))
+  }
+}
+
+
+## HAS_TESTS
 #' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term
@@ -11,18 +88,13 @@
 #'
 #' @noRd
 default_prior <- function(nm_term, var_age, var_time, length_effect) {
-    scale_intercept <- 10
-    is_intercept <- nm_term == "(Intercept)"
-    is_length_1 <- length_effect == 1L
-    is_age_time <- nm_term %in% c(var_age, var_time)
-    if (is_intercept)
-        NFix(sd = scale_intercept)
-    else if (is_length_1)
-        NFix()
-    else if (is_age_time)
-        RW()
-    else
-        N()
+  is_length_le_2 <- length_effect <= 2L
+  is_age_time <- nm_term %in% c(var_age, var_time)
+  if (is_length_le_2)
+    return(NFix())
+  if (is_age_time)
+    return(RW())
+  N()
 }
 
 
@@ -132,7 +204,7 @@ make_agesex <- function(mod) {
 #' WARNING. This must be the name that
 #' is used internally, which is not necessarily
 #' the one that appears in the original
-#' formula, as base::terms() and friends
+#' formula, as stats::terms() and friends
 #' switch dimension order.
 #' @param var_age Name of the age variable. A string.
 #' @param var_sexgender Name of the sex/gender
@@ -168,9 +240,40 @@ make_agesex_inner <- function(nm, var_age, var_sexgender) {
 
 
 ## HAS_TESTS
+#' Make 'along' Value for 'compose' Priors
+#'
+#' @param priors List of objects of class 'bage_prior'
+#'
+#' @returns NULL or a string
+#'
+#' @noRd
+make_compose_along <- function(priors) {
+  ans <- NULL
+  for (prior in priors) {
+    if (uses_along(prior)) {
+      along <- prior$specific$along
+      if (!is.null(along)) {
+        if (is.null(ans)) {
+          str_ans <- str_call_prior(prior)
+          ans <- along
+        }
+        else {
+          if (!identical(along, ans)) {
+            str_oth <- str_call_prior(prior)
+            cli::cli_abort("{.var {str_ans}} and {.var {str_oth}} have different 'along' dimensions.")
+          }
+        }
+      }
+    }
+  }
+  ans
+}
+
+
+## HAS_TESTS
 #' Make 'const'
 #'
-#' Make vector to hold constants for priors.
+#' Make vector to hold real-valued constants for priors.
 #'
 #' We generate 'const' when function 'fit'
 #' is called, rather than storing it in the
@@ -184,58 +287,39 @@ make_agesex_inner <- function(nm, var_age, var_sexgender) {
 #' @noRd
 make_const <- function(mod) {
     priors <- mod$priors
-    ans <- lapply(priors, function(x) x$const)
-    ans <- unlist(ans, use.names = FALSE)
+    ans <- lapply(priors, const)
+    ans <- unlist(ans)
     ans
 }
 
 
 ## HAS_TESTS
-#' Make 'const_cyclical'
+#' Make vector containing parameters for
+#' intercept, main effects, and interactions
 #'
-#' Make vector to hold constants for cyclical effect.
+#' Return value is 0 where a parameter is being estimated,
+#' and potentially non-zero where a parameter is
+#' being treated as known.
 #'
-#' We generate 'const_cyclical' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when cyclical effect changes  via 'set_cyclical'.
-#' 
 #' @param mod Object of class "bage_mod"
 #'
 #' @returns A vector of doubles.
 #'
 #' @noRd
-make_const_cyclical <- function(mod) {
-    shape1 <- 2
-    shape2 <- 2
-    scale <- mod$scale_cyclical
-    c(shape1, shape2, scale)
-}
-
-
-## HAS_TESTS
-#' Make 'const_season'
-#'
-#' Make vector to hold constants for seasonal effect.
-#'
-#' We generate 'const_season' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when seasonal effect changes  via 'set_season'.
-#' 
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_const_season <- function(mod) {
-    sd_intercept <- 0.0001
-    has_season <- has_season(mod)
-    if (has_season)
-        ans <- mod$scale_season
-    else
-        ans <- 0
-    ans <- c(ans, sd_intercept)
+make_effectfree <- function(mod) {
+    priors <- mod$priors
+    lengths_effectfree <- make_lengths_effectfree(mod)
+    ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
+    for (i_term in seq_along(priors)) {
+        prior <- priors[[i_term]]
+        is_known <- is_known(prior)
+        if (is_known) {
+            values <- values_known(prior)
+            ans[[i_term]] <- values
+        }
+    }
+    ans <- unlist(ans)
+    names(ans) <- rep(names(priors), times = lengths_effectfree)
     ans
 }
 
@@ -259,44 +343,36 @@ make_const_season <- function(mod) {
 make_hyper <- function(mod) {
     priors <- mod$priors
     ans <- rep(0, times = length(priors))
-    lengths <- vapply(priors, function(x) x$n_hyper, 0L)
+    names(ans) <- names(priors)
+    lengths <- make_lengths_hyper(mod)
     ans <- rep(ans, times = lengths)
     ans
 }
 
 
 ## HAS_TESTS
-#' Make vector containing hyper-parameters for
-#' cyclical effect
+#' Make 'hyperrand'
 #'
+#' Make Vector to Hold Hyper-Parameters
+#' for Priors that can be Treated as Random Effects.
+#'
+#' We generate 'hyperrand' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#' 
 #' @param mod Object of class "bage_mod"
 #'
-#' @returns A vector of doubles.
+#' @returns A vector of zeros, of type 'double'.
 #'
 #' @noRd
-make_hyper_cyclical <- function(mod) {
-    ans <- c(log_sd = 0)
-    if (has_cyclical(mod)) {
-        n_cyclical <- mod$n_cyclical
-        coef <- rep(0, times = n_cyclical)
-        names(coef) <- paste0("coef", seq_len(n_cyclical))
-        ans <- c(coef, ans)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing hyper-parameters for
-#' seasonal effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_hyper_season <- function(mod) {
-    c(log_sd = 0)
+make_hyperrand <- function(mod) {
+  priors <- mod$priors
+  ans <- rep(0, times = length(priors))
+  names(ans) <- names(priors)
+  lengths <- make_lengths_hyperrand(mod)
+  ans <- rep(ans, times = lengths)
+  ans
 }
 
 
@@ -324,26 +400,23 @@ make_i_prior <- function(mod) {
 
 
 ## HAS_TESTS
-#' Return one-based index of time main effect
-#'
-#' Returns 0 when 'var_time' is NULL, or
-#' no time main effect in model.
+#' Make Indices to Priors Used within 'compose' Priors
 #'
 #' @param mod Object of class "bage_mod".
 #'
-#' @returns Non-negative integer
+#' @returns An integer vector
 #'
 #' @noRd
-make_idx_time <- function(mod) {
-    var_time <- mod$var_time
-    priors <- mod$priors
-    if (is.null(var_time))
-        ans <- 0L 
-    else {
-        nms <- names(priors)
-        ans <- match(var_time, nms)
-    }
-    ans
+make_indices_priors <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  ans <- .mapply(indices_priors,
+                 dots = list(priors,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list())
+  names(ans) <- names(priors)
+  ans <- unlist(ans)
+  ans
 }
 
 
@@ -399,6 +472,49 @@ make_lengths_effectfree <- function(mod) {
 
 
 ## HAS_TESTS
+#' Lengths of Vectors of Ordinary Hyper-Parameters
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named integer vector
+#'
+#' @noRd
+make_lengths_hyper <- function(mod) {
+  priors <- mod$priors
+  levels <- lapply(priors, levels_hyper)
+  ans <- lengths(levels)
+  names(ans) <- names(priors)
+  ans
+}
+
+
+## HAS_TESTS
+#' Lengths of Vectors of Hyper-Parameters that Can
+#' be Treated as Random Effects
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A named integer vector
+#'
+#' @noRd
+make_lengths_hyperrand <- function(mod) {
+  priors <- mod$priors
+  levels_effect <- mod$levels_effect
+  terms_effect <- mod$terms_effect
+  matrices_along_by <- choose_matrices_along_by(mod)
+  levels_effect <- split(levels_effect, terms_effect)
+  levels <- .mapply(levels_hyperrand,
+                    dots = list(prior = priors,
+                                matrix_along_by = matrices_along_by,
+                                levels_effect = levels_effect),
+                    MoreArgs = list())
+  ans <- lengths(levels)
+  names(ans) <- names(priors)
+  ans
+}
+
+
+## HAS_TESTS
 #' Make levels associated with each element of 'effect'
 #'
 #' Make levels for each term, eg ages, times.
@@ -406,44 +522,19 @@ make_lengths_effectfree <- function(mod) {
 #' used to map levels to the outcome, to
 #' ensure that the levels are correct (rather than
 #' relying on undocumented properties of 'xtabs' etc),
-#' though this makes the function a bit complicated.
 #'
-#' @param formula Model formula
 #' @param matrices_effect_outcome List of matrices mapping
-#' parameters to outcome
-#' @param outcome Array or data frame with outcome
-#' @param data Data frame
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) {
-    nms <- names(matrices_effect_outcome)
-    n <- length(nms)
-    factors <- attr(stats::terms(formula), "factors")
-    factors <- factors[-1L, , drop = FALSE] ## exclude response
-    factors <- factors > 0L
-    if (is.array(outcome))
-        dim_levels <- expand.grid(dimnames(outcome))
-    else
-        dim_levels <- data[rownames(factors)]
-    ans <- vector(mode = "list", length = n)
-    for (i in seq_len(n)) {
-        nm <- nms[[i]]
-        if (nm == "(Intercept)")
-            ans[[i]] <- "(Intercept)"
-        else {
-            i_dim <- factors[, nm, drop = TRUE]
-            paste_dot <- function(...) paste(..., sep = ".")
-            term_levels <- do.call(paste_dot, dim_levels[i_dim])
-            matrix_effect <- matrices_effect_outcome[[i]]
-            matrix_effect <- Matrix::as.matrix(matrix_effect)
-            i_term_level <- apply(matrix_effect, 2L, function(x) match(1L, x))
-            ans[[i]] <- term_levels[i_term_level]
-        }
-    }
-    ans <- unlist(ans, use.names = FALSE)
-    ans
+make_levels_effect <- function(matrices_effect_outcome) {
+  ans <- lapply(matrices_effect_outcome, colnames)
+  nms <- names(matrices_effect_outcome)
+  if (identical(nms[[1L]], "(Intercept)"))
+    ans[[1L]] <- "(Intercept)"
+  ans <- unlist(ans, use.names = FALSE)
+  ans
 }
 
 
@@ -453,8 +544,7 @@ make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) 
 #' Make 'map' argument to be passed to MakeADFun.
 #' Return value is non-NULL if
 #' (i) any priors are "bage_prior_known", or
-#' (ii) 'scale_disp' is 0, or
-#' (iii) the model does not include season effects.
+#' (ii) 'mean_disp' is 0, or
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -463,112 +553,20 @@ make_levels_effect <- function(formula, matrices_effect_outcome, outcome, data) 
 #' @noRd
 make_map <- function(mod) {
     priors <- mod$priors
-    scale_disp <- mod$scale_disp
-    n_cyclical <- mod$n_cyclical
-    n_season <- mod$n_season
+    mean_disp <- mod$mean_disp
     ## determine whether any parameters fixed
     is_known <- vapply(priors, is_known, FALSE)
     is_effectfree_fixed <- any(is_known)
-    is_disp_fixed <- scale_disp == 0
-    is_cyclical_fixed <- n_cyclical == 0L
-    is_season_fixed <- n_season == 0L
+    is_disp_fixed <- mean_disp == 0
     ## return NULL if nothing fixed
-    if (!is_effectfree_fixed && !is_disp_fixed && !is_cyclical_fixed && !is_season_fixed)
+    if (!is_effectfree_fixed && !is_disp_fixed)
         return(NULL)
     ## otherwise construct named list
     ans <- list()
     if (is_effectfree_fixed)
-        ans$effectfree <- make_map_effectfree_fixed(mod)
+      ans$effectfree <- make_map_effectfree_fixed(mod)
     if (is_disp_fixed)
         ans$log_disp <- factor(NA)
-    if (is_cyclical_fixed) {
-        ans$effect_cyclical <- make_map_effect_cyclical_fixed(mod)
-        ans$hyper_cyclical <- make_map_hyper_cyclical_fixed(mod)
-    }
-    if (is_season_fixed) {
-        ans$effect_season <- make_map_effect_season_fixed(mod)
-        ans$hyper_season <- make_map_hyper_season_fixed(mod)
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Make 'hyper_cyclical' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' cyclical effect (implying that 'hyper_cyclical'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns Factor with single NA
-#'
-#' @noRd
-make_map_hyper_cyclical_fixed <- function(mod) {
-    factor(NA)
-}
-
-
-## HAS_TESTS
-#' Make 'hyper_season' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' seasonal effect (implying that 'hyper_season'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns Factor with single NA
-#'
-#' @noRd
-make_map_hyper_season_fixed <- function(mod) {
-    factor(NA)
-}
-
-
-## HAS_TESTS
-#' Make 'effect_cyclical' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' cyclical effect (implying that 'effect_cyclical'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of NAs
-#'
-#' @noRd
-make_map_effect_cyclical_fixed <- function(mod) {
-    effect_cyclical <- make_effect_cyclical(mod)
-    n_effect <- length(effect_cyclical)
-    ans <- rep(NA, times = n_effect)
-    ans <- factor(ans)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make 'effect_season' component of 'map'
-#' argument to MakeADFun
-#'
-#' Only called when model does not have
-#' seasonal effect (implying that 'effect_season'
-#' must be treated as fixed.)
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of NAs
-#'
-#' @noRd
-make_map_effect_season_fixed <- function(mod) {
-    effect_season <- make_effect_season(mod)
-    n_effect <- length(effect_season)
-    ans <- rep(NA, times = n_effect)
-    ans <- factor(ans)
     ans
 }
 
@@ -600,6 +598,49 @@ make_map_effectfree_fixed <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make Matrices Mapping Values of 'along' and 'by'
+#' to Positions in Intercepts, Main Effects,
+#' and Interactions
+#'
+#' @param formula An R formula
+#' @param data A data frame
+#'
+#' @returns A named list of named lists of matrices
+#' 
+#' @noRd
+make_matrices_along_by <- function(formula, data) {
+  ## matrix for intercept
+  val <- list("(Intercept)" = matrix(0L, nrow = 1L))
+  ans <- list("(Intercept)" = val)
+  ## matrices for other terms
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 0L) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
+    for (i_term in seq_along(nms_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      data_term <- data[nms_vars_term]
+      dimnames <- lapply(data_term, unique)
+      dim <- lengths(dimnames)
+      i_along <- seq_along(dim)
+      val <- lapply(i_along,
+                    make_matrix_along_by,
+                    dim = dim,
+                    dimnames = dimnames)
+      names(val) <- nms_vars_term
+      ans_terms[[i_term]] <- val
+    }
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
+  }
+  ans
+}
+
+
+## HAS_TESTS
 #' Make list of matrices mapping terms to outcome vector
 #'
 #' Make list of matrices mapping main effects or
@@ -613,40 +654,43 @@ make_map_effectfree_fixed <- function(mod) {
 #'
 #' @noRd
 make_matrices_effect_outcome <- function(formula, data) {
-    factors <- attr(stats::terms(formula), "factors")
+  ## make intercept
+  n_data <- nrow(data)
+  i <- seq_len(n_data)
+  j <- rep.int(1L, times = n_data)
+  x <- rep.int(1L, times = n_data)
+  m <- Matrix::sparseMatrix(i = i,
+                            j = j,
+                            x = x)
+  colnames(m) <- "(Intercept)"
+  ans <- list("(Intercept)" = m)
+  ## make other terms
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 0L) {
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
     nms_vars <- rownames(factors)
     nms_terms <- colnames(factors)
-    ans <- vector(mode = "list", length = length(nms_terms))
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
     for (i_term in seq_along(nms_terms)) {
-        nms_vars_term <- nms_vars[factors[, i_term]]
-        data_term <- data[nms_vars_term]
-        data_term[] <- lapply(data_term, factor)
-        contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-        nm_term <- nms_terms[[i_term]]
-        formula_term <- paste0("~", nm_term, "-1")
-        formula_term <- stats::as.formula(formula_term)
-        m_term <- Matrix::sparse.model.matrix(formula_term,
-                                              data = data_term,
-                                              contrasts.arg = contrasts_term,
-                                              row.names = FALSE)
-        colnames(m_term) <- levels(interaction(data_term))
-        ans[[i_term]] <- m_term
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      data_term <- data[nms_vars_term]
+      data_term[] <- lapply(data_term, to_factor)
+      contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
+      nm_term <- nms_terms[[i_term]]
+      formula_term <- paste0("~", nm_term, "-1")
+      formula_term <- stats::as.formula(formula_term)
+      m_term <- Matrix::sparse.model.matrix(formula_term,
+                                            data = data_term,
+                                            contrasts.arg = contrasts_term,
+                                            row.names = FALSE)
+      colnames(m_term) <- levels(interaction(data_term))
+      ans_terms[[i_term]] <- m_term
     }
-    names(ans) <- nms_terms
-    has_intercept <- attr(stats::terms(formula), "intercept")
-    if (has_intercept) {
-        n_data <- nrow(data)
-        i <- seq_len(n_data)
-        j <- rep.int(1L, times = n_data)
-        x <- rep.int(1L, times = n_data)
-        m <- Matrix::sparseMatrix(i = i,
-                                  j = j,
-                                  x = x)
-        ans <- c(list("(Intercept)" = m), ans)
-    }
-    ans        
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
+  }
+  ans        
 }
 
 
@@ -677,67 +721,51 @@ make_matrices_effectfree_effect <- function(mod) {
     ans    
 }
 
-## NO_TESTS
-#' Make matrix mapping cyclical effect to outcome
+
+#' Create along-by Matrix for a Single Dimension
+#' of a Main Effect or Interaction
 #'
-#' @param x Object of class 'bage_mod'
+#' Create a matrix where entry (i,j) is
+#' the position in an array (using
+#' zero-based indexing) of 'along'
+#' value i and 'by' value j.
 #'
-#' @returns Sparse matrix
+#' @param i_along Index of the along dimension
+#' @param dim Dimensions of the array
+#'
+#' @returns A matrix of integers.
 #'
 #' @noRd
-make_matrix_cyclical_outcome <- function(x) {
-    data <- x$data
-    var_time <- x$var_time
-    data <- data[var_time]
-    data[] <- lapply(data, factor)
-    contrasts <- lapply(data, stats::contrasts, contrast = FALSE)
-    formula <- paste0("~", var_time, "-1")
-    formula <- stats::as.formula(formula)
-    ans <- Matrix::sparse.model.matrix(formula,
-                                       data = data,
-                                       contrasts.arg = contrasts,
-                                       row.names = FALSE)
-    colnames(ans) <- levels(data[[1L]])
-    ans
+## make_matrix_along_by <- function(i_along, dim) {
+##   n_dim <- length(dim)
+##   i <- seq.int(from = 0L, length.out = prod(dim))
+##   a <- array(i, dim = dim)
+##   s <- seq_along(dim)
+##   perm <- c(i_along, s[-i_along])
+##   ans <- aperm(a, perm = perm)
+##   ans <- matrix(ans, nrow = nrow(ans))
+##   ans
+## }
+make_matrix_along_by <- function(i_along, dim, dimnames) {
+  n_dim <- length(dim)
+  i <- seq.int(from = 0L, length.out = prod(dim))
+  a <- array(i, dim = dim)
+  s <- seq_along(dim)
+  perm <- c(i_along, s[-i_along])
+  ans <- aperm(a, perm = perm)
+  ans <- matrix(ans, nrow = nrow(ans))
+  rownames(ans) <- dimnames[[i_along]]
+  names(dimnames(ans))[[1L]] <- names(dimnames)[[i_along]]
+  if (length(dim) > 1L) {
+    colnames <- expand.grid(dimnames[-i_along])
+    colnames <- Reduce(function(x, y) paste(x, y, sep = "."),
+                       colnames)
+    colnames(ans) <- colnames
+    names(dimnames(ans))[[2L]] <- paste(names(dimnames)[-i_along], collapse = ".")
+  }
+  ans
 }
 
-## HAS_TESTS
-#' Make matrix mapping season effect to outcome
-#'
-#' @param x Object of class 'bage_mod'
-#' @param by Variable names (tidyselect style) or NULL.
-#'
-#' @returns Sparse matrix
-#'
-#' @noRd
-make_matrix_season_outcome <- function(x, by) {
-    data <- x$data
-    var_time <- x$var_time
-    nms_season <- c(by, var_time)
-    data_season <- data[nms_season]
-    data_season[] <- lapply(data_season, factor)
-    contrasts_season <- lapply(data_season, stats::contrasts, contrast = FALSE)
-    formula_season <- paste(nms_season, collapse = ":")
-    formula_season <- paste0("~", formula_season, "-1")
-    formula_season <- stats::as.formula(formula_season)
-    ans <- Matrix::sparse.model.matrix(formula_season,
-                                       data = data_season,
-                                       contrasts.arg = contrasts_season,
-                                       row.names = FALSE)
-    colnames(ans) <- levels(interaction(data_season))
-    ans
-}
-
-## HAS_TESTS
-#' Make an empty sparse matrix
-#'
-#' @returns A 0x0 sparse matrix
-#'
-#' @noRd
-make_matrix_sparse_empty <- function()
-    Matrix::sparseMatrix(i = integer(),
-                         j = integer(),
-                         x = integer())
 
 ## HAS_TESTS
 #' Make vector holding offset variable
@@ -749,11 +777,11 @@ make_matrix_sparse_empty <- function()
 #'
 #' @noRd
 make_offset <- function(vname_offset, data) {
-    nms_data <- names(data)
-    ans <- data[[match(vname_offset, nms_data)]]
+    ans <- data[[vname_offset]]
     ans <- as.double(ans)
     ans
 }
+
 
 ## HAS_TESTS
 #' Make offset consisting entirely of 1s,
@@ -796,7 +824,6 @@ make_offsets_effectfree_effect <- function(mod) {
                                agesex = agesex),
                    MoreArgs = list())
     names(ans) <- names(priors)
-    ans <- unlist(ans)
     ans    
 }
 
@@ -817,75 +844,6 @@ make_outcome <- function(formula, data) {
     nms_data <- names(data)
     ans <- data[[match(nm_response, nms_data)]]
     ans <- as.double(ans)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing parameters for
-#' cyclical effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_effect_cyclical <- function(mod) {
-    matrix <- mod$matrix_cyclical_outcome
-    matrix <- Matrix::as.matrix(matrix)
-    n <- ncol(matrix)
-    ans <- rep(0, times = n)
-    names(ans) <- colnames(matrix)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing parameters for
-#' seasonal effect
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_effect_season <- function(mod) {
-    matrix <- mod$matrix_season_outcome
-    matrix <- Matrix::as.matrix(matrix)
-    n <- ncol(matrix)
-    ans <- rep(0, times = n)
-    names(ans) <- colnames(matrix)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make vector containing parameters for
-#' intercept, main effects, and interactions
-#'
-#' Return value is 0 where a parameter is being estimated,
-#' and potentially non-zero where a parameter is
-#' being treated as known.
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_effectfree <- function(mod) {
-    priors <- mod$priors
-    lengths_effectfree <- make_lengths_effectfree(mod)
-    ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
-    for (i_term in seq_along(priors)) {
-        prior <- priors[[i_term]]
-        is_known <- is_known(prior)
-        if (is_known) {
-            values <- values_known(prior)
-            ans[[i_term]] <- values
-        }
-    }
-    ans <- unlist(ans)
-    names(ans) <- rep(names(priors), times = lengths_effectfree)
     ans
 }
 
@@ -928,8 +886,6 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 #' Make 'random' argument to MakeADFun function
 #'
 #' Return value always includes "effectfree".
-#' Also contains "effect_season" if the model has
-#' a seasonal effect.
 #'
 #' @param mod Object of class "bage_mod"
 #'
@@ -937,14 +893,17 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 #'
 #' @noRd
 make_random <- function(mod) {
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
+  priors <- mod$priors
+  has_hyper <- any(make_lengths_hyper(mod) > 0L)
+  has_hyperrand <- any(vapply(priors, has_hyperrand, FALSE))
+  if (!has_hyper && !has_hyperrand)
+    ans <- NULL
+  else {
     ans <- "effectfree"
-    if (has_cyclical)
-        ans <- c(ans, "effect_cyclical")
-    if (has_season)
-        ans <- c(ans, "effect_season")
-    ans
+    if (has_hyperrand)
+      ans <- c(ans, "hyperrand")
+  }
+  ans
 }
 
 
@@ -992,29 +951,6 @@ make_spline_matrix <- function(length_effect, n_spline) {
 
 
 ## HAS_TESTS
-#' Make sparse matrix describing the relationship
-#' between a dimension and the outcome array
-#'
-#' @param d Integer. Length of dimension
-#' @param is_in Logical vector. Whether the dimension
-#' is in the array.
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_submatrix <- function(d, is_in) {
-    i <- seq_len(d)
-    if (is_in)
-        j <- i
-    else
-        j <- rep.int(1L, times = d)
-    Matrix::sparseMatrix(i = i,
-                         j = j,
-                         x = 1)
-}
-
-
-## HAS_TESTS
 #' Make factor identifying components of 'const'
 #'
 #' Make factor the same length as 'const',
@@ -1038,38 +974,8 @@ make_submatrix <- function(d, is_in) {
 make_terms_const <- function(mod) {
     priors <- mod$priors
     nms_terms <- names(priors)
-    lengths <- vapply(priors, function(x) length(x$const), 0L)
-    ans <- rep(nms_terms, times = lengths)
-    ans <- factor(ans, levels = nms_terms)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make factor identifying components of 'hyper'
-#'
-#' Make factor the same length as 'hyper',
-#' giving the name of the term
-#' that the each element belongs to.
-#' Note that the levels of the factor
-#' includes all priors, not just those
-#' with constants.
-#'
-#' We generate 'terms_hyper' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when priors change  via 'set_prior'.
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A factor, the same length
-#' as 'hyper'.
-#'
-#' @noRd
-make_terms_hyper <- function(mod) {
-    priors <- mod$priors
-    nms_terms <- names(priors)
-    lengths <- vapply(priors, function(x) x$n_hyper, 0L)
+    consts <- lapply(priors, const)
+    lengths <- lengths(consts)
     ans <- rep(nms_terms, times = lengths)
     ans <- factor(ans, levels = nms_terms)
     ans
@@ -1126,6 +1032,91 @@ make_terms_effectfree <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make factor identifying components of 'hyper'
+#'
+#' Make factor the same length as 'hyper',
+#' giving the name of the term
+#' that the each element belongs to.
+#' Note that the levels of the factor
+#' includes all priors, not just those
+#' with hyper.
+#'
+#' We generate 'terms_hyper' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor, the same length
+#' as 'hyper'.
+#'
+#' @noRd
+make_terms_hyper <- function(mod) {
+    priors <- mod$priors
+    nms_terms <- names(priors)
+    lengths <- make_lengths_hyper(mod)
+    ans <- rep(nms_terms, times = lengths)
+    ans <- factor(ans, levels = nms_terms)
+    ans
+}
+
+
+## HAS_TESTS
+#' Make Factor Identifying Components of 'hyperrand'
+#'
+#' Make factor the same length as 'hyperrand',
+#' giving the name of the term
+#' that the each element belongs to.
+#' Note that the levels of the factor
+#' includes all priors, not just those
+#' with hyperrand.
+#'
+#' We generate 'terms_hyperrand' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when priors change  via 'set_prior'.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A factor, the same length
+#' as 'hyperrand'.
+#'
+#' @noRd
+make_terms_hyperrand <- function(mod) {
+  priors <- mod$priors
+  nms_terms <- names(priors)
+  lengths <- make_lengths_hyperrand(mod)
+  ans <- rep(nms_terms, times = lengths)
+  ans <- factor(ans, levels = nms_terms)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Factor Indentifying Components of 'indices_priors'
+#'
+#' @param mod Object of class "bage_mod".
+#'
+#' @returns A factor
+#'
+#' @noRd
+make_terms_indices_priors <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  nms_terms <- names(priors)
+  indices <- .mapply(indices_priors,
+                     dots = list(priors,
+                                 matrix_along_by = matrices_along_by),
+                     MoreArgs = list())
+  lengths <- lengths(indices)
+  ans <- rep(nms_terms, times = lengths)
+  ans <- factor(ans, levels = nms_terms)
+  ans
+}
+
+
+## HAS_TESTS
 #' Make integer vector of flags for whether
 #' each prior uses hyper-parameters
 #'
@@ -1135,12 +1126,53 @@ make_terms_effectfree <- function(mod) {
 #'
 #' @noRd
 make_uses_hyper <- function(mod) {
-    priors <- mod$priors
-    has_hyper <- function(x) x$n_hyper > 0L
-    ans <- vapply(priors, has_hyper, TRUE)
-    ans <- as.integer(ans)
-    names(ans) <- names(priors)
-    ans
+  lengths <- make_lengths_hyper(mod)
+  ans <- lengths > 0L
+  ans <- 1L * ans
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Integer Vector of Flags for Whether
+#' Each Prior Uses Hyper-Parameters that
+#' Can Be Treated as Random Effects
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_hyperrand <- function(mod) {
+  priors <- mod$priors
+  1L * vapply(priors, uses_hyperrand, FALSE)
+}
+
+
+## HAS_TESTS
+#' Make Integer Vector of Flags for Whether
+#' Each Prior Uses 'indices_priors'
+#'
+#' Currently only 'compose' priors
+#' use 'indices_priors'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer vector
+#'
+#' @noRd
+make_uses_indices_priors <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  indices_priors <- .mapply(indices_priors,
+                            dots = list(priors,
+                                        matrix_along_by = matrices_along_by),
+                            MoreArgs = list())
+  lengths <- lengths(indices_priors)
+  ans <- lengths > 0L
+  ans <- 1L * ans
+  names(ans) <- names(priors)
+  ans
 }
 
 
@@ -1179,3 +1211,25 @@ make_uses_offset_effectfree_effect <- function(mod) {
     names(ans) <- names(priors)
     ans    
 }
+
+
+## HAS_TESTS
+#' Function Used to Convert Variables in Data to Factors
+#'
+#' If a variable is already a factor, leave it unchanged.
+#' If a variable is numeric, order levels by value.
+#' Otherwise, order levels by first appearance.
+#'
+#' @param x A vector
+#'
+#' @returns A factor
+#'
+#' @noRd
+to_factor <- function(x) {
+  if (is.factor(x))
+    x
+  else if (is.numeric(x))
+    factor(x)
+  else
+    factor(x, levels = unique(x))
+}  

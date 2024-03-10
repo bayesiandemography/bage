@@ -11,124 +11,118 @@
 generics::augment
 
 ## HAS_TESTS
-#' Data and values from a fitted model
+#' Data and Values from a Model
 #'
-#' @section Warning:
-#' The tidymodels
-#' [website](https://www.tidymodels.org/learn/develop/broom/)
-#' states that the augment function may change soon.
-#' The method here will be updated to match the new interface.
-#' 
+#' Extract data and values from a model object
+#' with class `"bage_mod"`.
+#' The returne value is a
+#' [tibble][tibble::tibble-package]
+#' containing the original data, plus draws from
+#' the posterior distribution if the model has been
+#' fitted, or the prior distribution if it has not.
+#'
+#' The return value contains the following columns:
+#'
+#' - `.observed` 'Direct' estimates of rates or
+#' probabilities, ie counts divided by exposure/size.
+#' (Poisson and binomial models only.)
+#' - `.fitted` Draws of rates, probabilities,
+#' or means.
+#' - `expected` Draws of expected values for
+#' rates or probabilities. (Inly in Poisson
+#' that include exposure, or in binomial models.)
+#'
+#' Uncertain quantities are represented using
+#' [rvecs][rvec::rvec()].
+#'
 #' @param x A fitted `bage_mod` object.
 #' @param ... Unused. Included for generic consistency only.
 #'
-#' @returns A [tibble][tibble::tibble-package],
-#' consisting of the original `data` argument,
-#' to the original model function (eg [mod_pois()])
-#' plus two new columns:
-#' - `.fitted` An [rvec][rvec::rvec()] holding
-#' draws from the posterior distribution.
-#' - `.observed` Direct estimates of the rate,
-#' probability, or mean.
+#' @returns A [tibble][tibble::tibble-package].
 #'
+#' @seealso
+#' - [components()] A tibble with hyper-parameters.
+#' - [tidy()] A one-line summary of a model.
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Functions
+#' to specify a model
+#' - [fit()] Function to fit a model
+#' 
 #' @examples
-#' mod_pois(injuries ~ age + sex + year,
-#'          data = injuries,
-#'          exposure = popn) |>
-#'   fit() |>
-#'   augment()
+#' ## specify model
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#'
+#' ## look at prior distribution
+#' mod |> augment()
+#'
+#' ## fit model
+#' mod <- mod |>
+#'   fit()
+#'
+#' ## look at posterior distribution
+#' mod |> augment()
 #' @export
 augment.bage_mod <- function(x, ...) {
-    is_fitted <- is_fitted(x)
+  components <- components(x)
+  is_fitted <- is_fitted(x)
+  seed_augment <- x$seed_augment
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_augment) ## set pre-determined seed
+  if (is_fitted) {
     ans <- x$data
     ## make 'observed'
     observed <- make_observed(x)
     ans$.observed <- observed
     ## if model not fitted, stop here
-    if (!is_fitted)
-        return(ans)
-    ## make transformation from scale/ordering of effect
-    ## to scale/ordering of outcome
     inv_transform <- get_fun_inv_transform(x)
-    align_to_data <- get_fun_align_to_data(x)
-    transform <- function(x)
-        align_to_data(inv_transform(x))
-    ## extract quantities needed in calculations
-    has_cyclical <- has_cyclical(x)
-    has_season <- has_season(x)
     has_disp <- has_disp(x)
-    components <- components(x)
     linpred <- make_linpred_effect(mod = x,
                                    components = components)
-    if (has_cyclical) {
-        trend <- transform(linpred)
-        linpred_cyclical <- make_linpred_cyclical(mod = x,
-                                                  components = components)
-        linpred <- linpred + linpred_cyclical
-    }
-    if (has_season) {
-        seasadj <- transform(linpred)
-        linpred_season <- make_linpred_season(mod = x,
-                                              components = components)
-        linpred <- linpred + linpred_season
-    }
     if (has_disp) {
-        expected <- transform(linpred)
-        is_disp <- components$component == "disp"
-        disp <- components$.fitted[is_disp]
-        fitted <- make_par_disp(x = x,
-                                meanpar = expected,
-                                disp = disp)
+      expected <- inv_transform(linpred)
+      is_disp <- components$component == "disp"
+      disp <- components$.fitted[is_disp]
+      fitted <- make_par_disp(x = x,
+                              meanpar = expected,
+                              disp = disp)
     }
     else
-        fitted <- transform(linpred)
+      fitted <- inv_transform(linpred)
     ans$.fitted <- fitted
     if (has_disp)
-        ans$.expected <- expected
-    if (has_season)
-        ans$.seasadj <- seasadj
-    if (has_cyclical)
-        ans$.trend <- trend
-    ans
+      ans$.expected <- expected
+  }
+  else {
+    ans <- draw_vals_augment(mod = x, vals_components = components)
+  }
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  ans
 }
 
 ## HAS_TESTS
 #' @export
 augment.bage_mod_norm <- function(x, ...) {
-    is_fitted <- is_fitted(x)
+  is_fitted <- is_fitted(x)
+  seed_augment <- x$seed_augment
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_augment) ## set pre-determined seed
+  if (is_fitted) {
     ans <- x$data
-    ## if model not fitted, stop here
-    if (!is_fitted)
-        return(ans)
-    ## make transformation from scale/ordering of effect
-    ## to scale/ordering of outcome
-    align_to_data <- get_fun_align_to_data(x)
-    scale_outcome <- get_fun_scale_outcome(x)
-    transform <- function(x)
-        scale_outcome(align_to_data(x))
-    ## extract quantities needed in calculations
     components <- components(x)
     linpred_effect <- make_linpred_effect(mod = x,
-                                    components = components)
-    has_season <- has_season(x)
-    if (has_season) {
-        linpred_season <- make_linpred_season(mod = x,
-                                              components = components)
-        linpred <- linpred_effect + linpred_season
-        fitted <- transform(linpred)
-        seasadj <- transform(linpred_effect)
-    }
-    else
-        fitted <- transform(linpred_effect)
-    ## deal with case with and without seasonal effect
-    if (has_season) {
-        ans$.fitted <- fitted
-        ans$.seasadj <- seasadj
-    }
-    else { 
-        ans$.fitted <- fitted
-    }
-    ans
+                                          components = components)
+    scale_outcome <- get_fun_scale_outcome(x)
+    fitted <- scale_outcome(linpred_effect)
+    ans$.fitted <- fitted
+  }
+  else {
+    n_draw <- x$n_draw
+    vals_components <- draw_vals_components(mod = x, n_sim = n_draw)
+    ans <- draw_vals_augment(mod = x, vals_components = vals_components)
+  }
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  ans
 }
 
 
@@ -139,282 +133,248 @@ augment.bage_mod_norm <- function(x, ...) {
 generics::components
 
 ## HAS_TESTS
-#' Extract components from a fitted model
+#' Extract Components from a Model
 #'
-#' Extract components from a fitted object
-#' of class `bage_mod`.
+#' Extract batches of hyper-parameters
+#' from a model object
+#' with class `"bage_mod"`.
+#' [tibble][tibble::tibble-package]
+#' draws from the posterior distribution if the model has been
+#' fitted, or the prior distribution if it has not.
 #'
-#' There are five types of component:
-#' - `"effect"` Intercept, main effects, and interactions.
-#' - `"hyper"` Hyper-parameters from priors for intercept,
-#'   main effects, and interactions.
-#' - `"disp"` Dispersion term.
-#' - `"cyclical"` Parameters and hyper-parameters for
-#'   cyclical effect, if included in model.
-#' - `"season"` Parameters and hyper-parameters for
-#'   seasonal effect, if included in model.
+#' The return value contains the following columns:
 #'
-#' For each component, `components()` returns three things:
-#' - `term` Name of the effect or interaction
-#' - `level` Element of term
+#' - `term` Model term that the hyper-parameter belongs to.
+#' - `component` Component within term.
+#' - `level` Element within component .
 #' - `.fitted` An [rvec][rvec::rvec()] containing
 #' draws from the posterior distribution.
 #'
 #' @param object An fitted model.
 #' @param ... Not currently used.
 #'
-#' @returns A [tibble][tibble::tibble-package] with
-#' variables `component`, `term`, `level`, and `.fitted`.
+#' @returns A [tibble][tibble::tibble-package]
 #'
-#' @seealso [augment()], [tidy()]
+#' @seealso
+#' - [augment()] A tibble with data and parameters.
+#' - [tidy()] A one-line summary of a model.
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Functions
+#' to specify a model
+#' - [fit()] Function to fit a model
+#' 
 #'
 #' @examples
-#' library(dplyr)
+#' ## specify model
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = injuries,
-#'                 exposure = popn) %>%
+#'                 exposure = popn)
+#'
+#' ## look at prior distribution
+#' mod |> components()
+#'
+#' ## fit model
+#' mod <- mod |>
 #'   fit()
-#' mod
-#' mod %>%
-#'   components() %>%
-#'   filter(component == "effect",
-#'          term == "age")
+#'
+#' ## look at posterior distribution
+#' mod |> components() ## posterior distribution
 #' @export
 components.bage_mod <- function(object, ...) {
-    if (is_fitted(object)) {
-        seed_components <- object$seed_components
-        comp <- make_comp_components(object)
-        term <- make_term_components(object)
-        level <- make_level_components(object)
-        seed_restore <- make_seed() ## randomly generate seed
-        set.seed(seed_components)   ## set pre-determined seed
-        draws <- make_draws_components(object)  ## given seed, calculations deterministic
-        set.seed(seed_restore)      ## use randomly-generated seed, to restore randomness 
-        draws <- as.matrix(draws)
-        .fitted <- rvec::rvec_dbl(draws)
-        tibble::tibble(component = comp,
-                       term = term,
-                       level = level,
-                       .fitted = .fitted)
-    }
-    else
-        NULL
+  previously_computed <- object$components
+  if (!is.null(previously_computed))
+    return(previously_computed)
+  is_fitted <- is_fitted(object)
+  seed_components <- object$seed_components
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_components) ## set pre-determined seed
+  if (is_fitted) {
+    term <- make_term_components(object)
+    comp <- make_comp_components(object)
+    level <- make_level_components(object)
+    draws <- make_draws_components(object)
+    draws <- as.matrix(draws)
+    .fitted <- rvec::rvec_dbl(draws)
+    ans <- tibble::tibble(term = term,
+                          component = comp,
+                          level = level,
+                          .fitted = .fitted)
+    ans <- reformat_hyperrand(components = ans,
+                              mod = object)
+  }
+  else {
+    n_draw <- object$n_draw
+    ans <- draw_vals_components(mod = object, n_sim = n_draw)
+  }
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  ans <- sort_components(components = ans,
+                         mod = object)
+  ans
 }
 
 
-## 'draw_vals_disp' -----------------------------------------------------------
+## 'draw_vals_augment' --------------------------------------------------------
 
-#' Draw values for 'disp' from prior
-#'
-#' @param mod Obejct of class 'bage_mod'
-#' @param n_sim Number of draws
-#'
-#' @returns A named numeric vector.
-#'
-#' @noRd
-draw_vals_disp <- function(mod, n_sim) {
-    UseMethod("draw_vals_disp")
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_disp.bage_mod <- function(mod, n_sim) {
-    scale <- mod$scale_disp
-    u <- stats::runif(n = n_sim)
-    ans <- (log(u) / scale)^2 ## log(u) equivalent to log(1-u) when u ~ Unif(0, 1)
-    names(ans) <- seq_len(n_sim)
-    ans
-}
-
-
-## HAS_TESTS
-#' @export
-draw_vals_disp.bage_mod_norm <- function(mod, n_sim) {
-    scale <- mod$scale_disp
-    ans <- stats::rexp(n = n_sim, rate = scale)
-    names(ans) <- seq_len(n_sim)
-    ans
-}
-
-
-#' Draw values for rate or prob, given back-transformed
-#' linear predictor, and possibly dispersion
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vals_meanpar Numeric matrix, with each
-#' column holding one draw
-#' @param vals_disp Numeric vector
-#'
-#' @returns Numeric matrix
-#'
-#' @noRd
-draw_vals_par <- function(mod, vals_meanpar, vals_disp) {
-    UseMethod("draw_vals_par")
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_par.bage_mod_pois <- function(mod, vals_meanpar, vals_disp) {
-    eps <- 1e-10
-    n_outcome <- nrow(vals_meanpar)
-    n_sim <- ncol(vals_meanpar)
-    vals_disp <- rep(vals_disp, each = n_outcome)
-    shape <- 1 / vals_disp
-    rate <- 1 / (vals_meanpar * vals_disp)
-    ans <- vals_meanpar
-    is_nonzero_disp <- vals_disp > eps
-    ans[is_nonzero_disp] <- stats::rgamma(n = sum(is_nonzero_disp),
-                                          shape = shape[is_nonzero_disp],
-                                          rate = rate[is_nonzero_disp])
-    ans <- matrix(ans,
-                  nrow = n_outcome,
-                  ncol = n_sim)
-    ans
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_par.bage_mod_binom <- function(mod, vals_meanpar, vals_disp) {
-    eps <- 1e-10
-    n_outcome <- nrow(vals_meanpar)
-    n_sim <- ncol(vals_meanpar)
-    vals_disp <- rep(vals_disp, each = n_outcome)
-    shape1 <- vals_meanpar / vals_disp
-    shape2 <- (1 - vals_meanpar) / vals_disp
-    ans <- vals_meanpar
-    is_nonzero_disp <- vals_disp > eps
-    ans[is_nonzero_disp] <- stats::rbeta(n = sum(is_nonzero_disp),
-                                         shape1 = shape1[is_nonzero_disp],
-                                         shape2 = shape2[is_nonzero_disp])
-    ans <- matrix(ans,
-                  nrow = n_outcome,
-                  ncol = n_sim)
-    ans
-}
-
-
-## 'draw_vals_mod' ------------------------------------------------------------
-
-#' Draw values for hyper-parameters, cell-level parameters
-#' and outcome variable
+#' Draw Values that are Produced by 'augment'
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws
 #'
-#' @returns A named list
+#' @returns Named list
 #'
 #' @noRd
-draw_vals_mod <- function(mod, n_sim) {
-    UseMethod("draw_vals_mod")
+draw_vals_augment <- function(mod, vals_components) {
+  UseMethod("draw_vals_augment")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_mod.bage_mod_pois <- function(mod, n_sim) {
-    offset <- mod$offset
-    vals_hyperparam <- draw_vals_hyperparam(mod = mod,
-                                            n_sim = n_sim)
-    linpred <- vals_hyperparam$linpred
-    disp <- vals_hyperparam$disp
-    has_disp <- !is.null(disp)
-    inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
-    if (has_disp) {
-        vals_meanpar <- inv_transform(linpred)
-        vals_meanpar <- align_to_data(vals_meanpar)
-        vals_par <- draw_vals_par(mod = mod,
-                                        vals_meanpar = vals_meanpar,
-                                        vals_disp = disp)
-    }
-    else {
-        vals_par <- inv_transform(linpred)
-        vals_par <- align_to_data(vals_par)
-    }
-    n_outcome <- nrow(vals_par)
-    exposure <- align_to_data(offset)
-    exposure <- rep(exposure, times = n_sim)
-    lambda <- vals_par * exposure
-    vals_outcome <- stats::rpois(n = n_outcome * n_sim,
-                                 lambda = lambda)
-    vals_outcome <- matrix(vals_outcome,
-                           nrow = n_outcome,
-                           ncol = n_sim)
-    c(vals_hyperparam["effect"],
-      vals_hyperparam["hyper"],
-      vals_hyperparam["disp"],
-      vals_hyperparam["cyclical"],
-      vals_hyperparam["season"],
-      list(par = vals_par,
-           outcome = vals_outcome))
+draw_vals_augment.bage_mod <- function(mod, vals_components) {
+  inv_transform <- get_fun_inv_transform(mod)
+  has_disp <- has_disp(mod)
+  nm_outcome <- get_nm_outcome(mod)
+  offset <- mod$offset
+  vals_linpred <- make_linpred_effect(mod = mod,
+                                      components = vals_components)
+  if (has_disp) {
+    vals_expected <- inv_transform(vals_linpred)
+    is_disp <- vals_components$component == "disp"
+    vals_disp <- vals_components$.fitted[is_disp]
+    vals_fitted <- draw_vals_fitted(mod = mod,
+                                    vals_expected = vals_expected,
+                                    vals_disp = vals_disp)
+  }
+  else
+    vals_fitted <- inv_transform(vals_linpred)
+  vals_outcome <- draw_vals_outcome(mod = mod,
+                                    vals_fitted = vals_fitted)
+  vals_observed <- vals_outcome / offset
+  ans <- mod$data
+  ans[[nm_outcome]] <- vals_outcome
+  ans$.observed <- vals_observed
+  ans$.fitted <- vals_fitted
+  if (has_disp)
+    ans$.expected <- vals_expected
+  ans
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_mod.bage_mod_binom <- function(mod, n_sim) {
-    offset <- mod$offset
-    vals_hyperparam <- draw_vals_hyperparam(mod = mod,
-                                            n_sim = n_sim)
-    linpred <- vals_hyperparam$linpred
-    disp <- vals_hyperparam$disp
-    has_disp <- !is.null(disp)
-    inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
-    if (has_disp) {
-        vals_meanpar <- inv_transform(linpred)
-        vals_meanpar <- align_to_data(vals_meanpar)
-        vals_par <- draw_vals_par(mod = mod,
-                                        vals_meanpar = vals_meanpar,
-                                        vals_disp = disp)
-    }
-    else {
-        vals_par <- inv_transform(linpred)
-        vals_par <- align_to_data(vals_par)
-    }
-    n_outcome <- nrow(vals_par)
-    size <- align_to_data(offset)
-    size <- rep(size, times = n_sim)
-    vals_outcome <- stats::rbinom(n = n_outcome * n_sim,
-                                  size = size,
-                                  prob = vals_par)
-    vals_outcome <- matrix(vals_outcome,
-                           nrow = n_outcome,
-                           ncol = n_sim)
-    c(vals_hyperparam["effect"],
-      vals_hyperparam["hyper"],
-      vals_hyperparam["disp"],
-      vals_hyperparam["cyclical"],
-      vals_hyperparam["season"],
-      list(par = vals_par,
-           outcome = vals_outcome))
+draw_vals_augment.bage_mod_norm <- function(mod, vals_components) {
+  scale_outcome <- get_fun_scale_outcome(mod)
+  nm_outcome <- get_nm_outcome(mod)
+  vals_linpred <- make_linpred_effect(mod = mod,
+                                      components = vals_components)
+  vals_fitted <- scale_outcome(vals_linpred)
+  is_disp <- vals_components$component == "disp"
+  vals_disp <- vals_components$.fitted[is_disp]
+  vals_outcome <- draw_vals_outcome(mod = mod,
+                                    vals_fitted = vals_fitted,
+                                    vals_disp = vals_disp)
+  ans <- mod$data
+  ans[[nm_outcome]] <- vals_outcome
+  ans$.fitted <- vals_fitted
+  ans
+}
+
+
+## 'draw_vals_fitted' ---------------------------------------------------------
+
+#' Draw Values for '.fitted' Variable in 'augment'
+#' when 'disp' non-NULL
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_expected Backtransformed linear predictor. An rvec.
+#' @param vals_disp Dispersion. An rvec.
+#'
+#' @returns An rvec.
+#'
+#' @noRd
+draw_vals_fitted <- function(mod, vals_expected, vals_disp) {
+    UseMethod("draw_vals_fitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_mod.bage_mod_norm <- function(mod, n_sim) {
-    wt <- mod$offset
-    vals_hyperparam <- draw_vals_hyperparam(mod = mod,
-                                            n_sim = n_sim)
-    linpred <- vals_hyperparam$linpred
-    disp <- vals_hyperparam$disp
-    align_to_data <- get_fun_align_to_data(mod)
-    scale_outcome <- get_fun_scale_outcome(mod)
-    par <- scale_outcome(align_to_data(linpred))
-    n_outcome <- nrow(par)
-    sd <- rep(disp, each = n_outcome) / rep(wt, times = n_sim)
-    vals_outcome <- stats::rnorm(n = length(par),
-                                 mean = par,
-                                 sd = sd)
-    vals_outcome <- matrix(vals_outcome,
-                           nrow = n_outcome,
-                           ncol = n_sim)
-    c(vals_hyperparam["effect"],
-      vals_hyperparam["hyper"],
-      vals_hyperparam["disp"],
-      vals_hyperparam["cyclical"],
-      vals_hyperparam["season"],
-      list(par = par,
-           outcome = vals_outcome))
+draw_vals_fitted.bage_mod_pois <- function(mod, vals_expected, vals_disp)
+  rvec::rgamma_rvec(n = length(vals_expected),
+                    shape = 1 / vals_disp,
+                    rate = 1 / (vals_disp * vals_expected))
+
+## HAS_TESTS
+#' @export
+draw_vals_fitted.bage_mod_binom <- function(mod, vals_expected, vals_disp)
+  rvec::rbeta_rvec(n = length(vals_expected),
+                   shape1 = vals_expected / vals_disp,
+                   shape2 = (1 - vals_expected) / vals_disp)
+
+
+## 'draw_vals_outcome' --------------------------------------------------------
+
+#' Draw Values for Outcome Variable
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_fitted '.fitted' variable from 'augment'. An rvec.
+#' @param vals_disp Standard deviation. Only used with
+#' normal model. An rvec
+#'
+#' @returns An rvec
+#'
+#' @noRd
+draw_vals_outcome <- function(mod, vals_fitted, vals_disp) {
+    UseMethod("draw_vals_outcome")
 }
+
+## HAS_TESTS
+#' @export
+draw_vals_outcome.bage_mod_pois <- function(mod, vals_fitted, vals_disp) {
+  offset <- mod$offset
+  n_val <- length(vals_fitted)
+  n_draw <- rvec::n_draw(vals_fitted)
+  is_not_na <- !is.na(offset)
+  vals <- rvec::rpois_rvec(n = sum(is_not_na),
+                           lambda = vals_fitted[is_not_na] * offset[is_not_na])
+  na <- if (is.integer(vctrs::field(vals, "data"))) NA_integer_ else NA_real_
+  ans <- rvec::rvec(matrix(na, nrow = n_val, ncol = n_draw))
+  ans[is_not_na] <- vals
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_outcome.bage_mod_binom <- function(mod, vals_fitted, vals_disp) {
+  offset <- mod$offset
+  n_val <- length(vals_fitted)
+  n_draw <- rvec::n_draw(vals_fitted)
+  is_not_na <- !is.na(offset)
+  vals <- rvec::rbinom_rvec(n = sum(is_not_na),
+                            size = offset[is_not_na],
+                            prob = vals_fitted[is_not_na])
+  na <- if (is.integer(vctrs::field(vals, "data"))) NA_integer_ else NA_real_
+  ans <- rvec::rvec(matrix(na, nrow = n_val, ncol = n_draw))
+  ans[is_not_na] <- vals
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_outcome.bage_mod_norm <- function(mod, vals_fitted, vals_disp) {
+  offset <- mod$offset
+  n_val <- length(vals_fitted)
+  n_draw <- rvec::n_draw(vals_fitted)
+  ans <- rvec::rvec_dbl(matrix(NA_real_, nrow = n_val, ncol = n_draw))
+  is_not_na <- !is.na(offset)
+  ans[is_not_na] <- rvec::rnorm_rvec(n = sum(is_not_na),
+                                     mean = vals_fitted[is_not_na],
+                                     sd = vals_disp / sqrt(offset[is_not_na]))
+  ans
+}
+
+
+## 'equation' -----------------------------------------------------------------
+
+#' @importFrom generics equation
+#' @export
+generics::equation
 
 
 ## 'fit' ----------------------------------------------------------------------
@@ -435,103 +395,132 @@ generics::fit
 #'
 #' @export    
 fit.bage_mod <- function(object, ...) {
-    ## data
-    nm_distn <- nm_distn(object)
-    outcome <- object$outcome
-    offset <- object$offset
-    terms_effect <- object$terms_effect
-    is_in_lik <- make_is_in_lik(object)
-    terms_effectfree <- make_terms_effectfree(object)
-    uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(object)
-    matrices_effectfree_effect <- make_matrices_effectfree_effect(object)
-    uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(object)
-    offsets_effectfree_effect <- make_offsets_effectfree_effect(object)
-    matrices_effect_outcome <- object$matrices_effect_outcome
-    i_prior <- make_i_prior(object)
-    uses_hyper <- make_uses_hyper(object)
-    terms_hyper <- make_terms_hyper(object)
-    const <- make_const(object)
-    terms_const <- make_terms_const(object)
-    scale_disp <- object$scale_disp
-    has_disp <- scale_disp > 0
-    n_cyclical <- object$n_cyclical
-    const_cyclical <- make_const_cyclical(object)
-    matrix_cyclical_outcome <- object$matrix_cyclical_outcome
-    n_time <- n_time(object)
-    n_season <- object$n_season
-    const_season <- make_const_season(object)
-    matrix_season_outcome <- object$matrix_season_outcome
-    data <- list(nm_distn = nm_distn,
-                 outcome = outcome,
-                 offset = offset,
-                 is_in_lik = is_in_lik,
-                 terms_effect = terms_effect,
-                 terms_effectfree = terms_effectfree,
-                 uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
-                 matrices_effectfree_effect = matrices_effectfree_effect,
-                 uses_offset_effectfree_effect = uses_offset_effectfree_effect,
-                 offsets_effectfree_effect = offsets_effectfree_effect,
-                 matrices_effect_outcome = matrices_effect_outcome,
-                 i_prior = i_prior,
-                 uses_hyper = uses_hyper,
-                 terms_hyper = terms_hyper,
-                 consts = const, ## 'const' is reserved word in C
-                 terms_consts = terms_const,
-                 scale_disp = scale_disp,
-                 n_cyclical = n_cyclical,
-                 consts_cyclical = const_cyclical,
-                 matrix_cyclical_outcome = matrix_cyclical_outcome,
-                 n_time = n_time,
-                 n_season = n_season,
-                 consts_season = const_season,
-                 matrix_season_outcome = matrix_season_outcome)
-    ## parameters
-    effectfree <- make_effectfree(object)
-    hyper <- make_hyper(object)
-    log_disp <- 0
-    effect_cyclical <- make_effect_cyclical(object)
-    hyper_cyclical <- make_hyper_cyclical(object)
-    effect_season <- make_effect_season(object)
-    hyper_season <- make_hyper_season(object)
-    parameters <- list(effectfree = effectfree,   
-                       hyper = hyper,
-                       log_disp = log_disp,
-                       effect_cyclical = effect_cyclical,
-                       hyper_cyclical = hyper_cyclical,
-                       effect_season = effect_season,
-                       hyper_season = hyper_season)
-    ## MakeADFun
-    map <- make_map(object)
-    random <- make_random(object)
-    f <- TMB::MakeADFun(data = data,
-                        parameters = parameters,
-                        map = map,
-                        DLL = "bage",
-                        random = random,
-                        silent = TRUE)
-    ## optimise
-    stats::nlminb(start = f$par,
-                  objective = f$fn,
-                  gradient = f$gr,
-                  silent = TRUE)
-    ## extract results
+  object <- unfit(object)
+  ## data
+  nm_distn <- nm_distn(object)
+  outcome <- object$outcome
+  offset <- object$offset
+  terms_effect <- object$terms_effect
+  is_in_lik <- make_is_in_lik(object)
+  terms_effectfree <- make_terms_effectfree(object)
+  uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(object)
+  matrices_effectfree_effect <- make_matrices_effectfree_effect(object)
+  uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(object)
+  offsets_effectfree_effect <- make_offsets_effectfree_effect(object)
+  matrices_effect_outcome <- object$matrices_effect_outcome
+  i_prior <- make_i_prior(object)
+  uses_hyper <- make_uses_hyper(object)
+  terms_hyper <- make_terms_hyper(object)
+  uses_hyperrand <- make_uses_hyperrand(object)
+  terms_hyperrand <- make_terms_hyperrand(object)
+  const <- make_const(object)
+  terms_const <- make_terms_const(object)
+  matrices_along_by <- choose_matrices_along_by(object)
+  uses_indices_priors <- make_uses_indices_priors(object)
+  indices_priors <- make_indices_priors(object)
+  terms_indices_priors <- make_terms_indices_priors(object)
+  mean_disp <- object$mean_disp
+  has_disp <- mean_disp > 0
+  data <- list(nm_distn = nm_distn,
+               outcome = outcome,
+               offset = offset,
+               is_in_lik = is_in_lik,
+               terms_effect = terms_effect,
+               terms_effectfree = terms_effectfree,
+               uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
+               matrices_effectfree_effect = matrices_effectfree_effect,
+               uses_offset_effectfree_effect = uses_offset_effectfree_effect,
+               offsets_effectfree_effect = offsets_effectfree_effect,
+               matrices_effect_outcome = matrices_effect_outcome,
+               i_prior = i_prior,
+               uses_hyper = uses_hyper,
+               terms_hyper = terms_hyper,
+               uses_hyperrand = uses_hyperrand,
+               terms_hyperrand = terms_hyperrand,
+               consts = const, ## 'const' is reserved word in C
+               terms_consts = terms_const,
+               matrices_along_by = matrices_along_by,
+               uses_indices_priors = uses_indices_priors,
+               indices_priors = indices_priors,
+               terms_indices_priors = terms_indices_priors,
+               mean_disp = mean_disp)
+  ## parameters
+  effectfree <- make_effectfree(object)
+  hyper <- make_hyper(object)
+  hyperrand <- make_hyperrand(object)
+  log_disp <- 0
+  parameters <- list(effectfree = effectfree,   
+                     hyper = hyper,
+                     hyperrand = hyperrand,
+                     log_disp = log_disp)
+  ## MakeADFun
+  map <- make_map(object)
+  random <- make_random(object)
+  has_random_effects <- !is.null(random)
+  f <- TMB::MakeADFun(data = data,
+                      parameters = parameters,
+                      map = map,
+                      DLL = "bage",
+                      random = random,
+                      silent = TRUE)
+  ## optimise
+  stats::nlminb(start = f$par,
+                objective = f$fn,
+                gradient = f$gr,
+                silent = TRUE)
+  ## extract results
+  if (has_random_effects)
     sdreport <- TMB::sdreport(f,
                               bias.correct = TRUE,
                               getJointPrecision = TRUE)
-    est <- as.list(sdreport, what = "Est")
-    attr(est, "what") <- NULL
-    is_fixed <- make_is_fixed(est = est, map = map)
+  else
+    sdreport <- TMB::sdreport(f) 
+  est <- as.list(sdreport, what = "Est")
+  attr(est, "what") <- NULL
+  is_fixed <- make_is_fixed(est = est, map = map)
+  if (has_random_effects)
     prec <- sdreport$jointPrecision
-    R_prec <- tryCatch(chol(prec),
-                       error = function(e) e)
-    if (is.matrix(R_prec))
-        object$R_prec <- R_prec
-    else
-        object$scaled_eigen <- make_scaled_eigen(prec)
-    object$est <- est
-    object$is_fixed <- is_fixed
-    object
+  else
+    prec <- solve(sdreport$cov.fixed) ## should be very low dimension
+  R_prec <- tryCatch(chol(prec),
+                     error = function(e) e)
+  if (is.matrix(R_prec))
+    object$R_prec <- R_prec
+  else
+    object$scaled_eigen <- make_scaled_eigen(prec)
+  object$est <- est
+  object$is_fixed <- is_fixed
+  object$components <- components(object)
+  object
 }
+
+
+## 'forecast' -----------------------------------------------------------------
+
+#' @importFrom generics forecast
+#' @export
+generics::forecast
+
+## ## NO_TESTS
+## #' Forecast a model
+## #'
+## #' @param object A `bage_mod` object,
+## #' typically created with [mod_pois()],
+## #' [mod_binom()], or [mod_norm()].
+## #' @param ... Not currently used.
+## #'
+## #' @returns A `bage_mod` object
+## #'
+## #' @export    
+## forecast.bage_mod <- function(object, n, ...) {
+##   stop("not written yet")
+##   var_time <- object$var_time
+##   if (is.null(var_time))
+##     cli::cli_abort(c("Can't forecast when time variable not identified.",
+##                      i = "Please use {.fun set_var_time} to identify time variable."))
+##   check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
+## }    
+
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
@@ -592,85 +581,26 @@ get_fun_scale_outcome.bage_mod_norm <- function(mod) {
 }
 
 
-## 'get_vals_est' -------------------------------------------------------------
+## 'get_nm_outcome' -----------------------------------------------------------
 
-#' Extract estimated values from a fitted model
+#' Get the Name of the Outcome Variable
 #'
-#' @param mod A fitted object of class 'bage_mod'
+#' @param mod Object of class "bage_mod"
 #'
-#' @returns A named list of rvecs
-#'
-#' @noRd
-get_vals_est <- function(mod) {
-    UseMethod("get_vals_est")
-}
-
-## HAS_TESTS
-#' @export
-get_vals_est.bage_mod <- function(mod) {
-    has_disp <- has_disp(mod)
-    vals_hyperparam <- get_vals_hyperparam_est(mod)
-    inv_transform <- get_fun_inv_transform(mod)
-    align_to_data <- get_fun_align_to_data(mod)
-    transform <- function(x)
-        align_to_data(inv_transform(x))
-    linpred <- vals_hyperparam[["linpred"]]
-    if (has_disp) {
-        disp <- vals_hyperparam[["disp"]]
-        meanpar <- transform(linpred)
-        par <- make_par_disp(x = mod,
-                                   meanpar = meanpar,
-                                   disp = disp)
-    }
-    else
-        par <- transform(linpred)
-    list(effect = vals_hyperparam[["effect"]],
-         hyper = vals_hyperparam[["hyper"]],
-         disp = vals_hyperparam[["disp"]],
-         cyclical = vals_hyperparam[["cyclical"]],
-         season = vals_hyperparam[["season"]],
-         par = par)
-}
-
-## HAS_TESTS
-#' @export
-get_vals_est.bage_mod_norm <- function(mod) {
-    vals_hyperparam <- get_vals_hyperparam_est(mod)
-    linpred <- vals_hyperparam[["linpred"]]
-    align_to_data <- get_fun_align_to_data(mod)
-    scale_outcome <- get_fun_scale_outcome(mod)
-    par <- scale_outcome(align_to_data(linpred))
-    list(effect = vals_hyperparam[["effect"]],
-         hyper = vals_hyperparam[["hyper"]],
-         disp = vals_hyperparam[["disp"]],
-         cyclical = vals_hyperparam[["cyclical"]],
-         season = vals_hyperparam[["season"]],
-         par = par)
-}
-
-
-## 'has_cyclical' ----------------------------------------------------------------
-
-## HAS_TESTS
-#' Test whether a model includes a cyclical effect
-#'
-#' Test whether a cyclicalal effect has been added
-#' to a model (via [set_cyclical()]).
-#'
-#' @param x A model object.
-#'
-#' @returns `TRUE` or `FALSE`
+#' @returns A string
 #'
 #' @noRd
-has_cyclical <- function(mod) {
-    UseMethod("has_cyclical")
+get_nm_outcome <- function(mod) {
+    UseMethod("get_nm_outcome")
 }
 
 ## HAS_TESTS
 #' @export
-has_cyclical.bage_mod <- function(mod) {
-    n_cyclical <- mod$n_cyclical
-    n_cyclical > 0L
+get_nm_outcome.bage_mod <- function(mod) {
+  formula <- mod$formula
+  ans <- formula[[2L]]
+  ans <- deparse1(ans)
+  ans
 }
 
 
@@ -690,32 +620,8 @@ has_disp <- function(mod) {
 ## HAS_TESTS
 #' @export
 has_disp.bage_mod <- function(mod) {
-    scale_disp <- mod$scale_disp
-    scale_disp > 0L
-}
-
-
-## 'has_season' ----------------------------------------------------------------
-
-#' Test whether a model includes a seasonal effect
-#'
-#' Test whether a seasonal effect has been added
-#' to a model (via [set_season()]).
-#'
-#' @param x A model object.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-has_season <- function(mod) {
-    UseMethod("has_season")
-}
-
-## HAS_TESTS
-#' @export
-has_season.bage_mod <- function(mod) {
-    n_season <- mod$n_season
-    n_season > 0L
+    mean_disp <- mod$mean_disp
+    mean_disp > 0L
 }
 
 
@@ -822,46 +728,16 @@ make_observed <- function(x) {
 make_observed.bage_mod <- function(x) {
     outcome <- x$outcome
     offset <- x$offset
-    outcome <- as.double(outcome) ## so 'align_to_data' works correctly
-    offset <- as.double(offset)   ## so 'align_to_data' works correctly
-    align_to_data <- get_fun_align_to_data(x)
     ans <- as.double(outcome / offset)
-    ans <- align_to_data(ans)
     ans
 }
 
 ## HAS_TESTS
 #' @export
 make_observed.bage_mod_norm <- function(x) {
-    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",
-                         "of class {.cls {class(x)}}."))
+    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",  ## nocov
+                         "of class {.cls {class(x)}}."))                           ## nocov
 }
-
-
-## 'make_term_par' ---------------------------------------------------------
-
-#' Name to use for par parameter
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A string
-#'
-#' @noRd
-make_term_par <- function(mod) {
-    UseMethod("make_term_par")
-}
-
-## HAS_TESTS
-#' @export
-make_term_par.bage_mod_pois <- function(mod) "rate"
-
-## HAS_TESTS
-#' @export
-make_term_par.bage_mod_binom <- function(mod) "prob"
-
-## HAS_TESTS
-#' @export
-make_term_par.bage_mod_norm <- function(mod) "mean"
 
 
 ## 'model_descr' -----------------------------------------------------------------
@@ -888,33 +764,6 @@ model_descr.bage_mod_binom <- function(mod) "binomial"
 ## HAS_TESTS
 #' @export
 model_descr.bage_mod_norm <- function(mod) "normal"
-
-
-## 'n_time' -------------------------------------------------------------------
-
-#' Number of time points in outcome data
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns An integer
-#'
-#' @noRd
-n_time <- function(mod) {
-    UseMethod("n_time")
-}
-
-## HAS_TESTS
-#' @export
-n_time.bage_mod <- function(mod) {
-    var_time <- mod$var_time
-    has_time <- !is.null(var_time)
-    if (has_time) {
-        matrices_effect_outcome <- mod$matrices_effect_outcome
-        ncol(matrices_effect_outcome[[var_time]])
-    }
-    else
-        0L
-}
 
 
 ## 'nm_distn' -----------------------------------------------------------------
@@ -983,9 +832,7 @@ print.bage_mod <- function(x, ...) {
     var_age <- x$var_age
     var_sexgender <- x$var_sexgender
     var_time <- x$var_time
-    scale_disp <- x$scale_disp
-    n_season <- x$n_season
-    scale_season <- x$scale_season
+    mean_disp <- x$mean_disp
     is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -999,14 +846,7 @@ print.bage_mod <- function(x, ...) {
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
     str_priors <- paste(str_priors, collapse = "\n")
-    str_disp <- sprintf("% *s: s=%s", nchar_offset, "dispersion", scale_disp)
-    has_season <- n_season > 0L
-    if (has_season) {
-        nm_season <- sprintf("% *s", nchar_offset, "seasonal effect")
-        str_season <- sprintf("%s: n=%d", nm_season, n_season)
-        if (scale_season != 1)
-            str_season <- sprintf("%s, s=%s", str_season, scale_season)
-    }
+    str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
         nm_offset <- nm_offset(x)
@@ -1023,10 +863,6 @@ print.bage_mod <- function(x, ...) {
     cat("\n\n")
     cat(str_disp)
     cat("\n")
-    if (has_season) {
-        cat(str_season)
-        cat("\n")
-    }
     if (has_offset) {
         cat(str_offset)
         cat("\n")
@@ -1062,6 +898,13 @@ print.bage_mod <- function(x, ...) {
     ## return
     invisible(x)
 }
+
+
+#' Draw from the Prior Predictive Distribution of
+#' a Model
+#'
+#' Draw from the prior predictive distribution
+#' of a model, i.e., the 
 
 
 ## 'replicate_data' -----------------------------------------------------------
@@ -1164,15 +1007,15 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
     else
         condition_on <- match.arg(condition_on, choices = c("meanpar", "par"))
     check_n(n = n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)
     check_is_fitted(x = x, x_arg = "x")
     data <- x$data
-    formula <- x$formula
     outcome <- x$outcome
     offset <- x$offset
+    nm_outcome <- get_nm_outcome(x)
     x <- set_n_draw(x, n_draw = n)
     aug <- augment(x)
     n_obs <- nrow(data)
@@ -1194,9 +1037,8 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
                                     mu = mu)
     }
     else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+        cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
     outcome_rep <- c(outcome, as.numeric(y_rep))
-    nm_outcome <- deparse1(formula[[2L]])
     ans <- make_copies_repdata(data = data, n = n)
     ans[[nm_outcome]] <- outcome_rep
     ans
@@ -1210,7 +1052,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
     else
         condition_on <- match.arg(condition_on, choices = c("meanpar", "par"))
     check_n(n = n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)
@@ -1219,6 +1061,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
     formula <- x$formula
     outcome <- x$outcome
     offset <- x$offset
+    nm_outcome <- get_nm_outcome(x)
     x <- set_n_draw(x, n_draw = n)
     aug <- augment(x)
     n_obs <- nrow(data)
@@ -1243,9 +1086,8 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
                                    prob = prob)
     }
     else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.")
+        cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
     outcome_rep <- c(outcome, as.numeric(y_rep))
-    nm_outcome <- deparse1(formula[[2L]])
     ans <- make_copies_repdata(data = data, n = n)
     ans[[nm_outcome]] <- outcome_rep
     ans
@@ -1259,7 +1101,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
                         i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
                                   "when model {.arg x} has a normal likelihood.")))
     check_n(n = n,
-            n_arg = "n",
+            nm_n = "n",
             min = 1L,
             max = NULL,
             null_ok = FALSE)
@@ -1268,6 +1110,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
     formula <- x$formula
     outcome <- x$outcome
     offset <- x$offset
+    nm_outcome <- get_nm_outcome(x)
     x <- set_n_draw(x, n_draw = n)
     aug <- augment(x)
     comp <- components(x)
@@ -1278,7 +1121,6 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
                               mean = par,
                               sd = disp / sqrt(offset))
     outcome_rep <- c(outcome, as.numeric(y_rep))
-    nm_outcome <- deparse1(formula[[2L]])
     ans <- make_copies_repdata(data = data, n = n)
     ans[[nm_outcome]] <- outcome_rep
     ans
@@ -1320,7 +1162,7 @@ tidy.bage_mod <- function(x, ...) {
     if (is_fitted) {
         effectfree <- x$est$effectfree
         matrix <- make_combined_matrix_effectfree_effect(x)
-        offset <- make_offsets_effectfree_effect(x)
+        offset <- make_combined_offset_effectfree_effect(x)
         effect <- matrix %*% effectfree + offset
         effect <- split(effect, terms)
         ans[["sd"]] <- vapply(effect, stats::sd, 0)

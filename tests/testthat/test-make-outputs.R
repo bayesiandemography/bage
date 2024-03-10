@@ -1,48 +1,4 @@
 
-## 'get_fun_align_to_data' ----------------------------------------------------
-
-test_that("'get_fun_align_to_data' works with 2 dimensions, 'data' and 'outcome' have same values", {
-    outcome <- array(21:32, dim = 3:4, dimnames = list(a = 1:3, b = 1:4))
-    data <- as.data.frame.table(outcome)
-    data <- data[12:1,]
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(as.integer(outcome))
-    ans_expected <- 32:21
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'get_fun_align_to_data' works with 2 dimensions, 'data' has subset of values in 'outcome'", {
-    outcome <- array(1:6, dim = 3:2, dimnames = list(a = 1:3, b = 1:2))
-    data <- data.frame(b = c(1, 2, 2, 1), a = c(1, 2, 1, 2))
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(as.integer(outcome))
-    ans_expected <- c(1L, 5L, 4L, 2L)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'get_fun_align_to_data' works with 3 dimensions, 'data' has subset of values in 'outcome'", {
-    outcome <- array(1:12, dim = c(3:2, 2), dimnames = list(a = 1:3, b = 1:2, c = 1:2))
-    data <- data.frame(b = c(1, 2, 2, 1), a = c(1, 2, 1, 2), c = c(2, 2, 1, 1))
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(as.integer(outcome))
-    ans_expected <- c(7L, 11L, 4L, 2L)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'get_fun_align_to_data' works with 1 dimension, 'data' has all values in 'outcome'", {
-    outcome <- array(11:14, dim = 4, dimnames = list(a = 1:4))
-    data <- data.frame(b = c(1, 2, 2, 1), a = 4:1)
-    mod <- list(data = data, outcome = outcome)
-    align_to_data <- get_fun_align_to_data(mod)
-    ans_obtained <- align_to_data(21:24)
-    ans_expected <- 24:21
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'insert_draws_known' -------------------------------------------------------
 
 test_that("'insert_draws_known' works", {
@@ -91,9 +47,26 @@ test_that("'make_combined_matrix_effectfree_effect' works with valid inputs", {
 })
 
 
+## 'make_combined_offset_effectfree_effect' -----------------------------------------
+
+test_that("'make_combined_offset_effectfree_effect' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + age * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_combined_offset_effectfree_effect(mod)
+    expect_identical(length(ans_obtained), length(mod$terms_effect))
+    expect_true(all(ans_obtained == 0))
+})
+
+
 ## 'make_comp_components' -----------------------------------------------------
 
-test_that("'make_comp_components' works", {
+test_that("'make_comp_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -102,15 +75,32 @@ test_that("'make_comp_components' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_season(mod, n = 2)
-    mod <- set_cyclical(mod, n = 1, s = 0.01)
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
     draws <- make_draws_components(mod)
     ans <- make_comp_components(mod)
     expect_identical(nrow(draws), length(ans))
-    expect_setequal(ans, c("effect", "hyper", "disp", "cyclical", "season"))
+    expect_setequal(ans, c("effect", "hyper", "disp"))
 })
+
+test_that("'make_comp_components' works - has hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(time ~ compose_time(trend = Lin(), error = N()))
+    mod <- set_n_draw(mod, n = 1)
+    mod <- fit(mod)
+    draws <- make_draws_components(mod)
+    ans <- make_comp_components(mod)
+    expect_identical(nrow(draws), length(ans))
+    expect_setequal(ans, c("effect", "hyper", "hyperrand", "disp"))
+})
+
 
 ## 'make_copies_repdata' ------------------------------------------------------
 
@@ -141,7 +131,7 @@ test_that("'make_draws_comp_raw' works with valid inputs", {
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
-    mod <- set_n_draw(mod, n = 20000)
+    mod <- set_n_draw(mod, n = 200000)
     ans <- make_draws_comp_raw(mod)
     mean <- unlist(mod$est, use.names = FALSE)[!mod$is_fixed]
     prec <- crossprod(mod$R_prec)
@@ -153,36 +143,54 @@ test_that("'make_draws_comp_raw' works with valid inputs", {
 ## 'make_draws_components' -----------------------------------------------
 
 test_that("'make_draws_components' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age ~ Spline())
-    mod <- set_n_draw(mod, n = 1)
-    mod <- fit(mod)
-    set.seed(0)
-    ans_obtained <- make_draws_components(mod)
-    set.seed(0)
-    est <- mod$est
-    is_fixed <- mod$is_fixed
-    matrix <- make_combined_matrix_effectfree_effect(mod)
-    offset <- make_offsets_effectfree_effect(mod)
-    transforms <- make_transforms_hyper(mod)
-    draws <- make_draws_comp_raw(mod)
-    draws <- insert_draws_known(draws = draws,
-                                est = est,
-                                is_fixed = is_fixed)
-    draws <- transform_draws_hyper(draws,
-                                   transforms = transforms)
-    draws <- transform_draws_effect(draws = draws,
-                                 matrix = matrix,
-                                 offset = offset)
-    ans_expected <- draws[-seq(to = nrow(draws), length = 2), ,drop = FALSE]
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_n_draw(mod, n = 1)
+  mod <- set_disp(mod, mean = 0)
+  mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
+  mod <- fit(mod)
+  set.seed(0)
+  ans_obtained <- make_draws_components(mod)
+  set.seed(0)
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  matrices <- mod$matrices_effect_outcome
+  matrix <- make_combined_matrix_effectfree_effect(mod)
+  offset <- make_combined_offset_effectfree_effect(mod)
+  transforms <- make_transforms_hyper(mod)
+  draws <- make_draws_comp_raw(mod)
+  draws <- insert_draws_known(draws = draws,
+                              est = est,
+                              is_fixed = is_fixed)
+  draws <- transform_draws_hyper(draws,
+                                 transforms = transforms)
+  draws <- transform_draws_effect(draws = draws,
+                                  matrix = matrix,
+                                  offset = offset,
+                                  matrices = matrices)
+  ans_expected <- draws[-nrow(draws),,drop = FALSE]
+  rownames(ans_expected) <- NULL
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'is_same_class' ------------------------------------------------------------
+
+test_that("'is_same_class' returns TRUE when classes same", {
+    expect_true(is_same_class(AR1(), AR1()))
+    expect_true(is_same_class(1L, 2L))
+})
+
+test_that("'is_same_class' returns FALSE when classes different", {
+    expect_false(is_same_class(AR1(), N()))
+    expect_false(is_same_class(1L, FALSE))
 })
 
 
@@ -197,14 +205,16 @@ test_that("'make_par_disp' works with bage_mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
+    mod <- set_n_draw(mod, n = 10)
     mod <- fit(mod)
     components <- components(mod)
     meanpar <- exp(make_linpred_effect(mod, components = components))
     disp <- components$.fitted[components$component == "disp"]
+    set.seed(1)
     ans_obtained <- make_par_disp(mod,
                                   meanpar = meanpar,
                                   disp = disp)
-    set.seed(mod$seed_fitted)
+    set.seed(1)
     ans_expected <- rvec::rgamma_rvec(n = length(meanpar),
                                       data$deaths + 1/disp,
                                       data$popn + 1/(disp*meanpar))
@@ -221,6 +231,7 @@ test_that("'make_par_disp' works with bage_mod_binom", {
                      data = data,
                      size = popn)
     mod <- fit(mod)
+    mod <- set_n_draw(mod, n = 10)
     components <- components(mod)
     invlogit <- function(x) 1 / (1 + exp(-x))
     meanpar <- invlogit(make_linpred_effect(mod, components = components))
@@ -229,7 +240,7 @@ test_that("'make_par_disp' works with bage_mod_binom", {
     ans_obtained <- make_par_disp(mod,
                                   meanpar = meanpar,
                                   disp = disp)
-    set.seed(mod$seed_fitted)
+    set.seed(1)
     ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
                                      data$deaths + meanpar/disp,
                                      data$popn - data$deaths + (1 - meanpar)/disp)
@@ -248,8 +259,6 @@ test_that("'make_is_fixed' works when nothing fixed", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_cyclical(mod)
-    mod <- set_season(mod, n = 2)
     mod <- fit(mod)
     est <- mod$est
     map <- make_map(mod)
@@ -259,28 +268,24 @@ test_that("'make_is_fixed' works when nothing fixed", {
     ans_expected <- rep(FALSE, times = length(unlist(est)))
 })
 
-test_that("'make_is_fixed' works when no season or cyclical effect", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- fit(mod)
-    est <- mod$est
-    map <- make_map(mod)
-    ans_obtained <- make_is_fixed(est = est, map = map)
-    ans_expected <- rep(c(FALSE, TRUE),
-                        times = c(length(est$effectfree)
-                                  + length(est$hyper)
-                                  + length(est$log_disp),
-                                  length(est$effect_cyclical)
-                                  + length(est$hyper_cyclical)
-                                  + length(est$effect_season)
-                                  + length(est$hyper_season)))
-    expect_identical(unname(ans_obtained), ans_expected)
+test_that("'make_is_fixed' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  est <- mod$est
+  map <- make_map(mod)
+  ans_obtained <- make_is_fixed(est = est, map = map)
+  ans_expected <- rep(FALSE, 
+                      times = length(est$effectfree)
+                      + length(est$hyper)
+                      + length(est$log_disp))
+  expect_identical(unname(ans_obtained), ans_expected)
 })
 
 test_that("'make_is_fixed' works when Known prior", {
@@ -297,21 +302,17 @@ test_that("'make_is_fixed' works when Known prior", {
     est <- mod$est
     map <- make_map(mod)
     ans_obtained <- make_is_fixed(est = est, map = map)
-    ans_expected <- rep(c(FALSE, TRUE, FALSE, TRUE),
+    ans_expected <- rep(c(FALSE, TRUE, FALSE),
                         times = c(11,
                                   2,
-                                  6 + 20 + length(est$hyper) + length(est$log_disp),
-                                  length(est$effect_cyclical)
-                                  + length(est$hyper_cyclical)
-                                  + length(est$effect_season)
-                                  + length(est$hyper_season)))
+                                  6 + 20 + length(est$hyper) + length(est$log_disp)))
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
 
 ## 'make_level_components' ----------------------------------------------------
 
-test_that("'make_level_components' works", {
+test_that("'make_level_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -320,30 +321,28 @@ test_that("'make_level_components' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
-    mod <- set_cyclical(mod)
+    mod <- set_disp(mod, mean = 0)
     mod <- fit(mod)
     comp <- make_comp_components(mod)
     ans <- make_level_components(mod)
     expect_identical(length(ans), length(comp))
 })
 
-
-## 'make_levels_cyclical' -------------------------------------------------------
-
-test_that("'make_levels_cyclical' works", {
+test_that("'make_level_components' works - has hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + time
+    formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_levels_cyclical(mod)
-    ans_expected <- c(2000:2005, "coef1", "coef2", "sd")
-    expect_identical(ans_obtained, ans_expected)                      
+    mod <- set_disp(mod, mean = 0)
+    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), seasonal = Seas(n = 3)))
+    mod <- fit(mod)
+    comp <- make_comp_components(mod)
+    ans <- make_level_components(mod)
+    expect_identical(length(ans), length(comp))
 })
 
 
@@ -360,12 +359,32 @@ test_that("'make_levels_hyper' works", {
                     exposure = popn)
     mod <- fit(mod)
     ans_obtained <- make_levels_hyper(mod)
-    ans_expected <- c("sd", "sd", "sd", "sd")
+    ans_expected <- c(age = "sd",
+                      time = "sd",
+                      "age:sex" = "sd")
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+## 'make_levels_hyperrand' ----------------------------------------------------
+
+test_that("'make_levels_hyperrand' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex:time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- fit(mod)
+    ans_obtained <- make_levels_hyperrand(mod)
+    ans_expected <- c("mslope.F", "mslope.M")
     expect_identical(ans_obtained, ans_expected)                      
 })
 
 
-## 'make_levels_replicate' -------------------------------------------------------
+## 'make_levels_replicate' ----------------------------------------------------
 
 test_that("'make_levels_replicate' works", {
     ans_obtained <- make_levels_replicate(n = 2, n_row_data = 3)
@@ -376,89 +395,25 @@ test_that("'make_levels_replicate' works", {
 })
 
 
-## 'make_levels_season' -------------------------------------------------------
-
-test_that("'make_levels_season' works - no by", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans_obtained <- make_levels_season(mod)
-    ans_expected <- c(2000:2005, "sd")
-    expect_identical(ans_obtained, ans_expected)                      
-})
-
-
 ## 'make_linpred_effect' ---------------------------------------------------------
 
 test_that("'make_linpred_effect' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_n_draw(mod, n_draw = 100L)
-    mod <- fit(mod)
-    comp <- components(mod)
-    set.seed(1)
-    ans <- make_linpred_effect(mod = mod,
-                            components = comp)
-    expect_identical(length(ans), length(mod$outcome))
-    expect_s3_class(ans, "rvec")
-})
-
-
-## 'make_linpred_cyclical' ------------------------------------------------------
-
-test_that("'make_linpred_cyclical' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_n_draw(mod, n_draw = 100L)
-    mod <- set_cyclical(mod)
-    mod <- fit(mod)
-    comp <- components(mod)
-    set.seed(1)
-    ans <- make_linpred_cyclical(mod = mod,
-                                 components = comp)
-    expect_identical(length(ans), length(mod$outcome))
-    expect_s3_class(ans, "rvec")
-})
-
-
-## 'make_linpred_season' ------------------------------------------------------
-
-test_that("'make_linpred_season' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_n_draw(mod, n_draw = 100L)
-    mod <- set_season(mod, n = 2)
-    mod <- fit(mod)
-    comp <- components(mod)
-    set.seed(1)
-    ans <- make_linpred_season(mod = mod,
-                               components = comp)
-    expect_identical(length(ans), length(mod$outcome))
-    expect_s3_class(ans, "rvec")
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 100L)
+  mod <- fit(mod)
+  comp <- components(mod)
+  set.seed(1)
+  ans <- make_linpred_effect(mod = mod,
+                             components = comp)
+  expect_identical(length(ans), length(mod$outcome))
+  expect_s3_class(ans, "rvec")
 })
 
 
@@ -485,7 +440,7 @@ test_that("'make_scaled_eigen' works with non-negative definite matrix", {
 
 ## 'make_term_components' -----------------------------------------------------
 
-test_that("'make_term_components' works", {
+test_that("'make_term_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -494,9 +449,8 @@ test_that("'make_term_components' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
-    mod <- set_cyclical(mod, n = 1)
-    mod <- set_prior(mod, age ~ Spline())
+    mod <- set_disp(mod, mean = 0)
+    mod <- set_prior(mod, age ~ Sp())
     mod <- set_n_draw(mod, n = 1)       
     mod <- fit(mod)
     comp <- make_comp_components(mod)
@@ -504,78 +458,25 @@ test_that("'make_term_components' works", {
     expect_identical(length(ans), length(comp))
 })
 
-
-## 'make_terms_cyclical' --------------------------------------------------------
-
-test_that("'make_terms_cyclical' works with models with cyclical effect", {
+test_that("'make_term_components' works - no hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$income <- rnorm(n = nrow(data))
-    formula <- income ~ age * sex + time
-    mod <- mod_norm(formula = formula,
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
                     data = data,
-                    weights = popn)
-    mod <- set_cyclical(mod)
+                    exposure = popn)
+    mod <- set_disp(mod, mean = 0)
+    mod <- set_prior(mod, age ~ Sp())
+    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
+    mod <- set_n_draw(mod, n = 1)       
     mod <- fit(mod)
-    ans_obtained <- make_terms_cyclical(mod)
-    ans_expected <- factor(c("effect", "effect", "effect", "effect", "effect",
-                             "effect", "hyper", "hyper", "hyper"),
-                           levels = c("effect", "hyper"))
-    expect_identical(ans_obtained, ans_expected)                      
+    comp <- make_comp_components(mod)
+    ans <- make_term_components(mod)
+    expect_identical(length(ans), length(comp))
 })
 
-
-## 'make_terms_season' --------------------------------------------------------
-
-test_that("'make_terms_season' works with models with seasonal effect - no by", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$income <- rnorm(n = nrow(data))
-    formula <- income ~ age * sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = popn)
-    mod <- set_season(mod, n = 2)
-    mod <- fit(mod)
-    ans_obtained <- make_terms_season(mod)
-    ans_expected <- factor(c("effect", "effect", "effect", "effect", "effect", "effect", "hyper"),
-                           levels = c("effect", "hyper"))
-    expect_identical(ans_obtained, ans_expected)                      
-})
-
-test_that("'make_terms_season' works with models with seasonal effect - 1-dim by", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$income <- rnorm(n = nrow(data))
-    formula <- income ~ age * sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = popn)
-    mod <- set_season(mod, n = 2, by = sex)
-    mod <- fit(mod)
-    ans_obtained <- make_terms_season(mod)
-    ans_expected <- factor(c(rep("effect", 12), "hyper"),
-                           levels = c("effect", "hyper"))
-    expect_identical(ans_obtained, ans_expected)                      
-})
-
-test_that("'make_terms_season' works with models without seasonal effect", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$income <- rnorm(n = nrow(data))
-    formula <- income ~ age * sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = popn)
-    mod <- fit(mod)
-    ans_obtained <- make_terms_season(mod)
-    ans_expected <- factor()
-    expect_identical(ans_obtained, ans_expected)                      
-})
 
 
 ## 'make_transforms_hyper' ---------------------------------------------------------
@@ -589,8 +490,7 @@ test_that("'make_transforms_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_season(mod, n = 2)
-    mod <- set_cyclical(mod)
+    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- fit(mod)
     ans_obtained <- make_transforms_hyper(mod)
     invlogit2 <- function(x) {
@@ -599,13 +499,56 @@ test_that("'make_transforms_hyper' works", {
     }
     ans_expected <- c(rep(list(NULL), 19),
                       rep(list(exp), 3),
-                      list(exp),
-                      rep(list(NULL), 6),
-                      c(rep(list(invlogit2), 2), list(exp)),
-                      rep(list(NULL), 6),
+                      rep(list(identity), 6),
                       list(exp))
     expect_identical(unname(ans_obtained), ans_expected,
                      ignore_function_env = TRUE)
+})
+
+
+## 'reformat_hyperrand' -------------------------------------------------------
+
+test_that("'reformat_hyperrand' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(time ~ RW2()) |>
+                  set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  comp <- make_comp_components(mod)
+  term <- make_term_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(component = comp,
+                               term = term,
+                               level = level,
+                               .fitted = .fitted)
+  ans_obtained <- reformat_hyperrand(components = components, mod = mod)
+  expect_setequal(ans_obtained$component, c("effect", "hyper", "disp", "trend", "error"))
+})
+
+
+## 'rvec_to_mean' -------------------------------------------------------------
+
+test_that("'rvec_to_mean' works with valid inputs", {
+  data <- tibble::tibble(a = 1:3,
+                         b = rvec::rvec(matrix(1:12, nr = 3)),
+                         c = rvec::rvec(matrix(FALSE, nr = 3, nc = 2)),
+                         d = c("a", "b", "c"))
+  ans_obtained <- rvec_to_mean(data)
+  ans_expected <- tibble::tibble(a = 1:3,
+                         b = rowMeans(matrix(1:12, nr = 3)),
+                         c = rowMeans(matrix(FALSE, nr = 3, nc = 2)),
+                         d = c("a", "b", "c"))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -624,6 +567,76 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
 })
 
 
+## 'sort_components' ----------------------------------------------------------
+
+test_that("'sort_components' works with valid inputs", {
+  components <- tibble::tribble(~term,         ~component, ~level,
+                                "sex",          "effect",   "m",
+                                "time",         "seasonal", "2000",
+                                "sex",          "hyper",    "sd",
+                                "time",         "effect",   "2000",
+                                "sex",          "effect",   "f",
+                                "(Intercept)", "effect",   "(Intercept)",
+                                "time",         "cyclical", "2000")
+  mod <- list(formula = deaths ~ time + sex)
+  ans_obtained <- sort_components(components = components, mod = mod)
+  ans_expected <- tibble::tribble(~term,         ~component, ~level,
+                                  "(Intercept)", "effect",   "(Intercept)",
+                                  "time",         "effect",   "2000",
+                                  "time",         "cyclical", "2000",
+                                  "time",         "seasonal", "2000",
+                                  "sex",          "effect",   "m",
+                                  "sex",          "effect",   "f",
+                                  "sex",          "hyper",    "sd")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'sort_components' raises correct effor with invalid component", {
+  components <- tibble::tribble(~term,         ~component, ~level,
+                                "(Intercept)", "effect",   "(Intercept)",
+                                "time",         "seasonal", "2000",
+                                "sex",          "wrong",    "sd")
+  expect_error(sort_components(components, mod = list(formula = deaths ~ age)),
+               "Internal error: \"wrong\" not a valid value for `component`.")
+})
+
+
+## 'transform_draws_effect' ---------------------------------------------------
+
+test_that("'transform_draws_effect' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  draws <- make_draws_comp_raw(mod)
+  draws <- insert_draws_known(draws = draws,
+                              est = est,
+                              is_fixed = is_fixed)
+  transformed <- transform_draws_effect(draws = draws,
+                                        matrix_effectfree_effect = matrix_effectfree_effect,
+                                        offset_effectfree_effect = offset_effectfree_effect,
+                                        matrices_effect_outcome = matrices_effect_outcome)
+  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  ans_obtained <- matrix_effect_outcome %*% transformed[seq_len(nrow(matrix_effectfree_effect)),]
+  unstandardized <- (matrix_effectfree_effect %*% draws[seq_len(ncol(matrix_effectfree_effect)), ] +
+                       offset_effectfree_effect)
+  ans_expected <- matrix_effect_outcome %*% unstandardized
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'transform_draws_hyper' ----------------------------------------------------
 
 test_that("'transform_draws_hyper' works", {
@@ -635,48 +648,16 @@ test_that("'transform_draws_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_season(mod, n = 2)
+    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- set_n_draw(mod, 5)
     mod <- fit(mod)
     draws <- make_draws_comp_raw(mod)
     transforms <- make_transforms_hyper(mod)
-    transforms <- transforms[-24] ## remove cyclical
     ans_obtained <- transform_draws_hyper(draws = draws,
                                           transforms = transforms)
     ans_expected <- rbind(draws[1:19, ],
-                          exp(draws[20:23, ]),
-                          draws[24:29, ],
-                          exp(draws[30, ]))
+                          exp(draws[20:22, ]),
+                          draws[23:28, ],
+                          exp(draws[29, ]))
     expect_identical(unname(ans_obtained), ans_expected)
-})
-
-
-## 'transform_draws_effect' ------------------------------------------------------
-
-test_that("'transform_draws_effect' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age ~ Spline())
-    mod <- set_n_draw(mod, n = 5)
-    mod <- fit(mod)
-    est <- mod$est
-    is_fixed <- mod$is_fixed
-    matrix <- make_combined_matrix_effectfree_effect(mod)
-    offset <- make_offsets_effectfree_effect(mod)
-    draws <- make_draws_comp_raw(mod)
-    draws <- insert_draws_known(draws = draws,
-                                est = est,
-                                is_fixed = is_fixed)
-    ans_obtained <- transform_draws_effect(draws = draws,
-                                        matrix = matrix,
-                                        offset = offset)
-    ans_expected <- rbind(matrix %*% draws[1:16, ] + offset,
-                          draws[17:22, ])
-    expect_identical(ans_obtained, ans_expected)
 })

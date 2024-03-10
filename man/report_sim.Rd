@@ -10,8 +10,8 @@ report_sim(
   n_sim = 100,
   point_est_fun = c("median", "mean"),
   widths = c(0.5, 0.95),
-  report_type = c("short", "long"),
-  n_core = NULL
+  report_type = c("short", "long", "full"),
+  n_core = 1
 )
 }
 \arguments{
@@ -36,8 +36,8 @@ Default is \code{c(0.5, 0.95)}.}
 Options are \code{"short"} and \code{"long"}. Default is \code{"short"}.}
 
 \item{n_core}{Number of cores to use for parallel
-processing. If no value supplied, then no parallel
-processing is done. CURRENTLY UNUSED.}
+processing. If \code{n_core} is \code{1} (the default),
+no parallel processing is done.}
 }
 \value{
 \strong{\code{report_type} is \code{"short"}}
@@ -50,7 +50,7 @@ parameter from the likelihood.
 across all simulations and cells.
 \item \code{error_point_est}. Point estimate minus simulation-true
 value, averaged across all simulations and cells.
-\item \code{coverage}. Actual proportion of simulation-true values
+\item \code{cover}. Actual proportion of simulation-true values
 that fall within each type of interval, averaged across all
 simulations and cells.
 }
@@ -67,7 +67,7 @@ or mean parameter from the likelihood.
 stored in an \link[rvec:rvec]{rvec}.
 \item \code{error_point_est}. Point estimates minus simulation-true
 values, stored in an \link[rvec:rvec]{rvec}.
-\item \code{coverage}. Actual proportions of simulation-true values
+\item \code{cover}. Actual proportions of simulation-true values
 falling within each type of interval, stored in
 an \link[rvec:rvec]{rvec}.
 }
@@ -76,6 +76,13 @@ an \link[rvec:rvec]{rvec}.
 Use simulated data to assess the performance of
 and estimated model.
 }
+\section{Warning}{
+
+
+The interface for \code{report_sim} is still
+experimental, and may change in future.
+}
+
 \section{Comparisons included in report}{
 
 
@@ -86,10 +93,6 @@ following components:
 \item \code{"hyper"} Hyper-parameters from priors for intercept,
 main effects, and interactions.
 \item \code{"effect"} Intercept, main effects, and interactions.
-\item \code{"cyclical"} Parameters and hyper-parameters for
-cyclical effect, if included in model.
-\item \code{"season"} Parameters and hyper-parameters for
-seasonal effect, if included in model.
 \item \code{"meanpar"} Expected value for rates probabilities.
 Poisson and binomial models only.
 \item \code{"disp"} Dispersion term, if included in model.
@@ -97,8 +100,8 @@ Poisson and binomial models only.
 }
 
 When \code{mod_est} and \code{mod_sim} differ, the
-report omits \code{"hyper"}, \code{"effect"}, \code{"cyclical"},
-and \code{"season"} since, for most model specifications,
+report omits \code{"hyper"}, and \code{"effect"},
+since, for most model specifications,
 these terms are not comparable across models.
 }
 

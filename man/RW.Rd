@@ -14,15 +14,12 @@ An object of class \code{bage_prior_rw}.
 }
 \description{
 Prior in which units follow a (first order)
-random waok. Increments between neighbouring
+random walk. Increments between neighbouring
 \code{x}s are assumed to be normally distibuted,
 }
 \details{
+\deqn{x_1 \sim \text{N}(0, 1)}
 \deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2), i = 2, \cdots, n}
-
-For identifiability,
-the mean value for the $x_i$ is assumed to be
-(almost) exactly equal to zero.
 
 Standard deviation \eqn{\sigma} is drawn from a
 half-normal distribution,
