@@ -76,6 +76,13 @@ an \link[rvec:rvec]{rvec}.
 Use simulated data to assess the performance of
 and estimated model.
 }
+\section{Warning}{
+
+
+The interface for \code{report_sim} is still
+experimental, and may change in future.
+}
+
 \section{Comparisons included in report}{
 
 

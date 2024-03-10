@@ -525,7 +525,6 @@ test_that("'fit' works with valid inputs - pois has exposure", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
-
 test_that("'fit' works with valid inputs - pois has exposure", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -539,7 +538,6 @@ test_that("'fit' works with valid inputs - pois has exposure", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
-
 test_that("'fit' works with valid inputs - binom", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -549,6 +547,20 @@ test_that("'fit' works with valid inputs - binom", {
     mod <- mod_binom(formula = formula,
                     data = data,
                     size = popn)
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit' works with valid inputs - binom, disp is 0", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_binom(formula = formula,
+                    data = data,
+                    size = popn) |>
+                    set_disp(mean = 0)
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -635,7 +647,6 @@ test_that("'fit' works when all observed values for one year are NA", {
     expect_false(is.null(mod_fitted$est))
 })
 
-
 test_that("'fit' works when model consists of intercept only", {
     data <- data.frame(deaths = 1:10,
                        age = rep(1:2, each = 5),
@@ -647,6 +658,17 @@ test_that("'fit' works when model consists of intercept only", {
     expect_false(is.null(mod_fitted$est))
 })
 
+test_that("'fit' works when model has no hyper-parameters", {
+    data <- data.frame(deaths = 1:10,
+                       age = rep(1:2, each = 5),
+                       time = 2001:2010)
+    mod <- mod_pois(deaths ~ 1,
+                    data = data,
+                    exposure = 1) |>
+                    set_disp(mean = 0)
+    mod_fitted <- fit(mod)
+    expect_false(is.null(mod_fitted$est))
+})
 
 test_that("'fit' works when single dimension", {
     data <- data.frame(deaths = 1:10,
@@ -712,6 +734,20 @@ test_that("'fit' works with ERW", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, sex:time ~ compose_time(ERW(), error = N()))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit' works with ESeas", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ sex * time + age
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ compose_time(ERW(), seasonal = ESeas(n = 2)))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })

@@ -172,6 +172,8 @@ test_that("'SVD' works with valid inputs", {
                                         nm_scaled_svd = "HMD",
                                         indep = FALSE,
                                         n = 3L))
+    expect_error(SVD(NULL),
+                 "`scaled_svd` does not hold scaled SVD values.")
 })
 
 
@@ -269,6 +271,7 @@ test_that("'new_bage_prior_ear' works - EAR1 interface", {
                                       scale = 1,
                                       along = NULL,
                                       nm = "EAR1"))
+  expect_error(EAR1(along = ""), "`along` is blank.")
 })
 
 test_that("'new_bage_prior_elin' works", {

@@ -111,7 +111,7 @@ draw_vals_effect.bage_prior_ear <- function(prior,
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
+  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
   ans
 }
 

@@ -58,6 +58,7 @@ test_that("'aggregate_report_comp' works with valid inputs", {
                                     point_est_fun = "median",
                                     widths = c(0.5, 0.95)))
   report_comp <- make_report_comp(perform_comp = perform_comp,
+                                  comp_est = comp_est,
                                   comp_sim = comp_sim)
   report_comp <- rvec_to_mean(report_comp)
   ans_obtained <- aggregate_report_comp(report_comp)
@@ -808,7 +809,7 @@ test_that("'length_interval' works", {
 
 ## 'make_report_aug' ----------------------------------------------------------
 
-test_that("'make_report_aug' works with valid inputs", {
+test_that("'make_report_aug' works with valid inputs - Poisson", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -839,6 +840,38 @@ test_that("'make_report_aug' works with valid inputs", {
   expect_identical(nrow(ans_obtained), 2L * nrow(aug_sim))
 })
 
+test_that("'make_report_aug' works with valid inputs - normal", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$weights <- rpois(n = nrow(data), lambda = 100)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = weights)
+  mod_sim <- mod
+  mod_est <- mod
+  mod_sim <- set_n_draw(mod, n = 1)
+  aug_sim <- augment(mod_sim)
+  mod_est$outcome <- as.numeric(aug_sim$income)
+  mod_est <- fit(mod_est)
+  aug_est <- augment(mod_est)
+  perform_aug <- list(perform_aug(est = aug_est,
+                                  sim = aug_sim,
+                                  i_sim = 1L,
+                                  point_est_fun = "median",
+                                  widths = c(0.6, 0.8)))
+  ans_obtained <- make_report_aug(perform_aug = perform_aug,
+                                  aug_sim = aug_sim)
+  expect_setequal(names(ans_obtained),
+                  c(".var", "age", "time", "sex",
+                    "income", "weights", ".error",
+                    ".cover_60", ".cover_80",
+                    ".length_60", ".length_80"))
+  expect_identical(nrow(ans_obtained), nrow(aug_sim))
+})
+
+
 
 ## 'make_report_comp' ---------------------------------------------------------
 
@@ -865,6 +898,7 @@ test_that("'make_report_comp' works with valid inputs", {
                                     point_est_fun = "median",
                                     widths = c(0.5, 0.95)))
   ans_obtained <- make_report_comp(perform_comp = perform_comp,
+                                   comp_est = comp_est,
                                    comp_sim = comp_sim)
   expect_setequal(names(ans_obtained),
                   c("term", "component", "level", ".error",
@@ -1065,35 +1099,52 @@ test_that("'perform_comp' works with valid inputs - models different", {
 
 test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
     set.seed(0)
-    data <- expand.grid(age = 0:20, sex = c("F", "M"))
+    data <- expand.grid(age = 0:5, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age + sex
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = popn) |>
-                    set_prior(age ~ Sp())
+                    exposure = popn)
     set.seed(0)
     ans_obtained <- report_sim(mod, n_sim = 2)
     expect_setequal(names(ans_obtained), c("components", "augment"))
+    ans_obtained_long <- report_sim(mod, n_sim = 2, report = "long")
+    expect_setequal(names(ans_obtained_long), c("components", "augment"))
+    ans_obtained_full <- report_sim(mod, n_sim = 2, report = "full")
+    expect_setequal(names(ans_obtained_full), c("components", "augment"))
 })
 
-## test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     ans_obtained <- report_sim(mod,
-##                                n_sim = 4,
-##                                report_type = "long",
-##                                point_est_fun = "med",
-##                                n_core = 2)
-##     expect_identical(names(ans_obtained), c("components", "augment"))
-## })
+test_that("'report_sim' works when mod_sim more complicated that mod_est", {
+    set.seed(0)
+    data <- expand.grid(age = 0:5, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod_est <- mod_pois(deaths ~ age + sex,
+                        data = data,
+                        exposure = popn)
+    mod_sim <- mod_pois(deaths ~ age * sex,
+                        data = data,
+                        exposure = popn)
+    set.seed(0)
+    ans_obtained <- report_sim(mod_est = mod_est, mod_sim = mod_sim, n_sim = 2)
+    expect_setequal(names(ans_obtained), c("components", "augment"))
+})
+
+test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- report_sim(mod,
+                             n_sim = 2,
+                             n_core = 2)
+  expect_identical(names(ans_obtained), c("components", "augment"))
+})
 
 
 ## 'standardize_vals_effect' --------------------------------------------------

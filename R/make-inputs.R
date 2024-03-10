@@ -894,10 +894,15 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 #' @noRd
 make_random <- function(mod) {
   priors <- mod$priors
-  ans <- "effectfree"
-  has_hyperrand <- vapply(priors, has_hyperrand, FALSE)
-  if (any(has_hyperrand))
-    ans <- c(ans, "hyperrand")
+  has_hyper <- any(make_lengths_hyper(mod) > 0L)
+  has_hyperrand <- any(vapply(priors, has_hyperrand, FALSE))
+  if (!has_hyper && !has_hyperrand)
+    ans <- NULL
+  else {
+    ans <- "effectfree"
+    if (has_hyperrand)
+      ans <- c(ans, "hyperrand")
+  }
   ans
 }
 
