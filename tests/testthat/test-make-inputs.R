@@ -1094,12 +1094,17 @@ test_that("'make_priors' works with valid inputs - has intercept", {
 
 ## 'make_random' --------------------------------------------------------------
 
-test_that("'make_random' works when no hyperrand", {
+test_that("'make_random' works when no hyper, no hyperrand", {
+    mod <- structure(.Data = list(priors = list(NFix(), Known(c(2, 3)))))
+    expect_identical(make_random(mod), NULL)
+})
+
+test_that("'make_random' works when hyper, no hyperrand", {
     mod <- structure(.Data = list(priors = list(N(), RW2())))
     expect_identical(make_random(mod), "effectfree")
 })
 
-test_that("'make_random' works when hyperrand", {
+test_that("'make_random' works when hyper, hyperrand", {
     mod <- structure(.Data = list(priors = list(N(), RW2(), ELin())))
     expect_identical(make_random(mod), c("effectfree", "hyperrand"))
 })

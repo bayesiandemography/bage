@@ -825,14 +825,18 @@ make_report_aug <- function(perform_aug, aug_sim) {
 #' @param perform_comp A list, each element of
 #' which is the return value of
 #' 'perform_comp' for one simulation
+#' @param comp_est Tibble created by calling
+#' 'components' an a fitted model.
 #' @param comp_sim Tibble created by calling
 #' 'components' an an unfitted model.
 #'
 #' @returns A tibble
 #'
 #' @noRd
-make_report_comp <- function(perform_comp, comp_sim) {
-  byvar_comp <- comp_sim[c("term", "component", "level")]
+make_report_comp <- function(perform_comp, comp_est, comp_sim) {
+  byvar_comp <- merge(x = comp_est[c("term", "component", "level")],
+                      y = comp_sim[c("term", "component", "level")],
+                      sort = FALSE)
   error_point_est_comp <- get_error_point_est(perform_comp)
   is_in_interval_comp <- get_is_in_interval(perform_comp)
   length_interval_comp <- get_length_interval(perform_comp)
@@ -1142,7 +1146,9 @@ report_sim <- function(mod_est,
     results <- lapply(s_sim, report_sim_inner)
   perform_comp <- lapply(results, `[[`, 1L)
   perform_aug <- lapply(results, `[[`, 2L)
+  comp_est <- components(mod_est)
   report_comp <- make_report_comp(perform_comp = perform_comp,
+                                  comp_est = comp_est,
                                   comp_sim = comp_sim)
   report_aug <- make_report_aug(perform_aug = perform_aug,
                                 aug_sim = aug_sim)

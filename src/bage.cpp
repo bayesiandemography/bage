@@ -138,10 +138,7 @@ Type logpost_compose(vector<Type> effectfree,
       }
     }
     else {
-      ans += logpost_not_uses_hyper(effectfree_comp,
-				    consts_comp,
-				    matrix_along_by,
-				    i_prior_comp);
+      error("Internal error: 'compose' prior with no hyper-parameters."); // # nocov
     }
   }
   return ans;
@@ -405,7 +402,7 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
     ans = logpost_svd(effectfree, consts, matrix_along_by);
     break;
   default:
-    error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior);
+    error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
 }
@@ -449,7 +446,7 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_erw(effectfree, hyper, consts, matrix_along_by);
     break;
   default:
-    error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior);
+    error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
 }
@@ -467,7 +464,7 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
     ans = logpost_elin(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   default:
-    error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior);
+    error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
 }
@@ -484,7 +481,7 @@ struct LIST_SM_t : vector<SparseMatrix<Type> > {
     for (int i = 0; i < LENGTH(x); i++){
       SEXP sm = VECTOR_ELT(x, i);
       if(!isValidSparseMatrix(sm))
-        error("Internal error: not a sparse matrix");
+        error("Internal error: not a sparse matrix"); // # nocov
       (*this)(i) = asSparseMatrix<Type>(sm);
     }
   }
@@ -671,7 +668,7 @@ Type objective_function<Type>::operator() ()
 	ans -= dnorm(outcome_i, linear_pred_i, sd_i, true);
       }
       else {
-	error("Internal error: invalid 'nm_distn' in logpost data");
+	error("Internal error: invalid 'nm_distn' in logpost data"); // # nocov
       }
     }
   }

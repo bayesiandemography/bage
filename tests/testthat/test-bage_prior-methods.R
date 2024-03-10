@@ -61,7 +61,8 @@ test_that("'draw_vals_effect' works with bage_prior_compose", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_ear", {
-  prior <- AR(n = 3)
+  prior <- EAR(n = 3)
+  matrix_along_by <- matrix(0:25, nr = 13)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -600,6 +601,14 @@ test_that("'is_prior_ok_for_term' works with bage_prior_compose - time", {
                                    var_age = "age",
                                    is_in_compose = FALSE,
                                    agesex = "other"))
+  expect_error(is_prior_ok_for_term(prior = prior,
+                                    nm = "bla:blu",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    is_in_compose = TRUE,
+                                    agesex = "other"),
+               "Problem with call to `bage::compose_time\\(\\)`.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_ear", {

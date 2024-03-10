@@ -456,6 +456,7 @@ fit.bage_mod <- function(object, ...) {
   ## MakeADFun
   map <- make_map(object)
   random <- make_random(object)
+  has_random_effects <- !is.null(random)
   f <- TMB::MakeADFun(data = data,
                       parameters = parameters,
                       map = map,
@@ -468,13 +469,19 @@ fit.bage_mod <- function(object, ...) {
                 gradient = f$gr,
                 silent = TRUE)
   ## extract results
-  sdreport <- TMB::sdreport(f,
-                            bias.correct = TRUE,
-                            getJointPrecision = TRUE)
+  if (has_random_effects)
+    sdreport <- TMB::sdreport(f,
+                              bias.correct = TRUE,
+                              getJointPrecision = TRUE)
+  else
+    sdreport <- TMB::sdreport(f) 
   est <- as.list(sdreport, what = "Est")
   attr(est, "what") <- NULL
   is_fixed <- make_is_fixed(est = est, map = map)
-  prec <- sdreport$jointPrecision
+  if (has_random_effects)
+    prec <- sdreport$jointPrecision
+  else
+    prec <- solve(sdreport$cov.fixed) ## should be very low dimension
   R_prec <- tryCatch(chol(prec),
                      error = function(e) e)
   if (is.matrix(R_prec))
