@@ -3,7 +3,7 @@
 #' Create object to hold data from scaled SVDs
 #'
 #' Create an object of class `bage_scaled_svd` to
-#' hold scaled SVDs (singular value decompositions.)
+#' hold scaled SVDs (singular value decompositionsk.)
 #'
 #' `data` has the following columns:
 #'

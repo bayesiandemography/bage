@@ -38,29 +38,6 @@ test_that("'mod_pois' works with valid inputs - no exposure", {
     expect_s3_class(ans_obtained, "bage_mod_pois")
 })
 
-test_that("'mod_pois' gives correct error when offset not in data", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age:sex + time
-    expect_error(mod_pois(formula = formula,
-                          data = data,
-                          exposure = wrong),
-                 "exposure variable \\[wrong\\] not found in 'data'")
-})
-
-test_that("'mod_pois' gives correct error when offset negative", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$popn[2] <- -1
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age:sex + time
-    expect_error(mod_pois(formula = formula,
-                          data = data,
-                          exposure = popn),
-                 "exposure variable \\[popn\\] has negative values")
-})    
-
 
 ## 'mod_binom' ----------------------------------------------------------------
 
@@ -121,3 +98,17 @@ test_that("'mod_norm' works with valid inputs - no weights", {
 })
 
 
+## 'mod_helper' ---------------------------------------------------------------
+
+test_that("'mod_helper' works with valid inputs", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$income <- rnorm(nrow(data))
+  formula <- income ~ age:sex + time
+  ans <- mod_helper(formula = formula,
+                    data = data,
+                    n_draw = 5L)
+  expect_identical(ans$n_draw, 5L)
+  expect_identical(length(names(ans)), length(ans))
+  expect_false(any(duplicated(names(ans))))
+})

@@ -1,3 +1,188 @@
+## 'choose_matrices_along_by' -------------------------------------------------
+
+test_that("'choose_matrices_along_by' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 2000:2005,
+                        region = 1:2,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + time * region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- choose_matrices_along_by(mod)
+    matrices <- mod$matrices_along_by
+    ans_expected <- list("(Intercept)" = matrices[[1]][[1L]],
+                         age = matrices[[2]][[1L]],
+                         sex = matrices[[3]][[1L]],
+                         time = matrices[[4]][[1L]],
+                         region = matrices[[5]][[1]],
+                         "age:sex" = matrices[[6]][[1]],
+                         "time:region" = matrices[[7]][[1]])
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'choose_matrix_along_by' ---------------------------------------------------
+
+test_that("'choose_matrix_along_by' works with main effect", {
+  prior <- N()
+  matrices <- list(reg = matrix(0:3, nr = 4))
+  var_time <- NULL
+  var_age <- NULL
+  ans_obtained <- choose_matrix_along_by(prior = prior,
+                                         matrices = matrices,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- matrices[[1L]]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'choose_matrix_along_by' works with interaction - default to time", {
+  prior <- ELin()
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- choose_matrix_along_by(prior = prior,
+                                         matrices = matrices,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- matrices[[2L]]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'choose_matrix_along_by' works with interaction - default to age", {
+  prior <- ELin()
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   income = make_matrix_along_by(i_along = 2L,
+                                                 dim = 2:4,
+                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- choose_matrix_along_by(prior = prior,
+                                         matrices = matrices,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- matrices[[1L]]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'choose_matrix_along_by' works with interaction - specify along", {
+  prior <- ELin(along = "reg")
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   income = make_matrix_along_by(i_along = 2L,
+                                                 dim = 2:4,
+                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- choose_matrix_along_by(prior = prior,
+                                         matrices = matrices,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- matrices[[3L]]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
+  prior <- ELin()
+  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- NULL
+  var_age <- "age"
+  expect_error(choose_matrix_along_by(prior = prior,
+                                      matrices = matrices,
+                                      var_time = var_time,
+                                      var_age = var_age),
+               "Prior for `bla:time:reg` does not have a value for `along`.")
+})
+
+test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
+  prior <- ELin()
+  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- NULL
+  var_age <- "age"
+  expect_error(choose_matrix_along_by(prior = prior,
+                                      matrices = matrices,
+                                      var_time = var_time,
+                                      var_age = var_age),
+               "Prior for `bla:time:reg` does not have a value for `along`.")
+})
+
+test_that("'choose_matrix_along_by' throws expected error when can't find and age not specified", {
+  prior <- ELin()
+  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- NULL
+  var_age <- NULL
+  expect_error(choose_matrix_along_by(prior = prior,
+                                      matrices = matrices,
+                                      var_time = var_time,
+                                      var_age = var_age),
+               "Prior for `bla:time:reg` does not have a value for `along`.")
+})
+
+test_that("'choose_matrix_along_by' throws expected error when along invalid", {
+  prior <- ELin(along = "wrong")
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   time = make_matrix_along_by(i_along = 2L,
+                                               dim = 2:4,
+                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- "time"
+  var_age <- "age"
+  expect_error(choose_matrix_along_by(prior = prior,
+                                      matrices = matrices,
+                                      var_time = var_time,
+                                      var_age = var_age),
+               "Prior for `age:time:reg` has invalid value for `along`.")
+})  
+
 
 ## 'default_prior' ------------------------------------------------------------
 
@@ -9,21 +194,22 @@ test_that("'default_prior' works with ordinary term", {
                      N())
 })
 
-test_that("'default_prior' works with intercept", {
-    expect_identical(default_prior(nm_term = "(Intercept)",
-                                   var_age = "age",
-                                   var_time = "time",
-                                   length_effect = 1L),
-                     NFix(sd = 10))
-})
-
 test_that("'default_prior' works with term with length 1", {
-    expect_identical(default_prior(nm_term = "region",
+    expect_identical(default_prior(nm_term = "(Intercept)",
                                    var_age = "age",
                                    var_time = "time",
                                    length_effect = 1L),
                      NFix())
 })
+
+test_that("'default_prior' works with term with length 2", {
+    expect_identical(default_prior(nm_term = "reg",
+                                   var_age = "age",
+                                   var_time = "time",
+                                   length_effect = 1L),
+                     NFix())
+})
+
 
 test_that("'default_prior' works with age term", {
     expect_identical(default_prior(nm_term = "AgeGroup",
@@ -134,6 +320,8 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
                      NULL)
     expect_identical(infer_var_time(deaths ~ age * sex + PERIODX),
                      NULL)
+    expect_identical(infer_var_time(deaths ~ 1),
+                     NULL)
 })
 
 
@@ -203,99 +391,123 @@ test_that("'make_agesex_inner' works with valid inputs", {
 })
 
 
+## 'make_compose_along' -------------------------------------------------------
+
+test_that("'make_compose_along' returns NULL with all main effects", {
+  priors <- list(Lin(), AR(), Seas(n = 4))
+  expect_identical(make_compose_along(priors), NULL)
+})
+
+test_that("'make_compose_along' returns NULL with interactions with no along", {
+  priors <- list(ELin(), EAR(), ESeas(n = 4))
+  expect_identical(make_compose_along(priors), NULL)
+})
+
+test_that("'make_compose_along' returns NULL with interactions with consistent", {
+  priors <- list(ELin(along = "tm"), EAR(), ESeas(n = 4, along = "tm"))
+  expect_identical(make_compose_along(priors), "tm")
+})
+
+test_that("'make_compose_along' throws correct error with inconsistent alongs", {
+  priors <- list(ELin(along = "tm"), EAR(), ESeas(n = 4, along = "wrong"))
+  expect_error(make_compose_along(priors),
+               '`ELin\\(along="tm"\\)` and `ESeas\\(n=4,along="wrong"\\)` have different \'along\' dimensions')
+})
+
+
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()))
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+        set_prior((Intercept) ~ Known(3))
     ans_obtained <- make_const(mod)
-    ans_expected <- c(1, 1, 0.001, 1)
+    ans_expected <- c("(Intercept)" = 0,
+                      agegp.scale = 1,
+                      SEX.sd = 1)
     expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
 })
 
 
-## 'make_const_cyclical' -------------------------------------------------------- 
+## 'make_effectfree' -------------------------------------------------------------
 
-test_that("'make_const_cyclical' works with non-NULL cyclical effect", {
-    mod <- structure(list(scale_cyclical = 1.3, n_cyclical = 3L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_cyclical(mod)
-    ans_expected <- c(2, 2, 1.3)
+test_that("'make_effectfree' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+        set_prior((Intercept) ~ Known(3))
+    ans_obtained <- make_effectfree(mod)
+    ans_expected <- c("(Intercept)" = 3,
+                      agegp = 0, agegp = 0, agegp = 0,
+                      SEX = 0, SEX = 0)
     expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-test_that("'make_const_cyclical' works with NULL cyclical effect", {
-    mod <- structure(list(scale_cyclical = NULL, n_cyclical = 0L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_cyclical(mod)
-    ans_expected <- c(2, 2)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-
-## 'make_const_season' -------------------------------------------------------- 
-
-test_that("'make_const_season' works with non-NULL seasonal effect", {
-    mod <- structure(list(scale_season = 1.3, n_season = 3L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_season(mod)
-    ans_expected <- c(1.3, 0.0001)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
-})
-
-test_that("'make_const_season' works with NULL seasonal effect", {
-    mod <- structure(list(scale_season = NULL, n_season = 0L),
-                     class = "bage_mod")
-    ans_obtained <- make_const_season(mod)
-    ans_expected <- c(0, 0.0001)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
 })
 
 
 ## 'make_hyper' ---------------------------------------------------------------
 
 test_that("'make_hyper' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()))
-    ans_obtained <- make_hyper(mod)
-    ans_expected <- rep(0, 3L)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
+  set.seed(0)
+  data <- expand.grid(agegp = 0:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_hyper(mod)
+  ans_expected <- c(agegp = 0, "agegp:SEX" = 0)
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_hyper_cyclical' ------------------------------------------------------
+## 'make_hyperrand' ---------------------------------------------------------------
 
-test_that("'make_hyper_cyclical' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:9,
-                        time = 2000:2005,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_hyper_cyclical(mod)
-    ans_expected <- c(coef1 = 0, coef2 = 0, log_sd = 0)
-    expect_identical(ans_obtained, ans_expected)
+test_that("'make_hyperrand' works with valid inputs - no hyperrand", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_hyperrand(mod)
+  ans_expected <- numeric()
+  names(ans_expected) <- character()
+  expect_identical(ans_obtained, ans_expected)
 })
 
-
-## 'make_hyper_season' --------------------------------------------------------
-
-test_that("'make_hyper_season' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()))
-    ans_obtained <- make_hyper_season(mod)
-    ans_expected <- c(log_sd = 0)
-    expect_identical(ans_obtained, ans_expected)
-    expect_true(is.double(ans_expected))
+test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:2,
+                      SEX = c("F", "M"),
+                      time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+  ans_obtained <- make_hyperrand(mod)
+  ans_expected <- rep(c(time = 0), 5)
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -309,18 +521,36 @@ test_that("'make_i_prior' works with valid inputs", {
 })
 
 
-## 'make_idx_time' ------------------------------------------------------------
+## 'make_indices_priors' ------------------------------------------------------
 
-test_that("'make_idx_time' works with var_time non-NULL", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()),
-                var_time = "b")
-    expect_identical(make_idx_time(mod), 2L)
-})
-
-test_that("'make_idx_time' returns 0 when var_time NULL", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()),
-                var_time = NULL)
-    expect_identical(make_idx_time(mod), 0L)
+test_that("'make_indices_priors' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(trend = RW(), seasonal = Seas(n = 2)))
+  ans_obtained <- make_indices_priors(mod)
+  ans_expected <- c(time.hyper_start = 0L,
+                    time.hyper_length = 1L,
+                    time.hyperrand_start = 0L,
+                    time.hyperrand_length = 6L,
+                    time.consts_start = 0L,
+                    time.consts_length = 1L,
+                    time.i_prior = 3L,
+                    time.hyper_start = 1L,
+                    time.hyper_length = 1L,
+                    time.hyperrand_start = 6L,
+                    time.hyperrand_length = 0L,
+                    time.consts_start = 1L,
+                    time.consts_length = 1L,
+                    time.i_prior = 10L)
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -378,6 +608,56 @@ test_that("'make_lengths_effectfree' works with valid inputs", {
 })
 
 
+## 'make_lengths_hyper' -------------------------------------------------------
+
+test_that("'make_lengths_hyper' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:3,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ ELin())
+  mod <- set_prior(mod, sex ~ NFix())
+  ans_obtained <- make_lengths_hyper(mod)
+  ans_expected <- c("(Intercept)" = 0L,
+                    age = 1L,
+                    sex = 0L,
+                    region = 1L,
+                    "age:sex" = 3L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_lengths_hyperrand' -------------------------------------------------------
+
+test_that("'make_lengths_hyperrand' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:2,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ ELin())
+  mod <- set_prior(mod, sex ~ NFix())
+  ans_obtained <- make_lengths_hyperrand(mod)
+  ans_expected <- c("(Intercept)" = 0L,
+                    age = 0L,
+                    sex = 0L,
+                    region = 0L,
+                    "age:sex" = 2L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_levels_effect' ----------------------------------------------------------
 
 test_that("'make_levels_effect' works with valid inputs - pois, complete levels", {
@@ -386,12 +666,8 @@ test_that("'make_levels_effect' works with valid inputs - pois, complete levels"
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age * sex + time
-    outcome <- make_outcome(formula = formula, data = data)
     matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
-    ans_obtained <- make_levels_effect(formula = formula,
-                                    matrices_effect_outcome = matrices_effect_outcome,
-                                    outcome = outcome,
-                                    data = data)
+    ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -409,12 +685,8 @@ test_that("'make_levels_effect' works with valid inputs - pois, incomplete level
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     data <- data[-3, ]
     formula <- deaths ~ age * sex + time
-    outcome <- make_outcome(formula = formula, data = data)
     matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
-    ans_obtained <- make_levels_effect(formula = formula,
-                                    matrices_effect_outcome = matrices_effect_outcome,
-                                    outcome = outcome,
-                                    data = data)
+    ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -431,12 +703,8 @@ test_that("'make_levels_effect' works with valid inputs - norm", {
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$income <- rnorm(n = nrow(data))
     formula <- income ~ age * sex + time
-    outcome <- make_outcome(formula = formula, data = data)
     matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
-    ans_obtained <- make_levels_effect(formula = formula,
-                                    matrices_effect_outcome = matrices_effect_outcome,
-                                    outcome = outcome,
-                                    data = data)
+    ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -461,8 +729,6 @@ test_that("'make_map' works with no parameters fixed", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_season(mod, n = 2, s = 0.2)
-    mod <- set_cyclical(mod)
     ans_obtained <- make_map(mod)
     ans_expected <- NULL
     expect_identical(ans_obtained, ans_expected)
@@ -479,8 +745,6 @@ test_that("'make_map' works when 'effectfree' contains known values", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
-    mod <- set_cyclical(mod)
-    mod <- set_season(mod, n = 2)
     ans_obtained <- make_map(mod)
     ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
                                             time = 2,
@@ -511,49 +775,13 @@ test_that("'make_map' works dispersion is 0", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_cyclical(mod)
-    mod <- set_season(mod, n = 2, s = 0.2)
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     ans_obtained <- make_map(mod)
     ans_expected <- list(log_disp = factor(NA))
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_map' works when there is no cyclical effect", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(effect_cyclical = factor(logical()),
-                         hyper_cyclical = factor(NA))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works when there is no season effect", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(effect_season = factor(logical()),
-                         hyper_season = factor(NA))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works when effectfree has known values and there is no season or cyclical effect", {
+test_that("'make_map' works when effectfree has known values", {
     set.seed(0)
     data <- expand.grid(time = 0:3,
                         SEX = c("F", "M"))
@@ -579,88 +807,14 @@ test_that("'make_map' works when effectfree has known values and there is no sea
                                             "time:SEX" = 10,
                                             "time:SEX" = 11,
                                             "time:SEX" = 12,
-                                            "time:SEX" = 13)),
-                         effect_cyclical = factor(logical()),
-                         hyper_cyclical = factor(NA),
-                         effect_season = factor(logical()),
-                         hyper_season = factor(NA))
+                                            "time:SEX" = 13)))
     expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_map_hyper_cyclical_fixed' --------------------------------------------
-
-test_that("'make_map_hyper_cyclical_fixed' works", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:9,
-                        time = 2000:2005,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    expect_identical(make_map_hyper_cyclical_fixed(mod), factor(NA))
-    expect_identical(length(make_map_hyper_cyclical_fixed(mod)),
-                     length(make_hyper_cyclical(mod)))
-})
-
-
-## 'make_map_hyper_season_fixed' ----------------------------------------------
-
-test_that("'make_map_hyper_season_fixed' works", {
-    mod <- list()
-    expect_identical(make_map_hyper_season_fixed(mod), factor(NA))
-    expect_identical(length(make_map_hyper_season_fixed(mod)),
-                     length(make_hyper_season(mod)))
-})
-
-
-## 'make_map_effect_cyclical_fixed' ----------------------------------------------
-
-test_that("'make_map_effect_cyclical_fixed' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(time = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_map_effect_cyclical_fixed(mod)
-    ans_expected <- factor(logical())
-    expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_effect_cyclical_fixed(mod)),
-                     length(make_effect_cyclical(mod)))
-})
-
-
-## 'make_map_effect_season_fixed' ------------------------------------------------
-
-test_that("'make_map_effect_season_fixed' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(time = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_map_effect_season_fixed(mod)
-    ans_expected <- factor(logical())
-    expect_identical(ans_obtained, ans_expected)
-    expect_identical(length(make_map_effect_season_fixed(mod)),
-                     length(make_effect_season(mod)))
 })
 
 
 ## 'make_map_effectfree_fixed' ---------------------------------------------------
 
-test_that("'make_map_effect_season_fixed' works with valid inputs", {
+test_that("'make_map_effectfree_fixed' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(time = 0:2,
                         SEX = c("F", "M"))
@@ -683,6 +837,44 @@ test_that("'make_map_effect_season_fixed' works with valid inputs", {
                      length(make_effectfree(mod)))
 })
 
+
+## 'make_matrices_along_by' ---------------------------------------------------
+
+test_that("'make_matrices_along_by' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 1:2,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex  + age * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_matrices_along_by(formula = formula, data = data)
+    age <- matrix(0:9, nr = 10)
+    rownames(age) <- 0:9
+    names(dimnames(age)) <- "age"
+    sex <- matrix(0:1, nr = 2)
+    rownames(sex) <- c("F", "M")
+    names(dimnames(sex)) <- "sex"
+    time <- matrix(0:1, nr = 2)
+    rownames(time) <- 1:2
+    names(dimnames(time)) <- "time"
+    agesex <- matrix(0:19, nr = 10)
+    dimnames(agesex) <- list(age = 0:9, sex = c("F", "M"))
+    agetime <- matrix(0:19, nr = 10)
+    dimnames(agetime) <- list(age = 0:9, time = 1:2)
+    ans_expected <- list("(Intercept)" = list("(Intercept)" = matrix(0L, nr = 1L)),
+                         age = list(age = age),
+                         sex = list(sex = sex),
+                         time = list(time = time),
+                         "age:sex" = list(age = agesex,
+                                          sex = t(agesex)),
+                         "age:time" = list(age = agetime,
+                                           time = t(agetime)))
+    expect_identical(ans_obtained, ans_expected)
+})
 
 ## 'make_matrices_effect_outcome' --------------------------------------------
 
@@ -730,117 +922,86 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 })
 
 
-## 'make_matrix_cyclical_outcome' ---------------------------------------------
+## 'make_matrix_along_by' -----------------------------------------------------
 
-test_that("'make_matrix_cyclical_outcome' works with bage_mod_pois", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_cyclical_outcome(mod)
-    ans_expected <- mod$matrices_effect_outcome[["time"]]
-    expect_identical(ans_obtained, ans_expected)
+test_that("'make_matrix_along_by' works when 'i_along' is 1", {
+  i_along <- 1L
+  dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(0:23,
+                         nr = 2,
+                         dimnames = list(a = 1:2,
+                                         b.c = paste(1:3, rep(1:4, each = 3), sep = ".")))
+  expect_identical(ans_obtained, ans_expected)
 })
 
-
-## 'make_matrix_season_outcome' ------------------------------------------------------------
-
-test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is NULL", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_season_outcome(mod, by = NULL)
-    ans_expected <- mod$matrices_effect_outcome[["time"]]
-    expect_identical(ans_obtained, ans_expected)
+test_that("'make_matrix_along_by' works when 'i_along' is 2", {
+  i_along <- 2L
+  dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(c(0L, 2L, 4L,
+                           1L, 3L, 5L,
+                           6L, 8L, 10L,
+                           7L, 9L, 11L,
+                           12L, 14L, 16L,
+                           13L, 15L, 17L,
+                           18L, 20L, 22L,
+                           19L, 21L, 23L),
+                         nr = 3,
+                         dimnames = list(b = 1:3,
+                                         a.c = paste(1:2, rep(1:4, each = 2), sep = ".")))
+  expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is 1-dimensional", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + age:time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_season_outcome(mod, by = "age")
-    ans_expected <- mod$matrices_effect_outcome[["age:time"]]
-    expect_identical(ans_obtained, ans_expected)
+test_that("'make_matrix_along_by' works when 'i_along' is 3", {
+  i_along <- 3L
+  dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(c(0L, 6L, 12L, 18L,
+                           1L, 7L, 13L, 19L,
+                           2L, 8L, 14L, 20L,
+                           3L, 9L, 15L, 21L,
+                           4L, 10L, 16L, 22L,
+                           5L, 11L, 17L, 23L),
+                         nrow = 4,
+                         dimnames = list(c = 1:4,
+                                         a.b = paste(1:2, rep(1:3, each = 2), sep = ".")))
+  expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_season_outcome' works with bage_mod_pois - by is 2-dimensional", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age:sex + age:sex:time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrix_season_outcome(mod, by = c("age", "sex"))
-    ans_expected <- mod$matrices_effect_outcome[["age:sex:time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-    
-test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is NULL", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-2,]
-    data$income <- rnorm(n = nrow(data), mean = 10)
-    formula <- income ~ age:sex + time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    ans_obtained <- make_matrix_season_outcome(mod, by = NULL)
-    ans_expected <- mod$matrices_effect_outcome[["time"]]
-    expect_identical(ans_obtained, ans_expected)
+test_that("'make_matrix_along_by' works when only one dimension", {
+  i_along <- 1L
+  dim <- 3L
+  dimnames <- list(a = 1:3)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(0:2, nr = 3)
+  rownames(ans_expected) <- 1:3
+  names(dimnames(ans_expected))[1] <- "a"
+  expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is 1-dim", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-2,]
-    data$income <- rnorm(n = nrow(data), mean = 10)
-    formula <- income ~ age:sex + sex:time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    ans_obtained <- make_matrix_season_outcome(mod, by = "sex")
-    ans_expected <- mod$matrices_effect_outcome[["sex:time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_season_outcome' works with bage_mod_norm - by is 1-dim", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data <- data[-2,]
-    data$income <- rnorm(n = nrow(data), mean = 10)
-    formula <- income ~ age:sex + age:sex:time
-    mod <- mod_norm(formula = formula,
-                    data = data,
-                    weights = 1)
-    ans_obtained <- make_matrix_season_outcome(mod, by = c("age", "sex"))
-    ans_expected <- mod$matrices_effect_outcome[["age:sex:time"]]
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrix_sparse_empty' ------------------------------------------------------------
-
-test_that("'make_matrix_sparse_empty' works", {
-    ans <- make_matrix_sparse_empty()
-    expect_identical(nrow(ans), 0L)
-    expect_identical(ncol(ans), 0L)
-    expect_true(is(ans, "sparseMatrix"))
+test_that("'make_matrix_along_by' works when only one element", {
+  i_along <- 1L
+  dim <- 1L
+  dimnames <- list(a = 1)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(0L, nr = 1)
+  rownames(ans_expected) <- 1
+  names(dimnames(ans_expected))[1] <- "a"
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -898,7 +1059,6 @@ test_that("'make_offsets_effectfree_effect' works with valid inputs", {
                          SEX = rep(0, 2),
                          region = rep(0, 2),
                          "agegp:SEX" = rep(0, 20))
-    ans_expected <- unlist(ans_expected)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -917,99 +1077,6 @@ test_that("'make_outcome' works with valid inputs", {
 })
 
 
-## 'make_effect_cyclical' -----------------------------------------------------
-
-test_that("'make_effect_cyclical' works when has cyclical effect", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_cyclical(mod)
-    ans_obtained <- make_effect_cyclical(mod)
-    ans_expected <- c(0.0, 0.0, 0.0, 0.0)
-    names(ans_expected) <- 0:3
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_effect_season' ----------------------------------------------------------
-
-test_that("'make_effect_season' works when has season effect, by is NULL", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2)
-    ans_obtained <- make_effect_season(mod)
-    ans_expected <- c(0.0, 0.0, 0.0, 0.0)
-    names(ans_expected) <- 0:3
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_effect_season' works when has season effect, by has dim 1", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_season(mod, n = 2, by = "SEX")
-    ans_obtained <- make_effect_season(mod)
-    ans_expected <- rep(0.0, 8)
-    names(ans_expected) <- paste(c("F", "M"), rep(0:3, each = 2), sep = ".")
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_effect_season' works when no season", {
-    set.seed(0)
-    data <- expand.grid(age = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_effect_season(mod)
-    ans_expected <- double()
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_effectfree' -------------------------------------------------------------
-
-test_that("'make_effectfree' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp + SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn) %>%
-        set_prior((Intercept) ~ Known(3))
-    ans_obtained <- make_effectfree(mod)
-    ans_expected <- c("(Intercept)" = 3,
-                      agegp = 0, agegp = 0, agegp = 0,
-                      SEX = 0, SEX = 0)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_priors' --------------------------------------------------------------
 
 test_that("'make_priors' works with valid inputs - has intercept", {
@@ -1018,19 +1085,8 @@ test_that("'make_priors' works with valid inputs - has intercept", {
                                 var_age = "age",
                                 var_time = "time",
                                 lengths_effect = c(1L, 10L, 12L))
-    ans_expected <- list("(Intercept)" = NFix(sd = 10),
+    ans_expected <- list("(Intercept)" = NFix(),
                          time = RW(),
-                         "age:sex" = N())
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_priors' works with valid inputs - no intercept", {
-    formula <- deaths ~ age:sex + time - 1
-    ans_obtained <- make_priors(formula,
-                                var_age = "age",
-                                var_time = "time",
-                                lengths_effect = c(10L, 12L))
-    ans_expected <- list(time = RW(),
                          "age:sex" = N())
     expect_identical(ans_obtained, ans_expected)
 })
@@ -1038,24 +1094,20 @@ test_that("'make_priors' works with valid inputs - no intercept", {
 
 ## 'make_random' --------------------------------------------------------------
 
-test_that("'make_random' works when no cyclical, season effect", {
-    mod <- structure(list(n_cyclical = 0L, n_season = 0L),
-                     class = "bage_mod")
+test_that("'make_random' works when no hyper, no hyperrand", {
+    mod <- structure(.Data = list(priors = list(NFix(), Known(c(2, 3)))))
+    expect_identical(make_random(mod), NULL)
+})
+
+test_that("'make_random' works when hyper, no hyperrand", {
+    mod <- structure(.Data = list(priors = list(N(), RW2())))
     expect_identical(make_random(mod), "effectfree")
 })
 
-test_that("'make_random' works when has cyclical, no seasonal effect", {
-    mod <- structure(list(n_cyclical = 2L, n_season = 0L),
-                     class = "bage_mod")
-    expect_identical(make_random(mod), c("effectfree", "effect_cyclical"))
+test_that("'make_random' works when hyper, hyperrand", {
+    mod <- structure(.Data = list(priors = list(N(), RW2(), ELin())))
+    expect_identical(make_random(mod), c("effectfree", "hyperrand"))
 })
-
-test_that("'make_random' works when has season, no cyclical effect", {
-    mod <- structure(list(n_cyclical = 0L, n_season = 2L),
-                     class = "bage_mod")
-    expect_identical(make_random(mod), c("effectfree", "effect_season"))
-})
-
 
 
 ## 'make_seed' --------------------------------------------------------------
@@ -1077,42 +1129,26 @@ test_that("'make_spline_matrix' works", {
     m <- make_spline_matrix(length_effect = 10, n_spline = 5)
     expect_equal(dim(m), c(10L, 5L))
     expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
-})
-
-
-## 'make_submatrix' -----------------------------------------------------------
-
-test_that("'make_submatrix' works - dimension in term", {
-    ans_obtained <- make_submatrix(d = 4L, is_in = TRUE)
-    ans_expected <- diag(4L)
-    expect_identical(as.matrix(ans_obtained), ans_expected)
-    expect_s4_class(ans_obtained, "sparseMatrix")
-})
-
-test_that("'make_submatrix' works - dimension not in term", {
-    ans_obtained <- make_submatrix(d = 4L, is_in = FALSE)
-    ans_expected <- matrix(1, nrow = 4, ncol = 1)
-    expect_identical(as.matrix(ans_obtained), ans_expected)
-    expect_s4_class(ans_obtained, "sparseMatrix")
-})    
+})        
 
 
 ## 'make_terms_const' ---------------------------------------------------------
 
 test_that("'make_terms_const' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = Known(1:3), d = N()))
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, agegp ~ AR1())
     ans_obtained <- make_terms_const(mod)
-    ans_expected <- factor(c("a", "b", "b", "c", "d"), levels = c("a", "b", "c", "d"))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_terms_hyper' ---------------------------------------------------------
-
-test_that("'make_terms_hyper' works with valid inputs", {
-    mod <- list(priors = list(a = N(), b = RW(), c = N()))
-    ans_obtained <- make_terms_hyper(mod)
-    ans_expected <- factor(c("a", "b", "c"))
+    ans_expected <- factor(c("(Intercept)", rep("agegp", 5), "SEX", "region", "agegp:SEX"),
+                           levels = c("(Intercept)", "agegp", "SEX", "region", "agegp:SEX"))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1158,12 +1194,77 @@ test_that("'make_terms_effectfree' works with valid inputs", {
 })
 
 
+## 'make_terms_indices_priors' ------------------------------------------------------
+
+test_that("'make_indices_priors' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, time ~ compose_time(trend = RW(), seasonal = Seas(n = 2)))
+  ans_obtained <- make_terms_indices_priors(mod)
+  ans_expected <- factor(rep("time", times = 14L),
+                         levels = c("(Intercept)", "age", "sex", "time", "age:sex"))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_terms_hyper' ---------------------------------------------------------
+
+test_that("'make_terms_hyper' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:3,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_terms_hyper(mod)
+    ans_expected <- factor(c("agegp", "region", "agegp:SEX"),
+                           levels = c("(Intercept)", "agegp", "SEX", "region", "agegp:SEX"))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_terms_hyperrand' ---------------------------------------------------------
+
+test_that("'make_terms_hyperrand' works - compose_time has two components", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex*time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+    ans_obtained <- make_terms_hyperrand(mod)
+    ans_expected <- factor(c(rep("time", 6), rep("sex:time", 2)),
+                           levels = c("(Intercept)",
+                                      "age",
+                                      "sex",
+                                      "time",
+                                      "sex:time"))
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+
 ## 'make_uses_hyper' ----------------------------------------------------------
 
 test_that("'make_uses_hyper' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(agegp = 0:9,
-                        region = 1:2,
+                        region = 1:3,
                         SEX = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -1175,14 +1276,61 @@ test_that("'make_uses_hyper' works with valid inputs", {
     ans_obtained <- make_uses_hyper(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 0L,
-                      SEX = 1L,
+                      SEX = 0L,
                       region = 1L,
                       "agegp:SEX" = 1L)
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_uses_matrix_effectfree_effect' ---------------------------------------------
+## 'make_uses_hyperrand' ------------------------------------------------------
+
+test_that("'make_uses_hyperrand' works - compose_time has two components", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex*time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+    ans_obtained <- make_uses_hyperrand(mod)
+    ans_expected <- c("(Intercept)" = 0L,
+                      age = 0L,
+                      sex = 0L,
+                      time = 1L,
+                      "sex:time" = 1L)
+    expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_uses_indices_priors' -------------------------------------------------
+
+test_that("'make_uses_indices_priors' works - compose_time has two components", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ ELin())
+  mod <- set_prior(mod, time ~ compose_time(trend = RW2(), error = N()))
+  ans_obtained <- make_uses_indices_priors(mod)
+  ans_expected <- c("(Intercept)" = 0L,
+                    age = 0L,
+                    sex = 0L,
+                    time = 1L,
+                    "sex:time" = 0L)
+  expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+
+## 'make_uses_matrix_effectfree_effect' ---------------------------------------
 
 test_that("'make_uses_matrix_effectfree_effect' works with valid inputs", {
     set.seed(0)
@@ -1195,7 +1343,7 @@ test_that("'make_uses_matrix_effectfree_effect' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) %>%
-        set_prior(agegp ~ Spline())
+        set_prior(agegp ~ Sp())
     ans_obtained <- make_uses_matrix_effectfree_effect(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 1L,
@@ -1219,7 +1367,7 @@ test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) %>%
-        set_prior(agegp ~ Spline())
+        set_prior(agegp ~ Sp())
     ans_obtained <- make_uses_offset_effectfree_effect(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       agegp = 0L,
@@ -1228,3 +1376,24 @@ test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
                       "agegp:SEX" = 0L)
     expect_identical(ans_obtained, ans_expected)
 })
+
+
+## 'to_factor' ----------------------------------------------------------------
+
+test_that("'to_factor' leaves existing factor unchanged", {
+  x <- factor(letters)
+  expect_identical(to_factor(x), x)
+})
+
+test_that("'to_factor' orders numeric x by values", {
+  x <- c(3, 1, 0.2, 1)
+  expect_identical(to_factor(x), factor(x, levels = c(0.2, 1, 3)))
+})
+
+
+test_that("'to_factor' orders non-numeric non-factor by order of appearance", {
+  x <- c("b", "a", 1, "a")
+  expect_identical(to_factor(x), factor(x, levels = c("b", "a", 1)))
+})
+
+

@@ -2,31 +2,35 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_disp}
 \alias{set_disp}
-\title{Set scale parameter for dispersion}
+\title{Set Mean Parameter for Dispersion}
 \usage{
-set_disp(mod, s)
+set_disp(mod, mean)
 }
 \arguments{
 \item{mod}{A \code{bage_mod} object, typically
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
-\item{s}{Scale term. In Poisson and
-binomial models, \code{s} must be non-negative.
-In normal models, \code{s} must be positive.}
+\item{mean}{Mean value for the expoential prior.
+In Poisson and binomial models, can be set to 0.}
 }
 \value{
 A \code{bage_mod} object
 }
 \description{
-Specify the scale parameter \code{s} in the prior
+Specify the mean parameter \code{mean} in the prior
 for dispersion.
 }
 \details{
+The dispersion parameter has an exponential
+distribution with mean \eqn{\mu}.
+
+\deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
+
 In Poisson and binomial models,
-\code{s} can be set to \code{0}, implying
+\code{mean} can be set to \code{0}, implying
 that the dispersion term is also \code{0}.
-In normal models, \code{s} must be non-negative.
+In normal models, \code{mean} must be non-negative.
 
 If the \code{mod} argument to \code{set_disp} is
 a fitted model, then \code{set_disp} 'unfits'
@@ -37,8 +41,8 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = injuries,
                 exposure = popn)
 mod
-mod |> set_disp(s = 0.1)
-mod |> set_disp(s = 0)
+mod |> set_disp(mean = 0.1)
+mod |> set_disp(mean = 0)
 }
 \seealso{
 \itemize{

@@ -4,14 +4,12 @@
 \alias{RW2}
 \title{Random walk with drift prior}
 \usage{
-RW2(s = 1, flat = FALSE)
+RW2(s = 1, sd = 1)
 }
 \arguments{
 \item{s}{A positive, finite number. Default is 1.}
 
-\item{flat}{Whether the overall slope of the
-terms is constrained to be zero. Default
-is \code{FALSE}.}
+\item{sd}{A positive, finite number. Default is 1.}
 }
 \value{
 An object of class \code{bage_prior_rw}
@@ -22,17 +20,10 @@ Prior in which units follow a random walk with drift.
 Second-order differences are normally distributed,
 }
 \details{
+\deqn{x_1 \sim \text{N}(0, 1)}
+\deqn{x_2 \sim \text{N}(x_1, sd^2)}
 \deqn{(x_i - x_{i-1}) - (x_{i-1} - x_{i-2}) \sim \text{N}(0, \sigma^2),
       i = 3, \cdots, n}
-
-For identifiability,
-the mean value for the $x_i$ is assumed to be
-(almost) exactly equal to zero.
-
-When \code{flat} is \code{FALSE} (the default),
-no constraint is placed on the overall slope of the $x_i$.
-When \code{flat} is \code{TRUE}, a line through the middle of the
-$x_i$ must be be horizontal.
 
 Standard deviation \eqn{\sigma} is drawn from a
 half-normal distribution,
@@ -47,10 +38,14 @@ The scale for the half-normal distribution, \code{s}, defaults
 to 1, but can be set to other values. Lower values
 for \code{scale} lead to smoother series of \code{x}s, and
 higher values lead to rougher series.
+
+Parameter \code{sd} governs the expected size of
+increments between neighbouring units.
+It defaults to 1, but can be set to other values.
 }
 \examples{
 RW2()
-RW2(flat = TRUE)
+RW2(s = 0.2)
 }
 \seealso{
 \itemize{

@@ -40,8 +40,8 @@ get_matrix_or_offset_svd <- function(scaled_svd,
     else if ((agesex %in% c("age:sex", "sex:age")) && indep)
         type_req <- "indep"
     else
-        cli::cli_abort(paste("Internal error: unexpected combination of",
-                             "{.var agesex} and {.var indep}."))
+        cli::cli_abort(paste("Internal error: unexpected combination of",  ## nocov
+                             "{.var agesex} and {.var indep}."))           ## nocov
     ## get labels that are in same format as 'levels_effect'
     is_type_req <- type == type_req
     if (identical(type_req, "total"))

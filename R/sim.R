@@ -1,155 +1,71 @@
 
 ## HAS_TESTS
-#' Calculate errors and coverage for a single
-#' set of simulated values
+#' Aggregate Simulation Report for 'augment'
 #'
-#' @param vals_sim List with simulated values
-#' @param mod_est Model being tested. Object
-#' of class 'bage_mod'.
-#' @param point_est_fun Mean or median. Function used
-#' to calculate point estimates
-#' @param include_upper Logical. Whether levels
-#' of model above 'meanpar' and 'disp' are included:
-#' effect, hyper, cyclical, season
-#' @param widths Widths of credible intervals.
+#' @param report_aug A tibble
 #'
-#' @returns Named list
+#' @returns A tibble
 #'
 #' @noRd
-assess_performance <- function(vals_sim,
-                               mod_est,
-                               point_est_fun,
-                               include_upper,
-                               widths) {
-    nms_upper <- c("hyper", "effect", "cyclical", "season")
-    mod_est[["outcome"]] <- vals_sim[["outcome"]]
-    vals_sim$outcome <- NULL
-    mod_est <- fit(mod_est)
-    vals_est <- get_vals_est(mod_est)
-    if (!include_upper) {
-        is_upper_est <- names(vals_est) %in% nms_upper
-        is_upper_sim <- names(vals_sim) %in% nms_upper
-        vals_est <- vals_est[!is_upper_est]
-        vals_sim <- vals_sim[!is_upper_sim]
-    }
-    error_point_est <- calc_error_point_est(estimate = vals_est,
-                                            truth = vals_sim,
-                                            point_est_fun = point_est_fun)
-    is_in_interval <- calc_is_in_interval(estimate = vals_est,
-                                          truth = vals_sim,
-                                          widths = widths)
-    is_null <- vapply(vals_sim, is.null, FALSE)
-    vals_sim <- vals_sim[!is_null]
-    list(vals_sim = vals_sim,
-         error_point_est = error_point_est,
-         is_in_interval = is_in_interval)
+aggregate_report_aug <- function(report_aug) {
+  nms_x <- grep("^\\.observed|^\\.error|^\\.cover|^\\.length",
+                names(report_aug),
+                value = TRUE)
+  ans <- stats::aggregate(report_aug[nms_x], report_aug[".var"], mean)
+  ans <- tibble::tibble(ans)
+  ord <- order(match(ans$.var, report_aug$.var))
+  ans <- ans[ord, , drop = FALSE]
+  ans
+}
+
+
+## NO_TESTS
+#' Aggregate Simulation Report for 'components'
+#'
+#' @param report_comp A tibble
+#'
+#' @returns A tibble
+#'
+#' @noRd
+aggregate_report_comp <- function(report_comp) {
+  nms_x <- grep("^\\.error|^\\.cover|^\\.length",
+                names(report_comp),
+                value = TRUE)
+  nms_by <- c("term", "component")
+  ans <- stats::aggregate(report_comp[nms_x], report_comp[nms_by], mean)
+  ans <- tibble::tibble(ans)
+  ord <- order(match(ans$term, report_comp$term),
+               match(ans$component, report_comp$component))
+  ans <- ans[ord, , drop = FALSE]
+  ans
 }
 
 
 ## HAS_TESTS
-#' Calculate point estimates from rvecs, and then calculate
-#' differences from truth
+#' Generate Values for Multiple AR-k Series of Length 'n'
 #'
-#' @param estimate A list of rvecs holding the estimates
-#' @param truth A list of numeric vectors holding the true values
-#' @param point_est_fun Name of function to use to calculate point
-#' estimates from rvec
+#' @param n Length of series (not order of series)
+#' @param coef Matrix, each column of which is a vector
+#' of autocorellation coefficients
+#' @param sd Vector, each element of which is a
+#' marginal standard deviation
 #'
-#' @returns A vector of doubles
+#' @returns A matrix with 'n' rows and 'length(sd)' columns
 #'
 #' @noRd
-calc_error_point_est <- function(estimate, truth, point_est_fun) {
-    if (point_est_fun == "mean")
-        rvec_fun <- rvec::draws_mean
-    else if (point_est_fun == "median")
-        rvec_fun <- rvec::draws_median
-    else
-        cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")
-    is_null <- vapply(estimate, is.null, FALSE)
-    estimate <- estimate[!is_null]
-    truth <- truth[!is_null]
-    ans <- .mapply(calc_error_point_est_one,
-                   dots = list(estimate = estimate,
-                               truth = truth),
-                   MoreArgs = list(rvec_fun = rvec_fun))
-    names(ans) <- names(estimate)
-    ans
+draw_vals_ar <- function(n, coef, sd) {
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n, ncol = n_sim)
+  for (i_sim in seq_len(n_sim))
+    ans[, i_sim] <- draw_vals_ar_one(n = n,
+                                     coef = coef[, i_sim],
+                                     sd = sd[i_sim])
+  ans
 }
 
 
 ## HAS_TESTS
-#' Calculate point estimates from an rvec, and then calculate
-#' difference from truth
-#'
-#' @param estimate An rvec with the estimates
-#' @param truth A numeric vector with the true values
-#' @param rvec_fun Function to use to calculate point
-#' estimates from rvec
-#'
-#' @returns A vector of doubles
-#'
-#' @noRd
-calc_error_point_est_one <- function(estimate, truth, rvec_fun) {
-    point_est <- rvec_fun(estimate)
-    as.double(point_est - truth)
-}
-
-
-## HAS_TESTS
-#' Given a sets estimates and true values,
-#' for each set, see how many true values
-#' lie within intervals implied by estimates
-#'
-#' @param estimate A list of rvecs holding the estimates
-#' @param truth A list of numeric vectors holding the true values
-#' @param widths Widths of intervals (between 0 and 1)
-#'
-#' @returns A list of logical vectors
-#'
-#' @noRd
-calc_is_in_interval <- function(estimate, truth, widths) {
-    is_null <- vapply(estimate, is.null, FALSE)
-    estimate <- estimate[!is_null]
-    truth <- truth[!is_null]
-    ans <- .mapply(calc_is_in_interval_one,
-                   dots = list(estimate = estimate,
-                               truth = truth),
-                   MoreArgs = list(widths = widths))
-    names(ans) <- names(estimate)
-    ans
-}
-
-
-## HAS_TESTS
-#' See which elements of 'truth' lie within intervals
-#' formed from 'estimate'
-#'
-#' @param estimate An rvec holding estimates
-#' @param truth A numeric vector holding the true values
-#' @param widths Widths of intervals (between 0 and 1)
-#'
-#' @returns A logical vector
-#'
-#' @noRd
-calc_is_in_interval_one <- function(estimate, truth, widths) {
-    n_widths <- length(widths)
-    ans <- vector(mode = "list", length = n_widths)
-    names(ans) <- widths
-    for (i in seq_len(n_widths)) {
-        width <- widths[[i]]
-        probs <- c(0.5 - width / 2, 0.5 + width / 2)
-        ci <- rvec::draws_quantile(x = estimate, probs = probs)
-        lower <- ci[[1L]]
-        upper <- ci[[2L]]
-        is_in_interval <- (lower <= truth) & (truth <= upper)
-        ans[[i]] <- is_in_interval
-    }
-    ans
-}
-
-
-## HAS_TESTS
-#' Generate values from an AR-k series
+#' Generate Values for a Single AR-k Series of Length 'n'
 #'
 #' Note that 'sd' is the marginal
 #' variance of the k'th term, not the
@@ -160,7 +76,7 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
 #' the initial values, using brute force,
 #' rather than direct calculation.
 #' 
-#' @param n Number of values to generate
+#' @param n Length of series (not order of series)
 #' @param coef Numeric vector with autocorrelation
 #' coefficients
 #' @param sd Marginal standard deviation
@@ -168,20 +84,20 @@ calc_is_in_interval_one <- function(estimate, truth, widths) {
 #' @returns A numeric vector
 #'
 #' @noRd
-draw_vals_ar <- function(n, coef, sd) {
-    n_unnorm <- 1000L
-    model <- list(ar = coef)
-    val_unnorm <- stats::arima.sim(model = model,
-                                   n = n_unnorm)
-    sd_unnorm <- sd(val_unnorm)
-    sd_innov <- sd / sd_unnorm
-    rand.gen <- function(n) stats::rnorm(n = n, sd = sd_innov)
-    ans <- stats::arima.sim(model = model,
-                            n = n,
-                            rand.gen = rand.gen)
-    as.numeric(ans)
+draw_vals_ar_one <- function(n, coef, sd) {
+  n_unnorm <- 1000L
+  model <- list(ar = coef)
+  val_unnorm <- stats::arima.sim(model = model,
+                                 n = n_unnorm)
+  sd_unnorm <- sd(val_unnorm)
+  sd_innov <- sd / sd_unnorm
+  rand.gen <- function(n) stats::rnorm(n = n, sd = sd_innov)
+  ans <- stats::arima.sim(model = model,
+                          n = n,
+                          rand.gen = rand.gen)
+  as.numeric(ans)
 }
-    
+
 
 ## HAS_TESTS
 #' Draw values for AR coefficients
@@ -190,84 +106,246 @@ draw_vals_ar <- function(n, coef, sd) {
 #' that can be used as coefficients for AR-k model.
 #' Rejected if lead to non-stationary series.
 #'
-#' @param p Number of terms
+#' @param n Number of terms
 #' @param shape1,shape2 Parameters for beta distribution
+#' @param min,max Limits on parameter values
 #'
-#' @returns A vector of length 'p'
+#' @returns A vector of length 'n'
 #'
 #' @noRd
-draw_vals_ar_coef <- function(p, shape1, shape2) {
-    max_attempt <- 1000L
-    found_ans <- FALSE
+draw_vals_coef <- function(prior, n_sim) {
+  max_attempt <- 1000L
+  specific <- prior$specific
+  n <- specific$n
+  shape1 <- specific$shape1
+  shape2 <- specific$shape2
+  min <- specific$min
+  max <- specific$max
+  ans <- matrix(nrow = n, ncol = n_sim)
+  for (i_sim in seq_len(n_sim)) {
+    found_val <- FALSE
     for (i_attempt in seq_len(max_attempt)) {
-        ans <- stats::rbeta(n = p,
-                            shape1 = shape1,
-                            shape2 = shape2)
-        ans <- 2 * ans - 1
-        min_root <- min(Mod(polyroot(c(1, -ans)))) ## taken from stats::arima.sim()
-        found_ans <- min_root > 1
-        if (found_ans)
-            break
+      val_raw <- stats::rbeta(n = n,
+                              shape1 = shape1,
+                              shape2 = shape2)
+      val <- min + (max - min) * val_raw
+      min_root <- min(Mod(polyroot(c(1, -val)))) ## taken from stats::arima.sim()
+      found_val <- min_root > 1
+      if (found_val)
+        break
     }
-    if (!found_ans)
-        cli::cli_abort("Internal error: coud not generate stationary distribution.")
+    if (!found_val)
+      cli::cli_abort("Internal error: coud not generate stationary distribution.")  ## nocov
+    ans[, i_sim] <- val
+  }
+  rownames(ans) <- paste0("coef", seq_len(n))
+  ans
+}
+
+
+## HAS_TESTS
+#' Draw Values that Would be Produced by a Call to 'components'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param n_sim Number of draws
+#'
+#' @returns Named list
+#'
+#' @noRd
+draw_vals_components <- function(mod, n_sim) {
+  priors <- mod$priors
+  nms_priors <- names(priors)
+  has_disp <- has_disp(mod)
+  vals_hyper <- draw_vals_hyper_mod(mod = mod,
+                                    n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,
+                                            vals_hyper = vals_hyper,
+                                            n_sim = n_sim)
+  vals_effect <- draw_vals_effect_mod(mod = mod,
+                                      vals_hyper = vals_hyper,
+                                      vals_hyperrand = vals_hyperrand,
+                                      n_sim = n_sim)
+  vals_effect <- standardize_vals_effect(mod = mod,
+                                         vals_effect = vals_effect)
+  vals_hyper <- .mapply(vals_hyper_to_dataframe,
+                        dots = list(prior = priors,
+                                    nm_prior = nms_priors,
+                                    vals_hyper = vals_hyper),
+                        MoreArgs = list(n_sim = n_sim))
+  vals_hyper <- vctrs::vec_rbind(!!!vals_hyper)
+  vals_hyperrand <- .mapply(vals_hyperrand_to_dataframe,
+                            dots = list(prior = priors,
+                                        nm_prior = nms_priors,
+                                        vals_hyperrand = vals_hyperrand),
+                            MoreArgs = list(n_sim = n_sim))
+  vals_hyperrand <- vctrs::vec_rbind(!!!vals_hyperrand)
+  vals_effect <- vals_effect_to_dataframe(vals_effect)
+  ans <- vctrs::vec_rbind(vals_hyper, vals_hyperrand, vals_effect)
+  if (has_disp) {
+    vals_disp <- draw_vals_disp(mod = mod,
+                                n_sim = n_sim)
+    vals_disp <- vals_disp_to_dataframe(vals_disp)
+    ans <- vctrs::vec_rbind(ans, vals_disp)
+  }
+  ans    
+}
+
+
+## HAS_TESTS
+#' Draw Values for 'disp' from Prior
+#'
+#' @param mod Obejct of class 'bage_mod'
+#' @param n_sim Number of draws
+#'
+#' @returns An rvec
+#'
+#' @noRd
+draw_vals_disp <- function(mod, n_sim) {
+  mean <- mod$mean_disp
+  rate <- 1 / mean
+  ans <- stats::rexp(n = n_sim, rate = rate)
+  ans <- matrix(ans, nrow = 1L)
+  ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Draw Values for all Effects
+#'
+#' Draw values for intercept, main effects, interactions.
+#'
+#' @param mod Object of class "bage_mod"
+#' @param vals_hyper List of lists.
+#' @param vals_hyperrand List of lists.
+#' @param n_sim Number of draws
+#'
+#' @returns A named list of matrices.
+#'
+#' @noRd
+draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
+    priors <- mod$priors
+    levels_effect <- mod$levels_effect
+    terms_effect <- mod$terms_effect
+    levels_effect <- split(levels_effect, terms_effect)
+    agesex <- make_agesex(mod)
+    matrices_along_by <- choose_matrices_along_by(mod)
+    ans <- .mapply(draw_vals_effect,
+                   dots = list(prior = priors,
+                               vals_hyper = vals_hyper,
+                               vals_hyperrand = vals_hyperrand,
+                               levels_effect = levels_effect,
+                               agesex = agesex,
+                               matrix_along_by = matrices_along_by),
+                   MoreArgs = list(n_sim = n_sim))
+    names(ans) <- names(priors)
     ans
 }
 
 
 ## HAS_TESTS
-#' Generate an AR1 vector
+#' Generate Draws from ELin
 #'
 #' Each column is one draw.
 #'
-#' @param coef Vector of values
+#' @param mslope Matrix of values
 #' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
 #' @param labels Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_ar1 <- function(coef, sd, labels) {
-    n_sim <- length(coef)
-    n_effect <- length(labels)
-    sd_scaled <- sqrt(1 - coef^2) * sd
-    ans <- matrix(nrow = n_effect,
-                  ncol = n_sim,
-                  dimnames = list(labels, seq_len(n_sim)))
-    ans[1L, ] <- stats::rnorm(n = n_sim, sd = sd)
-    for (i in seq_len(n_effect - 1L))
-        ans[i + 1L, ] <- stats::rnorm(n = n_sim,
-                                      mean = coef * ans[i, ],
-                                      sd =  sd_scaled)
-    ans
+draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
+  n_sim <- ncol(mslope)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  q <- seq(from = -1, to = 1, length.out = n_along)
+  q <- rep(q, times = n_by * n_sim)
+  mslope <- rep(mslope, each = n_along)
+  sd <- rep(sd, each = n_along * n_by)
+  ans <- stats::rnorm(n = n_along * n_by * n_sim,
+                      mean = q * mslope,
+                      sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
 }
 
 
 ## HAS_TESTS
-#' Draw the 'coef' parameter for a prior
+#' Generate Draws from ERW
 #'
-#' @param prior An object of class 'bage_prior'
-#' @param n_sim Number of draws
+#' Each column is one draw.
 #'
-#' @returns A numeric vector
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_coef <- function(prior, n_sim) {
-    specific <- prior$specific
-    shape1 <- specific$shape1
-    shape2 <- specific$shape2
-    min <- specific$min
-    max <- specific$max
-    ans_raw <- stats::rbeta(n = n_sim,
-                            shape1 = shape1,
-                            shape2 = shape2)
-    ans <- min + ans_raw * (max - min)
-    ans
+draw_vals_erw <- function(sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  for (i_along in seq.int(from = 2L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - 1L, ],
+                                   sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
 }
 
 
 ## HAS_TESTS
-#' Draw values for hyper-parameters for all priors in a model
+#' Generate Draws from ESeas
+#'
+#' Each column is one draw.
+#'
+#' @param n Number of seasons
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_eseas <- function(n, sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  for (i_along in seq.int(from = n + 1L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - n, ],
+                                   sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
+#' Draw Values for Ordinary Hyper-Parameters
 #'
 #' @param mod Object of class "bage_mod"
 #' @param n_sim Number of draws
@@ -276,155 +354,158 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @noRd
 draw_vals_hyper_mod <- function(mod, n_sim) {
-    priors <- mod$priors
-    lapply(priors,
-           draw_vals_hyper,
-           n_sim = n_sim)
+  priors <- mod$priors
+  lapply(priors, draw_vals_hyper, n_sim = n_sim)
 }
 
 
 ## HAS_TESTS
-#' Draw values for 'effect', 'hyper',
-#' optionally 'disp',
-#' optionally cyclical,
-#' optionally 'season',
-#' and 'linpred'
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param n_sim Number of draws
-#'
-#' @returns Named list
-#'
-#' @noRd
-draw_vals_hyperparam <- function(mod, n_sim) {
-    has_cyclical <- has_cyclical(mod)
-    has_season <- has_season(mod)
-    has_disp <- has_disp(mod)
-    vals_hyper <- draw_vals_hyper_mod(mod = mod,
-                                      n_sim = n_sim)
-    vals_effect <- draw_vals_effect_mod(mod = mod,
-                                        vals_hyper = vals_hyper,
-                                        n_sim = n_sim)
-    vals_linpred <- make_vals_linpred_effect(mod = mod,
-                                             vals_effect = vals_effect)
-    if (has_disp)
-        vals_disp <- draw_vals_disp(mod = mod,
-                                    n_sim = n_sim)
-    else
-        vals_disp <- NULL
-    if (has_cyclical) {
-        vals_cyclical <- draw_vals_cyclical(mod = mod,
-                                            n_sim = n_sim)
-        vals_linpred_cyclical <- make_vals_linpred_cyclical(mod = mod,
-                                                            vals_cyclical = vals_cyclical)
-        vals_linpred <- vals_linpred + vals_linpred_cyclical
-    }
-    else
-        vals_cyclical <- NULL
-    if (has_season) {
-        vals_season <- draw_vals_season(mod = mod,
-                                        n_sim = n_sim)
-        vals_linpred_season <- make_vals_linpred_season(mod = mod,
-                                                        vals_season = vals_season)
-        vals_linpred <- vals_linpred + vals_linpred_season
-    }
-    else
-        vals_season <- NULL
-    list(effect = vals_effect,
-         hyper = vals_hyper,
-         disp = vals_disp,
-         cyclical = vals_cyclical,
-         season = vals_season,
-         linpred = vals_linpred)
-}
-
-
-## HAS_TESTS
-#' Draw values for hyper-parameters for all priors in a model
+#' Draw Values for Hyper-Parameters that can be
+#' Treated as Random Effects
 #'
 #' @param mod Object of class "bage_mod"
-#' @param vals_hyper List of lists.
 #' @param n_sim Number of draws
 #'
-#' @returns A named list of matrices.
+#' @returns A named list
 #'
 #' @noRd
-draw_vals_effect_mod <- function(mod, vals_hyper, n_sim) {
-    priors <- mod$priors
-    levels_effect <- mod$levels_effect
-    terms_effect <- mod$terms_effect
-    levels_effect <- split(levels_effect, terms_effect)
-    agesex <- make_agesex(mod)
-    ans <- .mapply(draw_vals_effect,
-                   dots = list(prior = priors,
-                               vals_hyper = vals_hyper,
-                               levels_effect = levels_effect,
-                               agesex = agesex),
-                   MoreArgs = list(n_sim = n_sim))
-    names(ans) <- names(priors)
-    ans
+draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
+  priors <- mod$priors
+  levels_effect <- mod$levels_effect
+  terms_effect <- mod$terms_effect
+  levels_effect <- split(levels_effect, terms_effect)
+  agesex <- make_agesex(mod)
+  matrices_along_by <- choose_matrices_along_by(mod)
+  ans <- .mapply(draw_vals_hyperrand,
+                 dots = list(prior = priors,
+                             vals_hyper = vals_hyper,
+                             levels_effect = levels_effect,
+                             agesex = agesex,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list(n_sim = n_sim))
+  names(ans) <- names(priors)
+  ans
 }
 
 
 ## HAS_TESTS
-#' Generate a RW vector
+#' Generate Draws from Lin
 #'
 #' Each column is one draw.
 #'
+#' @param slope Vector of values
 #' @param sd Vector of values
-#' @param sd_intercept Scalar
 #' @param labels Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw <- function(sd, sd_intercept, labels) {
-    n_effect <- length(labels)
-    n_sim <- length(sd)
-    A <- make_rw_matrix(n_effect)
-    sd_v <- rbind(matrix(sd,
-                         nrow = n_effect - 1L,
-                         ncol = n_sim,
-                         byrow = TRUE),
-                  sd_intercept)
-    v <- matrix(stats::rnorm(n = n_effect * n_sim, sd = sd_v),
-                nrow = n_effect,
-                ncol = n_sim)
-    ans <- solve(A, v)
-    dimnames(ans) <- list(labels, seq_len(n_sim))
-    ans
+draw_vals_lin <- function(slope, sd, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(slope)
+  q <- seq(from = -1, to = 1, length.out = n_effect)
+  mean <- outer(q, slope)
+  error <- stats::rnorm(n = n_effect * n_sim,
+                        sd = rep(sd, each = n_effect))
+  ans <- mean + error
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
 }
 
 
 ## HAS_TESTS
-#' Generate a RW2 vector
+#' Draw Values for the 'msd' Hyper-Parameters of a Prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_msd <- function(prior, n_sim) {
+  mscale <- prior$specific$mscale
+  abs(stats::rnorm(n = n_sim, sd = mscale))
+}
+
+
+## HAS_TESTS
+#' Draw Values for the 'mslope' Hyper-Parameters of a Prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param slope Vector of mean slopes
+#' @param msd Vector of standard deviations
+#' @param matrix_along_by Matrix with mapping for along and by dimensions
+#' @param n_sim Number of draws
+#'
+#' @returns A matrix
+#'
+#' @noRd
+draw_vals_mslope <- function(slope, msd, matrix_along_by, n_sim) {
+  n_by <- ncol(matrix_along_by)
+  ans <- stats::rnorm(n = n_by * n_sim,
+                      mean = rep(slope, each = n_by),
+                      sd = rep(msd, each = n_by))
+  ans <- matrix(ans, nrow = n_by, ncol = n_sim)
+  nms_by <- colnames(matrix_along_by)
+  rownames <- paste("mslope", nms_by, sep = ".")
+  rownames(ans) <- rownames
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from RW 
 #'
 #' Each column is one draw.
 #'
 #' @param sd Vector of values
-#' @param sd_intercept Scalar
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_rw <- function(sd, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n_effect,
+                ncol = n_sim,
+                dimnames = list(labels, seq_len(n_sim)))
+  ans[1L, ] <- stats::rnorm(n = n_sim)
+  for (i_effect in seq.int(from = 2L, to = n_effect))
+    ans[i_effect, ] <- stats::rnorm(n = n_sim,
+                                    mean = ans[i_effect - 1L, ],
+                                    sd = sd)
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from RW2
+#'
+#' Each column is one draw.
+#'
+#' @param sd Vector of values
 #' @param sd_slope Scalar
 #' @param labels Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw2 <- function(sd, sd_intercept, sd_slope, labels) {
-    n_effect <- length(labels)
-    n_sim <- length(sd)
-    A <- make_rw2_matrix(n_effect)
-    sd_v <- rbind(matrix(sd,
-                         nrow = n_effect - 2L,
-                         ncol = n_sim,
-                         byrow = TRUE),
-                  sd_intercept,
-                  sd_slope)
-    v <- matrix(stats::rnorm(n = n_effect * n_sim, sd = sd_v),
-                nrow = n_effect,
-                ncol = n_sim)
-    ans <- solve(A, v)
-    dimnames(ans) <- list(labels, seq_len(n_sim))
-    ans
+draw_vals_rw2 <- function(sd, sd_slope, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n_effect,
+                ncol = n_sim,
+                dimnames = list(labels, seq_len(n_sim)))
+  ans[1L, ] <- stats::rnorm(n = n_sim)
+  ans[2L, ] <- stats::rnorm(n = n_sim,
+                            mean = ans[1L, ],
+                            sd = sd_slope)
+  for (i_effect in seq.int(from = 3L, to = n_effect))
+    ans[i_effect, ] <- stats::rnorm(n = n_sim,
+                                    mean = 2 * ans[i_effect - 1L, ] - ans[i_effect - 2L, ],
+                                    sd = sd)
+  ans
 }
 
 
@@ -444,83 +525,167 @@ draw_vals_sd <- function(prior, n_sim) {
     ans
 }
 
-
 ## HAS_TESTS
-#' Draw values for cyclical effects, and the
-#' coef and sd hyper-parameters for cyclical effects
+#' Generate Draws from Seas
 #'
-#' @param mod Object of class 'bage_mod'
-#' @param n_sim Number of draws
+#' Each column is one draw.
 #'
-#' @returns A named list with the cyclical effects and hyper-parameters
+#' @param n Number of seasons
+#' @param sd Vector of values
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_cyclical <- function(mod, n_sim) {
-    n_time <- n_time(mod)
-    n_cyclical <- mod$n_cyclical
-    const <- make_const_cyclical(mod)
-    shape1 <- const[[1L]]
-    shape2 <- const[[2L]]
-    scale <- const[[3L]]
-    ans_coef <- matrix(nrow = n_cyclical, ncol = n_sim)
-    ans_sd <- numeric(length = n_sim)
-    ans_cyclical <- matrix(nrow = n_time, ncol = n_sim)
-    for (i_sim in seq_len(n_sim)) {
-        coef <- draw_vals_ar_coef(p = n_cyclical, shape1 = shape1, shape2 = shape2)
-        sd <- abs(stats::rnorm(n = 1L, sd = scale))
-        cyclical <- draw_vals_ar(n = n_time, coef = coef, sd = sd)
-        ans_coef[, i_sim] <- coef
-        ans_sd[i_sim] <- sd
-        ans_cyclical[, i_sim] <- cyclical
-    }
-    list(coef = ans_coef,
-         sd = ans_sd,
-         cyclical = ans_cyclical)
+draw_vals_seas <- function(n, sd, labels) {
+  n_effect <- length(labels)
+  n_sim <- length(sd)
+  ans <- matrix(nrow = n_effect,
+                ncol = n_sim,
+                dimnames = list(labels, seq_len(n_sim)))
+  ans[seq_len(n), ] <- stats::rnorm(n = n_sim)
+  for (i_effect in seq.int(from = n + 1L, to = n_effect))
+    ans[i_effect, ] <- stats::rnorm(n = n_sim,
+                                    mean = ans[i_effect - n, ],
+                                    sd = sd)
+  ans
 }
-        
 
 ## HAS_TESTS
-#' Draw values for season effects, and the sd parameter for season effects
+#' Draw Values for the 'slope' Parameter of a Prior
 #'
-#' Note that if 'n_time' is not a multiple of 'n_season', some seasons will
-#' have fewer than 'n_time' / 'n_season' effects
-#'
-#' @param mod Object of class 'bage_mod'
+#' @param prior An object of class 'bage_prior'
 #' @param n_sim Number of draws
 #'
-#' @returns A named list with the sd and season effect
+#' @returns A numeric vector
 #'
 #' @noRd
-draw_vals_season <- function(mod, n_sim) {
-    n_season <- mod$n_season
-    n_time <- n_time(mod)
-    n_effect <- ceiling(n_time / n_season)
-    const <- make_const_season(mod)
-    scale <- const[[1L]]
-    sd_intercept <- const[[2L]]
-    A <- make_rw_matrix(n_effect)
-    vals_season <- array(dim = c(n_season, n_effect, n_sim))
-    vals_sd <- stats::rnorm(n = n_sim, sd = scale)
-    vals_sd <- abs(vals_sd)
-    sd_v <- array(dim = c(n_season, n_effect, n_sim))
-    sd_v[ , -n_effect, ] <- rep(vals_sd, each = n_season * (n_effect - 1L))
-    sd_v[ , n_effect, ] <- sd_intercept
-    for (i in seq_len(n_season)) {
-        v <- matrix(stats::rnorm(n = n_effect * n_sim, sd = sd_v[i, , ]),
-                    nrow = n_effect,
-                    ncol = n_sim)
-        vals_season[i, , ] <- solve(A, v)
-    }
-    vals_season <- matrix(vals_season, ncol = n_sim)
-    vals_season <- vals_season[seq_len(n_time), , drop = FALSE]
-    list(season = vals_season,
-         sd = vals_sd)
+draw_vals_slope <- function(prior, n_sim) {
+    sd_slope <- prior$specific$sd_slope
+    stats::rnorm(n = n_sim, sd = sd_slope)
+}
+
+
+## HAS_TESTS
+#' Calculate Errors from Using Point Estimates from Posterior Distribution
+#'
+#' @param var_est An rvec holding a posterior distribution.
+#' @param var_sim A numeric vector holding the true valuevalues
+#' @param point_est_fun Name of function to calculate point estimate
+#'
+#' @returns A vector of doubles
+#'
+#' @noRd
+error_point_est <- function(var_est, var_sim, point_est_fun) {
+  if (point_est_fun == "mean")
+    point_est <- rvec::draws_mean(var_est)
+  else if (point_est_fun == "median")
+    point_est <- rvec::draws_median(var_est)
+  else
+    cli::cli_abort("Internal error: Invalid value for 'point_est_fun'.")  ## nocov
+  point_est - var_sim
+}
+
+
+## HAS_TESTS
+#' Extract 'error_point_est' Results
+#' from Performance Statistics
+#'
+#' @param perform A list, each element of
+#' which is the return value of
+#' 'perform_aug' or 'preform_comp'
+#' for one simulation
+#'
+#' @returns A tibble
+#'
+#' @noRd
+get_error_point_est <- function(perform) {
+  s_sim <- seq_along(perform)
+  nms_var <- names(perform[[1L]])
+  ans <- lapply(nms_var,
+                function(nm_var)
+                  lapply(s_sim,
+                         function(i_sim) perform[[i_sim]][[nm_var]][["error_point_est"]]))
+  ans <- lapply(ans, function(x) rvec::rvec(do.call(cbind, x)))
+  names(ans) <- nms_var
+  ans <- lapply(ans, tibble::as_tibble)
+  ans <- lapply(ans, stats::setNames, ".error")
+  ans
+}
+
+
+## HAS_TESTS
+#' Extract 'is_in_interval' Results
+#' from Performance Statistics
+#'
+#' @param perform A list, each element of
+#' which is the return value of
+#' 'perform_aug' or 'preform_comp'
+#' for one simulation
+#'
+#' @returns A tibble
+#'
+#' @noRd
+get_is_in_interval <- function(perform) {
+  nms_var <- names(perform[[1L]])
+  nms_width <- names(perform[[1L]][[1L]][["is_in_interval"]])
+  ans <- lapply(nms_var,
+                function(nm_var)
+                  lapply(nms_width,
+                         function(nm_width)
+                           lapply(perform,
+                                  function(x)
+                                    x[[nm_var]][["is_in_interval"]][[nm_width]])))
+  names(ans) <- nms_var
+  ans <- lapply(ans,
+                function(val_var)
+                  lapply(val_var,
+                         function(val_width)
+                           rvec::rvec(do.call(cbind, val_width))))
+  nms_cols <- paste(".cover", nms_width, sep = "_")
+  ans <- lapply(ans, function(val_var) stats::setNames(val_var, nms_cols))
+  ans <- lapply(ans, tibble::as_tibble)
+  ans
+}
+
+
+## HAS_TESTS
+#' Extract 'length_interval' Results
+#' from Performance Statistics
+#'
+#' @param perform A list, each element of
+#' which is the return value of
+#' 'perform_aug' or 'preform_comp'
+#' for one simulation
+#'
+#' @returns A tibble
+#'
+#' @noRd
+get_length_interval <- function(perform) {
+  nms_vars <- names(perform[[1L]])
+  nms_widths <- names(perform[[1L]][[1L]][["length_interval"]])
+  ans <- lapply(nms_vars,
+                function(nm_var)
+                  lapply(nms_widths,
+                         function(nm_width)
+                           lapply(perform,
+                                  function(x)
+                                    x[[nm_var]][["length_interval"]][[nm_width]])))
+  names(ans) <- nms_vars
+  ans <- lapply(ans,
+                function(val_var)
+                  lapply(val_var,
+                         function(val_width)
+                           rvec::rvec(do.call(cbind, val_width))))
+  nms_cols <- paste(".length", nms_widths, sep = "_")
+  ans <- lapply(ans, function(val_var) stats::setNames(val_var, nms_cols))
+  ans <- lapply(ans, tibble::as_tibble)
+  ans
 }
 
 
 ## HAS_TESTS
 #' Get estimated values for hyper, effect,
-#' cyclical (if present), season (if present),
 #' linear predictor, and disp (if present) from a fitted model
 #'
 #' @param mod A fitted object of class 'bage_mod'
@@ -529,387 +694,280 @@ draw_vals_season <- function(mod, n_sim) {
 #'
 #' @noRd
 get_vals_hyperparam_est <- function(mod) {
-    has_season <- has_season(mod)
-    has_cyclical <- has_cyclical(mod)
-    has_disp <- has_disp(mod)
-    components <- components(mod)
-    is_effect <- components$component == "effect"
-    is_hyper <- components$component == "hyper"
-    effect <- components$.fitted[is_effect]
-    hyper <- components$.fitted[is_hyper]
-    names(effect) <- paste0(components$term[is_effect],
-                            components$level[is_effect])
-    names(hyper) <- paste0(components$term[is_hyper],
-                           components$level[is_hyper])
-    linpred <- make_linpred_effect(mod = mod,
-                                   components = components)
-    if (has_disp) {
-        is_disp <- components$component == "disp"
-        disp <- components$.fitted[is_disp]
-        names(disp) <- paste0(components$term[is_disp],
-                              components$level[is_disp])
+  nms <- c("effect",
+           "hyper",
+           "trend", "cyclical", "seasonal", "error",
+           "disp")
+  components <- components(mod)
+  ans <- list()
+  for (nm in nms) {
+    is_nm <- components$component == nm
+    if (any(is_nm)) {
+      vals <- components$.fitted[is_nm]
+      names(vals) <- paste(components$term[is_nm],
+                           components$level[is_nm],
+                           sep = ".")
     }
-    else
-        disp <- NULL
-    if (has_cyclical) {
-        is_cyclical <- components$component == "cyclical"
-        cyclical <- components$.fitted[is_cyclical]
-        names(cyclical) <- paste0(components$term[is_cyclical],
-                                  components$level[is_cyclical])
-        linpred_cyclical <- make_linpred_cyclical(mod = mod,
-                                                  components = components)
-        linpred <- linpred + linpred_cyclical
+    else {
+      vals <- NULL
     }
-    else
-        cyclical <- NULL
-    if (has_season) {
-        is_season <- components$component == "season"
-        season <- components$.fitted[is_season]
-        names(season) <- paste0(components$term[is_season],
-                                components$level[is_season])
-        linpred_season <- make_linpred_season(mod = mod,
-                                              components = components)
-        linpred <- linpred + linpred_season
-    }
-    else
-        season <- NULL
-    list(effect = effect,
-         hyper = hyper,
-         disp = disp,
-         cyclical = cyclical,
-         season = season,
-         linpred = linpred)
+    vals <- list(vals)
+    names(vals) <- nm
+    ans <- c(ans, vals)
+  }
+  linpred <- make_linpred_effect(mod = mod,
+                                 components = components)
+  linpred <- list(linpred)
+  names(linpred) <- "linpred"
+  ans <- c(ans, linpred)
+  ans
 }
 
 
 ## HAS_TESTS
-#' Get all simulated values from a model for one simulation draw
+#' Test Whether Interval(s) Contain the Truth
 #'
-#' @param i_sim The index for the simulation draw
-#' to be extracted
-#' @param vals A named list containing simulation draws
+#' @param var_est An rvec holding a posterior distribution
+#' @param var_sim A numeric vector with the simulation-true values
+#' @param widths Widths of intervals (between 0 and 1)
 #'
-#' @returns A named list
+#' @returns A list of logical vectors
 #'
 #' @noRd
-get_vals_sim_one <- function(i_sim, vals) {
-    f <- function(v) {
-        if (is.matrix(v))
-            v[ , i_sim]
-        else
-            v[i_sim]
+is_in_interval <- function(var_est, var_sim, widths) { 
+    n_widths <- length(widths)
+    ans <- vector(mode = "list", length = n_widths)
+    names(ans) <- 100 * widths
+    for (i in seq_len(n_widths)) {
+        width <- widths[[i]]
+        probs <- c(0.5 - width / 2, 0.5 + width / 2)
+        ci <- rvec::draws_quantile(x = var_est, probs = probs)
+        lower <- ci[[1L]]
+        upper <- ci[[2L]]
+        is_in_interval <- (lower <= var_sim) & (var_sim <= upper)
+        ans[[i]] <- is_in_interval
     }
-    ans <- rapply(vals, f, how = "replace")
-    ans <- lapply(ans, unlist)
     ans
 }
 
 
 ## HAS_TESTS
-#' Check whether specifications of cyclical effects are the same
+#' Calculates Lengths of Credible Intervals
 #'
-#' Test via isTRUE(all.equal(x, y))
+#' @param var_est An rvec with a posterior distributions.
+#' @param widths Widths of intervals (between 0 and 1)
 #'
-#' @param mod_est,mod_sim Objects of class "bage_mod"
-#'
-#' @returns TRUE or FALSE
+#' @returns A list of logical vectors
 #'
 #' @noRd
-is_same_cyclical <- function(mod_est, mod_sim) {
-    if (!isTRUE(all.equal(mod_est$n_cyclical, mod_sim$n_cyclical)))
-        return(FALSE)
-    if (!isTRUE(all.equal(mod_est$scale_cyclical, mod_sim$scale_cyclical)))
-        return(FALSE)
-    if (!isTRUE(all.equal(mod_est$matrix_cyclical_outcome, mod_sim$matrix_cyclical_outcome)))
-        return(FALSE)
-    TRUE
+length_interval <- function(var_est, widths) {
+  n_widths <- length(widths)
+  ans <- vector(mode = "list", length = n_widths)
+  names(ans) <- 100 * widths
+  for (i in seq_len(n_widths)) {
+    width <- widths[[i]]
+    probs <- c(0.5 - 0.5 * width, 0.5 + 0.5 * width)
+    ci <- rvec::draws_quantile(x = var_est, probs = probs)
+    lower <- ci[[1L]]
+    upper <- ci[[2L]]
+    length <- upper - lower
+    ans[[i]] <- length
+  }
+  ans
+}  
+
+
+## HAS_TESTS
+#' Make Simulation Report for 'aug'
+#'
+#' @param perform A list, each element of
+#' which is the return value of 'perform_aug'
+#' for one simulation
+#' @param comp_sim Tibble created by calling
+#' 'components' an an unfitted model.
+#'
+#' @returns A tibble
+#'
+#' @noRd
+make_report_aug <- function(perform_aug, aug_sim) {
+  nms_aug <- names(aug_sim)
+  nms_remove <- c(".observed", ".fitted", ".expected")
+  nms_keep <- setdiff(nms_aug, nms_remove)
+  byvar_aug <- aug_sim[nms_keep]
+  error_point_est_aug <- get_error_point_est(perform_aug)
+  is_in_interval_aug <- get_is_in_interval(perform_aug)
+  length_interval_aug <- get_length_interval(perform_aug)
+  nms_var <- names(error_point_est_aug)
+  .var <- rep(nms_var, each = nrow(aug_sim))
+  byvar_aug <- vctrs::vec_rep(byvar_aug, times = length(nms_var))
+  if (".observed" %in% nms_aug)
+    .observed <- vctrs::vec_rep(aug_sim[[".observed"]], times = length(nms_var))
+  else
+    .observed <- NULL
+  error_point_est_aug <- vctrs::vec_rbind(!!!error_point_est_aug,
+                                          .name_repair = "universal_quiet")
+  is_in_interval_aug <- vctrs::vec_rbind(!!!is_in_interval_aug,
+                                         .name_repair = "universal_quiet")
+  length_interval_aug <- vctrs::vec_rbind(!!!length_interval_aug,
+                                          .name_repair = "universal_quiet")
+  vctrs::vec_cbind(.var = .var,
+                   byvar_aug,
+                   .observed = .observed,
+                   error_point_est_aug,
+                   is_in_interval_aug,
+                   length_interval_aug)
 }
 
 
 ## HAS_TESTS
-#' Check whether two named lists of priors are the same
+#' Make Simulation Report for 'components'
 #'
-#' Test via isTRUE(all.equal(x, y))
+#' @param perform_comp A list, each element of
+#' which is the return value of
+#' 'perform_comp' for one simulation
+#' @param comp_est Tibble created by calling
+#' 'components' an a fitted model.
+#' @param comp_sim Tibble created by calling
+#' 'components' an an unfitted model.
 #'
-#' If data for mod_est and est is the same,
-#' and 'is_same_priors' is TRUE, then mod_est
-#' and mod_sim must have same main effects
-#' and interactions.
-#'
-#' @param mod_est,mod_sim Objects of class "bage_mod"
-#'
-#' @returns TRUE or FALSE
+#' @returns A tibble
 #'
 #' @noRd
-is_same_priors <- function(mod_est, mod_sim) {
-    pr_est <- mod_est$priors
-    pr_sim <- mod_sim$priors
-    if (length(pr_est) != length(pr_sim))
-        return(FALSE)
-    nms_est <- names(pr_est)
-    nms_sim <- names(pr_sim)
-    if (!setequal(nms_est, nms_sim))
-        return(FALSE)
-    for (nm in nms_est) {
-        if (!isTRUE(all.equal(pr_est[[nm]], pr_sim[[nm]])))
-            return(FALSE)
-    }
-    TRUE
+make_report_comp <- function(perform_comp, comp_est, comp_sim) {
+  byvar_comp <- merge(x = comp_est[c("term", "component", "level")],
+                      y = comp_sim[c("term", "component", "level")],
+                      sort = FALSE)
+  error_point_est_comp <- get_error_point_est(perform_comp)
+  is_in_interval_comp <- get_is_in_interval(perform_comp)
+  length_interval_comp <- get_length_interval(perform_comp)
+  vctrs::vec_cbind(byvar_comp,
+                   error_point_est_comp$.fitted,
+                   is_in_interval_comp$.fitted,
+                   length_interval_comp$.fitted)
 }
 
 
 ## HAS_TESTS
-#' Check whether specifications of season effects are the same
+#' Calculate Performance Measures for a Single 
+#' Set of Simulated 'augment' Values
 #'
-#' Test via isTRUE(all.equal(x, y))
+#' 'est' and 'sim' assumed to be aligned
 #'
-#' @param mod_est,mod_sim Objects of class "bage_mod"
+#' @param est Data frame that includes
+#' posterior distribution(s)
+#' @param sim Data frame that includes
+#' simulation-true values
+#' @param i_sim Simulation draw to use for performance
+#' measures.
+#' @param point_est_fun Mean or median. Function used
+#' to calculate point estimates
+#' @param widths Widths of credible intervals.
 #'
-#' @returns TRUE or FALSE
+#' @returns Named list
 #'
 #' @noRd
-is_same_season <- function(mod_est, mod_sim) {
-    if (!isTRUE(all.equal(mod_est$n_season, mod_sim$n_season)))
-        return(FALSE)
-    if (!isTRUE(all.equal(mod_est$scale_season, mod_sim$scale_season)))
-        return(FALSE)
-    if (!isTRUE(all.equal(mod_est$matrix_season_outcome, mod_sim$matrix_season_outcome)))
-        return(FALSE)
-    TRUE
+perform_aug <- function(est,
+                        sim,
+                        i_sim,
+                        point_est_fun,
+                        widths) {
+  nms_vars <- c(".fitted", ".expected")
+  nms_vars <- intersect(names(est), nms_vars)
+  nms_vars <- intersect(names(sim), nms_vars)
+  for (nm in nms_vars) {
+    i_nm <- match(nm, names(sim))
+    sim[[i_nm]] <- as.matrix(sim[[i_nm]])[, i_sim]
+  }
+  ans <- vector(mode = "list", length = length(nms_vars))
+  names(ans) <- nms_vars
+  for (nm in nms_vars) {
+    var_est <- est[[nm]]
+    var_sim <- sim[[nm]]
+    ans[[nm]] <- list(error_point_est = error_point_est(var_est = var_est,
+                                                        var_sim = var_sim,
+                                                        point_est_fun = point_est_fun),
+                      is_in_interval = is_in_interval(var_est = var_est,
+                                                      var_sim = var_sim,
+                                                      widths = widths),
+                      length_interval = length_interval(var_est = var_est,
+                                                        widths = widths))
+  }
+  ans
 }
 
 
-
 ## HAS_TESTS
-#' Make a difference matrix
+#' Calculate Performance Measures for a Single 
+#' Set of Simulated 'components' Values
 #'
-#' Make a matrix that takes first differences of an n-element vector
+#' @param est Data frame with 'by' variables
+#' and posterior distribution(s)
+#' @param sim Data frame with 'by' variables
+#' and simulated-true values
+#' @param i_sim Simulation draw to use for performance
+#' measures.
+#' @param point_est_fun Mean or median. Function used
+#' to calculate point estimates
+#' @param widths Widths of credible intervals.
 #'
-#' @param n Number of elements of vector
-#'
-#' @returns An n-1 x n matrix
+#' @returns Named list
 #'
 #' @noRd
-make_diff_matrix <- function(n) {
-    ans <- matrix(0L, nrow = n - 1L, ncol = n)
-    ans[row(ans) == col(ans)] <- -1L
-    ans[row(ans) == col(ans) - 1L] <- 1L
-    ans
+perform_comp <- function(est,
+                         sim,
+                         i_sim,
+                         point_est_fun,
+                         widths) {
+  names(est)[match(".fitted", names(est))] <- ".fitted_est"
+  names(sim)[match(".fitted", names(sim))] <- ".fitted_sim"
+  sim[[".fitted_sim"]] <- as.matrix(sim[[".fitted_sim"]])[, i_sim]
+  merged <- merge(est, sim, sort = FALSE)
+  var_est <- merged[[".fitted_est"]]
+  var_sim <- merged[[".fitted_sim"]]
+  .fitted <- list(error_point_est = error_point_est(var_est = var_est,
+                                                    var_sim = var_sim,
+                                                    point_est_fun = point_est_fun),
+                  is_in_interval = is_in_interval(var_est = var_est,
+                                                  var_sim = var_sim,
+                                                  widths = widths),
+                  length_interval = length_interval(var_est = var_est,
+                                                    widths = widths))
+  list(.fitted = .fitted)
 }
 
 
 ## HAS_TESTS
-#' Make tibble with 'component', 'term' and 'level'
-#' variables to use in simulation report
+#' Standardize Effects
+#'
+#' Apply same standardization to simulated effects
+#' that is applied to estimated effects.
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param include_upper Whether levels above 'meanpar' and 'disp'
-#' included in test
+#' @param vals_effect A list of tibbles.
 #'
-#' @returns A tibble with three columns
-#'
-#' @noRd
-make_id_vars_report <- function(mod, include_upper) {
-    nms_upper <- c("hyper", "effect", "cyclical", "season")
-    ans <- tibble::tibble(component = character(),
-                          term = character(),
-                          level = character())
-    if (include_upper) {
-        effect <- tibble::tibble(component = "effect",
-                                 term = mod$terms_effect,
-                                 level = mod$levels_effect)
-        hyper <- tibble::tibble(component = "hyper",
-                                term = make_terms_hyper(mod),
-                                level = make_levels_hyper(mod))
-        ans <- vctrs::vec_rbind(ans, effect, hyper)
-        if (has_cyclical(mod)) {
-            cyclical <- tibble::tibble(component = "cyclical",
-                                       term = make_terms_cyclical(mod),
-                                       level = make_levels_cyclical(mod))
-            ans <- vctrs::vec_rbind(ans, cyclical)
-        }
-        if (has_cyclical(mod)) {
-            cyclical <- tibble::tibble(component = "cyclical",
-                                       term = make_terms_cyclical(mod),
-                                       level = make_levels_cyclical(mod))
-            ans <- vctrs::vec_rbind(ans, cyclical)
-        }
-        if (has_season(mod)) {
-            season <- tibble::tibble(component = "season",
-                                     term = make_terms_season(mod),
-                                     level = make_levels_season(mod))
-            ans <- vctrs::vec_rbind(ans, season)
-        }
-    }
-    if (has_disp(mod)) {
-        disp <- tibble::tibble(component = "disp",
-                               term = "disp",
-                               level = "disp")
-        ans <- vctrs::vec_rbind(ans, disp)
-    }
-    par <- tibble::tibble(component = "par",
-                          term = make_term_par(mod),
-                          level = as.character(seq_len(nrow(mod$data))))
-    ans <- vctrs::vec_rbind(ans, par)
-    ans
-}
-
-
-## HAS_TESTS
-#' Make matrix used in generating a random walk
-#'
-#' Multiplying 'x' by this matrix creates
-#' the vector c(diff(x), mean(x))
-#'
-#' @param n Number of rows/columns of matrix
-#'
-#' @returns An n x n matrix
+#' @returns A modified version of 'vals_effect'
 #'
 #' @noRd
-make_rw_matrix <- function(n) {
-    D <- make_diff_matrix(n)
-    rbind(D,
-          1 / n)
-}
-
-
-## HAS_TESTS
-#' Make matrix used in generating a random walk
-#'
-#' Multiplying 'x' by this matrix creates
-#' the vector c(diff(x), mean(x))
-#'
-#' @param n Number of rows/columns of matrix
-#'
-#' @returns An n x n matrix
-#'
-#' @noRd
-make_rw2_matrix <- function(n) {
-    D1 <- make_diff_matrix(n)
-    D2 <- make_diff_matrix(n - 1L)
-    R <- D2 %*% D1
-    h <- (-(n + 1L) + 2L * seq_len(n)) / (n - 1L)
-    h <- h / sum(h^2)
-    rbind(R,
-          1 / n,
-          h)
-}
-
-
-## HAS_TESTS
-#' Transform cyclical effect to align with outcome
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vals_cyclical List of numeric vectors
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_vals_linpred_cyclical <- function(mod, vals_cyclical) {
-    matrix_cyclical_outcome <- mod$matrix_cyclical_outcome
-    matrix_cyclical_outcome <- as.matrix(matrix_cyclical_outcome)
-    cyclical <- vals_cyclical$cyclical
-    matrix_cyclical_outcome %*% cyclical
-}
-
-
-## HAS_TESTS
-#' Combine parameter values, then transform to align with outcome
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vals_effect List of matrices
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_vals_linpred_effect <- function(mod, vals_effect) {
-    matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-    matrix_effect_outcome <- as.matrix(matrix_effect_outcome)
-    vals_effect <- do.call(rbind, vals_effect)
-    matrix_effect_outcome %*% vals_effect
-}
-
-
-## HAS_TESTS
-#' Transform season effect to align with outcome
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vals_season List of numeric vectors
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_vals_linpred_season <- function(mod, vals_season) {
-    matrix_season_outcome <- mod$matrix_season_outcome
-    matrix_season_outcome <- as.matrix(matrix_season_outcome)
-    season <- vals_season$season
-    matrix_season_outcome %*% season
-}
-
-
-## HAS_TESTS
-#' Take output from applying 'error_point_est'
-#' on multiple simulation draws, and reformat into
-#' an rvec
-#'
-#' @param x A named list with hierarchy
-#' sim > batch
-#'
-#' @returns An object of class rvec_dbl
-#'
-#' @noRd
-reformat_performance_vec <- function(x) {
-    n_sim <- length(x)
-    x <- unlist(x, use.names = FALSE)
-    x <- matrix(x, ncol = n_sim)
-    rvec::rvec_dbl(x)
-}
-
-
-## HAS_TESTS
-#' Take output from applying 'is_in_interval'
-#' on multiple simulation draws,
-#' and reformat into 'n_width' rvecs
-#'
-#' @param x A named list with hierarchy
-#' sim > batch > width
-#' 
-#' @returns A tibble with 'n_width' rvec_lgl
-#'
-#' @noRd
-reformat_is_in_interval <- function(x) {
-    n_sim <- length(x)
-    n_batch <- length(x[[1L]])
-    widths <- names(x[[1L]][[1L]])
-    n_width <- length(widths)
-    x <- unlist(x, recursive = FALSE, use.names = FALSE)
-    x <- unlist(x, recursive = FALSE, use.names = FALSE)
-    x <- array(x, dim = c(n_width, n_batch, n_sim))
-    x <- aperm(x, perm = c(2L, 3L, 1L))
-    x <- lapply(seq_len(n_width), function(i) x[, , i])
-    x <- lapply(x, unlist, use.names = FALSE)
-    x <- lapply(x, matrix, ncol = n_sim)
-    x <- lapply(x, rvec::rvec_lgl)
-    names(x) <- paste("coverage", widths, sep = ".")
-    tibble::as_tibble(x)
-}
-
-
-## HAS_TESTS
-#' Transpose the first two layers of a list
-#'
-#' Transposing removes names.
-#'
-#' @param l A list
-#'
-#' @returns A list
-#'
-#' @noRd
-transpose_list <- function(l) {
-    elements <- unlist(l, recursive = FALSE, use.names = FALSE)
-    m <- matrix(elements, ncol = length(l))
-    m <- t(m)
-    apply(m, 2L, identity, simplify = FALSE)
+standardize_vals_effect <- function(mod, vals_effect) {
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
+  matrix_effect_outcome <- Reduce(cbind, matrices_effect_outcome)
+  vals_effect <- lapply(vals_effect, Matrix::as.matrix)
+  effects <- do.call(rbind, vals_effect)
+  linpred <- matrix_effect_outcome %*% effects
+  n_effect <- length(vals_effect)
+  ans <- vector(mode = "list", length = n_effect)
+  for (i_effect in seq_len(n_effect)) {
+    M <- matrices_effect_outcome[[i_effect]]
+    n <- colSums(M)
+    effect <- crossprod(M, linpred) / n
+    linpred <- linpred - M %*% effect
+    ans[[i_effect]] <- effect
+  }
+  if (any(abs(linpred) > 0.001))
+    cli::cli_abort("Internal error: Final residual not 0")  ## nocov
+  names(ans) <- names(vals_effect)
+  ans
 }
 
 
@@ -918,6 +976,11 @@ transpose_list <- function(l) {
 #'
 #' Use simulated data to assess the performance of
 #' and estimated model.
+#'
+#' @section Warning:
+#'
+#' The interface for `report_sim` is still
+#' experimental, and may change in future.
 #'
 #' @section Comparisons included in report:
 #'
@@ -928,18 +991,14 @@ transpose_list <- function(l) {
 #' - `"hyper"` Hyper-parameters from priors for intercept,
 #'   main effects, and interactions.
 #' - `"effect"` Intercept, main effects, and interactions.
-#' - `"cyclical"` Parameters and hyper-parameters for
-#'   cyclical effect, if included in model.
-#' - `"season"` Parameters and hyper-parameters for
-#'   seasonal effect, if included in model.
 #' - `"meanpar"` Expected value for rates probabilities.
 #'   Poisson and binomial models only.
 #' - `"disp"` Dispersion term, if included in model.
 #' - `"par"` Rates, probabilities, or means.
 #'
 #' When `mod_est` and `mod_sim` differ, the
-#' report omits `"hyper"`, `"effect"`, `"cyclical"`,
-#' and `"season"` since, for most model specifications,
+#' report omits `"hyper"`, and `"effect"`, 
+#' since, for most model specifications,
 #' these terms are not comparable across models.
 #'
 #' @param mod_est The model whose performance is being
@@ -957,8 +1016,8 @@ transpose_list <- function(l) {
 #' @param report_type Amount of detail in return value.
 #' Options are `"short"` and `"long"`. Default is `"short"`.
 #' @param n_core Number of cores to use for parallel
-#' processing. If no value supplied, then no parallel
-#' processing is done. CURRENTLY UNUSED.
+#' processing. If `n_core` is `1` (the default),
+#' no parallel processing is done.
 #'
 #' @return
 #' **`report_type` is `"short"`**
@@ -970,7 +1029,7 @@ transpose_list <- function(l) {
 #' across all simulations and cells.
 #' - `error_point_est`. Point estimate minus simulation-true
 #' value, averaged across all simulations and cells.
-#' - `coverage`. Actual proportion of simulation-true values
+#' - `cover`. Actual proportion of simulation-true values
 #' that fall within each type of interval, averaged across all
 #' simulations and cells.
 #'
@@ -985,7 +1044,7 @@ transpose_list <- function(l) {
 #' stored in an [rvec][rvec::rvec()].
 #' - `error_point_est`. Point estimates minus simulation-true
 #' values, stored in an [rvec][rvec::rvec()].
-#' - `coverage`. Actual proportions of simulation-true values
+#' - `cover`. Actual proportions of simulation-true values
 #' falling within each type of interval, stored in
 #' an [rvec][rvec::rvec()].
 #' 
@@ -1025,77 +1084,129 @@ report_sim <- function(mod_est,
                        n_sim = 100,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95),
-                       report_type = c("short", "long"),
-                       n_core = NULL) {
-    if (!inherits(mod_est, "bage_mod"))
-        cli::cli_abort(c("{.arg mod_est} is not an object of class {.cls bage_mod}.",
-                         i = "{.arg mod_est} has class {.cls {class(mod_est)}}."))
-    check_n(n = n_sim, n_arg = "n_sim", min = 1L, max = NULL, null_ok = FALSE)
-    point_est_fun <- match.arg(point_est_fun)
-    check_widths(widths)
-    report_type <- match.arg(report_type)
-    if (is.null(mod_sim))
-        mod_sim <- mod_est
-    else
-        check_mod_est_est_compatible(mod_est = mod_est,
-                                     mod_sim = mod_sim)
-    is_same_priors <- is_same_priors(mod_est = mod_est,
-                                     mod_sim = mod_sim)
-    is_same_cyclical <- is_same_cyclical(mod_est = mod_est,
-                                         mod_sim = mod_sim)
-    is_same_season <- is_same_season(mod_est = mod_est,
-                                     mod_sim = mod_sim)
-    include_upper <- is_same_priors && is_same_cyclical && is_same_season
-    vals_sim_all <- draw_vals_mod(mod = mod_sim,
-                                  n_sim = n_sim)
-    vals_sim_all <- lapply(seq_len(n_sim), get_vals_sim_one, vals_sim_all)
-    performance <- lapply(vals_sim_all,
-                          assess_performance,
-                          mod_est = mod_est,
-                          point_est_fun = point_est_fun,
-                          include_upper = include_upper,
-                          widths = widths)
-    performance <- transpose_list(performance)
-    vals_sim <- performance[[1L]]
-    error_point_est <- performance[[2L]]
-    is_in_interval <- performance[[3L]]
-    vals_sim <- reformat_performance_vec(vals_sim)
-    error_point_est <- reformat_performance_vec(error_point_est)
-    is_in_interval <- reformat_is_in_interval(is_in_interval)
-    id_vars <- make_id_vars_report(mod = mod_est,
-                                   include_upper = include_upper)
-    ans <- tibble::tibble(id_vars,
-                          vals_sim = vals_sim,
-                          error_point_est = error_point_est,
-                          is_in_interval)
-    if (report_type == "short")
-        summarise_sim(ans)
-    else if (report_type == "long")
-        ans
-    else
-        cli::cli_abort("Internal error: Invalid value for 'report_type'.")
+                       report_type = c("short", "long", "full"),
+                       n_core = 1) {
+  check_bage_mod(x = mod_est, nm_x = "mod_est")
+  if (is.null(mod_sim))
+    mod_sim <- mod_est
+  else
+    check_mod_est_sim_compatible(mod_est = mod_est,
+                                 mod_sim = mod_sim)
+  check_n(n = n_sim,
+          nm_n = "n_sim",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  point_est_fun <- match.arg(point_est_fun)
+  check_widths(widths)
+  report_type <- match.arg(report_type)
+  check_n(n = n_core,
+          nm_n = "n_core",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  mod_sim$n_draw <- n_sim
+  comp_sim <- components(mod_sim)
+  aug_sim <- augment(mod_sim)
+  nm_outcome <- get_nm_outcome(mod_sim)
+  outcome_sim <- aug_sim[[nm_outcome]]
+  outcome_sim <- as.matrix(outcome_sim)
+  report_sim_inner <- function(i_sim) {
+    library(bage)
+    perform_comp <- utils::getFromNamespace("perform_comp", ns = "bage")
+    perform_aug <- utils::getFromNamespace("perform_aug", ns = "bage")
+    outcome <- outcome_sim[, i_sim]
+    mod_est$outcome <- outcome
+    mod_est <- fit(mod_est)
+    comp_est <- components(mod_est)
+    aug_est <- augment(mod_est)
+    results_comp <- perform_comp(est = comp_est,
+                                 sim = comp_sim,
+                                 i_sim = i_sim,
+                                 point_est_fun = point_est_fun,
+                                 widths = widths)
+    results_aug <- perform_aug(est = aug_est,
+                               sim = aug_sim,
+                               i_sim = i_sim,
+                               point_est_fun = point_est_fun,
+                               widths = widths)
+    list(results_comp, results_aug)
+  }
+  s_sim <- seq_len(n_sim)
+  if (n_core > 1L) {
+    iseed <- make_seed()
+    cl <- parallel::makeCluster(n_core)
+    on.exit(parallel::stopCluster(cl))
+    parallel::clusterSetRNGStream(cl, iseed = iseed)
+    results <- parallel::parLapply(cl = cl,
+                                   X = s_sim,
+                                   fun = report_sim_inner)
+  }
+  else
+    results <- lapply(s_sim, report_sim_inner)
+  perform_comp <- lapply(results, `[[`, 1L)
+  perform_aug <- lapply(results, `[[`, 2L)
+  comp_est <- components(mod_est)
+  report_comp <- make_report_comp(perform_comp = perform_comp,
+                                  comp_est = comp_est,
+                                  comp_sim = comp_sim)
+  report_aug <- make_report_aug(perform_aug = perform_aug,
+                                aug_sim = aug_sim)
+  if (report_type == "full")
+    return(list(components = report_comp,
+                augment = report_aug))
+  report_comp <- rvec_to_mean(report_comp)
+  report_aug <- rvec_to_mean(report_aug)
+  if (report_type == "long")
+    return(list(components = report_comp,
+                augment = report_aug))
+  report_comp <- aggregate_report_comp(report_comp)
+  report_aug <- aggregate_report_aug(report_aug)
+  if (report_type == "short")
+    return(list(components = report_comp,
+                augment = report_aug))
+  cli::cli_abort("Internal error: Invalid value for {.val report_type}.") ## nocov
 }
 
 
 ## HAS_TESTS
-#' Summarise detailed output from simulation
+#' Convert Simulated Values for 'disp' to a Data Frame
 #'
-#' Summaries are means across cells and across simulations
+#' @param vals_disp An rvec
 #'
-#' @param data Tibble with output from simulation
-#'
-#' @returns A tibble
-#'
+#' @returns A tibble with columns 'component'
+#' 'term', 'level', and '.fitted'
+#' 
 #' @noRd
-summarise_sim <- function(data) {
-    x <- data[setdiff(names(data), c("component", "term", "level"))]
-    f <- factor(data$component, levels = unique(data$component))
-    data <- split(x = x, f = f)
-    summarise_one_chunk <- function(y)
-        vapply(y, function(z) mean(as.numeric(z)), 0)
-    ans <- lapply(data, summarise_one_chunk)
-    ans <- do.call(rbind, ans)
-    ans <- data.frame(component = names(data), ans)
-    ans <- tibble::tibble(ans)
-    ans
+vals_disp_to_dataframe <- function(vals_disp) {
+  tibble::tibble(term = "disp",
+                 component = "disp",
+                 level = "disp",
+                 .fitted = vals_disp)
 }
+
+
+## HAS_TESTS
+#' Convert a List of Simulated Effects to a Data Frame
+#'
+#' @param vals_effect A named list of matrices
+#'
+#' @returns A tibble with columns 'component'
+#' 'term', 'level', and '.fitted'
+#' 
+#' @noRd
+vals_effect_to_dataframe <- function(vals_effect) {
+  nrow <- vapply(vals_effect, nrow, 0L)
+  term <- rep.int(names(vals_effect), times = nrow)
+  component <- rep.int("effect", times = sum(nrow))
+  level <- lapply(vals_effect, rownames)
+  level <- unlist(level, use.names = FALSE)
+  .fitted <- do.call(rbind, vals_effect)
+  .fitted <- unname(.fitted)
+  .fitted <- rvec::rvec(.fitted)
+  tibble::tibble(term = term,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+ 

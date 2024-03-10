@@ -19,24 +19,21 @@ LazyData: true
 Depends:
     R (>= 4.3.0)
 Imports:
-    checkmate,
     cli,
     generics,
     Matrix,
     methods,
+    parallel,
     poputils,
-    rlang,
     rvec,
     stats,
     tibble,
-    tidyselect,
     TMB,
+    utils,
     vctrs
 Suggests:
     bookdown,
-    covr,
     dplyr,
-    ggdist,
     ggplot2,
     knitr,
     rmarkdown,

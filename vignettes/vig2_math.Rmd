@@ -23,8 +23,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-$\newcommand{\ind}{\, \overset{\text{ind}}{\sim} \,}$
-
 
 ```{r setup}
 library(bage)
@@ -52,8 +50,8 @@ Note: this is describing the models we want to get to soon, not the ones we curr
 
 Let $y_i$ be a count of events in cell $i = 1, \cdots, n$ and let $w_i$ be the corresponding exposure measure, with the possibility that $w_i \equiv 1$. The likelihood under the Poisson model is then
 \begin{align}
-  y_i \mid \gamma_i, w_i & \ind \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-1) \\
-  \gamma_i \mid \mu_i, \xi & \ind \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-2)
+  y_i & \sim \text{Poisson}(\gamma_i w_i) (\#eq:lik-pois-1) \\
+  \gamma_i & \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  (\#eq:lik-pois-2)
 \end{align}
 using the shape-rates parameterisation of the Gamma distribution. Parameter $\xi$ governs dispersion, with
 \begin{equation}
@@ -65,7 +63,7 @@ and
 \end{equation}
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
-  y_i \mid \mu_i, w_i \ind \text{Poisson}(\mu_i w_i).
+  y_i \sim \text{Poisson}(\mu_i w_i).
 \end{equation}
 
 For $\xi > 0$, Equations \@ref(eq:lik-pois-1) and \@ref(eq:lik-pois-2) are equivalent to
@@ -75,7 +73,7 @@ For $\xi > 0$, Equations \@ref(eq:lik-pois-1) and \@ref(eq:lik-pois-2) are equiv
 [@norton2018sampling; @simpson2022priors].
 This is the format we use internally for estimation. When values for $\gamma_i$ are needed, we generate them on the fly, using the fact that
 \begin{equation}
-  \gamma_i \mid y_i, \mu_i, \xi \ind \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
+  \gamma_i \sim \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
 \end{equation}
 
 
@@ -83,8 +81,8 @@ This is the format we use internally for estimation. When values for $\gamma_i$ 
 
 The likelihood under the binomial model is
 \begin{align}
-  y_i \mid \gamma_i, w_i & \ind \text{Binomial}(w_i, \gamma_i) (\#eq:lik-binom-1) \\
-  \gamma_i \mid \mu_i, \xi & \ind \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). (\#eq:lik-binom-2)
+  y_i  & \sim \text{Binomial}(w_i, \gamma_i) (\#eq:lik-binom-1) \\
+  \gamma_i & \sim \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). (\#eq:lik-binom-2)
 \end{align}
 Parameter $\xi$ again governs dispersion, with
 \begin{equation}
@@ -97,15 +95,15 @@ and
 
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
-  y_i \mid w_i, \mu_i \ind \text{Binom}(w_i, \mu_i).
+  y_i  \text{Binom}(w_i, \mu_i).
 \end{equation}
 Equations \@ref(eq:lik-binom-1) and \@ref(eq:lik-binom-2) are then equivalent to
 \begin{equation}
-  y_i | w_i, \mu_i, \xi \ind \text{BetaBinom}\left(w_i, \xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i) \right),
+  y_i  \sim \text{BetaBinom}\left(w_i, \xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i) \right),
 \end{equation}
 which is what we use internally. Values for $\gamma_i$ can be generated using
 \begin{equation}
-  \gamma_i \mid y_i, w_i, \mu_i, \xi \sim \text{Beta}\left(y_i + \xi^{-1} \mu_i, w_i - y_i + \xi^{-1}(1-\mu_i) \right).
+  \gamma_i \sim \text{Beta}\left(y_i + \xi^{-1} \mu_i, w_i - y_i + \xi^{-1}(1-\mu_i) \right).
 \end{equation}
 
 
@@ -114,7 +112,7 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 \begin{equation}
   y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2)
 \end{equation}
-where the $w_i$ are some form of weights, with the possibility that $w_i \equiv 1$.
+where the $w_i$ are weights.
 
 Response $y_i$ is standardized to have mean 0 and standard deviation 1. We set
 \begin{equation}
@@ -127,74 +125,57 @@ where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
-  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\chi}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta} (\#eq:means)
+  g(\pmb{\mu}) = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} (\#eq:means)
 \end{equation}
 where
 
 - $g$ is a log function in Poisson models, a logit function in binomial models, and an identity function in normal models;
 - $\beta^{(0)}$ is an intercept;
 - $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a vector with $J_m$ elements describing a main effect or interaction formed from the dimensions of data $\pmb{y}$;
-- $\pmb{\chi}^{(m)}$ is a cyclical effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
-- $\pmb{\lambda}^{(m)}$ is a seasonal effect, which is non-zero only if $\pmb{\beta}^{(m)}$ includes a time dimension;
-- $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ and (if $\pmb{\lambda}^{(m)}$ exists) of $\pmb{\lambda}^{(m)}$, that is used with cell $i$;
+- $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ that is used with cell $i$;
 - $\pmb{Z}$ is a $n \times P$ matrix of covariates; and
 - $\pmb{\zeta}$ is a coefficent vector with $P$ elements.
 
-Priors for the $\pmb{\beta}^{(m)}$ are discussed in sections \@ref(sec:pr-int)--\@ref(sec:pr-interact), priors for seasonal effect $\pmb{\lambda}^{(m)}$ are discussed in Section \@ref(sec:pr-season), and priors for coefficient vector $\pmb{\zeta}$ are discussed in Section \@ref(sec:pr-cov).
-
-
-# Design of priors for main effects {#sec:pr-main-over}
-
-## Model
-
-## Contribution to posterior density
-
-TMB requires that we provide a function to calculate contribution to the posterior density of each prior. The function does not need to be normalised: any quantities that do not vary with the parameters can be omitted.
-
-In TMB itself, densitities are specified on the log scale. Here, however, we present them on the original scale.
-
-## Simulation
-
-All priors are proper, allowing us to draw from them for simulation.
-
-## Prediction
-
-In some applications, we need to predict outside that data, which requires generating values $\beta_{J_m + h}^{(m)}$, $h = 1, 2, \cdots$. We do not allow predicted values with P-Spline priors (Section \@ref(sec:pr-spline)) or SVD priors (Section \@ref(sec:pr-svd)). For all other priors, we are able to obtain expressions for
+If a main effect or interaction contains includes a time dimensions, then prior for the term can be composed of a trend, cyclical, seasonal, and error terms,
 \begin{equation}
-  p(\beta_{J_m+h+1}^{(m)} \mid \beta_{J_m+h}^{(m)}, \cdots, \beta_1^{(m)}, \pmb{\psi}^{(m)}), \quad h = 0, 1, \cdots, (\#eq:predict) 
+  \pmb{\beta}^{(m)} = \pmb{\beta}_{\text{trend}}^{(m)} + \pmb{\beta}_{\text{cyc}}^{(m)} + \pmb{\beta}_{\text{seas}}^{(m)} + \pmb{\beta}_{\text{err}}^{(m)}.
 \end{equation}
-where $\pmb{\psi}^{(m)}$ is a vector containing hyper-parameters. Equation \@ref(eq:predict) can be applied recursively to generate predictions for any prediction interval. Index $J_m+h$ normally refers to time, but can refer to any dimension.
+The trend term is compulsory. The remaining terms are optional.
 
-Predicted values are not centered or constrained, and in general,
+# Standardization {#sec:standard}
+
+NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
+
+Set
 \begin{equation}
-  \text{E}\left(\sum_{j=1}^{J_m + h} \beta_j^{(m)}\right) \neq 0.
+  \pmb{r}^{(0)} = \pmb{\mu}
 \end{equation}
 
+For $m = 0, \cdots, M$:
 
-## Code
-
-```
-set_prior(formula)
-```
-
-- `formula` is a two-sided R formula with the name of the main effect on the left hand side, and the call to the prior function on the right
-
-eg
-
-```
-set_prior(region ~ N())
-set_prior(time ~ Lin(scale = 0.2))
-```
+- Set $\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}$
+- Set $\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}$
 
 
-# Priors for main effects {#sec:pr-main-specific}
 
-## Independent normal {#sec:pr-inorm}
+# Priors for Intercept, Main Effects, and Interactions {#sec:priors}
+
+
+The algorithm for assigning default priors:
+
+- If $\pmb{\beta}^{(m)}$ has one or two elements, assign $\pmb{\beta}^{(m)}$ a fixed-normal prior (Section \@ref(sec:pr-fnorm));
+- otherwise, if $\pmb{\beta}^{(m)}$ is an age or time main effect, assign $\pmb{\beta}^{(m)}$ a random walk prior (Section \@ref(sec:pr-rw));
+- otherwise, assign $\pmb{\beta}^{(m)}$ a normal prior (Section \@ref(sec:pr-norm))
+
+The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)).
+
+
+## Normal {#sec:pr-norm}
 
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right) \\
+  \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
@@ -209,7 +190,7 @@ set_prior(time ~ Lin(scale = 0.2))
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_j^{(m)} | \tau_m & \ind \text{N}\left(0, \tau_m^2 \right)
+  \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right)
 \end{align}
 
 
@@ -233,7 +214,7 @@ N(s = 1)
 ### Model
 
 \begin{equation}
-  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \text{N}\left(0, A_{\beta}^{(m)2}\right)
+  \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 ### Contribution to posterior density
@@ -246,7 +227,7 @@ N(s = 1)
 ### Simulation
 
 \begin{equation}
-  \beta_j^{(m)} | A_{\beta}^{(m)} \ind \text{N}\left(0, A_{\beta}^{(m)2}\right)
+  \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 
@@ -270,22 +251,16 @@ NFix(sd = 1)
 
 ### Model
 
-\begin{equation}
-  \beta_{j+1}^{(m)} \sim \text{N}(\beta_j^{(m)}, \tau_m^2),
-\end{equation}
-$j = 1, \cdots, J_m - 1$, together with the soft constraint
-\begin{equation}
- \eta^{(m)} \sim \text{N}(0, A_{\eta}^{(m)2}),
-\end{equation}
-where
-\begin{equation}
-  \eta^{(m)} = \frac{1}{J_m} \sum_{j=1}^{J_m} \beta_j^{(m)}.
-\end{equation}
+\begin{align}
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta^{(m)} \mid 0, A_{\eta}^{(m)2})  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} - \beta_{j-1}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\beta_1^{(m)} \mid 0, 1)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} \mid \beta_{j-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -293,25 +268,15 @@ where
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \pmb{\beta}^{(m)} & = \pmb{A}^{-1} \pmb{v}
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
 \end{align}
-where
-\begin{align}
-  \pmb{A} & = \begin{bmatrix} \pmb{D} \\ J_m^{-1} \pmb{1}^{\top} \end{bmatrix} \\
-  \pmb{v} & \sim \text{N}\left(\begin{bmatrix} \pmb{0} \\ 0 \end{bmatrix}, \begin{bmatrix} \tau_m^2 \pmb{I} & \pmb{0} \\ \pmb{0}^{\top} & A_{\eta}^{(m)2} \end{bmatrix} \right)
-\end{align}
-and $\pmb{D}$ is a first-order difference matrix of the form
-\begin{equation}
-  \begin{bmatrix} -1 & 1 & 0 & 0 \\
-                  0 & -1 & 1 & 0 \\
-		  0 & 0 & -1 & 1 \end{bmatrix}
-\end{equation}
 
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(\beta_{J_m+h}^{(m)}, \tau_m^2)
+  \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-1}^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -322,33 +287,23 @@ RW(s = 1)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- Internally, $A_{\eta}^{(m)}$ is set to 0.001.
 
 
-## Second-order random walk {#sec:pr-rw2}
+
+## Exchangeable first-order random walk {#sec:pr-erw}
 
 ### Model
 
-\begin{equation}
-  \beta_{j+2}^{(m)} \sim \text{N}(2 \beta_{j+1}^{(m)} - \beta_{j}^{(m)}, \tau_m^2),
-\end{equation}
-  $j = 1, \cdots, J_m - 2$, together with the soft constraints
 \begin{align}
- \eta_0^{(m)} & \sim \text{N}(0, A_{\eta, 0}^{(m)2}) \\
- \eta_1^{(m)} & \sim \text{N}(0, A_{\eta, 1}^{(m)2})
+  \beta_{u1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
+  \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
-where
-\begin{align}
-  \eta_0^{(m)} & = \frac{1}{J_m} \sum_{j=1}^{J_m} \beta_j^{(m)} \\
-  \eta_1^{(m)} & = \frac{\sum_{j=1}^{J_m} \beta_j^{(m)} h_j^{(m)}}{\sum_{j=1}^{J_m} h_j^{(m)2}} \\
-  h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
-\end{align}
-
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)2}) \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)2}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u1}^{(m)} \mid 0, 1)  \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -356,38 +311,112 @@ where
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \pmb{\beta}^{(m)} & = \pmb{A}^{-1} \pmb{v}
+  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m
 \end{align}
-where
-\begin{align}
-  \pmb{A} & = \begin{bmatrix} \pmb{R} \\ J_m^{-1} \pmb{1}^{\top} \\ \tilde{\pmb{h}}^{\top} \end{bmatrix} \\
-  \pmb{v} & \sim \text{N}\left(\begin{bmatrix} \pmb{0} \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix} \tau_m^2 \pmb{I} & \pmb{0} & \pmb{0}\\ \pmb{0}^{\top} & A_{\eta_0}^{(m)2} & 0 \\
-  \pmb{0}^{\top} & 0 & A_{\eta_1}^{(m)2} \end{bmatrix} \right) \\
-\tilde{\pmb{h}} & = \left(\sum_{j=1}^{J_m} h_j^{(m)2} \right)^{-1} \begin{bmatrix} h_1^{(m)} \\ \vdots \\ h_{J_m}^{(m)} \end{bmatrix}
-\end{align}
-and $\pmb{R}$ is a second-order difference matrix of the form
-\begin{equation}
-  \begin{bmatrix} 1 & -2 & 1 & 0 & 0 \\
-                  0 & 1 & -2 & 1 & 0 \\
-		  0 & 0 & 1 & -2 & 1 \end{bmatrix}
-\end{equation}
+
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m+h+1}^{(m)} \sim \text{N}(2 \beta_{J_m + h}^{(m)} - \beta_{J_m + h -1}^{(m)}, \tau_m^2)
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
 \end{equation}
 
 
 ### Code
 
 ```
-RW2(s = 1, flat = FALSE)
+ERW(s = 1)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- Internally, $A_{\eta,0}^{(m)}$ is set to 0.001.
-- If `flat` is `FALSE` (the default) then, internally, $A_{\eta,1}^{(m)}$ is set to 1. Otherwise it is set to 0.001.
+
+
+## Second-order random walk {#sec:pr-rw2}
+
+### Model
+
+\begin{align}
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_2^{(m)} & \sim \text{N}(\beta_1^{(m)}, A_{\eta}^{(m)2}) \\
+  \beta_{j}^{(m)} & \sim \text{N}(2 \beta_{j-1}^{(m)} - \beta_{j-2}^{(m)}, \tau_m^2), \quad j = 3, \cdots, J_m
+\end{align}
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\beta_1^{(m)} \mid 0, 1) \text{N}(\beta_2^{(m)}  \mid \beta_1^{(m)}, A_{\eta}^{(m)2}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+\end{equation}
+
+
+### Simulation
+
+\begin{align}
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_2^{(m)} & \sim \text{N}(\beta_1^{(m)}, A_{\eta}^{(m)2}) \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
+\end{align}
+
+### Prediction
+
+\begin{equation}
+  \beta_{J_m+h}^{(m)} \sim \text{N}(2 \beta_{J_m+h-1}^{(m)} - \beta_{J_m+h-2}^{(m)}, \tau_m^2)
+\end{equation}
+
+
+### Code
+
+```
+RW2(s = 1, sd = 1)
+```
+
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_{\eta}^{(m)}$
+
+
+## Autoregressive {#sec:pr-ar}
+
+
+### Model
+
+\begin{equation}
+  \beta_j^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{j-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{j-{K_m}}^{(m)},  \omega_m^2\right), \quad j = K_m + 1, \cdots, J_m.
+\end{equation}
+Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_j^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
+\begin{equation}
+  \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
+\end{equation}
+Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(m)}$ the prior
+\begin{align}
+  \phi_k^{(m)\prime} & \sim \text{Beta}(2, 2) \\
+  \phi_k^{(m)} & =  2 \phi_k^{(m)\prime} - 1.
+\end{align}
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+\end{equation}
+where $p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
+
+### Prediction
+
+\begin{equation}
+  \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{J_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{J_m+h-K_m}^{(m)}, \tau_m^2\right)
+\end{equation}
+
+
+### Code
+
+```
+AR(n = 2, s = 1)
+```
+
+- `n` is $K_m$
+- `s` is $A_{\tau}^{(m)}$
 
 
 ## AR1 {#sec:pr-ar1}
@@ -396,8 +425,7 @@ RW2(s = 1, flat = FALSE)
 
 \begin{align}
   \beta_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \beta_j^{(m)} & = \phi_m \beta_{j-1}^{(m)} + \epsilon_j^{(m)}, \quad j = 2, \cdots, J_m \\
-  \epsilon_j^{(m)} & \sim \text{N}\left(0,  (1 - \phi^2) \tau_m^2\right), \quad j = 2, \cdots, J_m \\
+  \beta_j^{(m)} & \sim \text{N}(\phi_m \beta_{j-1}^{(m)}, (1 - \phi^2) \tau_m^2), \quad j = 2, \cdots, J_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right).
@@ -415,7 +443,7 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
+  \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
 \end{equation}
 
 
@@ -433,41 +461,143 @@ AR1(min = 0.8, max = 0.98, s = 1)
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
 
-## Linear {#sec:pr-lin}
+## Exchangeable Autoregressive {#sec:pr-ear}
+
 
 ### Model
 
+\begin{equation}
+  \beta_{uv}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m; v = V_m + 1, \cdots, V_m.
+\end{equation}
+Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_{uv}^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
+\begin{equation}
+  \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
+\end{equation}
+Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(m)}$ the prior
 \begin{align}
-  \beta_j^{(m)} & = h_j^{(m)} \eta_m + \epsilon_j^{(m)} \\
-   h_j^{(m)} & = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j \\
-  \eta_m & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \epsilon_j^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \phi_k^{(m)\prime} & \sim \text{Beta}(2, 2) \\
+  \phi_k^{(m)} & =  2 \phi_k^{(m)\prime} - 1.
 \end{align}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2})   \text{N}(\eta_m | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \text{N}\left(\beta_j^{(m)} \mid h_j^{(m)} \eta_m, \tau_m^2 \right) 
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
 \end{equation}
-
+where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
 ### Prediction
 
 \begin{equation}
-  \beta_{J_m + h + 1}^{(m)} \sim \text{N}(\beta_{J_m + h}^{(m)} + \tfrac{2}{J_m - 1}\eta_m, \tau_m^2)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
 \end{equation}
 
 
 ### Code
 
 ```
-Lin(sd = NULL, s = 1)
+EAR(n = 2, s = 1, along = NULL)
 ```
 
-- `sd` is $A_{\eta}^{(m)}$. Defaults to 1.
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `n` is $K_m$
+- `s` is $A_{\tau}^{(m)}$
+- `along` is the name of the "along" dimension. If no value given, the algorithm is:
+    - if interaction includes a time dimension, use that;
+    - otherwise, if the interaction includes an age dimension, use that;
+    - otherwise, throw an error.
+
+
+## Exchangeable AR1 {#sec:pr-ear1}
+
+TODO - complete
+
+## Linear {#sec:pr-lin}
+
+### Model
+
+\begin{align}
+  \beta_j^{(m)} & \sim \text{N}(q_j^{(m)} \eta^{(m)}, \tau_m^2) \\
+  \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}
+where
+\begin{equation}
+   q_j^{(m)} = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j
+\end{equation}
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2})   \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \text{N}\left(\beta_j^{(m)} \mid q_j^{(m)} \eta^{(m)}, \tau_m^2 \right) 
+\end{equation}
+
+
+### Prediction
+
+\begin{equation}
+  \beta_{J_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
+\end{equation}
+
+
+### Code
+
+```
+Lin(s = 1, sd = 1)
+```
+
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_{\eta}^{(m)}$
+
+
+## Exchangeable Linear {#sec:pr-elin}
+
+### Model
+
+\begin{align}
+  \beta_{uv}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_c^{(m)}, \tau_m^2) \\
+  \eta_c^{(m)} & \sim \text{N}\left(\eta^{(m)}, \omega^{(m)2}\right) \\
+  \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
+\end{align}
+where
+\begin{equation}
+   q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v
+\end{equation}
+
+### Contribution to posterior density
+
+\begin{equation}
+  \begin{split}
+  & \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\omega_m | 0, A_{\omega}^{(m)2})   \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) \\
+  & \quad \times \prod_{u=1}^{U_m} \text{N}\left(\eta_u^{(m)} \mid 0, \omega_m^2 \right) \\
+  & \quad \times \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right) 
+  \end{split}
+\end{equation}
+
+
+### Prediction
+
+\begin{equation}
+  \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
+\end{equation}
+
+
+### Code
+
+```
+ELin(s = 1, sd = 1, ms = 1, along = NULL)
+```
+
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_{\eta}^{(m)}$
+- `ms` is $A_{\omega}^{(m)}$
+- `along` is the name of the "along" dimension. If no value given, the algorithm is:
+    - if interaction includes a time dimension, use that;
+    - otherwise, if the interaction includes an age dimension, use that;
+    - otherwise, throw an error.
 
 
 ## P-Spline {#sec:pr-spline}
@@ -490,8 +620,8 @@ $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j})
 where
 \begin{align}
   \eta_0^{(m)} & = \frac{1}{K_m} \sum_{k=1}^{K_m} \alpha_k^{(m)} \\
-  \eta_1^{(m)} & = \frac{\sum_{k=1}^{K_m} \alpha_k^{(m)} h_k^{(m)}}{\sum_{k=1}^{K_m} h_k^{(m)2}} \\
-  h_k^{(m)} & = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} j \\
+  \eta_1^{(m)} & = \frac{\sum_{k=1}^{K_m} \alpha_k^{(m)} q_k^{(m)}}{\sum_{k=1}^{K_m} q_k^{(m)2}} \\
+  q_k^{(m)} & = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} j \\
 \end{align}
 
 
@@ -503,7 +633,7 @@ Main effects with a P-Spline prior cannot be predicted.
 ### Code
 
 ```
-Spline(n = NULL, s = 1)
+Sp(n = NULL, s = 1)
 ```
 
 - `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
@@ -516,7 +646,7 @@ Spline(n = NULL, s = 1)
 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}^{(m)} + \pmb{g}^{(m)} \\
-  \alpha_j^{(m)} & \sim \text{N}(0, 1)
+  \alpha_k^{(m)} & \sim \text{N}(0, 1), \quad k^{(m)} = 1, \cdots, K^{(m)}
 \end{align}
 where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
@@ -563,106 +693,69 @@ Known(values)
 - `values` is a vector containing the $\beta_j^{(m)}$.
 
 
-# Priors for intercept {#sec:pr-int}
+## Seasonal effects {#sec:pr-season}
 
-The intercept can be given an fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)). If a fixed-norm prior is used, the default value for scale $A_{\beta}^{(0)}$ is 10 rather than 1.
+### Model
 
-
-# Priors for interactions {#sec:pr-interact}
-
-*Not written yet*
-
-
-# Cyclical effects {#sec:pr-cyclical}
-
-
-approximate abs function: https://math.stackexchange.com/questions/728094/approximate-x-with-a-smooth-function?noredirect=1&lq=1
-
-
-approximate error function: https://stats.stackexchange.com/questions/7200/evaluate-definite-interval-of-normal-distribution/7206#7206
-
-
-
-
-"A cyclic pattern exists when data exhibit rises and falls that are not of fixed period", as opposed to a seasonal pattern that has a fixed period [Hyndman](https://robjhyndman.com/hyndsight/cyclicts/).
-
-
-## Model
-
-Cyclical effects can only be used with a time main effect. The prior for cyclical effects is an AR model, with the number of terms, $K_m$, chosen by the user,
-
-\begin{equation}
-  \chi_j \sim \text{N}\left(\phi_1^{(\chi)} \chi_{j-1} + \cdots + \phi_{K_m}^{(\chi)} \chi_{j-{K_m}},  \omega_{\chi}^2\right), \quad j = K_m + 1, \cdots, J_m.
-\end{equation}
-Internally, TMB derives a value for $\omega_{\chi}$ that gives every term $\chi_j$ the same marginal variance. We denote this marginal variance $\tau_{\chi}^2$, and assign it a prior
-\begin{equation}
-  \tau_{\chi}  \sim \text{N}^+(0, A_{\chi}^2).
-\end{equation}
-Each of the $\phi_k^{(\chi)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(\chi)}$ the prior
 \begin{align}
-  \phi_k^{(\chi)\prime} & \sim \text{Beta}(2, 2) \\
-  \phi_k^{(\chi)} & =  2 \phi_k^{(\chi)\prime} - 1.
+  \beta_j^{(m)} & \sim \text{N}(0, 1), \quad j = 1, \cdots, S_m \\
+  \beta_j^{(m)} & \sim \text{N}(\beta_{j - S_m}^{(m)}, \tau_m^2 ), \quad j = S_m+1, \cdots, J_m \\ 
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
 \end{align}
 
 
-## Contribution to posterior density
+### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_{\chi} | 0, A_{\chi}^2 \right) \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(\chi)\prime} | 2, 2 \right) p\left( \chi_1, \cdots, \chi_{J_m} | \phi_1^{(\chi)}, \cdots, \phi_{K_m}^{(\chi)}, \tau_{\chi} \right) 
-\end{equation}
-where $p\left( \chi_1, \cdots, \chi_{J_m} | \phi_1^{(\chi)}, \cdots, \phi_{K_m}^{(\chi)}, \tau_{\chi} \right)$ is calculated internally by TMB.
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
+\end{equation}n
 
-## Prediction
+### Prediction
 
 \begin{equation}
-  \chi_{J_m + h } \sim \text{N}\left(\phi_1^{(\chi)} \chi_{J_m + h - 1} + \cdots + \phi_{K_m}^{(\chi)} \chi_{J_m + h - {K_m}}, \tau_{\chi}^2\right)
+  \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-S_m}^{(m)}, \tau_m^2)
 \end{equation}
 
-
-## Code
+### Code
 
 ```
-set_cyclical(x, n = 3, s = 1)
+Seas(n, s = 1)
 ```
 
-- `x` is the model object
-- `n` is $K_m$
-- `s` is $A_{\chi}$
+- `n` is $S_m$
+- `s` is $A_{\tau}^{(m)}$
 
+## Exchangeable seasonal {#sec:pr_eseas}
 
-
-# Seasonal effects {#sec:pr-season}
-
-## Model
-
-Seasonal effects are applied to a single main effect or interaction $\pmb{\beta}^{(m)}$. They are modelled by a vector $\pmb{\lambda}$ with $J_m$ elements. Seasonal effects are divided into $S$ batches, corresponding to $S$ seasons, where $2 \le S \le \tfrac{1}{2} J_m$. Each batch of seasonal effects follows a random walk, and there is a soft constrain on the sum across all batches.
+### Model
 
 \begin{align}
-  \lambda_j & \sim \text{N}(\lambda_{j - S}, \tau_{\lambda}^2 ) \\ 
-  \tau_{\lambda} & \sim \text{N}^+\left(0, A_{\lambda}^2 \right) \\
-  \sum_{j=1}^{J_m} \lambda_j & \sim \text{N}(0, 1)
+  \beta_{uv}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
+  \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v - S_m}^{(m)}, \tau_m^2 ), \quad u = 1, \cdots, U_m,\quad v = S_m+1, \cdots, V_m \\ 
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
 \end{align}
 
 
-## Contribution to posterior density
+### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_{\lambda} | 0, A_{\lambda}^2) \text{N}\left( {\textstyle\sum}_{j=1}^{J_m} \lambda_j \mid 0, 1 \right)  \prod_{j=2}^{J_m} \text{N}\left(\lambda_j - \lambda_{j-1} \mid 0, \tau_{\lambda}^2 \right) 
+  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{u=1}^{U_m} \prod_{v=1}^{S_m} \text{N}(\beta_{uv}^{(m)} \mid 0, 1 ) \right)  \left( \prod_{u=1}^{U_M} \prod_{v=S_m+1}^{V_m} \text{N}(\beta_{uv}^{(m)} \mid \beta_{u,v-S_m}^{(m)}, \tau_m^2) \right) 
 \end{equation}
 
-## Prediction
+### Prediction
 
-TODO - write
+\begin{equation}
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-S_m}^{(m)}, \tau_m^2)
+\end{equation}
 
-## Code
+### Code
 
 ```
-set_season(x, n, s = 1)
+ESeas(n, s = 1)
 ```
 
-- `x` is the model object
-- `n` is $S$
-- `s` is $A_{\lambda}$
+- `n` is $S_m$
+- `s` is $A_{\tau}^{(m)}$
 
 
 # Covariates {#sec:pr-cov}
@@ -677,7 +770,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 ### Standard prior
 
 \begin{align}
-  \zeta_p | \varphi & \ind \text{N}(0, \varphi^2) \\
+  \zeta_p | \varphi & \sim \text{N}(0, \varphi^2) \\
   \varphi & \sim \text{N}^+(0, 1)
 \end{align}
 
@@ -687,8 +780,8 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 Regularised horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
-  \zeta_p | \omega_p, \varphi & \ind \text{N}(0, \omega_p^2 \varphi^2) \\
-  \omega_p & \sim \text{Cauchy}^+(0, 1) \\
+  \zeta_p | \vartheta_p, \varphi & \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
+  \vartheta_p & \sim \text{Cauchy}^+(0, 1) \\
   \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
   A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}
 \end{align}
@@ -747,52 +840,29 @@ set_covariates(~ ., data = cov_data, n_coef = 5)
 ```
 
 
-# Priors for dispersion terms
+# Prior for dispersion terms
 
 ## Model
 
-### Poisson
-
+Use exponential distribution, parameterised using mean,
 \begin{equation}
-  p(\xi) = \frac{A_{\xi}}{2 \sqrt{\xi}}e^{-A_{\xi} \sqrt{\xi}} (\#eq:prior-xi-pois)
-\end{equation}
-[@simpson2022priors]
-
-TODO - choice of $A_{\xi}$.
-
-To draw from $p(\xi)$, we use inverse sampling. We have
-\begin{equation}
-  F(\xi) = \int_0^{\xi} \frac{A_{\xi}}{2 \sqrt{\xi}} e^{-A_{\xi} \sqrt{\xi}} = 1 - e^{-A_{\xi} \sqrt{\xi}}.
+  \xi \sim \text{Exp}(\mu_{\xi})
 \end{equation}
 
-Inverting gives
-\begin{equation}
-  F^{-1}(p) = \left(\frac{\log(1 - p)}{A}\right)^2 (\#eq:prior-xi-inv).
-\end{equation}
 
-Drawing $u \sim \text{Unif}(0, 1)$ and plugging the value into \@ref(eq:prior-xi-inv) yields variates with the required distribution.
-
-
-### Binomial
-
-It seems sensible to use the same prior for $\xi$ as we do with the Poisson likelihood, since in both cases, the $\xi^{-1}$ is the number of prior cases. But we need to verify this. I started in Appendix \@ref(app:disp), but got stuck.
-
-
-### Normal
+## Contribution to prior density
 
 \begin{equation}
-  \xi \sim \text{Exp}(A_{\xi})
+  p(\xi) = \frac{1}{\mu_{\xi}} \exp\left(\frac{-\xi}{\mu_{\xi}}\right)
 \end{equation}
-
-[@simpson2022priors]
 
 ## Code
 
 ```
-set_disp(s = 1)
+set_disp(mean = 1)
 ```
 
-- scale is $A_{\xi}$
+- `mean` is $\mu_{\xi}$
 
 
 # Deriving outputs
@@ -826,8 +896,6 @@ Next we convert any transformed hyper-parameters back to the original units, and
 
 Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Section \@ref(sec:lik).
 
-
-
 # Simulation
 
 To generate one set of simulated values, we start with values for exposure, trials, or weights,  $\pmb{w}$, and possibly covariates $\pmb{Z}, then go through the following steps:
@@ -835,7 +903,7 @@ To generate one set of simulated values, we start with values for exposure, tria
 1. Draw values for any parameters in the priors for the $\pmb{\beta}^{(m)}$, $m = 1, \cdots, M$.
 1. Conditional on the values drawn in Step 1, draw values the $\pmb{\beta}^{(m)}$, $m = 0, \cdots, M$.
 1. If the model contains seasonal effects, draw the standard deviation $\kappa_m$, and then the effects $\pmb{\lambda}^{(m)}$.
-1. If the model contains covariates, draw $\varphi$ and $\omega_p$ where necessary, draw coefficient vector $\pmb{\zeta}$.
+1. If the model contains covariates, draw $\varphi$ and $\vartheta_p$ where necessary, draw coefficient vector $\pmb{\zeta}$.
 1. Use values from steps 2--4 to form the linear predictor $\sum_{m=0}^{M} \pmb{X}^{(m)} (\pmb{\beta}^{(m)} + \pmb{\lambda}^{(m)}) + \pmb{Z} \pmb{\zeta}$.
 1. Back-transform the linear predictor, to obtain vector of cell-specific parameters $\pmb{\mu}$.
 1. If the model contains a dispersion parameter $\xi$, draw values from the prior for $\xi$.
@@ -908,6 +976,9 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\xi$   | Dispersion parameter. |
 | $g()$ | Log, logit, or identity function. |
 | $m$ | Index for intercept, main effect, or interaction. $m = 0, \cdots, M$. |
+| $j$ | Index for element of a main effect or interaction. |
+| $u$ | Index for combination of 'by' variables for an interaction. $u = 1, \cdots U_m$. $U_m V_m = J_m$ |
+| $v$ | Index for the 'along' dimension of an interaction. $v = 1, \cdots V_m$. $U_m V_m = J_m$ |
 | $\beta^{(0)}$ | Intercept. |
 | $\pmb{\beta}^{(m)}$ | Main effect or interaction. $m = 1, \cdots, M$.  |
 | $\beta_j^{(m)}$ | $j$th element of $\pmb{\beta}^{(m)}$. $j = 1, \cdots, J_m$. |
@@ -921,25 +992,25 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\alpha_k^{(m)}$ | $k$th element of $\pmb{\alpha}^{(m)}$. $k = 1, \cdots, K_m$. |
 | $\pmb{V}^{(m)}$ | Covariance matrix for multivariate normal prior. |
 | $h_j^{(m)}$ | Linear covariate |
-| $\eta^{(m)}$ | Parameter specific to $m$th main effect or interaction. |
+| $\eta^{(m)}$ | Parameter specific to main effect or interaction $\pmb{\beta}^{(m)}$. |
+| $\eta_u^{(m)}$ | Parameter specific to $u$th combination of 'by' variables in interaction $\pmb{\beta}^{(m)}$. |
 | $A_{\eta}^{(m)}$ | Standard deviation in normal prior for $\eta_m$. |
+| $\omega_m$ | Standard deviation of parameter $\eta_c$ in multivariate priors. |
 | $\phi_m$ | Correlation coefficient in AR1 densities. |
 | $a_{0m}$, $a_{1m}$ | Minimum and maximum values for $\phi_m$. |
 | $\pmb{B}^{(m)}$ | B-spline matrix in P-spline prior. |
 | $\pmb{b}_k^{(m)}$ | B-spline. $k = 1, \cdots, K_m$. |
 | $\pmb{F}^{(m)}$ | Matrix in SVD prior. |
 | $\pmb{g}^{(m)}$ | Offset in SVD prior. |
-| $\pmb{\chi}$ | Cyclical effect. |
-| $\phi_1^{(\chi)}$ | Corelation coefficient in model for cyclical effect |
-| $\phi_2^{(\chi)}$ | Corelation coefficient in model for cyclical effect |
-| $\tau_{\chi}$ | Standard deviation parameter for cyclical effect. |
-| $\pmb{\lambda}$ | Seasonal effect. |
-| $\tau_{\lambda}$ | Standard deviation parameter for seasonal effect. |
+| $\pmb{\beta}_{\text{trend}}$ | Trend effect. |
+| $\pmb{\beta}_{\text{cyc}}$ | Cyclical effect. |
+| $\pmb{\beta}_{\text{seas}}$ | Seasonal effect. |
 | $\varphi$ | Global shrinkage parameter in shrinkage prior. |
 | $A_{\varphi}$ | Scale term in prior for $\varphi$. |
-| $\omega_p$ | Local shrinkage parameter in shrinkage prior. |
+| $\vartheta_p$ | Local shrinkage parameter in shrinkage prior. |
 | $p_0$ | Expected number of non-zero coefficients in $\pmb{\zeta}$. |
 | $\hat{\sigma}$ | Empirical scale estimate in prior for $\varphi$. |
+| $\pi$ | Vector of hyper-parameters |
 
  
 ## SVD prior for age  {#app:svd}
@@ -969,24 +1040,6 @@ Let $\tilde{\pmb{v}}_l$ be a randomly-selected column from $\tilde{\pmb{V}}$. Fr
   \pmb{F} \pmb{z} + \pmb{g}
 \end{equation}
 looks approximately like a randomly-selected column from the original data matrix $\pmb{A}$.
-
-
-## Derivation of prior for dispersion term in binomial model {#app:disp}
-
-
-The Kullback-Liebler divergence $\text{KL}(f_1 || f_0)$ of two beta distributions is
-
-\begin{equation}
-  \log \frac{\Gamma(\alpha_1 + \beta_1) \Gamma(\alpha_0) \Gamma(\beta_0)}{\Gamma(\alpha_0 + \beta_0) \Gamma(\alpha_1) \Gamma(\beta_1)}  + (\alpha_1 - \alpha_0) \left(\psi(\alpha_1) - \psi(\alpha_1 + \beta_1)\right)
-  + (\beta_1 - \beta_0) \left(\psi(\beta_1) - \psi(\alpha_1 + \beta_1)\right) (\#eq:kl-beta) 
-\end{equation}
-https://math.stackexchange.com/questions/257821/kullback-liebler-divergence#comment564291_257821
-
-Using the parameterisation $v = 1 / \xi = \alpha + \beta$, $\mu = \alpha / (\alpha + \beta)$, this becomes
-\begin{equation}
-  \log \frac{\Gamma(v_1) \Gamma(\mu v_0) \Gamma((1 - \mu) v_0)}{\Gamma(v_0) \Gamma(\mu v_1) \Gamma((1 - \mu) v_1)} + (v_1 - v_0) \mu (\psi(\mu v_1) - \psi(v_1)) + (v_1 - v_0) (1 - \mu) (\psi((1-\mu) v_1) - \psi(v_1))
-\end{equation}
-
 
 
 # References
