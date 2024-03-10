@@ -323,7 +323,7 @@ mod_helper <- function(formula, data, n_draw) {
        lengths_effect = lengths_effect,
        terms_effect = terms_effect,
        matrices_along_by = matrices_along_by,
-       scale_disp = 1,
+       mean_disp = 1,
        est = NULL,
        is_fixed = NULL,
        R_prec = NULL,

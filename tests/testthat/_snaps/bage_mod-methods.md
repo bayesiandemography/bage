@@ -12,7 +12,7 @@
               sex ~ NFix()
              time ~ RW()
       
-           dispersion: s=1
+           dispersion: mean=1
              exposure: popn
               var_age: age
         var_sexgender: sex
@@ -33,7 +33,7 @@
               sex ~ NFix()
              time ~ RW()
       
-           dispersion: s=1
+           dispersion: mean=1
              exposure: popn
               var_age: age
         var_sexgender: sex

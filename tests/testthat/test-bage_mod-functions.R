@@ -9,11 +9,11 @@ test_that("'set_disp' works with Poisson", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_identical(mod$scale_disp, 1)
-    mod <- set_disp(mod, s = 0)
-    expect_identical(mod$scale_disp, 0)
-    mod <- set_disp(mod, s = 0.5)
-    expect_identical(mod$scale_disp, 0.5)
+    expect_identical(mod$mean_disp, 1)
+    mod <- set_disp(mod, mean = 0)
+    expect_identical(mod$mean_disp, 0)
+    mod <- set_disp(mod, mean = 0.5)
+    expect_identical(mod$mean_disp, 0.5)
 })
 
 test_that("'set_disp' works with normal", {
@@ -23,10 +23,10 @@ test_that("'set_disp' works with normal", {
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = 1)
-    expect_identical(mod$scale_disp, 1)
-    mod <- set_disp(mod, s = 0.5)
-    expect_identical(mod$scale_disp, 0.5)
-    expect_error(set_disp(mod, s = 0))
+    expect_identical(mod$mean_disp, 1)
+    mod <- set_disp(mod, mean = 0.5)
+    expect_identical(mod$mean_disp, 0.5)
+    expect_error(set_disp(mod, mean = 0))
 })
 
 

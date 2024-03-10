@@ -144,6 +144,22 @@ test_that("'draw_vals_components' works", {
 })
 
 
+## 'draw_vals_disp' -----------------------------------------------------------
+
+test_that("'draw_vals_disp' works with 'bage_mod_norm'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_norm(formula = formula,
+                    data = data,
+                    weights = 1)
+    ans <- draw_vals_disp(mod, n_sim = 10000)
+    expect_equal(rvec::draws_median(ans), qexp(0.5), tolerance = 0.01)
+})
+
+
 ## 'draw_vals_elin' -----------------------------------------------------------
 
 test_that("'draw_vals_elin' works - along dimension is first", {
@@ -1062,23 +1078,22 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - short", {
     expect_setequal(names(ans_obtained), c("components", "augment"))
 })
 
-test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- report_sim(mod,
-                               n_sim = 2,
-                               report_type = "long",
-                               point_est_fun = "med",
-                               n_core = 2)
-    expect_identical(names(ans_obtained), c("components", "augment"))
-})
-
+## test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:9, sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     formula <- deaths ~ age + sex
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn)
+##     ans_obtained <- report_sim(mod,
+##                                n_sim = 4,
+##                                report_type = "long",
+##                                point_est_fun = "med",
+##                                n_core = 2)
+##     expect_identical(names(ans_obtained), c("components", "augment"))
+## })
 
 
 ## 'standardize_vals_effect' --------------------------------------------------

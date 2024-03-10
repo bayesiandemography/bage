@@ -775,7 +775,7 @@ test_that("'make_map' works dispersion is 0", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     ans_obtained <- make_map(mod)
     ans_expected <- list(log_disp = factor(NA))
     expect_identical(ans_obtained, ans_expected)

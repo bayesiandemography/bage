@@ -198,7 +198,7 @@ test_that("'check_has_disp_if_condition_on_meanpar' works", {
                     data = data,
                     exposure = popn)
     expect_true(check_has_disp_if_condition_on_meanpar(mod))
-    mod <- set_disp(mod, s = 0)
+    mod <- set_disp(mod, mean = 0)
     expect_error(check_has_disp_if_condition_on_meanpar(mod),
                  "`condition_on` is \"meanpar\" but model has no dispersion term")
 })

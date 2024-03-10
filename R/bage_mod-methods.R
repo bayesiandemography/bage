@@ -277,42 +277,6 @@ draw_vals_augment.bage_mod_norm <- function(mod, vals_components) {
 }
 
 
-## 'draw_vals_disp' -----------------------------------------------------------
-
-#' Draw values for 'disp' from prior
-#'
-#' @param mod Obejct of class 'bage_mod'
-#' @param n_sim Number of draws
-#'
-#' @returns An rvec
-#'
-#' @noRd
-draw_vals_disp <- function(mod, n_sim) {
-    UseMethod("draw_vals_disp")
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_disp.bage_mod <- function(mod, n_sim) {
-    scale <- mod$scale_disp
-    u <- stats::runif(n = n_sim)
-    ans <- (log(u) / scale)^2 ## log(u) equivalent to log(1-u) when u ~ Unif(0, 1)
-    ans <- matrix(ans, nrow = 1L)
-    ans <- rvec::rvec_dbl(ans)
-    ans
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_disp.bage_mod_norm <- function(mod, n_sim) {
-    scale <- mod$scale_disp
-    ans <- stats::rexp(n = n_sim, rate = scale)
-    ans <- matrix(ans, nrow = 1L)
-    ans <- rvec::rvec_dbl(ans)
-    ans
-}
-
-
 ## 'draw_vals_fitted' ---------------------------------------------------------
 
 #' Draw Values for '.fitted' Variable in 'augment'
@@ -455,8 +419,8 @@ fit.bage_mod <- function(object, ...) {
   uses_indices_priors <- make_uses_indices_priors(object)
   indices_priors <- make_indices_priors(object)
   terms_indices_priors <- make_terms_indices_priors(object)
-  scale_disp <- object$scale_disp
-  has_disp <- scale_disp > 0
+  mean_disp <- object$mean_disp
+  has_disp <- mean_disp > 0
   data <- list(nm_distn = nm_distn,
                outcome = outcome,
                offset = offset,
@@ -479,7 +443,7 @@ fit.bage_mod <- function(object, ...) {
                uses_indices_priors = uses_indices_priors,
                indices_priors = indices_priors,
                terms_indices_priors = terms_indices_priors,
-               scale_disp = scale_disp)
+               mean_disp = mean_disp)
   ## parameters
   effectfree <- make_effectfree(object)
   hyper <- make_hyper(object)
@@ -649,8 +613,8 @@ has_disp <- function(mod) {
 ## HAS_TESTS
 #' @export
 has_disp.bage_mod <- function(mod) {
-    scale_disp <- mod$scale_disp
-    scale_disp > 0L
+    mean_disp <- mod$mean_disp
+    mean_disp > 0L
 }
 
 
@@ -861,7 +825,7 @@ print.bage_mod <- function(x, ...) {
     var_age <- x$var_age
     var_sexgender <- x$var_sexgender
     var_time <- x$var_time
-    scale_disp <- x$scale_disp
+    mean_disp <- x$mean_disp
     is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -875,7 +839,7 @@ print.bage_mod <- function(x, ...) {
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
     str_priors <- paste(str_priors, collapse = "\n")
-    str_disp <- sprintf("% *s: s=%s", nchar_offset, "dispersion", scale_disp)
+    str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
         nm_offset <- nm_offset(x)

@@ -4,15 +4,20 @@
 ## 'set_disp' -----------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set scale parameter for dispersion
+#' Set Mean Parameter for Dispersion
 #'
-#' Specify the scale parameter `s` in the prior
+#' Specify the mean parameter `mean` in the prior
 #' for dispersion.
 #'
+#' The dispersion parameter has an exponential
+#' distribution with mean \eqn{\mu}.
+#'
+#' \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
+#'
 #' In Poisson and binomial models,
-#' `s` can be set to `0`, implying
+#' `mean` can be set to `0`, implying
 #' that the dispersion term is also `0`.
-#' In normal models, `s` must be non-negative.
+#' In normal models, `mean` must be non-negative.
 #'
 #' If the `mod` argument to `set_disp` is
 #' a fitted model, then `set_disp` 'unfits'
@@ -21,9 +26,8 @@
 #' @param mod A `bage_mod` object, typically
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param s Scale term. In Poisson and
-#' binomial models, `s` must be non-negative.
-#' In normal models, `s` must be positive.
+#' @param mean Mean value for the expoential prior.
+#' In Poisson and binomial models, can be set to 0.
 #'
 #' @returns A `bage_mod` object
 #'
@@ -35,16 +39,16 @@
 #'                 data = injuries,
 #'                 exposure = popn)
 #' mod
-#' mod |> set_disp(s = 0.1)
-#' mod |> set_disp(s = 0)
+#' mod |> set_disp(mean = 0.1)
+#' mod |> set_disp(mean = 0)
 #' @export
-set_disp <- function(mod, s) {
+set_disp <- function(mod, mean) {
     check_bage_mod(x = mod, nm_x = "mod")
     nm_distn <- nm_distn(mod)
     zero_ok <- nm_distn %in% c("pois", "binom")
-    check_scale(s, x_arg = "s", zero_ok = zero_ok)
-    scale_disp <- as.double(s)
-    mod$scale_disp <- scale_disp
+    check_scale(mean, x_arg = "mean", zero_ok = zero_ok)
+    mean_disp <- as.double(mean)
+    mod$mean_disp <- mean_disp
     mod <- unfit(mod)
     mod
 }
