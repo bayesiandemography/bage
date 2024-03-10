@@ -48,3 +48,4 @@ LinkingTo:
     RcppEigen
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
+URL: https://bayesiandemography.github.io/bage/
