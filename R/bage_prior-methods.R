@@ -40,6 +40,10 @@ const.bage_prior_compose <- function(prior) {
 #' @param vals_hyperrand Named list with values of hyper-parameters
 #' that can be treated as random effects
 #' @param levels_effect Character vector with labels for effect
+#' @param levels_age Values taken by age
+#' variable (or NULL if no age variable in data)
+#' @param levels_sexgender Values taken by sex/gender
+#' variable (or NULL if no sex/gender variable in data)
 #' @param agesex String. One of "age", "age:sex",
 #' "sex:age" or "other"
 #' @param matrix_along_by Matrix with mapping for along, by dimensions
@@ -52,6 +56,8 @@ draw_vals_effect <- function(prior,
                              vals_hyper,
                              vals_hyperrand,
                              levels_effect,
+                             levels_age,
+                             levels_sexgender,
                              agesex,
                              matrix_along_by,
                              n_sim) {
@@ -64,6 +70,8 @@ draw_vals_effect.bage_prior_ar <- function(prior,
                                            vals_hyper,
                                            vals_hyperrand,
                                            levels_effect,
+                                           levels_age,
+                                           levels_sexgender,
                                            agesex,
                                            matrix_along_by,
                                            n_sim) {
@@ -81,6 +89,8 @@ draw_vals_effect.bage_prior_compose <- function(prior,
                                                 vals_hyper,
                                                 vals_hyperrand,
                                                 levels_effect,
+                                                levels_age,
+                                                levels_sexgender,
                                                 agesex,
                                                 matrix_along_by,
                                                 n_sim) {
@@ -94,12 +104,14 @@ draw_vals_effect.bage_prior_compose <- function(prior,
 ## HAS_TESTS
 #' @export
 draw_vals_effect.bage_prior_ear <- function(prior,
-                                           vals_hyper,
-                                           vals_hyperrand,
-                                           levels_effect,
-                                           agesex,
-                                           matrix_along_by,
-                                           n_sim) {
+                                            vals_hyper,
+                                            vals_hyperrand,
+                                            levels_effect,
+                                            levels_age,
+                                            levels_sexgender,
+                                            agesex,
+                                            matrix_along_by,
+                                            n_sim) {
   coef <- vals_hyper$coef
   sd <- vals_hyper$sd
   n_along <- nrow(matrix_along_by)
@@ -121,6 +133,8 @@ draw_vals_effect.bage_prior_elin <- function(prior,
                                              vals_hyper,
                                              vals_hyperrand,
                                              levels_effect,
+                                             levels_age,
+                                             levels_sexgender,
                                              agesex,
                                              matrix_along_by,
                                              n_sim) {
@@ -138,6 +152,8 @@ draw_vals_effect.bage_prior_erw <- function(prior,
                                             vals_hyper,
                                             vals_hyperrand,
                                             levels_effect,
+                                            levels_age,
+                                            levels_sexgender,
                                             agesex,
                                             matrix_along_by,
                                             n_sim) {
@@ -153,6 +169,8 @@ draw_vals_effect.bage_prior_eseas <- function(prior,
                                               vals_hyper,
                                               vals_hyperrand,
                                               levels_effect,
+                                              levels_age,
+                                              levels_sexgender,
                                               agesex,
                                               matrix_along_by,
                                               n_sim) {
@@ -170,6 +188,8 @@ draw_vals_effect.bage_prior_known <- function(prior,
                                               vals_hyper,
                                               vals_hyperrand,
                                               levels_effect,
+                                              levels_age,
+                                              levels_sexgender,
                                               agesex,
                                               matrix_along_by,
                                               n_sim) {
@@ -187,6 +207,8 @@ draw_vals_effect.bage_prior_lin <- function(prior,
                                             vals_hyper,
                                             vals_hyperrand,
                                             levels_effect,
+                                            levels_age,
+                                            levels_sexgender,
                                             agesex,
                                             matrix_along_by,
                                             n_sim) {
@@ -204,6 +226,8 @@ draw_vals_effect.bage_prior_norm <- function(prior,
                                              vals_hyper,
                                              vals_hyperrand,
                                              levels_effect,
+                                             levels_age,
+                                             levels_sexgender,
                                              agesex,
                                              matrix_along_by,
                                              n_sim) {
@@ -225,6 +249,8 @@ draw_vals_effect.bage_prior_normfixed <- function(prior,
                                                   vals_hyper,
                                                   vals_hyperrand,
                                                   levels_effect,
+                                                  levels_age,
+                                                  levels_sexgender,
                                                   agesex,
                                                   matrix_along_by,
                                                   n_sim) {
@@ -245,6 +271,8 @@ draw_vals_effect.bage_prior_rw <- function(prior,
                                            vals_hyper,
                                            vals_hyperrand,
                                            levels_effect,
+                                           levels_age,
+                                           levels_sexgender,
                                            agesex,
                                            matrix_along_by,
                                            n_sim) {
@@ -259,6 +287,8 @@ draw_vals_effect.bage_prior_rw2 <- function(prior,
                                             vals_hyper,
                                             vals_hyperrand,
                                             levels_effect,
+                                            levels_age,
+                                            levels_sexgender,
                                             agesex,
                                             matrix_along_by,
                                             n_sim) {
@@ -275,6 +305,8 @@ draw_vals_effect.bage_prior_seas <- function(prior,
                                              vals_hyper,
                                              vals_hyperrand,
                                              levels_effect,
+                                             levels_age,
+                                             levels_sexgender,
                                              agesex,
                                              matrix_along_by,
                                              n_sim) {
@@ -291,6 +323,8 @@ draw_vals_effect.bage_prior_spline <- function(prior,
                                                vals_hyper,
                                                vals_hyperrand,
                                                levels_effect,
+                                               levels_age,
+                                               levels_sexgender,
                                                agesex,
                                                matrix_along_by,
                                                n_sim) {
@@ -312,21 +346,25 @@ draw_vals_effect.bage_prior_svd <- function(prior,
                                             vals_hyper,
                                             vals_hyperrand,
                                             levels_effect,
+                                            levels_age,
+                                            levels_sexgender,
                                             agesex,
                                             matrix_along_by,
                                             n_sim) {
   scaled_svd <- prior$specific$scaled_svd
-  indep <- prior$specific$indep
+  joint <- prior$specific$joint
   n_comp <- prior$specific$n
   m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                levels_effect = levels_effect,
-                                indep = indep,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
                                 agesex = agesex,
                                 get_matrix = TRUE,
                                 n_comp = n_comp)
   b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                levels_effect = levels_effect,
-                                indep = indep,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
                                 agesex = agesex,
                                 get_matrix = FALSE,
                                 n_comp = n_comp)
@@ -334,7 +372,8 @@ draw_vals_effect.bage_prior_svd <- function(prior,
   z <- stats::rnorm(n = n_par * n_sim)
   z <- matrix(z, nrow = n_par, ncol = n_sim)
   ans <- m %*% z + b
-  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  colnames(ans) <- seq_len(n_sim)
+  names(dimnames(ans)) <- NULL
   ans    
 }                             
 
@@ -671,6 +710,7 @@ is_known.bage_prior_known <- function(prior) TRUE
 #' @param matrix_along_by Matrix with mapping to along, by dimensions
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #' @param is_in_compose Whether prior is being used as an
 #' argument in a call to a 'compose' function
 #' @param agesex String. One of "age", "age:sex",
@@ -684,20 +724,22 @@ is_prior_ok_for_term <- function(prior,
                                  matrix_along_by,
                                  var_time,
                                  var_age,
+                                 var_sexgender,
                                  is_in_compose,
                                  agesex) {
-    UseMethod("is_prior_ok_for_term")
+  UseMethod("is_prior_ok_for_term")
 }
 
 ## HAS_TESTS
 #' @export
 is_prior_ok_for_term.bage_prior_ar <- function(prior,
-                                               nm,
-                                               matrix_along_by,
-                                               var_time,
-                                               var_age,
-                                               is_in_compose,
-                                               agesex) {
+                                                nm,
+                                                matrix_along_by,
+                                                var_time,
+                                                var_age,
+                                                var_sexgender,
+                                                is_in_compose,
+                                                agesex) {
   check_is_main_effect(nm = nm,
                        prior = prior)
   length_effect <- length(matrix_along_by)
@@ -716,6 +758,7 @@ is_prior_ok_for_term.bage_prior_compose <- function(prior,
                                                     matrix_along_by,
                                                     var_time,
                                                     var_age,
+                                                    var_sexgender,
                                                     is_in_compose,
                                                     agesex) {
   priors <- prior$specific$priors
@@ -749,6 +792,7 @@ is_prior_ok_for_term.bage_prior_ear <- function(prior,
                                                 matrix_along_by,
                                                 var_time,
                                                 var_age,
+                                                var_sexgender,
                                                 is_in_compose,
                                                 agesex) {
   check_is_interaction(nm = nm,
@@ -769,6 +813,7 @@ is_prior_ok_for_term.bage_prior_elin <- function(prior,
                                                  matrix_along_by,
                                                  var_time,
                                                  var_age,
+                                                 var_sexgender,
                                                  is_in_compose,
                                                  agesex) {
   check_is_interaction(nm = nm, prior = prior)
@@ -787,6 +832,7 @@ is_prior_ok_for_term.bage_prior_erw <- function(prior,
                                                 matrix_along_by,
                                                 var_time,
                                                 var_age,
+                                                var_sexgender,
                                                 is_in_compose,
                                                 agesex) {
   check_is_interaction(nm = nm,
@@ -806,6 +852,7 @@ is_prior_ok_for_term.bage_prior_eseas <- function(prior,
                                                   matrix_along_by,
                                                   var_time,
                                                   var_age,
+                                                  var_sexgender,
                                                   is_in_compose,
                                                   agesex) {
   if (!is_in_compose) {
@@ -823,6 +870,7 @@ is_prior_ok_for_term.bage_prior_known <- function(prior,
                                                   matrix_along_by,
                                                   var_time,
                                                   var_age,
+                                                  var_sexgender,
                                                   is_in_compose,
                                                   agesex) {
   values <- prior$specific$values
@@ -844,6 +892,7 @@ is_prior_ok_for_term.bage_prior_lin <- function(prior,
                                                 matrix_along_by,
                                                 var_time,
                                                 var_age,
+                                                var_sexgender, 
                                                 is_in_compose,
                                                 agesex) {
   check_is_main_effect(nm = nm, prior = prior)
@@ -862,6 +911,7 @@ is_prior_ok_for_term.bage_prior_norm <- function(prior,
                                                  matrix_along_by,
                                                  var_time,
                                                  var_age,
+                                                 var_sexgender,
                                                  is_in_compose,
                                                  agesex) {
   length_effect <- length(matrix_along_by)
@@ -879,6 +929,7 @@ is_prior_ok_for_term.bage_prior_normfixed <- function(prior,
                                                       matrix_along_by,
                                                       var_time,
                                                       var_age,
+                                                      var_sexgender,
                                                       is_in_compose,
                                                       agesex) {
   length_effect <- length(matrix_along_by)
@@ -896,6 +947,7 @@ is_prior_ok_for_term.bage_prior_rw <- function(prior,
                                                matrix_along_by,
                                                var_time,
                                                var_age,
+                                               var_sexgender,
                                                is_in_compose,
                                                agesex) {
   check_is_main_effect(nm = nm, prior = prior)
@@ -914,6 +966,7 @@ is_prior_ok_for_term.bage_prior_rw2 <- function(prior,
                                                 matrix_along_by,
                                                 var_time,
                                                 var_age,
+                                                var_sexgender,
                                                 is_in_compose,
                                                 agesex) {
   check_is_main_effect(nm = nm, prior = prior)
@@ -932,6 +985,7 @@ is_prior_ok_for_term.bage_prior_seas <- function(prior,
                                                  matrix_along_by,
                                                  var_time,
                                                  var_age,
+                                                 var_sexgender,
                                                  is_in_compose,
                                                  agesex) {
   if (!is_in_compose) {
@@ -949,6 +1003,7 @@ is_prior_ok_for_term.bage_prior_spline <- function(prior,
                                                    matrix_along_by,
                                                    var_time,
                                                    var_age,
+                                                   var_sexgender,
                                                    is_in_compose,
                                                    agesex) {
   check_is_main_effect(nm = nm, prior = prior)
@@ -967,41 +1022,98 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
                                                 matrix_along_by,
                                                 var_time,
                                                 var_age,
+                                                var_sexgender,
                                                 is_in_compose,
                                                 agesex) {
-  has_agesex <- !is.null(agesex)
   n_dim <- length(strsplit(nm, split = ":")[[1L]])
   str <- str_call_prior(prior)
+  joint <- prior$specific$joint
+  is_svd2 <- !is.null(joint)
   msg1 <- "Problem with {.var {str}} prior for {.var {nm}} term."
-  ## note that 'agesex' is always "other" if n_dim > 2
-  if (!has_agesex && (n_dim == 1L))
+  ## check that 'var_age' has been identified
+  if (is.null(var_age))
     cli::cli_abort(c(msg1,
-                     i = paste("Can't use {.var {str}} prior for main effect when age",
-                               "variable not yet identified."),
-                     i = paste("Please use function {.fun set_var_age} to",
-                               "identify age variable.")))
-  else if (!has_agesex && (n_dim == 2L))
+                     i = "Can't use {.var {str}} prior when age variable not yet identified.",
+                     i = "Use function {.fun set_var_age} to identify age variable?"))
+  ## check that 'agesex' is not "other"
+  if (agesex == "other")
     cli::cli_abort(c(msg1,
-                     i = paste("Can't use {.var {str}} prior for interaction when",
-                               "age or sex/gender variable not yet identified."),
-                     i = paste("Please use function {.fun set_var_age}",
-                               "or {.fun set_var_sexgender} to identify age",
-                               "or sex/gender variables.")))
-  else if (identical(agesex, "other"))
-    cli::cli_abort(c(msg1,
-                     i = paste("{.var {str}} prior can only be used",
-                               "with age main effects or with interactions between",
-                               "age and sex/gender.")))
-  else {
-    length_effect <- length(matrix_along_by)
-    check_length_effect_ge(length_effect = length_effect,
-                           min = 2L,
-                           nm = nm,
-                           prior = prior)
+                     i = "{.var {str}} prior should be used for terms involving age."))
+  ## one dimension - must be age, otherwise 'agesex' would be "other"
+  if (n_dim == 1L) {
+    if (is_svd2)
+      cli::cli_abort(c(msg1,
+                       i = "{.var {str}} prior should be used for interaction between age and sex/gender.",
+                       i = "{.var {nm}} term is an age main effect.",
+                       i = "Use function {.fun SVD} instead?"))
+  }
+  else if (n_dim == 2L) {
+    if (agesex %in% c("age:sex", "sex:age")) {
+      if (!is_svd2)
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for age main effect.",
+                         i = "{.var {nm}} term is an interaction between age and sex/gender.",
+                         i = "Use function {.fun SVD2} prior instead?"))
+    }
+    else if (agesex == "age:other") {
+      if (is_svd2) {
+        if (is.null(var_sexgender))
+          msg3 <- c(i = "sex/gender variable not identified.",
+                    i = "Use function {.fun set_var_sexgender} to identify?")
+        else
+          msg3 <- c(i = "{.var {nm}} term does not involve sex/gender.",
+                    i = "Use function {.fun ESVD} instead?")
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for interaction between age and sex/gender.",
+                         msg3))
+      }
+      else
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for age main effect.",
+                         i = "{.var {nm}} term is an interaction.",
+                         i = "Use function {.fun ESVD} instead?"))
+    }
+    else
+      cli::cli_abort("Internal error: unexpected value for {.var agesex}.")
+  }
+  else { ## n_dim > 2
+    if (agesex %in% c("age:sex:other", "sex:age:other")) {
+      if (is_svd2) {
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for two-way interaction between age and sex/gender.",
+                         i = "{.var {nm}} term involves more than two dimensions.",
+                         i = "Use function {.fun ESVD2} instead?"))
+      }
+      else {
+        n_extra <- n_dim - 2L
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for age main effects.",
+                         i = paste("{.var {nm}} term is an interaction between age, sex/gender,",
+                                   "and other {cli::qty(n_extra)} dimension{?s}."),
+                         i = "Use function {.fun ESVD2} instead?"))
+      }
+    }
+    else if (agesex == "age:other") {
+      if (is_svd2) {
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for interaction between age and sex/gender.",
+                         i = "{.var {nm}} term does not involve sex/gender.",
+                         i = "{.var {nm}} term involves more than two dimensions.",
+                         i = "Use function {.fun ESVD} instead?"))
+      }
+      else {
+        cli::cli_abort(c(msg1,
+                         i = "{.var {str}} prior should be used for age main effect.",
+                         i = "{.var {nm}} term is an interaction.",
+                         i = "Use function {.fun ESVD} instead?"))
+      }
+    }
+    else
+      cli::cli_abort("Internal error: unexpected value for {.var agesex}.")
   }
   invisible(TRUE)
 }
-
+      
 
 ## 'levels_hyper' -------------------------------------------------------------
 
@@ -1174,50 +1286,71 @@ levels_hyperrand.bage_prior_elin <- function(prior, matrix_along_by, levels_effe
 #' @param prior Object of class 'bage_prior'
 #' @param levels_effect Vector of labels for term
 #' @param agesex String. One of "age", "age:sex",
-#' "sex:age" or "other"
+#' "age:other", "age:sex:other", or "other"
+#' @param levels_age Values taken by age
+#' variable (or NULL if no age variable in data)
+#' @param levels_sexgender Values taken by sex/gender
+#' variable (or NULL if no sex/gender variable in data)
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
-make_matrix_effectfree_effect <- function(prior, levels_effect, agesex) {
-    UseMethod("make_matrix_effectfree_effect")
+make_matrix_effectfree_effect <- function(prior,
+                                          levels_effect,
+                                          agesex,
+                                          levels_age,
+                                          levels_sexgender) {
+  UseMethod("make_matrix_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior <- function(prior, levels_effect, agesex) {
-    n <- length(levels_effect)
-    Matrix::.sparseDiagonal(n)
+make_matrix_effectfree_effect.bage_prior <- function(prior,
+                                                     levels_effect,
+                                                     agesex,
+                                                     levels_age,
+                                                     levels_sexgender) {
+  n <- length(levels_effect)
+  Matrix::.sparseDiagonal(n)
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_spline <- function(prior, levels_effect, agesex) {
-    n_spline <- prior$specific$n
-    if (is.null(n_spline)) {
-        n_spline <- 0.7 * length(levels_effect)
-        n_spline <- ceiling(n_spline)
-        n_spline <- max(n_spline, 4L)
-    }
-    length_effect <- length(levels_effect)
-    ans <- make_spline_matrix(n_spline = n_spline,
-                              length_effect = length_effect)
-    rownames(ans) <- levels_effect
-    ans
+make_matrix_effectfree_effect.bage_prior_spline <- function(prior,
+                                                            levels_effect,
+                                                            agesex,
+                                                            levels_age,
+                                                            levels_sexgender) {
+  n_spline <- prior$specific$n
+  if (is.null(n_spline)) {
+    n_spline <- 0.7 * length(levels_effect)
+    n_spline <- ceiling(n_spline)
+    n_spline <- max(n_spline, 4L)
+  }
+  length_effect <- length(levels_effect)
+  ans <- make_spline_matrix(n_spline = n_spline,
+                            length_effect = length_effect)
+  rownames(ans) <- levels_effect
+  ans
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, agesex) {
-    scaled_svd <- prior$specific$scaled_svd
-    indep <- prior$specific$indep
-    n_comp <- prior$specific$n
-    get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                             levels_effect = levels_effect,
-                             indep = indep,
-                             agesex = agesex,
-                             get_matrix = TRUE,
-                             n_comp = n_comp)
+make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
+                                                         levels_effect,
+                                                         agesex,
+                                                         levels_age,
+                                                         levels_sexgender) {
+  scaled_svd <- prior$specific$scaled_svd
+  joint <- prior$specific$joint
+  n_comp <- prior$specific$n
+  get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                           levels_age,
+                           levels_sexgender,
+                           joint = joint,
+                           agesex = agesex,
+                           get_matrix = TRUE,
+                           n_comp = n_comp)
 }                             
 
     
@@ -1231,33 +1364,52 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, a
 #' full parameter vectors
 #' 
 #' @param prior Object of class 'bage_prior'
-#' @param ... Other arguments
+#' @param levels_effect Vector of labels for term
+#' @param agesex String. One of "age", "age:sex",
+#' "age:other", "age:sex:other", or "other"
+#' @param levels_age Values taken by age
+#' variable (or NULL if no age variable in data)
+#' @param levels_sexgender Values taken by sex/gender
+#' variable (or NULL if no sex/gender variable in data)
 #'
 #' @returns A vector.
 #'
 #' @noRd
-make_offset_effectfree_effect <- function(prior, levels_effect, agesex) {
+make_offset_effectfree_effect <- function(prior,
+                                          levels_effect,
+                                          agesex,
+                                          levels_age,
+                                          levels_sexgender) {
     UseMethod("make_offset_effectfree_effect")
 }
 
 ## HAS_TESTS
 #' @export
-make_offset_effectfree_effect.bage_prior <- function(prior, levels_effect, agesex) {
+make_offset_effectfree_effect.bage_prior <- function(prior,
+                                                     levels_effect,
+                                                     agesex,
+                                                     levels_age,
+                                                     levels_sexgender) {
   n <- length(levels_effect)
   rep.int(0, times = n)
 }
 
 ## HAS_TESTS
 #' @export
-make_offset_effectfree_effect.bage_prior_svd <- function(prior, levels_effect, agesex) {
-    scaled_svd <- prior$specific$scaled_svd
-    indep <- prior$specific$indep
-    matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                       levels_effect = levels_effect,
-                                       indep = indep,
-                                       agesex = agesex,
-                                       get_matrix = FALSE,
-                                       n_comp = NULL)
+make_offset_effectfree_effect.bage_prior_svd <- function(prior,
+                                                         levels_effect,
+                                                         agesex,
+                                                         levels_age,
+                                                         levels_sexgender) {
+  scaled_svd <- prior$specific$scaled_svd
+  joint <- prior$specific$joint
+  matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                     levels_age,
+                                     levels_sexgender,
+                                     joint = joint,
+                                     agesex = agesex,
+                                     get_matrix = FALSE,
+                                     n_comp = NULL)
 }
 
 
@@ -1629,16 +1781,17 @@ str_call_prior.bage_prior_spline <- function(prior) {
 str_call_prior.bage_prior_svd <- function(prior) {
   nm_scaled_svd <- prior$specific$nm_scaled_svd
   n <- prior$specific$n
-  indep <- prior$specific$indep
+  joint <- prior$specific$joint
   args <- character(3L)
+  fun <- if (is.null(joint)) "SVD" else "SVD2"
   args[[1L]] <- nm_scaled_svd
   if (n != 5)
     args[[2L]] <- sprintf("n=%s", n)
-  if (!indep)
-    args[[3L]] <- "indep=FALSE"
+  if (!is.null(joint) && joint)
+    args[[3L]] <- "joint=TRUE"
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("SVD(%s)", args)
+  sprintf("%s(%s)", fun, args)
 }
 
 

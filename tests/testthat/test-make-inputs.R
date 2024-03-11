@@ -328,24 +328,24 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
 ## 'make_agesex' --------------------------------------------------------------
 
 test_that("'make_agesex' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:9,
-                        time = 2000:2005,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + region
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_agesex(mod)
-    ans_expected <- list("(Intercept)" = "other",
-                         agegp = "age",
-                         SEX = "other",
-                         region = "other",
-                         "agegp:SEX" = "age:sex")
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(agegp = 0:9,
+                      time = 2000:2005,
+                      region = 1:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_agesex(mod)
+  ans_expected <- list("(Intercept)" = "other",
+                       agegp = "age",
+                       SEX = "other",
+                       region = "other",
+                       "agegp:SEX" = "age:sex")
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -359,7 +359,7 @@ test_that("'make_agesex_inner' works with valid inputs", {
     expect_identical(make_agesex_inner("agegroup",
                                        var_age = NULL,
                                        var_sexgender = "gender"),
-                     NULL)
+                     "other")
     expect_identical(make_agesex_inner("(Intercept)",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
@@ -368,22 +368,30 @@ test_that("'make_agesex_inner' works with valid inputs", {
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
                      "age:sex")
-    expect_identical(make_agesex_inner("agegroup:gender",
-                                       var_age = "agegroup",
-                                       var_sexgender = NULL),
-                     NULL)
     expect_identical(make_agesex_inner("gender:agegroup",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
                      "sex:age")
+    expect_identical(make_agesex_inner("agegroup:gender",
+                                       var_age = "agegroup",
+                                       var_sexgender = NULL),
+                     "age:other")
+    expect_identical(make_agesex_inner("gender:agegroup:reg",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "sex:age:other")
     expect_identical(make_agesex_inner("region:agegroup",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
-                     "other")
+                     "age:other")
     expect_identical(make_agesex_inner("gender:agegroup:region",
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
-                     "other")
+                     "sex:age:other")
+    expect_identical(make_agesex_inner("agegroup:gender:region",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "age:sex:other")
     expect_identical(make_agesex_inner("gender:agegroup:region",
                                        var_age = NULL,
                                        var_sexgender = NULL),
@@ -658,6 +666,39 @@ test_that("'make_lengths_hyperrand' works with valid inputs", {
 })
 
 
+## 'make_levels_age' ----------------------------------------------------------
+
+test_that("'make_levels_age' works when data has age variable", {
+  set.seed(0)
+  data <- expand.grid(age = c("infant", "1 to 4", "5-9", "10 plus"),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age * sex + time,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_levels_age(mod)
+  ans_expected <- unique(data$age)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_age' works when data has no age variable", {
+  set.seed(0)
+  data <- expand.grid(bla = c("infant", "1 to 4", "5-9", "10 plus"),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ bla * sex + time,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_levels_age(mod)
+  ans_expected <- NULL
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_levels_effect' ----------------------------------------------------------
 
 test_that("'make_levels_effect' works with valid inputs - pois, complete levels", {
@@ -713,6 +754,39 @@ test_that("'make_levels_effect' works with valid inputs - norm", {
                             rep(c("F", "M"), each = 10),
                             sep = "."))
     expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_levels_sexgender' ----------------------------------------------------------
+
+test_that("'make_levels_sexgender' works when data has sexgender variable", {
+  set.seed(0)
+  data <- expand.grid(age = c("infant", "1 to 4", "5-9", "10 plus"),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age * sex + time,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_levels_sexgender(mod)
+  ans_expected <- unique(data$sex)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_sexgender' works when data has no sexgender variable", {
+  set.seed(0)
+  data <- expand.grid(age = c("infant", "1 to 4", "5-9", "10 plus"),
+                      time = 2000:2005,
+                      bla = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age * bla + time,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_levels_sexgender(mod)
+  ans_expected <- NULL
+  expect_identical(ans_obtained, ans_expected)
 })
 
 

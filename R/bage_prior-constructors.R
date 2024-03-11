@@ -939,27 +939,74 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 ## 'bage_prior_svd' only ever created by call to 'set_prior' function
 
 ## HAS_TESTS
-#' SVD prior
+#' SVD Prior
 #'
-#' Specify a scaled SVD (singular value decomposition)
-#' prior for an age variable, or a combination
-#' of age and sex/gender variables.
+#' Specify a Singular Value Decomposition (SVD) prior
+#' for an age main effect.
 #'
-#' @param scaled_svd An object created by [scaled_svd()]
-#' holding scaled values from a SVD of
-#' age-specific rates, probabilities, or means.
+#' An SVD prior assumes that the age profile for the quantity
+#' being modelled looks like an age profile drawn at random
+#' from an external demographic database. For instance,
+#' ```
+#' set_prior(mod, age ~ SVD(HMD))
+#' ```
+#' specifies that the quantity being modelled in `mod`
+#' has an age profile that looks like it was drawn from the
+#' [Human Mortality Database](https://www.mortality.org).
+#' A Singular Value Decomposition is closely related
+#' to a Principal Components analysis, and is a way of
+#' extracting patterns from large volumes of data.
+#'
+#' @section Mathematical details:
+#' 
+#' Under an SVD prior,
+#' 
+#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
+#'
+#' where
+#' 
+#' - \eqn{\pmb{\beta}} is the age effect with \eqn{J} elements;
+#' - \eqn{\pmb{X}} is a known \eqn{J \times K} matrix, with \eqn{K} much
+#'   smaller than \eqn{J};
+#' - \eqn{\pmb{\alpha}} is a vector with \eqn{K} elements; and
+#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements.
+#'
+#' The elements of \eqn{\pmb{\alpha}} have prior
+#' 
+#' \deqn{\alpha_i \sim \text{N}(0, 1), \quad i = 1, \cdots, K}
+#' 
+#' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
+#' a large database of age-specific demographic estimates
+#' by preforming an SVD and then extracting means and variances.
+#' For details see TODO - REFERENCE TO VIGNETTE.
+#'
+#' @section Scaled SVDs in bage:
+#'
+#' - \code{\link{HMD}} Values from the
+#' [Human Mortality Database](https://www.mortality.org).
+#' - TODO - add others
+#'
+#' @param scaled_svd An object created by [scaled_svd()],
+#' holding scaled values from an SVD of age-specific values.
 #' @param n Number of components from scaled SVD
 #' to use in modelling. Must be between 1 and 10.
-#' Default is 10.
-#' @param indep Whether, in an interaction,
-#' age profiles for different
-#' sexes/genders are modelled independently.
-#' See description in Details. Default is `TRUE`.
+#' Default is 5.
 #'
 #' @returns An object of class `"bage_prior_svd"`.
 #'
+#' @seealso
+#' - [set_prior()] to specify the prior for a model
+#' - [SVD2()] Two-sex version of `SVD()`
+#' - [ESVD()] Exchangeable SVD prior for interactions
+#' - [ESVD()] Exchangeable two-sex SVD prior
+#'   for interactions
+#' - XXX to create a new scaled SVD.
+#'
+#' @examples
+#' SVD(HMD)
+#' SVD(HMD, n = 3)
 #' @export
-SVD <- function(scaled_svd, n = 5, indep = TRUE) {
+SVD <- function(scaled_svd, n = 5) {
     nm_scaled_svd <- deparse1(substitute(scaled_svd))
     if (!inherits(scaled_svd, "bage_scaled_svd"))
         cli::cli_abort(c("{.arg scaled_svd} does not hold scaled SVD values.",
@@ -971,11 +1018,122 @@ SVD <- function(scaled_svd, n = 5, indep = TRUE) {
             max = 10L,
             null_ok = FALSE)
     n <- as.integer(n)
-    check_flag(indep)
     new_bage_prior_svd(scaled_svd = scaled_svd,
                        nm_scaled_svd = nm_scaled_svd,
                        n = n,
-                       indep = indep)
+                       joint = NULL)
+}
+
+
+## HAS_TESTS
+#' Two-Sex SVD prior
+#'
+#' Specify a Singular Value Decomposition (SVD) prior
+#' for an age-sex interaction involving two sexes
+#'
+#' A sex-specific SVD prior assumes that age-sex-profile
+#' for the quantity being modelled looks like
+#' an age-sex profile drawn at random
+#' from an external demographic database. For instance,
+#' ```
+#' set_prior(mod, age:sex ~ SVD2(HMD))
+#' ```
+#' specifies that the quantity being modelled in `mod`
+#' has an age-sex profile that looks like it was drawn from the
+#' [Human Mortality Database](https://www.mortality.org).
+#' A Singular Value Decomposition is closely related
+#' to a Principal Components analysis, and is a way of
+#' extracting patterns from large volumes of data.
+#'
+#' @section Joint or independent SVDs:
+#'
+#' To possible ways of extracting patterns
+#' from age-sex-specific data are
+#'
+#' 1. carry out a SVD on dataset for females, and a separate
+#'    SVD on a dataset for males; or
+#' 1. carry out a single SVD on dataset that combines data for
+#'    females and data for males.
+#'
+#' Option 1 is more flexible. Option 2 is
+#' more robust to sampling or measurement errors.
+#' Option 1 is obtained by setting the `joint`
+#' argument in `SVD2()` to `FALSE`. Option 2
+#' is obtained by setting the
+#' `joint` argument to `TRUE`.
+#' The default is `FALSE`.
+#'
+#' @section Mathematical details:
+#' 
+#' When `joint` is `FALSE`,
+#' 
+#' \deqn{\pmb{\beta}_{\text{F}} = \pmb{F}_{\text{F}} \pmb{\alpha}_{\text{F}} + \pmb{g}_{\text{F}}}
+#' \deqn{\pmb{\beta}_{\text{M}} = \pmb{F}_{\text{M}} \pmb{\alpha}_{\text{M}} + \pmb{g}_{\text{M}}}
+#'
+#' and when `joint` is `TRUE`,
+#'
+#' \deqn{\pmb{\beta}_{\text{FM}} = \pmb{F}_{\text{FM}} \pmb{\alpha}_{\text{FM}} + \pmb{g}_{\text{FM}}}
+#' where
+#' 
+#' - \eqn{\pmb{\beta}_{\text{F}}} is a vector with \eqn{J/2} elements, specifying the age profile for females;
+#' - \eqn{\pmb{\beta}_{\text{M}}} is a vector with \eqn{J/2} elements, specifying the age profile for males;
+#' - \eqn{\pmb{\beta}_{\text{FM}}} is a vector with \eqn{J} elements, specifying the age profile for females, followed by the age profile for males;
+#' - \eqn{\pmb{X}_{\text{F}}} is a known \eqn{J/2 \times K} matrix, estimated from data for females;
+#' - \eqn{\pmb{X}_{\text{M}}} is a known \eqn{J/2 \times K} matrix, estimated from data for males;
+#' - \eqn{\pmb{X}_{\text{FM}}} is a known \eqn{J \times K} matrix, estimated from data for females and males;
+#' - \eqn{\pmb{\alpha}_{\text{F}}}, \eqn{\pmb{\alpha}_{\text{M}}} and \eqn{\pmb{\alpha}_{\text{FM}}} are vectors with \eqn{K} elements;
+#' - \eqn{\pmb{g}_{\text{F}}} is a known vector with \eqn{J/2} elements, estimated from data for females;
+#' - \eqn{\pmb{g}_{\text{M}}} is a known vector with \eqn{J/2} elements, estimated from data for females; and
+#' - \eqn{\pmb{g}_{\text{FM}}} is a known vector with \eqn{J} elements, estimated from data for females and males.
+#'
+#' The elements of \eqn{\pmb{\alpha}_{\text{F}}}, \eqn{\pmb{\alpha}_{\text{M}}}, and \eqn{\pmb{\alpha}_{\text{FM}}} have prior
+#' 
+#' \deqn{\alpha_i \sim \text{N}(0, 1), \quad i = 1, \cdots, K}
+#' 
+#' For a description of the construction of \eqn{\pmb{F}_{\text{F}}},
+#' \eqn{\pmb{F}_{\text{M}}}, \eqn{\pmb{F}_{\text{FM}}},
+#' \eqn{\pmb{g}_{\text{F}}}, \eqn{\pmb{g}_{\text{M}}},
+#' and \eqn{\pmb{g}_{\text{FM}}}, see TODO - REFERENCE TO VIGNETTE.
+#'
+#' @inheritSection SVD Scaled SVDs in bage
+#'
+#' @inheritParams SVD
+#' @param joint If `TRUE`, use a SVD calculated for
+#' females and males jointly. If `FALSE`, use one SVD
+#' for females, and a separate one for males. 
+#' See below for details. Default is `FALSE`.
+#'
+#' @returns An object of class `"bage_prior_svd"`.
+#'
+#' @seealso
+#' - [set_prior()] to specify the prior for a model
+#' - [SVD()] Combined-sexes version of `SVD2()`
+#' - [ESVD()] Exchangeable SVD prior for interactions
+#' - [ESVD2()] Exchangeable two-sex SVD prior
+#'   for interactions
+#' - XXX to create a new scaled SVD.
+#'
+#' @examples
+#' SVD2(HMD)
+#' SVD2(HMD, joint = TRUE)
+#' @export
+SVD2 <- function(scaled_svd, n = 5, joint = FALSE) {
+    nm_scaled_svd <- deparse1(substitute(scaled_svd))
+    if (!inherits(scaled_svd, "bage_scaled_svd"))
+        cli::cli_abort(c("{.arg scaled_svd} does not hold scaled SVD values.",
+                         i = "{.arg scaled_svd} has class {.cls {class(scaled_svd)}}.",
+                         i = "{.arg scaled_svd} should have class {.cls bage_scaled_svd}."))
+    check_n(n,
+            nm_n = "n",
+            min = 1L,
+            max = 10L,
+            null_ok = FALSE)
+    n <- as.integer(n)
+    check_flag(joint)
+    new_bage_prior_svd(scaled_svd = scaled_svd,
+                       nm_scaled_svd = nm_scaled_svd,
+                       n = n,
+                       joint = joint)
 }
 
 
@@ -1169,13 +1327,13 @@ new_bage_prior_spline <- function(n, scale, sd_slope) {
 }
 
 ## HAS_TESTS
-new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, indep) {
+new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, joint) {
     ans <- list(i_prior = 7L,
                 const = 0, ## not used
                 specific = list(scaled_svd = scaled_svd,
                                 nm_scaled_svd = nm_scaled_svd,
                                 n = n,
-                                indep = indep))
+                                joint = joint))
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans
 }

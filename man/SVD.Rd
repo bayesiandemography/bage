@@ -2,29 +2,86 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{SVD}
 \alias{SVD}
-\title{SVD prior}
+\title{SVD Prior}
 \usage{
-SVD(scaled_svd, n = 5, indep = TRUE)
+SVD(scaled_svd, n = 5)
 }
 \arguments{
-\item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}}
-holding scaled values from a SVD of
-age-specific rates, probabilities, or means.}
+\item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
+holding scaled values from an SVD of age-specific values.}
 
 \item{n}{Number of components from scaled SVD
 to use in modelling. Must be between 1 and 10.
-Default is 10.}
-
-\item{indep}{Whether, in an interaction,
-age profiles for different
-sexes/genders are modelled independently.
-See description in Details. Default is \code{TRUE}.}
+Default is 5.}
 }
 \value{
 An object of class \code{"bage_prior_svd"}.
 }
 \description{
-Specify a scaled SVD (singular value decomposition)
-prior for an age variable, or a combination
-of age and sex/gender variables.
+Specify a Singular Value Decomposition (SVD) prior
+for an age main effect.
+}
+\details{
+An SVD prior assumes that the age profile for the quantity
+being modelled looks like an age profile drawn at random
+from an external demographic database. For instance,
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{set_prior(mod, age ~ SVD(HMD))
+}\if{html}{\out{</div>}}
+
+specifies that the quantity being modelled in \code{mod}
+has an age profile that looks like it was drawn from the
+\href{https://www.mortality.org}{Human Mortality Database}.
+A Singular Value Decomposition is closely related
+to a Principal Components analysis, and is a way of
+extracting patterns from large volumes of data.
+}
+\section{Mathematical details}{
+
+
+Under an SVD prior,
+
+\deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
+
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is the age effect with \eqn{J} elements;
+\item \eqn{\pmb{X}} is a known \eqn{J \times K} matrix, with \eqn{K} much
+smaller than \eqn{J};
+\item \eqn{\pmb{\alpha}} is a vector with \eqn{K} elements; and
+\item \eqn{\pmb{g}} is a known vector with \eqn{J} elements.
+}
+
+The elements of \eqn{\pmb{\alpha}} have prior
+
+\deqn{\alpha_i \sim \text{N}(0, 1), \quad i = 1, \cdots, K}
+
+\eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
+a large database of age-specific demographic estimates
+by preforming an SVD and then extracting means and variances.
+For details see TODO - REFERENCE TO VIGNETTE.
+}
+
+\section{Scaled SVDs in bage}{
+
+\itemize{
+\item \code{\link{HMD}} Values from the
+\href{https://www.mortality.org}{Human Mortality Database}.
+\item TODO - add others
+}
+}
+
+\examples{
+SVD(HMD)
+SVD(HMD, n = 3)
+}
+\seealso{
+\itemize{
+\item \code{\link[=set_prior]{set_prior()}} to specify the prior for a model
+\item \code{\link[=SVD2]{SVD2()}} Two-sex version of \code{SVD()}
+\item \code{\link[=ESVD]{ESVD()}} Exchangeable SVD prior for interactions
+\item \code{\link[=ESVD]{ESVD()}} Exchangeable two-sex SVD prior
+for interactions
+\item XXX to create a new scaled SVD.
+}
 }

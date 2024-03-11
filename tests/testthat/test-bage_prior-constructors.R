@@ -165,14 +165,29 @@ test_that("'SVD' works with valid inputs", {
     expect_identical(SVD(HMD),
                      new_bage_prior_svd(HMD,
                                         nm_scaled_svd = "HMD",
-                                        indep = TRUE,
+                                        joint = NULL,
                                         n = 5L))
-    expect_identical(SVD(HMD, indep = FALSE, n = 3),
+    expect_identical(SVD(HMD, n = 3),
                      new_bage_prior_svd(HMD,
                                         nm_scaled_svd = "HMD",
-                                        indep = FALSE,
+                                        joint = NULL,
                                         n = 3L))
     expect_error(SVD(NULL),
+                 "`scaled_svd` does not hold scaled SVD values.")
+})
+
+test_that("'SVD2' works with valid inputs", {
+    expect_identical(SVD2(HMD),
+                     new_bage_prior_svd(HMD,
+                                        nm_scaled_svd = "HMD",
+                                        joint = FALSE,
+                                        n = 5L))
+    expect_identical(SVD2(HMD, joint = TRUE, n = 3),
+                     new_bage_prior_svd(HMD,
+                                        nm_scaled_svd = "HMD",
+                                        joint = TRUE,
+                                        n = 3L))
+    expect_error(SVD2(NULL),
                  "`scaled_svd` does not hold scaled SVD values.")
 })
 
@@ -382,7 +397,7 @@ test_that("'new_bage_prior_svd' works", {
     obj <- new_bage_prior_svd(HMD,
                               nm_scaled_svd = "HMD",
                               n = 3L,
-                              indep = TRUE)
+                              joint = NULL)
     expect_s3_class(obj, "bage_prior_svd")
     expect_s3_class(obj, "bage_prior")
     expect_identical(obj$i_prior, 7L)
@@ -391,5 +406,18 @@ test_that("'new_bage_prior_svd' works", {
                      list(scaled_svd = HMD,
                           nm_scaled_svd = "HMD",
                           n = 3L,
-                          indep = TRUE))
+                          joint = NULL))
+    obj <- new_bage_prior_svd(HMD,
+                              nm_scaled_svd = "HMD",
+                              n = 3L,
+                              joint = TRUE)
+    expect_s3_class(obj, "bage_prior_svd")
+    expect_s3_class(obj, "bage_prior")
+    expect_identical(obj$i_prior, 7L)
+    expect_identical(obj$const, 0)
+    expect_identical(obj$specific,
+                     list(scaled_svd = HMD,
+                          nm_scaled_svd = "HMD",
+                          n = 3L,
+                          joint = TRUE))
 })

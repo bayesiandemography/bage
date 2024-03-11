@@ -6,13 +6,12 @@
 #' Extract a matrix or offset from a 'bage_scaled_svd' object
 #'
 #' @param scaled_svd Object of class 'bage_scaled_svd'
-#' @param levels_effect Labels for an age main effect or
-#' interaction between age and sex/gender
-#' @param indep Whether SVDs for sexes/genders were
+#' @param joint Whether SVDs for sexes/genders were
 #' carried out jointly or separately
 #' @param agesex String describing age main effect
 #' or age-sex/gender interaction. One of
-#' "age", "age:sex", "sex:age", "other".
+#' "age", "age:sex", "sex:ag", "age:other",
+#' "age:sex:other", "sex:age:other", "other".
 #' @param get_matrix Whether to return matrix
 #' or offset
 #' @param n_comp Number of components of matrix
@@ -22,84 +21,102 @@
 #'
 #' @noRd
 get_matrix_or_offset_svd <- function(scaled_svd,
-                                     levels_effect,
-                                     indep,
+                                     levels_age,
+                                     levels_sexgender,
+                                     joint,
                                      agesex,
                                      get_matrix,
                                      n_comp) {
-    n_comp_max <- 10L
-    data <- scaled_svd$data
-    type <- data$type
-    labels_age <- data$labels_age
-    labels_sexgender <- data$labels_sexgender
-    ## determine type of SVD required
-    if (identical(agesex, "age"))
-        type_req <- "total"
-    else if ((agesex %in% c("age:sex", "sex:age")) && !indep)
-        type_req <- "joint"
-    else if ((agesex %in% c("age:sex", "sex:age")) && indep)
-        type_req <- "indep"
+  n_comp_max <- 10L
+  data <- scaled_svd$data
+  type <- data$type
+  labels_age <- data$labels_age
+  labels_sexgender <- data$labels_sexgender
+  ## determine type of SVD required
+  if (agesex %in% c("age", "age:other"))
+    type_req <- "total"
+  else if (agesex %in% c("age:sex", "sex:age",
+                         "age:sex:other", "sex:age:other")) {
+    type_req <- if (joint) "joint" else "indep"
+  }
+  else
+    cli::cli_abort("Internal error: unexpected value for {.var agesex}.") ## nocov
+  ## find matched age labels
+  is_type_req <- type == type_req
+  labels_age_type <- labels_age[is_type_req]
+  labels_age_clean <- tryCatch(poputils::reformat_age(levels_age, factor = FALSE),
+                               error = function(e) e)
+  if (inherits(labels_age_clean, "error"))
+    cli::cli_abort(c("Unable to parse age labels when processing SVD prior.",
+                     i = labels_age_clean$message))
+  is_matched <- vapply(labels_age_type,
+                       setequal,
+                       TRUE,
+                       y = labels_age_clean)
+  if (!any(is_matched))
+    cli::cli_abort(c(paste("Unable to align age labels from {.arg data} with",
+                           "age labels from {.arg scaled_svd}."),
+                     i = "Age labels from {.arg data} before re-formatting: {levels_age}.",
+                     i = "Age labels from {.arg data} after re-formatting: {labels_age_clean}."))
+  i_matched <- which(is_matched)
+  ## if sex/gender present, make sure that sex/gender labels match
+  if (type_req %in% c("joint", "indep")) {
+    labels_sexgender_clean <- tryCatch(poputils::reformat_sex(levels_sexgender, factor = FALSE),
+                                       error = function(e) e)
+    if (inherits(labels_sexgender_clean, "error"))
+      cli::cli_abort(c("Unable to parse sex/gender labels when processing SVD prior.",
+                       i = labels_sexgender_clean$message))
+    labels_sexgender_type <- labels_sexgender[is_type_req][[i_matched]]
+    if (!setequal(labels_sexgender_type, labels_sexgender_clean))
+      cli::cli_abort(c(paste("Unable to align sex/gender labels from {.arg data} with",
+                             "sex/gender labels from {.arg scaled_svd}."),
+                       i = paste("Sex/gender labels from {.arg data} before re-formatting:",
+                                 "{levels_sexgender}."),
+                       i = paste("Sex/gender labels from {.arg data} after re-formatting:",
+                                 "{labels_sexgender_clean}."),
+                       i = paste("Sex/gender labels from {.arg scaled_svd}:",
+                                 "{unique(labels_sexgender_type)}.")))
+  }
+  ## extract matrix or offset
+  if (get_matrix) {
+    ans <- data$matrix[is_type_req][[i_matched]]
+    cols <- seq_len(n_comp)
+    if (type_req == "indep") {
+      cols_extra <- seq.int(from = 0,
+                            by = n_comp_max,
+                            length.out = ncol(ans) %/% n_comp_max)
+      cols_extra <- rep(cols_extra, each = n_comp)
+      cols <- cols + cols_extra
+    }
+    ans <- ans[, cols, drop = FALSE]
+    nms_ans <- rownames(ans)
+  }
+  else {
+    ans <- data$offset[is_type_req][[i_matched]]
+    nms_ans <- names(ans)
+  }
+  ## align matrix/offset to term
+  if (type_req == "total")
+    i <- match(labels_age_clean, nms_ans)
+  else {
+    age_varies_fastest <- grepl("^age", agesex)
+    n_age <- length(labels_age_clean)
+    n_sexgender <- length(labels_sexgender_clean)
+    if (age_varies_fastest)
+      labels_clean <- paste(rep(labels_sexgender_clean, each = n_age),
+                            labels_age_clean,
+                            sep = ".")
     else
-        cli::cli_abort(paste("Internal error: unexpected combination of",  ## nocov
-                             "{.var agesex} and {.var indep}."))           ## nocov
-    ## get labels that are in same format as 'levels_effect'
-    is_type_req <- type == type_req
-    if (identical(type_req, "total"))
-        labels_all <- labels_age[is_type_req]
-    else {
-        is_age_first <- identical(agesex, "age:sex")
-        if (is_age_first)
-            dots <- list(x = labels_age, y = labels_sexgender)
-        else
-            dots <- list(x = labels_sexgender, y = labels_age)
-        dots <- lapply(dots, "[", is_type_req)
-        labels_all <- .mapply(function(x, y) paste(x, y, sep = "."),
-                              dots = dots,
-                              MoreArgs = list())
-    }
-    ## find matched labels
-    is_matched_labels <- FALSE
-    for (i_all in seq_along(labels_all)) {
-        labels <- labels_all[[i_all]]
-        is_matched_labels <- setequal(labels, levels_effect)
-        if (is_matched_labels) {
-            labels_matched <- labels
-            break
-        }
-    }
-    if (!is_matched_labels) {
-        if (type_req == "total")
-            msg <- c(paste("Labels for age main effect not consistent",
-                           "with labels for age in {.var scaled_svd}."),
-                     i = "Labels for age main effect: {.val {levels_effect}}.")
-        else
-            msg <- c(paste("Labels for interaction between age and sex/gender",
-                           "not consistent with labels for age and sex/gender in",
-                           "{.var scaled_svd}."),
-                     i = "Labels for interaction: {.val {levels_effect}}.")
-        cli::cli_abort(msg)
-    }
-    ## get order of levels in term
-    i_levels_effect <- match(levels_effect, labels_matched)
-    ## extract matrix or offset and align to labels in main effect / interaction
-    if (get_matrix) {
-        ans <- data$matrix[is_type_req][[i_all]]
-        cols <- seq_len(n_comp)
-        if (type_req == "indep") {
-            cols_extra <- seq.int(from = 0,
-                                  by = n_comp_max,
-                                  length.out = ncol(ans) %/% n_comp_max)
-            cols_extra <- rep(cols_extra, each = n_comp)
-            cols <- cols + cols_extra
-        }
-        ans <- ans[i_levels_effect, cols, drop = FALSE]
-    }
-    else {
-        ans <- data$offset[is_type_req][[i_all]]
-        ans <- ans[i_levels_effect]
-    }
-    ## return result
-    ans
+      labels_clean <- paste(labels_sexgender_clean,
+                            rep(labels_age_clean, each = n_sexgender),
+                            sep = ".")
+    i <- match(labels_clean, nms_ans)
+  }
+  ## return result
+  if (get_matrix)
+    ans[i, , drop = FALSE]
+  else
+    ans[i]
 }
 
 
