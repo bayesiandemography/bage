@@ -165,7 +165,7 @@ infer_var_time <- function(formula) {
 
 
 ## HAS_TESTS
-#' Identify age main effects and age-sex/gender interactions
+#' Identify Age Main effects and Age-Sex/Gender Interactions
 #'
 #' Classify terms as "age", "age:sex", "sex:age", and "other".
 #'
@@ -175,30 +175,34 @@ infer_var_time <- function(formula) {
 #'
 #' @noRd
 make_agesex <- function(mod) {
-    priors <- mod$priors
-    var_age <- mod$var_age
-    var_sexgender <- mod$var_sexgender
-    nms <- names(priors)
-    ans <- lapply(nms,
-                  make_agesex_inner,
-                  var_age = var_age,
-                  var_sexgender = var_sexgender)
-    names(ans) <- nms
-    ans
+  priors <- mod$priors
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  nms <- names(priors)
+  ans <- lapply(nms,
+                make_agesex_inner,
+                var_age = var_age,
+                var_sexgender = var_sexgender)
+  names(ans) <- nms
+  ans
 }
 
 
 ## HAS_TESTS
-#' Classify a term, based on the name
+#' Classify a Term, Based on the Name
 #'
 #' Decide whether an intercept, main effect,
 #' or interaction is
 #' - an age main effect
-#' - an age-sex/gender interaction
-#' - a sex/gender-age interaction
-#' - something else
+#' - an interaction involving age and sex/gender only
+#' - an interaction involving age and other (non sex/gender) dimensions
+#' - an interaction involvling age, sex/gender and other dimensions
+#' - anything else
 #' based on the name of the term,
-#' plus 'var_age' and 'var_sexgender'
+#' plus 'var_age' and 'var_sexgender'.
+#' In cases involving age and sex, the return value
+#' "age:sex" implies that age comes first,
+#' and "sex:age" implies that sex comes first.
 #'
 #' @param nm Name of the term. A string.
 #' WARNING. This must be the name that
@@ -210,32 +214,44 @@ make_agesex <- function(mod) {
 #' @param var_sexgender Name of the sex/gender
 #' variable. A string.
 #'
-#' @returns A string. One of "age", "age:sex", "sex:age", "other".
+#' @returns A string. One of "age", "age:sex",
+#' "sex:age", "age:other", "age:sex:other",
+#' "sex:age:other", "other"
 #'
 #' @noRd
 make_agesex_inner <- function(nm, var_age, var_sexgender) {
-    nm_split <- strsplit(nm, split = ":")[[1L]]
-    n <- length(nm_split)
-    if (n == 1L) {
-        if (is.null(var_age))
-            NULL
-        else if (identical(nm_split, var_age))
-            "age"
-        else
-            "other"
-    }
-    else if (n == 2L) {
-        if (is.null(var_age) || is.null(var_sexgender))
-            NULL
-        else if (identical(nm_split, c(var_age, var_sexgender)))
-            "age:sex"
-        else if (identical(nm_split, c(var_sexgender, var_age)))
-            "sex:age"
-        else
-            "other"
+  nm_split <- strsplit(nm, split = ":")[[1L]]
+  has_var_age <- !is.null(var_age)
+  has_var_sex <- !is.null(var_sexgender)
+  is_age_in_nm <- has_var_age && var_age %in% nm_split
+  is_sex_in_nm <- has_var_sex && var_sexgender %in% nm_split
+  age_first <- match(var_age, nm_split) < match(var_sexgender, nm_split)
+  if (!is_age_in_nm)
+    return("other")
+  n <- length(nm_split)
+  if (n == 1L) {
+    "age"
+  }
+  else if (n == 2L) {
+    if (is_sex_in_nm) {
+      if (age_first)
+        "age:sex"
+      else
+        "sex:age"
     }
     else
-        "other"
+      "age:other"
+  }
+  else {
+    if (is_sex_in_nm) {
+      if (age_first)
+        "age:sex:other"
+      else
+        "sex:age:other"
+    }
+    else
+      "age:other"
+  }
 }
 
 
@@ -515,6 +531,42 @@ make_lengths_hyperrand <- function(mod) {
 
 
 ## HAS_TESTS
+#' Extract Age Labels
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A character vector or NULL
+#'
+#' @noRd
+make_levels_age <- function(mod) {
+  data <- mod$data
+  var_age <- mod$var_age
+  if (is.null(var_age))
+    NULL
+  else
+    unique(data[[var_age]])
+}
+
+
+## HAS_TESTS
+#' Extract Sex/Gender Labels
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A character vector or NULL
+#'
+#' @noRd
+make_levels_sexgender <- function(mod) {
+  data <- mod$data
+  var_sexgender <- mod$var_sexgender
+  if (is.null(var_sexgender))
+    NULL
+  else
+    unique(data[[var_sexgender]])
+}
+
+
+## HAS_TESTS
 #' Make levels associated with each element of 'effect'
 #'
 #' Make levels for each term, eg ages, times.
@@ -711,17 +763,21 @@ make_matrices_effectfree_effect <- function(mod) {
     levels_effect <- mod$levels_effect
     terms_effect <- mod$terms_effect
     agesex <- make_agesex(mod)
+    levels_age <- make_levels_age(mod)
+    levels_sexgender <- make_levels_sexgender(mod)
     levels_effect <- split(levels_effect, terms_effect)
     ans <- .mapply(make_matrix_effectfree_effect,
                    dots = list(prior = priors,
                                levels_effect = levels_effect,
                                agesex = agesex),
-                   MoreArgs = list())
+                   MoreArgs = list(levels_age = levels_age,
+                                   levels_sexgender = levels_sexgender))
     names(ans) <- names(priors)
     ans    
 }
 
 
+## HAS_TESTS
 #' Create along-by Matrix for a Single Dimension
 #' of a Main Effect or Interaction
 #'
@@ -816,13 +872,16 @@ make_offsets_effectfree_effect <- function(mod) {
     priors <- mod$priors
     levels_effect <- mod$levels_effect
     terms_effect <- mod$terms_effect
-    agesex <- make_agesex(mod)
     levels_effect <- split(levels_effect, terms_effect)
+    agesex <- make_agesex(mod)
+    levels_age <- make_levels_age(mod)
+    levels_sexgender <- make_levels_sexgender(mod)
     ans <- .mapply(make_offset_effectfree_effect,
                    dots = list(prior = priors,
                                levels_effect = levels_effect,
                                agesex = agesex),
-                   MoreArgs = list())
+                   MoreArgs = list(levels_age = levels_age,
+                                   levels_sexgender = levels_sexgender))
     names(ans) <- names(priors)
     ans    
 }

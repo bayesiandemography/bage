@@ -8,6 +8,13 @@
 \description{
 Fast Bayesian estimation and forecasting of age-specific rates, probabilities, and means, based on Template Model Builder.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://bayesiandemography.github.io/bage/}
+}
+
+}
 \author{
 \strong{Maintainer}: John Bryant \email{john@bayesiandemography.com}
 
