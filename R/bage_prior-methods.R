@@ -1351,9 +1351,38 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
                            agesex = agesex,
                            get_matrix = TRUE,
                            n_comp = n_comp)
+}
+
+## NO_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_esvd <- function(prior,
+                                                          levels_effect,
+                                                          agesex,
+                                                          levels_age,
+                                                          levels_sexgender,
+                                                          matrix_along_by) {
+  scaled_svd <- prior$specific$scaled_svd
+  joint <- prior$specific$joint
+  is_svd2 <- !is.null(joint)
+  n_comp <- prior$specific$n
+  m_inner <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                      levels_age,
+                                      levels_sexgender,
+                                      joint = joint,
+                                      agesex = agesex,
+                                      get_matrix = TRUE,
+                                      n_comp = n_comp)
+  if (is_svd2) {
+
+  }
+  else {
+
+
+  }
+  
 }                             
 
-    
+
 ## 'make_offset_effectfree_effect' --------------------------------------------------
 
 #' Make offset used in converting effectfree to effect

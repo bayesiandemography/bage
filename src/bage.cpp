@@ -264,6 +264,13 @@ Type logpost_eseas(vector<Type> effectfree,
 }
 
 template <class Type>
+Type logpost_esvd(vector<Type> effectfree,
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
+  return dnorm(effectfree, Type(0), Type(1), true).sum();
+}
+
+template <class Type>
 Type logpost_lin(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
@@ -401,6 +408,8 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
   case 7:
     ans = logpost_svd(effectfree, consts, matrix_along_by);
     break;
+  case 14:
+    ans = logpost_esvd(effectfree, consts, matrix_along_by);
   default:
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
