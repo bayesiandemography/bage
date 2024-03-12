@@ -646,11 +646,10 @@ Sp(n = NULL, s = 1)
 
 \begin{align}
   \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}^{(m)} + \pmb{g}^{(m)} \\
-  \alpha_k^{(m)} & \sim \text{N}(0, 1), \quad k^{(m)} = 1, \cdots, K^{(m)}
+  \alpha_k^{(m)} & \sim \text{N}(0, 1), \quad k = 1, \cdots, K_m
 \end{align}
-where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
+where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
-TODO - Describe age-sex interactions.
 
 ### Contribution to posterior density
 
@@ -666,8 +665,49 @@ Main effects with a SVD prior cannot be predicted.
 ### Code
 
 ```
-SVD(scaled_svd, n = 5, indep = TRUE)
+SVD(scaled_svd, n = 5)
 ```
+
+
+## SVD2 {#sec:pr-svd2}
+
+The SVD2 is a two-sex extension of the basic SVD model. SVD2 has two versions. The first is identical to the basic SVD model, except that different, sex-specific values for $\pmb{F}$ and $\pmb{g}$ are used for females and males. The second treats the Cartesian product of age and sex dimensions as if it was a single dimension. Values for $\pmb{F}$ and $\pmb{g}$ estimated from age-sex-specific rates. Each is twice as large as the basic SVD versions of $\pmb{F}$ and $\pmb{g}$.
+
+The code is
+```
+SVD2(scaled_svd, joint = FALSE, n = 5)
+```
+When `joint` is FALSE, the first version is used, and when `joint` is TRUE the second version is used.
+
+
+## Exchangeable SVD {#sec:pr-esvd}
+
+### Model
+
+\begin{align}
+  \pmb{\beta}_u^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m \\
+  \alpha_{uk}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m
+\end{align}
+where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $V_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined.
+
+
+### Contribution to posterior density
+
+\begin{equation}
+  \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right) 
+\end{equation}
+
+### Prediction
+
+Main effects with a SVD prior cannot be predicted.
+
+
+### Code
+
+```
+ESVD(scaled_svd, n = 5)
+```
+
 
 ## Known {#sec:pr-known}
 

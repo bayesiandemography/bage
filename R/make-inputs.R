@@ -792,16 +792,6 @@ make_matrices_effectfree_effect <- function(mod) {
 #' @returns A matrix of integers.
 #'
 #' @noRd
-## make_matrix_along_by <- function(i_along, dim) {
-##   n_dim <- length(dim)
-##   i <- seq.int(from = 0L, length.out = prod(dim))
-##   a <- array(i, dim = dim)
-##   s <- seq_along(dim)
-##   perm <- c(i_along, s[-i_along])
-##   ans <- aperm(a, perm = perm)
-##   ans <- matrix(ans, nrow = nrow(ans))
-##   ans
-## }
 make_matrix_along_by <- function(i_along, dim, dimnames) {
   n_dim <- length(dim)
   i <- seq.int(from = 0L, length.out = prod(dim))
