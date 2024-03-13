@@ -49,18 +49,12 @@
 #' `scaled_svd_comp() also converts any
 #' `1`s to values just below `1`.
 #'
-#' Centering is appropriate when modelling
-#' the shape of, for instance, age profiles,
-#' rather than the absolute level of the profiles.
-#'
 #' @param x A matrix with value such as rates,
 #' probabilities, or means.
 #' @param n Number of components of the SVD to use.
 #' Defaults to 10.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #' Defaults to `"log"`.
-#' @param center Whether to center the transformed
-#' version of `x` before carrying out the SVD.
 #'
 #' @returns A named list with two elements:
 #' - `matrix`, a numeric matrix
