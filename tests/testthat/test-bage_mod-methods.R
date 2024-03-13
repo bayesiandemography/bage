@@ -691,7 +691,7 @@ test_that("'fit' works with SVD", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:sex ~ SVD2(HMD))
+    mod <- set_prior(mod, age:sex ~ SVDS(HMD))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })

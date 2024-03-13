@@ -650,6 +650,88 @@ make_map_effectfree_fixed <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make Matrices Giving Mapping Between Term and Age-Sex
+#'
+#' Make matrices giving mapping between position in term
+#' and position on age dimension, or combination of age
+#' and sex dimension (in the order that they appear).
+#' If a term does not include age, then no matrix
+#' is created.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list of matrices and NULLs
+#'
+#' @noRd
+make_matrices_agesex <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  has_var_age <- !is.null(var_age)
+  has_var_sexgender <- !is.null(var_sexgender)
+  ans <- list("(Intercept)" = NULL)
+  factors <- attr(stats::terms(formula), "factors")
+  if ((length(factors) > 0L) && has_var_age) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- rep(list(NULL), times = length(nms_terms))
+    names(ans_terms) <- nms_terms
+    for (i_term in seq_along(ans_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      i_age <- match(var_age, nms_vars_term, nomatch = 0L)
+      if (i_age > 0L) {
+        data_term <- data[nms_vars_term]
+        dimnames <- lapply(data_term, unique)
+        dim <- lengths(dimnames)
+        i_along <- i_age
+        if (has_var_sexgender) {
+          i_sex <- match(var_sexgender, nms_vars_term, nomatch = 0L)
+          if (i_sex > 0L)
+            i_along <- c(i_along, i_sex)
+          i_along <- sort(i_along)
+        }
+        ans_terms[[i_term]] <- make_matrix_along_by(i_along = i_along,
+                                                    dim = dim,
+                                                    dimnames = dimnames)
+      }
+    }
+    ans <- c(ans, ans_terms)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Convert 'matrix_agesex' to Sparse Index Matrix
+#'
+#' @param matrix_agesex Matrix produced by
+#' 'make_matrix_agesex'
+#'
+#' @returns A sparse matrix consisting of
+#' 1s and 0s
+#'
+#' @noRd
+make_matrix_agesex_index <- function(matrix_agesex) {
+  n <- length(matrix_agesex)
+  i <- as.integer(matrix_agesex) + 1L
+  j <- seq_len(n)
+  x <- rep.int(1L, times = n)
+  ans <- Matrix::sparseMatrix(i = i,
+                              j = j,
+                              x = x)
+  rn_old <- rownames(matrix_agesex)
+  cn_old <- colnames(matrix_agesex)
+  cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
+  rn_new <- cn_new[match(seq_len(n), matrix_agesex + 1L)]
+  dimnames(ans) <- list(rn_new, cn_new)
+  ans
+}
+
+
+## HAS_TESTS
 #' Make Matrices Mapping Values of 'along' and 'by'
 #' to Positions in Intercepts, Main Effects,
 #' and Interactions
@@ -763,13 +845,15 @@ make_matrices_effectfree_effect <- function(mod) {
     levels_effect <- mod$levels_effect
     terms_effect <- mod$terms_effect
     agesex <- make_agesex(mod)
+    matrices_agesex <- make_matrices_agesex(mod)
     levels_age <- make_levels_age(mod)
     levels_sexgender <- make_levels_sexgender(mod)
     levels_effect <- split(levels_effect, terms_effect)
     ans <- .mapply(make_matrix_effectfree_effect,
                    dots = list(prior = priors,
                                levels_effect = levels_effect,
-                               agesex = agesex),
+                               agesex = agesex,
+                               matrix_agesex = matrices_agesex),
                    MoreArgs = list(levels_age = levels_age,
                                    levels_sexgender = levels_sexgender))
     names(ans) <- names(priors)
@@ -786,31 +870,34 @@ make_matrices_effectfree_effect <- function(mod) {
 #' zero-based indexing) of 'along'
 #' value i and 'by' value j.
 #'
-#' @param i_along Index of the along dimension
+#' @param i_along Index of the along dimension(s)
 #' @param dim Dimensions of the array
 #'
 #' @returns A matrix of integers.
 #'
 #' @noRd
 make_matrix_along_by <- function(i_along, dim, dimnames) {
+  paste_dot <- function(x, y) paste(x, y, sep = ".")
   n_dim <- length(dim)
   i <- seq.int(from = 0L, length.out = prod(dim))
   a <- array(i, dim = dim)
   s <- seq_along(dim)
   perm <- c(i_along, s[-i_along])
   ans <- aperm(a, perm = perm)
-  ans <- matrix(ans, nrow = nrow(ans))
-  rownames(ans) <- dimnames[[i_along]]
-  names(dimnames(ans))[[1L]] <- names(dimnames)[[i_along]]
+  ans <- matrix(ans, nrow = prod(dim[i_along]))
+  rownames <- expand.grid(dimnames[i_along])
+  rownames <- Reduce(paste_dot, rownames)
+  rownames(ans) <- rownames
+  names(dimnames(ans))[[1L]] <- paste(names(dimnames)[i_along], collapse = ".")
   if (length(dim) > 1L) {
     colnames <- expand.grid(dimnames[-i_along])
-    colnames <- Reduce(function(x, y) paste(x, y, sep = "."),
-                       colnames)
+    colnames <- Reduce(paste_dot, colnames)
     colnames(ans) <- colnames
     names(dimnames(ans))[[2L]] <- paste(names(dimnames)[-i_along], collapse = ".")
   }
   ans
 }
+
 
 
 ## HAS_TESTS
@@ -864,12 +951,14 @@ make_offsets_effectfree_effect <- function(mod) {
     terms_effect <- mod$terms_effect
     levels_effect <- split(levels_effect, terms_effect)
     agesex <- make_agesex(mod)
+    matrices_agesex <- make_matrices_agesex(mod)
     levels_age <- make_levels_age(mod)
     levels_sexgender <- make_levels_sexgender(mod)
     ans <- .mapply(make_offset_effectfree_effect,
                    dots = list(prior = priors,
                                levels_effect = levels_effect,
-                               agesex = agesex),
+                               agesex = agesex,
+                               matrix_agesex = matrices_agesex),
                    MoreArgs = list(levels_age = levels_age,
                                    levels_sexgender = levels_sexgender))
     names(ans) <- names(priors)

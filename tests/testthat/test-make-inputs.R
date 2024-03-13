@@ -912,6 +912,73 @@ test_that("'make_map_effectfree_fixed' works with valid inputs", {
 })
 
 
+## 'make_matrices_agesex' ---------------------------------------------------
+
+test_that("'make_matrices_agesex' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(sex = c("F", "M"),
+                        age = 0:3,
+                        reg = c("A", "B"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(deaths ~ age * sex * reg,
+                    data = data,
+                    exposure = popn)
+    ans <- make_matrices_agesex(mod)
+    expect_identical(sapply(ans, is.null),
+                     c("(Intercept)" = TRUE,
+                       age = FALSE,
+                       sex = TRUE,
+                       reg = TRUE,
+                       "age:sex" = FALSE,
+                       "age:reg" = FALSE,
+                       "sex:reg" = TRUE,
+                       "age:sex:reg" = FALSE))
+    expect_identical(ans[["age"]],
+                     make_matrix_along_by(i = 1L,
+                                          dim = 4, 
+                                          dimnames = list(age = 0:3)))
+    expect_identical(ans[["age:sex:reg"]],
+                     make_matrix_along_by(i_along = 1:2,
+                                          dim = c(4, 2, 2),
+                                          dimnames = list(age = 0:3,
+                                                          sex = c("F", "M"),
+                                                          reg = c("A", "B"))))
+})
+
+test_that("'make_matrices_agesex' works with valid inputs - sex and age order reversed", {
+    set.seed(0)
+    data <- expand.grid(sex = c("F", "M"),
+                        age = 0:3,
+                        reg = c("A", "B"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(deaths ~ sex * reg * age,
+                    data = data,
+                    exposure = popn)
+    ans <- make_matrices_agesex(mod)
+    expect_identical(sapply(ans, is.null),
+                     c("(Intercept)" = TRUE,
+                       sex = TRUE,
+                       reg = TRUE,
+                       age = FALSE,
+                       "sex:reg" = TRUE,
+                       "sex:age" = FALSE,
+                       "reg:age" = FALSE,
+                       "sex:reg:age" = FALSE))
+    expect_identical(ans[["age"]],
+                     make_matrix_along_by(i = 1L,
+                                          dim = 4, 
+                                          dimnames = list(age = 0:3)))
+    expect_identical(ans[["sex:reg:age"]],
+                     make_matrix_along_by(i_along = c(1L, 3L),
+                                          dim = c(2, 2, 4),
+                                          dimnames = list(sex = c("F", "M"),
+                                                          reg = c("A", "B"),
+                                                          age = 0:3)))
+})
+
+
 ## 'make_matrices_along_by' ---------------------------------------------------
 
 test_that("'make_matrices_along_by' works with valid inputs", {
@@ -949,6 +1016,7 @@ test_that("'make_matrices_along_by' works with valid inputs", {
                                            time = t(agetime)))
     expect_identical(ans_obtained, ans_expected)
 })
+
 
 ## 'make_matrices_effect_outcome' --------------------------------------------
 
@@ -992,6 +1060,31 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
                          SEX = Matrix::.sparseDiagonal(2),
                          region = Matrix::.sparseDiagonal(2),
                          "agegp:SEX" = Matrix::.sparseDiagonal(20))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_matrix_agesex_index' -------------------------------------------------
+
+test_that("'make_matrix_agesex_index' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(sex = c("F", "M"),
+                        age = 0:3,
+                        reg = c("A", "B"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    mod <- mod_pois(deaths ~ reg * age * sex,
+                    data = data,
+                    exposure = popn)
+    matrices <- make_matrices_agesex(mod)
+    ans_obtained <- make_matrix_agesex_index(matrices[["reg:age:sex"]])
+    cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
+    rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
+    ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
+                                               2L, 4L, 6L, 8L, 10L, 12L, 14L, 16L),
+                                         j = 1:16,
+                                         x = rep(1L, 16),
+                                         dimnames = list(rn, cn))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1075,6 +1168,36 @@ test_that("'make_matrix_along_by' works when only one element", {
   ans_expected <- matrix(0L, nr = 1)
   rownames(ans_expected) <- 1
   names(dimnames(ans_expected))[1] <- "a"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
+  i_along <- 1:2
+  dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(0:23,
+                         nr = 6,
+                         dimnames = list(a.b = paste(1:2, rep(1:3, each = 2), sep = "."),
+                                         c = 1:4))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
+  i_along <- c(1L, 3L)
+  dim <- 2:4
+  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
+  ans_obtained <- make_matrix_along_by(i_along = i_along,
+                                       dim = dim,
+                                       dimnames = dimnames)
+  ans_expected <- matrix(c(0L, 1L, 6L, 7L, 12L, 13L, 18L, 19L,
+                           2L, 3L, 8L, 9L, 14L, 15L, 20L, 21L,
+                           4L, 5L, 10L, 11L, 16L, 17L, 22L, 23L),
+                         nr = 8,
+                         dimnames = list(a.c = paste(1:2, rep(1:4, each = 2), sep = "."),
+                                         b = 1:3))
   expect_identical(ans_obtained, ans_expected)
 })
 
