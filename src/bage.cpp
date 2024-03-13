@@ -410,6 +410,7 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
     break;
   case 14:
     ans = logpost_esvd(effectfree, consts, matrix_along_by);
+    break;
   default:
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }

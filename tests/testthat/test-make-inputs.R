@@ -392,6 +392,10 @@ test_that("'make_agesex_inner' works with valid inputs", {
                                        var_age = "agegroup",
                                        var_sexgender = "gender"),
                      "age:sex:other")
+    expect_identical(make_agesex_inner("agegroup:bla:region",
+                                       var_age = "agegroup",
+                                       var_sexgender = "gender"),
+                     "age:other")
     expect_identical(make_agesex_inner("gender:agegroup:region",
                                        var_age = NULL,
                                        var_sexgender = NULL),
