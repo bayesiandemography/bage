@@ -1423,7 +1423,7 @@ new_bage_prior_eseas <- function(n, scale, along) {
     ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 ## Doesn't use 'along', because can potentially have two
 ## 'along' dimensions (age and sex/gender)
 new_bage_prior_esvd <- function(scaled_svd, nm_scaled_svd, n, joint) {

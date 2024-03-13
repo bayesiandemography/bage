@@ -234,7 +234,7 @@ comp_base
 `components()` returns a tibble contain estimates of all the higher-level parameters. To extract the age effect, and prepare it for graphing, we use
 ```{r}
 age_effect <- comp_base |>
-  filter(component == "par",
+  filter(component == "effect",
          term == "age") %>%
   mutate(draws_ci(.fitted))
 ```
@@ -275,7 +275,7 @@ where $K$ is chosen by the user. The prior for age-sex interactions looks the sa
 mod_hmd <- mod_pois(deaths ~ age:sex + time,
                     data = dth,
                     exposure = popn) |>
-  set_prior(age:sex ~ SVD(HMD))
+  set_prior(age:sex ~ SVDS(HMD))
 mod_hmd
 ```
 
@@ -315,7 +315,7 @@ ggplot(rates_hmd, aes(x = age_mid(age),
 comp_hmd <- components(mod_hmd)
 
 age_sex_interact <- comp_hmd |>
-  filter(component == "par",
+  filter(component == "effect",
          term == "age:sex") |>
   separate_wider_delim(level, delim = ".", names = c("age", "sex")) |>
   mutate(draws_ci(.fitted))
@@ -382,4 +382,5 @@ lifeexp_hmd <- mod_hmd |>
   augment() |>
   lifeexp(mx = .fitted,
           by = c(time, sex))
+lifeexp_hmd
 ```

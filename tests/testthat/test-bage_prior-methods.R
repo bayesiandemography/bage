@@ -30,15 +30,16 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_compose", {
   prior <- compose_time(trend = RW(), error = N())
-  agesex <- NULL
+  agesex <- "other"
   levels_effect <- letters
   matrix_along_by <- matrix(0:25, nr = 26)
   n_sim <- 10
@@ -48,6 +49,7 @@ test_that("'draw_vals_effect' works with bage_prior_compose", {
                                         vals_hyper = vals_hyper,
                                         levels_effect = levels_effect,
                                         agesex = agesex,
+                                        matrix_agesex = NULL,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
   ans <- draw_vals_effect(prior = prior,
@@ -56,6 +58,7 @@ test_that("'draw_vals_effect' works with bage_prior_compose", {
                           levels_effect = levels_effect,
                           agesex = agesex,
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
@@ -72,8 +75,9 @@ test_that("'draw_vals_effect' works with bage_prior_ear", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
@@ -94,8 +98,9 @@ test_that("'draw_vals_effect' works with bage_prior_elin", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
@@ -113,8 +118,9 @@ test_that("'draw_vals_effect' works with bage_prior_erw", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
@@ -132,8 +138,9 @@ test_that("'draw_vals_effect' works with bage_prior_eseas", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
@@ -144,12 +151,14 @@ test_that("'draw_vals_effect' works with bage_prior_known", {
   n_sim <- 10
   vals_hyperrand <- list()
   levels_effect <- c("a", "b", "c")
+  matrix_along_by = matrix(0:2, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = NULL,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
 })
@@ -161,12 +170,14 @@ test_that("'draw_vals_effect' works with bage_prior_lin", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   levels_effect <- letters
+  matrix_along_by = matrix(0:25, nc = 2)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -179,12 +190,14 @@ test_that("'draw_vals_effect' works with bage_prior_norm", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- seq_len(1000)
+  matrix_along_by = matrix(0:999, nc = 10)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyperrand = vals_hyperrand,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(as.character(1:1000), as.character(1:10)))
@@ -195,13 +208,15 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
   prior <- NFix(sd = 0.3)
   n_sim <- 10
   vals_hyperrand <- list()
+  matrix_along_by = matrix(0:999, nc = 10)
   levels_effect <- seq_len(1000)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = NULL,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(as.character(1:1000), as.character(1:10)))
@@ -215,12 +230,14 @@ test_that("'draw_vals_effect' works with bage_prior_rw", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- letters
+  matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -233,12 +250,14 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- letters
+  matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -251,12 +270,14 @@ test_that("'draw_vals_effect' works with bage_prior_seas", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- letters
+  matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -269,12 +290,14 @@ test_that("'draw_vals_effect' works with bage_prior_spline", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- letters
+  matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
@@ -288,6 +311,10 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
   vals_hyperrand <- list()
   levels_age <- c(0:79, "80+")
   levels_sex <- c("F", "M")
+  matrix_along_by <- matrix(0:80, nc = 1)
+  matrix_agesex <- make_matrix_along_by(i_along = 1L,
+                                        dim = 81L,
+                                        dimnames = list(levels_age))
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
@@ -295,6 +322,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
                           levels_age = levels_age,
                           levels_sex = levels_sex,
                           agesex = "age",
+                          matrix_agesex = matrix_agesex,
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -309,6 +337,10 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction", 
   vals_hyperrand <- list()
   levels_age <- c(0:79, "80+")
   levels_sex <- c("F", "M")
+  matrix_along_by <- NULL
+  matrix_agesex <- make_matrix_along_by(i_along = 1:2,
+                                        dim = c(81L, 2L),
+                                        dimnames = list(levels_age, levels_sex))
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
@@ -317,8 +349,39 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction", 
                           levels_sex = levels_sex,
                           agesex = "sex:age",
                           matrix_along_by = matrix_along_by,
+                          matrix_agesex = matrix_agesex,
                           n_sim = n_sim)
   expect_identical(dim(ans), c(162L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_esvd", {
+  prior <- ESVD(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_age <- c(0:79, "80+")
+  levels_region <- c("A", "B")
+  levels_sex <- c("F", "M")
+  matrix_along_by <- make_matrix_along_by(i_along = 2L,
+                                          dim = c(2L, 81L),
+                                          dimnames = list(levels_region, levels_age))
+  matrix_agesex <- make_matrix_along_by(i_along = 2L,
+                                        dim = c(2L, 81L),
+                                        dimnames = list(levels_region, levels_age))
+  levels_effect <- paste(rep(levels_age, each = 2), levels_region, sep = ".")
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_age,
+                          levels_age = levels_age,
+                          levels_sex = levels_sex,
+                          agesex = "age:other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = matrix_agesex,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(levels_effect, as.character(1:10)))
 })
 
 
@@ -449,6 +512,13 @@ test_that("'draw_vals_hyper' works with bage_prior_svd", {
   expect_identical(ans, list())
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_esvd", {
+  prior <- ESVD(HMD)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(ans, list())
+})
+
 
 ## 'draw_vals_hyperrand' ------------------------------------------------------
 
@@ -467,6 +537,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrix_along_by,
+                             matrix_agesex = "other",
                              n_sim = n_sim)
   expect_identical(names(ans), c("trend", "seasonal"))
 })
@@ -486,6 +557,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrix_along_by,
+                             matrix_agesex = "other",
                              n_sim = n_sim)
   expect_identical(names(ans), "mslope")
   expect_identical(lengths(ans),
@@ -506,6 +578,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrix_along_by,
+                             matrix_agesex = "other",
                              n_sim = n_sim)
   expect_identical(ans, list())
 })
@@ -866,6 +939,20 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     agesex = "sex:age"),
                "Problem with `SVD\\(s\\)` prior for `sex:age` term.")
 })
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for age interaction", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = SVD(s),
+                                    nm = "age:reg",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "age:other"),
+               "Problem with `SVD\\(s\\)` prior for `age:reg` term.")
+})
+
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
   s <- sim_scaled_svd()
@@ -1347,7 +1434,7 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
@@ -1355,7 +1442,7 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
 
 test_that("'draw_vals_effect' works with bage_prior_compose", {
   prior <- compose_time(trend = RW(), error = N())
-  agesex <- NULL
+  agesex <- "other"
   levels_effect <- letters
   matrix_along_by <- matrix(0:25, nr = 26)
   n_sim <- 10
@@ -1366,6 +1453,7 @@ test_that("'draw_vals_effect' works with bage_prior_compose", {
                                         levels_effect = levels_effect,
                                         agesex = agesex,
                                         matrix_along_by = matrix_along_by,
+                                        matrix_agesex = NULL,
                                         n_sim = n_sim)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
@@ -1389,7 +1477,7 @@ test_that("'draw_vals_effect' works with bage_prior_ear", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
@@ -1411,7 +1499,7 @@ test_that("'draw_vals_effect' works with bage_prior_elin", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1430,7 +1518,7 @@ test_that("'draw_vals_effect' works with bage_prior_erw", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1449,7 +1537,7 @@ test_that("'draw_vals_effect' works with bage_prior_eseas", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1465,7 +1553,7 @@ test_that("'draw_vals_effect' works with bage_prior_known", {
                           vals_hyper = NULL,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
@@ -1482,7 +1570,7 @@ test_that("'draw_vals_effect' works with bage_prior_lin", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1500,7 +1588,7 @@ test_that("'draw_vals_effect' works with bage_prior_norm", {
                           vals_hyperrand = vals_hyperrand,
                           vals_hyper = vals_hyper,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1517,7 +1605,7 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
                           vals_hyper = NULL,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1536,7 +1624,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1554,7 +1642,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1572,7 +1660,7 @@ test_that("'draw_vals_effect' works with bage_prior_seas", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1590,7 +1678,7 @@ test_that("'draw_vals_effect' works with bage_prior_spline", {
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
-                          agesex = NULL,
+                          agesex = "other",
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
@@ -1784,6 +1872,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrix_along_by,
+                             matrix_agesex = NULL,
                              n_sim = n_sim)
   expect_identical(names(ans), c("trend", "seasonal"))
 })
@@ -1803,6 +1892,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrix_along_by,
+                             matrix_agesex = NULL,
                              n_sim = n_sim)
   expect_identical(names(ans), "mslope")
   expect_identical(lengths(ans),
@@ -1823,6 +1913,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrix_along_by,
+                             matrix_agesex = NULL,
                              n_sim = n_sim)
   expect_identical(ans, list())
 })
@@ -2289,6 +2380,186 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 
+
+
+
+
+
+
+
+
+
+test_that("'is_prior_ok_for_term' works with bage_prior_esvd, correct inputs", {
+  s <- sim_scaled_svd()
+  expect_true(is_prior_ok_for_term(prior = ESVDS(s),
+                                   nm = "age:sex:other",
+                                   matrix_along_by = NULL,
+                                   var_time = "time",
+                                   var_age = "age",
+                                   var_sexgender = "sex",
+                                   is_in_compose = FALSE,
+                                   agesex = "age:sex:other"))
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 'var_age' is NULL", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVD(s),
+                                    nm = "bla",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = NULL,
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "Problem with `ESVD\\(s\\)` prior for `bla` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when agesex is 'other'", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "bla",
+                                    matrix_along_by = matrix(0:9, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "other"),
+               "Problem with `ESVDS\\(s\\)` prior for `bla` term.")
+})
+
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for age main effect", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "age",
+                                    matrix_along_by = matrix(0:9, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "age"),
+               "Problem with `ESVDS\\(s\\)` prior for `age` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for age main effect", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVD(s),
+                                    nm = "age",
+                                    matrix_along_by = matrix(0:9, nc = 1),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "age"),
+               "Problem with `ESVD\\(s\\)` prior for `age` term.")
+})
+
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for age-sex interaction", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "sex:age",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "sex:age"),
+               "Problem with `ESVDS\\(s\\)` prior for `sex:age` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for age-sex interaction", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVD(s),
+                                    nm = "sex:age",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "sex:age"),
+               "Problem with `ESVD\\(s\\)` prior for `sex:age` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "sex:age",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = NULL,
+                                    is_in_compose = FALSE,
+                                    agesex = "age:other"),
+               "Problem with `ESVDS\\(s\\)` prior for `sex:age` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for age-other interaction", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "bla:age",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "age:other"),
+               "Problem with `ESVDS\\(s\\)` prior for `bla:age` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when dim has length 2 and 'agesex' not recognised", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "bla:age",
+                                    matrix_along_by = matrix(0:9, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "wrong"),
+               "Internal error: unexpected value for `agesex`.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for 3-way interaction involving age and sex", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVD(s),
+                                    nm = "sex:age:time",
+                                    matrix_along_by = matrix(0:29, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "sex:age:other"),
+               "Problem with `ESVD\\(s\\)` prior for `sex:age:time` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for 3-way interaction involving age, not sex", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVDS(s),
+                                    nm = "reg:age:time",
+                                    matrix_along_by = matrix(0:29, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "age:other"),
+               "Problem with `ESVDS\\(s\\)` prior for `reg:age:time` term.")
+})
+
+test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 2+ dimensions and invalid 'agesex'", {
+  s <- sim_scaled_svd()
+  expect_error(is_prior_ok_for_term(prior = ESVD(s),
+                                    nm = "reg:age:time",
+                                    matrix_along_by = matrix(0:29, nc = 2),
+                                    var_time = "time",
+                                    var_age = "age",
+                                    var_sexgender = "sex",
+                                    is_in_compose = FALSE,
+                                    agesex = "wrong"),
+               "Internal error: unexpected value for `agesex`.")
+})
+
+
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
@@ -2376,6 +2647,11 @@ test_that("'levels_hyper' works with 'bage_prior_spline'", {
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
   expect_identical(levels_hyper(prior = SVD(sim_scaled_svd())),
+                   character())
+})
+
+test_that("'levels_hyper' works with 'bage_prior_esvd'", {
+  expect_identical(levels_hyper(prior = ESVD(sim_scaled_svd())),
                    character())
 })
 
@@ -2906,6 +3182,15 @@ test_that("'str_call_prior' works with bage_prior_svd", {
     expect_identical(str_call_prior(SVDS(s,joint=F,n = 3L)), "SVDS(s,n=3)")
 })
 
+test_that("'str_call_prior' works with bage_prior_esvd", {
+    s <- sim_scaled_svd()
+    expect_identical(str_call_prior(ESVD(s)), "ESVD(s)")
+    expect_identical(str_call_prior(ESVDS(s,joint = TRUE)), "ESVDS(s,joint=TRUE)")
+    expect_identical(str_call_prior(ESVD(s,n = 6L)), "ESVD(s,n=6)")
+    expect_identical(str_call_prior(ESVDS(s,joint=F,n = 3L)), "ESVDS(s,n=3)")
+})
+
+
 
 ## transform_hyper ------------------------------------------------------------
 
@@ -3021,6 +3306,11 @@ test_that("'transform_hyper' works with 'bage_prior_spline'", {
 
 test_that("'transform_hyper' works with 'bage_prior_svd'", {
   l <- transform_hyper(prior = SVD(HMD))
+  expect_identical(l, list())
+})
+
+test_that("'transform_hyper' works with 'bage_prior_svd'", {
+  l <- transform_hyper(prior = ESVD(HMD))
   expect_identical(l, list())
 })
 
@@ -3157,6 +3447,7 @@ test_that("'use_for_interaction' returns FALSE with priors that are not necessar
     expect_false(use_for_interaction(N()))
     expect_false(use_for_interaction(NFix()))
     expect_false(use_for_interaction(Seas(n = 3)))
+    expect_false(use_for_interaction(SVD(HMD)))
 })
 
 test_that("'use_for_interaction' returns TRUE with priors that are always interactions", {
@@ -3164,6 +3455,7 @@ test_that("'use_for_interaction' returns TRUE with priors that are always intera
     expect_true(use_for_interaction(ELin()))
     expect_true(use_for_interaction(ERW()))
     expect_true(use_for_interaction(ESeas(n = 12)))
+    expect_true(use_for_interaction(ESVD(HMD)))
 })
 
 
@@ -3177,6 +3469,8 @@ test_that("'use_for_main_effect' returns FALSE with priors that are not necessar
     expect_false(use_for_main_effect(N()))
     expect_false(use_for_main_effect(NFix()))
     expect_false(use_for_main_effect(Seas(n = 3)))
+    expect_false(use_for_main_effect(SVD(HMD)))
+    expect_false(use_for_main_effect(ESVD(HMD)))
 })
 
 test_that("'use_for_main_effect' returns TRUE with priors that are always main effects", {
@@ -3219,6 +3513,7 @@ test_that("'uses_hyperrand' returns FALSE with priors that cannot be used for se
   expect_false(uses_hyperrand(Seas(n = 4)))
   expect_false(uses_hyperrand(Sp()))
   expect_false(uses_hyperrand(SVD(HMD)))
+  expect_false(uses_hyperrand(ESVD(HMD)))
 })
 
 
@@ -3228,6 +3523,7 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
     expect_false(uses_matrix_effectfree_effect(N()))
     expect_true(uses_matrix_effectfree_effect(Sp()))
     expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
+    expect_true(uses_matrix_effectfree_effect(ESVD(HMD)))
 })
 
 
@@ -3237,6 +3533,7 @@ test_that("'uses_offset_effectfree_effect' works with valid inputs", {
     expect_false(uses_offset_effectfree_effect(N()))
     expect_false(uses_offset_effectfree_effect(Sp()))
     expect_true(uses_offset_effectfree_effect(SVD(HMD)))
+    expect_true(uses_offset_effectfree_effect(ESVD(HMD)))
 })
 
 
@@ -3296,79 +3593,6 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_fixed", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
-## vals_hyperrand_to_dataframe ----------------------------------------------------
-
-test_that("'vals_hyperrand_to_dataframe' works with bage_prior_elin", {
-  prior <- ELin()
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = 10)
-  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
-                                        levels_effect = letters[1:12],
-                                        vals_hyper = vals_hyper,
-                                        agesex = "other",
-                                        matrix_along_by = matrix(0:11, nr = 6,
-                                                                 dimnames = list(NULL, 11:12)),
-                                        n_sim = 10)
-  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
-                                              nm_prior = "time",
-                                              vals_hyperrand = vals_hyperrand,
-                                              n_sim = 10)
-  ans_expected <- tibble::tibble(term = "time",
-                                 component = "hyper",
-                                 level = c("mslope.11", "mslope.12"),
-                                 .fitted = rvec::rvec(unname(vals_hyperrand[[1]])))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'vals_hyperrand_to_dataframe' works with bage_prior_compose", {
-  prior <- compose_time(RW2(), cyclical = AR(), seasonal = Seas(n = 2))
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = 10)
-  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
-                                        vals_hyper = vals_hyper,
-                                        levels_effect = letters[1:12],
-                                        agesex = "other",
-                                        matrix_along_by = matrix(0:11, nr = 12,
-                                                                 dimnames = list(NULL, "a")),
-                                        n_sim = 10)
-  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
-                                              nm_prior = "time",
-                                              vals_hyperrand = vals_hyperrand,
-                                              n_sim = 10)
-  vals_hyperrand <- lapply(vals_hyperrand, function(x) x[[1L]])
-  fitted <- vctrs::vec_rbind(!!!vals_hyperrand,
-                             .name_repair = "universal_quiet")
-  fitted <- as.matrix(fitted)
-  dimnames(fitted) <- NULL
-  ans_expected <- tibble::tibble(term = "time",
-                                 component = rep(c("trend", "cyclical", "seasonal"), each = 12),
-                                 level = rep(letters[1:12], times = 3),
-                                 .fitted = rvec::rvec(fitted))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'vals_hyperrand_to_dataframe' works with bage_prior_fixed", {
-  prior <- NFix()
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = 10)
-  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
-                                        vals_hyper = vals_hyper,
-                                        levels_effect = letters[1:12],
-                                        agesex = "other",
-                                        matrix_along_by = matrix(0:11, nr = 6,
-                                                                 dimnames = list(NULL, 11:12)),
-                                        n_sim = 10)
-  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
-                                              nm_prior = "time",
-                                              vals_hyperrand = vals_hyperrand,
-                                              n_sim = 10)
-  ans_expected <- tibble::tibble(term = character(),
-                                 component = character(),
-                                 level = character(),
-                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
-  expect_equal(ans_obtained, ans_expected)
-})
 
 ## values_known ---------------------------------------------------------------
 
@@ -4076,6 +4300,7 @@ test_that("'vals_hyperrand_to_dataframe' works with bage_prior_compose", {
                                         agesex = "other",
                                         matrix_along_by = matrix(0:11, nr = 12,
                                                                  dimnames = list(NULL, "a")),
+                                        matrix_agesex = NULL,
                                         n_sim = 10)
   ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
                                               nm_prior = "time",
