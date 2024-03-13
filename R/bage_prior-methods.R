@@ -1028,7 +1028,7 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
   n_dim <- length(strsplit(nm, split = ":")[[1L]])
   str <- str_call_prior(prior)
   joint <- prior$specific$joint
-  is_svd2 <- !is.null(joint)
+  is_svds <- !is.null(joint)
   msg1 <- "Problem with {.var {str}} prior for {.var {nm}} term."
   ## check that 'var_age' has been identified
   if (is.null(var_age))
@@ -1041,7 +1041,7 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
                      i = "{.var {str}} prior should be used for terms involving age."))
   ## one dimension - must be age, otherwise 'agesex' would be "other"
   if (n_dim == 1L) {
-    if (is_svd2)
+    if (is_svds)
       cli::cli_abort(c(msg1,
                        i = "{.var {str}} prior should be used for interaction between age and sex/gender.",
                        i = "{.var {nm}} term is an age main effect.",
@@ -1049,14 +1049,14 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
   }
   else if (n_dim == 2L) {
     if (agesex %in% c("age:sex", "sex:age")) {
-      if (!is_svd2)
+      if (!is_svds)
         cli::cli_abort(c(msg1,
                          i = "{.var {str}} prior should be used for age main effect.",
                          i = "{.var {nm}} term is an interaction between age and sex/gender.",
-                         i = "Use function {.fun SVD2} prior instead?"))
+                         i = "Use function {.fun SVDS} prior instead?"))
     }
     else if (agesex == "age:other") {
-      if (is_svd2) {
+      if (is_svds) {
         if (is.null(var_sexgender))
           msg3 <- c(i = "sex/gender variable not identified.",
                     i = "Use function {.fun set_var_sexgender} to identify?")
@@ -1078,11 +1078,11 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
   }
   else { ## n_dim > 2
     if (agesex %in% c("age:sex:other", "sex:age:other")) {
-      if (is_svd2) {
+      if (is_svds) {
         cli::cli_abort(c(msg1,
                          i = "{.var {str}} prior should be used for two-way interaction between age and sex/gender.",
                          i = "{.var {nm}} term involves more than two dimensions.",
-                         i = "Use function {.fun ESVD2} instead?"))
+                         i = "Use function {.fun ESVDS} instead?"))
       }
       else {
         n_extra <- n_dim - 2L
@@ -1090,11 +1090,11 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
                          i = "{.var {str}} prior should be used for age main effects.",
                          i = paste("{.var {nm}} term is an interaction between age, sex/gender,",
                                    "and other {cli::qty(n_extra)} dimension{?s}."),
-                         i = "Use function {.fun ESVD2} instead?"))
+                         i = "Use function {.fun ESVDS} instead?"))
       }
     }
     else if (agesex == "age:other") {
-      if (is_svd2) {
+      if (is_svds) {
         cli::cli_abort(c(msg1,
                          i = "{.var {str}} prior should be used for interaction between age and sex/gender.",
                          i = "{.var {nm}} term does not involve sex/gender.",
@@ -1291,6 +1291,8 @@ levels_hyperrand.bage_prior_elin <- function(prior, matrix_along_by, levels_effe
 #' variable (or NULL if no age variable in data)
 #' @param levels_sexgender Values taken by sex/gender
 #' variable (or NULL if no sex/gender variable in data)
+#' @param matrix_agesex Matrix mapping term
+#' to age and sex dimensions.
 #'
 #' @returns A sparse matrix.
 #'
@@ -1299,7 +1301,8 @@ make_matrix_effectfree_effect <- function(prior,
                                           levels_effect,
                                           agesex,
                                           levels_age,
-                                          levels_sexgender) {
+                                          levels_sexgender,
+                                          matrix_agesex) {
   UseMethod("make_matrix_effectfree_effect")
 }
 
@@ -1309,7 +1312,8 @@ make_matrix_effectfree_effect.bage_prior <- function(prior,
                                                      levels_effect,
                                                      agesex,
                                                      levels_age,
-                                                     levels_sexgender) {
+                                                     levels_sexgender,
+                                                     matrix_agesex) {
   n <- length(levels_effect)
   Matrix::.sparseDiagonal(n)
 }
@@ -1320,7 +1324,8 @@ make_matrix_effectfree_effect.bage_prior_spline <- function(prior,
                                                             levels_effect,
                                                             agesex,
                                                             levels_age,
-                                                            levels_sexgender) {
+                                                            levels_sexgender,
+                                                            matrix_agesex) {
   n_spline <- prior$specific$n
   if (is.null(n_spline)) {
     n_spline <- 0.7 * length(levels_effect)
@@ -1340,7 +1345,8 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
                                                          levels_effect,
                                                          agesex,
                                                          levels_age,
-                                                         levels_sexgender) {
+                                                         levels_sexgender,
+                                                         matrix_agesex) {
   scaled_svd <- prior$specific$scaled_svd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n
@@ -1353,33 +1359,30 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
                            n_comp = n_comp)
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 make_matrix_effectfree_effect.bage_prior_esvd <- function(prior,
                                                           levels_effect,
                                                           agesex,
                                                           levels_age,
                                                           levels_sexgender,
-                                                          matrix_along_by) {
+                                                          matrix_agesex) {
   scaled_svd <- prior$specific$scaled_svd
   joint <- prior$specific$joint
-  is_svd2 <- !is.null(joint)
+  is_svds <- !is.null(joint)
   n_comp <- prior$specific$n
-  m_inner <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
-                                      levels_age,
-                                      levels_sexgender,
-                                      joint = joint,
-                                      agesex = agesex,
-                                      get_matrix = TRUE,
-                                      n_comp = n_comp)
-  if (is_svd2) {
-
-  }
-  else {
-
-
-  }
-  
+  n_by <- ncol(matrix_agesex)
+  F <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                levels_age,
+                                levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = TRUE,
+                                n_comp = n_comp)
+  I <- Matrix::.sparseDiagonal(n_by)
+  m_inner <- Matrix::kronecker(I, F)
+  m_outer <- make_matrix_agesex_index(matrix_agesex)
+  m_outer %*% m_inner
 }                             
 
 
@@ -1400,6 +1403,8 @@ make_matrix_effectfree_effect.bage_prior_esvd <- function(prior,
 #' variable (or NULL if no age variable in data)
 #' @param levels_sexgender Values taken by sex/gender
 #' variable (or NULL if no sex/gender variable in data)
+#' @param matrix_agesex Matrix mapping term to age
+#' and sex dimensions.
 #'
 #' @returns A vector.
 #'
@@ -1408,8 +1413,9 @@ make_offset_effectfree_effect <- function(prior,
                                           levels_effect,
                                           agesex,
                                           levels_age,
-                                          levels_sexgender) {
-    UseMethod("make_offset_effectfree_effect")
+                                          levels_sexgender,
+                                          matrix_agesex) {
+  UseMethod("make_offset_effectfree_effect")
 }
 
 ## HAS_TESTS
@@ -1418,7 +1424,8 @@ make_offset_effectfree_effect.bage_prior <- function(prior,
                                                      levels_effect,
                                                      agesex,
                                                      levels_age,
-                                                     levels_sexgender) {
+                                                     levels_sexgender,
+                                                     matrix_agesex) {
   n <- length(levels_effect)
   rep.int(0, times = n)
 }
@@ -1429,7 +1436,8 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior,
                                                          levels_effect,
                                                          agesex,
                                                          levels_age,
-                                                         levels_sexgender) {
+                                                         levels_sexgender,
+                                                         matrix_agesex) {
   scaled_svd <- prior$specific$scaled_svd
   joint <- prior$specific$joint
   matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
@@ -1440,6 +1448,36 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior,
                                      get_matrix = FALSE,
                                      n_comp = NULL)
 }
+
+## HAS_TESTS
+#' @export
+make_offset_effectfree_effect.bage_prior_esvd <- function(prior,
+                                                          levels_effect,
+                                                          agesex,
+                                                          levels_age,
+                                                          levels_sexgender,
+                                                          matrix_agesex) {
+  scaled_svd <- prior$specific$scaled_svd
+  joint <- prior$specific$joint
+  is_svds <- !is.null(joint)
+  n_comp <- prior$specific$n
+  n_by <- ncol(matrix_agesex)
+  g <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+                                levels_age,
+                                levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = FALSE,
+                                n_comp = n_comp)
+  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
+                               j = rep.int(1L, times = n_by),
+                               x = rep.int(1L, times = n_by))
+  m_inner <- Matrix::kronecker(ones, g)
+  m_outer <- make_matrix_agesex_index(matrix_agesex)
+  ans <- m_outer %*% m_inner
+  ans <- Matrix::drop(ans)
+  ans
+}                             
 
 
 ## 'reformat_hyperrand_one' ---------------------------------------------------
@@ -1812,7 +1850,7 @@ str_call_prior.bage_prior_svd <- function(prior) {
   n <- prior$specific$n
   joint <- prior$specific$joint
   args <- character(3L)
-  fun <- if (is.null(joint)) "SVD" else "SVD2"
+  fun <- if (is.null(joint)) "SVD" else "SVDS"
   args[[1L]] <- nm_scaled_svd
   if (n != 5)
     args[[2L]] <- sprintf("n=%s", n)

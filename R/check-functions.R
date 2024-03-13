@@ -346,7 +346,25 @@ check_is_matrix <- function(x, nm_x) {
   invisible(TRUE)
 }
 
-        
+
+## HAS_TESTS
+#' Check that an Object has Class 'bage_scaled_svd'
+#'
+#' @param x An object
+#' @param nm_x Name to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_is_scaled_svd <- function(x, nm_x) {
+  if (!inherits(x, "bage_scaled_svd"))
+    cli::cli_abort(c("{.arg {nm_x}} does not hold scaled SVD values.",
+                     i = "{.arg {nm_x}} has class {.cls {class(x)}}.",
+                     i = "{.arg {nm_x}} should have class {.cls bage_scaled_svd}."))
+  invisible(TRUE)
+}
+
+
 ## HAS_TESTS
 #' Check that Along Dimension of Interaction has at Least 'min' Elements
 #'

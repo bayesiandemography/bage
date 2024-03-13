@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{SVD}
 \alias{SVD}
-\title{SVD Prior}
+\title{SVD Prior for Age Main Effect}
 \usage{
 SVD(scaled_svd, n = 5)
 }
@@ -10,7 +10,7 @@ SVD(scaled_svd, n = 5)
 \item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
 holding scaled values from an SVD of age-specific values.}
 
-\item{n}{Number of components from scaled SVD
+\item{n}{Number of vectors from scaled SVD
 to use in modelling. Must be between 1 and 10.
 Default is 5.}
 }
@@ -29,36 +29,38 @@ from an external demographic database. For instance,
 \if{html}{\out{<div class="sourceCode">}}\preformatted{set_prior(mod, age ~ SVD(HMD))
 }\if{html}{\out{</div>}}
 
-specifies that the quantity being modelled in \code{mod}
-has an age profile that looks like it was drawn from the
+specifies that the age profile looks like it was drawn from
 \href{https://www.mortality.org}{Human Mortality Database}.
-A Singular Value Decomposition is closely related
+
+A \link[=svd]{Singular Value Decomposition} is closely related
 to a Principal Components analysis, and is a way of
 extracting patterns from large volumes of data.
 }
 \section{Mathematical details}{
 
 
-Under an SVD prior,
+With an SVD prior,
 
 \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
 
 where
 \itemize{
-\item \eqn{\pmb{\beta}} is the age effect with \eqn{J} elements;
-\item \eqn{\pmb{X}} is a known \eqn{J \times K} matrix, with \eqn{K} much
-smaller than \eqn{J};
+\item \eqn{\pmb{\beta}} is an age effect with \eqn{J} elements;
+\item \eqn{\pmb{X}} is a known \eqn{J \times K} matrix, where \eqn{J}
+is the number of age groups and \eqn{K} is the number of
+vectors from the SVD to use (with \eqn{K} typically much
+less than than \eqn{J});
 \item \eqn{\pmb{\alpha}} is a vector with \eqn{K} elements; and
 \item \eqn{\pmb{g}} is a known vector with \eqn{J} elements.
 }
 
 The elements of \eqn{\pmb{\alpha}} have prior
 
-\deqn{\alpha_i \sim \text{N}(0, 1), \quad i = 1, \cdots, K}
+\deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
 
 \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
 a large database of age-specific demographic estimates
-by preforming an SVD and then extracting means and variances.
+by preforming an SVD and then standardizing.
 For details see TODO - REFERENCE TO VIGNETTE.
 }
 
@@ -77,11 +79,13 @@ SVD(HMD, n = 3)
 }
 \seealso{
 \itemize{
-\item \code{\link[=set_prior]{set_prior()}} to specify the prior for a model
-\item \code{\link[=SVD2]{SVD2()}} Two-sex version of \code{SVD()}
-\item \code{\link[=ESVD]{ESVD()}} Exchangeable SVD prior for interactions
-\item \code{\link[=ESVD]{ESVD()}} Exchangeable two-sex SVD prior
-for interactions
-\item XXX to create a new scaled SVD.
+\item \code{\link[=set_prior]{set_prior()}} Specify the prior for a model
+\item \code{\link[=SVDS]{SVDS()}} SVD prior for interaction between
+age and sex/gender.
+\item \code{\link[=ESVD]{ESVD()}} Exchangeable SVD prior for interaction involving
+age and other dimensions, but not sex/gender.
+\item \code{\link[=ESVDS]{ESVDS()}} Exchangeable SVD prior for interaction involving
+age, sex/gender, and other dimension(s).
+\item XXX Create a new scaled SVD.
 }
 }
