@@ -369,17 +369,17 @@ draw_vals_effect.bage_prior_svd <- function(prior,
                                             matrix_along_by,
                                             matrix_agesex,
                                             n_sim) {
-  scaled_svd <- prior$specific$scaled_svd
+  ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n
-  m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age = levels_age,
                                 levels_sexgender = levels_sexgender,
                                 joint = joint,
                                 agesex = agesex,
                                 get_matrix = TRUE,
                                 n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age = levels_age,
                                 levels_sexgender = levels_sexgender,
                                 joint = joint,
@@ -407,18 +407,18 @@ draw_vals_effect.bage_prior_esvd <- function(prior,
                                              matrix_along_by,
                                              matrix_agesex,
                                              n_sim) {
-  scaled_svd <- prior$specific$scaled_svd
+  ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n
   n_by <- ncol(matrix_along_by)
-  m <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age = levels_age,
                                 levels_sexgender = levels_sexgender,
                                 joint = joint,
                                 agesex = agesex,
                                 get_matrix = TRUE,
                                 n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age = levels_age,
                                 levels_sexgender = levels_sexgender,
                                 joint = joint,
@@ -1523,10 +1523,10 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
                                                          levels_age,
                                                          levels_sexgender,
                                                          matrix_agesex) {
-  scaled_svd <- prior$specific$scaled_svd
+  ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n
-  get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  get_matrix_or_offset_svd(ssvd = ssvd,
                            levels_age,
                            levels_sexgender,
                            joint = joint,
@@ -1543,12 +1543,12 @@ make_matrix_effectfree_effect.bage_prior_esvd <- function(prior,
                                                           levels_age,
                                                           levels_sexgender,
                                                           matrix_agesex) {
-  scaled_svd <- prior$specific$scaled_svd
+  ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   is_svds <- !is.null(joint)
   n_comp <- prior$specific$n
   n_by <- ncol(matrix_agesex)
-  F <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  F <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
                                 joint = joint,
@@ -1614,9 +1614,9 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior,
                                                          levels_age,
                                                          levels_sexgender,
                                                          matrix_agesex) {
-  scaled_svd <- prior$specific$scaled_svd
+  ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
-  matrix <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  matrix <- get_matrix_or_offset_svd(ssvd = ssvd,
                                      levels_age,
                                      levels_sexgender,
                                      joint = joint,
@@ -1633,12 +1633,12 @@ make_offset_effectfree_effect.bage_prior_esvd <- function(prior,
                                                           levels_age,
                                                           levels_sexgender,
                                                           matrix_agesex) {
-  scaled_svd <- prior$specific$scaled_svd
+  ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   is_svds <- !is.null(joint)
   n_comp <- prior$specific$n
   n_by <- ncol(matrix_agesex)
-  g <- get_matrix_or_offset_svd(scaled_svd = scaled_svd,
+  g <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
                                 joint = joint,
@@ -2022,12 +2022,12 @@ str_call_prior.bage_prior_spline <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_svd <- function(prior) {
-  nm_scaled_svd <- prior$specific$nm_scaled_svd
+  nm_ssvd <- prior$specific$nm_ssvd
   n <- prior$specific$n
   joint <- prior$specific$joint
   args <- character(3L)
   fun <- if (is.null(joint)) "SVD" else "SVDS"
-  args[[1L]] <- nm_scaled_svd
+  args[[1L]] <- nm_ssvd
   if (n != 5)
     args[[2L]] <- sprintf("n=%s", n)
   if (!is.null(joint) && joint)
@@ -2040,12 +2040,12 @@ str_call_prior.bage_prior_svd <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_esvd <- function(prior) {
-  nm_scaled_svd <- prior$specific$nm_scaled_svd
+  nm_ssvd <- prior$specific$nm_ssvd
   n <- prior$specific$n
   joint <- prior$specific$joint
   args <- character(3L)
   fun <- if (is.null(joint)) "ESVD" else "ESVDS"
-  args[[1L]] <- nm_scaled_svd
+  args[[1L]] <- nm_ssvd
   if (n != 5)
     args[[2L]] <- sprintf("n=%s", n)
   if (!is.null(joint) && joint)

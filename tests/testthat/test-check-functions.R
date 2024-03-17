@@ -283,12 +283,12 @@ test_that("'check_is_matrix' throws correct error with non-matrix", {
                "`val` is not a matrix.")
 })
 
-## 'check_is_scaled_svd' ------------------------------------------------------
+## 'check_is_ssvd' ------------------------------------------------------
 
-test_that("'check_is_scaled_svd' works with valid inputs", {
-  expect_true(check_is_scaled_svd(x = HMD, nm_x = "scaled_svd"))
-  expect_error(check_is_scaled_svd(x = NULL, nm_x = "scaled_svd"),
-               "`scaled_svd` does not hold scaled SVD values.")
+test_that("'check_is_ssvd' works with valid inputs", {
+  expect_true(check_is_ssvd(x = HMD, nm_x = "ssvd"))
+  expect_error(check_is_ssvd(x = NULL, nm_x = "ssvd"),
+               "`ssvd` does not hold scaled SVD values.")
 })
 
 

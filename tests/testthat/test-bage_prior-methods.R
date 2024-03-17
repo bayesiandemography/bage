@@ -877,7 +877,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_true(is_prior_ok_for_term(prior = SVDS(s),
                                    nm = "age:ses",
                                    matrix_along_by = matrix(0:9, nc = 2),
@@ -889,7 +889,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 'var_age' is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "bla",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -902,7 +902,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when agesex is 'other'", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "bla",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -915,7 +915,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for age main effect", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "age",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -928,7 +928,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for age-sex interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -941,7 +941,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for age interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "age:reg",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -955,7 +955,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -968,7 +968,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "bla:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -981,7 +981,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when dim has length 2 and 'agesex' not recognised", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "bla:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -994,7 +994,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for 3-way interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "sex:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -1007,7 +1007,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for 3-way interaction involving age, sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "sex:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -1020,7 +1020,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for 3-way interaction involving age, not sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -1033,7 +1033,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for 3-way interaction involving age, not sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -1046,7 +1046,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 2+ dimensions and invalid 'agesex'", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -1145,7 +1145,7 @@ test_that("'levels_hyper' works with 'bage_prior_spline'", {
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
-  expect_identical(levels_hyper(prior = SVD(sim_scaled_svd())),
+  expect_identical(levels_hyper(prior = SVD(sim_ssvd())),
                    character())
 })
 
@@ -1263,8 +1263,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n NULL
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age main effect", {
-  s <- sim_scaled_svd()
-  prior <- SVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n = 3)
   levels_effect <- c("0-4", "5-9")
   agesex <- "age"
   ans_obtained <- make_matrix_effectfree_effect(prior = prior,
@@ -1281,8 +1281,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age main 
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age-sex interaction, joint", {
-  s <- sim_scaled_svd()
-  prior <- SVDS(scaled_svd = s, n = 3, joint = TRUE)
+  s <- sim_ssvd()
+  prior <- SVDS(ssvd = s, n = 3, joint = TRUE)
   levels_effect <- c("Female.0-4", "Female.5-9", "Male.0-4", "Male.5-9")
   levels_age <- c("0-4", "5-9")
   levels_sex <- c("Female", "Male")
@@ -1301,8 +1301,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age-sex i
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_esvd - age x reg interaction", {
-  s <- sim_scaled_svd()
-  prior <- ESVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- ESVD(ssvd = s, n = 3)
   levels_effect = c("a.0-4", "b.0-4", "a.5-9", "b.5-9")
   levels_age <- c("0-4", "5-9")
   agesex <- "age:other"
@@ -1337,7 +1337,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_esvd - sex x re
                                                 levels_sexgender = levels_sex,
                                                 agesex = agesex,
                                                 matrix_agesex = matrix_agesex)
-  m2 <- HMD$data$matrix[[78]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   m1 <- make_matrix_agesex_index(matrix_agesex)
   ans_expected <- m1 %*% m2
@@ -1359,8 +1359,8 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_ar1", {
 })
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age main effect", {
-  s <- sim_scaled_svd()
-  prior <- SVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n = 3)
   agesex <- "age"
   ans_obtained <- make_offset_effectfree_effect(prior = prior,
                                                 levels_age = c("0-4", "5-9"),
@@ -1371,8 +1371,8 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age main 
 })
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex interaction, joint", {
-  s <- sim_scaled_svd()
-  prior <- SVDS(scaled_svd = s, n = 3, joint = TRUE)
+  s <- sim_ssvd()
+  prior <- SVDS(ssvd = s, n = 3, joint = TRUE)
   agesex <- "sex:age"
   ans_obtained <- make_offset_effectfree_effect(prior = prior,
                                                 levels_age = c("0-4", "5-9"),
@@ -1383,8 +1383,8 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex i
 })
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - age x reg interaction", {
-  s <- sim_scaled_svd()
-  prior <- ESVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- ESVD(ssvd = s, n = 3)
   levels_effect = c("a.0-4", "b.0-4", "a.5-9", "b.5-9")
   levels_age <- c("0-4", "5-9")
   agesex <- "age:other"
@@ -2212,7 +2212,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_true(is_prior_ok_for_term(prior = SVDS(s),
                                    nm = "age:ses",
                                    matrix_along_by = matrix(0:9, nc = 2),
@@ -2224,7 +2224,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 'var_age' is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "bla",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -2237,7 +2237,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when agesex is 'other'", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "bla",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -2250,7 +2250,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for age main effect", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "age",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -2263,7 +2263,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for age-sex interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2276,7 +2276,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2289,7 +2289,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "bla:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2302,7 +2302,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when dim has length 2 and 'agesex' not recognised", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "bla:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2315,7 +2315,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for 3-way interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "sex:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2328,7 +2328,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for 3-way interaction involving age, sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "sex:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2341,7 +2341,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVDS is used for 3-way interaction involving age, not sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVDS(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2354,7 +2354,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when SVD is used for 3-way interaction involving age, not sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2367,7 +2367,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 2+ dimensions and invalid 'agesex'", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = SVD(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2390,7 +2390,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 
 
 test_that("'is_prior_ok_for_term' works with bage_prior_esvd, correct inputs", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_true(is_prior_ok_for_term(prior = ESVDS(s),
                                    nm = "age:sex:other",
                                    matrix_along_by = NULL,
@@ -2402,7 +2402,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_esvd, correct inputs", {
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 'var_age' is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVD(s),
                                     nm = "bla",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2415,7 +2415,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when agesex is 'other'", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "bla",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -2429,7 +2429,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for age main effect", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "age",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -2442,7 +2442,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for age main effect", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVD(s),
                                     nm = "age",
                                     matrix_along_by = matrix(0:9, nc = 1),
@@ -2456,7 +2456,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for age-sex interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2469,7 +2469,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for age-sex interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVD(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2482,7 +2482,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "sex:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2495,7 +2495,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for age-other interaction", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "bla:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2508,7 +2508,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when dim has length 2 and 'agesex' not recognised", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "bla:age",
                                     matrix_along_by = matrix(0:9, nc = 2),
@@ -2521,7 +2521,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVD is used for 3-way interaction involving age and sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVD(s),
                                     nm = "sex:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2534,7 +2534,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when ESVDS is used for 3-way interaction involving age, not sex", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVDS(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2547,7 +2547,7 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error when 2+ dimensions and invalid 'agesex'", {
-  s <- sim_scaled_svd()
+  s <- sim_ssvd()
   expect_error(is_prior_ok_for_term(prior = ESVD(s),
                                     nm = "reg:age:time",
                                     matrix_along_by = matrix(0:29, nc = 2),
@@ -2646,12 +2646,12 @@ test_that("'levels_hyper' works with 'bage_prior_spline'", {
 })
 
 test_that("'levels_hyper' works with 'bage_prior_svd'", {
-  expect_identical(levels_hyper(prior = SVD(sim_scaled_svd())),
+  expect_identical(levels_hyper(prior = SVD(sim_ssvd())),
                    character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_esvd'", {
-  expect_identical(levels_hyper(prior = ESVD(sim_scaled_svd())),
+  expect_identical(levels_hyper(prior = ESVD(sim_ssvd())),
                    character())
 })
 
@@ -2769,8 +2769,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n NULL
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age main effect", {
-  s <- sim_scaled_svd()
-  prior <- SVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n = 3)
   levels_effect <- c("0-4", "5-9")
   agesex <- "age"
   ans_obtained <- make_matrix_effectfree_effect(prior = prior,
@@ -2787,8 +2787,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age main 
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age-sex interaction, joint", {
-  s <- sim_scaled_svd()
-  prior <- SVDS(scaled_svd = s, n = 3, joint = TRUE)
+  s <- sim_ssvd()
+  prior <- SVDS(ssvd = s, n = 3, joint = TRUE)
   levels_effect <- c("Female.0-4", "Female.5-9", "Male.0-4", "Male.5-9")
   levels_age <- c("0-4", "5-9")
   levels_sex <- c("Female", "Male")
@@ -2807,8 +2807,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd - age-sex i
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_esvd - age x reg interaction", {
-  s <- sim_scaled_svd()
-  prior <- ESVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- ESVD(ssvd = s, n = 3)
   levels_effect = c("a.0-4", "b.0-4", "a.5-9", "b.5-9")
   levels_age <- c("0-4", "5-9")
   agesex <- "age:other"
@@ -2843,7 +2843,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_esvd - sex x re
                                                 levels_sexgender = levels_sex,
                                                 agesex = agesex,
                                                 matrix_agesex = matrix_agesex)
-  m2 <- HMD$data$matrix[[78]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   m1 <- make_matrix_agesex_index(matrix_agesex)
   ans_expected <- m1 %*% m2
@@ -2865,8 +2865,8 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_ar1", {
 })
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age main effect", {
-  s <- sim_scaled_svd()
-  prior <- SVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n = 3)
   agesex <- "age"
   ans_obtained <- make_offset_effectfree_effect(prior = prior,
                                                 levels_age = c("0-4", "5-9"),
@@ -2877,8 +2877,8 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age main 
 })
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex interaction, joint", {
-  s <- sim_scaled_svd()
-  prior <- SVDS(scaled_svd = s, n = 3, joint = TRUE)
+  s <- sim_ssvd()
+  prior <- SVDS(ssvd = s, n = 3, joint = TRUE)
   agesex <- "sex:age"
   ans_obtained <- make_offset_effectfree_effect(prior = prior,
                                                 levels_age = c("0-4", "5-9"),
@@ -2889,8 +2889,8 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex i
 })
 
 test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - age x reg interaction", {
-  s <- sim_scaled_svd()
-  prior <- ESVD(scaled_svd = s, n = 3)
+  s <- sim_ssvd()
+  prior <- ESVD(ssvd = s, n = 3)
   levels_effect = c("a.0-4", "b.0-4", "a.5-9", "b.5-9")
   levels_age <- c("0-4", "5-9")
   agesex <- "age:other"
@@ -2925,7 +2925,7 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - sex x re
                                                 levels_sexgender = levels_sex,
                                                 agesex = agesex,
                                                 matrix_agesex = matrix_agesex)
-  off <- HMD$data$offset[[78]][as.integer(t(matrix(1:28,nr=14)))]
+  off <- HMD$data$offset[[35]][as.integer(t(matrix(1:28,nr=14)))]
   off <- c(off, off)
   m1 <- make_matrix_agesex_index(matrix_agesex)
   ans_expected <- Matrix::drop(m1 %*% off)
@@ -3175,7 +3175,7 @@ test_that("'str_call_prior' works with bage_prior_spline", {
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
-    s <- sim_scaled_svd()
+    s <- sim_ssvd()
     expect_identical(str_call_prior(SVD(s)), "SVD(s)")
     expect_identical(str_call_prior(SVDS(s,joint = TRUE)), "SVDS(s,joint=TRUE)")
     expect_identical(str_call_prior(SVD(s,n = 6L)), "SVD(s,n=6)")
@@ -3183,7 +3183,7 @@ test_that("'str_call_prior' works with bage_prior_svd", {
 })
 
 test_that("'str_call_prior' works with bage_prior_esvd", {
-    s <- sim_scaled_svd()
+    s <- sim_ssvd()
     expect_identical(str_call_prior(ESVD(s)), "ESVD(s)")
     expect_identical(str_call_prior(ESVDS(s,joint = TRUE)), "ESVDS(s,joint=TRUE)")
     expect_identical(str_call_prior(ESVD(s,n = 6L)), "ESVD(s,n=6)")
@@ -3618,7 +3618,7 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - sex x re
                                                 levels_sexgender = levels_sex,
                                                 agesex = agesex,
                                                 matrix_agesex = matrix_agesex)
-  off <- HMD$data$offset[[78]][as.integer(t(matrix(1:28,nr=14)))]
+  off <- HMD$data$offset[[35]][as.integer(t(matrix(1:28,nr=14)))]
   off <- c(off, off)
   m1 <- make_matrix_agesex_index(matrix_agesex)
   ans_expected <- Matrix::drop(m1 %*% off)
@@ -3868,7 +3868,7 @@ test_that("'str_call_prior' works with bage_prior_spline", {
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
-    s <- sim_scaled_svd()
+    s <- sim_ssvd()
     expect_identical(str_call_prior(SVD(s)), "SVD(s)")
     expect_identical(str_call_prior(SVDS(s,joint = TRUE)), "SVDS(s,joint=TRUE)")
     expect_identical(str_call_prior(SVD(s,n = 6L)), "SVD(s,n=6)")

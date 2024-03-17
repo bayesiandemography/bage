@@ -37,7 +37,7 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
 	Rscript $^ $@
 
 ../data/HMD.rda: svd_hmd/HMD.R \
-  svd_hmd/HMD_20221129.rds
+  svd_hmd/hmd_statistics_20240226.zip
 	Rscript $^ $@
 
 ../data/households.rda: households/households.R \

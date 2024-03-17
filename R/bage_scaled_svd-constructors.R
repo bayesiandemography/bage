@@ -1,14 +1,15 @@
 
 ## HAS_TESTS
-#' Create object to hold data from scaled SVDs
+#' Create an Object to Hold Data from a Scaled SVD
 #'
-#' Create an object of class `bage_scaled_svd` to
-#' hold scaled SVDs (singular value decompositionsk.)
+#' Create an object of class `"bage_ssvd"` to
+#' hold results from a scaled [Singular Value Decomposition][base::svd()]
+#' (SVD).
 #'
 #' `data` has the following columns:
 #'
 #' - `type` Type of decomposition. Choices are "total",
-#'   "joint", and "indep". See details.
+#'   "joint", and "indep".
 #' - `labels_age` Age labels for individual rows of
 #'    matrices within `matrix` and individual elements
 #'    of vectors within `offset`.
@@ -18,21 +19,21 @@
 #'    `NULL` when `sexgender` is `"total"`, since in
 #'    this case results average across sexes/genders.
 #' - `matrix` List column of sparse matrices created by
-#'   [scaled_svd_comp()]. Must have rownames.
+#'   [ssvd_comp()]. Must have rownames.
 #'   Must not have NAs. When `type` is `"total"` or `"joint"`,
 #'   each matrix has 10 columns. When `"type"` is `"indep"`,
 #'   each matrix has 20 columns.
 #' - `offset` List column of vectors created by
-#'   [scaled_svd_comp()]. Must have names, which
+#'   [ssvd_comp()]. Must have names, which
 #'   are identical to the rownames of the corresponding
 #'   element of `matrix`.
 #'   
 #' @param data A data frame. See Details for description.
 #'
-#' @returns An object of class `bage_scaled_svd`.
+#' @returns An object of class `bage_ssvd`.
 #'
 #' @export
-scaled_svd <- function(data) {
+ssvd <- function(data) {
     nms_valid <- c("type",
                    "labels_age",
                    "labels_sexgender",
@@ -164,6 +165,6 @@ scaled_svd <- function(data) {
     data <- tibble::as_tibble(data)
     data <- data[c("type", "labels_age", "labels_sexgender", "matrix", "offset")]
     ans <- list(data = data)
-    class(ans) <- "bage_scaled_svd"
+    class(ans) <- "bage_ssvd"
     ans
 }

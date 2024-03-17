@@ -2,10 +2,10 @@
 library(command)
 library(bage)
 
-cmd_assign(hmd = "svd_hmd/HMD_20221129.rds",
+cmd_assign(.hmd = "svd_hmd/hmd_statistics_20240226.zip",
            .out = "../data/HMD.rda")
 
-HMD <- scaled_svd(hmd)
+HMD <- svd_hmd(.hmd)
 
 save(HMD, file = .out, compress = "bzip2")
 

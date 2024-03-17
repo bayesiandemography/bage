@@ -4,10 +4,10 @@
 \alias{ESVD}
 \title{Exchangeable SVD Prior for Interactions Involving Age}
 \usage{
-ESVD(scaled_svd, n = 5)
+ESVD(ssvd, n = 5)
 }
 \arguments{
-\item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
+\item{ssvd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
 holding scaled values from an SVD of age-specific values.}
 
 \item{n}{Number of components from scaled SVD

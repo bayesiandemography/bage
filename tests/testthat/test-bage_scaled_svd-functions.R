@@ -1,7 +1,7 @@
 
 test_that("'get_matrix_or_offset_svd' works with age main effect, type is total, matrix", {
-    scaled_svd <- sim_scaled_svd()
-    ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              levels_age = c("0-4", "5-9"),
                                              levels_sex = NULL,
                                              joint = NULL,
@@ -16,8 +16,8 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
 })
 
 test_that("'get_matrix_or_offset_svd' works with age main effect, type is total, offset", {
-    scaled_svd <- sim_scaled_svd()
-    ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              levels_age = c("0 to 4", "5 to 9"),
                                              levels_sex = NULL,
                                              joint = NULL,
@@ -29,8 +29,8 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
 })
 
 test_that("'get_matrix_or_offset_svd' works with sex-age interaction, type is joint, offset", {
-    scaled_svd <- sim_scaled_svd()
-    ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              levels_age = c("0-4", "5-9"),
                                              levels_sex = c("Male", "Female"),
                                              joint = TRUE,
@@ -42,8 +42,8 @@ test_that("'get_matrix_or_offset_svd' works with sex-age interaction, type is jo
 })
 
 test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is indep, matrix", {
-    scaled_svd <- sim_scaled_svd()
-    ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                              levels_age = c("0-4", "5-9"),
                                              levels_sexgender = c("Female", "Male"),
                                              joint = FALSE,
@@ -60,8 +60,8 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is in
 })
 
 test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is joint, offset, non-standard labels", {
-  scaled_svd <- sim_scaled_svd()
-  ans_obtained <- get_matrix_or_offset_svd(scaled_svd,
+  ssvd <- sim_ssvd()
+  ans_obtained <- get_matrix_or_offset_svd(ssvd,
                                            levels_age = c("0 to 4", "5--9"),
                                            levels_sexgender = c("M", "F"),
                                            joint = FALSE,
@@ -78,8 +78,8 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is jo
 })
 
 test_that("'get_matrix_or_offset_svd' returns expected error with illegal value for agesex", {
-    scaled_svd <- sim_scaled_svd()
-    expect_error(get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    expect_error(get_matrix_or_offset_svd(ssvd,
                                           levels_age = c("0-4", "5-9"),
                                           levels_sexgender = c("F", "M"),
                                           joint = FALSE,
@@ -90,8 +90,8 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal value 
 })
 
 test_that("'get_matrix_or_offset_svd' returns expected error with illegal value for age label", {
-    scaled_svd <- sim_scaled_svd()
-    expect_error(get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    expect_error(get_matrix_or_offset_svd(ssvd,
                                           levels_age = c("0-4", "wrong"),
                                           levels_sexgender = c("F", "M"),
                                           joint = FALSE,
@@ -102,8 +102,8 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal value 
 })
 
 test_that("'get_matrix_or_offset_svd' returns expected error with illegal value for age label", {
-    scaled_svd <- sim_scaled_svd()
-    expect_error(get_matrix_or_offset_svd(scaled_svd,
+    ssvd <- sim_ssvd()
+    expect_error(get_matrix_or_offset_svd(ssvd,
                                           levels_age = c("0-4", "5-9"),
                                           levels_sexgender = c("F", "wrong"),
                                           joint = FALSE,
@@ -114,20 +114,20 @@ test_that("'get_matrix_or_offset_svd' returns expected error with illegal value 
 })
 
 test_that("'get_matrix_or_offset_svd' returns expected error when can't align age labels", {
-  scaled_svd <- sim_scaled_svd()
-  expect_error(get_matrix_or_offset_svd(scaled_svd,
+  ssvd <- sim_ssvd()
+  expect_error(get_matrix_or_offset_svd(ssvd,
                                         levels_age = c("0---4", "5+"),
                                         levels_sexgender = c("F", "M"),
                                         joint = FALSE,
                                         agesex = "age:sex",
                                         get_matrix = TRUE,
                                         n_comp = 5),
-               "Unable to align age labels from `data` with age labels from `scaled_svd`.")
+               "Unable to align age labels from `data` with age labels from `ssvd`.")
 })
 
 test_that("'get_matrix_or_offset_svd' returns expected error when can't parse sex/gender labels", {
-  scaled_svd <- sim_scaled_svd()
-  expect_error(get_matrix_or_offset_svd(scaled_svd,
+  ssvd <- sim_ssvd()
+  expect_error(get_matrix_or_offset_svd(ssvd,
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = c("M", "FFF"),
                                         joint = FALSE,
@@ -138,15 +138,15 @@ test_that("'get_matrix_or_offset_svd' returns expected error when can't parse se
 })
 
 test_that("'get_matrix_or_offset_svd' returns expected error when can't align sex/gender labels", {
-  scaled_svd <- sim_scaled_svd()
-  expect_error(get_matrix_or_offset_svd(scaled_svd,
+  ssvd <- sim_ssvd()
+  expect_error(get_matrix_or_offset_svd(ssvd,
                                         levels_age = c("0-4", "5-9"),
                                         levels_sexgender = "M",
                                         joint = FALSE,
                                         agesex = "age:sex",
                                         get_matrix = TRUE,
                                         n_comp = 5),
-               "Unable to align sex/gender labels from `data` with sex/gender labels from `scaled_svd`.")
+               "Unable to align sex/gender labels from `data` with sex/gender labels from `ssvd`.")
 })
 
 
