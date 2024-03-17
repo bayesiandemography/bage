@@ -7,10 +7,11 @@
 ESVD(ssvd, n = 5)
 }
 \arguments{
-\item{ssvd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
-holding scaled values from an SVD of age-specific values.}
+\item{ssvd}{Object of class \code{"bage_ssvd"}
+holding results from a scaled SVD.
+See below for current options.}
 
-\item{n}{Number of components from scaled SVD
+\item{n}{Number of vectors from scaled SVD
 to use in modelling. Must be between 1 and 10.
 Default is 5.}
 }
@@ -62,7 +63,7 @@ by preforming an SVD and then extracting means and variances.
 For details see TODO - REFERENCE TO VIGNETTE.
 }
 
-\section{Scaled SVDs in bage}{
+\section{Scaled SVDs currently implemented in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Values from the

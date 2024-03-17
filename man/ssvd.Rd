@@ -10,7 +10,7 @@ ssvd(data)
 \item{data}{A data frame. See Details for description.}
 }
 \value{
-An object of class \code{bage_ssvd}.
+An object of class \code{"bage_ssvd"}.
 }
 \description{
 Create an object of class \code{"bage_ssvd"} to

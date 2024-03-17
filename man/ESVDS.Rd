@@ -8,8 +8,9 @@ and Sex/Gender}
 ESVDS(ssvd, n = 5, joint = FALSE)
 }
 \arguments{
-\item{ssvd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
-holding scaled values from an SVD of age-specific values.}
+\item{ssvd}{Object of class \code{"bage_ssvd"}
+holding results from a scaled SVD.
+See below for current options.}
 
 \item{n}{Number of vectors from scaled SVD
 to use in modelling. Must be between 1 and 10.
@@ -99,7 +100,7 @@ is obtained by setting the \code{joint} argument to \code{TRUE}.
 The default is \code{FALSE}.
 }
 
-\section{Scaled SVDs in bage}{
+\section{Scaled SVDs currently implemented in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Values from the
@@ -120,6 +121,5 @@ ESVDS(HMD, joint = TRUE)
 age and sex/gender.
 \item \code{\link[=ESVD]{ESVD()}} Exchangeable SVD prior for interaction involving
 age and other dimensions, but not sex/gender.
-\item XXX Create a new scaled SVD.
 }
 }
