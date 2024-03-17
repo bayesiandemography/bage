@@ -15,7 +15,7 @@ standard deviation (\eqn{\tau}).
 Default is \code{1}.}
 }
 \value{
-An object of class \code{bage_prior_ar}.
+An object of class \code{"bage_prior_ar"}.
 }
 \description{
 Autoregressive prior with order \code{k}. Used to model main effects:
@@ -35,7 +35,8 @@ marginal variance \eqn{\sigma^2}. The value of
 
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-The \eqn{\phi_1, \cdots, \phi_k} are restricted to values between -1 and 1.
+The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
+in the interval \eqn{(-1,1)} that yield stationary series.
 }
 
 \examples{
