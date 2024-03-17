@@ -2424,6 +2424,14 @@ uses_along.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
+uses_along.bage_prior_compose <- function(prior) {
+  priors <- prior$specific$priors
+  comp_uses_along <- vapply(priors, uses_along, FALSE)
+  any(comp_uses_along)
+}
+
+## HAS_TESTS
+#' @export
 uses_along.bage_prior_ear <- function(prior) TRUE
 
 ## HAS_TESTS

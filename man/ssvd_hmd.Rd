@@ -20,7 +20,7 @@ An object of class \code{\link[=ssvd]{"bage_ssvd"}}
 \description{
 Create an object of class \code{\link[=ssvd]{"bage_ssvd"}}
 from a zipped file downloaded from the
-\link[=https://www.mortality.org/Data/ZippedDataFiles]{Human Mortality Database}.
+\href{https://www.mortality.org/Data/ZippedDataFiles}{Human Mortality Database}.
 }
 \section{Warning}{
 
@@ -37,7 +37,7 @@ Register or log in at the Human Mortality Database, and go to page
 \href{https://www.mortality.org/Data/ZippedDataFiles}{Downloading the HMD in zipped data files}.
 Go to the "Previous Versions" table at the bottom of the page, and
 download a file from the "Statistics" column, eg file
-n
+
 https://www.mortality.org/File/Download/hmd.v6/zip/all_hmd/hmd_statistics_20240226.zip
 
 To download a file, you will need to register with the Human Mortality Databse

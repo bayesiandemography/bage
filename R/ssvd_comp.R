@@ -528,12 +528,12 @@ hmd_indep <- function(data, n, transform) {
 }
 
 
-
+## HAS_TESTS
 #' Create a Scaled SVD Object from a Human Mortality Database File
 #'
 #' Create an object of class [`"bage_ssvd"`][ssvd()]
 #' from a zipped file downloaded from the
-#' [Human Mortality Database][https://www.mortality.org/Data/ZippedDataFiles].
+#' [Human Mortality Database](https://www.mortality.org/Data/ZippedDataFiles).
 #'
 #' @section Warning:
 #'
@@ -555,7 +555,7 @@ hmd_indep <- function(data, n, transform) {
 #' [Downloading the HMD in zipped data files](https://www.mortality.org/Data/ZippedDataFiles).
 #' Go to the "Previous Versions" table at the bottom of the page, and
 #' download a file from the "Statistics" column, eg file
-#'n
+#'
 #' https://www.mortality.org/File/Download/hmd.v6/zip/all_hmd/hmd_statistics_20240226.zip
 #'
 #' To download a file, you will need to register with the Human Mortality Databse
