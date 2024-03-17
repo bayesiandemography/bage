@@ -4,10 +4,10 @@
 \alias{SVDS}
 \title{SVD Prior for Interaction Between Age and Sex/Gender}
 \usage{
-SVDS(scaled_svd, n = 5, joint = FALSE)
+SVDS(ssvd, n = 5, joint = FALSE)
 }
 \arguments{
-\item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
+\item{ssvd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
 holding scaled values from an SVD of age-specific values.}
 
 \item{n}{Number of vectors from scaled SVD

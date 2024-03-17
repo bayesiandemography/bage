@@ -4,10 +4,10 @@
 \alias{SVD}
 \title{SVD Prior for Age Main Effect}
 \usage{
-SVD(scaled_svd, n = 5)
+SVD(ssvd, n = 5)
 }
 \arguments{
-\item{scaled_svd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
+\item{ssvd}{An object created by \code{\link[=scaled_svd]{scaled_svd()}},
 holding scaled values from an SVD of age-specific values.}
 
 \item{n}{Number of vectors from scaled SVD

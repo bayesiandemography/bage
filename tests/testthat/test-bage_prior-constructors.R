@@ -164,12 +164,12 @@ test_that("'Sp' works with valid inputs", {
 test_that("'SVD' works with valid inputs", {
     expect_identical(SVD(HMD),
                      new_bage_prior_svd(HMD,
-                                        nm_scaled_svd = "HMD",
+                                        nm_ssvd = "HMD",
                                         joint = NULL,
                                         n = 5L))
     expect_identical(SVD(HMD, n = 3),
                      new_bage_prior_svd(HMD,
-                                        nm_scaled_svd = "HMD",
+                                        nm_ssvd = "HMD",
                                         joint = NULL,
                                         n = 3L))
 })
@@ -177,12 +177,12 @@ test_that("'SVD' works with valid inputs", {
 test_that("'SVDS' works with valid inputs", {
     expect_identical(SVDS(HMD),
                      new_bage_prior_svd(HMD,
-                                        nm_scaled_svd = "HMD",
+                                        nm_ssvd = "HMD",
                                         joint = FALSE,
                                         n = 5L))
     expect_identical(SVDS(HMD, joint = TRUE, n = 3),
                      new_bage_prior_svd(HMD,
-                                        nm_scaled_svd = "HMD",
+                                        nm_ssvd = "HMD",
                                         joint = TRUE,
                                         n = 3L))
 })
@@ -190,12 +190,12 @@ test_that("'SVDS' works with valid inputs", {
 test_that("'ESVD' works with valid inputs", {
   expect_identical(ESVD(HMD),
                    new_bage_prior_esvd(HMD,
-                                       nm_scaled_svd = "HMD",
+                                       nm_ssvd = "HMD",
                                        joint = NULL,
                                        n = 5L))
   expect_identical(ESVD(HMD, n = 3),
                    new_bage_prior_esvd(HMD,
-                                       nm_scaled_svd = "HMD",
+                                       nm_ssvd = "HMD",
                                        joint = NULL,
                                        n = 3L))
 })
@@ -203,12 +203,12 @@ test_that("'ESVD' works with valid inputs", {
 test_that("'ESVDS' works with valid inputs", {
   expect_identical(ESVDS(HMD),
                    new_bage_prior_esvd(HMD,
-                                       nm_scaled_svd = "HMD",
+                                       nm_ssvd = "HMD",
                                        joint = FALSE,
                                        n = 5L))
   expect_identical(ESVDS(HMD, joint = TRUE, n = 3),
                    new_bage_prior_esvd(HMD,
-                                       nm_scaled_svd = "HMD",
+                                       nm_ssvd = "HMD",
                                        joint = TRUE,
                                        n = 3L))
 })
@@ -417,7 +417,7 @@ test_that("'new_bage_prior_spline' works", {
 
 test_that("'new_bage_prior_svd' works", {
     obj <- new_bage_prior_svd(HMD,
-                              nm_scaled_svd = "HMD",
+                              nm_ssvd = "HMD",
                               n = 3L,
                               joint = NULL)
     expect_s3_class(obj, "bage_prior_svd")
@@ -425,12 +425,12 @@ test_that("'new_bage_prior_svd' works", {
     expect_identical(obj$i_prior, 7L)
     expect_identical(obj$const, 0)
     expect_identical(obj$specific,
-                     list(scaled_svd = HMD,
-                          nm_scaled_svd = "HMD",
+                     list(ssvd = HMD,
+                          nm_ssvd = "HMD",
                           n = 3L,
                           joint = NULL))
     obj <- new_bage_prior_svd(HMD,
-                              nm_scaled_svd = "HMD",
+                              nm_ssvd = "HMD",
                               n = 3L,
                               joint = TRUE)
     expect_s3_class(obj, "bage_prior_svd")
@@ -438,15 +438,15 @@ test_that("'new_bage_prior_svd' works", {
     expect_identical(obj$i_prior, 7L)
     expect_identical(obj$const, 0)
     expect_identical(obj$specific,
-                     list(scaled_svd = HMD,
-                          nm_scaled_svd = "HMD",
+                     list(ssvd = HMD,
+                          nm_ssvd = "HMD",
                           n = 3L,
                           joint = TRUE))
 })
 
 test_that("'new_bage_prior_esvd' works", {
-  obj <- new_bage_prior_esvd(scaled_svd = HMD,
-                             nm_scaled_svd = "HMD",
+  obj <- new_bage_prior_esvd(ssvd = HMD,
+                             nm_ssvd = "HMD",
                              n = 3L,
                              joint = NULL)
   expect_s3_class(obj, "bage_prior_esvd")
@@ -454,12 +454,12 @@ test_that("'new_bage_prior_esvd' works", {
   expect_identical(obj$i_prior, 14L)
   expect_identical(obj$const, 0)
   expect_identical(obj$specific,
-                   list(scaled_svd = HMD,
-                        nm_scaled_svd = "HMD",
+                   list(ssvd = HMD,
+                        nm_ssvd = "HMD",
                         n = 3L,
                         joint = NULL))
-  obj <- new_bage_prior_esvd(scaled_svd = HMD,
-                            nm_scaled_svd = "HMD",
+  obj <- new_bage_prior_esvd(ssvd = HMD,
+                            nm_ssvd = "HMD",
                             n = 3L,
                             joint = TRUE)
   expect_s3_class(obj, "bage_prior_esvd")
@@ -467,8 +467,8 @@ test_that("'new_bage_prior_esvd' works", {
   expect_identical(obj$i_prior, 14L)
   expect_identical(obj$const, 0)
   expect_identical(obj$specific,
-                   list(scaled_svd = HMD,
-                        nm_scaled_svd = "HMD",
+                   list(ssvd = HMD,
+                        nm_ssvd = "HMD",
                         n = 3L,
                         joint = TRUE))
 })

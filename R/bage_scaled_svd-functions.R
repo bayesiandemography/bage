@@ -1,11 +1,11 @@
 
-## Functions used only with 'bage_scaled_svd' objects
+## Functions used only with 'bage_ssvd' objects
 ## that aren't strictly methods
 
 ## HAS_TESTS
-#' Extract a matrix or offset from a 'bage_scaled_svd' object
+#' Extract a matrix or offset from a 'bage_ssvd' object
 #'
-#' @param scaled_svd Object of class 'bage_scaled_svd'
+#' @param ssvd Object of class 'bage_ssvd'
 #' @param joint Whether SVDs for sexes/genders were
 #' carried out jointly or separately
 #' @param agesex String describing age main effect
@@ -20,7 +20,7 @@
 #' @returns A matrix or vector.
 #'
 #' @noRd
-get_matrix_or_offset_svd <- function(scaled_svd,
+get_matrix_or_offset_svd <- function(ssvd,
                                      levels_age,
                                      levels_sexgender,
                                      joint,
@@ -28,7 +28,7 @@ get_matrix_or_offset_svd <- function(scaled_svd,
                                      get_matrix,
                                      n_comp) {
   n_comp_max <- 10L
-  data <- scaled_svd$data
+  data <- ssvd$data
   type <- data$type
   labels_age <- data$labels_age
   labels_sexgender <- data$labels_sexgender
@@ -55,7 +55,7 @@ get_matrix_or_offset_svd <- function(scaled_svd,
                        y = labels_age_clean)
   if (!any(is_matched))
     cli::cli_abort(c(paste("Unable to align age labels from {.arg data} with",
-                           "age labels from {.arg scaled_svd}."),
+                           "age labels from {.arg ssvd}."),
                      i = "Age labels from {.arg data} before re-formatting: {levels_age}.",
                      i = "Age labels from {.arg data} after re-formatting: {labels_age_clean}."))
   i_matched <- which(is_matched)
@@ -69,12 +69,12 @@ get_matrix_or_offset_svd <- function(scaled_svd,
     labels_sexgender_type <- labels_sexgender[is_type_req][[i_matched]]
     if (!setequal(labels_sexgender_type, labels_sexgender_clean))
       cli::cli_abort(c(paste("Unable to align sex/gender labels from {.arg data} with",
-                             "sex/gender labels from {.arg scaled_svd}."),
+                             "sex/gender labels from {.arg ssvd}."),
                        i = paste("Sex/gender labels from {.arg data} before re-formatting:",
                                  "{levels_sexgender}."),
                        i = paste("Sex/gender labels from {.arg data} after re-formatting:",
                                  "{labels_sexgender_clean}."),
-                       i = paste("Sex/gender labels from {.arg scaled_svd}:",
+                       i = paste("Sex/gender labels from {.arg ssvd}:",
                                  "{unique(labels_sexgender_type)}.")))
   }
   ## extract matrix or offset

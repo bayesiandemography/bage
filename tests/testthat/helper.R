@@ -1,5 +1,5 @@
 
-sim_scaled_svd <- function() {
+sim_ssvd <- function() {
   data <- data.frame(type = c("total", "joint", "indep"))
   data$labels_age <- list(c("0-4", "5-9"),
                           c("0-4", "5-9", "0-4", "5-9"),
@@ -38,5 +38,5 @@ sim_scaled_svd <- function() {
                         "Female.5-9" = 12,
                         "Male.0-4" = 13,
                         "Male.5-9" = 14))
-  scaled_svd(data)
+  ssvd(data)
 }

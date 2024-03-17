@@ -73,7 +73,7 @@
 
 #' Components from Human Mortality Database
 #'
-#' An object of class [bage_scaled_svd][scaled_svd()]
+#' An object of class [bage_ssvd][ssvd()]
 #' holding components extracted from mortality
 #' data from the [Human Mortality Database](https://www.mortality.org).
 #'

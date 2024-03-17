@@ -988,7 +988,7 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 #' [Human Mortality Database](https://www.mortality.org).
 #' - TODO - add others
 #'
-#' @param scaled_svd An object created by [scaled_svd()],
+#' @param ssvd An object created by [scaled_svd()],
 #' holding scaled values from an SVD of age-specific values.
 #' @param n Number of vectors from scaled SVD
 #' to use in modelling. Must be between 1 and 10.
@@ -1010,17 +1010,17 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 #' SVD(HMD)
 #' SVD(HMD, n = 3)
 #' @export
-SVD <- function(scaled_svd, n = 5) {
-  nm_scaled_svd <- deparse1(substitute(scaled_svd))
-  check_is_scaled_svd(x = scaled_svd, nm_x = "scaled_svd")
+SVD <- function(ssvd, n = 5) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_n(n,
           nm_n = "n",
           min = 1L,
           max = 10L,
           null_ok = FALSE)
   n <- as.integer(n)
-  new_bage_prior_svd(scaled_svd = scaled_svd,
-                     nm_scaled_svd = nm_scaled_svd,
+  new_bage_prior_svd(ssvd = ssvd,
+                     nm_ssvd = nm_ssvd,
                      n = n,
                      joint = NULL)
 }
@@ -1112,9 +1112,9 @@ SVD <- function(scaled_svd, n = 5) {
 #' SVDS(HMD)
 #' SVDS(HMD, joint = TRUE)
 #' @export
-SVDS <- function(scaled_svd, n = 5, joint = FALSE) {
-  nm_scaled_svd <- deparse1(substitute(scaled_svd))
-  check_is_scaled_svd(x = scaled_svd, nm_x = "scaled_svd")
+SVDS <- function(ssvd, n = 5, joint = FALSE) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_n(n,
           nm_n = "n",
           min = 1L,
@@ -1122,8 +1122,8 @@ SVDS <- function(scaled_svd, n = 5, joint = FALSE) {
           null_ok = FALSE)
   n <- as.integer(n)
   check_flag(joint)
-  new_bage_prior_svd(scaled_svd = scaled_svd,
-                     nm_scaled_svd = nm_scaled_svd,
+  new_bage_prior_svd(ssvd = ssvd,
+                     nm_ssvd = nm_ssvd,
                      n = n,
                      joint = joint)
 }
@@ -1178,7 +1178,7 @@ SVDS <- function(scaled_svd, n = 5, joint = FALSE) {
 #' [Human Mortality Database](https://www.mortality.org).
 #' - TODO - add others
 #'
-#' @param scaled_svd An object created by [scaled_svd()],
+#' @param ssvd An object created by [scaled_svd()],
 #' holding scaled values from an SVD of age-specific values.
 #' @param n Number of components from scaled SVD
 #' to use in modelling. Must be between 1 and 10.
@@ -1199,17 +1199,17 @@ SVDS <- function(scaled_svd, n = 5, joint = FALSE) {
 #' ESVD(HMD)
 #' ESVD(HMD, n = 3)
 #' @export
-ESVD <- function(scaled_svd, n = 5) {
-  nm_scaled_svd <- deparse1(substitute(scaled_svd))
-  check_is_scaled_svd(x = scaled_svd, nm_x = "scaled_svd")
+ESVD <- function(ssvd, n = 5) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_n(n,
           nm_n = "n",
           min = 1L,
           max = 10L,
           null_ok = FALSE)
   n <- as.integer(n)
-  new_bage_prior_esvd(scaled_svd = scaled_svd,
-                      nm_scaled_svd = nm_scaled_svd,
+  new_bage_prior_esvd(ssvd = ssvd,
+                      nm_ssvd = nm_ssvd,
                       n = n,
                       joint = NULL)
 }
@@ -1297,9 +1297,9 @@ ESVD <- function(scaled_svd, n = 5) {
 #' ESVDS(HMD)
 #' ESVDS(HMD, joint = TRUE)
 #' @export
-ESVDS <- function(scaled_svd, n = 5, joint = FALSE) {
-  nm_scaled_svd <- deparse1(substitute(scaled_svd))
-  check_is_scaled_svd(x = scaled_svd, nm_x = "scaled_svd")
+ESVDS <- function(ssvd, n = 5, joint = FALSE) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
   check_n(n,
           nm_n = "n",
           min = 1L,
@@ -1307,8 +1307,8 @@ ESVDS <- function(scaled_svd, n = 5, joint = FALSE) {
           null_ok = FALSE)
   n <- as.integer(n)
   check_flag(joint)
-  new_bage_prior_esvd(scaled_svd = scaled_svd,
-                      nm_scaled_svd = nm_scaled_svd,
+  new_bage_prior_esvd(ssvd = ssvd,
+                      nm_ssvd = nm_ssvd,
                       n = n,
                       joint = joint)
 }
@@ -1426,11 +1426,11 @@ new_bage_prior_eseas <- function(n, scale, along) {
 ## HAS_TESTS
 ## Doesn't use 'along', because can potentially have two
 ## 'along' dimensions (age and sex/gender)
-new_bage_prior_esvd <- function(scaled_svd, nm_scaled_svd, n, joint) {
+new_bage_prior_esvd <- function(ssvd, nm_ssvd, n, joint) {
     ans <- list(i_prior = 14L,
                 const = 0, ## not used
-                specific = list(scaled_svd = scaled_svd,
-                                nm_scaled_svd = nm_scaled_svd,
+                specific = list(ssvd = ssvd,
+                                nm_ssvd = nm_ssvd,
                                 n = n,
                                 joint = joint))
     class(ans) <- c("bage_prior_esvd", "bage_prior")
@@ -1518,11 +1518,11 @@ new_bage_prior_spline <- function(n, scale, sd_slope) {
 }
 
 ## HAS_TESTS
-new_bage_prior_svd <- function(scaled_svd, nm_scaled_svd, n, joint) {
+new_bage_prior_svd <- function(ssvd, nm_ssvd, n, joint) {
     ans <- list(i_prior = 7L,
                 const = 0, ## not used
-                specific = list(scaled_svd = scaled_svd,
-                                nm_scaled_svd = nm_scaled_svd,
+                specific = list(ssvd = ssvd,
+                                nm_ssvd = nm_ssvd,
                                 n = n,
                                 joint = joint))
     class(ans) <- c("bage_prior_svd", "bage_prior")

@@ -5,7 +5,7 @@
 \alias{HMD}
 \title{Components from Human Mortality Database}
 \format{
-An object of class \code{bage_scaled_svd} of length 1.
+An object of class \code{bage_ssvd} of length 1.
 }
 \source{
 Derived from data at
@@ -20,7 +20,7 @@ Code for processing the data is
 HMD
 }
 \description{
-An object of class \link[=scaled_svd]{bage_scaled_svd}
+An object of class \link[=ssvd]{bage_ssvd}
 holding components extracted from mortality
 data from the \href{https://www.mortality.org}{Human Mortality Database}.
 }
