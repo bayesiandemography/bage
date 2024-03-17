@@ -30,7 +30,7 @@
 #'   
 #' @param data A data frame. See Details for description.
 #'
-#' @returns An object of class `bage_ssvd`.
+#' @returns An object of class `"bage_ssvd"`.
 #'
 #' @export
 ssvd <- function(data) {

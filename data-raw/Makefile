@@ -36,8 +36,8 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
   expenditure/POP_PROJ_04062016225548685.csv.gz
 	Rscript $^ $@
 
-../data/HMD.rda: svd_hmd/HMD.R \
-  svd_hmd/hmd_statistics_20240226.zip
+../data/HMD.rda: ssvd_hmd/HMD.R \
+  ssvd_hmd/hmd_statistics_20240226.zip
 	Rscript $^ $@
 
 ../data/households.rda: households/households.R \

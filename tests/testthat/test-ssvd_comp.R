@@ -11,9 +11,9 @@ test_that("'ssvd_comp' performs correctly with valid inputs - log", {
     x <- poputils::to_matrix(x,
                              rows = c(age, sex),
                              cols = c(country, year), measure = value)
-    ans <- ssvd_comp(x = x, n = 3, transform = "log")
+    ans <- ssvd_comp(x = x, transform = "log")
     expect_identical(names(ans), c("matrix", "offset"))
-    expect_identical(dim(ans$matrix), c(18L, 3L))
+    expect_identical(dim(ans$matrix), c(18L, 10L))
     expect_identical(length(ans$offset), 18L)
     expect_false(any(vapply(ans, anyNA, FALSE)))
     expect_false(any(vapply(ans, function(x) any(is.infinite(x)), FALSE)))
@@ -21,66 +21,75 @@ test_that("'ssvd_comp' performs correctly with valid inputs - log", {
 
 test_that("'ssvd_comp' performs correctly with valid inputs - logit", {
     set.seed(0)
-    x <- expand.grid(age = 0:5,
+    x <- expand.grid(age = 0:9,
                      sex = c("F", "M", "T"),
-                     year = 2000:2001,
+                     year = 2000:2005,
                      country = letters)
     x$value <- rbeta(nrow(x), shape1 = 2, shape2 = 3)
     x <- poputils::to_matrix(x, rows = age, cols = c(sex, year, country), measure = value)
-    ans <- ssvd_comp(x = x, n = 3, transform = "logit")
+    ans <- ssvd_comp(x = x, transform = "logit")
     expect_false(any(sapply(ans, function(x) any(is.infinite(x)))))
     expect_false(any(sapply(ans, anyNA)))
 })
 
 test_that("'ssvd_comp' performs correctly with valid inputs - none", {
     set.seed(0)
-    x <- expand.grid(age = 0:5,
+    x <- expand.grid(age = 0:9,
                      sex = c("F", "M", "T"),
                      year = 2000:2001,
                      country = letters)
     x$value <- rnorm(nrow(x))
     x <- poputils::to_matrix(x, rows = age, cols = c(sex, year, country), measure = value)
-    ans <- ssvd_comp(x = x, n = 3, transform = "none")
+    ans <- ssvd_comp(x = x, transform = "none")
     expect_false(any(sapply(ans, function(x) any(is.infinite(x)))))
     expect_false(any(sapply(ans, anyNA)))
 })
 
-test_that("'ssvd_comp' gives expected error when n < ncol(x)", {
+test_that("'ssvd_comp' gives expected error when too few columns", {
     set.seed(0)
-    x <- expand.grid(age = 0:5,
+    x <- expand.grid(age = 0:10,
                      sex = c("F", "M", "T"),
                      year = 2000:2001,
                      country = c("a", "b"))
     x$value <- rnorm(nrow(x))
     x <- poputils::to_matrix(x, rows = c(age, sex), cols = c(year, country), measure = value)
     expect_error(ssvd_comp(x = x, transform = "none"),
-                 "`n` less than number of columns of `x`.")
+                 "`x` does not have enough columns.")
+})
+
+test_that("'ssvd_comp' gives expected error when too few columns", {
+    set.seed(0)
+    x <- expand.grid(age = 0:2,
+                     sex = c("F", "M", "T"),
+                     year = 2000:2011,
+                     country = c("a", "b"))
+    x$value <- rnorm(nrow(x))
+    x <- poputils::to_matrix(x, rows = c(age, sex), cols = c(year, country), measure = value)
+    expect_error(ssvd_comp(x = x, transform = "none"),
+                 "`x` does not have enough rows.")
 })
 
 test_that("'ssvd_comp' gives expected error when negative values", {
-    x <- expand.grid(age = 0:5,
+    x <- expand.grid(age = 0:10,
                      sex = c("F", "M", "T"),
                      year = 2000:2001,
                      country = c("a", "b"))
-    x$value <- c(-2, -2, rep(0.1, times = 70))
+    x$value <- c(-2, -2, rep(0.1, times = nrow(x) - 2))
     x <- poputils::to_matrix(x, rows = age, cols = c(sex, year, country), measure = value)
     expect_error(ssvd_comp(x = x, transform = "log"),
                  "`transform` is \"log\" but `x` has 2 negative values")
 })
 
 test_that("'ssvd_comp' gives expected error when negative values", {
-    x <- expand.grid(age = 0:5,
+    x <- expand.grid(age = 0:10,
                      sex = c("F", "M", "T"),
                      year = 2000:2001,
                      country = c("a", "b"))
-    x$value <- c(2, 2, rep(0.1, times = 70))
+    x$value <- c(2, 2, rep(0.1, times = nrow(x) - 2))
     x <- poputils::to_matrix(x, rows = age, cols = c(sex, year, country), measure = value)
     expect_error(ssvd_comp(x = x, transform = "logit"),
                  "`transform` is \"logit\" but `x` has 2 values greater than 1.")
 })
-
-
-
 
 
 ## 'replace_zeros' ------------------------------------------------------------
@@ -236,20 +245,20 @@ test_that("'hmd_vary_age_open_type_age' works with valid inputs", {
 
 test_that("'hmd_total' works with valid inputs", {
   set.seed(0)
-  data <- rbind(expand.grid(age = poputils::age_labels(type = "five", max = 20),
+  data <- rbind(expand.grid(age = poputils::age_labels(type = "five", max = 45),
                             sex = "Total",
-                            time = 2001:2005,
+                            time = 2001:2010,
                             country = c("A", "B", "C"),
                             type_age = c("single", "five"),
-                            age_open = 20),
-                expand.grid(age = poputils::age_labels(type = "five", max = 25),
+                            age_open = 45),
+                expand.grid(age = poputils::age_labels(type = "five", max = 50),
                             sex = "Total",
-                            time = 2001:2005,
+                            time = 2001:2010,
                             country = c("A", "B", "C"),
                             type_age = c("single", "five"),
-                            age_open = 25))
+                            age_open = 50))
   data$mx <- runif(n = nrow(data))
-  ans_obtained <- hmd_total(data, n = 3, transform = "none")
+  ans_obtained <- hmd_total(data, transform = "none")
   expect_setequal(names(ans_obtained),
                   c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
   expect_true(all(sapply(ans_obtained$matrix, is, "dgCMatrix")))
@@ -260,20 +269,20 @@ test_that("'hmd_total' works with valid inputs", {
 
 test_that("'hmd_joint' works with valid inputs", {
   set.seed(0)
-  data <- rbind(expand.grid(age = poputils::age_labels(type = "five", max = 20),
+  data <- rbind(expand.grid(age = poputils::age_labels(type = "five", max = 45),
                             sex = c("Female", "Male"),
                             time = 2001:2005,
                             country = c("A", "B", "C"),
                             type_age = c("single", "five"),
-                            age_open = 20),
-                expand.grid(age = poputils::age_labels(type = "five", max = 25),
+                            age_open = 45),
+                expand.grid(age = poputils::age_labels(type = "five", max = 50),
                             sex = c("Female", "Male"),
                             time = 2001:2005,
                             country = c("A", "B", "C"),
                             type_age = c("single", "five"),
-                            age_open = 25))
+                            age_open = 50))
   data$mx <- runif(n = nrow(data))
-  ans_obtained <- hmd_joint(data, n = 4, transform = "log")
+  ans_obtained <- hmd_joint(data, transform = "log")
   expect_setequal(names(ans_obtained),
                   c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
   expect_true(all(sapply(ans_obtained$matrix, is, "dgCMatrix")))
@@ -289,20 +298,20 @@ test_that("'hmd_joint' works with valid inputs", {
 
 test_that("'hmd_indep' works with valid inputs", {
   set.seed(0)
-  data <- rbind(expand.grid(age = poputils::age_labels(type = "five", max = 20),
+  data <- rbind(expand.grid(age = poputils::age_labels(type = "five", max = 45),
                             sex = c("Female", "Male"),
                             time = 2001:2005,
                             country = c("A", "B", "C"),
                             type_age = c("single", "five"),
-                            age_open = 20),
-                expand.grid(age = poputils::age_labels(type = "five", max = 25),
+                            age_open = 45),
+                expand.grid(age = poputils::age_labels(type = "five", max = 50),
                             sex = c("Female", "Male"),
                             time = 2001:2005,
                             country = c("A", "B", "C"),
                             type_age = c("single", "five"),
-                            age_open = 25))
+                            age_open = 50))
   data$mx <- runif(n = nrow(data))
-  ans_obtained <- hmd_indep(data, n = 3, transform = "logit")
+  ans_obtained <- hmd_indep(data, transform = "logit")
   expect_setequal(names(ans_obtained),
                   c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
   expect_true(all(sapply(ans_obtained$matrix, is, "dgTMatrix")))
@@ -311,4 +320,14 @@ test_that("'hmd_indep' works with valid inputs", {
                                        y = ans_obtained$labels_age),
                            MoreArgs = list(sep = ".")),
                    lapply(ans_obtained$matrix, rownames))
-})         
+})
+
+
+## 'ssvd_hmd' -----------------------------------------------------------------
+
+test_that("'hmd_unzip' works with valid inputs", {
+  fn <- file.path("data_for_tests", "hmd_statistics_test.zip")
+  suppressMessages(ans <- ssvd_hmd(fn, transform = "log"))
+  expect_s3_class(ans, "bage_ssvd")
+})
+

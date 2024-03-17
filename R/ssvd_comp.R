@@ -38,11 +38,6 @@
 #' in which case rows are formed by interacting
 #' sex and age. See below for an example.
 #'
-#' The number of components used by the SVD
-#' (and hence the number of columns of the
-#' `tranform` matrix) is governed by
-#' argument `n`. The default is 10.
-#'
 #' When `scale` is `"log"` or `"logit"`,
 #' `ssvd_comp()` converts any `0`s in
 #' `x` to values just above `0` before
@@ -53,8 +48,6 @@
 #'
 #' @param x A matrix with value such as rates,
 #' probabilities, or means.
-#' @param n Number of components of the SVD to use.
-#' Defaults to 10.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #' Defaults to `"log"`.
 #'
@@ -63,28 +56,27 @@
 #' - `offset`, a numeric vector
 #'
 #' @examples
-#' x <- matrix(rgamma(n = 50, shape = 1), nrow = 5, ncol = 10)
+#' x <- matrix(rgamma(n = 150, shape = 1),
+#'             nrow = 10,
+#'             ncol = 15)
 #' x
-#' ssvd_comp(x, n = 3)
-#' ssvd_comp(x, n = 3, transform = "none")
-#' @noRd
+#' ssvd_comp(x)
+#' ssvd_comp(x, transform = "none")
+#' @export
 ssvd_comp <- function(x,
-                      n = 10,
                       transform = c("log", "logit", "none")) {
-  ## check 'n'
-  check_n(n = n,
-          nm_n = "n",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
-  n <- as.integer(n)
+  n_comp <- 10L
   ## check 'x'
   check_is_matrix(x, nm_x = "x")
   check_numeric(x, nm_x = "x")
-  if (ncol(x) < n)
-    cli::cli_abort(c("{.arg n} less than number of columns of {.arg x}",
-                     i = "n: {.val {n}}.",
-                     i = "ncol(x): {.val {ncol(x)}}."))
+  if (nrow(x) < n_comp)
+    cli::cli_abort(c("{.arg x} does not have enough rows.",
+                     i = "Minimum number of rows: {.val {10}}.",
+                     i = "Actual number of rows: {.val {nrow(x)}}."))
+  if (ncol(x) < n_comp)
+    cli::cli_abort(c("{.arg x} does not have enough columns.",
+                     i = "Minimum number of columns: {.val {10}}.",
+                     i = "Actual number of columns: {.val {ncol(x)}}."))
   ## check 'transform'
   transform <- match.arg(transform)
   if (transform %in% c("log", "logit")) {
@@ -110,10 +102,10 @@ ssvd_comp <- function(x,
   }
   ## apply svd
   svd <- svd(x = x,
-             nu = n,
-             nv = n)
+             nu = n_comp,
+             nv = n_comp)
   U <- svd$u
-  D <- diag(svd$d[seq_len(n)])
+  D <- diag(svd$d[seq_len(n_comp)])
   V <- svd$v
   ## standardise
   m <- colMeans(V)
@@ -123,7 +115,7 @@ ssvd_comp <- function(x,
   ## add names
   dn <- dimnames(x)
   if (!is.null(dn[[1L]])) {
-    dimnames(matrix) <- c(dn[1L], list(component = seq_len(n)))
+    dimnames(matrix) <- c(dn[1L], list(component = seq_len(n_comp)))
     names(offset) <- dn[[1L]]
   }
   ## convert matrix to sparse matrix
@@ -401,7 +393,6 @@ hmd_vary_age_open_type_age <- function(x) {
 #' Prepare Inputs for "total" Type, ie Female and Male Combined
 #'
 #' @param data A data frame
-#' @param n Number of components of the SVD to use.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #'
 #' @returns A data frame
@@ -424,7 +415,6 @@ hmd_total <- function(data, n, transform) {
               measure = "mx")
   l <- lapply(x,
               ssvd_comp,
-              n = n,
               transform = transform)
   matrix <- lapply(l, function(x) x$matrix)
   offset <- lapply(l, function(x) x$offset)
@@ -441,7 +431,6 @@ hmd_total <- function(data, n, transform) {
 #' Prepare Inputs for "joint" Type, ie Female and Male Modelled Jointly
 #'
 #' @param data A data frame
-#' @param n Number of components of the SVD to use.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #'
 #' @returns A data frame
@@ -465,7 +454,6 @@ hmd_joint <- function(data, n, transform) {
               measure = "mx")
   l <- lapply(x,
               ssvd_comp,
-              n = n,
               transform = transform)
   matrix <- lapply(l, function(x) x$matrix)
   offset <- lapply(l, function(x) x$offset)
@@ -485,7 +473,6 @@ hmd_joint <- function(data, n, transform) {
 #' Prepare Inputs for "indep" Type, ie Female and Male Modelled Separately
 #'
 #' @param data A data frame
-#' @param n Number of components of the SVD to use.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #'
 #' @returns A data frame
@@ -508,7 +495,6 @@ hmd_indep <- function(data, n, transform) {
               measure = "mx")
   l <- lapply(x,
               ssvd_comp,
-              n = n,
               transform = transform)
   matrix <- lapply(l, function(x) x$matrix)
   offset <- lapply(l, function(x) x$offset)
@@ -557,8 +543,6 @@ hmd_indep <- function(data, n, transform) {
 #' @param zipfile The name of a zipped file downloaded
 #' from the Human Mortality Database.
 #' Any path name that can be handled by [utils::unzip()].
-#' @param n Number of components of the SVD to use.
-#' Defaults to 10.
 #' @param transform `"log"`, `"logit"`, or `"none"`.
 #' Defaults to `"log"`.
 #'
@@ -568,7 +552,7 @@ hmd_indep <- function(data, n, transform) {
 #' **Step 1: Download data**
 #'
 #' Register or log in at the Human Mortality Database, and go to page
-#' [Downloading the HMD in zipped data files][https://www.mortality.org/Data/ZippedDataFiles].
+#' [Downloading the HMD in zipped data files](https://www.mortality.org/Data/ZippedDataFiles).
 #' Go to the "Previous Versions" table at the bottom of the page, and
 #' download a file from the "Statistics" column, eg file
 #'n
@@ -596,29 +580,26 @@ hmd_indep <- function(data, n, transform) {
 #'   to use an object of class 
 #'   [`"bage_ssvd"`][ssvd()] in a prior.
 #' @export
-svd_hmd <- function(zipfile, n = 10, transform = c("log", "logit", "none")) {
+ssvd_hmd <- function(zipfile, transform = c("log", "logit", "none")) {
   transform <- match.arg(transform)
-  cli::cli_progress_message("unzipping file")
+  cli::cli_progress_message("Unzipping file...")
   data <- hmd_unzip(zipfile)
-  cli::cli_progress_message("tidying data")
+  cli::cli_progress_message("Tidying data...")
   data <- hmd_tidy_data(data)
-  cli::cli_progress_message("creating five-year age groups")
+  cli::cli_progress_message("Creating five-year age groups...")
   data <- hmd_add_age_five(data)
-  cli::cli_progress_message("assembling data for multiple open age groups")
+  cli::cli_progress_message("Assembling datasets for alternative open age groups...")
   data <- hmd_vary_age_open(data)
-  cli::cli_progress_message("carrying out SVD for 'total'")
+  cli::cli_progress_message("Carrying out SVD for 'total'...")
   total <- hmd_total(data = data,
-                     n = n,
                      transform = transform)
-  cli::cli_progress_message("carrying out SVD for 'indep'")
+  cli::cli_progress_message("Carrying out SVD for 'indep'...")
   indep <- hmd_indep(data = data,
-                     n = n,
                      transform = transform)
-  cli::cli_progress_message("carrying out SVD for 'joint'")
+  cli::cli_progress_message("Carrying out SVD for 'joint'...")
   joint <- hmd_joint(data = data,
-                     n = n,
                      transform = transform)
-  cli::cli_progress_message("combining results")
+  cli::cli_progress_message("Combining results...")
   data <- vctrs::vec_rbind(total, indep, joint)
   data <- tibble::as_tibble(data)
   ssvd(data)

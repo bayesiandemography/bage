@@ -982,14 +982,15 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 #' by preforming an SVD and then standardizing.
 #' For details see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @section Scaled SVDs in bage:
+#' @section Scaled SVDs currently implemented in bage:
 #'
 #' - \code{\link{HMD}} Values from the
 #' [Human Mortality Database](https://www.mortality.org).
 #' - TODO - add others
 #'
-#' @param ssvd An object created by [scaled_svd()],
-#' holding scaled values from an SVD of age-specific values.
+#' @param ssvd Object of class `"bage_ssvd"`
+#' holding results from a scaled SVD.
+#' See below for current options.
 #' @param n Number of vectors from scaled SVD
 #' to use in modelling. Must be between 1 and 10.
 #' Default is 5.
@@ -1004,7 +1005,6 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 #'   age and other dimensions, but not sex/gender.
 #' - [ESVDS()] Exchangeable SVD prior for interaction involving
 #'   age, sex/gender, and other dimension(s).
-#' - XXX Create a new scaled SVD.
 #'
 #' @examples
 #' SVD(HMD)
@@ -1090,7 +1090,7 @@ SVD <- function(ssvd, n = 5) {
 #' \eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
 #' see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @inheritSection SVD Scaled SVDs in bage
+#' @inheritSection SVD Scaled SVDs currently implemented in bage
 #'
 #' @inheritParams SVD
 #' @param joint Whether to use combined or
@@ -1106,7 +1106,6 @@ SVD <- function(ssvd, n = 5) {
 #'   age and other dimensions, but not sex/gender.
 #' - [ESVDS()] Exchangeable SVD prior for interaction involving
 #'   age, sex/gender, and other dimension(s).
-#' - XXX Create a new scaled SVD.
 #'
 #' @examples
 #' SVDS(HMD)
@@ -1172,17 +1171,9 @@ SVDS <- function(ssvd, n = 5, joint = FALSE) {
 #' by preforming an SVD and then extracting means and variances.
 #' For details see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @section Scaled SVDs in bage:
+#' @inheritSection SVD Scaled SVDs currently implemented in bage
 #'
-#' - \code{\link{HMD}} Values from the
-#' [Human Mortality Database](https://www.mortality.org).
-#' - TODO - add others
-#'
-#' @param ssvd An object created by [scaled_svd()],
-#' holding scaled values from an SVD of age-specific values.
-#' @param n Number of components from scaled SVD
-#' to use in modelling. Must be between 1 and 10.
-#' Default is 5.
+#' @inheritParams SVD
 #'
 #' @returns An object of class `"bage_prior_esvd"`.
 #'
@@ -1275,7 +1266,7 @@ ESVD <- function(ssvd, n = 5) {
 #' \eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
 #' see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @inheritSection SVD Scaled SVDs in bage
+#' @inheritSection SVD Scaled SVDs currently implemented in bage
 #'
 #' @inheritParams SVD
 #' @param joint Whether to use combined or
@@ -1291,7 +1282,6 @@ ESVD <- function(ssvd, n = 5) {
 #'   age and sex/gender.
 #' - [ESVD()] Exchangeable SVD prior for interaction involving
 #'   age and other dimensions, but not sex/gender.
-#' - XXX Create a new scaled SVD.
 #'
 #' @examples
 #' ESVDS(HMD)
