@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{AR1}
 \alias{AR1}
-\title{AR1 prior}
+\title{AR1 Prior}
 \usage{
 AR1(min = 0.8, max = 0.98, s = 1)
 }
@@ -12,7 +12,7 @@ for autocorrelation parameter (\eqn{\phi}).
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\sigma}).
+standard deviation (\eqn{\tau}).
 Default is \code{1}.}
 }
 \value{
@@ -21,23 +21,22 @@ An object of class \code{bage_prior_ar}.
 \description{
 Autoregressive prior of order 1
 }
-\section{Mathematical description}{
+\section{Mathematical details}{
 
 
-The model is
-\deqn{x_0 \sim \text{N}(0, \sigma^2)}
-\deqn{x_i = \phi x_{i-1} + \sqrt{1 - \phi^2}\epsilon_i}
-\deqn{\epsilon \sim \text{N}(0, \sigma^2)}
+If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+\deqn{\beta_0 \sim \text{N}(0, \sigma^2)}
+\deqn{\beta_j = \phi \beta_{j-1} + \sqrt{1 - \phi^2}\epsilon_j}
+\deqn{\epsilon \sim \text{N}(0, \tau^2)}
 
-\eqn{\sigma} is drawn from a half-normal distribition
+\eqn{\tau} is drawn from a half-normal distribition
 with scale set by the \code{s} argument.
 
 Correlation parameter \eqn{\phi} is constrained
-to lie in the interval \verb{(a, b)},
-where \eqn{a} = \code{min} and \eqn{b} = \code{max}.
+to lie in the interval \verb{(\\text\{min\}, \\text\{max\})}l
 The prior distribution is for \eqn{\phi}
 is
-\deqn{\phi = (b - a) \phi' - a}
+\deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 where
 \deqn{\phi' \sim \text{beta}(2, 2)}.
 }
@@ -51,8 +50,12 @@ TMB documentation of
 \href{http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details}{AR1}
 }
 \seealso{
-\code{\link[=AR]{AR()}},
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
-The values for \code{min} and \code{max} are based on the
+\itemize{
+\item \code{\link[=AR]{AR()}} General case of \code{AR()}.
+\item \code{\link[=EAR1]{EAR1()}} Exchangeable version of \code{AR1()},
+used with interactions.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+\item The values for \code{min} and \code{max} are based on the
 defaults for function \code{forecast::ets()}.
+}
 }

@@ -3492,6 +3492,14 @@ test_that("'uses_along' works with valid inputs", {
     expect_true(uses_along(ESeas(n = 2)))
 })
 
+test_that("'uses_along' works with 'compose_time", {
+  prior <- compose_time(trend = RW(), error = N())
+  expect_false(uses_along(prior))
+  prior <- compose_time(trend = ERW(), error = N())
+  expect_true(uses_along(prior))
+})
+
+
 ## uses_hyperrand ------------------------------------------------------
 
 test_that("'uses_hyperrand' returns TRUE with priors that can be used for seasonal", {

@@ -11,30 +11,31 @@ AR(n = 2, s = 1)
 Default is \code{2}.}
 
 \item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\sigma}).
+standard deviation (\eqn{\tau}).
 Default is \code{1}.}
 }
 \value{
 An object of class \code{bage_prior_ar}.
 }
 \description{
-Autoregressive prior with order \code{k}.
+Autoregressive prior with order \code{k}. Used to model main effects:
+typically time main effects.
 }
-\section{Mathematical description}{
+\section{Mathematical details}{
 
 
-The model is
+If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
 
-\deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-k} + \epsilon_i}
-\deqn{\epsilon_i \sim \text{N}(0, \omega^2)}
+\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_k \beta_{j-k} + \epsilon_j}
+\deqn{\epsilon_j \sim \text{N}(0, \omega^2)}
 
-where \eqn{\omega} is chosen so that each \eqn{x_i} has
+where \eqn{\omega} is chosen so that each \eqn{\beta_j} has
 marginal variance \eqn{\sigma^2}. The value of
-\eqn{\sigma} has prior
+\eqn{\tau} has prior
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-The \eqn{\phi_j} are contrained values between -1 and 1.
+The \eqn{\phi_1, \cdots, \phi_k} are restricted to values between -1 and 1.
 }
 
 \examples{
@@ -46,8 +47,11 @@ TMB documentation for
 \href{http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details}{ARk}
 }
 \seealso{
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
-The values for \code{min} and \code{max} are based on the
-defaults for function \code{forecast::ets()}.
-\code{\link[=AR1]{AR1()}}
+\itemize{
+\item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}, though with
+more options for damping.
+\item \code{\link[=EAR]{EAR()}} Exchangeable version of \code{AR()},
+used with interactions.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+}
 }

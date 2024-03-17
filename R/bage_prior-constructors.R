@@ -6,36 +6,39 @@
 ## HAS_TESTS
 #' Autoregressive Prior
 #'
-#' Autoregressive prior with order `k`.
+#' Autoregressive prior with order `k`. Used to model main effects:
+#' typically time main effects.
 #'
-#' @section Mathematical description:
+#' @section Mathematical details:
 #'
-#' The model is
+#' If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
 #'
-#' \deqn{x_i = \phi_1 x_{i-1} + \cdots + \phi_k x_{i-k} + \epsilon_i}
-#' \deqn{\epsilon_i \sim \text{N}(0, \omega^2)}
+#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_k \beta_{j-k} + \epsilon_j}
+#' \deqn{\epsilon_j \sim \text{N}(0, \omega^2)}
 #'
-#' where \eqn{\omega} is chosen so that each \eqn{x_i} has
+#' where \eqn{\omega} is chosen so that each \eqn{\beta_j} has
 #' marginal variance \eqn{\sigma^2}. The value of
-#' \eqn{\sigma} has prior
+#' \eqn{\tau} has prior
 #'
-#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 #'
-#' The \eqn{\phi_j} are contrained values between -1 and 1.
+#' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values between -1 and 1.
 #' 
 #' @param n The order of the model.
 #' Default is `2`.
 #' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
+#' standard deviation (\eqn{\tau}).
 #' Default is `1`.
 #'
 #' @returns An object of class `bage_prior_ar`.
 #'
-#' @seealso [N()], [RW()], [RW2()], [Known()].
-#' The values for `min` and `max` are based on the
-#' defaults for function `forecast::ets()`.
-#' [AR1()]
-#'
+#' @seealso
+#' - [AR1()] Special case of `AR()`, though with
+#'   more options for damping.
+#' - [EAR()] Exchangeable version of `AR()`,
+#'   used with interactions.
+#' - [priors] Overview of priors implemented in `bage`.
+#' 
 #' @references TMB documentation for
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
@@ -59,26 +62,26 @@ AR <- function(n = 2, s = 1) {
 ## 'bage_prior_ar1' only ever created via 'set_prior()'
 
 ## HAS_TESTS
-#' AR1 prior
+#' AR1 Prior
 #'
 #' Autoregressive prior of order 1
 #'
-#' @section Mathematical description:
+#' @section Mathematical details:
 #'
-#' The model is
-#' \deqn{x_0 \sim \text{N}(0, \sigma^2)}
-#' \deqn{x_i = \phi x_{i-1} + \sqrt{1 - \phi^2}\epsilon_i}
-#' \deqn{\epsilon \sim \text{N}(0, \sigma^2)}
+#' If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+
+#' \deqn{\beta_0 \sim \text{N}(0, \sigma^2)}
+#' \deqn{\beta_j = \phi \beta_{j-1} + \sqrt{1 - \phi^2}\epsilon_j}
+#' \deqn{\epsilon \sim \text{N}(0, \tau^2)}
 #'
-#' \eqn{\sigma} is drawn from a half-normal distribition
+#' \eqn{\tau} is drawn from a half-normal distribition
 #' with scale set by the `s` argument.
 #'
 #' Correlation parameter \eqn{\phi} is constrained
-#' to lie in the interval `(a, b)`,
-#' where \eqn{a} = `min` and \eqn{b} = `max`.
+#' to lie in the interval `(\text{min}, \text{max})`l
 #' The prior distribution is for \eqn{\phi}
 #' is
-#' \deqn{\phi = (b - a) \phi' - a}
+#' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 #' where
 #' \deqn{\phi' \sim \text{beta}(2, 2)}.
 #'
@@ -86,15 +89,18 @@ AR <- function(n = 2, s = 1) {
 #' for autocorrelation parameter (\eqn{\phi}).
 #' Defaults are `0.8` and `0.98`.
 #' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
+#' standard deviation (\eqn{\tau}).
 #' Default is `1`.
 #'
 #' @returns An object of class `bage_prior_ar`.
 #'
-#' @seealso [AR()],
-#' [N()], [RW()], [RW2()], [Known()].
-#' The values for `min` and `max` are based on the
-#' defaults for function `forecast::ets()`.
+#' @seealso
+#' - [AR()] General case of `AR()`.
+#' - [EAR1()] Exchangeable version of `AR1()`,
+#'   used with interactions.
+#' - [priors] Overview of priors implemented in `bage`.
+#' - The values for `min` and `max` are based on the
+#'   defaults for function `forecast::ets()`.
 #'
 #' @references TMB documentation of
 #' [AR1](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details)
@@ -205,50 +211,54 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' where an autoregression model
 #' of order `n` is applied
 #' to the "along" variable, within each
-#' combination of values of the "by" variable.
+#' combination of values of the 'by' variables.
 #' The damping coefficients are shared across
-#' different combinations of the "by" variables.
+#' different combinations of the 'by' variables.
 #' The time series within each combination of the
 #' 'by' variables are, however, treated as exchangeable.
 #' 
 #' @section 'Along' and 'by' variables:
 #'
-#' Multivariate priors for interactions distinguish
+#' Some priors for interactions distinguish
 #' between 'along' and 'by' variables. The 'along'
 #' variable is typically time, or, in interactions
 #' not involving time, is typically age. The 'by'
 #' variables are everything else. In an interaction
 #' between region, sex, and time, for instance,
-#' the by variables are likely to be region and sex.
+#' the 'along' variable is likely to be time,
+#' and the 'by' variables are likely to be region and sex.
 #'
-#' If no `along` argument is supplied, then:
+#' If no `along` argument is supplied, a default value
+#' is chosen as follows:
 #'
 #' - if the interaction contains a time variable, then
-#'   it is assumed to be the 'along' variable;
+#'   the 'along' variable is assumed to be time;
 #' - otherwise, if the interaction contains an
-#'   age variable, then it is assumed to be
-#'   the 'along' variable;
+#'   age variable, then the 'along' variable
+#'   is assumed to be age;
 #' - otherwise, an error is raised.
 #' 
-#' @section Mathematical description:
+#' @section Mathematical details:
 #'
-#' The model is
+#' If \eqn{\beta_{uv}} is the \eqn{u}th element of the 'along'
+#' dimension within the \eqn{v}th combination of the
+#' 'by variables', then
 #'
-#' \deqn{x_{u,v} = \phi_1 x_{u,i-1} + \cdots + \phi_k x_{u,i-k} + \epsilon_{u,v}}
+#' \deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 #'
 #' where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-#' marginal variance \eqn{\sigma^2}. The value of
-#' \eqn{\sigma} has prior
+#' marginal variance \eqn{\tau^2}. The value of
+#' \eqn{\tau} has prior
 #'
-#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 #'
-#' The \eqn{\phi_j} are constrained to the interval
+#' The \eqn{\phi_1, \cdots, \phi_k} are restricted to the interval
 #' between -1 and 1.
 #' 
 #' @param n The order of the model.
 #' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
+#' standard deviation (\eqn{\tau}).
 #' Defaults to 1.
 #' @param along Name of one of the dimensions
 #' in the interaction. Optional, provided
@@ -256,10 +266,11 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #'
 #' @returns An object of class `bage_prior_ear`.
 #'
-#' @seealso [N()], [RW()], [RW2()], [Known()].
-#' The values for `min` and `max` are based on the
-#' defaults for function `forecast::ets()`.
-#' [AR1()]
+#' @seealso
+#' - [EAR1()] Special case of `EAR()`, though with
+#'   more options for damping.
+#' - [AR()] Autoregressive prior for main effects.
+#' - [priors] Overview of priors implemented in `bage`.#
 #'
 #' @references TMB documentation for
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)

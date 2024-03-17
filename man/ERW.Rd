@@ -54,21 +54,23 @@ higher values lead to rougher series.
 \section{'Along' and 'by' variables}{
 
 
-Multivariate priors for interactions distinguish
+Some priors for interactions distinguish
 between 'along' and 'by' variables. The 'along'
 variable is typically time, or, in interactions
 not involving time, is typically age. The 'by'
 variables are everything else. In an interaction
 between region, sex, and time, for instance,
-the by variables are likely to be region and sex.
+the 'along' variable is likely to be time,
+and the 'by' variables are likely to be region and sex.
 
-If no \code{along} argument is supplied, then:
+If no \code{along} argument is supplied, a default value
+is chosen as follows:
 \itemize{
 \item if the interaction contains a time variable, then
-it is assumed to be the 'along' variable;
+the 'along' variable is assumed to be time;
 \item otherwise, if the interaction contains an
-age variable, then it is assumed to be
-the 'along' variable;
+age variable, then the 'along' variable
+is assumed to be age;
 \item otherwise, an error is raised.
 }
 }

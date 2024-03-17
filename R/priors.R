@@ -58,5 +58,5 @@
 #' | `error`    | [N()]                            | [N()]             |
 #' 
 #' 
-#' @name doc-priors
+#' @name priors
 NULL
