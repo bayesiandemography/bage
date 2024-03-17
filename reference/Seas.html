@@ -14,7 +14,7 @@ own random walk."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,15 +79,16 @@ own random walk.</p>
 <p>An object of class <code>"bage_prior_seas"</code>.</p>
     </div>
     <div class="section level2">
-    <h2 id="mathematical-description">Mathematical description<a class="anchor" aria-label="anchor" href="#mathematical-description"></a></h2>
+    <h2 id="mathematical-details">Mathematical details<a class="anchor" aria-label="anchor" href="#mathematical-details"></a></h2>
     
 
 
-<p>$$x_j \sim \text{N}(0, 1), j = 1, \cdots, \text{n}$$
-$$x_j - x_{j-n} \sim \text{N}(x_{j - n}, \sigma^2), j = n+1, \cdots, J$$</p>
-<p>Standard deviation \(\sigma\) is drawn from a
+<p>If \(\beta_j^{\text{seas}}\) is the \(j\)th element of a
+seasonal effect, then</p>
+<p>$$\beta_j^{\text{seas}} - \beta_{j-n}^{\text{seas}} \sim \text{N}(x_{j - n}, \tau^2).$$</p>
+<p>Standard deviation \(\tau\) is drawn from a
 half-normal distribution,</p>
-<p>$$\sigma \sim \text{N}^+(0, \text{s}^2)$$</p>
+<p>$$\tau \sim \text{N}^+(0, \text{s}^2)$$</p>
 <p>(A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)</p>

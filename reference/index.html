@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +65,7 @@
           
           <code><a href="AR1.html">AR1()</a></code> 
         </dt>
-        <dd>AR1 prior</dd>
+        <dd>AR1 Prior</dd>
       </dl><dl><dt>
           
           <code><a href="EAR.html">EAR()</a></code> 
@@ -86,6 +86,17 @@
           <code><a href="ERW.html">ERW()</a></code> 
         </dt>
         <dd>Exchangeable Random Walk Prior</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ESVD.html">ESVD()</a></code> 
+        </dt>
+        <dd>Exchangeable SVD Prior for Interactions Involving Age</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ESVDS.html">ESVDS()</a></code> 
+        </dt>
+        <dd>Exchangeable SVD Prior for Interactions Involving Age
+and Sex/Gender</dd>
       </dl><dl><dt>
           
           <code><a href="ESeas.html">ESeas()</a></code> 
@@ -110,12 +121,12 @@
           
           <code><a href="N.html">N()</a></code> 
         </dt>
-        <dd>Normal prior</dd>
+        <dd>Normal Prior</dd>
       </dl><dl><dt>
           
           <code><a href="NFix.html">NFix()</a></code> 
         </dt>
-        <dd>Normal prior with fixed standard deviation</dd>
+        <dd>Normal Prior with Fixed Standard Deviation</dd>
       </dl><dl><dt>
           
           <code><a href="RW.html">RW()</a></code> 
@@ -125,12 +136,17 @@
           
           <code><a href="RW2.html">RW2()</a></code> 
         </dt>
-        <dd>Random walk with drift prior</dd>
+        <dd>Random Walk with Drift Prior</dd>
       </dl><dl><dt>
           
           <code><a href="SVD.html">SVD()</a></code> 
         </dt>
-        <dd>SVD prior</dd>
+        <dd>SVD Prior for Age Main Effect</dd>
+      </dl><dl><dt>
+          
+          <code><a href="SVDS.html">SVDS()</a></code> 
+        </dt>
+        <dd>SVD Prior for Interaction Between Age and Sex/Gender</dd>
       </dl><dl><dt>
           
           <code><a href="Seas.html">Seas()</a></code> 
@@ -208,6 +224,11 @@
         <dd>Specify a Poisson model</dd>
       </dl><dl><dt>
           
+          <code><a href="priors.html">priors</a></code> 
+        </dt>
+        <dd>Priors for Intercept, Main Effects, Interactions</dd>
+      </dl><dl><dt>
+          
           <code><a href="replicate_data.html">replicate_data()</a></code> 
         </dt>
         <dd>Draw from the Prior Predictive Distribution of
@@ -217,16 +238,6 @@ a Model</dd>
           <code><a href="report_sim.html">report_sim()</a></code> 
         </dt>
         <dd>Simulation study of a model</dd>
-      </dl><dl><dt>
-          
-          <code><a href="scaled_svd.html">scaled_svd()</a></code> 
-        </dt>
-        <dd>Create object to hold data from scaled SVDs</dd>
-      </dl><dl><dt>
-          
-          <code><a href="scaled_svd_comp.html">scaled_svd_comp()</a></code> 
-        </dt>
-        <dd>Create components needed by a scaled_svd object</dd>
       </dl><dl><dt>
           
           <code><a href="set_disp.html">set_disp()</a></code> 
@@ -257,6 +268,21 @@ a Model</dd>
           <code><a href="set_var_time.html">set_var_time()</a></code> 
         </dt>
         <dd>Set the time variable</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ssvd.html">ssvd()</a></code> 
+        </dt>
+        <dd>Create an Object to Hold Data from a Scaled SVD</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ssvd_comp.html">ssvd_comp()</a></code> 
+        </dt>
+        <dd>Create components needed by a ssvd object</dd>
+      </dl><dl><dt>
+          
+          <code><a href="ssvd_hmd.html">ssvd_hmd()</a></code> 
+        </dt>
+        <dd>Create a Scaled SVD Object from a Human Mortality Database File</dd>
       </dl><dl><dt>
           
           <code><a href="tidy.bage_mod.html">tidy(<i>&lt;bage_mod&gt;</i>)</a></code> 

@@ -55,6 +55,12 @@
     <loc>https://bayesiandemography.github.io/bage/reference/ERW.html</loc>
   </url>
   <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/ESVD.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/ESVDS.html</loc>
+  </url>
+  <url>
     <loc>https://bayesiandemography.github.io/bage/reference/ESeas.html</loc>
   </url>
   <url>
@@ -80,6 +86,9 @@
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/SVD.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/SVDS.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/Seas.html</loc>
@@ -133,6 +142,9 @@
     <loc>https://bayesiandemography.github.io/bage/reference/mod_pois.html</loc>
   </url>
   <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/priors.html</loc>
+  </url>
+  <url>
     <loc>https://bayesiandemography.github.io/bage/reference/reexports.html</loc>
   </url>
   <url>
@@ -140,12 +152,6 @@
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/report_sim.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/scaled_svd.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/scaled_svd_comp.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/set_disp.html</loc>
@@ -164,6 +170,15 @@
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/set_var_time.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/ssvd.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/ssvd_comp.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/ssvd_hmd.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/tidy.bage_mod.html</loc>
