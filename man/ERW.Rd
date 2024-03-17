@@ -21,22 +21,24 @@ An object of class \code{bage_prior_erw}.
 \description{
 Prior for an interaction,
 where a (first order) random walk model
-is applied to the "along" variable, within each
-combination of values of the "by" variable.
+is applied to the 'along' variable, within each
+combination of values of the 'by' variables.
 Standard deviations are shared across
-different combinations of the "by" variables.
+different combinations of the 'by' variables.
 The series within each combination of the
-'by' variables are, however, treated as exchangeable.
+'by' variables are treated as exchangeable.
 }
-\section{Mathematical description}{
+\section{Mathematical details}{
 
 
-The model is
+If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
+within the \eqn{u}th combination of the
+'by' variables, then
 
-\deqn{x_{u,v} = x_{u,i-1} + \epsilon_{u,v}}
-\deqn{\epsilon_{u,v} \sim \text{N}(0, \sigma^2)}
+\deqn{x_{u,v} = x_{u,v-1} + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2)}
 
-Standard deviation \eqn{\sigma} is drawn from a
+Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
 
 \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
@@ -47,8 +49,7 @@ values.)
 
 The scale for the half-normal distribution, \code{s}, defaults
 to 1, but can be set to other values. Lower values
-for \code{scale} lead to smoother series of \code{x}s, and
-higher values lead to rougher series.
+for \code{s} lead to smoother series.
 }
 
 \section{'Along' and 'by' variables}{
@@ -80,5 +81,8 @@ ERW()
 ERW(s = 0.5)
 }
 \seealso{
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
+\itemize{
+\item \code{\link[=RW]{RW()}} Random walk prior for main effects.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+}
 }

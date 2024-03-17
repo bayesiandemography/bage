@@ -18,18 +18,17 @@ in the interaction. Optional, provided
 the data contain a time or age dimension.}
 }
 \value{
-An object of class \code{bage_prior_ear}.
+An object of class \code{"bage_prior_ear"}.
 }
 \description{
-Prior for an interaction,
-where an autoregression model
-of order \code{n} is applied
-to the "along" variable, within each
-combination of values of the 'by' variables.
+An exchangeable autoregressive prior
+is used with interactions. An autoregressive
+model of order \eqn{k} is applied to the 'along'
+variable, within each combination of values of the 'by' variables.
 The damping coefficients are shared across
 different combinations of the 'by' variables.
-The time series within each combination of the
-'by' variables are, however, treated as exchangeable.
+The series within each combination of the
+'by' variables are treated as exchangeable.
 }
 \section{'Along' and 'by' variables}{
 
@@ -58,9 +57,9 @@ is assumed to be age;
 \section{Mathematical details}{
 
 
-If \eqn{\beta_{uv}} is the \eqn{u}th element of the 'along'
-dimension within the \eqn{v}th combination of the
-'by variables', then
+If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
+within the \eqn{u}th combination of the
+'by' variables, then
 
 \deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
@@ -71,8 +70,8 @@ marginal variance \eqn{\tau^2}. The value of
 
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-The \eqn{\phi_1, \cdots, \phi_k} are restricted to the interval
-between -1 and 1.
+The \eqn{\phi_1, \cdots, \phi_k} are restricted to values within
+the interval \eqn{(-1, 1)} that yield stationary series.
 }
 
 \examples{
@@ -89,6 +88,6 @@ TMB documentation for
 \item \code{\link[=EAR1]{EAR1()}} Special case of \code{EAR()}, though with
 more options for damping.
 \item \code{\link[=AR]{AR()}} Autoregressive prior for main effects.
-\item \link{priors} Overview of priors implemented in \code{bage}.#
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

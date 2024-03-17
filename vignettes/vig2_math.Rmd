@@ -556,8 +556,8 @@ Lin(s = 1, sd = 1)
 ### Model
 
 \begin{align}
-  \beta_{uv}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_c^{(m)}, \tau_m^2) \\
-  \eta_c^{(m)} & \sim \text{N}\left(\eta^{(m)}, \omega^{(m)2}\right) \\
+  \beta_{uv}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_u^{(m)}, \tau_m^2) \\
+  \eta_u^{(m)} & \sim \text{N}\left(\eta^{(m)}, \omega^{(m)2}\right) \\
   \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)

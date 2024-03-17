@@ -20,39 +20,42 @@ in the interaction. Optional, provided
 the data contain a time or age dimension.}
 }
 \value{
-An object of class \code{bage_prior_ear}.
+An object of class \code{"bage_prior_ear"}.
 }
 \description{
-Autogressive prior for an interaction,
-where an AR model order 1 is applied
-to the "along" variable, within each
-combination of values of the "by" variable.
-The damping coefficient is shared across
-different combinations of the "by" variables.
+An exchangeable AR1 prior
+is used with interactions. An autoregressive
+model of order \eqn{k} is applied to the 'along'
+variable, within each combination of values of the 'by' variables.
+The damping coefficients are shared across
+different combinations of the 'by' variables.
 The series within each combination of the
-'by' variables are, however, treated as
-exchangeable.
+'by' variables are treated as exchangeable.
 }
 \section{Mathematical description}{
 
 
-The model is
+If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
+within the \eqn{u}th combination of the
+'by' variables, then
 
-\deqn{x_{u,v} = \phi x_{u,i-1} + \epsilon_{u,v}}
+\deqn{x_{u,v} = \phi x_{u,v-1} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 
 where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-marginal variance \eqn{\sigma^2}. The value of
-\eqn{\sigma} has prior
+marginal variance \eqn{\tau^2}. The value of
+\eqn{\tau} has prior
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
 Correlation parameter \eqn{\phi} is constrained
-to lie in the interval \verb{(a, b)},
-where \eqn{a} = \code{min} and \eqn{b} = \code{max}.
-The prior distribution is for \eqn{\phi} is
-\deqn{\phi = (b - a) \phi' - a}
+to lie in the interval \verb{(\\text\{min\}, \\text\{max\})}.
+The prior distribution for \eqn{\phi} is
+
+\deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+
 where
+
 \deqn{\phi' \sim \text{beta}(2, 2)}.
 }
 
@@ -90,8 +93,11 @@ TMB documentation for
 \href{http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details}{ARk}
 }
 \seealso{
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
-The values for \code{min} and \code{max} are based on the
+\itemize{
+\item \code{\link[=EAR]{EAR()}} More general exchangeable AR model.
+\item \code{\link[=AR1]{AR1()}} AR1 prior for main effects.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+\item The values for \code{min} and \code{max} are based on the
 defaults for function \code{forecast::ets()}.
-\code{\link[=EAR]{EAR()}}
+}
 }

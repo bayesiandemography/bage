@@ -20,55 +20,53 @@ in the interaction. Optional, provided
 the data contain a time or age dimension.}
 }
 \value{
-An object of class \code{bage_prior_elin}.
+An object of class \code{"bage_prior_elin"}.
 }
 \description{
 Prior for an interaction where, within each combination
 of the 'by' variables, the elements of the 'along'
-variable follow (approximately) a straight line.
-The slopes of the line vary across
-different combinations of 'by' variables'.
+variable follow a straight line, with idiosyncratic
+errors around that line.
+Each combination of the 'by' variables has a different
+line, with a different slope. The slopes are drawn
+from a common distribution.
 }
-\section{Statistical model}{
+\section{Mathematical details}{
 
 
-The model is
+If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
+within the \eqn{u}th combination of the
+'by' variables, then
 
-\deqn{x_{uv} \sim \text{N}(\text{slope}_u q_v, \sigma^2)}
+\deqn{\beta_{u,v} \sim \text{N}(\eta_u q_v, \tau^2)}
 
 where
-\itemize{
-\item \eqn{u} is the index for a combination of 'by' variables,
-\item \eqn{v} is the index of the 'along' variable,
-\item \eqn{q_j} is a rescaled version of \eqn{j}, with mean 0,
-minimum -1, and maximum 1: \eqn{q_j = - (J+1)/(J-1) + 2j/(J-1)}.
-}
 
-The slopes are drawn from a common distribution with mean
-\eqn{\text{slope}}.
+\deqn{q_v = - (V+1)/(V-1) + 2v/(V-1).}
 
-\deqn{\text{slope}_u \sim \text{N}(\text{slope}, \omega^2)}
+The slopes \eqn{\eta_u} are drawn from a common distribution,
 
-Larger absolute values for \eqn{\text{slope}} imply
-steeper lines. The absolute value of \eqn{slope}
+\deqn{\eta_u \sim \text{N}(\eta, \omega^2).}
+
+The absolute value of mean \eqn{\eta}
 is governed by parameter \code{s}:
 
-\deqn{\text{slope} ~ \text{N}(0, \text{s}^2)}.
+\deqn{\eta \sim \text{N}(0, \text{s}^2).}
 
 Larger values for \eqn{\omega} imply more variability
 in slopes across different combinations of the 'by'
 variables. The size of \eqn{\omega} is governed by
-parameter \code{ms}
+parameter \code{ms},
 
-\deqn{\omega \sim \text{N}^+(0, \text{ms}^2)}
+\deqn{\omega \sim \text{N}^+(0, (\text{ms})^2)}
 
-Larger values for \eqn{\sigma} imply more variability
-around each line. The size of \eqn{\sigma} is
+Larger values for \eqn{\tau} imply more variability
+around each line. The size of \eqn{\tau} is
 governed by parameter \code{s}:
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-(\eqn{\text{N}^} denotes a half-normal distribution,
+(\eqn{\text{N}^+} denotes a half-normal distribution,
 which has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)
@@ -104,8 +102,7 @@ ELin(s = 0.5, sd = 2, ms = 0.1, along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=N]{N()}} etc
-\item \code{\link[=set_var_time]{set_var_time()}} to specify the time variable
-\item \code{\link[=set_var_age]{set_var_age()}} to specify the age variable
+\item \code{\link[=Lin]{Lin()}} Linear prior for main effects.
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

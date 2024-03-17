@@ -16,41 +16,48 @@ An object of class \code{bage_prior_lin}.
 }
 \description{
 Prior for a main effect where the elements
-follow (approximately) a straight line.
+follow a straight line, with idiosyncratic
+errors around this line.
 }
-\details{
-The model is
+\section{Mathematical details}{
 
-\deqn{x_j \sim \text{N}(\text{slope} q_j, \sigma^2)}
 
-where \eqn{q_j} is a rescaled version of \eqn{j}, with mean 0,
-minimum -1, and maximum 1: \eqn{q_j = - (J+1)/(J-1) + 2j/(J-1)}.
+If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+
+\deqn{\beta_j \sim \text{N}(\eta q_j, \tau^2)}
+
+where
+
+\deqn{q_j = - (J+1)/(J-1) + 2j/(J-1).}
 
 The slope term is drawn from a normal distribution,
 
-\deqn{\text{slope} ~ \text{N}(0, \text{sd}^2)}.
+\deqn{\eta ~ \text{N}(0, (\text{sd})^2)}.
 
 The standard deviation for the normal distribution,
 \code{sd}, defaults to 1, but can be set to other values.
 Lower values for \code{sd} lead to smaller values for
 the slope term.
 
-Standard deviation \eqn{\sigma} is drawn from a
+Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-(\eqn{\text{N}^} denotes a half-normal distribution,
+(\eqn{\text{N}^+} denotes a half-normal distribution,
 which has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)
 }
+
 \examples{
 Lin()
 Lin(s = 0.5, sd = 2)
 }
 \seealso{
 \itemize{
-\item \code{\link[=N]{N()}} etc
+\item \code{\link[=ELin]{ELin()}} Exchangeable version of \code{Lin()},
+used with interactions.
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

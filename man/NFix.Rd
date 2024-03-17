@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{NFix}
 \alias{NFix}
-\title{Normal prior with fixed standard deviation}
+\title{Normal Prior with Fixed Standard Deviation}
 \usage{
 NFix(sd = 1)
 }
@@ -12,24 +12,32 @@ A positive, finite number.
 Default is \code{1}.}
 }
 \value{
-An object of class \code{bage_prior_normfixed}.
-\code{NFix()} is usually called within \code{\link[=set_prior]{set_prior()}}.
-Other priors are \code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}.
+An object of class \code{"bage_prior_normfixed"}.
 }
 \description{
 Normal prior where, in contrast to \code{\link[=N]{N()}}, the
 standard deviation is treated as fixed and known.
 }
 \details{
-The distribution has mean equal to \code{0} and
-standard deviation \code{sd}, where \code{sd} is supplied
-by the user.
-
-\deqn{x \sim \text{N}(0, \text{sd}^2)}
-
 \code{NFix()} is the default prior for the intercept.
 }
+\section{Mathematical details}{
+
+
+If \eqn{\beta_j} is the \eqn{j}th element of a main effect
+or interaction, then
+
+\deqn{\beta_j \sim \text{N}(0, \text{sd}^2).}
+}
+
 \examples{
 NFix()
 NFix(sd = 10) ## prior used for intercept
+}
+\seealso{
+\itemize{
+\item \code{\link[=N]{N()}} Version of \code{NFix()} where the standard deviation
+term is estimated from the data.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+}
 }

@@ -19,16 +19,18 @@ Prior for seasonal effect, where the size of
 the effects evolve over time. Each season follows its
 own random walk.
 }
-\section{Mathematical description}{
+\section{Mathematical details}{
 
 
-\deqn{x_j \sim \text{N}(0, 1), j = 1, \cdots, \text{n}}
-\deqn{x_j - x_{j-n} \sim \text{N}(x_{j - n}, \sigma^2), j = n+1, \cdots, J}
+If \eqn{\beta_j^{\text{seas}}} is the \eqn{j}th element of a
+seasonal effect, then
 
-Standard deviation \eqn{\sigma} is drawn from a
+\deqn{\beta_j^{\text{seas}} - \beta_{j-n}^{\text{seas}} \sim \text{N}(x_{j - n}, \tau^2).}
+
+Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
 (A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative

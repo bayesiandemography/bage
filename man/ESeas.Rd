@@ -27,27 +27,25 @@ has a separate seasonal effect.
 The \code{along} variable is almost always
 time.
 }
-\section{Statistical model}{
+\section{Mathematical details}{
 
 
-The model is
+If \eqn{\beta_{u,v}^{\text{seas}}} is the \eqn{v}th
+element of the seasonal effect within
+within the \eqn{u}th combination of the
+'by' variables, then
 
-\deqn{x_{uv} \sim \text{N}(x_{u,v-n}, \sigma^2)}
+\deqn{\beta_{u,v}^{\text{seas}} \sim \text{N}(\beta_{u,v-n}^{\text{seas}}, \tau^2),}
 
-where
-\itemize{
-\item \eqn{u} is the index for a combination of 'by' variables,
-\item \eqn{v} is the index of the 'along' variable,
-\item \eqn{n} is the number of seasons
-}
+where \eqn{n} is the number of seasons.
 
-Larger values for \eqn{\sigma} imply more variability
-in seasonal effects over time. The size of \eqn{\sigma} is
+Larger values for \eqn{\tau} imply more variability
+in seasonal effects over time. The size of \eqn{\tau} is
 governed by parameter \code{s}:
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-(\eqn{\text{N}^} denotes a half-normal distribution,
+(\eqn{\text{N}^+} denotes a half-normal distribution,
 which has the same shape as a normal
 distribution, but is defined only for non-negative
 values.)
@@ -83,8 +81,10 @@ ESeas(n = 12, s = 0.5, along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=Seas]{Seas()}} etc
-\item \code{\link[=set_var_time]{set_var_time()}} to specify the time variable
-\item \code{\link[=set_var_age]{set_var_age()}} to specify the age variable
+\item \code{\link[=Seas]{Seas()}} Seasonal effect for main effects.
+\item Seasonal effects are always
+used within 'composite' priors, created using
+\code{\link[=compose_time]{compose_time()}}.
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

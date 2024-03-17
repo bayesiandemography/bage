@@ -16,7 +16,7 @@ standard deviation (\eqn{\tau}).
 Default is \code{1}.}
 }
 \value{
-An object of class \code{bage_prior_ar}.
+An object of class \code{"bage_prior_ar"}.
 }
 \description{
 Autoregressive prior of order 1
@@ -33,11 +33,13 @@ If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
 with scale set by the \code{s} argument.
 
 Correlation parameter \eqn{\phi} is constrained
-to lie in the interval \verb{(\\text\{min\}, \\text\{max\})}l
-The prior distribution is for \eqn{\phi}
-is
+to lie in the interval \verb{(\\text\{min\}, \\text\{max\})}.
+The prior distribution for \eqn{\phi} is
+
 \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+
 where
+
 \deqn{\phi' \sim \text{beta}(2, 2)}.
 }
 
