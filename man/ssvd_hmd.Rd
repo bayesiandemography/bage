@@ -20,7 +20,7 @@ An object of class \code{\link[=ssvd]{"bage_ssvd"}}
 \description{
 Create an object of class \code{\link[=ssvd]{"bage_ssvd"}}
 from a zipped file downloaded from the
-\link[=https://www.mortality.org/Data/ZippedDataFiles]{Human Mortality Database}.
+\href{https://www.mortality.org/Data/ZippedDataFiles}{Human Mortality Database}.
 }
 \section{Warning}{
 
