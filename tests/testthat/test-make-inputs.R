@@ -8,7 +8,7 @@ test_that("'choose_matrices_along_by' works with valid inputs", {
                         sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + time * region
+    formula <- deaths ~ age * sex + time * region + sex * region
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
@@ -20,7 +20,8 @@ test_that("'choose_matrices_along_by' works with valid inputs", {
                          time = matrices[[4]][[1L]],
                          region = matrices[[5]][[1]],
                          "age:sex" = matrices[[6]][[1]],
-                         "time:region" = matrices[[7]][[1]])
+                         "time:region" = matrices[[7]][[1]],
+                         "sex:region" = matrices[[8]][[1]])
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -81,6 +82,28 @@ test_that("'choose_matrix_along_by' works with interaction - default to age", {
   ans_expected <- matrices[[1L]]
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'choose_matrix_along_by' works with interaction - default to first if along not used", {
+  prior <- N()
+  matrices <- list(gender = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   income = make_matrix_along_by(i_along = 2L,
+                                                 dim = 2:4,
+                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
+                   reg = make_matrix_along_by(i_along = 3L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- choose_matrix_along_by(prior = prior,
+                                         matrices = matrices,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- matrices[[1L]]
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 test_that("'choose_matrix_along_by' works with interaction - specify along", {
   prior <- ELin(along = "reg")

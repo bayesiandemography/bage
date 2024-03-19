@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{N}
 \alias{N}
-\title{Normal prior}
+\title{Normal Prior}
 \usage{
 N(s = 1)
 }
@@ -16,16 +16,18 @@ An object of class \code{bage_prior_norm}.
 Prior in which units are drawn independently from a normal
 distribution. The default prior for most terms.
 }
-\details{
-The normal distribution has mean \eqn{0} and standard
-deviation \eqn{\sigma}.
+\section{Mathematical details}{
 
-\deqn{x \sim \text{N}(0, \sigma^2)}
 
-Standard deviation \eqn{\sigma} is drawn from a half-normal
+If \eqn{\beta_j} is the \eqn{j}th element of a main effect
+or interaction, then
+
+\deqn{\beta_j \sim \text{N}(0, \tau^2).}
+
+Standard deviation \eqn{\tau} is drawn from a half-normal
 distribution,
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
 (A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative
@@ -34,14 +36,18 @@ values.)
 The scale for the half-normal distribution defaults
 to 1, but can be set to other values. Lower values
 lead to more tightly concentrated
-estimates for \code{x}, and higher values lead to less tightly
+estimates for \verb{\\beta_j}, and higher values lead to less tightly
 concentrated estimates.
 }
+
 \examples{
 N()
 N(s = 0.5)
 }
 \seealso{
-\code{N()} is usually called within \code{\link[=set_prior]{set_prior()}}.
-Other priors are \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}.
+\itemize{
+\item \code{\link[=NFix]{NFix()}} Version of \code{N()} where the standard deviation
+term is supplied rather than estimated from the data.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+}
 }

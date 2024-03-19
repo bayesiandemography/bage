@@ -19,8 +19,10 @@ in an model as fixed and known.
 \examples{
 Known(-2.3)
 Known(c(0.1, 2, -0.11))
-
 }
 \seealso{
-\code{Known} is usually called within \code{\link[=set_prior]{set_prior()}}.
+\itemize{
+\item \code{\link[=NFix]{NFix()}} Prior where level unknown, but variability known.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+}
 }
