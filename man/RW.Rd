@@ -10,21 +10,24 @@ RW(s = 1)
 \item{s}{A positive, finite number. Default is 1.}
 }
 \value{
-An object of class \code{bage_prior_rw}.
+An object of class \code{"bage_prior_rw"}.
 }
 \description{
 Prior in which units follow a (first order)
 random walk. Increments between neighbouring
-\code{x}s are assumed to be normally distibuted,
+elements are assumed to be normally distibuted.
 }
-\details{
-\deqn{x_1 \sim \text{N}(0, 1)}
-\deqn{x_i - x_{i-1} \sim \text{N}(0, \sigma^2), i = 2, \cdots, n}
+\section{Mathematical details}{
 
-Standard deviation \eqn{\sigma} is drawn from a
+
+If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
+
+\deqn{\beta_j - x_{j-1} \sim \text{N}(0, \tau^2).}
+
+Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
 (A half-normal distribution has the same shape as a normal
 distribution, but is defined only for non-negative
@@ -35,6 +38,7 @@ to 1, but can be set to other values. Lower values
 for \code{scale} lead to smoother series of \code{x}s, and
 higher values lead to rougher series.
 }
+
 \examples{
 RW()
 RW(s = 0.5)
@@ -43,7 +47,6 @@ RW(s = 0.5)
 \itemize{
 \item \code{\link[=RW2]{RW2()}} for a random walk with drift
 (a second-order random walk).
-\item \code{RW()} is usually called as part of
-a call to \code{\link[=set_prior]{set_prior()}}
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

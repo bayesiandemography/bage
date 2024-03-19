@@ -10,7 +10,7 @@ EAR(n = 2, s = 1, along = NULL)
 \item{n}{The order of the model.}
 
 \item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\sigma}).
+standard deviation (\eqn{\tau}).
 Defaults to 1.}
 
 \item{along}{Name of one of the dimensions
@@ -18,57 +18,60 @@ in the interaction. Optional, provided
 the data contain a time or age dimension.}
 }
 \value{
-An object of class \code{bage_prior_ear}.
+An object of class \code{"bage_prior_ear"}.
 }
 \description{
-Prior for an interaction,
-where an autoregression model
-of order \code{n} is applied
-to the "along" variable, within each
-combination of values of the "by" variable.
+An exchangeable autoregressive prior
+is used with interactions. An autoregressive
+model of order \eqn{k} is applied to the 'along'
+variable, within each combination of values of the 'by' variables.
 The damping coefficients are shared across
-different combinations of the "by" variables.
-The time series within each combination of the
-'by' variables are, however, treated as exchangeable.
+different combinations of the 'by' variables.
+The series within each combination of the
+'by' variables are treated as exchangeable.
 }
 \section{'Along' and 'by' variables}{
 
 
-Multivariate priors for interactions distinguish
+Some priors for interactions distinguish
 between 'along' and 'by' variables. The 'along'
 variable is typically time, or, in interactions
 not involving time, is typically age. The 'by'
 variables are everything else. In an interaction
 between region, sex, and time, for instance,
-the by variables are likely to be region and sex.
+the 'along' variable is likely to be time,
+and the 'by' variables are likely to be region and sex.
 
-If no \code{along} argument is supplied, then:
+If no \code{along} argument is supplied, a default value
+is chosen as follows:
 \itemize{
 \item if the interaction contains a time variable, then
-it is assumed to be the 'along' variable;
+the 'along' variable is assumed to be time;
 \item otherwise, if the interaction contains an
-age variable, then it is assumed to be
-the 'along' variable;
+age variable, then the 'along' variable
+is assumed to be age;
 \item otherwise, an error is raised.
 }
 }
 
-\section{Mathematical description}{
+\section{Mathematical details}{
 
 
-The model is
+If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
+within the \eqn{u}th combination of the
+'by' variables, then
 
-\deqn{x_{u,v} = \phi_1 x_{u,i-1} + \cdots + \phi_k x_{u,i-k} + \epsilon_{u,v}}
+\deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 
 where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-marginal variance \eqn{\sigma^2}. The value of
-\eqn{\sigma} has prior
+marginal variance \eqn{\tau^2}. The value of
+\eqn{\tau} has prior
 
-\deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
-The \eqn{\phi_j} are constrained to the interval
-between -1 and 1.
+The \eqn{\phi_1, \cdots, \phi_k} are restricted to values within
+the interval \eqn{(-1, 1)} that yield stationary series.
 }
 
 \examples{
@@ -81,8 +84,10 @@ TMB documentation for
 \href{http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details}{ARk}
 }
 \seealso{
-\code{\link[=N]{N()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Known]{Known()}}.
-The values for \code{min} and \code{max} are based on the
-defaults for function \code{forecast::ets()}.
-\code{\link[=AR1]{AR1()}}
+\itemize{
+\item \code{\link[=EAR1]{EAR1()}} Special case of \code{EAR()}, though with
+more options for damping.
+\item \code{\link[=AR]{AR()}} Autoregressive prior for main effects.
+\item \link{priors} Overview of priors implemented in \code{bage}.
+}
 }

@@ -51,6 +51,6 @@ Sp(n = 10)
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW2]{RW2()}} etc
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

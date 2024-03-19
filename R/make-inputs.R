@@ -36,6 +36,8 @@ choose_matrices_along_by <- function(x) {
 #'
 #' @noRd
 choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
+  if (!uses_along(prior))
+    return(matrices[[1L]])
   n <- length(matrices)
   if (n == 1L)
     return(matrices[[1L]])
