@@ -249,9 +249,18 @@ hmd_unzip <- function(zipfile) {
     ans$type_age <- type_age
     ans
   }
-  dirs_unpacked <- file.path(tmp_dir,
-                             sub("\\.zip$", "", basename(zipfile)),
-                             dirs)
+  base_zipfile <- sub("\\.zip$", "", basename(zipfile))
+  if (base_zipfile %in% dir(tmp_dir)) {
+    dirs_unpacked <- file.path(tmp_dir, base_zipfile, dirs)
+  }
+  else if (all(c("lt_both", "lt_female", "lt_male") %in% dir(tmp_dir))) {
+    dirs_unpacked <- file.path(tmp_dir, dirs)
+  }
+  else {
+    cli::cli_abort(c("Did not get expected files when unzipped {.arg zipfile}.",
+                     i = "Contents of temporary directory after unzipping: {.val {dir(tmp_dir)}}.",
+                     i = "Value of {.arg zipfile}: {.file {zipfile}}."))
+  }
   ans <- lapply(dirs_unpacked, get_data)
   ans <- do.call(rbind, ans)
   ans
@@ -533,7 +542,7 @@ hmd_indep <- function(data, n, transform) {
 #'
 #' Create an object of class [`"bage_ssvd"`][ssvd()]
 #' from a zipped file downloaded from the
-#' [Human Mortality Database][https://www.mortality.org/Data/ZippedDataFiles].
+#' [Human Mortality Database](https://www.mortality.org/Data/ZippedDataFiles).
 #'
 #' @section Warning:
 #'

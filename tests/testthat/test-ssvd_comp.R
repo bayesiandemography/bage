@@ -119,22 +119,20 @@ test_that("'replace_zeros_ones' performs correctly with valid inputs", {
     
 ## 'hmd_unzip' ----------------------------------------------------------------
 
-## ## code to make test file:
-## for (dn1 in list.files("data_for_tests/hmd_statistics_20240226", full = TRUE)) {
-##   for (dn2 in list.files(dn1, full = TRUE)) {
-##     for (fn in list.files(dn2, full = TRUE)) {
-##       lines <- readLines(fn, n = 10)
-##       writeLines(lines, con = fn)
-##     }
-##   }
-## }  
-
-test_that("'hmd_unzip' works with valid inputs", {
+test_that("'hmd_unzip' works with valid inputs - unzipped has hmd_statistics_test folder", {
   fn <- file.path("data_for_tests", "hmd_statistics_test.zip")
   ans <- hmd_unzip(fn)
   expect_setequal(names(ans),
                   c("country", "Year", "Age", "mx", "Lx", "sex", "type_age"))
 })
+
+test_that("'hmd_unzip' works with valid inputs - unzipped does not have hmd_statistics_test folder", {
+  fn <- file.path("data_for_tests", "hmd_statistics_test_v2.zip")
+  ans <- hmd_unzip(fn)
+  expect_setequal(names(ans),
+                  c("country", "Year", "Age", "mx", "Lx", "sex", "type_age"))
+})
+
 
 
 ## 'hmd_tidy_data' ------------------------------------------------------------
@@ -325,7 +323,7 @@ test_that("'hmd_indep' works with valid inputs", {
 
 ## 'ssvd_hmd' -----------------------------------------------------------------
 
-test_that("'hmd_unzip' works with valid inputs", {
+test_that("'ssvd_hmd' works with valid inputs", {
   fn <- file.path("data_for_tests", "hmd_statistics_test.zip")
   suppressMessages(ans <- ssvd_hmd(fn, transform = "log"))
   expect_s3_class(ans, "bage_ssvd")
