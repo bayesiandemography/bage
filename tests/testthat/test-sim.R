@@ -419,14 +419,15 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
 
 test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + sex
+  formula <- deaths ~ age * time + age:sex
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
@@ -436,7 +437,7 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
                               vals_hyper = vals_hyper,
                               vals_hyperrand = vals_hyperrand,
                               n_sim = n_sim)
-  expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+  expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
   expect_true(all(sapply(ans, ncol) == n_sim))
   expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
 })
