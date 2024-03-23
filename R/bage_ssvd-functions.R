@@ -32,6 +32,13 @@ get_matrix_or_offset_svd <- function(ssvd,
   type <- data$type
   labels_age <- data$labels_age
   labels_sexgender <- data$labels_sexgender
+  ## check for duplicates
+  for (nm in c("levels_age", "levels_sexgender")) {
+    val <- get(nm)
+    is_dup <- duplicated(val)
+    if (any(is_dup))
+      cli::cli_abort("Internal error: {.arg {nm}} has duplicates.")
+  }
   ## determine type of SVD required
   if (agesex %in% c("age", "age:other"))
     type_req <- "total"
