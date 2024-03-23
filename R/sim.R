@@ -228,6 +228,8 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
     levels_effect <- mod$levels_effect
     terms_effect <- mod$terms_effect
     levels_effect <- split(levels_effect, terms_effect)
+    levels_age <- make_levels_age(mod)
+    levels_sexgender <- make_levels_sexgender(mod)
     agesex <- make_agesex(mod)
     matrices_along_by <- choose_matrices_along_by(mod)
     matrices_agesex <- make_matrices_agesex(mod)
@@ -239,7 +241,9 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
                                agesex = agesex,
                                matrix_along_by = matrices_along_by,
                                matrix_agesex = matrices_agesex),
-                   MoreArgs = list(n_sim = n_sim))
+                   MoreArgs = list(levels_age = levels_age,
+                                   levels_sexgender = levels_sexgender,
+                                   n_sim = n_sim))
     names(ans) <- names(priors)
     ans
 }
