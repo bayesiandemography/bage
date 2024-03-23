@@ -501,25 +501,25 @@ fit.bage_mod <- function(object, ...) {
 #' @export
 generics::forecast
 
-## ## NO_TESTS
-## #' Forecast a model
-## #'
-## #' @param object A `bage_mod` object,
-## #' typically created with [mod_pois()],
-## #' [mod_binom()], or [mod_norm()].
-## #' @param ... Not currently used.
-## #'
-## #' @returns A `bage_mod` object
-## #'
-## #' @export    
-## forecast.bage_mod <- function(object, n, ...) {
-##   stop("not written yet")
-##   var_time <- object$var_time
-##   if (is.null(var_time))
-##     cli::cli_abort(c("Can't forecast when time variable not identified.",
-##                      i = "Please use {.fun set_var_time} to identify time variable."))
-##   check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
-## }    
+## NO_TESTS
+#' Forecast a model
+#'
+#' @inheritParams components
+#' @param labels Labels for future values. WARNING
+#' this argument is only temporary.
+#' @param ... Not currently used.
+#'
+#' @returns A `bage_mod` object
+#'
+#' @export    
+forecast.bage_mod <- function(object, n, ...) {
+  stop("not written yet")
+  var_time <- object$var_time
+  if (is.null(var_time))
+    cli::cli_abort(c("Can't forecast when time variable not identified.",
+                     i = "Please use {.fun set_var_time} to identify time variable."))
+  check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
+}    
 
 
 

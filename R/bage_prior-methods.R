@@ -660,7 +660,22 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
 }
 
 
-## 'has_hyperrand' ------------------------------------------------------
+## 'forecast_prior' -----------------------------------------------------------
+
+#' @export
+forecast_prior <- function(prior, n_forecast) {
+  UseMethod("forecast_prior")
+}
+
+#' @export
+forecast_prior.bage_prior_ar1 <- function(prior, vals_hyper, n_forecast) {
+  coef <- vals_hyper$coef
+  sd <- vals
+ 
+  vals_hyper <-
+
+
+## 'has_hyperrand' ------------------------------------------------------------
 
 #' Has Hyper-Parameters that can be Treated as Random Effects
 #'
