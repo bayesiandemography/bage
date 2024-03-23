@@ -72,23 +72,23 @@ check_by_excludes_time <- function(by, var_time) {
 
 
 ## HAS_TESTS
-#' Check a logical flag
+#' Check a Logical Flag
 #'
 #' @param x TRUE or FALSE
+#' @param nm_x Name for 'x' to use in error messages.
 #'
 #' @returns TRUE, invisibly
 #' 
 #' @noRd
-check_flag <- function(x) {
-    nm <- deparse1(substitute(x))
+check_flag <- function(x, nm_x) {
     if (!identical(length(x), 1L))
-        cli::cli_abort(c("{.arg {nm}} does not have length 1",
-                         i = "{.arg {nm}} has length {length(x)}."))
+        cli::cli_abort(c("{.arg {nm_x}} does not have length 1",
+                         i = "{.arg {nm_x}} has length {length(x)}."))
     if (!is.logical(x))
-        cli::cli_abort(c("{.arg {nm}} does not have class {.cls logical}.",
-                         i = "{.arg {nm}} has class {.cls {class(x)}}"))
+        cli::cli_abort(c("{.arg {nm_x}} does not have class {.cls logical}.",
+                         i = "{.arg {nm_x}} has class {.cls {class(x)}}"))
     if (is.na(x))
-        cli::cli_abort("{.arg {nm}} is {.val {NA}}")
+        cli::cli_abort("{.arg {nm_x}} is {.val {NA}}")
     invisible(TRUE)
 }
 
