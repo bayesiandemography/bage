@@ -1161,7 +1161,7 @@ SVDS <- function(ssvd, n = 5, joint = FALSE) {
           max = 10L,
           null_ok = FALSE)
   n <- as.integer(n)
-  check_flag(joint)
+  check_flag(x = joint, nm_x = "joint")
   new_bage_prior_svd(ssvd = ssvd,
                      nm_ssvd = nm_ssvd,
                      n = n,
@@ -1337,7 +1337,7 @@ ESVDS <- function(ssvd, n = 5, joint = FALSE) {
           max = 10L,
           null_ok = FALSE)
   n <- as.integer(n)
-  check_flag(joint)
+  check_flag(x = joint, nm_x = "joint")
   new_bage_prior_esvd(ssvd = ssvd,
                       nm_ssvd = nm_ssvd,
                       n = n,

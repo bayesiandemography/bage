@@ -61,7 +61,7 @@ generate.bage_ssvd <- function(x,
           null_ok = FALSE)
   has_joint <- !is.null(joint)
   if (has_joint) {
-    check_flag(joint)
+    check_flag(x = joint, nm_x = "joint")
     type <- if (joint) "joint" else "indep"
   }
   else
