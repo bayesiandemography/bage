@@ -62,30 +62,30 @@ test_that("'check_by_excludes_time' throws appropriate error", {
 
 test_that("'check_flag' returns TRUE with valid inputs", {
     x <- TRUE
-    expect_true(check_flag(x))
+    expect_true(check_flag(x, nm_x = "x"))
     x <- FALSE
     expect_true(check_flag(x))
 })
 
 test_that("'check_flag' throws expected error non-length-1", {
     y <- logical()
-    expect_error(check_flag(y),
-                 "`y` does not have length 1")
+    expect_error(check_flag(y, nm_x = "z"),
+                 "`z` does not have length 1")
     z <- c(TRUE, TRUE)
-    expect_error(check_flag(z),
+    expect_error(check_flag(z, nm_x = "z"),
                  "`z` does not have length 1")
 })
 
 test_that("'check_flag' throws expected error non-logical", {
     x <- "hello"
-    expect_error(check_flag(x),
+    expect_error(check_flag(x, nm_x = "x"),
                  "`x` does not have class <logical>")
 })
 
 test_that("'check_flag' throws expected error NA", {
     x <- NA
-    expect_error(check_flag(x),
-                 "`x` is NA")
+    expect_error(check_flag(x, nm_x = "xx"),
+                 "`xx` is NA")
 })
 
 
