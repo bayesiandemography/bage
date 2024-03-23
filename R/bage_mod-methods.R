@@ -502,22 +502,55 @@ fit.bage_mod <- function(object, ...) {
 generics::forecast
 
 ## NO_TESTS
-#' Forecast a model
+#' Use a Model to Construct Forecasts
+#'
+#' DESCRIBE HOW FORECASTS CONSTRUCTED.
+#' 
+#' @section Type of output:
+#'
+#' `forecast()` always returns a [tibble][tibble::tibble()].
+#' However, the contents of the tibble depend on the
+#' `output` argument:
+#'
+#' - `"augment"` (The default.) Like the
+#'   output from [augment()], but without the
+#'   outcome variable or any exposure,
+#'   size, or weights variables.
+#' - `"components"` Like the output from
+#'   [components()].
 #'
 #' @inheritParams components
 #' @param labels Labels for future values. WARNING
 #' this argument is only temporary.
+#' @param output Type of output returned
+#' @param include_estimates Whether to
+#' include historical estimates along
+#' with the forecasts. Default is `TRUE`.
 #' @param ... Not currently used.
 #'
 #' @returns A `bage_mod` object
 #'
 #' @export    
-forecast.bage_mod <- function(object, n, ...) {
-  stop("not written yet")
+forecast.bage_mod <- function(object,
+                              output = c("augment", "components"),
+                              include_estimates = TRUE,
+                              labels,
+                              ...) {
+  output <- match.arg(output)
   var_time <- object$var_time
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Please use {.fun set_var_time} to identify time variable."))
+  comp_estimated <- components(object)
+  comp_forecasted <- forecast_components(comp_estimated = comp_estimated,
+                                         labels = labels)
+  aug_forecasted <- forecast_augment(comp_forecasted)
+  if (output == "augment") {
+    
+                                     
+  forecast
+                      
+  
   check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
 }    
 
