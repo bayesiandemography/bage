@@ -133,6 +133,13 @@ test_that("'hmd_unzip' works with valid inputs - unzipped does not have hmd_stat
                   c("country", "Year", "Age", "mx", "Lx", "sex", "type_age"))
 })
 
+test_that("'hmd_unzip' gives expected error when zipfile missing files", {
+  fn <- file.path("data_for_tests", "hmd_statistics_test_v3.zip")
+  expect_error(hmd_unzip(fn),
+               "Did not get expected files when unzipped `zipfile`.")
+})
+
+
 
 
 ## 'hmd_tidy_data' ------------------------------------------------------------

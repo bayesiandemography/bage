@@ -45,6 +45,37 @@ test_that("'generate' works with ssvd - joint", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'generate' works with ssvd - joint", {
+  age_labels <- poputils::age_labels(type = "lt", max = 65)
+  set.seed(0)
+  ans_obtained <- generate(HMD, joint = TRUE, age_labels = age_labels, n_draw = 2)
+  set.seed(0)
+  ans_expected <- (HMD$data$matrix[[79]][,1:5] %*% matrix(rnorm(10), nr = 5)
+    + HMD$data$offset[[79]])
+  ans_expected <- tibble::tibble(draw = rep(1:2, each = 30),
+                                 sexgender = rep(rep(c("Female", "Male"), each = 15),
+                                                 times = 2),
+                                 age = rep(age_labels, times = 4),
+                                 value = as.double(ans_expected))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'generate' method for ssvd - gives expected error with invalid age labels", {
+  age_labels <- poputils::age_labels(type = "lt", max = 65)
+  age_labels[10] <- "wrong"
+  expect_error(generate(HMD, age_labels = age_labels),
+               "Problem with `age_labels`")
+})
+
+test_that("'generate' method for ssvd - gives expected error with age labels not in x", {
+  age_labels <- poputils::age_labels(type = "lt", max = 120)
+  expect_error(generate(HMD, age_labels = age_labels),
+               "Can't find labels from `age_labels` in `x`")
+})
+
+
+
+
 
 ## 'print' --------------------------------------------------------------------
 
