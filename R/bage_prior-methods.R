@@ -660,19 +660,40 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
 }
 
 
-## 'forecast_prior' -----------------------------------------------------------
+## 'forecast_prior_hyper' -----------------------------------------------------
 
 #' @export
-forecast_prior <- function(prior, n_forecast) {
-  UseMethod("forecast_prior")
+forecast_prior_hyper <- function(prior, hyper_est, labels) {
+  UseMethod("forecast_prior_hyper")
 }
 
 #' @export
-forecast_prior.bage_prior_ar1 <- function(prior, vals_hyper, n_forecast) {
-  coef <- vals_hyper$coef
-  sd <- vals
- 
-  vals_hyper <-
+forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
+  hyper_est
+}
+
+#' @export
+forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
+  hyper_est
+}
+
+
+## 'forecast_prior_hyper' -----------------------------------------------------
+
+#' @export
+forecast_prior_hyper <- function(prior, hyper_est, labels) {
+  UseMethod("forecast_prior_hyper")
+}
+
+#' @export
+forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
+  hyper_est
+}
+
+#' @export
+forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
+  hyper_est
+}
 
 
 ## 'has_hyperrand' ------------------------------------------------------------

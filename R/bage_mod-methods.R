@@ -536,24 +536,32 @@ forecast.bage_mod <- function(object,
                               include_estimates = TRUE,
                               labels,
                               ...) {
+  check_flag(x = include_estimates, nm_x = "include_estimates")
   output <- match.arg(output)
   var_time <- object$var_time
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Please use {.fun set_var_time} to identify time variable."))
-  comp_estimated <- components(object)
-  comp_forecasted <- forecast_components(comp_estimated = comp_estimated,
-                                         labels = labels)
-  aug_forecasted <- forecast_augment(comp_forecasted)
+  components_est <- components(object)
+  components_forecast <- forecast_components(mod = object,
+                                             components_est = components_est,
+                                             labels = labels)
   if (output == "augment") {
-    
-                                     
-  forecast
-                      
-  
-  check_n(n, n_arg = "n", min = NULL, max = NULL, null_ok = FALSE)
-}    
-
+    ans <- forecast_augment(components_forecast)
+    if (include_estimates) {
+      augment_est <- augment(object)
+      ans <- rbind(augment_est, ans)
+    }
+  }
+  else if (output == "components") {
+    ans <- components_forecast
+    if (include_estimates)
+      ans <- rbind(components_est, ans)
+  }
+  else
+    cli::cli_abort("Internal error: Unexpected value for {.arg output}.")
+  ans
+}
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
