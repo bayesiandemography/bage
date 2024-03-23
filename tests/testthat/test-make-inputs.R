@@ -126,6 +126,23 @@ test_that("'choose_matrix_along_by' works with interaction - specify along", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+
+test_that("'choose_matrix_along_by' works when only one matrix", {
+  prior <- ELin(along = "reg")
+  matrices <- list(age = make_matrix_along_by(i_along = 1L,
+                                              dim = 2:4,
+                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- choose_matrix_along_by(prior = prior,
+                                         matrices = matrices,
+                                         var_time = var_time,
+                                         var_age = var_age)
+  ans_expected <- matrices[[1L]]
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
   prior <- ELin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L,
