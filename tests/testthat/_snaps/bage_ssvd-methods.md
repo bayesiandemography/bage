@@ -1,4 +1,4 @@
-# 'print' works with mod_pois
+# 'print' works with ssvd
 
     Code
       print(ssvd)

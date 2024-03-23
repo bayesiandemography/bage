@@ -77,6 +77,31 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is jo
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'get_matrix_or_offset_svd' returns expected error when 'levels_age' has duplicates", {
+    ssvd <- sim_ssvd()
+    expect_error(get_matrix_or_offset_svd(ssvd,
+                                          levels_age = c("0-4", "5-9", "0-4"),
+                                          levels_sexgender = c("F", "M"),
+                                          joint = FALSE,
+                                          agesex = "age:sex",
+                                          get_matrix = TRUE,
+                                          n_comp = 5),
+                 "Internal error: `levels_age` has duplicates.")
+})
+
+test_that("'get_matrix_or_offset_svd' returns expected error when 'levels_sexgender' has duplicates", {
+    ssvd <- sim_ssvd()
+    expect_error(get_matrix_or_offset_svd(ssvd,
+                                          levels_age = c("0-4", "5-9"),
+                                          levels_sexgender = c("F", "M", "M"),
+                                          joint = FALSE,
+                                          agesex = "age:sex",
+                                          get_matrix = TRUE,
+                                          n_comp = 5),
+                 "Internal error: `levels_sexgender` has duplicates.")
+})
+
+
 test_that("'get_matrix_or_offset_svd' returns expected error with illegal value for agesex", {
     ssvd <- sim_ssvd()
     expect_error(get_matrix_or_offset_svd(ssvd,
