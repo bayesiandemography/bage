@@ -660,40 +660,105 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
 }
 
 
-## 'forecast_prior_hyper' -----------------------------------------------------
+## 'forecast_compose_hyper' ---------------------------------------------------
 
-#' @export
-forecast_prior_hyper <- function(prior, hyper_est, labels) {
-  UseMethod("forecast_prior_hyper")
+#' @noRd
+forecast_compose_hyper <- function(prior,
+                                   compose_hyper_est,
+                                   labels) {
+  UseMethod("forecast_compose_hyper")
 }
 
 #' @export
-forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
-  hyper_est
+forecast_compose_hyper.bage_prior <- function(prior,
+                                              compose_hyper_est,
+                                              labels) {
+  compose_hyper_est
 }
 
 #' @export
-forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
-  hyper_est
+forecast_compose_hyper.bage_prior_compose <- function(prior,
+                                                      compose_hyper_est,
+                                                      labels) {
+  priors <- prior$specific$priors
+  nms_priors <- names(priors)
+  is_hyper <- compose_hyper_est$component == "hyper"
+  hyper <- compose_hyper_est[is_hyper, c("level", ".fitted")]
+  compose <- compose_hyper_est[!is_hyper, ]
+  p_hyper <- "^(.*)\\.(.*)$"
+  nms_hyper <- sub(p_hyper, "\\1", hyper$level)
+  hyper$level <- sub(p_hyper, "\\2", hyper$level)
+  hyper <- vctrs::vec_split(x = hyper, by = nms_hyper)
+  compose <- vctrs::vec_split(x = compose[c("level", ".fitted")],
+                              by = compose["component"])
+  nms_compose <- compose$component
+  compose <- compose$val
+  ord_hyper <- match(nms_priors, nms_hyper, nomatch = 0L)
+  ord_compose <- match(nms_priors, nms_compose, nomatch = 0L)
+  hyper <- hyper[ord_hyper]
+  compose <- compose[ord_compose]
+  ans <- .mapply(forecast_effect,
+                 dots = list(prior = priors,
+                             effect_est = compose,
+                             compose_hyper_forecast = hyper),
+                 MoreArgs = list(labels = labels))
+  ## PROCESS RESULT
 }
 
 
-## 'forecast_prior_hyper' -----------------------------------------------------
+## 'forecast_effect' ----------------------------------------------------------
+
+#' @noRd
+forecast_effect <- function(prior,
+                            nm_prior,
+                            effect_est,
+                            compose_hyper_forecast,
+                            labels) {
+  UseMethod("forecast_effect")
+}
 
 #' @export
-forecast_prior_hyper <- function(prior, hyper_est, labels) {
-  UseMethod("forecast_prior_hyper")
+forecast_effect.bage_prior <- function(prior,
+                                       nm_prior
+                                       effect_est,
+                                       compose_hyper_forecast,
+                                       labels) {
+  cli::cli_abort(c("Can't forecast term {.val {nm_prior}}.",
+                   i = "Term {.val {nm_prior}} has {str_call_prior(prior)} prior.",
+                   i = "Terms with {str_call_prior(prior)} prior cannot be forecasted."))
 }
 
 #' @export
-forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
-  hyper_est
+forecast_effect.bage_prior_ar <- function(prior,
+                                          nm_prior
+                                          effect_est,
+                                          compose_hyper_forecast,
+                                          labels) {
+  n <- prior$specific$n
+  n_est <- length(effect_est)
+  n_forecast <- length(labels)
+  level_hyper <- compose_hyper_forecast$level
+  .fitted_hyper <- compose_hyper_forecast$.fitted
+  coef <- .fitted[[level == "coef"]]
+  sd <- .fitted[[level == "sd"]]n
+  ## n_draw <- n_draw(effect_est)
+  ## .fitted_forecast <- rvec::new_rvec_dbl(length = n + n_forecast, n_draw = n_draw)
+  ## .fitted_forecast[seq_len(n_est)] <- effect_est[seq.int(to = n_est, length.out = n)]
+  .fitted_forecast <- c(effect_est[seq.int(to = n_est, length.out = n)]
+                        rep(effect_est[n_est], times = n_forecast))
+  for (j in seq.int(from = n + 1L, to = n + n_forecast)) {
+    mean <- sum(coef * .fitted_forecast[seq(from = j + n - 1L, to = j - 1L)])
+    .fitted_forecast[[j]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+  }
+  .fitted_forecast <- .fitted_forecast[-seq_len(n)]
+  ans <- tibble(term = nm_prior,
+                component = "effect",
+                level = labels,
+                .fitted = .fitted_forecast)
+  ans
 }
 
-#' @export
-forecast_prior_hyper.bage_prior <- function(prior, hyper_est, labels) {
-  hyper_est
-}
+
 
 
 ## 'has_hyperrand' ------------------------------------------------------------
