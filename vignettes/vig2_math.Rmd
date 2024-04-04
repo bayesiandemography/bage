@@ -194,7 +194,7 @@ The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (S
 \end{align}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
     \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, \tau_m^2)
@@ -231,7 +231,7 @@ N(s = 1)
 \end{equation}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
     \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, A_{\beta}^{(m)2})
@@ -273,7 +273,7 @@ NFix(sd = 1)
 \end{align}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-1}^{(m)}, \tau_m^2)
@@ -316,7 +316,7 @@ RW(s = 1)
 \end{align}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
@@ -359,7 +359,7 @@ ERW(s = 1)
   \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
 \end{align}
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{J_m+h}^{(m)} \sim \text{N}(2 \beta_{J_m+h-1}^{(m)} - \beta_{J_m+h-2}^{(m)}, \tau_m^2)
@@ -402,7 +402,7 @@ Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign ea
 \end{equation}
 where $p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{J_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{J_m+h-K_m}^{(m)}, \tau_m^2\right)
@@ -440,7 +440,7 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 \end{equation}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
@@ -487,7 +487,7 @@ Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign ea
 \end{equation}
 where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
@@ -534,7 +534,7 @@ where
 \end{equation}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
@@ -578,7 +578,7 @@ where
 \end{equation}
 
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
@@ -625,9 +625,9 @@ where
 \end{align}
 
 
-### Prediction
+### Forecasting
 
-Main effects with a P-Spline prior cannot be predicted.
+Main effects with a P-Spline prior cannot be forecasted.
 
 
 ### Code
@@ -657,9 +657,9 @@ where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vec
   \prod_{k=1}^{K_m} \text{N}\left(\alpha_k^{(m)} \mid 0, 1 \right) 
 \end{equation}
 
-### Prediction
+### Forecasting
 
-Main effects with a SVD prior cannot be predicted.
+Main effects with a SVD prior cannot be forecasted.
 
 
 ### Code
@@ -697,9 +697,9 @@ where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vec
   \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right) 
 \end{equation}
 
-### Prediction
+### Forecasting
 
-Main effects with a SVD prior cannot be predicted.
+Main effects with a SVD prior cannot be forecasted.
 
 
 ### Code
@@ -719,9 +719,9 @@ Elements of $\pmb{\beta}^{(m)}$ are treated as known with certainty.
 
 Known priors make no contribution to the posterior density.
 
-### Prediction
+### Forecasting
 
-Main effects with a known prior cannot be predicted.
+Main effects with a known prior cannot be forecasted.
 
 
 ### Code
@@ -750,7 +750,7 @@ Known(values)
   \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
 \end{equation}n
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-S_m}^{(m)}, \tau_m^2)
@@ -782,7 +782,7 @@ Seas(n, s = 1)
   \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{u=1}^{U_m} \prod_{v=1}^{S_m} \text{N}(\beta_{uv}^{(m)} \mid 0, 1 ) \right)  \left( \prod_{u=1}^{U_M} \prod_{v=S_m+1}^{V_m} \text{N}(\beta_{uv}^{(m)} \mid \beta_{u,v-S_m}^{(m)}, \tau_m^2) \right) 
 \end{equation}
 
-### Prediction
+### Forecasting
 
 \begin{equation}
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-S_m}^{(m)}, \tau_m^2)
@@ -858,7 +858,7 @@ The quantities used for Poisson and binomial likelihoods are derived from normal
 
 TODO - write
 
-## Prediction
+## Forecasting
 
 TODO - write
 
@@ -1111,9 +1111,9 @@ looks approximately like a randomly-selected column from the original data matri
 % \end{align}
 
 
-% ### Prediction
+% ### Forecasting
 
-% Main effects with a multivariate normal prior cannot be predicted.
+% Main effects with a multivariate normal prior cannot be forecasted.
 
 
 % ### Code

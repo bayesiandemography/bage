@@ -232,7 +232,9 @@ set_prior <- function(mod, formula) {
 #' and terms `age`, `region`, and `age:region`.
 #'
 #' By default, an age main effect has a random walk
-#' ([RW()]) prior. Changing the age variable
+#' ([RW()]) prior, and an interaction involving
+#' age has an exchangeable random walk ([ERW()])
+#' prior. Changing the age variable
 #' via `set_var_age()` can change priors:
 #' see below for an example.
 #'
@@ -354,8 +356,10 @@ set_var_sexgender <- function(mod, name) {
 #' contains variables `time` and `region`,
 #' and terms `time`, `region`, and `time:region`.
 #'
-#' By default, an time main effect has a random walk
-#' ([RW()]) prior. Changing the time variable
+#' By default, a time main effect has a random walk
+#' ([RW()]) prior and an interaction involving
+#' time has an exchangeable random walk ([ERW()])
+#' prior. Changing the time variable
 #' via `set_var_time()` can change priors:
 #' see below for an example.
 #'

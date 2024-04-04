@@ -1,4 +1,39 @@
 
+## NO_TESTS
+#' Check That If a Term Includes Time, Then the Along
+#' Dimension for that Term is Time
+#'
+#' Assumes that 'var_time' non-NULL
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_along_is_time <- function(mod) {
+  priors <- mod$priors
+  var_time <- mod$var_time
+  nms_priors <- names(priors)
+  for (i_prior in seq_along(priors)) {
+    prior <- priors[[i]]
+    if (uses_along(prior)) {
+      along <- prior$specific$along
+      nm_prior <- nms_priors[[i_prior]]
+      nm_prior_split <- strsplit(nm_prior, split = ":")[[1L]]
+      has_time <- var_time %in% nm_prior_split
+      if (has_time && !identical(var_time, along))
+        cli::cli_abort(c("Problem with prior for {.val {nm_term}} term.",
+                         i = "{.val {nm_term}} term includes the time dimension ({.val {var_time}).",
+                         i = paste("When forecasting, if a term has a time dimension, then the prior",
+                                   "for that term must use time as the \"along\" dimension."),
+                         i = paste("The prior for {.val {nm_term}} uses {.val {along}}",
+                                   "as the \"along\" dimension.")))
+    } 
+  }
+  invisible(TRUE)
+}
+      
+
 ## HAS_TESTS
 #' Check that object inherits from class "bage_mod"
 #'

@@ -519,7 +519,7 @@ generics::forecast
 #' - `"components"` Like the output from
 #'   [components()].
 #'
-#' @inheritParams components
+#' @inheritParams components.bage_mod
 #' @param labels Labels for future values. WARNING
 #' this argument is only temporary.
 #' @param output Type of output returned
@@ -542,6 +542,7 @@ forecast.bage_mod <- function(object,
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Please use {.fun set_var_time} to identify time variable."))
+  check_along_is_time(mod)
   components_est <- components(object)
   components_forecast <- forecast_components(mod = object,
                                              components_est = components_est,

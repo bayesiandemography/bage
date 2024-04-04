@@ -660,105 +660,512 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
 }
 
 
-## 'forecast_compose_hyper' ---------------------------------------------------
+
+## 'forecast_compose' ---------------------------------------------------------
 
 #' @noRd
-forecast_compose_hyper <- function(prior,
-                                   compose_hyper_est,
-                                   labels) {
-  UseMethod("forecast_compose_hyper")
+forecast_compose <- function(prior,
+                             hyper_forecast,
+                             compose_est,
+                             levels_forecast) {
+  UseMethod("forecast_compose")
 }
 
 #' @export
-forecast_compose_hyper.bage_prior <- function(prior,
-                                              compose_hyper_est,
-                                              labels) {
-  compose_hyper_est
+forecast_compose.bage_prior <- function(prior,
+                                        hyper_forecast,
+                                        compose_est,
+                                        levels_forecast) {
+  compose_est
 }
 
 #' @export
-forecast_compose_hyper.bage_prior_compose <- function(prior,
-                                                      compose_hyper_est,
-                                                      labels) {
+forecast_compose.bage_prior_compose <- function(prior,
+                                                hyper_forecast,
+                                                compose_est,
+                                                levels_forecast) {
   priors <- prior$specific$priors
   nms_priors <- names(priors)
-  is_hyper <- compose_hyper_est$component == "hyper"
-  hyper <- compose_hyper_est[is_hyper, c("level", ".fitted")]
-  compose <- compose_hyper_est[!is_hyper, ]
   p_hyper <- "^(.*)\\.(.*)$"
-  nms_hyper <- sub(p_hyper, "\\1", hyper$level)
-  hyper$level <- sub(p_hyper, "\\2", hyper$level)
+  nms_hyper <- sub(p_hyper, "\\1", hyper_forecast$level)
+  hyper$level <- sub(p_hyper, "\\2", hyper_forecat$level)
   hyper <- vctrs::vec_split(x = hyper, by = nms_hyper)
-  compose <- vctrs::vec_split(x = compose[c("level", ".fitted")],
-                              by = compose["component"])
+  compose <- vctrs::vec_split(x = compose, by = compose["component"])
   nms_compose <- compose$component
   compose <- compose$val
-  ord_hyper <- match(nms_priors, nms_hyper, nomatch = 0L)
-  ord_compose <- match(nms_priors, nms_compose, nomatch = 0L)
+  ord_hyper <- match(nms_priors, nms_hyper)
+  ord_compose <- match(nms_priors, nms_compose)
   hyper <- hyper[ord_hyper]
   compose <- compose[ord_compose]
   ans <- .mapply(forecast_effect,
                  dots = list(prior = priors,
-                             effect_est = compose,
-                             compose_hyper_forecast = hyper),
-                 MoreArgs = list(labels = labels))
-  ## PROCESS RESULT
+                             hyper_forecast = hyper_forecast,
+                             effect_est = compose),
+                 MoreArgs = list(compose_forecast = NULL,
+                                 levels_forecast = levels_forecast))
+  ans <- do.call(rbind, ans)
+  ans
 }
 
 
 ## 'forecast_effect' ----------------------------------------------------------
 
+#' Forecast a Main Effect or Interaction
+#'
+#' Forecast values for a main effect or interaction,
+#' given values for hyper-parameters. If the term
+#' is an interaction and contains an "along"
+#' dimension, then that dimension is guaranteed
+#' to be time (checked via function
+#' 'check_along_is_time'.
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm_prior Name of the term
+#' @param hyper_est Tibble holding draws
+#' for estimates of hyper-parameters (or NULL)
+#' @param hyper_forecast Tibble holding draws
+#' for forecasts of hyper-parameters (or NULL)
+#' @param compose_est Tibble holding draws
+#' for estimates of components from
+#' 'compose' prior (or NULL)
+#' @param compose_forecast Tibble holding draws
+#' for forecasts of components from 'compose'
+#' prior (or NULL)
+#' @param effect_est Tibble holding
+#' draws from estimates of effect
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#' @param levels_forecast Labels for elements
+#' of forecasted term
+#'
+#' @returns A tibble
+#'
 #' @noRd
 forecast_effect <- function(prior,
                             nm_prior,
+                            hyper_est,
+                            hyper_forecast,
+                            compose_est,
+                            compose_forecast,
                             effect_est,
-                            compose_hyper_forecast,
-                            labels) {
+                            matrix_along_by_est,
+                            matrix_along_by_forecast,
+                            levels_forecast) {
   UseMethod("forecast_effect")
 }
 
+## HAS_TESTS
 #' @export
 forecast_effect.bage_prior <- function(prior,
-                                       nm_prior
+                                       nm_prior,
+                                       hyper_est,
+                                       hyper_forecast,
+                                       compose_est,
+                                       compose_forecast,
                                        effect_est,
-                                       compose_hyper_forecast,
-                                       labels) {
+                                       matrix_along_by_est,
+                                       matrix_along_by_forecast,
+                                       levels_forecast) {
   cli::cli_abort(c("Can't forecast term {.val {nm_prior}}.",
-                   i = "Term {.val {nm_prior}} has {str_call_prior(prior)} prior.",
-                   i = "Terms with {str_call_prior(prior)} prior cannot be forecasted."))
+                   i = "Term {.val {nm_prior}} has a {.val {str_nm_prior(prior)}} prior.",
+                   i = "Terms with a {.val {str_nm_prior(prior)}} prior cannot be forecasted.",
+                   i = "For a list of priors that can be forecasted see {.topic bage::priors}."))
 }
 
+## HAS_TESTS
 #' @export
 forecast_effect.bage_prior_ar <- function(prior,
-                                          nm_prior
+                                          nm_prior,
+                                          hyper_est,
+                                          hyper_forecast,
+                                          compose_est,
+                                          compose_forecast,
                                           effect_est,
-                                          compose_hyper_forecast,
-                                          labels) {
-  n <- prior$specific$n
-  n_est <- length(effect_est)
-  n_forecast <- length(labels)
-  level_hyper <- compose_hyper_forecast$level
-  .fitted_hyper <- compose_hyper_forecast$.fitted
-  coef <- .fitted[[level == "coef"]]
-  sd <- .fitted[[level == "sd"]]n
-  ## n_draw <- n_draw(effect_est)
-  ## .fitted_forecast <- rvec::new_rvec_dbl(length = n + n_forecast, n_draw = n_draw)
-  ## .fitted_forecast[seq_len(n_est)] <- effect_est[seq.int(to = n_est, length.out = n)]
-  .fitted_forecast <- c(effect_est[seq.int(to = n_est, length.out = n)]
-                        rep(effect_est[n_est], times = n_forecast))
-  for (j in seq.int(from = n + 1L, to = n + n_forecast)) {
-    mean <- sum(coef * .fitted_forecast[seq(from = j + n - 1L, to = j - 1L)])
-    .fitted_forecast[[j]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+                                          matrix_along_by_est,
+                                          matrix_along_by_forecast,
+                                          levels_forecast) {
+  n_ar <- prior$specific$n
+  n_est <- nrow(matrix_along_by_est)
+  n_forecast <- nrow(matrix_along_by_forecast)
+  coef <- hyper_est$.fitted[[hyper_est$level == "coef"]]
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  tmp <- c(tail(effect_est$.fitted, n = n_ar),
+           rep(effect_est$.fitted[[1L]], times = n_forecast))
+  for (j in seq_len(n_forecast)) {
+    s_ar <- seq(from = j, to = j + n_ar - 1L)
+    mean <- sum(coef * tmp[s_ar])
+    tmp[[j + n_ar]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
   }
-  .fitted_forecast <- .fitted_forecast[-seq_len(n)]
-  ans <- tibble(term = nm_prior,
-                component = "effect",
-                level = labels,
-                .fitted = .fitted_forecast)
-  ans
+  .fitted <- tail(tmp, n = n_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## NO_TESTS
+#' @export
+forecast_effect.bage_prior_compose <- function(prior,
+                                               nm_prior,
+                                               hyper_est,
+                                               hyper_forecast,
+                                               compose_est,
+                                               compose_forecast,
+                                               effect_est,
+                                               matrix_along_by_est,
+                                               matrix_along_by_forecast,
+                                               levels_forecast) {
+  .fitted <- split(compose_forecast$.fitted,
+                   compose_forecast$component)
+  .fitted <- Reduce("+", .fitted)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_ear <- function(prior,
+                                           nm_prior,
+                                           hyper_est,
+                                           hyper_forecast,
+                                           compose_est,
+                                           compose_forecast,
+                                           effect_est,
+                                           matrix_along_by_est,
+                                           matrix_along_by_forecast,
+                                           levels_forecast) {
+  n_ar <- prior$specific$n
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  coef <- hyper_est$.fitted[[hyper_est$level == "coef"]]
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rep(effect_est$.fitted[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(effect_est$.fitted[[1L]], times = n_along_forecast + n_ar)
+  s_head <- seq_len(n_ar)
+  s_tail <- seq(to = n_along_est, length.out = n_ar)
+  for (i_by in seq_len(n_by)) {
+    i_tail <- matrix_along_by_est[s_tail, i_by] + 1L ## matrix uses 0-based index
+    tmp[s_head] <- effect_est$.fitted[i_tail]
+    for (j in seq_len(n_along_forecast)) {
+      s_ar <- seq(from = j, to = j + n_ar - 1L)
+      mean <- sum(coef * tmp[s_ar])
+      tmp[[j + n_ar]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+    }
+    i_fitted <- matrix_along_by_forecast[, i_by] + 1L
+    .fitted[i_fitted] <- tmp[-s_head]
+  }
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_elin <- function(prior,
+                                            nm_prior,
+                                            hyper_est,
+                                            hyper_forecast,
+                                            compose_est,
+                                            compose_forecast,
+                                            effect_est,
+                                            matrix_along_by_est,
+                                            matrix_along_by_forecast,
+                                            levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  mslope <- hyper_est$.fitted[hyper_est$level == "mslope"]
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rep(effect_est$.fitted[[1L]], times = n_along_forecast * n_by)
+  incr_q <- 2 / (n_along_est - 1)
+  q <- seq(from = 1 + incr_q,
+           by = incr_q,
+           length.out = n_along_forecast)
+  for (i_by in seq_len(n_by)) {
+    tmp <- rvec::rnorm_rvec(n = n_along_forecast,
+                            mean = mslope[i_by] * q,
+                            sd = sd)
+    i_fitted <- matrix_along_by_forecast[, i_by] + 1L
+    .fitted[i_fitted] <- tmp
+  }
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_erw <- function(prior,
+                                           nm_prior,
+                                           hyper_est,
+                                           hyper_forecast,
+                                           compose_est,
+                                           compose_forecast,
+                                           effect_est,
+                                           matrix_along_by_est,
+                                           matrix_along_by_forecast,
+                                           levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rep(effect_est$.fitted[[1L]],
+                 times = n_along_forecast * n_by)
+  tmp <- rep(effect_est$.fitted[[1L]],
+             times = n_along_forecast + 1L)
+  for (i_by in seq_len(n_by)) {
+    i_last <- matrix_along_by_est[n_along_est, i_by] + 1L
+    tmp[[1L]] <- effect_est$.fitted[[i_last]]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + 1L]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+    i_fitted <- matrix_along_by_forecast[, i_by] + 1L
+    .fitted[i_fitted] <- tmp[-1L]
+  }
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_eseas <- function(prior,
+                                             nm_prior,
+                                             hyper_est,
+                                             hyper_forecast,
+                                             compose_est,
+                                             compose_forecast,
+                                             effect_est,
+                                             matrix_along_by_est,
+                                             matrix_along_by_forecast,
+                                             levels_forecast) {
+  n_seas <- prior$specific$n
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rep(effect_est$.fitted[[1L]],
+                 times = n_along_forecast * n_by)
+  tmp <- rep(effect_est$.fitted[[1L]],
+             times = n_along_forecast + n_seas)
+  for (i_by in seq_len(n_by)) {
+    s_head <- seq_len(n_seas)
+    s_tail <- seq.int(to = n_along_est, length.out = n_seas)
+    i_tail <- matrix_along_by_est[s_tail, i_by] + 1L
+    tmp[s_head] <- effect_est$.fitted[i_tail]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + n_seas]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+    i_fitted <- matrix_along_by_forecast[, i_by] + 1L
+    .fitted[i_fitted] <- tmp[-s_head]
+  }
+  tibble::tibble(term = nm_prior,
+                 component = "seasonal",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_lin <- function(prior,
+                                           nm_prior,
+                                           hyper_est,
+                                           hyper_forecast,
+                                           compose_est,
+                                           compose_forecast,
+                                           effect_est,
+                                           matrix_along_by_est,
+                                           matrix_along_by_forecast,
+                                           levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  slope <- hyper_est$.fitted[[hyper_est$level == "slope"]]
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  incr_q <- 2 / (n_along_est - 1)
+  q <- seq(from = 1 + incr_q,
+           by = incr_q,
+           length.out = n_along_forecast)
+  .fitted <- rvec::rnorm_rvec(n = n_along_forecast,
+                              mean = slope * q,
+                              sd = sd)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_norm <- function(prior,
+                                           nm_prior,
+                                           hyper_est,
+                                           hyper_forecast,
+                                           compose_est,
+                                           compose_forecast,
+                                           effect_est,
+                                           matrix_along_by_est,
+                                           matrix_along_by_forecast,
+                                           levels_forecast) {
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rvec::rnorm_rvec(n = n_along_forecast,
+                              sd = sd)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_normfixed <- function(prior,
+                                                 nm_prior,
+                                                 hyper_est,
+                                                 hyper_forecast,
+                                                 compose_est,
+                                                 compose_forecast,
+                                                 effect_est,
+                                                 matrix_along_by_est,
+                                                 matrix_along_by_forecast,
+                                                 levels_forecast) {
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  sd <- prior$specific$sd
+  n_draw <- rvec::n_draw(effect_est$.fitted[[1L]])
+  .fitted <- rvec::rnorm_rvec(n = n_along_forecast,
+                              sd = sd,
+                              n_draw = n_draw)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
 }
 
 
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_rw <- function(prior,
+                                          nm_prior,
+                                          hyper_est,
+                                          hyper_forecast,
+                                          compose_est,
+                                          compose_forecast,
+                                          effect_est,
+                                          matrix_along_by_est,
+                                          matrix_along_by_forecast,
+                                          levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  tmp <- rep(effect_est$.fitted[[n_along_est]],
+             times = n_along_forecast + 1L)
+  for (j in seq_len(n_along_forecast))
+    tmp[[j + 1L]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+  .fitted <- tmp[-1L]
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_rw2 <- function(prior,
+                                           nm_prior,
+                                           hyper_est,
+                                           hyper_forecast,
+                                           compose_est,
+                                           compose_forecast,
+                                           effect_est,
+                                           matrix_along_by_est,
+                                           matrix_along_by_forecast,
+                                           levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  tmp <- rep(effect_est$.fitted[[n_along_est - 1L]],
+             times = n_along_forecast + 2L)
+  tmp[[2L]] <- effect_est$.fitted[[n_along_est]]
+  for (j in seq_len(n_along_forecast))
+    tmp[[j + 2L]] <- rvec::rnorm_rvec(n = 1L,
+                                      mean = 2 * tmp[[j + 1L]] - tmp[[j]],
+                                      sd = sd)
+  .fitted <- tmp[-(1:2)]
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_seas <- function(prior,
+                                            nm_prior,
+                                            hyper_est,
+                                            hyper_forecast,
+                                            compose_est,
+                                            compose_forecast,
+                                            effect_est,
+                                            matrix_along_by_est,
+                                            matrix_along_by_forecast,
+                                            levels_forecast) {
+  n_seas <- prior$specific$n
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  tmp <- rep(effect_est$.fitted[[1L]],
+             times = n_along_forecast + n_seas)
+  s_head <- seq_len(n_seas)
+  s_tail <- seq.int(to = n_along_est, length.out = n_seas)
+  tmp[s_head] <- effect_est$.fitted[s_tail]
+  for (j in seq_len(n_along_forecast))
+    tmp[[j + n_seas]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+  .fitted <- tmp[-s_head]
+  tibble::tibble(term = nm_prior,
+                 component = "seasonal",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+
+
+
+## 'forecast_hyper' -----------------------------------------------------------
+
+#' Forecast Hyper-Parameters for Prior
+#'
+#' No hyper-parameters are currently time-varying,
+#' so no forecasting is done. This may change in future,
+#' if, for instance, we implement a local trend prior.
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param hypers_est List of tibbles with
+#' estimated values for hyper-parameters
+#' @param levels_forecast Character vector
+#' with labels for future time periods.
+#'
+#' @returns A tibble or NULL.
+#' 
+#' @noRd
+forecast_hyper <- function(prior,
+                           hyper_est,
+                           levels_forecast) {
+  UseMethod("forecast_hyper")
+}
+
+## HAS_TESTS
+#' @export
+forecast_hyper.bage_prior <- function(prior,
+                                      hyper_est,
+                                      levels_forecast) {
+  NULL
+}
 
 
 ## 'has_hyperrand' ------------------------------------------------------------
@@ -1868,7 +2275,6 @@ reformat_hyperrand_one.bage_prior_elin <- function(prior,
 } 
 
 
-
 ## 'str_call_prior' -----------------------------------------------------------
 
 #' Create string describing prior
@@ -2156,6 +2562,135 @@ str_call_prior.bage_prior_esvd <- function(prior) {
   sprintf("%s(%s)", fun, args)
 }
 
+
+## 'str_nm_prior' -----------------------------------------------------------
+
+#' Create Function Call Describing Prior
+#'
+#' Creates string describing prior that
+#' looks like the constructor function
+#'
+#' @param prior An object of class "bage_prior"
+#'
+#' @returns A string
+#'
+#' @noRd
+str_nm_prior <- function(prior) {
+    UseMethod("str_nm_prior")
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_ar <- function(prior) {
+  nm <- prior$specific$nm
+  sprintf("%s()", nm)
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_compose <- function(prior) {
+  nm <- prior$specific$nm
+  sprintf("%s()", nm)
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_ear <- function(prior) {
+  nm <- prior$specific$nm
+  sprintf("%s()", nm)
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_elin <- function(prior) {
+  "ELin()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_erw <- function(prior) {
+  "ERW()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_eseas <- function(prior) {
+  "ESeas()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_known <- function(prior) {
+  "Known()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_lin <- function(prior) {
+  "Lin()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_norm <- function(prior) {
+  "N()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_normfixed <- function(prior) {
+  "NFix()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rw <- function(prior) {
+  "RW()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rw2 <- function(prior) {
+  "RW2()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_seas <- function(prior) {
+  "Seas()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_spline <- function(prior) {
+  "Sp()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_svd <- function(prior) {
+  joint <- prior$specific$joint
+  nm <- if (is.null(joint)) "SVD" else "SVDS"
+  sprintf("%s()", nm)
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_esvd <- function(prior) {
+  nm_ssvd <- prior$specific$nm_ssvd
+  n <- prior$specific$n
+  joint <- prior$specific$joint
+  args <- character(3L)
+  fun <- if (is.null(joint)) "ESVD" else "ESVDS"
+  args[[1L]] <- nm_ssvd
+  if (n != 5)
+    args[[2L]] <- sprintf("n=%s", n)
+  if (!is.null(joint) && joint)
+    args[[3L]] <- "joint=TRUE"
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("%s(%s)", fun, args)
+}
 
 
 ## 'transform_hyper' ----------------------------------------------------------
