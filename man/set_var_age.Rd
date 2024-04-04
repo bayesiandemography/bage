@@ -32,7 +32,9 @@ contains variables \code{age} and \code{region},
 and terms \code{age}, \code{region}, and \code{age:region}.
 
 By default, an age main effect has a random walk
-(\code{\link[=RW]{RW()}}) prior. Changing the age variable
+(\code{\link[=RW]{RW()}}) prior, and an interaction involving
+age has an exchangeable random walk (\code{\link[=ERW]{ERW()}})
+prior. Changing the age variable
 via \code{set_var_age()} can change priors:
 see below for an example.
 

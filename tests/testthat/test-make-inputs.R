@@ -251,7 +251,7 @@ test_that("'default_prior' works with term with length 2", {
 })
 
 
-test_that("'default_prior' works with age term", {
+test_that("'default_prior' works with age main effect", {
     expect_identical(default_prior(nm_term = "AgeGroup",
                                    var_age = "AgeGroup",
                                    var_time = "time",
@@ -269,13 +269,45 @@ test_that("'default_prior' works with age term", {
                      N())
 })
 
-test_that("'default_prior' works with time term", {
+test_that("'default_prior' works with age interaction", {
+    expect_identical(default_prior(nm_term = "AgeGroup:sex",
+                                   var_age = "AgeGroup",
+                                   var_time = "time",
+                                   length_effect = 5),
+                     ERW())
+    expect_identical(default_prior(nm_term = "time:AgeGroup",
+                                   var_age = "AgeGroup",
+                                   var_time = "time",
+                                   length_effect = 5),
+                     ERW())
+    expect_identical(default_prior(nm_term = "period:AgeGroup",
+                                   var_age = NULL,
+                                   var_time = NULL,
+                                   length_effect = 5),
+                     N())
+})
+
+test_that("'default_prior' works with time main effect term", {
     expect_identical(default_prior(nm_term = "year",
                                    var_age = "AgeGroup",
                                    var_time = "year",
                                    length_effect = 5),
                      RW())
 })
+
+test_that("'default_prior' works with time interaction", {
+    expect_identical(default_prior(nm_term = "sex:year",
+                                   var_age = "AgeGroup",
+                                   var_time = "year",
+                                   length_effect = 5),
+                     ERW())
+    expect_identical(default_prior(nm_term = "sex:year:region",
+                                   var_age = "AgeGroup",
+                                   var_time = "year",
+                                   length_effect = 5),
+                     ERW())
+})
+
 
 
 ## 'infer_var_age' ------------------------------------------------------------
@@ -798,6 +830,46 @@ test_that("'make_levels_effect' works with valid inputs - norm", {
                             rep(c("F", "M"), each = 10),
                             sep = "."))
     expect_identical(ans_obtained, ans_expected)                      
+})
+
+
+## 'make_levels_forecast' -----------------------------------------------------
+
+test_that("'make_levels_forecast' works with single time dimension", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2,
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age + sex + time,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_levels_forecast(mod, labels_forecast = 2006:2007)
+  ans_expected <- list("(Intercept)" = NULL,
+                       age = NULL,
+                       sex = NULL,
+                       time = as.character(2006:2007))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_forecast' works with single time dimension", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2,
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age + sex * time,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_levels_forecast(mod, labels_forecast = 2006:2007)
+  ans_expected <- list("(Intercept)" = NULL,
+                       age = NULL,
+                       sex = NULL,
+                       time = as.character(2006:2007),
+                       "sex:time" = paste(c("F", "M"), c(2006, 2006, 2007, 2007), sep = "."))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -1328,7 +1400,7 @@ test_that("'make_priors' works with valid inputs - has intercept", {
                                 lengths_effect = c(1L, 10L, 12L))
     ans_expected <- list("(Intercept)" = NFix(),
                          time = RW(),
-                         "age:sex" = N())
+                         "age:sex" = ERW())
     expect_identical(ans_obtained, ans_expected)
 })
 

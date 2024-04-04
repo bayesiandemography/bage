@@ -22,27 +22,27 @@ behavior of the term. Current choices of prior
 models are summarised here.
 
 Priors with links to help have been implemented.
-Priors without links are next in the queue for implementation.\tabular{lll}{
-   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \cr
-   \code{\link[=N]{N()}} \tab Elements drawn from a common normal distribution with mean 0 and standard devation estimated from the data. \tab Main effects or interactions with no natural order or neighbourbood structure. \cr
-   \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation supplied (fixed) by user. \tab Like \code{N()}, but where there are too few elements to estimate the standard deviation, or where there is strong prior information about its value. Intercept and sex/gender effects. \cr
-   \code{\link[=RW]{RW()}} \tab Random walk. Elements have a natural ordering, and neighbouring elements more strongly correlated than distant elements. \tab Main effects for age, time, cohort, or other smoothly-varying dimensions. \cr
-   \code{\link[=RW2]{RW2()}} \tab Second-order random walk. Similar to \code{RW()}, but with persistent trends. \tab As for \code{RW()}, but where greater smoothness expected. \cr
-   \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k}. \tab Main effects for time, or for other variables that revert towards the mean. \cr
-   \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1. Special case of \code{AR()}, though has more options for controlling damping. \tab As for \code{AR()}. \cr
-   \code{\link[=Known]{Known()}} \tab Values supplied by treated and treated as known. \tab Simulations and experiments. \cr
-   \code{\link[=Lin]{Lin()}} \tab Linear trend, with idiosyncratic errors. \tab Simple model for time main effect. \cr
-   \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline). \tab Main effects that vary smoothly, eg age. \cr
-   \code{\link[=SVD]{SVD()}} \tab Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Age main effect. \cr
-   \code{\link[=SVDS]{SVDS()}} \tab Age-sex or age-gender profile, similar to \code{SVD()} \tab Age-sex or age-gender interaction. \cr
-   \code{\link[=ERW]{ERW()}} \tab Exchangeable random walk. A random walk within each combination of the 'by' variables. \tab Age, time, or cohort interacted with other variable(s). \cr
-   \code{ERW2()} \tab Exchangeable second-order random walk. \tab As for \code{ERW()}. \cr
-   \code{\link[=EAR]{EAR()}} \tab Exchangeable auto-regressive prior. An AR model within each combination of the 'by' variables. \tab Age, time, or cohort interacted with other variable(s). \cr
-   \code{\link[=EAR1]{EAR1()}} \tab Exchangeable auto-regressive prior of order 1. Special case of \code{EAR()}, but with more options for controlling dampling. \tab Age, time, or cohort interacted with other variable(s). \cr
-   \code{\link[=ELin]{ELin()}} \tab Linear model trend, with idiosyncratic error, within each combination of the 'by' variables. \tab Interaction between time and other variables. \cr
-   \code{\link[=ESVD]{ESVD()}} \tab \code{SVD()} prior within each combination of the 'by' variables. \tab Interaction between age and non-sex, non-gender variabes. \cr
-   \code{\link[=ESVDS]{ESVDS()}} \tab \code{SVDS()} prior within each combination of the 'by' variables. \tab Interaction between age, sex/gender, and one or more other variables. \cr
-   \code{ESp()} \tab Exchangeable P-Spline. \code{Sp()} within each combination of the 'by' variables. \tab Interaction between smooth variable and other variables. \cr
+Priors without links are next in the queue for implementation.\tabular{llll}{
+   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Can be forecasted} \cr
+   \code{\link[=N]{N()}} \tab Elements drawn from a common normal distribution with mean 0 and standard devation estimated from the data. \tab Main effects or interactions with no natural order or neighbourbood structure. \tab Yes \cr
+   \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation supplied (fixed) by user. \tab Like \code{N()}, but where there are too few elements to estimate the standard deviation, or where there is strong prior information about its value. Intercept and sex/gender effects. \tab Yes \cr
+   \code{\link[=RW]{RW()}} \tab Random walk. Elements have a natural ordering, and neighbouring elements more strongly correlated than distant elements. \tab Main effects for age, time, cohort, or other smoothly-varying dimensions. \tab Yes \cr
+   \code{\link[=RW2]{RW2()}} \tab Second-order random walk. Similar to \code{RW()}, but with persistent trends. \tab As for \code{RW()}, but where greater smoothness expected. \tab Yes \cr
+   \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k}. \tab Main effects for time, or for other variables that revert towards the mean. \tab Yes \cr
+   \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1. Special case of \code{AR()}, though has more options for controlling damping. \tab As for \code{AR()}. \tab Yes \cr
+   \code{\link[=Known]{Known()}} \tab Values supplied by treated and treated as known. \tab Simulations and experiments. \tab No \cr
+   \code{\link[=Lin]{Lin()}} \tab Linear trend, with idiosyncratic errors. \tab Simple model for time main effect. \tab Yes \cr
+   \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline). \tab Main effects that vary smoothly, eg age. \tab No \cr
+   \code{\link[=SVD]{SVD()}} \tab Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Age main effect. \tab No \cr
+   \code{\link[=SVDS]{SVDS()}} \tab Age-sex or age-gender profile, similar to \code{SVD()} \tab Age-sex or age-gender interaction. \tab No \cr
+   \code{\link[=ERW]{ERW()}} \tab Exchangeable random walk. A random walk within each combination of the 'by' variables. \tab Age, time, or cohort interacted with other variable(s). \tab Yes \cr
+   \code{ERW2()} \tab Exchangeable second-order random walk. \tab As for \code{ERW()}. \tab Yes \cr
+   \code{\link[=EAR]{EAR()}} \tab Exchangeable auto-regressive prior. An AR model within each combination of the 'by' variables. \tab Age, time, or cohort interacted with other variable(s). \tab Yes \cr
+   \code{\link[=EAR1]{EAR1()}} \tab Exchangeable auto-regressive prior of order 1. Special case of \code{EAR()}, but with more options for controlling dampling. \tab Age, time, or cohort interacted with other variable(s). \tab Yes \cr
+   \code{\link[=ELin]{ELin()}} \tab Linear model trend, with idiosyncratic error, within each combination of the 'by' variables. \tab Interaction between time and other variables. \tab Yes \cr
+   \code{\link[=ESVD]{ESVD()}} \tab \code{SVD()} prior within each combination of the 'by' variables. \tab Interaction between age and non-sex, non-gender variabes. \tab No \cr
+   \code{\link[=ESVDS]{ESVDS()}} \tab \code{SVDS()} prior within each combination of the 'by' variables. \tab Interaction between age, sex/gender, and one or more other variables. \tab No \cr
+   \code{ESp()} \tab Exchangeable P-Spline. \code{Sp()} within each combination of the 'by' variables. \tab Interaction between smooth variable and other variables. \tab No \cr
 }
 }
 
@@ -53,7 +53,7 @@ Time main effects, and interactions involving time, can be modelled
 using a prior built up from several components. A composite time
 prior is specified using \code{\link[=compose_time]{compose_time()}}. The elements of the
 prior are as follows. All elements other than \code{trend} are optional.\tabular{lll}{
-   Term \tab Main effects \tab Interactions \cr
+   \strong{Term} \tab \strong{Main effects} \tab \strong{Interactions} \cr
    \code{trend} \tab \code{\link[=Lin]{Lin()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Sp]{Sp()}} \tab \code{\link[=ELin]{ELin()}} \cr
    \code{seasonal} \tab \code{\link[=Seas]{Seas()}} \tab \code{\link[=ESeas]{ESeas()}} \cr
    \code{cyclical} \tab \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}} \tab \code{\link[=EAR]{EAR()}}, \code{\link[=EAR1]{EAR1()}} \cr

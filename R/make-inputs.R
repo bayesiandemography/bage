@@ -91,11 +91,29 @@ choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
 #' @noRd
 default_prior <- function(nm_term, var_age, var_time, length_effect) {
   is_length_le_2 <- length_effect <= 2L
-  is_age_time <- nm_term %in% c(var_age, var_time)
+  nm_term_split <- strsplit(nm_term, split = ":")[[1L]]
+  if (is.null(var_age)) {
+    is_age_maineffect <- FALSE
+    is_age_interact <- FALSE
+  }
+  else {
+    is_age_maineffect <- identical(nm_term, var_age)
+    is_age_interact <- !is_age_maineffect && (var_age %in% nm_term_split)
+  }
+  if (is.null(var_time)) {
+    is_time_maineffect <- FALSE
+    is_time_interact <- FALSE
+  }
+  else {
+    is_time_maineffect <- identical(nm_term, var_time)
+    is_time_interact <- !is_time_maineffect && (var_time %in% nm_term_split)
+  }
   if (is_length_le_2)
     return(NFix())
-  if (is_age_time)
+  if (is_age_maineffect || is_time_maineffect)
     return(RW())
+  if (is_age_interact || is_time_interact)
+    return(ERW())
   N()
 }
 
@@ -549,25 +567,6 @@ make_levels_age <- function(mod) {
     unique(data[[var_age]])
 }
 
-
-## HAS_TESTS
-#' Extract Sex/Gender Labels
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A character vector or NULL
-#'
-#' @noRd
-make_levels_sexgender <- function(mod) {
-  data <- mod$data
-  var_sexgender <- mod$var_sexgender
-  if (is.null(var_sexgender))
-    NULL
-  else
-    unique(data[[var_sexgender]])
-}
-
-
 ## HAS_TESTS
 #' Make levels associated with each element of 'effect'
 #'
@@ -589,6 +588,71 @@ make_levels_effect <- function(matrices_effect_outcome) {
     ans[[1L]] <- "(Intercept)"
   ans <- unlist(ans, use.names = FALSE)
   ans
+}
+
+
+## HAS_TESTS
+#' Make Levels for a Forecasted Terms
+#'
+#' Make levels for each main effect and interaction
+#' that is forecasted (ie that has a time dimension.)
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param labels_forecast Character vector
+#' with labels for time dimension during forecast
+#'
+#' @returns A list of NULLs (for terms not forecasted)
+#' and character vectors (for terms forecasted)
+#'
+#' @noRd
+make_levels_forecast <- function(mod, labels_forecast) {
+  formula <- mod$formula
+  data <- mod$data
+  var_time <- mod$var_time
+  ans <- list("(Intercept)" = NULL)
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 0L) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- rep(list(NULL), times = length(nms_terms))
+    names(ans_terms) <- nms_terms
+    for (i_term in seq_along(nms_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      i_time <- match(var_time, nms_vars_term, nomatch = 0L)
+      if (i_time > 0L) {
+        data_term <- data[nms_vars_term]
+        dimnames <- lapply(data_term, unique)
+        dimnames[[i_time]] <- labels_forecast
+        levels <- expand.grid(dimnames, KEEP.OUT.ATTRS = FALSE)
+        paste_dot <- function(x, y) paste(x, y, sep = ".")
+        levels <- Reduce(paste_dot, levels)
+        levels <- as.character(levels)
+        ans_terms[[i_term]] <- levels
+      }
+    }
+    ans <- c(ans, ans_terms)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Extract Sex/Gender Labels
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A character vector or NULL
+#'
+#' @noRd
+make_levels_sexgender <- function(mod) {
+  data <- mod$data
+  var_sexgender <- mod$var_sexgender
+  if (is.null(var_sexgender))
+    NULL
+  else
+    unique(data[[var_sexgender]])
 }
 
 
@@ -768,6 +832,61 @@ make_matrices_along_by <- function(formula, data) {
                     dimnames = dimnames)
       names(val) <- nms_vars_term
       ans_terms[[i_term]] <- val
+    }
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Make List of Matrices Mapping Values
+#' of 'along' and 'by' to Positions
+#' in Main Effects and Interactions for Forecasts
+#'
+#' Only creates matrices for main effects
+#' and interactions that include time
+#' (since these are the only terms that are
+#' expanded during forecasting.)
+#'
+#' If a term has time, assume that time is
+#' the "along" dimension. (Assume that
+#' 'check_along_is_time' has been called
+#' on 'mod'.)
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param labels_forecast Character vector with
+#' labels for future time periods.
+#'
+#' @returns A list containing NULLs and matrices.
+#'
+#' @noRd
+make_matrices_along_by_forecast <- function(mod, labels_forecast) {
+  formula <- mod$formula
+  data <- mod$data
+  var_time <- mod$var_time
+  ans <- list("(Intercept)" = NULL)
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 1L) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
+    for (i_term in seq_along(nms_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      i_time <- match(var_time, nms_vars_term, nomatch = 0L)
+      has_time <- i_time > 0L
+      if (has_time) {
+        data_term <- data[nms_vars_term]
+        dimnames <- lapply(data_term, unique)
+        dimnames[[i_time]] <- labels_forecast
+        dim <- lengths(dimnames)
+        ans[[i_term + 1L]] <- make_matrix_along_by(i_along = i_time,
+                                                   dim = dim,
+                                                   dimnames = dimnames)
+      }
     }
     names(ans_terms) <- nms_terms
     ans <- c(ans, ans_terms)
