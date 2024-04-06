@@ -1,5 +1,5 @@
 
-## NO_TESTS
+## HAS_TESTS
 #' Check That If a Term Includes Time, Then the Along
 #' Dimension for that Term is Time
 #'
@@ -15,24 +15,34 @@ check_along_is_time <- function(mod) {
   var_time <- mod$var_time
   nms_priors <- names(priors)
   for (i_prior in seq_along(priors)) {
-    prior <- priors[[i]]
-    if (uses_along(prior)) {
-      along <- prior$specific$along
-      nm_prior <- nms_priors[[i_prior]]
-      nm_prior_split <- strsplit(nm_prior, split = ":")[[1L]]
-      has_time <- var_time %in% nm_prior_split
-      if (has_time && !identical(var_time, along))
-        cli::cli_abort(c("Problem with prior for {.val {nm_term}} term.",
-                         i = "{.val {nm_term}} term includes the time dimension ({.val {var_time}).",
-                         i = paste("When forecasting, if a term has a time dimension, then the prior",
-                                   "for that term must use time as the \"along\" dimension."),
-                         i = paste("The prior for {.val {nm_term}} uses {.val {along}}",
-                                   "as the \"along\" dimension.")))
-    } 
+    prior <- priors[[i_prior]]
+    uses_along <- uses_along(prior)
+    if (!uses_along)
+      next
+    along <- prior$specific$along
+    has_along <- !is.null(along)
+    if (!has_along)
+      next
+    nm_prior <- nms_priors[[i_prior]]
+    nm_prior_split <- strsplit(nm_prior, split = ":")[[1L]]
+    has_time <- var_time %in% nm_prior_split
+    if (!has_time)
+      next
+    along_is_time <- identical(along, var_time)
+    if (!along_is_time) {
+      corrected_prior <- prior
+      corrected_prior$specific$along <- NULL
+      str_cor <- sprintf("%s ~ %s",
+                         nm_prior,
+                         str_call_prior(corrected_prior))
+      cli::cli_abort(c("Unable to forecast term {.val {nm_prior}}.",
+                       i = paste("{.val {nm_prior}} includes {.val {var_time}},",
+                                 "but uses {.val {along}} as the \"along\" dimension."),
+                       i = "Change specification of prior to {.code {str_cor}}?"))
+    }
   }
   invisible(TRUE)
-}
-      
+}      
 
 ## HAS_TESTS
 #' Check that object inherits from class "bage_mod"
