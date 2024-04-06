@@ -663,47 +663,108 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
 
 ## 'forecast_compose' ---------------------------------------------------------
 
+#' Forecast a 'compose' Main Effect or Interaction
+#'
+#' Forecast values for term with a
+#' composed of two or more components,
+#' eg trend, seasoonal, error.
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm_prior Name of the prior
+#' @param hyper_est Tibble holding draws
+#' for estimates of hyper-parameters (or NULL)
+#' @param hyper_forecast Tibble holding draws
+#' for forecasts of hyper-parameters (or NULL)
+#' @param compose_est Tibble holding draws
+#' for estimates of components from
+#' 'compose' prior (or NULL)
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#' @param levels_forecast Labels for elements
+#' of forecasted term
+#'
+#' @returns A tibble
+#'
 #' @noRd
 forecast_compose <- function(prior,
+                             nm_prior,
+                             hyper_est,
                              hyper_forecast,
                              compose_est,
+                             matrix_along_by_est,
+                             matrix_along_by_forecast,
                              levels_forecast) {
   UseMethod("forecast_compose")
 }
 
+## HAS_TESTS
 #' @export
 forecast_compose.bage_prior <- function(prior,
+                                        nm_prior,
+                                        hyper_est,
                                         hyper_forecast,
                                         compose_est,
+                                        matrix_along_by_est,
+                                        matrix_along_by_forecast,
                                         levels_forecast) {
-  compose_est
+  NULL
 }
 
+## HAS_TESTS
 #' @export
 forecast_compose.bage_prior_compose <- function(prior,
+                                                nm_prior,
+                                                hyper_est,
                                                 hyper_forecast,
                                                 compose_est,
+                                                matrix_along_by_est,
+                                                matrix_along_by_forecast,
                                                 levels_forecast) {
   priors <- prior$specific$priors
   nms_priors <- names(priors)
+  n_prior <- length(nms_priors)
   p_hyper <- "^(.*)\\.(.*)$"
-  nms_hyper <- sub(p_hyper, "\\1", hyper_forecast$level)
-  hyper$level <- sub(p_hyper, "\\2", hyper_forecat$level)
-  hyper <- vctrs::vec_split(x = hyper, by = nms_hyper)
-  compose <- vctrs::vec_split(x = compose, by = compose["component"])
-  nms_compose <- compose$component
-  compose <- compose$val
-  ord_hyper <- match(nms_priors, nms_hyper)
-  ord_compose <- match(nms_priors, nms_compose)
-  hyper <- hyper[ord_hyper]
-  compose <- compose[ord_compose]
+  hypers_est <- rep(list(NULL), times = n_prior)
+  if (!is.null(hyper_est)) {
+    comp_hyper_est <- sub(p_hyper, "\\1", hyper_est$level)
+    hyper_est$level <- sub(p_hyper, "\\2", hyper_est$level)
+    hyper_est <- vctrs::vec_split(x = hyper_est, by = comp_hyper_est)
+    nms_hyper_est <- hyper_est$key
+    val_hyper_est <- hyper_est$val
+    i_hyper_est <- match(nms_priors, nms_hyper_est, nomatch = 0L)
+    hypers_est[i_hyper_est] <- val_hyper_est
+  }
+  hypers_forecast <- rep(list(NULL), times = n_prior)
+  if (!is.null(hyper_forecast)) {
+    comp_hyper_forecast <- sub(p_hyper, "\\1", hyper_forecast$level)
+    hyper_forecast$level <- sub(p_hyper, "\\2", hyper_forecat$level)
+    hyper_forecast <- vctrs::vec_split(x = hyper_forecast, by = comp_hyper_forecast)
+    nms_hyper_forecast <- hyper_forecast$key
+    val_hyper_forecast <- hyper_forecast$val
+    i_hyper_forecast <- match(nms_priors, nms_hyper_forecast, nomatch = 0L)
+    hypers_forecast[i_hyper_forecast] <- val_hyper_forecast
+  }
+  compose_est <- vctrs::vec_split(x = compose_est,
+                                  by = compose_est["component"])
+  nms_compose_est <- compose_est$key$component
+  compose_est <- compose_est$val
+  i_compose_est <- match(nms_priors, nms_compose_est)
+  compose_est <- compose_est[i_compose_est]
   ans <- .mapply(forecast_effect,
                  dots = list(prior = priors,
-                             hyper_forecast = hyper_forecast,
-                             effect_est = compose),
-                 MoreArgs = list(compose_forecast = NULL,
-                                 levels_forecast = levels_forecast))
-  ans <- do.call(rbind, ans)
+                             nm_prior = nms_priors,
+                             hyper_est = hypers_est,
+                             hyper_forecast = hypers_forecast,
+                             effect_est = compose_est),
+                 MoreArgs = list(compose_est = NULL,
+                                 levels_forecast = levels_forecast,
+                                 matrix_along_by_est = matrix_along_by_est,
+                                 matrix_along_by_forecast = matrix_along_by_forecast))
+  ans <- vctrs::vec_rbind(!!!ans, .name_repair = "universal_quiet")
+  ans$component <- ans$term
+  ans$term <- nm_prior
   ans
 }
 
@@ -805,7 +866,7 @@ forecast_effect.bage_prior_ar <- function(prior,
                  .fitted = .fitted)
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' @export
 forecast_effect.bage_prior_compose <- function(prior,
                                                nm_prior,
@@ -1145,7 +1206,7 @@ forecast_effect.bage_prior_seas <- function(prior,
 #' if, for instance, we implement a local trend prior.
 #'
 #' @param prior Object of class 'bage_prior'
-#' @param hypers_est List of tibbles with
+#' @param hypers_est Tibble with
 #' estimated values for hyper-parameters
 #' @param levels_forecast Character vector
 #' with labels for future time periods.

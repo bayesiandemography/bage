@@ -585,6 +585,192 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
 })
 
 
+## forecast_compose -----------------------------------------------------------
+
+test_that("'forecast_compose' returns NULL for non-compose prior", {
+  set.seed(0)
+  prior <- Known(value = 1:5)
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  expect_identical(forecast_compose(prior = prior,
+                                    nm_prior = "year",
+                                    hyper_est =  NULL,
+                                    hyper_forecast = NULL,
+                                    compose_est = NULL,
+                                    matrix_along_by_est = matrix_along_by_est,
+                                    matrix_along_by_forecast = matrix_along_by_forecast,
+                                    levels_forecast = 1:5),
+                   NULL)
+})
+
+test_that("'forecast_compose' works with compose prior - main effect", {
+  set.seed(0)
+  prior <- compose_time(trend = Lin(), error = N())
+  hyper_est <- tibble::tibble(term = "year",
+                              component = "hyper",
+                              level = c("trend.slope", "trend.sd", "error.sd"),
+                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
+  compose_est <- tibble::tibble(term = "year",
+                                component = rep(c("trend", "error"), each = 5),
+                                level = c(1:5, 1:5),
+                                .fitted = rvec::runif_rvec(n = 10, n_draw = 10))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_compose(prior = prior,
+                                   nm_prior = "year",
+                                   hyper_est =  hyper_est,
+                                   hyper_forecast = NULL,
+                                   compose_est = compose_est,
+                                   matrix_along_by_est = matrix_along_by_est,
+                                   matrix_along_by_forecast = matrix_along_by_forecast,
+                                   levels_forecast = levels_forecast)
+  set.seed(1)
+  ans_trend <- forecast_effect(prior = Lin(),
+                               nm_prior = "year",
+                               hyper_est = tibble::tibble(term = "year",
+                                                          component = "hyper",
+                                                          level = c("slope", "sd"),
+                                                          .fitted = hyper_est$.fitted[1:2]),
+                               hyper_forecast = NULL,
+                               compose_est = NULL,
+                               compose_forecast = NULL,
+                               effect_est = compose_est[1:5,],
+                               matrix_along_by_est = matrix_along_by_est,
+                               matrix_along_by_forecast = matrix_along_by_forecast,
+                               levels_forecast = levels_forecast)
+  ans_trend$component <- "trend"
+  ans_error <- forecast_effect(prior = N(),
+                               nm_prior = "year",
+                               hyper_est = tibble::tibble(term = "year",
+                                                          component = "hyper",
+                                                          level = "sd",
+                                                          .fitted = hyper_est$.fitted[3]),
+                               hyper_forecast = NULL,
+                               compose_est = NULL,
+                               compose_forecast = NULL,
+                               effect_est = compose_est[6:10,],
+                               matrix_along_by_est = matrix_along_by_est,
+                               matrix_along_by_forecast = matrix_along_by_forecast,
+                               levels_forecast = levels_forecast)
+  ans_error$component <- "error"
+  ans_expected <- vctrs::vec_rbind(ans_trend, ans_error)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_compose' works with compose prior - interaction", {
+  set.seed(0)
+  prior <- compose_time(trend = ELin(), cyclical = EAR1(), seasonal = ESeas(n = 2))
+  hyper_est <- tibble::tibble(term = "year:sex",
+                              component = "hyper",
+                              level = c("trend.mslope", "trend.mslope", "trend.sd",
+                                        "cyclical.coef", "cyclical.sd",
+                                        "seasonal.sd"),
+                              .fitted = rvec::runif_rvec(n = 6, n_draw = 10))
+  compose_est <- tibble::tibble(term = "year:sex",
+                                component = rep(c("trend", "cyclical", "seasonal"), each = 10),
+                                level = rep(letters[1:10], times = 3),
+                                .fitted = rvec::runif_rvec(n = 30, n_draw = 10))
+  matrix_along_by_est <- matrix(0:9, nr = 5)
+  matrix_along_by_forecast <- matrix(0:11, nr = 6)
+  levels_forecast <- letters[11:22]
+  set.seed(1)
+  ans_obtained <- forecast_compose(prior = prior,
+                                   nm_prior = "year:sex",
+                                   hyper_est =  hyper_est,
+                                   hyper_forecast = NULL,
+                                   compose_est = compose_est,
+                                   matrix_along_by_est = matrix_along_by_est,
+                                   matrix_along_by_forecast = matrix_along_by_forecast,
+                                   levels_forecast = levels_forecast)
+  set.seed(1)
+  ans_trend <- forecast_effect(prior = ELin(),
+                               nm_prior = "year:sex",
+                               hyper_est = tibble::tibble(term = "year:sex",
+                                                          component = "hyper",
+                                                          level = c("mslope", "mslope", "sd"),
+                                                          .fitted = hyper_est$.fitted[1:3]),
+                               hyper_forecast = NULL,
+                               compose_est = NULL,
+                               compose_forecast = NULL,
+                               effect_est = compose_est[1:10,],
+                               matrix_along_by_est = matrix_along_by_est,
+                               matrix_along_by_forecast = matrix_along_by_forecast,
+                               levels_forecast = levels_forecast)
+  ans_trend$component <- "trend"
+  ans_cyclical <- forecast_effect(prior = EAR1(),
+                                  nm_prior = "year:sex",
+                                  hyper_est = tibble::tibble(term = "year:sex",
+                                                             component = "hyper",
+                                                             level = c("coef", "sd"),
+                                                             .fitted = hyper_est$.fitted[4:5]),
+                                  hyper_forecast = NULL,
+                                  compose_est = NULL,
+                                  compose_forecast = NULL,
+                                  effect_est = compose_est[11:20,],
+                                  matrix_along_by_est = matrix_along_by_est,
+                                  matrix_along_by_forecast = matrix_along_by_forecast,
+                                  levels_forecast = levels_forecast)
+  ans_cyclical$component <- "cyclical"
+  ans_seasonal <- forecast_effect(prior = ESeas(n = 2),
+                                  nm_prior = "year:sex",
+                                  hyper_est = tibble::tibble(term = "year:sex",
+                                                             component = "hyper",
+                                                             level = "sd",
+                                                             .fitted = hyper_est$.fitted[6]),
+                                  hyper_forecast = NULL,
+                                  compose_est = NULL,
+                                  compose_forecast = NULL,
+                                  effect_est = compose_est[21:30,],
+                                  matrix_along_by_est = matrix_along_by_est,
+                                  matrix_along_by_forecast = matrix_along_by_forecast,
+                                  levels_forecast = levels_forecast)
+  ans_seasonal$component <- "seasonal"
+  ans_expected <- vctrs::vec_rbind(ans_trend,
+                                   ans_cyclical,
+                                   ans_seasonal)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+test_that("'forecast_compose' works with compose prior - hyper out of order", {
+  set.seed(0)
+  prior <- compose_time(trend = Lin(), error = N())
+  hyper_est <- tibble::tibble(term = "year",
+                              component = "hyper",
+                              level = c("trend.slope", "trend.sd", "error.sd"),
+                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
+  hyper_est_unord <- hyper_est[c(3, 2, 1), ]
+  compose_est <- tibble::tibble(term = "year",
+                                component = rep(c("trend", "error"), each = 5),
+                                level = c(1:5, 1:5),
+                                .fitted = rvec::runif_rvec(n = 10, n_draw = 10))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_ord <- forecast_compose(prior = prior,
+                              nm_prior = "year",
+                              hyper_est =  hyper_est,
+                              hyper_forecast = NULL,
+                              compose_est = compose_est,
+                              matrix_along_by_est = matrix_along_by_est,
+                              matrix_along_by_forecast = matrix_along_by_forecast,
+                              levels_forecast = levels_forecast)
+  set.seed(1)
+  ans_unord <- forecast_compose(prior = prior,
+                                nm_prior = "year",
+                                hyper_est =  hyper_est_unord,
+                                hyper_forecast = NULL,
+                                compose_est = compose_est,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
+  expect_identical(ans_ord, ans_unord)
+})
+
+
 ## forecast_effect ------------------------------------------------------------
 
 test_that("'forecast_effect' gives correct error with prior for which method does not exist", {
@@ -665,6 +851,49 @@ test_that("'forecast_effect' works with bage_prior_ar", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'forecast_effect' works with compose prior", {
+  set.seed(0)
+  prior <- compose_time(trend = Lin(), error = N())
+  hyper_est <- tibble::tibble(term = "year",
+                              component = "hyper",
+                              level = c("trend.slope", "trend.sd", "error.sd"),
+                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
+  compose_est <- tibble::tibble(term = "year",
+                                component = rep(c("trend", "error"), each = 5),
+                                level = c(1:5, 1:5),
+                                .fitted = rvec::runif_rvec(n = 10, n_draw = 10))
+  effect_est <- tibble::tibble(term = "year",
+                               component = "effect",
+                               level = 1:5,
+                               .fitted = compose_est$.fitted[1:5] + compose_est$.fitted[6:10])
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  compose_forecast <- forecast_compose(prior = prior,
+                                       nm_prior = "year",
+                                       hyper_est =  hyper_est,
+                                       hyper_forecast = NULL,
+                                       compose_est = compose_est,
+                                       matrix_along_by_est = matrix_along_by_est,
+                                       matrix_along_by_forecast = matrix_along_by_forecast,
+                                       levels_forecast = levels_forecast)
+  ans_obtained <- forecast_effect(prior = prior,
+                                  nm_prior = "year",
+                                  hyper_est = hyper_est,
+                                  hyper_forecast = NULL,
+                                  compose_est = compose_est,
+                                  compose_forecast = compose_forecast,
+                                  effect_est = effect_est,
+                                  matrix_along_by_est = matrix_along_by_est,
+                                  matrix_along_by_forecast = matrix_along_by_forecast,
+                                  levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = "effect",
+                                 level = levels_forecast,
+                                 .fitted = compose_forecast$.fitted[1:6] +
+                                   compose_forecast$.fitted[7:12])
+  expect_identical(ans_obtained, ans_expected)
+})
 
 test_that("'forecast_effect' works with bage_prior_ear", {
   set.seed(0)

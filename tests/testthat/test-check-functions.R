@@ -1,4 +1,35 @@
 
+## 'check_along_is_time' ------------------------------------------------------
+
+test_that("'check_along_is_time' returns true with valid model object", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ (age + sex + time)^2
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_true(check_along_is_time(mod))
+    mod <- set_prior(mod, age:time ~ N())
+    expect_true(check_along_is_time(mod))    
+})
+
+test_that("'check_bage_mod' returns expected error message with invalid model object", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ (age + sex + time)^2
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:time ~ ERW(along = "age", s = 0.5))
+    expect_error(check_along_is_time(mod),
+                 "Unable to forecast term `age:time`.")
+})
+
+
 ## 'check_bage_mod' -----------------------------------------------------------
 
 test_that("'check_bage_mod' returns true with valid model object", {
