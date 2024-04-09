@@ -922,7 +922,6 @@ test_that("'forecast' throws correct error when time var not identified'", {
                  "Can't forecast when time variable not identified.")
 })
 
-
 ## 'forecast_augment' --------------------------------------------------------
 
 test_that("'forecast_augment' works - Poisson, has disp", {

@@ -1,5 +1,5 @@
 ---
-title: "Mathematical description of models used in bage"
+title: "2. Mathematical Details"
 output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
@@ -10,7 +10,7 @@ output:
 pkgdown:
   as_is: true
 vignette: >
-  %\VignetteIndexEntry{Mathematical description of models used in bage}
+  %\VignetteIndexEntry{2. Mathematical Details}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
@@ -1089,44 +1089,3 @@ looks approximately like a randomly-selected column from the original data matri
 
 
 # References
-
-
-
-% ## Multivariate normal {#sec:pr-mnorm}
-
-
-% ### Model
-
-% \begin{align}
-%   \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right) \\
-%   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-% \end{align}
-% where $\pmb{V}^{(m)}$ is a $J_m \times J_m$ symmetric positive-definite matrix supplied by the user.
-
-% ### Contribution to posterior density
-
-% \begin{equation}
-%   \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}\left(\pmb{\beta}^{(m)} \mid \pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
-% \end{equation}
-
-% ### Simulation
-
-% \begin{align}
-%   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-%   \pmb{\beta}^{(m)} & \sim \text{N}\left(\pmb{0},  \tau_m^2 \pmb{V}^{(m)} \right)
-% \end{align}
-
-
-% ### Forecasting
-
-% Main effects with a multivariate normal prior cannot be forecasted.
-
-
-% ### Code
-
-% ```
-% MVN(V, s = 1)
-% ```
-
-% - `V` is $\pmb{V}^{(m)}$
-% - `s` is $A_{\tau}^{(m)}$. Defaults to 1.

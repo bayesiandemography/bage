@@ -27,31 +27,64 @@ this argument is only temporary.}
 \item{...}{Not currently used.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}, with the following contents:\tabular{lll}{
-    \tab \code{output} is \code{"augment"} \tab \code{output} is \code{"components"} \cr
-   \code{include_estimates} is \code{FALSE} \tab Like \code{\link[=augment]{augment()}} only for future values \tab Like \code{\link[=components]{components()}}, with non-time-varying parameters, and future values for time-varying parameters \cr
-   \code{include_estimates} is \code{TRUE} \tab Like \code{\link[=augment]{augment()}}, including past and future values \tab Like \code{\link[=components]{components()}}, with non-time-varying paramaters, and past and values for time-varying parameters \cr
-}
+A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Forecast values, based on a model.
+Forecast rates, probabilities, or means, and
+other model parameters.
 }
-\details{
-The forecast is constructed by forecasting,
-time-varying main effects and interactions,
-combining the time-varying main effects and
-interactions with non-time-varying terms,
-and then drawing values for rates, probabilities,
-or means. See LINK TO VIGNETTE for the
-mathematical details.
+\section{How the forecasts are constructed}{
 
-Typically \code{forecast()} is used with a
-\link[=fit]{fitted} model, in which case it yields
-a forecasts based on a combination of priors
-and data. \code{forecast()} can, however, be used
-with an uniftted model, in which case
-it yields a forecast based only on priors.
+
+Internally, the steps involved in a forecast are:
+\enumerate{
+\item Forecast time-varying main effects and interactions,
+e.g. a time main effect, or an age-time interaction.
+\item Combine forecasts for the time-varying main effects and
+interactions with non-time-varying parameters, e.g.
+age effects or dispersion.
+\item Use the combined parameters to generate values for
+rates, probabilities or means.
 }
+
+See LINK TO VIGNETTE for more details.
+}
+
+\section{Output}{
+
+
+When \code{output} is \code{"augment"} (the default),
+the return value from \code{forecast()}
+looks like output from function \code{\link[=augment]{augment()}}. When \code{output} is
+\code{"components"}, the return value looks like output
+from \code{\link[=components]{components()}}.
+
+When \code{include_estimates} is \code{FALSE} (the default),
+the output of \code{forecast()} excludes values for
+time-varying parameters for the period covered by the data.
+When \code{include_estimates} is \code{TRUE}, the output
+includes these values.
+Setting \code{include_estimates} to \code{TRUE} can be helpful
+when creating graphs that combine estimates and forecasts.
+}
+
+\section{Using data in forecasts}{
+
+
+\code{forecast()} is typically used with a
+\link[=fit]{fitted} model, i.e. a model in which parameter
+values have been estimated from the data.
+The resulting forecasts reflect data and priors.
+
+\code{forecast()} can, however, be used with an
+unfitted model. In this case, the forecasts
+are based entirely on the priors. See below for
+an example. Experimenting with forecasts
+based entirely on the priors can be helpful for
+designing a model. See LINK TO WORKFLOW VIGNETTE
+for details.
+}
+
 \section{Warning}{
 
 
@@ -61,10 +94,11 @@ and is likely to change in the near future.
 
 \examples{
 ## specify and fit model
-mod <- mod_pois(injuries ~ age + sex + year,
+mod <- mod_pois(injuries ~ age * sex + ethnicity + year,
                 data = injuries,
                 exposure = popn) |>
   fit(mod)
+mod
 
 ## forecasts
 mod |>
@@ -81,7 +115,7 @@ mod |>
            output = "components")
 
 ## forecast based on priors only
-mod_unfitted <- mod_pois(injuries ~ age + sex + year,
+mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
                          data = injuries,
                          exposure = popn)
 mod_unfitted |>

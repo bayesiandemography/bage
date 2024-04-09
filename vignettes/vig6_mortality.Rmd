@@ -1,5 +1,5 @@
 ---
-title: "Modelling mortality rates and life expectancy"
+title: "6. Modelling Mortality"
 output:
   bookdown::html_document2:
     base_format: rmarkdown::html_vignette
@@ -8,7 +8,7 @@ output:
     toc_depth: 2
     number_sections: true
 vignette: >
-  %\VignetteIndexEntry{Modelling mortality rates and life expectancy}
+  %\VignetteIndexEntry{6. Modelling Mortality}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

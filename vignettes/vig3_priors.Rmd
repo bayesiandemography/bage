@@ -1,8 +1,8 @@
 ---
-title: "vig_3_priors"
+title: "3. Priors"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vig_3_priors}
+  %\VignetteIndexEntry{3. Priors}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

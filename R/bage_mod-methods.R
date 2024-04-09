@@ -532,22 +532,53 @@ generics::forecast
 ## NO_TESTS
 #' Use a Model to Make a Forecast
 #'
-#' Forecast values, based on a model.
+#' Forecast rates, probabilities, or means, and
+#' other model parameters.
 #'
-#' The forecast is constructed by forecasting,
-#' time-varying main effects and interactions,
-#' combining the time-varying main effects and
-#' interactions with non-time-varying terms,
-#' and then drawing values for rates, probabilities,
-#' or means. See LINK TO VIGNETTE for the
-#' mathematical details.
+#' @section How the forecasts are constructed:
 #'
-#' Typically `forecast()` is used with a
-#' [fitted][fit()] model, in which case it yields
-#' a forecasts based on a combination of priors
-#' and data. `forecast()` can, however, be used
-#' with an uniftted model, in which case
-#' it yields a forecast based only on priors.
+#' Internally, the steps involved in a forecast are:
+#'
+#' 1. Forecast time-varying main effects and interactions,
+#'    e.g. a time main effect, or an age-time interaction.
+#' 2. Combine forecasts for the time-varying main effects and
+#'    interactions with non-time-varying parameters, e.g.
+#'    age effects or dispersion.
+#' 3. Use the combined parameters to generate values for
+#'    rates, probabilities or means.
+#'
+#' See LINK TO VIGNETTE for more details.
+#'
+#' @section Output:
+#'
+#' When `output` is `"augment"` (the default),
+#' the return value from `forecast()`
+#' looks like output from function [augment()]. When `output` is
+#' `"components"`, the return value looks like output
+#' from [components()].
+#'
+#' When `include_estimates` is `FALSE` (the default),
+#' the output of `forecast()` excludes values for
+#' time-varying parameters for the period covered by the data.
+#' When `include_estimates` is `TRUE`, the output
+#' includes these values.
+#' Setting `include_estimates` to `TRUE` can be helpful
+#' when creating graphs that combine estimates and forecasts.
+#'
+#' @section Using data in forecasts:
+#'
+#' `forecast()` is typically used with a
+#' [fitted][fit()] model, i.e. a model in which parameter
+#' values have been estimated from the data.
+#' The resulting forecasts reflect data and priors.
+#'
+#' `forecast()` can, however, be used with an
+#' unfitted model. In this case, the forecasts
+#' are based entirely on the priors. See below for
+#' an example. Experimenting with forecasts
+#' based entirely on the priors can be helpful for
+#' designing a model. See LINK TO WORKFLOW VIGNETTE
+#' for details.
 #'
 #' @section Warning:
 #'
@@ -564,12 +595,7 @@ generics::forecast
 #' @param ... Not currently used.
 #'
 #' @returns
-#' A [tibble][tibble::tibble-package], with the following contents:
-#'
-#' |                              |    `output` is `"augment"` | `output` is `"components"`    |
-#' |------------------------------|----------------------------|-------------------------------|
-#' |`include_estimates` is `FALSE`| Like [augment()] only for future values | Like [components()], with non-time-varying parameters, and future values for time-varying parameters |
-#' |`include_estimates` is `TRUE` | Like [augment()], including past and future values | Like [components()], with non-time-varying paramaters, and past and values for time-varying parameters |
+#' A [tibble][tibble::tibble-package].
 #'
 #' @seealso
 #' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
@@ -577,10 +603,11 @@ generics::forecast
 #'
 #' @examples
 #' ## specify and fit model
-#' mod <- mod_pois(injuries ~ age + sex + year,
+#' mod <- mod_pois(injuries ~ age * sex + ethnicity + year,
 #'                 data = injuries,
 #'                 exposure = popn) |>
 #'   fit(mod)
+#' mod
 #'
 #' ## forecasts
 #' mod |>
@@ -597,7 +624,7 @@ generics::forecast
 #'            output = "components")
 #'
 #' ## forecast based on priors only
-#' mod_unfitted <- mod_pois(injuries ~ age + sex + year,
+#' mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
 #'                          data = injuries,
 #'                          exposure = popn)
 #' mod_unfitted |>

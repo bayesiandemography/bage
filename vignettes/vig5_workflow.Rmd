@@ -1,8 +1,8 @@
 ---
-title: "vig_5_workflow"
+title: "5. Bayesian Workflow"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vig_5_workflow}
+  %\VignetteIndexEntry{5. Bayesian Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

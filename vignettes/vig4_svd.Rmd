@@ -1,8 +1,8 @@
 ---
-title: "Dimension reduction and the modelling of age effects"
+title: "4. Singular Value Decomposition"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Dimension reduction and the modelling of age effects}
+  %\VignetteIndexEntry{4. Singular Value Decomposision}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
