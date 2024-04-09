@@ -393,6 +393,34 @@ generics::fit
 #'
 #' @returns A `bage_mod` object
 #'
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
+#' - [augment()], [components()], and [tidy()] to examine
+#'   output from a model.
+#' - [forecast()] to forecast, based on a model
+#' 
+#' @examples
+#' ## specify model
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#'
+#' ## examine unfitted model
+#' mod
+#'
+#' ## fit model
+#' mod <- fit(mod)
+#'
+#' ## examine fitted model
+#' mod
+#'
+#' ## extract rates
+#' aug <- augment(mod)
+#' aug
+#'
+#' ## extract hyper-parameters
+#' comp <- components(mod)
+#' comp
 #' @export    
 fit.bage_mod <- function(object, ...) {
   object <- unfit(object)
@@ -502,22 +530,29 @@ fit.bage_mod <- function(object, ...) {
 generics::forecast
 
 ## NO_TESTS
-#' Use a Model to Construct Forecasts
+#' Use a Model to Make a Forecast
 #'
-#' DESCRIBE HOW FORECASTS CONSTRUCTED.
-#' 
-#' @section Type of output:
+#' Forecast values, based on a model.
 #'
-#' `forecast()` always returns a [tibble][tibble::tibble()].
-#' However, the contents of the tibble depend on the
-#' `output` argument:
+#' The forecast is constructed by forecasting,
+#' time-varying main effects and interactions,
+#' combining the time-varying main effects and
+#' interactions with non-time-varying terms,
+#' and then drawing values for rates, probabilities,
+#' or means. See LINK TO VIGNETTE for the
+#' mathematical details.
 #'
-#' - `"augment"` (The default.) Like the
-#'   output from [augment()], but without the
-#'   outcome variable or any exposure,
-#'   size, or weights variables.
-#' - `"components"` Like the output from
-#'   [components()].
+#' Typically `forecast()` is used with a
+#' [fitted][fit()] model, in which case it yields
+#' a forecasts based on a combination of priors
+#' and data. `forecast()` can, however, be used
+#' with an uniftted model, in which case
+#' it yields a forecast based only on priors.
+#'
+#' @section Warning:
+#'
+#' The interface for `forecast()` has not been finalised
+#' and is likely to change in the near future.
 #'
 #' @inheritParams components.bage_mod
 #' @param labels Labels for future values. WARNING
@@ -525,15 +560,52 @@ generics::forecast
 #' @param output Type of output returned
 #' @param include_estimates Whether to
 #' include historical estimates along
-#' with the forecasts. Default is `TRUE`.
+#' with the forecasts. Default is `FALSE`.
 #' @param ... Not currently used.
 #'
-#' @returns A `bage_mod` object
+#' @returns
+#' A [tibble][tibble::tibble-package], with the following contents:
 #'
+#' |                              |    `output` is `"augment"` | `output` is `"components"`    |
+#' |------------------------------|----------------------------|-------------------------------|
+#' |`include_estimates` is `FALSE`| Like [augment()] only for future values | Like [components()], with non-time-varying parameters, and future values for time-varying parameters |
+#' |`include_estimates` is `TRUE` | Like [augment()], including past and future values | Like [components()], with non-time-varying paramaters, and past and values for time-varying parameters |
+#'
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
+#' - [bage::fit()] to fit a model
+#'
+#' @examples
+#' ## specify and fit model
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn) |>
+#'   fit(mod)
+#'
+#' ## forecasts
+#' mod |>
+#'   forecast(labels = 2019:2024)
+#'
+#' ## combined estimates and forecasts
+#' mod |>
+#'   forecast(labels = 2019:2024,
+#'            include_estimates = TRUE)
+#'
+#' ## hyper-parameters
+#' mod |>
+#'   forecast(labels = 2019:2024,
+#'            output = "components")
+#'
+#' ## forecast based on priors only
+#' mod_unfitted <- mod_pois(injuries ~ age + sex + year,
+#'                          data = injuries,
+#'                          exposure = popn)
+#' mod_unfitted |>
+#'   forecast(labels = 2019:2024)
 #' @export    
 forecast.bage_mod <- function(object,
                               output = c("augment", "components"),
-                              include_estimates = TRUE,
+                              include_estimates = FALSE,
                               labels,
                               ...) {
   check_flag(x = include_estimates, nm_x = "include_estimates")
@@ -541,28 +613,130 @@ forecast.bage_mod <- function(object,
   var_time <- object$var_time
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
-                     i = "Please use {.fun set_var_time} to identify time variable."))
-  check_along_is_time(mod)
+                     i = "Use {.fun set_var_time} to identify time variable?"))
+  check_along_is_time(object)
   components_est <- components(object)
+  seed_forecast_components <- object$seed_forecast_components
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_forecast_components) ## set pre-determined seed
   components_forecast <- forecast_components(mod = object,
                                              components_est = components_est,
-                                             labels = labels)
+                                             labels_forecast = labels)
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   if (output == "augment") {
-    ans <- forecast_augment(components_forecast)
+    seed_forecast_augment <- object$seed_forecast_augment
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_forecast_augment) ## set pre-determined seed
+    ans <- forecast_augment(mod = object,
+                            components_est = components_est,
+                            components_forecast = components_forecast,
+                            labels_forecast = labels)
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
       augment_est <- augment(object)
-      ans <- rbind(augment_est, ans)
+      ans <- vctrs::vec_rbind(augment_est, ans)
     }
   }
   else if (output == "components") {
     ans <- components_forecast
-    if (include_estimates)
-      ans <- rbind(components_est, ans)
+    if (include_estimates) {
+      term_est <- components_est$term
+      level_est <- components_est$level
+      is_time_varying <- make_is_time_varying(term = term_est,
+                                              level = level_est,
+                                              var_time = var_time)
+      time_varying_est <- components_est[is_time_varying, ]
+      ans <- vctrs::vec_rbind(time_varying_est, ans)
+      ans <- sort_components(components = ans, mod = object)
+    }
   }
   else
-    cli::cli_abort("Internal error: Unexpected value for {.arg output}.")
+    cli::cli_abort("Internal error: Unexpected value for {.arg output}.") ## nocov
   ans
 }
+
+
+## 'forecast_augment' ---------------------------------------------------------
+
+#' Forecast Contents of 'augment'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param components_est Tibble with results
+#' of call to 'components'.
+#' @param components_forecast Tibble with results
+#' of call to 'forecast_components'.
+#' @param labels_forecast Vector
+#' with labels for future time periods
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+forecast_augment <- function(mod,
+                             components_est,
+                             components_forecast,
+                             labels_forecast) {
+  UseMethod("forecast_augment")
+}
+
+## HAS_TESTS
+#' @export
+forecast_augment.bage_mod <- function(mod,
+                                      components_est,
+                                      components_forecast,
+                                      labels_forecast) {
+  formula <- mod$formula
+  has_disp <- has_disp(mod)
+  inv_transform <- get_fun_inv_transform(mod)
+  data_forecast <- make_data_forecast(mod = mod,
+                                      labels_forecast = labels_forecast)
+  is_effect <- components_forecast$component == "effect"
+  effects <- components_forecast[is_effect, ]
+  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
+                                                          data = data_forecast)
+  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
+  linpred <- matrix_effect_outcome %*% effects$.fitted
+  if (has_disp) {
+    expected <- inv_transform(linpred)
+    is_disp <- components_est$component == "disp"
+    disp <- components_est$.fitted[is_disp]
+    fitted <- draw_vals_fitted(mod = mod,
+                               vals_expected = expected,
+                               vals_disp = disp)
+  }
+  else
+    fitted <- inv_transform(linpred)
+  ans <- data_forecast
+  ans$.observed <- NA_real_
+  ans$.fitted <- fitted
+  if (has_disp)
+    ans$.expected <- expected
+  ans
+}
+
+## HAS_TESTS
+#' @export
+forecast_augment.bage_mod_norm <- function(mod,
+                                           components_est,
+                                           components_forecast,
+                                           labels_forecast) {
+  formula <- mod$formula
+  scale_outcome <- get_fun_scale_outcome(mod)
+  data_forecast <- make_data_forecast(mod = mod,
+                                      labels_forecast = labels_forecast)
+  is_effect <- components_forecast$component == "effect"
+  effects <- components_forecast[is_effect, ]
+  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
+                                                          data = data_forecast)
+  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
+  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
+  linpred <- matrix_effect_outcome %*% effects$.fitted
+  fitted <- scale_outcome(linpred)
+  ans <- data_forecast
+  ans$.fitted <- fitted
+  ans
+}
+
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------

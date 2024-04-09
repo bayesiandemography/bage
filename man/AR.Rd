@@ -36,7 +36,9 @@ marginal variance \eqn{\sigma^2}. The value of
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
 The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-in the interval \eqn{(-1,1)} that yield stationary series.
+between -1 and 1 that jointly lead to stationary models. The quantity
+\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
 }
 
 \examples{

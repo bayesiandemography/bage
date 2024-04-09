@@ -310,6 +310,8 @@ mod_helper <- function(formula, data, n_draw) {
                                               data = data)
   seed_components <- make_seed()
   seed_augment <- make_seed()
+  seed_forecast_components <- make_seed()
+  seed_forecast_augment <- make_seed()
   ## create list of arguments and return
   list(formula = formula,
        data = data,
@@ -331,5 +333,7 @@ mod_helper <- function(formula, data, n_draw) {
        components = NULL,
        n_draw = n_draw,
        seed_components = seed_components,
-       seed_augment = seed_augment)
+       seed_augment = seed_augment,
+       seed_forecast_components = seed_forecast_components,
+       seed_forecast_augment = seed_forecast_augment)
 }

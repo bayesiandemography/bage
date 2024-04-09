@@ -23,7 +23,9 @@
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 #'
 #' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-#' in the interval \eqn{(-1,1)} that yield stationary series.
+#' between -1 and 1 that jointly lead to stationary models. The quantity
+#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+#' boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
 #' 
 #' @param n The order of the model.
 #' Default is `2`.
@@ -255,8 +257,11 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #'
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 #'
-#' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values within
-#' the interval \eqn{(-1, 1)} that yield stationary series.
+#'
+#' The \eqn{\phi_1, \cdots, \phi_k} are jointly restricted to values
+#' between -1 and 1 that lead to stationary models. The quantity
+#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+#' boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
 #' 
 #' @param n The order of the model.
 #' @param s Scale of half-normal prior for
@@ -1366,8 +1371,8 @@ ESVDS <- function(ssvd, n = 5, joint = FALSE) {
 
 ## HAS_TESTS
 new_bage_prior_ar <- function(n, scale, min, max, nm) {
-  shape1 <- 2.0
-  shape2 <- 2.0
+  shape1 <- 3.0
+  shape2 <- 3.0
   ans <- list(i_prior = 5L,
               const = c(shape1 = shape1,
                         shape2 = shape2,
@@ -1398,8 +1403,8 @@ new_bage_prior_compose <- function(priors, along, nm) {
 
 ## HAS_TESTS
 new_bage_prior_ear <- function(n, scale, min, max, nm, along) {
-  shape1 <- 2.0
-  shape2 <- 2.0
+  shape1 <- 3.0
+  shape2 <- 3.0
   ans <- list(i_prior = 12L,
               const = c(shape1 = shape1,
                         shape2 = shape2,

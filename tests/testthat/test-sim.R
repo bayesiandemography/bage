@@ -87,9 +87,9 @@ test_that("'draw_vals_ar_one' works", {
     set.seed(0)
     prior <- AR(n = 2)
     coef <- draw_vals_coef(prior, n_sim = 1L)
-    ans <- draw_vals_ar_one(n = 1000, coef = coef, sd = 0.5)
-    expect_identical(length(ans), 1000L)
-    expect_equal(sd(ans), 0.5, tolerance = 0.01)
+    ans <- draw_vals_ar_one(n = 5000L, coef = coef, sd = 0.5)
+    expect_identical(length(ans), 5000L)
+    expect_equal(sd(ans), 0.5, tolerance = 0.02)
 })
 
 

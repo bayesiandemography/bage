@@ -2,12 +2,12 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{forecast.bage_mod}
 \alias{forecast.bage_mod}
-\title{Use a Model to Construct Forecasts}
+\title{Use a Model to Make a Forecast}
 \usage{
 \method{forecast}{bage_mod}(
   object,
   output = c("augment", "components"),
-  include_estimates = TRUE,
+  include_estimates = FALSE,
   labels,
   ...
 )
@@ -19,7 +19,7 @@
 
 \item{include_estimates}{Whether to
 include historical estimates along
-with the forecasts. Default is \code{TRUE}.}
+with the forecasts. Default is \code{FALSE}.}
 
 \item{labels}{Labels for future values. WARNING
 this argument is only temporary.}
@@ -27,24 +27,69 @@ this argument is only temporary.}
 \item{...}{Not currently used.}
 }
 \value{
-A \code{bage_mod} object
+A \link[tibble:tibble-package]{tibble}, with the following contents:\tabular{lll}{
+    \tab \code{output} is \code{"augment"} \tab \code{output} is \code{"components"} \cr
+   \code{include_estimates} is \code{FALSE} \tab Like \code{\link[=augment]{augment()}} only for future values \tab Like \code{\link[=components]{components()}}, with non-time-varying parameters, and future values for time-varying parameters \cr
+   \code{include_estimates} is \code{TRUE} \tab Like \code{\link[=augment]{augment()}}, including past and future values \tab Like \code{\link[=components]{components()}}, with non-time-varying paramaters, and past and values for time-varying parameters \cr
+}
 }
 \description{
-DESCRIBE HOW FORECASTS CONSTRUCTED.
+Forecast values, based on a model.
 }
-\section{Type of output}{
+\details{
+The forecast is constructed by forecasting,
+time-varying main effects and interactions,
+combining the time-varying main effects and
+interactions with non-time-varying terms,
+and then drawing values for rates, probabilities,
+or means. See LINK TO VIGNETTE for the
+mathematical details.
+
+Typically \code{forecast()} is used with a
+\link[=fit]{fitted} model, in which case it yields
+a forecasts based on a combination of priors
+and data. \code{forecast()} can, however, be used
+with an uniftted model, in which case
+it yields a forecast based only on priors.
+}
+\section{Warning}{
 
 
-\code{forecast()} always returns a \link[tibble:tibble]{tibble}.
-However, the contents of the tibble depend on the
-\code{output} argument:
+The interface for \code{forecast()} has not been finalised
+and is likely to change in the near future.
+}
+
+\examples{
+## specify and fit model
+mod <- mod_pois(injuries ~ age + sex + year,
+                data = injuries,
+                exposure = popn) |>
+  fit(mod)
+
+## forecasts
+mod |>
+  forecast(labels = 2019:2024)
+
+## combined estimates and forecasts
+mod |>
+  forecast(labels = 2019:2024,
+           include_estimates = TRUE)
+
+## hyper-parameters
+mod |>
+  forecast(labels = 2019:2024,
+           output = "components")
+
+## forecast based on priors only
+mod_unfitted <- mod_pois(injuries ~ age + sex + year,
+                         data = injuries,
+                         exposure = popn)
+mod_unfitted |>
+  forecast(labels = 2019:2024)
+}
+\seealso{
 \itemize{
-\item \code{"augment"} (The default.) Like the
-output from \code{\link[=augment]{augment()}}, but without the
-outcome variable or any exposure,
-size, or weights variables.
-\item \code{"components"} Like the output from
-\code{\link[=components]{components()}}.
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to specify a model
+\item \code{\link[=fit]{fit()}} to fit a model
 }
 }
-

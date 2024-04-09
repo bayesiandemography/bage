@@ -221,10 +221,10 @@ test_that("'new_bage_prior_ar' works - AR interface", {
   expect_s3_class(obj, "bage_prior_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 5L)
-  expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = -1, max = 1, scale = 1))
+  expect_identical(obj$const, c(shape1 = 3, shape2 = 3, min = -1, max = 1, scale = 1))
   expect_identical(obj$specific, list(n = 2L,
-                                      shape1 = 2,
-                                      shape2 = 2,
+                                      shape1 = 3,
+                                      shape2 = 3,
                                       min = -1,
                                       max = 1,
                                       scale = 1,
@@ -236,10 +236,10 @@ test_that("'new_bage_prior_ar' works - AR1 interface", {
   expect_s3_class(obj, "bage_prior_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 5L)
-  expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = 0.8, max = 0.98, scale = 1))
+  expect_identical(obj$const, c(shape1 = 3, shape2 = 3, min = 0.8, max = 0.98, scale = 1))
   expect_identical(obj$specific, list(n = 1L,
-                                      shape1 = 2,
-                                      shape2 = 2,
+                                      shape1 = 3,
+                                      shape2 = 3,
                                       min = 0.8,
                                       max = 0.98,
                                       scale = 1,
@@ -283,10 +283,10 @@ test_that("'new_bage_prior_ear' works - EAR interface", {
   expect_s3_class(obj, "bage_prior_ear")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
-  expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = -1, max = 1, scale = 1))
+  expect_identical(obj$const, c(shape1 = 3, shape2 = 3, min = -1, max = 1, scale = 1))
   expect_identical(obj$specific, list(n = 2L,
-                                      shape1 = 2,
-                                      shape2 = 2,
+                                      shape1 = 3,
+                                      shape2 = 3,
                                       min = -1,
                                       max = 1,
                                       scale = 1,
@@ -299,10 +299,10 @@ test_that("'new_bage_prior_ear' works - EAR1 interface", {
   expect_s3_class(obj, "bage_prior_ear")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
-  expect_identical(obj$const, c(shape1 = 2, shape2 = 2, min = 0.8, max = 0.98, scale = 1))
+  expect_identical(obj$const, c(shape1 = 3, shape2 = 3, min = 0.8, max = 0.98, scale = 1))
   expect_identical(obj$specific, list(n = 1L,
-                                      shape1 = 2,
-                                      shape2 = 2,
+                                      shape1 = 3,
+                                      shape2 = 3,
                                       min = 0.8,
                                       max = 0.98,
                                       scale = 1,

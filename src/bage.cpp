@@ -71,7 +71,8 @@ Type logpost_ar(vector<Type> effectfree,
   vector<Type> coef = (max - min) * coef_raw + min;
   Type sd = exp(log_sd);
   Type ans = 0;
-  ans += dbeta(coef_raw, shape1, shape2, true).sum()
+  Type radius = sqrt((coef_raw * coef_raw).sum());
+  ans += dbeta(radius, shape1, shape2, true)
     + log(coef_raw).sum()
     + log(1 - coef_raw).sum();
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
@@ -163,7 +164,8 @@ Type logpost_ear(vector<Type> effectfree,
   vector<Type> coef = (max - min) * coef_raw + min;
   Type sd = exp(log_sd);
   Type ans = 0;
-  ans += dbeta(coef_raw, shape1, shape2, true).sum()
+  Type radius = sqrt((coef_raw * coef_raw).sum());
+  ans += dbeta(radius, shape1, shape2, true)
     + log(coef_raw).sum()
     + log(1 - coef_raw).sum();
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
@@ -200,12 +202,12 @@ Type logpost_elin(vector<Type> effectfree,
   ans += dnorm(msd, Type(0), mscale, true) + log_msd;
   ans += dnorm(slope, Type(0), sd_slope, true);
   ans += dnorm(mslope, slope, msd, true).sum();
-  Type a0 = -1 * (n_along + 1) / (n_along - 1);
-  Type a1 = 2 / (n_along - 1);
+  Type a0 = -1 * (n_along + 1.0) / (n_along - 1.0);
+  Type a1 = 2 / (n_along - 1.0);
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_along; i_along++) {
       int i = matrix_along_by(i_along, i_by);
-      Type q = a0 + a1 * (i_along + 1);
+      Type q = a0 + a1 * (i_along + 1.0);
       ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
     }
   }
@@ -284,10 +286,10 @@ Type logpost_lin(vector<Type> effectfree,
   Type ans = 0;
   ans += dnorm(slope, Type(0), sd_slope, true);
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  Type a0 = -1 * (n + 1) / (n - 1);
-  Type a1 = 2 / (n - 1);
+  Type a0 = -1 * (n + 1.0) / (n - 1.0);
+  Type a1 = 2 / (n - 1.0);
   for (int i = 0; i < n; i++) {
-    Type q = a0 + a1 * (i + 1);
+    Type q = a0 + a1 * (i + 1.0);
     ans += dnorm(effectfree[i], q * slope, sd, true);
   }
   return ans;
