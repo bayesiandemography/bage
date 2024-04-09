@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,12 +24,12 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/vig1_intro.html">vig_1_intro</a>
-    <a class="dropdown-item" href="../articles/vig2_math.html">Mathematical description of models used in bage</a>
-    <a class="dropdown-item" href="../articles/vig3_priors.html">vig_3_priors</a>
-    <a class="dropdown-item" href="../articles/vig4_svd.html">Dimension reduction and the modelling of age effects</a>
-    <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
-    <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
+    <a class="dropdown-item" href="../articles/vig1_intro.html">1. Introduction</a>
+    <a class="dropdown-item" href="../articles/vig2_math.html">2. Mathematical Details</a>
+    <a class="dropdown-item" href="../articles/vig3_priors.html">3. Priors</a>
+    <a class="dropdown-item" href="../articles/vig4_svd.html">4. Singular Value Decomposition</a>
+    <a class="dropdown-item" href="../articles/vig5_workflow.html">5. Bayesian Workflow</a>
+    <a class="dropdown-item" href="../articles/vig6_mortality.html">6. Modelling Mortality</a>
   </div>
 </li>
 <li class="active nav-item">
@@ -50,11 +50,23 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.2" id="bage-032">bage 0.3.2<a class="anchor" aria-label="anchor" href="#bage-032"></a></h2>
+<div class="section level3">
+<h3 id="new-functions-0-3-2">New functions<a class="anchor" aria-label="anchor" href="#new-functions-0-3-2"></a></h3>
+<ul><li>
+<code><a href="../reference/forecast.bage_mod.html">forecast.bage_mod()</a></code> Forecasting. Interface not yet finalised.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-3-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-3-2"></a></h3>
+<ul><li>Corrected error in C++ template for Lin and ELin priors (due to use of integer arithmetic.)</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.2" id="bage-022">bage 0.2.2<a class="anchor" aria-label="anchor" href="#bage-022"></a></h2>
 <div class="section level3">
 <h3 id="new-functions-0-2-2">New functions<a class="anchor" aria-label="anchor" href="#new-functions-0-2-2"></a></h3>
 <ul><li>
-<code>generate::bage_ssvd()</code> Generate random age-sex profiles from SVD.</li>
+<code><a href="../reference/generate.bage_ssvd.html">generate.bage_ssvd()</a></code> Generate random age-sex profiles from SVD.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-0-2-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-2"></a></h3>
