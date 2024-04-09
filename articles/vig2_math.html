@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,9 @@
     <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
     <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -266,8 +269,8 @@ The trend term is compulsory. The remaining terms are optional.</p>
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.1.4">
-<h4 id="prediction">
-<span class="header-section-number">5.1.4</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction"></a>
+<h4 id="forecasting">
+<span class="header-section-number">5.1.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
     \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, \tau_m^2)
@@ -313,8 +316,8 @@ The trend term is compulsory. The remaining terms are optional.</p>
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.2.4">
-<h4 id="prediction-1">
-<span class="header-section-number">5.2.4</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-1"></a>
+<h4 id="forecasting-1">
+<span class="header-section-number">5.2.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-1"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
     \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, A_{\beta}^{(m)2})
@@ -364,8 +367,8 @@ The trend term is compulsory. The remaining terms are optional.</p>
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.3.4">
-<h4 id="prediction-2">
-<span class="header-section-number">5.3.4</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-2"></a>
+<h4 id="forecasting-2">
+<span class="header-section-number">5.3.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-2"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-1}^{(m)}, \tau_m^2)
@@ -415,8 +418,8 @@ The trend term is compulsory. The remaining terms are optional.</p>
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.4.4">
-<h4 id="prediction-3">
-<span class="header-section-number">5.4.4</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-3"></a>
+<h4 id="forecasting-3">
+<span class="header-section-number">5.4.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-3"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
@@ -467,8 +470,8 @@ The trend term is compulsory. The remaining terms are optional.</p>
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.5.4">
-<h4 id="prediction-4">
-<span class="header-section-number">5.5.4</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-4"></a>
+<h4 id="forecasting-4">
+<span class="header-section-number">5.5.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-4"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m+h}^{(m)} \sim \text{N}(2 \beta_{J_m+h-1}^{(m)} - \beta_{J_m+h-2}^{(m)}, \tau_m^2)
@@ -504,24 +507,27 @@ Internally, TMB derives a value for <span class="math inline">\(\omega_m\)</span
 <span class="math display">\[\begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}\]</span>
-Each of the <span class="math inline">\(\phi_k^{(m)}\)</span> is restricted to the interval <span class="math inline">\((-1, 1)\)</span>. We assign each <span class="math inline">\(\phi_k^{(m)}\)</span> the prior
-<span class="math display">\[\begin{align}
-  \phi_k^{(m)\prime} &amp; \sim \text{Beta}(2, 2) \\
-  \phi_k^{(m)} &amp; =  2 \phi_k^{(m)\prime} - 1.
-\end{align}\]</span></p>
+Each of the individual <span class="math inline">\(\phi_k^{(m)}\)</span> is restricted to the interval <span class="math inline">\((-1, 1)\)</span>, and the <span class="math inline">\(\phi_k^{(m)}\)</span> are jointly restricted to values that yield stationary models. Let
+<span class="math display">\[\begin{equation}
+  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
+\end{equation}\]</span>
+We assign <span class="math inline">\(r^{(m)}\)</span> the prior
+<span class="math display">\[\begin{equation}
+  r^{(m)} \sim \text{Beta}(3, 3).
+\end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.6.2">
 <h4 id="contribution-to-posterior-density-5">
 <span class="header-section-number">5.6.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-5"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 3, 3 \right) p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
 <div class="section level4" number="5.6.3">
-<h4 id="prediction-5">
-<span class="header-section-number">5.6.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-5"></a>
+<h4 id="forecasting-5">
+<span class="header-section-number">5.6.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-5"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{J_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{J_m+h-K_m}^{(m)}, \tau_m^2\right)
@@ -568,8 +574,8 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.7.3">
-<h4 id="prediction-6">
-<span class="header-section-number">5.7.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-6"></a>
+<h4 id="forecasting-6">
+<span class="header-section-number">5.7.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-6"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
@@ -608,24 +614,27 @@ Internally, TMB derives a value for <span class="math inline">\(\omega_m\)</span
 <span class="math display">\[\begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}\]</span>
-Each of the <span class="math inline">\(\phi_k^{(m)}\)</span> is restricted to the interval <span class="math inline">\((-1, 1)\)</span>. We assign each <span class="math inline">\(\phi_k^{(m)}\)</span> the prior
-<span class="math display">\[\begin{align}
-  \phi_k^{(m)\prime} &amp; \sim \text{Beta}(2, 2) \\
-  \phi_k^{(m)} &amp; =  2 \phi_k^{(m)\prime} - 1.
-\end{align}\]</span></p>
+Each of the individual <span class="math inline">\(\phi_k^{(m)}\)</span> is restricted to the interval <span class="math inline">\((-1, 1)\)</span>, and the <span class="math inline">\(\phi_k^{(m)}\)</span> are jointly restricted to values that yield stationary models. Let
+<span class="math display">\[\begin{equation}
+  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
+\end{equation}\]</span>
+We assign <span class="math inline">\(r^{(m)}\)</span> the prior
+<span class="math display">\[\begin{equation}
+  r^{(m)} \sim \text{Beta}(3, 3).
+\end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.8.2">
 <h4 id="contribution-to-posterior-density-7">
 <span class="header-section-number">5.8.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-7"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 3, 3 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
 <div class="section level4" number="5.8.3">
-<h4 id="prediction-7">
-<span class="header-section-number">5.8.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-7"></a>
+<h4 id="forecasting-7">
+<span class="header-section-number">5.8.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-7"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
@@ -687,8 +696,8 @@ where
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.10.3">
-<h4 id="prediction-8">
-<span class="header-section-number">5.10.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-8"></a>
+<h4 id="forecasting-8">
+<span class="header-section-number">5.10.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
@@ -742,8 +751,8 @@ where
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.11.3">
-<h4 id="prediction-9">
-<span class="header-section-number">5.11.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-9"></a>
+<h4 id="forecasting-9">
+<span class="header-section-number">5.11.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-9"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
@@ -804,10 +813,10 @@ where
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.12.3">
-<h4 id="prediction-10">
-<span class="header-section-number">5.12.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-10"></a>
+<h4 id="forecasting-10">
+<span class="header-section-number">5.12.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-10"></a>
 </h4>
-<p>Main effects with a P-Spline prior cannot be predicted.</p>
+<p>Main effects with a P-Spline prior cannot be forecasted.</p>
 </div>
 <div class="section level4" number="5.12.4">
 <h4 id="code-10">
@@ -846,10 +855,10 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.13.3">
-<h4 id="prediction-11">
-<span class="header-section-number">5.13.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-11"></a>
+<h4 id="forecasting-11">
+<span class="header-section-number">5.13.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-11"></a>
 </h4>
-<p>Main effects with a SVD prior cannot be predicted.</p>
+<p>Main effects with a SVD prior cannot be forecasted.</p>
 </div>
 <div class="section level4" number="5.13.4">
 <h4 id="code-11">
@@ -890,10 +899,10 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.15.3">
-<h4 id="prediction-12">
-<span class="header-section-number">5.15.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-12"></a>
+<h4 id="forecasting-12">
+<span class="header-section-number">5.15.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
 </h4>
-<p>Main effects with a SVD prior cannot be predicted.</p>
+<p>Main effects with a SVD prior cannot be forecasted.</p>
 </div>
 <div class="section level4" number="5.15.4">
 <h4 id="code-12">
@@ -919,10 +928,10 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 <p>Known priors make no contribution to the posterior density.</p>
 </div>
 <div class="section level4" number="5.16.3">
-<h4 id="prediction-13">
-<span class="header-section-number">5.16.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-13"></a>
+<h4 id="forecasting-13">
+<span class="header-section-number">5.16.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-13"></a>
 </h4>
-<p>Main effects with a known prior cannot be predicted.</p>
+<p>Main effects with a known prior cannot be forecasted.</p>
 </div>
 <div class="section level4" number="5.16.4">
 <h4 id="code-13">
@@ -958,8 +967,8 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 \end{equation}\]</span>n</p>
 </div>
 <div class="section level4" number="5.17.3">
-<h4 id="prediction-14">
-<span class="header-section-number">5.17.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-14"></a>
+<h4 id="forecasting-14">
+<span class="header-section-number">5.17.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-14"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-S_m}^{(m)}, \tau_m^2)
@@ -1003,8 +1012,8 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.18.3">
-<h4 id="prediction-15">
-<span class="header-section-number">5.18.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-15"></a>
+<h4 id="forecasting-15">
+<span class="header-section-number">5.18.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-15"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-S_m}^{(m)}, \tau_m^2)
@@ -1094,8 +1103,8 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 <p>TODO - write</p>
 </div>
 <div class="section level3" number="6.3">
-<h3 id="prediction-16">
-<span class="header-section-number">6.3</span> Prediction<a class="anchor" aria-label="anchor" href="#prediction-16"></a>
+<h3 id="forecasting-16">
+<span class="header-section-number">6.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-16"></a>
 </h3>
 <p>TODO - write</p>
 </div>
@@ -1516,8 +1525,8 @@ looks approximately like a randomly-selected column from the original data matri
 % <em>m &amp; ^+(0, A</em>{}^{(m)2}) \
 % ^{(m)} &amp; (, _m^2 ^{(m)} )
 % \end{align}</p>
-<p>% ### Prediction</p>
-<p>% Main effects with a multivariate normal prior cannot be predicted.</p>
+<p>% ### Forecasting</p>
+<p>% Main effects with a multivariate normal prior cannot be forecasted.</p>
 <p>% ### Code</p>
 <p>% <code>% MVN(V, s = 1) %</code></p>
 <p>% - <code>V</code> is <span class="math inline">\(\pmb{V}^{(m)}\)</span>

@@ -20,7 +20,7 @@ fitted, or the prior distribution if it has not.'><!-- mathjax --><script src="h
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,9 @@ fitted, or the prior distribution if it has not.'><!-- mathjax --><script src="h
     <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
     <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -119,18 +122,18 @@ to specify a model</p></li>
 <span class="r-in"><span><span class="co">## look at prior distribution</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 37 × 4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                   .fitted</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)      0.13 (-7, 7.4)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4           0.024 (-4.1, 4.5)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9           0.015 (-3.6, 3.7)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14       -0.0031 (-2.9, 3.1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19         0.011 (-2.7, 2.6)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24        0.0081 (-2.3, 2.4)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29           0.003 (-2, 2.1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34        0.0055 (-2.5, 2.3)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39        -0.002 (-2.5, 2.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44       -0.0062 (-2.6, 2.4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                    .fitted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)        0.1 (-7, 6.7)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4           -0.021 (-3.8, 4.1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9           0.0029 (-3.2, 3.6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14           -0.012 (-3, 3.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19           0.0078 (-3, 2.6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24         0.0052 (-2.6, 2.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29         0.0054 (-2.2, 2.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34       -9.4e-05 (-1.9, 1.9)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39         0.0047 (-2.2, 2.4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44         0.0018 (-2.8, 2.6)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 27 more rows</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## fit model</span></span></span>
@@ -143,14 +146,14 @@ to specify a model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                    .fitted</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)    -8.2 (-8.2, -8.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -0.36 (-0.46, -0.26)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -0.37 (-0.47, -0.26)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9            -1.8 (-1.9, -1.6)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14          -1.3 (-1.4, -1.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19          0.47 (0.38, 0.56)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          0.57 (0.47, 0.66)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29          0.46 (0.36, 0.56)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34           0.41 (0.31, 0.5)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39          0.34 (0.24, 0.44)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19          0.47 (0.37, 0.57)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          0.56 (0.47, 0.66)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29          0.46 (0.36, 0.55)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34           0.4 (0.31, 0.51)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39          0.34 (0.24, 0.45)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44          0.35 (0.25, 0.44)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 27 more rows</span></span>
 </code></pre></div>

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,9 @@
     <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
     <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -75,7 +78,100 @@ typically created with <code><a href="mod_pois.html">mod_pois()</a></code>,
 
 <p>A <code>bage_mod</code> object</p>
     </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index">
+<ul><li><p><code><a href="mod_pois.html">mod_pois()</a></code>, <code><a href="mod_binom.html">mod_binom()</a></code>, <code><a href="mod_norm.html">mod_norm()</a></code> to specify a model</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>, and <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> to examine
+output from a model.</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> to forecast, based on a model</p></li>
+</ul></div>
+    </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## specify model</span></span></span>
+<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
+<span class="r-in"><span>                data <span class="op">=</span> <span class="va">injuries</span>,</span></span>
+<span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## examine unfitted model</span></span></span>
+<span class="r-in"><span><span class="va">mod</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -- Unfitted Poisson model --</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) ~ NFix()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         age ~ RW()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         sex ~ NFix()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   var_sexgender: sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## fit model</span></span></span>
+<span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## examine fitted model</span></span></span>
+<span class="r-in"><span><span class="va">mod</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -- Fitted Poisson model --</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) ~ NFix()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         age ~ RW()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         sex ~ NFix()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   var_sexgender: sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## extract rates</span></span></span>
+<span class="r-in"><span><span class="va">aug</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">aug</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 912 × 9</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex    ethnicity  year injuries  popn .observed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">35</span>830 0.000<span style="text-decoration: underline;">335</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">35</span>120 0.000<span style="text-decoration: underline;">171</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">32</span>830 0.000<span style="text-decoration: underline;">091</span>4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">27</span>130 0.000<span style="text-decoration: underline;">221</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>380 0.000<span style="text-decoration: underline;">246</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>160 0.000<span style="text-decoration: underline;">248</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">22</span>560 0.000<span style="text-decoration: underline;">532</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">22</span>230 0.000<span style="text-decoration: underline;">135</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">18</span>130 0.000<span style="text-decoration: underline;">331</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">13</span>770 0.000<span style="text-decoration: underline;">436</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 902 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## extract hyper-parameters</span></span></span>
+<span class="r-in"><span><span class="va">comp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">comp</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 37 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                    .fitted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)    -8.2 (-8.2, -8.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -0.36 (-0.46, -0.25)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9            -1.8 (-1.9, -1.6)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14          -1.3 (-1.4, -1.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19          0.46 (0.36, 0.57)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          0.57 (0.47, 0.66)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29          0.46 (0.36, 0.55)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34           0.41 (0.3, 0.51)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39          0.34 (0.24, 0.43)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44          0.35 (0.25, 0.44)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 27 more rows</span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside></div>
 

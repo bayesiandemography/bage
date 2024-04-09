@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,9 @@
     <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
     <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -227,7 +230,7 @@ get “random walk” priors, and other terms get “normal” priors.</p>
 <span><span class="co">#&gt;         age ~ RW()</span></span>
 <span><span class="co">#&gt;         sex ~ NFix()</span></span>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ N()</span></span>
+<span><span class="co">#&gt;     age:sex ~ ERW()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: popn</span></span>
@@ -339,7 +342,7 @@ has a penalized-complexity prior <span class="citation">[@simpson2022priors]</sp
 <span><span class="co">#&gt;         age ~ RW()</span></span>
 <span><span class="co">#&gt;         sex ~ NFix()</span></span>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ N()</span></span>
+<span><span class="co">#&gt;     age:sex ~ ERW()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: popn</span></span>
@@ -360,15 +363,15 @@ function <code><a href="https://generics.r-lib.org/reference/augment.html" class
 <span><span class="co">#&gt;    age   sex     time deaths  popn .observed                    .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0     Female  <span style="text-decoration: underline;">1</span>998      7 <span style="text-decoration: underline;">2</span>051   0.003<span style="text-decoration: underline;">41</span>      0.002 (0.0016, 0.0025)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>082.  0.000<span style="text-decoration: underline;">480</span>   0.00045 (0.00034, 6e-04)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>088   0.000<span style="text-decoration: underline;">479</span> 0.00024 (0.00018, 0.00033)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998      3 <span style="text-decoration: underline;">2</span>112.  0.001<span style="text-decoration: underline;">42</span>  0.00016 (0.00011, 0.00023)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>204   0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.1e-05, 0.00017)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>232.  0        0.00011 (7.2e-05, 0.00016)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>175   0.000<span style="text-decoration: underline;">460</span>     9e-05 (6e-05, 0.00014)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>240   0        7.4e-05 (4.6e-05, 0.00011)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>261   0        7.9e-05 (5.1e-05, 0.00012)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 9     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>182.  0        8.4e-05 (5.3e-05, 0.00013)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>082.  0.000<span style="text-decoration: underline;">480</span> 0.00049 (0.00038, 0.00065)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>088   0.000<span style="text-decoration: underline;">479</span> 0.00026 (0.00019, 0.00036)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998      3 <span style="text-decoration: underline;">2</span>112.  0.001<span style="text-decoration: underline;">42</span>  0.00017 (0.00011, 0.00024)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>204   0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.3e-05, 0.00017)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>232.  0        0.00011 (7.4e-05, 0.00016)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>175   0.000<span style="text-decoration: underline;">460</span>   9.3e-05 (6e-05, 0.00014)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>240   0        7.6e-05 (4.9e-05, 0.00012)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>261   0        7.6e-05 (5.1e-05, 0.00012)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 9     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>182.  0        8.1e-05 (5.4e-05, 0.00012)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5,290 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
 <p>Function <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> starts with the original data, and
@@ -396,16 +399,16 @@ posterior distributions.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 636 × 8</span></span></span>
 <span><span class="co">#&gt;    age   sex     time .observed                    .fitted .fitted.lower</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0     Female  <span style="text-decoration: underline;">1</span>998  0.003<span style="text-decoration: underline;">41</span>      0.002 (0.0016, 0.0025)     0.001<span style="text-decoration: underline;">60</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">480</span>   0.00045 (0.00034, 6e-04)     0.000<span style="text-decoration: underline;">340</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">479</span> 0.00024 (0.00018, 0.00033)     0.000<span style="text-decoration: underline;">176</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998  0.001<span style="text-decoration: underline;">42</span>  0.00016 (0.00011, 0.00023)     0.000<span style="text-decoration: underline;">112</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.1e-05, 0.00017)     0.000<span style="text-decoration: underline;">081</span>5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998  0        0.00011 (7.2e-05, 0.00016)     0.000<span style="text-decoration: underline;">072</span>5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">460</span>     9e-05 (6e-05, 0.00014)     0.000<span style="text-decoration: underline;">059</span>9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998  0        7.4e-05 (4.6e-05, 0.00011)     0.000<span style="text-decoration: underline;">046</span>3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998  0        7.9e-05 (5.1e-05, 0.00012)     0.000<span style="text-decoration: underline;">051</span>0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 9     Female  <span style="text-decoration: underline;">1</span>998  0        8.4e-05 (5.3e-05, 0.00013)     0.000<span style="text-decoration: underline;">053</span>4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0     Female  <span style="text-decoration: underline;">1</span>998  0.003<span style="text-decoration: underline;">41</span>      0.002 (0.0016, 0.0025)     0.001<span style="text-decoration: underline;">64</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">480</span> 0.00049 (0.00038, 0.00065)     0.000<span style="text-decoration: underline;">381</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">479</span> 0.00026 (0.00019, 0.00036)     0.000<span style="text-decoration: underline;">186</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998  0.001<span style="text-decoration: underline;">42</span>  0.00017 (0.00011, 0.00024)     0.000<span style="text-decoration: underline;">113</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.3e-05, 0.00017)     0.000<span style="text-decoration: underline;">082</span>7</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998  0        0.00011 (7.4e-05, 0.00016)     0.000<span style="text-decoration: underline;">073</span>6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">460</span>   9.3e-05 (6e-05, 0.00014)     0.000<span style="text-decoration: underline;">060</span>4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998  0        7.6e-05 (4.9e-05, 0.00012)     0.000<span style="text-decoration: underline;">049</span>0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998  0        7.6e-05 (5.1e-05, 0.00012)     0.000<span style="text-decoration: underline;">050</span>8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 9     Female  <span style="text-decoration: underline;">1</span>998  0        8.1e-05 (5.4e-05, 0.00012)     0.000<span style="text-decoration: underline;">054</span>2</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 626 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted.mid &lt;dbl&gt;, .fitted.upper &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>We plot point estimates and 95% credible intervals for the modelled
@@ -442,16 +445,16 @@ higher-level parameters, can be obtained with function
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 350 × 4</span></span></span>
 <span><span class="co">#&gt;    term        component level                 .fitted</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept) -5.4 (-5.4, -5.4)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> age         effect    0           -0.87 (-1, -0.73)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> age         effect    1           -2.3 (-2.6, -2.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> age         effect    2           -2.9 (-3.2, -2.7)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept) -5.4 (-5.5, -5.4)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> age         effect    0           -0.86 (-1, -0.72)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> age         effect    1           -2.3 (-2.5, -2.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> age         effect    2           -2.9 (-3.2, -2.6)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> age         effect    3           -3.4 (-3.7, -3.1)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> age         effect    4             -3.7 (-4, -3.3)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> age         effect    5           -3.8 (-4.1, -3.4)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> age         effect    6           -3.9 (-4.3, -3.5)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> age         effect    7           -4.1 (-4.5, -3.8)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    8           -4.1 (-4.5, -3.7)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> age         effect    4             -3.6 (-4, -3.3)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> age         effect    5           -3.7 (-4.1, -3.4)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> age         effect    6           -3.9 (-4.3, -3.6)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> age         effect    7           -4.1 (-4.5, -3.7)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    8           -4.1 (-4.4, -3.7)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 340 more rows</span></span></span></code></pre></div>
 <p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> returns a tibble contain estimates of all
 the higher-level parameters. To extract the age effect, and prepare it
@@ -634,7 +637,7 @@ sex.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  <span style="text-decoration: underline;">2</span>000 Female  82 (82, 82)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  <span style="text-decoration: underline;">2</span>000 Male    78 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  <span style="text-decoration: underline;">2</span>001 Female  82 (82, 83)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">2</span>001 Male    79 (79, 79)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">2</span>001 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">2</span>002 Female  82 (82, 83)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (79, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 40 more rows</span></span></span></code></pre></div>
@@ -654,7 +657,7 @@ sex.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  <span style="text-decoration: underline;">2</span>000 Female  82 (82, 82)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>  <span style="text-decoration: underline;">2</span>000 Male    78 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  <span style="text-decoration: underline;">2</span>001 Female  82 (82, 83)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">2</span>001 Male    79 (79, 79)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">2</span>001 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">2</span>002 Female  82 (82, 83)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (79, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 40 more rows</span></span></span></code></pre></div>

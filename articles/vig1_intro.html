@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,9 @@
     <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
     <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -108,8 +111,8 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   (Intercept) ~ NFix()</span></span>
 <span><span class="co">#&gt;          year ~ AR1()</span></span>
-<span><span class="co">#&gt;       age:sex ~ N()</span></span>
-<span><span class="co">#&gt; age:ethnicity ~ N()</span></span>
+<span><span class="co">#&gt;       age:sex ~ ERW()</span></span>
+<span><span class="co">#&gt; age:ethnicity ~ ERW()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: popn</span></span>

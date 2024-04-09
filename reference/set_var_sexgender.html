@@ -16,7 +16,7 @@ using variable names, but do not always get it right."><!-- mathjax --><script s
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,9 @@ using variable names, but do not always get it right."><!-- mathjax --><script s
     <a class="dropdown-item" href="../articles/vig5_workflow.html">vig_5_workflow</a>
     <a class="dropdown-item" href="../articles/vig6_mortality.html">Modelling mortality rates and life expectancy</a>
   </div>
+</li>
+<li class="nav-item">
+  <a class="nav-link" href="../news/index.html">Changelog</a>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
@@ -128,7 +131,7 @@ to locate male categories within a sex or gender variable</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                age ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     biological_sex ~ NFix()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               year ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> age:biological_sex ~ N()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age:biological_sex ~ ERW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
@@ -147,7 +150,7 @@ to locate male categories within a sex or gender variable</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                age ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     biological_sex ~ NFix()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>               year ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> age:biological_sex ~ N()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> age:biological_sex ~ ERW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
