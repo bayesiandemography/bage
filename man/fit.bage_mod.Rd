@@ -19,3 +19,34 @@ A \code{bage_mod} object
 \description{
 Fit a model
 }
+\examples{
+## specify model
+mod <- mod_pois(injuries ~ age + sex + year,
+                data = injuries,
+                exposure = popn)
+
+## examine unfitted model
+mod
+
+## fit model
+mod <- fit(mod)
+
+## examine fitted model
+mod
+
+## extract rates
+aug <- augment(mod)
+aug
+
+## extract hyper-parameters
+comp <- components(mod)
+comp
+}
+\seealso{
+\itemize{
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to specify a model
+\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}}, and \code{\link[=tidy]{tidy()}} to examine
+output from a model.
+\item \code{\link[=forecast]{forecast()}} to forecast, based on a model
+}
+}

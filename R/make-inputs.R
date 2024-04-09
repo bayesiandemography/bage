@@ -475,6 +475,28 @@ make_is_in_lik <- function(mod) {
 }
 
 
+#' Given Vectors of Terms and Levels, Determine Which
+#' Parameters are Time-Varying
+#'
+#' @param term Character vector
+#' @param level Character vector
+#' @param var_time String
+#'
+#' @returns A logical vector
+#'
+#' @noRd
+make_is_time_varying <- function(term, level, var_time) {
+  ## reserved levels are labels for parameters that are
+  ## non-time-varying, even if they occur in time terms
+  p_reserved_level <- "sd$|slope$|mslope$|msd$|*coef[0-9]*$"
+  term_split <- lapply(term, strsplit, split = ":")
+  has_var_time <- function(x) var_time %in% x[[1L]]
+  is_time_term <- vapply(term_split, has_var_time, FALSE)
+  is_reserved <- grepl(p_reserved_level, level)
+  is_time_term & !is_reserved
+}
+  
+
 ## HAS_TESTS
 #' Lengths of vectors of parameters
 #' 

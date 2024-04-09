@@ -388,17 +388,20 @@ Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_j^{(
 \begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}
-Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(m)}$ the prior
-\begin{align}
-  \phi_k^{(m)\prime} & \sim \text{Beta}(2, 2) \\
-  \phi_k^{(m)} & =  2 \phi_k^{(m)\prime} - 1.
-\end{align}
+Each of the individual $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$, and the $\phi_k^{(m)}$ are jointly restricted to values that yield stationary models. Let
+\begin{equation}
+  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
+\end{equation}
+We assign $r^{(m)}$ the prior
+\begin{equation}
+  r^{(m)} \sim \text{Beta}(3, 3).
+\end{equation}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 3, 3 \right) p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
 \end{equation}
 where $p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
@@ -473,17 +476,20 @@ Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_{uv}
 \begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}
-Each of the $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$. We assign each $\phi_k^{(m)}$ the prior
-\begin{align}
-  \phi_k^{(m)\prime} & \sim \text{Beta}(2, 2) \\
-  \phi_k^{(m)} & =  2 \phi_k^{(m)\prime} - 1.
-\end{align}
+Each of the individual $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$, and the $\phi_k^{(m)}$ are jointly restricted to values that yield stationary models. Let
+\begin{equation}
+  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
+\end{equation}
+We assign $r^{(m)}$ the prior
+\begin{equation}
+  r^{(m)} \sim \text{Beta}(3, 3).
+\end{equation}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \left( \prod_{k=1}^{K_m} \text{Beta}\left( \phi_k^{(m)\prime} | 2, 2 \right) \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 3, 3 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
 \end{equation}
 where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 

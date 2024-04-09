@@ -25,7 +25,7 @@ check_along_is_time <- function(mod) {
       next
     nm_prior <- nms_priors[[i_prior]]
     nm_prior_split <- strsplit(nm_prior, split = ":")[[1L]]
-    has_time <- var_time %in% nm_prior_split
+    has_time <- !is.null(var_time) && (var_time %in% nm_prior_split)
     if (!has_time)
       next
     along_is_time <- identical(along, var_time)

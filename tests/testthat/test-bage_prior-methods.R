@@ -610,6 +610,11 @@ test_that("'forecast_compose' works with compose prior - main effect", {
                               component = "hyper",
                               level = c("trend.slope", "trend.sd", "error.sd"),
                               .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
+  ## 'hyper_forecast' ignored, by forecast_effect, but include to test 'forecast_compose' code
+  hyper_forecast <- tibble::tibble(term = "year",
+                              component = "hyper",
+                              level = letters[6:11],
+                              .fitted = rvec::runif_rvec(n = 6, n_draw = 10))
   compose_est <- tibble::tibble(term = "year",
                                 component = rep(c("trend", "error"), each = 5),
                                 level = c(1:5, 1:5),
@@ -621,7 +626,7 @@ test_that("'forecast_compose' works with compose prior - main effect", {
   ans_obtained <- forecast_compose(prior = prior,
                                    nm_prior = "year",
                                    hyper_est =  hyper_est,
-                                   hyper_forecast = NULL,
+                                   hyper_forecast = hyper_forecast,
                                    compose_est = compose_est,
                                    matrix_along_by_est = matrix_along_by_est,
                                    matrix_along_by_forecast = matrix_along_by_forecast,
@@ -4066,6 +4071,12 @@ test_that("'str_nm_prior' works with bage_prior_svd", {
     s <- sim_ssvd()
     expect_identical(str_nm_prior(SVD(s)), "SVD()")
     expect_identical(str_nm_prior(SVDS(s,joint=F,n = 3L)), "SVDS()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_svd", {
+    s <- sim_ssvd()
+    expect_identical(str_nm_prior(ESVD(s)), "ESVD()")
+    expect_identical(str_nm_prior(ESVDS(s,joint=F,n = 3L)), "ESVDS()")
 })
 
 

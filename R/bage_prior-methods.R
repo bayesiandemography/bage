@@ -739,7 +739,7 @@ forecast_compose.bage_prior_compose <- function(prior,
   hypers_forecast <- rep(list(NULL), times = n_prior)
   if (!is.null(hyper_forecast)) {
     comp_hyper_forecast <- sub(p_hyper, "\\1", hyper_forecast$level)
-    hyper_forecast$level <- sub(p_hyper, "\\2", hyper_forecat$level)
+    hyper_forecast$level <- sub(p_hyper, "\\2", hyper_forecast$level)
     hyper_forecast <- vctrs::vec_split(x = hyper_forecast, by = comp_hyper_forecast)
     nms_hyper_forecast <- hyper_forecast$key
     val_hyper_forecast <- hyper_forecast$val
@@ -850,16 +850,16 @@ forecast_effect.bage_prior_ar <- function(prior,
   n_ar <- prior$specific$n
   n_est <- nrow(matrix_along_by_est)
   n_forecast <- nrow(matrix_along_by_forecast)
-  coef <- hyper_est$.fitted[[hyper_est$level == "coef"]]
+  coef <- hyper_est$.fitted[[grepl("^coef", hyper_est$level)]]
   sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
-  tmp <- c(tail(effect_est$.fitted, n = n_ar),
+  tmp <- c(utils::tail(effect_est$.fitted, n = n_ar),
            rep(effect_est$.fitted[[1L]], times = n_forecast))
   for (j in seq_len(n_forecast)) {
     s_ar <- seq(from = j, to = j + n_ar - 1L)
     mean <- sum(coef * tmp[s_ar])
     tmp[[j + n_ar]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
   }
-  .fitted <- tail(tmp, n = n_forecast)
+  .fitted <- utils::tail(tmp, n = n_forecast)
   tibble::tibble(term = nm_prior,
                  component = "effect",
                  level = levels_forecast,
@@ -903,7 +903,7 @@ forecast_effect.bage_prior_ear <- function(prior,
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
-  coef <- hyper_est$.fitted[[hyper_est$level == "coef"]]
+  coef <- hyper_est$.fitted[[grepl("^coef", hyper_est$level)]]
   sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
   .fitted <- rep(effect_est$.fitted[[1L]], times = n_along_forecast * n_by)
   tmp <- rep(effect_est$.fitted[[1L]], times = n_along_forecast + n_ar)
@@ -2738,19 +2738,9 @@ str_nm_prior.bage_prior_svd <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_esvd <- function(prior) {
-  nm_ssvd <- prior$specific$nm_ssvd
-  n <- prior$specific$n
   joint <- prior$specific$joint
-  args <- character(3L)
-  fun <- if (is.null(joint)) "ESVD" else "ESVDS"
-  args[[1L]] <- nm_ssvd
-  if (n != 5)
-    args[[2L]] <- sprintf("n=%s", n)
-  if (!is.null(joint) && joint)
-    args[[3L]] <- "joint=TRUE"
-  args <- args[nzchar(args)]
-  args <- paste(args, collapse = ",")
-  sprintf("%s(%s)", fun, args)
+  nm <- if (is.null(joint)) "ESVD" else "ESVDS"
+  sprintf("%s()", nm)
 }
 
 

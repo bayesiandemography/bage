@@ -1,13 +1,14 @@
 
-
-#' Forecast Main Effects, Interactions, and Hyper-Parameters
-#' Involving Time
+#' Forecast Contents of 'components'
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param components_est Tibble with results
 #' of call to 'components'.
-#' @param labels_forecast Character vector
+#' @param labels_forecast Vector
 #' with labels for future time periods
+#' @param include_non_time_varying Whether to
+#' include forecasts for non-time-varying
+#' parameters in results.
 #'
 #' @returns A tibble or NULL
 #'
@@ -37,9 +38,16 @@ forecast_components <- function(mod,
                                        composes_forecast = composes_forecast,
                                        effects_est = effects_est,
                                        labels_forecast = labels_forecast)
-  ans <- vctrs::vec_rbind(hypers_forecast,
-                          composes_forecast,
-                          effects_forecast,
+  time_varying <- vctrs::vec_rbind(hypers_forecast,
+                                   composes_forecast,
+                                   effects_forecast,
+                                   .name_repair = "universal_quiet")
+  is_time_varying <- make_is_time_varying(term = components_est$term,
+                                          level = components_est$level,
+                                          var_time = mod$var_time)
+  non_time_varying <- components_est[!is_time_varying, ]
+  ans <- vctrs::vec_rbind(time_varying,
+                          non_time_varying,
                           .name_repair = "universal_quiet")
   ans <- sort_components(components = ans,
                          mod = mod)
@@ -48,7 +56,7 @@ forecast_components <- function(mod,
 
 
 ## HAS_TESTS 
-#' Forecast Components of 'compose' Prior
+#' Forecast Components of Time-Varying 'compose' Prior
 #'
 #' Returns NULL if no compose priors are present
 #' in model.
@@ -63,7 +71,7 @@ forecast_components <- function(mod,
 #' @param composes_est Estimates for
 #' components of 'compose' priors
 #' (eg "trend", "seasonal")
-#' @param labels_forecast Character vector
+#' @param labels_forecast Vector
 #' with labels for future time periods
 #'
 #' @returns A tibble or NULL
@@ -94,7 +102,7 @@ forecast_composes <- function(mod,
     hypers_est <- hypers_est$val
   }
   else
-    nms_hypers_est <- character()
+    cli::cli_abort("Internal error: No components have hyper-parameters.") ## nocov
   has_hypers_forecast <- !is.null(hypers_forecast) && (nrow(hypers_forecast) > 0L)
   if (has_hypers_forecast) {
     hypers_forecast <- vctrs::vec_split(x = hypers_forecast,
@@ -121,7 +129,7 @@ forecast_composes <- function(mod,
         if (i_hyper_est > 0L)
           hyper_est <- hypers_est[[i_hyper_est]]
         else
-          hyper_est <- NULL
+          cli::cli_abort("Internal error: Component without hyper-parameters") ## nocov
         i_hyper_forecast <- match(nm_prior, nms_hypers_forecast, nomatch = 0L)
         if (i_hyper_forecast > 0L)
           hyper_forecast <- hypers_forecast[[i_hyper_forecast]]
@@ -142,17 +150,12 @@ forecast_composes <- function(mod,
       }
     }
   }
-  is_null <- vapply(ans, is.null, TRUE)
-  if (all(is_null))
-    NULL
-  else
-    vctrs::vec_rbind(!!!ans, .name_repair = "universal_quiet")
+  vctrs::vec_rbind(!!!ans)
 }
 
 
 ## HAS_TESTS
-#' Forecast Main Effects and Interactions
-#' Involving Time
+#' Forecast Time-Varying Main Effects and Interactions
 #'
 #' Returns NULL if no terms involving timer are present
 #' in the model.
@@ -171,7 +174,7 @@ forecast_composes <- function(mod,
 #' components of 'compose' priors
 #' (eg "trend", "seasonal")
 #' @param effects_est Estimates for terms
-#' @param labels_forecast Character vector
+#' @param labels_forecast Vector
 #' with labels for future time periods
 #'
 #' @returns A tibble or NULL
@@ -279,16 +282,16 @@ forecast_effects <- function(mod,
   }
   is_null <- vapply(ans, is.null, TRUE)
   if (all(is_null))
-    NULL
+    cli::cli_abort("Internal error: No effects forecasted.") ## nocov
   else
-    vctrs::vec_rbind(!!!ans, .name_repair = "universal_quiet")
+    vctrs::vec_rbind(!!!ans)
 }
 
 
 
 ## HAS_TESTS 
-#' Forecast Hyper-Parameters for Main Effects
-#' and Interactions
+#' Forecast Time-Varying Hyper-Parameters
+#' for Main Effects and Interactions
 #'
 #' Returns NULL if no hyper-parameters are forecast.
 #' 
@@ -296,7 +299,7 @@ forecast_effects <- function(mod,
 #' @param hypers_est Tibble with estimates
 #' for hyper-parameters, obtained from
 #' call to 'components'
-#' @param labels_forecast Character vector
+#' @param labels_forecast Vector
 #' with labels for future time periods
 #'
 #' @returns A tibble or NULL
@@ -339,5 +342,31 @@ forecast_hypers <- function(mod,
   if (all(is_null))
     NULL
   else
-    vctrs::vec_rbind(!!!ans, .name_repair = "universal_quiet")
+    vctrs::vec_rbind(!!!ans)
+}
+
+  
+## HAS_TESTS
+#' Create Extra Rows for 'data', holding Values for
+#' Predictor Variables Used in Forecast
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param labels_forecast Vector
+#' with labels for future time periods
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+make_data_forecast <- function(mod, labels_forecast) {
+  formula <- mod$formula
+  data <- mod$data
+  var_time <- mod$var_time
+  nms_model <- all.vars(formula[-2L])
+  ans <- lapply(data[nms_model], unique)
+  ans[[var_time]] <- labels_forecast
+  ans <- vctrs::vec_expand_grid(!!!ans)
+  ans <- vctrs::vec_rbind(data, ans)
+  i_original <- seq_len(nrow(data))
+  ans <- ans[-i_original, ]
+  ans
 }
