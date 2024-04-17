@@ -63,8 +63,7 @@
 #' ssvd_comp(x)
 #' ssvd_comp(x, transform = "none")
 #' @export
-ssvd_comp <- function(x,
-                      transform = c("log", "logit", "none")) {
+ssvd_comp <- function(x, transform = c("log", "logit", "none")) {
   n_comp <- 10L
   ## check 'x'
   check_is_matrix(x, nm_x = "x")
@@ -197,6 +196,8 @@ replace_zeros_ones <- function(x) {
     x
 }
 
+
+## 'hmd' ----------------------------------------------------------------------
 
 ## HAS_TESTS
 #' Convert a Zipped HMD into a Combined Data Frame
@@ -402,12 +403,11 @@ hmd_vary_age_open_type_age <- function(x) {
 #' Prepare Inputs for "total" Type, ie Female and Male Combined
 #'
 #' @param data A data frame
-#' @param transform `"log"`, `"logit"`, or `"none"`.
 #'
 #' @returns A data frame
 #'
 #' @noRd
-hmd_total <- function(data, n, transform) {
+hmd_total <- function(data, n) {
   data <- data[data$sex == "Total", ]
   data <- vctrs::vec_split(x = data[c("age", "country", "time", "mx")],
                            by = data[c("type_age", "age_open")])
@@ -424,7 +424,7 @@ hmd_total <- function(data, n, transform) {
               measure = "mx")
   l <- lapply(x,
               ssvd_comp,
-              transform = transform)
+              transform = "log")
   matrix <- lapply(l, function(x) x$matrix)
   offset <- lapply(l, function(x) x$offset)
   labels_age <- lapply(matrix, rownames)
@@ -440,12 +440,11 @@ hmd_total <- function(data, n, transform) {
 #' Prepare Inputs for "joint" Type, ie Female and Male Modelled Jointly
 #'
 #' @param data A data frame
-#' @param transform `"log"`, `"logit"`, or `"none"`.
 #'
 #' @returns A data frame
 #'
 #' @noRd
-hmd_joint <- function(data, n, transform) {
+hmd_joint <- function(data, n) {
   data <- data[data$sex != "Total", ]
   data <- vctrs::vec_split(x = data[c("age", "sex", "country", "time", "mx")],
                            by = data[c("type_age", "age_open")])
@@ -463,7 +462,7 @@ hmd_joint <- function(data, n, transform) {
               measure = "mx")
   l <- lapply(x,
               ssvd_comp,
-              transform = transform)
+              transform = "log")
   matrix <- lapply(l, function(x) x$matrix)
   offset <- lapply(l, function(x) x$offset)
   rn <- lapply(matrix, rownames)
@@ -482,12 +481,11 @@ hmd_joint <- function(data, n, transform) {
 #' Prepare Inputs for "indep" Type, ie Female and Male Modelled Separately
 #'
 #' @param data A data frame
-#' @param transform `"log"`, `"logit"`, or `"none"`.
 #'
 #' @returns A data frame
 #'
 #' @noRd
-hmd_indep <- function(data, n, transform) {
+hmd_indep <- function(data, n) {
   data <- data[data$sex != "Total", ]
   data <- vctrs::vec_split(x = data[c("age", "country", "time", "mx")],
                            by = data[c("type_age", "age_open", "sex")])
@@ -504,7 +502,7 @@ hmd_indep <- function(data, n, transform) {
               measure = "mx")
   l <- lapply(x,
               ssvd_comp,
-              transform = transform)
+              transform = "log")
   matrix <- lapply(l, function(x) x$matrix)
   offset <- lapply(l, function(x) x$offset)
   labels_sexgender <- .mapply(rep.int,
@@ -552,7 +550,6 @@ hmd_indep <- function(data, n, transform) {
 #' @param zipfile The name of a zipped file downloaded
 #' from the Human Mortality Database.
 #' Any path name that can be handled by [utils::unzip()].
-#' @param transform `"log"`, `"logit"`, or `"none"`.
 #' Defaults to `"log"`.
 #'
 #' @returns An object of class [`"bage_ssvd"`][ssvd()]
@@ -589,8 +586,7 @@ hmd_indep <- function(data, n, transform) {
 #'   to use an object of class 
 #'   [`"bage_ssvd"`][ssvd()] in a prior.
 #' @export
-ssvd_hmd <- function(zipfile, transform = c("log", "logit", "none")) {
-  transform <- match.arg(transform)
+ssvd_hmd <- function(zipfile) {
   cli::cli_progress_message("Unzipping file...")
   data <- hmd_unzip(zipfile)
   cli::cli_progress_message("Tidying data...")
@@ -600,16 +596,248 @@ ssvd_hmd <- function(zipfile, transform = c("log", "logit", "none")) {
   cli::cli_progress_message("Assembling datasets for alternative open age groups...")
   data <- hmd_vary_age_open(data)
   cli::cli_progress_message("Carrying out SVD for 'total'...")
-  total <- hmd_total(data = data,
-                     transform = transform)
+  total <- hmd_total(data)
   cli::cli_progress_message("Carrying out SVD for 'indep'...")
-  indep <- hmd_indep(data = data,
-                     transform = transform)
+  indep <- hmd_indep(data)
   cli::cli_progress_message("Carrying out SVD for 'joint'...")
-  joint <- hmd_joint(data = data,
-                     transform = transform)
+  joint <- hmd_joint(data)
   cli::cli_progress_message("Combining results...")
   data <- vctrs::vec_rbind(total, indep, joint)
   data <- tibble::as_tibble(data)
   ssvd(data)
 }  
+
+
+file <- "~/Downloads/OECD.ELS.SAE,DSD_LFS@DF_LFS_COMP,1.1+all.csv"
+
+
+
+## 'lfs' ----------------------------------------------------------------------
+
+## HAS_TESTS
+#' Read File Containing Labor Force Participation Data
+#'
+#' Read file from OECD database containing data on
+#' labor force participation, and clean the data.
+#'
+#' @param file Path to file
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+lfs_read_and_tidy <- function(file) {
+  ans <- read.csv(file,
+                  colClasses = c(rep("NULL", 5L),
+                                 "character",
+                                 rep("NULL", 5),
+                                 "character",
+                                 "NULL",
+                                 "character",
+                                 "NULL",
+                                 "character",
+                                 "integer",
+                                 "NULL",
+                                 "double",
+                                 rep("NULL", 7L)))
+  ans <- ans[ans$Labour.force.status == "Labour force",]
+  ans <- ans[ans$Age != "Unknown", ]
+  ans <- ans[!(ans$Reference.area %in% c("G7",
+                                         "Europe",
+                                         "OECD",
+                                         "European Union (27 countries)",
+                                         "European Union (22 countries) in OECD",
+                                         "European Union (19 countries) in OECD")), ]
+  ans$Age <- sub("^From ", "", ans$Age)
+  ans$Age <- sub(" to ", "-", ans$Age)
+  ans$Age <- sub(" years", "", ans$Age)
+  ans$Age <- sub(" or over", "+", ans$Age)
+  ans <- ans[!(ans$Age %in% c("25-34",
+                              "30-39", "35-44",
+                              "40-49", "45-54",
+                              "50-59", "55-64",
+                              "65-74")), ]
+  ans$measure <- ans$OBS_VALUE / 100
+  names(ans)[match("Reference.area", names(ans))] <- "country"
+  names(ans)[match("Sex", names(ans))] <- "sex"
+  names(ans)[match("Age", names(ans))] <- "age"
+  names(ans)[match("TIME_PERIOD", names(ans))] <- "time"
+  ans <- ans[c("country", "sex", "age", "time", "measure")]
+  ans <- tibble::tibble(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Get Data Associated with One Set of Age Labels
+#'
+#' Retrieve data, turn the age variable into a factor,
+#' and use it to sort the data.
+#' 
+#' @param data A data frame
+#' @param labels_age A character vector of age labels
+#'
+#' @returns A data frame
+#'
+#' @noRd
+lfs_get_data_one <- function(data, labels_age) {
+  ans <- data[data$age %in% labels_age, ]
+  ans$age <- factor(ans$age, levels = labels_age)
+  ord <- order(ans$age)
+  ans <- ans[ord, ]
+  rownames(ans) <- NULL
+  ans
+}
+
+  
+## HAS_TESTS
+#' Prepare Inputs for "total" Type, ie Female and Male Combined
+#'
+#' @param data A data frame
+#'
+#' @returns A data frame
+#'
+#' @noRd
+lfs_total <- function(data, ages_max) {
+  data <- data[data$sex == "Total", ]
+  labels_age <- .mapply(poputils::age_labels,
+                        dots = list(max = ages_max),
+                        MoreArgs = list(type = "five",
+                                        min = 15,
+                                        open = TRUE))
+  data_split <- .mapply(lfs_get_data_one,
+                        dots = list(labels_age = labels_age),
+                        MoreArgs = list(data = data))
+  x_split <- .mapply(poputils::to_matrix,
+                     dots = list(x = data_split),
+                     MoreArgs = list(rows = "age",
+                                     cols = c("country", "time"),
+                                     measure = "measure"))
+  ssvd_split <- lapply(x_split,
+                       ssvd_comp,
+                       transform = "logit")
+  matrix <- lapply(ssvd_split, function(x) x$matrix)
+  offset <- lapply(ssvd_split, function(x) x$offset)
+  tibble::tibble(type = "total",
+                 labels_age = labels_age,
+                 labels_sexgender = list(NULL),
+                 matrix = matrix,
+                 offset = offset)
+}
+
+
+
+#' Prepare Inputs for "indep" Type, ie Female and Male Separate
+#'
+#' @param data A data frame
+#'
+#' @returns A data frame
+#'
+#' @noRd
+lfs_indep <- function(data, ages_max) {
+  data <- data[data$sex %in% c("Female", "Male"), ]
+  data$sex <- poputils::reformat_sex(data$sex)
+  labels_age_single <- .mapply(poputils::age_labels,
+                               dots = list(max = ages_max),
+                               MoreArgs = list(type = "five",
+                                               min = 15,
+                                        open = TRUE))
+  data_split <- .mapply(lfs_get_data_one,
+                        dots = list(labels_age = labels_age_single),
+                        MoreArgs = list(data = data))
+  data_split <- lapply(data_split,
+                       function(x) split(x[c("country", "time", "age", "measure")], x["sex"]))
+  x_split <- lapply(data_split,
+                    function(x)
+                      .mapply(poputils::to_matrix,
+                              dots = list(x = x),
+                              MoreArgs = list(rows = "age",
+                                              cols = c("country", "time"),
+                                              measure = "measure")))
+  ssvd_split <- lapply(x_split,
+                       function(x_one_age_max)
+                         lapply(x_one_age_max,
+                                ssvd_comp,
+                                transform = "logit"))
+  labels_age <- lapply(labels_age_single, rep.int, times = 2L)
+  n_age_single <- lengths(labels_age_single)
+  labels_sexgender <- .mapply(rep,
+                              dots = list(each = n_age_single),
+                              MoreArgs = list(x = c("Female", "Male")))
+  matrix <- lapply(ssvd_split, function(x) lapply(x, function(y) y$matrix))
+  offset <- lapply(ssvd_split, function(x) lapply(x, function(y) y$offset))
+  matrix <- lapply(matrix, Matrix::.bdiag)
+  offset <- lapply(offset, function(x) vctrs::vec_c(!!!x))
+  for (i in seq_along(offset)) {
+    nms <- paste(labels_sexgender[[i]], labels_age[[i]], sep = ".")
+    names(offset[[i]]) <- nms
+    rownames(matrix[[i]]) <- nms
+  }
+  tibble::tibble(type = "indep",
+                 labels_age = labels_age,
+                 labels_sexgender = labels_sexgender,
+                 matrix = matrix,
+                 offset = offset)
+}
+
+
+## HAS_TESTS
+#' Prepare Inputs for "joint" Type, ie Female and Male Combined
+#'
+#' @param data A data frame
+#'
+#' @returns A data frame
+#'
+#' @noRd
+lfs_joint <- function(data, ages_max) {
+  data <- data[data$sex %in% c("Female", "Male"), ]
+  data$sex <- poputils::reformat_sex(data$sex)
+  labels_age_single <- .mapply(poputils::age_labels,
+                               dots = list(max = ages_max),
+                               MoreArgs = list(type = "five",
+                                               min = 15,
+                                               open = TRUE))
+  data_split <- .mapply(lfs_get_data_one,
+                        dots = list(labels_age = labels_age_single),
+                        MoreArgs = list(data = data))
+  order_sexage <- function(x) x[order(x$sex), ]
+  data_split <- lapply(data_split, order_sexage)
+  x_split <- .mapply(poputils::to_matrix,
+                     dots = list(x = data_split),
+                     MoreArgs = list(rows = c("sex", "age"),
+                                     cols = c("country", "time"),
+                                     measure = "measure"))
+  ssvd_split <- lapply(x_split,
+                       ssvd_comp,
+                       transform = "logit")
+  labels_age <- lapply(labels_age_single, rep, times = 2L)
+  n_age_single <- lengths(labels_age_single)
+  labels_sexgender <- .mapply(rep,
+                              dots = list(each = n_age_single),
+                              MoreArgs = list(x = c("Female", "Male")))
+  matrix <- lapply(ssvd_split, function(x) x$matrix)
+  offset <- lapply(ssvd_split, function(x) x$offset)
+  tibble::tibble(type = "joint",
+                 labels_age = labels_age,
+                 labels_sexgender = labels_sexgender,
+                 matrix = matrix,
+                 offset = offset)
+}
+
+
+
+
+ssvd_lfs <- function(file) {
+  cli::cli_progress_message("Reading file...")
+  data <- lfs_read_and_tidy(file)
+  cli::cli_progress_message("Carrying out SVD for 'total'...")
+  total <- lfs_total(data)
+  cli::cli_progress_message("Carrying out SVD for 'indep'...")
+  indep <- lfs_indep(data)
+  cli::cli_progress_message("Carrying out SVD for 'joint'...")
+  joint <- lfs_joint(data)
+  cli::cli_progress_message("Combining results...")
+  data <- vctrs::vec_rbind(total, indep, joint)
+  data <- tibble::as_tibble(data)
+  ssvd(data)
+}
+ 
