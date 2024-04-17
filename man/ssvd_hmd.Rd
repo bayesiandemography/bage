@@ -4,14 +4,12 @@
 \alias{ssvd_hmd}
 \title{Create a Scaled SVD Object from a Human Mortality Database File}
 \usage{
-ssvd_hmd(zipfile, transform = c("log", "logit", "none"))
+ssvd_hmd(zipfile)
 }
 \arguments{
 \item{zipfile}{The name of a zipped file downloaded
 from the Human Mortality Database.
-Any path name that can be handled by \code{\link[utils:unzip]{utils::unzip()}}.}
-
-\item{transform}{\code{"log"}, \code{"logit"}, or \code{"none"}.
+Any path name that can be handled by \code{\link[utils:unzip]{utils::unzip()}}.
 Defaults to \code{"log"}.}
 }
 \value{
