@@ -54,7 +54,7 @@ test_that("'ssvd_comp' gives expected error when too few columns", {
     x$value <- rnorm(nrow(x))
     x <- poputils::to_matrix(x, rows = c(age, sex), cols = c(year, country), measure = value)
     expect_error(ssvd_comp(x = x, transform = "none"),
-                 "`x` does not have enough columns.")
+                 "`ncol\\(x\\)` less than `n_comp`.")
 })
 
 test_that("'ssvd_comp' gives expected error when too few columns", {
@@ -66,7 +66,7 @@ test_that("'ssvd_comp' gives expected error when too few columns", {
     x$value <- rnorm(nrow(x))
     x <- poputils::to_matrix(x, rows = c(age, sex), cols = c(year, country), measure = value)
     expect_error(ssvd_comp(x = x, transform = "none"),
-                 "`x` does not have enough rows.")
+                 "`nrow\\(x\\)` less than `n_comp`.")
 })
 
 test_that("'ssvd_comp' gives expected error when negative values", {
@@ -116,7 +116,6 @@ test_that("'replace_zeros_ones' performs correctly with valid inputs", {
 })
 
 
-    
 ## 'hmd_unzip' ----------------------------------------------------------------
 
 test_that("'hmd_unzip' works with valid inputs - unzipped has hmd_statistics_test folder", {
@@ -263,7 +262,7 @@ test_that("'hmd_total' works with valid inputs", {
                             type_age = c("single", "five"),
                             age_open = 50))
   data$mx <- runif(n = nrow(data))
-  ans_obtained <- hmd_total(data, transform = "none")
+  ans_obtained <- hmd_total(data)
   expect_setequal(names(ans_obtained),
                   c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
   expect_true(all(sapply(ans_obtained$matrix, is, "dgCMatrix")))
@@ -287,7 +286,7 @@ test_that("'hmd_joint' works with valid inputs", {
                             type_age = c("single", "five"),
                             age_open = 50))
   data$mx <- runif(n = nrow(data))
-  ans_obtained <- hmd_joint(data, transform = "log")
+  ans_obtained <- hmd_joint(data)
   expect_setequal(names(ans_obtained),
                   c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
   expect_true(all(sapply(ans_obtained$matrix, is, "dgCMatrix")))
@@ -316,7 +315,7 @@ test_that("'hmd_indep' works with valid inputs", {
                             type_age = c("single", "five"),
                             age_open = 50))
   data$mx <- runif(n = nrow(data))
-  ans_obtained <- hmd_indep(data, transform = "logit")
+  ans_obtained <- hmd_indep(data)
   expect_setequal(names(ans_obtained),
                   c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
   expect_true(all(sapply(ans_obtained$matrix, is, "dgTMatrix")))
@@ -332,96 +331,6 @@ test_that("'hmd_indep' works with valid inputs", {
 
 test_that("'ssvd_hmd' works with valid inputs", {
   fn <- file.path("data_for_tests", "hmd_statistics_test.zip")
-  suppressMessages(ans <- ssvd_hmd(fn, transform = "log"))
+  suppressMessages(ans <- ssvd_hmd(fn))
   expect_s3_class(ans, "bage_ssvd")
-})
-
-
-## 'lfs_get_data_one' ---------------------------------------------------------
-
-test_that("'lfs_get_data_one' works", {
-  data <- data.frame(age = c("25-29", "20-24", "30-34", "30+"),
-                     val = 1:4)
-  labels_age <- c("20-24", "25-29", "30+")
-  ans_obtained <- lfs_get_data_one(data = data,
-                                   labels_age = labels_age)
-  ans_expected <- data.frame(age = factor(c("20-24", "25-29", "30+")),
-                             val = c(2L, 1L, 4L))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'lfs_indep' ----------------------------------------------------------------
-
-test_that("'lfs_indep' works with valid inputs", {
-  data <- expand.grid(country = 1:2,
-                      sex = c("Female", "Male", "Total"),
-                      age = c(poputils::age_labels(type = "five",
-                                                 min = 15,
-                                                 max = 65,
-                                                 open = TRUE),
-                              "60+"),
-                      time = 2001:2005)
-  data$measure <- runif(n = nrow(data))
-  ans_obtained <- lfs_indep(data, ages_max = c(60, 65))
-  expect_setequal(names(ans_obtained),
-                  c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
-  expect_true(all(sapply(ans_obtained$matrix, is, "dgTMatrix")))
-  expect_identical(rownames(ans_obtained$matrix[[1]]),
-                   paste(ans_obtained$labels_sexgender[[1]],
-                         ans_obtained$labels_age[[1]],
-                         sep = "."))
-})
-
-
-## 'lfs_joint' ----------------------------------------------------------------
-
-test_that("'lfs_joint' works with valid inputs", {
-  data <- expand.grid(country = 1:2,
-                      sex = c("Female", "Male", "Total"),
-                      age = c(poputils::age_labels(type = "five",
-                                                 min = 15,
-                                                 max = 65,
-                                                 open = TRUE),
-                              "60+"),
-                      time = 2001:2005)
-  data$measure <- runif(n = nrow(data))
-  ans_obtained <- lfs_joint(data, ages_max = c(60, 65))
-  expect_setequal(names(ans_obtained),
-                  c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
-  expect_true(all(sapply(ans_obtained$matrix, is, "dgCMatrix")))
-  expect_identical(rownames(ans_obtained$matrix[[1]]),
-                   paste(ans_obtained$labels_sexgender[[1]],
-                         ans_obtained$labels_age[[1]],
-                         sep = "."))
-})
-
-
-## 'lfs_read_and_tidy' --------------------------------------------------------
-
-test_that("'lfs_read_and_tidy' works with valid inputs", {
-  fn <- file.path("data_for_tests", "OECD.ELS.SAE,DSD_LFS@DF_LFS_COMP,1.1+all.csv")
-  ans <- lfs_read_and_tidy(fn)
-  expect_setequal(names(ans),
-                  c("country", "sex", "age", "time", "measure"))
-  expect_true(tibble::is_tibble(ans))
-})
-
-
-## 'lfs_total' ----------------------------------------------------------------
-
-test_that("'lfs_total' works with valid inputs", {
-  data <- expand.grid(country = 1:2,
-                      sex = c("Female", "Male", "Total"),
-                      age = c(poputils::age_labels(type = "five",
-                                                 min = 15,
-                                                 max = 65,
-                                                 open = TRUE),
-                              "60+"),
-                      time = 2001:2005)
-  data$measure <- runif(n = nrow(data))
-  ans_obtained <- lfs_total(data, ages_max = c(60, 65))
-  expect_setequal(names(ans_obtained),
-                  c("type", "labels_age", "labels_sexgender", "matrix", "offset"))
-  expect_true(all(sapply(ans_obtained$matrix, is, "dgCMatrix")))
 })

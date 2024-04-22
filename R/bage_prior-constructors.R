@@ -1038,8 +1038,8 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 #' holding results from a scaled SVD.
 #' See below for current options.
 #' @param n Number of vectors from scaled SVD
-#' to use in modelling. Must be between 1 and 10.
-#' Default is 5.
+#' to use in modelling. 
+#' Default is half the number of components of `ssvd`.
 #'
 #' @returns An object of class `"bage_prior_svd"`.
 #'
@@ -1056,14 +1056,23 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
 #' SVD(HMD)
 #' SVD(HMD, n = 3)
 #' @export
-SVD <- function(ssvd, n = 5) {
+SVD <- function(ssvd, n = NULL) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  check_n(n,
-          nm_n = "n",
-          min = 1L,
-          max = 10L,
-          null_ok = FALSE)
+  n_comp <- n_comp(ssvd)
+  if (is.null(n))
+    n <- ceiling(n_comp / 2)
+  else {
+    check_n(n,
+            nm_n = "n",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
+    if (n > n_comp)
+      cli::cli_abort(c("{.arg n} larger than number of components of {.arg ssvd}.",
+                       i = "{.arg n}: {.val {n}}.",
+                       i = "Number of components: {.val {n_comp}}."))
+  }
   n <- as.integer(n)
   new_bage_prior_svd(ssvd = ssvd,
                      nm_ssvd = nm_ssvd,

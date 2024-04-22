@@ -15,7 +15,7 @@ An object of class \code{"bage_ssvd"}.
 \description{
 Create an object of class \code{"bage_ssvd"} to
 hold results from a scaled \link[base:svd]{Singular Value Decomposition}
-(SVD).
+(SVD) with \code{n_comp} components.
 }
 \details{
 \code{data} has the following columns:
@@ -33,8 +33,8 @@ this case results average across sexes/genders.
 \item \code{matrix} List column of sparse matrices created by
 \code{\link[=ssvd_comp]{ssvd_comp()}}. Must have rownames.
 Must not have NAs. When \code{type} is \code{"total"} or \code{"joint"},
-each matrix has 10 columns. When \code{"type"} is \code{"indep"},
-each matrix has 20 columns.
+each matrix has \code{n_comp} columns. When \code{"type"} is \code{"indep"},
+each matrix has \code{2 * n_comp} columns.
 \item \code{offset} List column of vectors created by
 \code{\link[=ssvd_comp]{ssvd_comp()}}. Must have names, which
 are identical to the rownames of the corresponding

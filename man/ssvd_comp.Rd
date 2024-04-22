@@ -4,7 +4,7 @@
 \alias{ssvd_comp}
 \title{Create components needed by a ssvd object}
 \usage{
-ssvd_comp(x, transform = c("log", "logit", "none"))
+ssvd_comp(x, transform = c("log", "logit", "none"), n_comp = 10)
 }
 \arguments{
 \item{x}{A matrix with value such as rates,
@@ -12,6 +12,8 @@ probabilities, or means.}
 
 \item{transform}{\code{"log"}, \code{"logit"}, or \code{"none"}.
 Defaults to \code{"log"}.}
+
+\item{n_comp}{Number of components.}
 }
 \value{
 A named list with two elements:
@@ -73,4 +75,5 @@ x <- matrix(rgamma(n = 150, shape = 1),
 x
 ssvd_comp(x)
 ssvd_comp(x, transform = "none")
+ssvd_comp(x, n_comp = 2)
 }

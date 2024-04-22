@@ -4,7 +4,7 @@
 #'
 #' Create an object of class `"bage_ssvd"` to
 #' hold results from a scaled [Singular Value Decomposition][base::svd()]
-#' (SVD).
+#' (SVD) with `n_comp` components.
 #'
 #' `data` has the following columns:
 #'
@@ -21,15 +21,15 @@
 #' - `matrix` List column of sparse matrices created by
 #'   [ssvd_comp()]. Must have rownames.
 #'   Must not have NAs. When `type` is `"total"` or `"joint"`,
-#'   each matrix has 10 columns. When `"type"` is `"indep"`,
-#'   each matrix has 20 columns.
+#'   each matrix has `n_comp` columns. When `"type"` is `"indep"`,
+#'   each matrix has `2 * n_comp` columns.
 #' - `offset` List column of vectors created by
 #'   [ssvd_comp()]. Must have names, which
 #'   are identical to the rownames of the corresponding
 #'   element of `matrix`.
 #'   
 #' @param data A data frame. See Details for description.
-#'
+#' 
 #' @returns An object of class `"bage_ssvd"`.
 #'
 #' @export
@@ -40,7 +40,6 @@ ssvd <- function(data) {
                    "matrix",
                    "offset")
     type_valid <- c("total", "joint", "indep")
-    n_comp <- 10L
     ## 'data' is a data frame
     if (!is.data.frame(data))
         cli::cli_abort(c("{.arg data} is not a data frame.",
@@ -134,14 +133,17 @@ ssvd <- function(data) {
     ## elements of 'matrix' have 'n_comp' columns if type is "total" or "joint"
     ## and 2 * 'n_comp' columns if type is "indep"
     ncol_matrix <- vapply(data$matrix, ncol, 1L)
-    ncol_expected <- ifelse(data$type == "indep", 2L * n_comp, n_comp)
+    ncol_total_1 <- ncol_matrix[is_total][[1L]]
+    ncol_expected <- ifelse(data$type == "indep", 2L * ncol_total_1, ncol_total_1)
     is_ncol_expect <- ncol_matrix == ncol_expected
     i_ncol_unex <- match(FALSE, is_ncol_expect, nomatch = 0L)
     if (i_ncol_unex > 0L)
-        cli::cli_abort(c("Element {i_ncol_unex} of {.var matrix} has wrong number of columns.",
-                         i = "Element {i_ncol_unex} has {ncol_matrix[[i_ncol_unex]]} columns.",
-                         i = paste("Element {i_ncol_unex} of {.var type} is {.val {data$type[[i_ncol_unex]]}},",
-                                   "so should have {ncol_expected[[i_ncol_unex]]} columns.")))
+        cli::cli_abort(c("Elements of {.var matrix} have incompatible numbers of columns.",
+                         i = "Columns for first matrix of type {.val total}: {.val {ncol_total_1}}.",
+                         i = paste("Columns for element {.val {i_ncol_unex}} of {.var matrix}:",
+                                   "{.val {ncol_matrix[[i_ncol_unex]]}}."),
+                         i = paste("Element {.val {i_ncol_unex}} of {.var matrix} has type",
+                                   "{.val {data$type[[i_ncol_unex]]}}.")))
     ## elements of 'matrix' have rownames
     rn_matrix <- lapply(data$matrix, rownames)
     is_rn_null <- vapply(rn_matrix, is.null, TRUE)

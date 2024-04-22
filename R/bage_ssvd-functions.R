@@ -124,6 +124,4 @@ get_matrix_or_offset_svd <- function(ssvd,
     ans[i, , drop = FALSE]
   else
     ans[i]
-}
-
-
+}  

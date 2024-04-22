@@ -98,7 +98,7 @@ test_that("'ssvd' throws correct error when matrices has unexpected number of co
     data <- sim_ssvd()$data
     data$matrix[[3]] <- data$matrix[[2]]
     expect_error(ssvd(data),
-                 "Element 3 of `matrix` has wrong number of columns.")
+                 "Elements of `matrix` have incompatible numbers of columns.")
 })
 
 test_that("'ssvd' throws correct error when matrix does not have rownames", {
