@@ -19,7 +19,7 @@ generics::generate
 #' @param n_draw Number of random draws to generate.
 #' @param n_comp The number of components
 #' to use when generating profiles. Default is
-#' 5. Maximum value is 10.
+#' half the number of components of `x`.
 #' @param joint Whether to use joint or
 #' independent SVDs for each sex/gender. If
 #' no value is supplied, an SVD for all sexes/genders
@@ -50,7 +50,7 @@ generics::generate
 #' @export
 generate.bage_ssvd <- function(x,
                                n_draw = 20,
-                               n_comp = 5,
+                               n_comp = NULL,
                                joint = NULL,
                                age_labels = NULL,
                                ...) {
@@ -59,6 +59,21 @@ generate.bage_ssvd <- function(x,
           min = 1L,
           max = NULL,
           null_ok = FALSE)
+  n_comp_x <- n_comp(x)
+  if (is.null(n_comp))
+    n_comp <- ceiling(n_comp_x / 2)
+  else {
+    check_n(n = n_comp,
+            nm_n = "n_comp",
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
+    if (n_comp > n_comp_x)
+      cli::cli_abort(c("{.arg n_comp} larger than number of components of {.arg x}.",
+                       i = "{.arg n_comp}: {.val {n_comp}}.",
+                       i = "Number of components: {.val {n_comp_x}}."))
+  }
+  n_comp <- as.integer(n_comp)
   has_joint <- !is.null(joint)
   if (has_joint) {
     check_flag(x = joint, nm_x = "joint")
@@ -122,6 +137,30 @@ generate.bage_ssvd <- function(x,
   }
   ans[["value"]] <- as.double(value)
   ans
+}
+
+
+## 'n_comp' -------------------------------------------------------------------
+
+#' Extract Number of Components
+#'
+#' @param x Object holding components
+#'
+#' @returns An integer.
+#'
+#' @noRd
+n_comp <- function(x) {
+  UseMethod("n_comp")
+}
+
+#' @export
+n_comp.bage_ssvd <- function(x) {
+  data <- x$data
+  type <- data$type
+  matrix <- data$matrix
+  i_total <- match("total", type)
+  matrix_total <- matrix[[i_total]]
+  ncol(matrix_total)
 }
 
 

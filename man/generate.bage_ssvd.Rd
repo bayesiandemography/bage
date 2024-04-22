@@ -4,7 +4,7 @@
 \alias{generate.bage_ssvd}
 \title{Generate Random Age or Age-Sex Profiles}
 \usage{
-\method{generate}{bage_ssvd}(x, n_draw = 20, n_comp = 5, joint = NULL, age_labels = NULL, ...)
+\method{generate}{bage_ssvd}(x, n_draw = 20, n_comp = NULL, joint = NULL, age_labels = NULL, ...)
 }
 \arguments{
 \item{x}{An object of class \code{"bage_ssvd"}.}
@@ -13,7 +13,7 @@
 
 \item{n_comp}{The number of components
 to use when generating profiles. Default is
-5. Maximum value is 10.}
+half the number of components of \code{x}.}
 
 \item{joint}{Whether to use joint or
 independent SVDs for each sex/gender. If
