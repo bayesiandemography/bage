@@ -173,6 +173,25 @@ draw_vals_effect.bage_prior_erw <- function(prior,
 
 ## HAS_TESTS
 #' @export
+draw_vals_effect.bage_prior_erw2 <- function(prior,
+                                             vals_hyper,
+                                             vals_hyperrand,
+                                             levels_effect,
+                                             levels_age,
+                                             levels_sexgender,
+                                             agesex,
+                                             matrix_along_by,
+                                             matrix_agesex,
+                                             n_sim) {
+  sd <- vals_hyper$sd
+  draw_vals_erw2(sd = sd,
+                 matrix_along_by = matrix_along_by,
+                 labels = levels_effect)
+}
+
+
+## HAS_TESTS
+#' @export
 draw_vals_effect.bage_prior_eseas <- function(prior,
                                               vals_hyper,
                                               vals_hyperrand,
@@ -308,9 +327,7 @@ draw_vals_effect.bage_prior_rw2 <- function(prior,
                                             matrix_agesex,
                                             n_sim) {
   sd <- vals_hyper$sd
-  sd_slope <- prior$specific$sd_slope
   draw_vals_rw2(sd = sd,
-                sd_slope = sd_slope,
                 labels = levels_effect)
 }
 
@@ -346,13 +363,11 @@ draw_vals_effect.bage_prior_spline <- function(prior,
                                                matrix_agesex,
                                                n_sim) {
   sd <- vals_hyper$sd
-  sd_slope <- prior$specific$sd_slope
   m <- make_matrix_effectfree_effect(prior = prior,
                                      levels_effect = levels_effect,
                                      agesex = NULL)
   labels <- seq_len(ncol(m))
   effect <- draw_vals_rw2(sd = sd,
-                          sd_slope = sd_slope,
                           labels = labels)
   m %*% effect
 }
@@ -495,6 +510,14 @@ draw_vals_hyper.bage_prior_elin <- function(prior, n_sim) {
 ## HAS_TESTS
 #' @export
 draw_vals_hyper.bage_prior_erw <- function(prior, n_sim) {
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_erw2 <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
   list(sd = sd)
@@ -997,6 +1020,44 @@ forecast_effect.bage_prior_erw <- function(prior,
 
 ## HAS_TESTS
 #' @export
+forecast_effect.bage_prior_erw2 <- function(prior,
+                                            nm_prior,
+                                            hyper_est,
+                                            hyper_forecast,
+                                            compose_est,
+                                            compose_forecast,
+                                            effect_est,
+                                            matrix_along_by_est,
+                                            matrix_along_by_forecast,
+                                            levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rep(effect_est$.fitted[[1L]],
+                 times = n_along_forecast * n_by)
+  tmp <- rep(effect_est$.fitted[[1L]],
+             times = n_along_forecast + 2L)
+  for (i_by in seq_len(n_by)) {
+    i_last <- matrix_along_by_est[n_along_est, i_by] + 1L
+    i_second_last <- matrix_along_by_est[n_along_est, i_by]
+    tmp[[2L]] <- effect_est$.fitted[[i_last]]
+    tmp[[1L]] <- effect_est$.fitted[[i_second_last]]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + 2L]] <- rvec::rnorm_rvec(n = 1L,
+                                        mean = 2 * tmp[[j + 1L]] - tmp[[j]],
+                                        sd = sd)
+    i_fitted <- matrix_along_by_forecast[, i_by] + 1L
+    .fitted[i_fitted] <- tmp[-(1:2)]
+  }
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
 forecast_effect.bage_prior_eseas <- function(prior,
                                              nm_prior,
                                              hyper_est,
@@ -1489,6 +1550,26 @@ is_prior_ok_for_term.bage_prior_erw <- function(prior,
 
 ## HAS_TESTS
 #' @export
+is_prior_ok_for_term.bage_prior_erw2 <- function(prior,
+                                                 nm,
+                                                 matrix_along_by,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender,
+                                                 is_in_compose,
+                                                 agesex) {
+  check_is_interaction(nm = nm,
+                       prior = prior)
+  length_along <- nrow(matrix_along_by)
+  check_length_along_ge(length_along = length_along,
+                        min = 3L,
+                        nm = nm,
+                        prior = prior)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
 is_prior_ok_for_term.bage_prior_eseas <- function(prior,
                                                   nm,
                                                   matrix_along_by,
@@ -1903,6 +1984,11 @@ levels_hyper.bage_prior_elin <- function(prior) {
 ## HAS_TESTS
 #' @export
 levels_hyper.bage_prior_erw <- function(prior)
+  "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_erw2 <- function(prior)
   "sd"
 
 ## HAS_TESTS
@@ -2465,6 +2551,21 @@ str_call_prior.bage_prior_erw <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_call_prior.bage_prior_erw2 <- function(prior) {
+  scale <- prior$specific$scale
+  along <- prior$specific$along
+  args <- character(2L)
+  if (scale != 1)
+    args[[1L]] <- sprintf("s=%s", scale)
+  if (!is.null(along))
+    args[[2L]] <- sprintf('along="%s"', along)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("ERW2(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
 str_call_prior.bage_prior_eseas <- function(prior) {
   n <- prior$specific$n
   scale <- prior$specific$scale
@@ -2547,15 +2648,10 @@ str_call_prior.bage_prior_rw <- function(prior) {
 #' @export
 str_call_prior.bage_prior_rw2 <- function(prior) {
   scale <- prior$specific$scale
-  sd_slope <- prior$specific$sd_slope
-  args <- character(2L)
-  if (scale != 1)
-    args[[1L]] <- sprintf("s=%s", scale)
-  if (sd_slope != 1)
-    args[[2L]] <- sprintf("sd=%s", sd_slope)
-  args <- args[nzchar(args)]
-  args <- paste(args, collapse = ",")
-  sprintf("RW2(%s)", args)
+  if (isTRUE(all.equal(scale, 1)))
+    "RW2()"
+  else
+    sprintf("RW2(s=%s)", scale)
 }
 
 ## HAS_TESTS
@@ -2671,6 +2767,12 @@ str_nm_prior.bage_prior_elin <- function(prior) {
 #' @export
 str_nm_prior.bage_prior_erw <- function(prior) {
   "ERW()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_erw2 <- function(prior) {
+  "ERW2()"
 }
 
 ## HAS_TESTS
@@ -2809,6 +2911,12 @@ transform_hyper.bage_prior_elin <- function(prior) {
 ## HAS_TESTS
 #' @export
 transform_hyper.bage_prior_erw <- function(prior) {
+  list(sd = exp)
+}
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_erw2 <- function(prior) {
   list(sd = exp)
 }
 
@@ -3001,10 +3109,19 @@ use_for_compose_trend <- function(prior) {
 use_for_compose_trend.bage_prior <- function(prior) FALSE
 
 #' @export
+use_for_compose_trend.bage_prior_ar <- function(prior) TRUE
+
+#' @export
+use_for_compose_trend.bage_prior_ear <- function(prior) TRUE
+
+#' @export
 use_for_compose_trend.bage_prior_elin <- function(prior) TRUE
 
 #' @export
 use_for_compose_trend.bage_prior_erw <- function(prior) TRUE
+
+#' @export
+use_for_compose_trend.bage_prior_erw2 <- function(prior) TRUE
 
 #' @export
 use_for_compose_trend.bage_prior_lin <- function(prior) TRUE
@@ -3048,6 +3165,9 @@ use_for_interaction.bage_prior_elin <- function(prior) TRUE
 
 #' @export
 use_for_interaction.bage_prior_erw <- function(prior) TRUE
+
+#' @export
+use_for_interaction.bage_prior_erw2 <- function(prior) TRUE
 
 #' @export
 use_for_interaction.bage_prior_eseas <- function(prior) TRUE
@@ -3128,6 +3248,10 @@ uses_along.bage_prior_elin <- function(prior) TRUE
 ## HAS_TESTS
 #' @export
 uses_along.bage_prior_erw <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_erw2 <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
