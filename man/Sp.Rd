@@ -4,7 +4,7 @@
 \alias{Sp}
 \title{P-spline prior}
 \usage{
-Sp(n = NULL, s = 1, sd = 1)
+Sp(n = NULL, s = 1)
 }
 \arguments{
 \item{n}{Number of spline vectors.
@@ -14,8 +14,6 @@ where \code{k} is the number
 of elements in the term being modelled.}
 
 \item{s}{A positive, finite number. Default is 1.}
-
-\item{sd}{A positive, finite number. Default is 1.}
 }
 \value{
 An object of class \code{"bage_prior_spline"}.
@@ -42,7 +40,7 @@ with \code{n} elements.
 }
 
 The elements of \eqn{\gamma} are assumed to follow
-a second order random walk (see \code{\link[=RW2]{RW2()}}).
+a random walk with drift (see \code{\link[=RW2]{RW2()}}).
 }
 
 \examples{

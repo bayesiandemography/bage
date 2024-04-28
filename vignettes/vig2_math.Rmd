@@ -578,7 +578,7 @@ where
 \begin{equation}
   \begin{split}
   & \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\omega_m | 0, A_{\omega}^{(m)2})   \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) \\
-  & \quad \times \prod_{u=1}^{U_m} \text{N}\left(\eta_u^{(m)} \mid 0, \omega_m^2 \right) \\
+  & \quad \times \prod_{u=1}^{U_m} \text{N}\left(\eta_u^{(m)} \mid \eta^{(m)}, \omega_m^2 \right) \\
   & \quad \times \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right) 
   \end{split}
 \end{equation}

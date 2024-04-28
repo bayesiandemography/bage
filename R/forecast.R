@@ -342,7 +342,7 @@ forecast_hypers <- function(mod,
   if (all(is_null))
     NULL
   else
-    vctrs::vec_rbind(!!!ans)
+    vctrs::vec_rbind(!!!ans)  ## nocov - no priors currently have time-varying hyper
 }
 
   

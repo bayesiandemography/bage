@@ -34,7 +34,7 @@ a seasonal effect, and an error.
 \details{
 \tabular{lll}{
    Term \tab Main effects \tab Interactions \cr
-   \code{trend} \tab \code{\link[=Lin]{Lin()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Sp]{Sp()}} \tab \code{\link[=ELin]{ELin()}} \cr
+   \code{trend} \tab \code{\link[=AR1]{AR1()}}, \code{\link[=AR]{AR()}}, \code{\link[=Lin]{Lin()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Sp]{Sp()}} \tab \code{\link[=EAR1]{EAR1()}}, \code{\link[=EAR]{EAR()}}, \code{\link[=ELin]{ELin()}} \cr
    \code{seasonal} \tab \code{\link[=Seas]{Seas()}} \tab \code{\link[=ESeas]{ESeas()}} \cr
    \code{cyclical} \tab \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}} \tab \code{\link[=EAR]{EAR()}}, \code{\link[=EAR1]{EAR1()}} \cr
    \code{error} \tab \code{\link[=N]{N()}} \tab \code{\link[=N]{N()}} \cr
