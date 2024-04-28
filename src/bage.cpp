@@ -239,6 +239,34 @@ Type logpost_erw(vector<Type> effectfree,
 }
 
 template <class Type>
+Type logpost_erw2(vector<Type> effectfree,
+		  vector<Type> hyper,
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
+    ans += dnorm(effectfree[i_1], Type(0), Type(1), true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      ans += dnorm(diff, Type(0), sd, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
 Type logpost_eseas(vector<Type> effectfree,
 		   vector<Type> hyper,
 		   vector<Type> consts,
@@ -344,15 +372,13 @@ Type logpost_rw2(vector<Type> effectfree,
 		 vector<Type> consts,
 		 matrix<int> matrix_along_by) {
   Type scale = consts[0];
-  Type sd_slope = consts[1];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   int n = effectfree.size();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   ans += dnorm(effectfree[0], Type(0), Type(1), true);
-  Type diff = effectfree[1] - effectfree[0];
-  ans += dnorm(diff, Type(0), sd_slope, true);
+  ans += dnorm(effectfree[1], Type(0), Type(1), true);
   for (int i = 2; i < n; i++) {
     Type diff = effectfree[i] - 2 * effectfree[i-1] + effectfree[i-2];
     ans += dnorm(diff, Type(0), sd, true);
@@ -456,6 +482,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 13:
     ans = logpost_erw(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 15:
+    ans = logpost_erw2(effectfree, hyper, consts, matrix_along_by);
     break;
   default:
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
