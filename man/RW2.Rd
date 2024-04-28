@@ -4,12 +4,10 @@
 \alias{RW2}
 \title{Random Walk with Drift Prior}
 \usage{
-RW2(s = 1, sd = 1)
+RW2(s = 1)
 }
 \arguments{
 \item{s}{A positive, finite number. Default is 1.}
-
-\item{sd}{A positive, finite number. Default is 1.}
 }
 \value{
 An object of class \code{"bage_prior_rw2"}.
@@ -17,14 +15,16 @@ An object of class \code{"bage_prior_rw2"}.
 \description{
 Prior in which units follow a random walk with drift,
 also known as a second-order random walk.
-Second-order differences are normally distributed.
 }
 \section{Mathematical details}{
 
 
 If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
 
-\deqn{(\beta_j - \beta_{j-1}) - (\beta_{j-1} - x_{j-2}) \sim \text{N}(0, \tau^2)},
+\deqn{\beta_j \sim \text{N}(0, 1), \quad j = 1,2}
+\deqn{\beta_j \sim \text{N}(\beta_{j-1} + \delta_{j-1}, \tau^2), \quad j = 3, \cdots, J,}
+where
+\deqn{\delta_j = \beta_j - \beta_{j-1}.}
 
 Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
@@ -38,10 +38,6 @@ values.)
 The scale for the half-normal distribution, \code{s}, defaults
 to 1, but can be set to other values. Lower values
 for \code{s} lead to smoother series .
-
-Parameter \code{sd} governs the expected size of
-increments between neighbouring units.
-It defaults to 1, but can be set to other values.
 }
 
 \examples{
@@ -50,8 +46,9 @@ RW2(s = 0.2)
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW]{RW()}} for a first-order random walk.
-\item \code{RW2()} is usually called as part of
-a call to \code{\link[=set_prior]{set_prior()}}
+\item \code{\link[=RW]{RW()}} Ordinary random wark.
+\item \code{\link[=ERW2]{ERW2()}} Exchangeable version of \code{RW2()},
+used with interactions.
+\item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }
