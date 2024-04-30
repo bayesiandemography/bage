@@ -1096,9 +1096,9 @@ Sp <- function(n = NULL, s = 1) {
 #' @param ssvd Object of class `"bage_ssvd"`
 #' holding results from a scaled SVD.
 #' See below for current options.
-#' @param n Number of vectors from scaled SVD
-#' to use in modelling. 
-#' Default is half the number of components of `ssvd`.
+#' @param n Number of components from scaled SVD
+#' to use in modelling. The default is half
+#' the number of components of `ssvd`.
 #'
 #' @returns An object of class `"bage_prior_svd"`.
 #'
@@ -1118,7 +1118,7 @@ Sp <- function(n = NULL, s = 1) {
 SVD <- function(ssvd, n = NULL) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp(ssvd)
+  n_comp <- get_n_comp(ssvd)
   if (is.null(n))
     n <- ceiling(n_comp / 2)
   else {

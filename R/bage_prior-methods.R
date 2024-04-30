@@ -2308,7 +2308,7 @@ make_offset_effectfree_effect.bage_prior_esvd <- function(prior,
   ans <- m_outer %*% m_inner
   ans <- Matrix::drop(ans)
   ans
-}                             
+}
 
 
 ## 'reformat_hyperrand_one' ---------------------------------------------------
@@ -2686,13 +2686,16 @@ str_call_prior.bage_prior_spline <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_svd <- function(prior) {
+  ssvd <- prior$specific$ssvd
   nm_ssvd <- prior$specific$nm_ssvd
   n <- prior$specific$n
   joint <- prior$specific$joint
   args <- character(3L)
   fun <- if (is.null(joint)) "SVD" else "SVDS"
   args[[1L]] <- nm_ssvd
-  if (n != 5)
+  n_comp <- get_n_comp(ssvd)
+  n_default <- ceiling(n_comp / 2)
+  if (n != n_default)
     args[[2L]] <- sprintf("n=%s", n)
   if (!is.null(joint) && joint)
     args[[3L]] <- "joint=TRUE"

@@ -11,9 +11,9 @@ SVD(ssvd, n = NULL)
 holding results from a scaled SVD.
 See below for current options.}
 
-\item{n}{Number of vectors from scaled SVD
-to use in modelling.
-Default is half the number of components of \code{ssvd}.}
+\item{n}{Number of components from scaled SVD
+to use in modelling. The default is half
+the number of components of \code{ssvd}.}
 }
 \value{
 An object of class \code{"bage_prior_svd"}.
