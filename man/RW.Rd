@@ -22,7 +22,8 @@ elements are assumed to be normally distibuted.
 
 If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
 
-\deqn{\beta_j - x_{j-1} \sim \text{N}(0, \tau^2).}
+\deqn{\beta_1 \sim \text{N}(0, 1)}
+\deqn{\beta_j \sim \text{N}(\beta_{j - 1}, \tau^2), \quad j = 2, \cdots, J.}
 
 Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
@@ -45,8 +46,9 @@ RW(s = 0.5)
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW2]{RW2()}} for a random walk with drift
-(a second-order random walk).
+\item \code{\link[=RW2]{RW2()}} Random walk with drift.
+\item \code{\link[=ERW]{ERW()}} Exchangeable version of \code{RW()},
+used with interactions.
 \item \link{priors} Overview of priors implemented in \code{bage}.
 }
 }

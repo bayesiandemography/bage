@@ -127,6 +127,26 @@ test_that("'draw_vals_effect' works with bage_prior_erw", {
                    list(letters[1:12], as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_erw2", {
+  prior <- ERW2(s = 0.01)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_eseas", {
   prior <- ESeas(n = 2, s = 0.01)
   n_sim <- 10
@@ -424,6 +444,16 @@ test_that("'draw_vals_hyper' works with bage_prior_elin", {
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_erw", {
+  set.seed(0)
+  prior <- ERW()
+  n_sim <- 10
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = n_sim)
+  expect_identical(names(ans), "sd")
+  expect_identical(lengths(ans), c(sd = 10L))
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_erw2", {
   set.seed(0)
   prior <- ERW()
   n_sim <- 10
@@ -1063,6 +1093,65 @@ test_that("'forecast_effect' works with bage_prior_erw", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'forecast_effect' works with bage_prior_erw", {
+  set.seed(0)
+  prior <- ERW2()
+  hyper_est <- tibble::tibble(term = "year:reg",
+                              component = "hyper",
+                              level = "sd",
+                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
+  effect_est <- tibble::tibble(term = "year:reg",
+                               component = "effect",
+                               level = letters[1:10],
+                               .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10))
+  matrix_along_by_est <- matrix(0:9, nr = 5)
+  matrix_along_by_forecast <- matrix(0:11, nr = 6)
+  levels_forecast <- letters[11:22]
+  set.seed(1)
+  ans_obtained <- forecast_effect(prior = prior,
+                                  nm_prior = "year:reg",
+                                  hyper_est =  hyper_est,
+                                  hyper_forecast = NULL,
+                                  compose_est = NULL,
+                                  compose_forecast = NULL,
+                                  effect_est = effect_est,
+                                  matrix_along_by_est = matrix_along_by_est,
+                                  matrix_along_by_forecast = matrix_along_by_forecast,
+                                  levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year:reg",
+                                 component = "effect",
+                                 level = letters[11:22])
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
+  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  set.seed(1)
+  ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
+                                              mean = 2 * effect_est$.fitted[5] - effect_est$.fitted[4],
+                                              sd = sd)
+  ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
+                                              mean = 2 * ans_expected$.fitted[1] -
+                                                effect_est$.fitted[5],
+                                              sd = sd)
+  for (i in 3:6)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = 2 * ans_expected$.fitted[i-1] -
+                                                  ans_expected$.fitted[i-2],
+                                                sd = sd)
+  ans_expected$.fitted[7] <- rvec::rnorm_rvec(n = 1,
+                                              mean = 2 * effect_est$.fitted[10] -
+                                                effect_est$.fitted[9],
+                                              sd = sd)
+  ans_expected$.fitted[8] <- rvec::rnorm_rvec(n = 1,
+                                              mean = 2 * ans_expected$.fitted[7] -
+                                                effect_est$.fitted[10],
+                                              sd = sd)
+  for (i in 9:12)
+    ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
+                                                mean = 2 * ans_expected$.fitted[i-1] -
+                                                  ans_expected$.fitted[i-2],
+                                                sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'forecast_effect' works with bage_prior_eseas", {
   set.seed(0)
   prior <- ESeas(n = 2)
@@ -1441,20 +1530,20 @@ test_that("'indices_priors' works with compose time prior - 3 priors", {
                     hyperrand_start = 0L,
                     hyperrand_length = 10L,
                     consts_start = 0L,
-                    consts_length = 2L,
+                    consts_length = 1L,
                     i_prior = 4L,
                     hyper_start = 1L,
                     hyper_length = 3L,
                     hyperrand_start = 10L,
                     hyperrand_length = 10L,
-                    consts_start = 2L,
+                    consts_start = 1L,
                     consts_length = 5L,
                     i_prior = 5L,
                     hyper_start = 4L,
                     hyper_length = 1L,
                     hyperrand_start = 20L,
                     hyperrand_length = 0L,
-                    consts_start = 7L,
+                    consts_start = 6L,
                     consts_length = 1L,
                     i_prior = 1L)
   expect_identical(ans_obtained, ans_expected)
@@ -1529,6 +1618,17 @@ test_that("'is_prior_ok_for_term' works with bage_prior_elin", {
 
 test_that("'is_prior_ok_for_term' throws correct error with bage_prior_erw", {
   expect_true(is_prior_ok_for_term(prior = ERW(),
+                                   nm = "age:time",
+                                   matrix_along_by = matrix(0:11, nc = 3),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   var_sexgender = "sex",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' throws correct error with bage_prior_erw", {
+  expect_true(is_prior_ok_for_term(prior = ERW2(),
                                    nm = "age:time",
                                    matrix_along_by = matrix(0:11, nc = 3),
                                    var_time = "time",
@@ -1883,6 +1983,12 @@ test_that("'levels_hyper' works with 'bage_prior_elin'", {
 test_that("'levels_hyper' works with 'bage_prior_erw'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
   expect_identical(levels_hyper(prior = ERW()),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_erw2'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = ERW2()),
                    "sd")
 })
 
@@ -2776,20 +2882,20 @@ test_that("'indices_priors' works with compose time prior - 3 priors", {
                     hyperrand_start = 0L,
                     hyperrand_length = 10L,
                     consts_start = 0L,
-                    consts_length = 2L,
+                    consts_length = 1L,
                     i_prior = 4L,
                     hyper_start = 1L,
                     hyper_length = 3L,
                     hyperrand_start = 10L,
                     hyperrand_length = 10L,
-                    consts_start = 2L,
+                    consts_start = 1L,
                     consts_length = 5L,
                     i_prior = 5L,
                     hyper_start = 4L,
                     hyper_length = 1L,
                     hyperrand_start = 20L,
                     hyperrand_length = 0L,
-                    consts_start = 7L,
+                    consts_start = 6L,
                     consts_length = 1L,
                     i_prior = 1L)
   expect_identical(ans_obtained, ans_expected)
@@ -3915,6 +4021,12 @@ test_that("'str_call_prior' works with bage_prior_erw", {
                      "ERW(s=2,along=\"a\")")
 })
 
+test_that("'str_call_prior' works with bage_prior_erw2", {
+    expect_identical(str_call_prior(ERW2()), "ERW2()")
+    expect_identical(str_call_prior(ERW2(along = "a", s = 2)),
+                     "ERW2(s=2,along=\"a\")")
+})
+
 test_that("'str_call_prior' works with bage_prior_eseas", {
     expect_identical(str_call_prior(ESeas(n = 4)), "ESeas(n=4)")
     expect_identical(str_call_prior(ESeas(s = 2, along = "a", n = 2)),
@@ -3953,9 +4065,8 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
     expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(sd = 0.5)), "RW2(sd=0.5)")
     expect_identical(str_call_prior(RW2(s = 0.95)), "RW2(s=0.95)")
-    expect_identical(str_call_prior(RW2(sd = 0.1, s = 0.95)), "RW2(s=0.95,sd=0.1)")
+    expect_identical(str_call_prior(RW2(s = 0.95)), "RW2(s=0.95)")
 })
 
 test_that("'str_call_prior' works with bage_prior_seas", {
@@ -4022,6 +4133,11 @@ test_that("'str_nm_prior' works with bage_prior_erw", {
     expect_identical(str_nm_prior(ERW(along = "a", s = 2)), "ERW()")
 })
 
+test_that("'str_nm_prior' works with bage_prior_erw2", {
+    expect_identical(str_nm_prior(ERW2()), "ERW2()")
+    expect_identical(str_nm_prior(ERW2(along = "a", s = 2)), "ERW2()")
+})
+
 test_that("'str_nm_prior' works with bage_prior_eseas", {
     expect_identical(str_nm_prior(ESeas(n = 4)), "ESeas()")
     expect_identical(str_nm_prior(ESeas(s = 2, along = "a", n = 2)), "ESeas()")
@@ -4054,7 +4170,7 @@ test_that("'str_nm_prior' works with bage_prior_rw", {
 
 test_that("'str_nm_prior' works with bage_prior_rw2", {
     expect_identical(str_nm_prior(RW2()), "RW2()")
-    expect_identical(str_nm_prior(RW2(sd = 0.1, s = 0.95)), "RW2()")
+    expect_identical(str_nm_prior(RW2(s = 0.95)), "RW2()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_seas", {
@@ -4141,6 +4257,12 @@ test_that("'transform_hyper' works with 'bage_prior_elin'", {
 
 test_that("'transform_hyper' works with 'bage_prior_erw'", {
   l <- transform_hyper(prior = ERW())
+  expect_equal(length(l), 1L)
+  expect_equal(exp(0.35), l[[1]](0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_erw2'", {
+  l <- transform_hyper(prior = ERW2())
   expect_equal(length(l), 1L)
   expect_equal(exp(0.35), l[[1]](0.35))
 })
@@ -4244,6 +4366,7 @@ test_that("'use_for_compose_cyclical' returns FALSE with priors that cannot be u
   expect_false(use_for_compose_cyclical(ESeas(n = 12)))
   expect_false(use_for_compose_cyclical(ELin()))
   expect_false(use_for_compose_cyclical(ERW()))
+  expect_false(use_for_compose_cyclical(ERW2()))
   expect_false(use_for_compose_cyclical(Known(c(a = 1, b = -1))))
   expect_false(use_for_compose_cyclical(Lin()))
   expect_false(use_for_compose_cyclical(NFix()))
@@ -4266,6 +4389,7 @@ test_that("'use_for_compose_error' returns FALSE with priors that cannot be used
   expect_false(use_for_compose_error(EAR1()))
   expect_false(use_for_compose_error(ELin()))
   expect_false(use_for_compose_error(ERW()))
+  expect_false(use_for_compose_error(ERW2()))
   expect_false(use_for_compose_error(ESeas(n = 12)))
   expect_false(use_for_compose_error(Known(c(a = 1, b = -1))))
   expect_false(use_for_compose_error(Lin()))
@@ -4290,6 +4414,7 @@ test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be u
     expect_false(use_for_compose_seasonal(EAR1()))
     expect_false(use_for_compose_seasonal(ELin()))
     expect_false(use_for_compose_seasonal(ERW()))
+    expect_false(use_for_compose_seasonal(ERW2()))
     expect_false(use_for_compose_seasonal(Lin()))
     expect_false(use_for_compose_seasonal(N()))
     expect_false(use_for_compose_seasonal(NFix()))
@@ -4304,8 +4429,11 @@ test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be u
 ## use_for_compose_trend ------------------------------------------------------
 
 test_that("'use_for_compose_trend' returns TRUE with priors that can be used for trend", {
+    expect_true(use_for_compose_trend(AR()))
+    expect_true(use_for_compose_trend(EAR()))
     expect_true(use_for_compose_trend(ELin()))
     expect_true(use_for_compose_trend(ERW()))
+    expect_true(use_for_compose_trend(ERW2()))
     expect_true(use_for_compose_trend(Lin()))
     expect_true(use_for_compose_trend(RW()))
     expect_true(use_for_compose_trend(RW2()))
@@ -4313,8 +4441,6 @@ test_that("'use_for_compose_trend' returns TRUE with priors that can be used for
 })
 
 test_that("'use_for_compose_trend' returns FALSE with priors that cannot be used for trend", {
-    expect_false(use_for_compose_trend(AR1()))
-    expect_false(use_for_compose_trend(EAR1()))
     expect_false(use_for_compose_trend(Known(c(a = 1, b = -1))))
     expect_false(use_for_compose_trend(N()))
     expect_false(use_for_compose_trend(NFix()))
@@ -4342,6 +4468,7 @@ test_that("'use_for_interaction' returns TRUE with priors that are always intera
     expect_true(use_for_interaction(EAR()))
     expect_true(use_for_interaction(ELin()))
     expect_true(use_for_interaction(ERW()))
+    expect_true(use_for_interaction(ERW2()))
     expect_true(use_for_interaction(ESeas(n = 12)))
     expect_true(use_for_interaction(ESVD(HMD)))
 })
@@ -4377,6 +4504,7 @@ test_that("'uses_along' works with valid inputs", {
     expect_true(uses_along(EAR()))
     expect_true(uses_along(ELin()))
     expect_true(uses_along(ERW()))
+    expect_true(uses_along(ERW2()))
     expect_true(uses_along(ESeas(n = 2)))
 })
 

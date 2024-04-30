@@ -282,7 +282,6 @@ draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
   ans
 }
 
-
 ## HAS_TESTS
 #' Generate Draws from ERW
 #'
@@ -305,6 +304,39 @@ draw_vals_erw <- function(sd, matrix_along_by, labels) {
   for (i_along in seq.int(from = 2L, to = n_along))
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
                                    mean = ans[i_along - 1L, ],
+                                   sd = sd)
+  ans <- matrix(ans,
+                nrow = n_along * n_by,
+                ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+## HAS_TESTS
+#' Generate Draws from ERW2
+#'
+#' Each column is one draw.
+#'
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_erw2 <- function(sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  sd <- rep(sd, each = n_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
+  ans[2L, ] <- stats::rnorm(n = n_by * n_sim)
+  for (i_along in seq.int(from = 3L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = 2 * ans[i_along - 1L, ] - ans[i_along - 2L, ],
                                    sd = sd)
   ans <- matrix(ans,
                 nrow = n_along * n_by,
@@ -493,22 +525,19 @@ draw_vals_rw <- function(sd, labels) {
 #' Each column is one draw.
 #'
 #' @param sd Vector of values
-#' @param sd_slope Scalar
 #' @param labels Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw2 <- function(sd, sd_slope, labels) {
+draw_vals_rw2 <- function(sd, labels) {
   n_effect <- length(labels)
   n_sim <- length(sd)
   ans <- matrix(nrow = n_effect,
                 ncol = n_sim,
                 dimnames = list(labels, seq_len(n_sim)))
   ans[1L, ] <- stats::rnorm(n = n_sim)
-  ans[2L, ] <- stats::rnorm(n = n_sim,
-                            mean = ans[1L, ],
-                            sd = sd_slope)
+  ans[2L, ] <- stats::rnorm(n = n_sim)
   for (i_effect in seq.int(from = 3L, to = n_effect))
     ans[i_effect, ] <- stats::rnorm(n = n_sim,
                                     mean = 2 * ans[i_effect - 1L, ] - ans[i_effect - 2L, ],
@@ -532,6 +561,7 @@ draw_vals_sd <- function(prior, n_sim) {
     ans <- abs(ans)
     ans
 }
+
 
 ## HAS_TESTS
 #' Generate Draws from Seas

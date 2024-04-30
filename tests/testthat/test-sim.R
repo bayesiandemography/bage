@@ -67,7 +67,6 @@ test_that("'aggregate_report_comp' works with valid inputs", {
 })
 
 
-
 ## 'draw_vals_ar' -------------------------------------------------------------
 
 test_that("'draw_vals_ar' works", {
@@ -279,6 +278,41 @@ test_that("'draw_vals_erw' works - along dimension is second", {
   expect_equal(unname(apply(ans[-1,], 2, function(x) sd(diff(x)))),
                rep(sd, each = 3),
                tolerance = 0.03)
+})
+
+
+## 'draw_vals_erw' ----------------------------------------------------------
+
+test_that("'draw_vals_erw' works - along dimension is first", {
+  set.seed(0)
+  prior <- ERW2()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:2999, nc = 3)
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  labels <- 1:3000
+  set.seed(0)
+  ans <- draw_vals_erw2(sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        labels = labels)
+  expect_identical(dim(ans), c(3000L, 10L))
+  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(mean(ans[1, ]),
+               0,
+               tolerance = 0.05)
+  expect_equal(sd(ans[1, ]),
+               1,
+               tolerance = 0.1)
+  expect_equal(mean(ans[2, ]),
+               0,
+               tolerance = 0.05)
+  expect_equal(sd(ans[2, ]),
+               1,
+               tolerance = 0.1)
+  expect_equal(unname(apply(ans[-(1:2),], 2, function(x) sd(diff(x, diff = 2)))),
+               rep(sd, each = 3),
+               tolerance = 0.05)
 })
 
 
@@ -538,16 +572,21 @@ test_that("'draw_vals_rw2' works", {
   labels <- 1:100
   set.seed(0)
   ans <- draw_vals_rw2(sd = sd,
-                       sd_slope = sd_slope,
                        labels = labels)
   expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, diff = 2)))),
                sd,
+               tolerance = 0.1)
+  expect_equal(mean(ans[1,]),
+               0,
+               tolerance = 0.1)
+  expect_equal(mean(ans[2,]),
+               0,
                tolerance = 0.1)
   expect_equal(sd(ans[1,]),
                1,
                tolerance = 0.1)
   expect_equal(sd(ans[2,]),
-               sqrt(1 + sd_slope^2),
+               1,
                tolerance = 0.1)
   expect_identical(dim(ans), c(100L, 1000L))
   expect_identical(dimnames(ans),
