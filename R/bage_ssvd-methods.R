@@ -59,7 +59,7 @@ generate.bage_ssvd <- function(x,
           min = 1L,
           max = NULL,
           null_ok = FALSE)
-  n_comp_x <- n_comp(x)
+  n_comp_x <- get_n_comp(x)
   if (is.null(n_comp))
     n_comp <- ceiling(n_comp_x / 2)
   else {
@@ -137,30 +137,6 @@ generate.bage_ssvd <- function(x,
   }
   ans[["value"]] <- as.double(value)
   ans
-}
-
-
-## 'n_comp' -------------------------------------------------------------------
-
-#' Extract Number of Components
-#'
-#' @param x Object holding components
-#'
-#' @returns An integer.
-#'
-#' @noRd
-n_comp <- function(x) {
-  UseMethod("n_comp")
-}
-
-#' @export
-n_comp.bage_ssvd <- function(x) {
-  data <- x$data
-  type <- data$type
-  matrix <- data$matrix
-  i_total <- match("total", type)
-  matrix_total <- matrix[[i_total]]
-  ncol(matrix_total)
 }
 
 
