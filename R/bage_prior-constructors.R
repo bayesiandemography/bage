@@ -140,7 +140,7 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 #'
 #' | Term       | Main effects                     | Interactions      |
 #' |------------|----------------------------------|-------------------|
-#' | `trend`    | [Lin()], [RW()], [RW2()], [Sp()] | [ELin()]          |
+#' | `trend`    | [AR1()], [AR()], [Lin()], [RW()], [RW2()], [Sp()] | [EAR1()], [EAR()], [ELin()] |
 #' | `seasonal` | [Seas()]                         | [ESeas()]         |
 #' | `cyclical` | [AR()], [AR1()]                  | [EAR()], [EAR1()] |
 #' | `error`    | [N()]                            | [N()]             |
@@ -464,8 +464,6 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 }
 
 
-## 'bage_prior_rw' can be created during initial call to mod_* function TODO - IMPLEMENT THIS
-
 ## HAS_TESTS
 #' Exchangeable Random Walk Prior
 #'
@@ -486,13 +484,13 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' within the \eqn{u}th combination of the
 #' 'by' variables, then
 #'
-#' \deqn{x_{u,v} = x_{u,v-1} + \epsilon_{u,v}}
-#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2)}
+#' \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
+#' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1}, \tau^2), \quad v = 2, \cdots, V.}
 #'
 #' Standard deviation \eqn{\tau} is drawn from a
 #' half-normal distribution,
 #' 
-#' \deqn{\sigma \sim \text{N}^+(0, \text{s}^2)}
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 #'
 #' (A half-normal distribution has the same shape as a normal
 #' distribution, but is defined only for non-negative
@@ -510,7 +508,9 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' @returns An object of class `bage_prior_erw`.
 #'
 #' @seealso
-#' - [RW()] Random walk prior for main effects.
+#' - [RW()] Random walk prior, used with main effects.
+#' - [ERW2()] Exchangeable random walk with drift prior,
+#'   used with interactions.
 #' - [priors] Overview of priors implemented in `bage`.
 #'
 #' @examples
@@ -524,6 +524,71 @@ ERW <- function(s = 1, along = NULL) {
     check_string(along, nm_x = "along")
   new_bage_prior_erw(scale = scale,
                      along = along)
+}
+
+
+## 'bage_prior_erw2' only ever created via 'set_prior()'
+
+## HAS_TESTS
+#' Exchangeable Random Walk with Drift Prior
+#'
+#' Prior for an interaction,
+#' where a random walk with drift model
+#' is applied to the 'along' variable, within each
+#' combination of values of the 'by' variables.
+#' Standard deviations are shared across
+#' different combinations of the 'by' variables.
+#' The series within each combination of the
+#' 'by' variables are treated as exchangeable.
+#' 
+#' @inheritSection EAR 'Along' and 'by' variables
+#'
+#' @section Mathematical details:
+#'
+#' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
+#' within the \eqn{u}th combination of the
+#' 'by' variables, then
+#'
+#' \deqn{\beta_{u,v}  \sim \text{N}(0, 1), \quad v = 1,2},
+#' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1} + \delta_{u,v-1}, \tau^2), \quad v = 2, \cdots, V}
+#' where
+#' \deqn{\delta_{u,v} =  \beta_{u,v} - \beta_{u,v-1}.}
+#'
+#' Standard deviation \eqn{\tau} is drawn from a
+#' half-normal distribution,
+#' 
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+#'
+#' (A half-normal distribution has the same shape as a normal
+#' distribution, but is defined only for non-negative
+#' values.)
+#'
+#' The scale for the half-normal distribution, `s`, defaults
+#' to 1, but can be set to other values. Lower values
+#' for `s` lead to smoother series.
+#'
+#' @inheritParams EAR
+#'
+#' @returns An object of class `bage_prior_erw2`.
+#'
+#' @seealso
+#' - [RW2()] Random walk with drift prior,
+#'   used with main effects.
+#' - [ERW()] Exchangeable random walk prior,
+#'   used with interactions.
+#' - [priors] Overview of priors implemented in `bage`.
+#'
+#' @examples
+#' ERW2()
+#' ERW2(s = 0.5)
+#' @export
+ERW2 <- function(s = 1, along = NULL) {
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  scale <- as.double(s)
+  new_bage_prior_erw2(scale = scale,
+                      along = along)
 }
 
 
@@ -782,7 +847,8 @@ NFix <- function(sd = 1) {
 #'
 #' If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
 #'
-#' \deqn{\beta_j - x_{j-1} \sim \text{N}(0, \tau^2).}
+#' \deqn{\beta_1 \sim \text{N}(0, 1)}
+#' \deqn{\beta_j \sim \text{N}(\beta_{j - 1}, \tau^2), \quad j = 2, \cdots, J.}
 #'
 #' Standard deviation \eqn{\tau} is drawn from a
 #' half-normal distribution,
@@ -803,8 +869,9 @@ NFix <- function(sd = 1) {
 #' @returns An object of class `"bage_prior_rw"`.
 #'
 #' @seealso
-#' - [RW2()] for a random walk with drift
-#'   (a second-order random walk).
+#' - [RW2()] Random walk with drift.
+#' - [ERW()] Exchangeable version of `RW()`,
+#'   used with interactions.
 #' - [priors] Overview of priors implemented in `bage`.
 #'
 #' @examples
@@ -825,14 +892,16 @@ RW <- function(s = 1) {
 #'
 #' Prior in which units follow a random walk with drift,
 #' also known as a second-order random walk.
-#' Second-order differences are normally distributed.
 #'
 #' @section Mathematical details:
 #'
 #' If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
 #' 
-#' \deqn{(\beta_j - \beta_{j-1}) - (\beta_{j-1} - x_{j-2}) \sim \text{N}(0, \tau^2)},
-#'
+#' \deqn{\beta_j \sim \text{N}(0, 1), \quad j = 1,2}
+#' \deqn{\beta_j \sim \text{N}(\beta_{j-1} + \delta_{j-1}, \tau^2), \quad j = 3, \cdots, J,}
+#' where
+#' \deqn{\delta_j = \beta_j - \beta_{j-1}.}
+#' 
 #' Standard deviation \eqn{\tau} is drawn from a
 #' half-normal distribution,
 #' 
@@ -846,31 +915,24 @@ RW <- function(s = 1) {
 #' to 1, but can be set to other values. Lower values
 #' for `s` lead to smoother series .
 #'
-#' Parameter `sd` governs the expected size of
-#' increments between neighbouring units.
-#' It defaults to 1, but can be set to other values.
-#'
 #' @param s A positive, finite number. Default is 1.
-#' @param sd A positive, finite number. Default is 1.
 #'
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
 #' @seealso
-#' - [RW()] for a first-order random walk.
-#' - `RW2()` is usually called as part of
-#' a call to [set_prior()]
+#' - [RW()] Ordinary random wark.
+#' - [ERW2()] Exchangeable version of `RW2()`,
+#'   used with interactions.
+#' - [priors] Overview of priors implemented in `bage`.
 #'
 #' @examples
 #' RW2()
 #' RW2(s = 0.2)
 #' @export
-RW2 <- function(s = 1, sd = 1) {
+RW2 <- function(s = 1) {
     check_scale(s, x_arg = "s", zero_ok = FALSE)
-    check_scale(sd, x_arg = "sd", zero_ok = FALSE)
     scale <- as.double(s)
-    sd_slope <- as.double(sd)
-    new_bage_prior_rw2(scale = scale,
-                       sd_slope = sd_slope)
+    new_bage_prior_rw2(scale = scale)
 }
 
 
@@ -946,7 +1008,7 @@ Seas <- function(n, s = 1) {
 #' with `n` elements.
 #'
 #' The elements of \eqn{\gamma} are assumed to follow
-#' a second order random walk (see [RW2()]).
+#' a random walk with drift (see [RW2()]).
 #'
 #' @inheritParams RW2
 #' @param n Number of spline vectors.
@@ -964,7 +1026,7 @@ Seas <- function(n, s = 1) {
 #' Sp()
 #' Sp(n = 10)
 #' @export
-Sp <- function(n = NULL, s = 1, sd = 1) {
+Sp <- function(n = NULL, s = 1) {
     check_n(n,
             nm_n = "n",
             min = 4L,
@@ -973,12 +1035,9 @@ Sp <- function(n = NULL, s = 1, sd = 1) {
     if (!is.null(n))
         n <- as.integer(n)
     check_scale(s, x_arg = "s", zero_ok = FALSE)
-    check_scale(sd, x_arg = "sd", zero_ok = FALSE)
     scale <- as.double(s)
-    sd_slope <- as.double(sd)
     new_bage_prior_spline(n = n,
-                          scale = scale,
-                          sd_slope = sd_slope)
+                          scale = scale)
 }
 
 
@@ -1457,6 +1516,16 @@ new_bage_prior_erw <- function(scale, along) {
 }
 
 ## HAS_TESTS
+new_bage_prior_erw2 <- function(scale, along) {
+    ans <- list(i_prior = 15L,
+                const = c(scale = scale),
+                specific = list(scale = scale,
+                                along = along))
+    class(ans) <- c("bage_prior_erw2", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
 new_bage_prior_eseas <- function(n, scale, along) {
     ans <- list(i_prior = 11L,
                 const = c(scale = scale,
@@ -1530,12 +1599,10 @@ new_bage_prior_rw <- function(scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale, sd_slope) {
+new_bage_prior_rw2 <- function(scale) {
     ans <- list(i_prior = 4L,
-                const = c(scale = scale,
-                          sd_slope = sd_slope),
-                specific = list(scale = scale,
-                                sd_slope = sd_slope))
+                const = c(scale = scale),
+                specific = list(scale = scale))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
@@ -1551,13 +1618,11 @@ new_bage_prior_seas <- function(n, scale) {
 }
 
 ## HAS_TESTS
-new_bage_prior_spline <- function(n, scale, sd_slope) {
+new_bage_prior_spline <- function(n, scale) {
     ans <- list(i_prior = 6L,
-                const = c(scale = scale,
-                          sd_slope = sd_slope),
+                const = c(scale = scale),
                 specific = list(n = n,
-                                scale = scale,
-                                sd_slope = sd_slope))
+                                scale = scale))
     class(ans) <- c("bage_prior_spline", "bage_prior")
     ans
 }
