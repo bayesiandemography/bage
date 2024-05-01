@@ -27,11 +27,11 @@ get_matrix_or_offset_svd <- function(ssvd,
                                      agesex,
                                      get_matrix,
                                      n_comp) {
-  n_comp_max <- 10L
   data <- ssvd$data
   type <- data$type
   labels_age <- data$labels_age
   labels_sexgender <- data$labels_sexgender
+  n_comp_max <- get_n_comp(ssvd)
   ## check for duplicates
   for (nm in c("levels_age", "levels_sexgender")) {
     val <- get(nm)
@@ -125,3 +125,21 @@ get_matrix_or_offset_svd <- function(ssvd,
   else
     ans[i]
 }  
+
+
+## HAS_TESTS
+#' Extract Number of Components
+#'
+#' @param ssvd Object of class bage_ssvd
+#'
+#' @returns An integer.
+#'
+#' @noRd
+get_n_comp <- function(ssvd) {
+  data <- ssvd$data
+  type <- data$type
+  matrix <- data$matrix
+  i_total <- match("total", type)
+  matrix_total <- matrix[[i_total]]
+  ncol(matrix_total)
+}

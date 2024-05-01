@@ -175,8 +175,14 @@ test_that("'get_matrix_or_offset_svd' returns expected error when can't align se
 })
 
 
+## 'get_n_comp' -------------------------------------------------------------------
 
-
-
+test_that("'get_n_comp' works", {
+  set.seed(0)
+  ssvd <- sim_ssvd()
+  ans_obtained <- get_n_comp(ssvd)
+  ans_expected <- 10L
+  expect_identical(ans_obtained, ans_expected)
+})
 
 

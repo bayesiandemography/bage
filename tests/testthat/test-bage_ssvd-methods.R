@@ -74,18 +74,6 @@ test_that("'generate' method for ssvd - gives expected error with age labels not
 })
 
 
-## 'n_comp' -------------------------------------------------------------------
-
-test_that("'print' works with ssvd", {
-  set.seed(0)
-  ssvd <- sim_ssvd()
-  ans_obtained <- n_comp(ssvd)
-  ans_expected <- 10L
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-
 ## 'print' --------------------------------------------------------------------
 
 test_that("'print' works with ssvd", {
