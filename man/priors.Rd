@@ -36,7 +36,7 @@ Priors without links are next in the queue for implementation.\tabular{llll}{
    \code{\link[=SVD]{SVD()}} \tab Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Age main effect. \tab No \cr
    \code{\link[=SVDS]{SVDS()}} \tab Age-sex or age-gender profile, similar to \code{SVD()} \tab Age-sex or age-gender interaction. \tab No \cr
    \code{\link[=ERW]{ERW()}} \tab Exchangeable random walk. A random walk within each combination of the 'by' variables. \tab Age, time, or cohort interacted with other variable(s). \tab Yes \cr
-   \code{ERW2()} \tab Exchangeable second-order random walk. \tab As for \code{ERW()}. \tab Yes \cr
+   \code{\link[=ERW2]{ERW2()}} \tab Exchangeable second-order random walk. \tab As for \code{ERW()}. \tab Yes \cr
    \code{\link[=EAR]{EAR()}} \tab Exchangeable auto-regressive prior. An AR model within each combination of the 'by' variables. \tab Age, time, or cohort interacted with other variable(s). \tab Yes \cr
    \code{\link[=EAR1]{EAR1()}} \tab Exchangeable auto-regressive prior of order 1. Special case of \code{EAR()}, but with more options for controlling dampling. \tab Age, time, or cohort interacted with other variable(s). \tab Yes \cr
    \code{\link[=ELin]{ELin()}} \tab Linear model trend, with idiosyncratic error, within each combination of the 'by' variables. \tab Interaction between time and other variables. \tab Yes \cr

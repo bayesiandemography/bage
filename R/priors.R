@@ -34,7 +34,7 @@
 #' | [SVD()]   | Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). | Age main effect. | No |
 #' | [SVDS()]  | Age-sex or age-gender profile, similar to `SVD()` | Age-sex or age-gender interaction. | No |
 #' | [ERW()]   | Exchangeable random walk. A random walk within each combination of the 'by' variables. | Age, time, or cohort interacted with other variable(s). | Yes |
-#' | `ERW2()`  | Exchangeable second-order random walk. | As for `ERW()`. | Yes |
+#' | [ERW2()]  | Exchangeable second-order random walk. | As for `ERW()`. | Yes |
 #' | [EAR()]   | Exchangeable auto-regressive prior. An AR model within each combination of the 'by' variables. | Age, time, or cohort interacted with other variable(s). | Yes |
 #' | [EAR1()]  | Exchangeable auto-regressive prior of order 1. Special case of `EAR()`, but with more options for controlling dampling. | Age, time, or cohort interacted with other variable(s). | Yes |
 #' | [ELin()]  | Linear model trend, with idiosyncratic error, within each combination of the 'by' variables. | Interaction between time and other variables. | Yes |

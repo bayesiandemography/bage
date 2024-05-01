@@ -39,9 +39,10 @@ data.
 \section{Scaled SVDs currently implemented in bage}{
 
 \itemize{
-\item \code{\link{HMD}} Values from the
+\item \code{\link{HMD}} Mortality rates from the
 \href{https://www.mortality.org}{Human Mortality Database}.
-\item TODO - add others
+\item \code{\link{LFP}} Labour forcce participation
+rates from the \href{https://data-explorer.oecd.org}{OECD}.
 }
 }
 
