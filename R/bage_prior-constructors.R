@@ -1089,9 +1089,10 @@ Sp <- function(n = NULL, s = 1) {
 #'
 #' @section Scaled SVDs currently implemented in bage:
 #'
-#' - \code{\link{HMD}} Values from the
+#' - \code{\link{HMD}} Mortality rates from the
 #' [Human Mortality Database](https://www.mortality.org).
-#' - TODO - add others
+#' - \code{\link{LFP}} Labour forcce participation
+#' rates from the [OECD](https://data-explorer.oecd.org).
 #'
 #' @param ssvd Object of class `"bage_ssvd"`
 #' holding results from a scaled SVD.
