@@ -1,4 +1,6 @@
 
+## Data Frames ----------------------------------------------------------------
+
 #' Deaths in Iceland
 #'
 #' Deaths and mid-year populations in Iceland,
@@ -71,22 +73,6 @@
 "expenditure"
 
 
-#' Components from Human Mortality Database
-#'
-#' An object of class [bage_ssvd][ssvd()]
-#' holding components extracted from mortality
-#' data from the [Human Mortality Database](https://www.mortality.org).
-#'
-#' @source Derived from data at
-#' Human Mortality Database. Max Planck Institute for
-#' Demographic Research (Germany), University of California,
-#' Berkeley (USA), and French Institute for Demographic Studies
-#' (France). Available at www.mortality.org.
-#' Code for processing the data is
-#' [here](https://github.com/bayesiandemography/svd_hmd).
-"HMD"
-
-
 #' People in one-person households in New Zealand
 #'
 #' Counts of people in one-person households, and
@@ -157,3 +143,35 @@
 "us_acc_deaths"
 
 
+## SVD ------------------------------------------------------------------------
+
+#' Components from OECD Labour Force Participation Data
+#'
+#' An object of class [bage_ssvd][ssvd()]
+#' holding components extracted from labour force participation
+#' data from the
+#' [OECD Data Explorer](https://data-explorer.oecd.org).
+#'
+#' @source Derived from data in the "Labour Force Indicators"
+#' table of the OECD Data Explorer.
+#' Code to create `LFS`
+#' is in folder 'data-raw/ssvd_lfp' of the **bage**
+#' package.
+"LFP"
+
+
+#' Components from Human Mortality Database
+#'
+#' An object of class [bage_ssvd][ssvd()]
+#' holding components extracted from mortality
+#' data from the [Human Mortality Database](https://www.mortality.org).
+#'
+#' @source Derived from data at
+#' Human Mortality Database. Max Planck Institute for
+#' Demographic Research (Germany), University of California,
+#' Berkeley (USA), and French Institute for Demographic Studies
+#' (France). Available at www.mortality.org.
+#' Code to create `HMD`
+#' is in folder 'data-raw/ssvd_hmd' of the **bage**
+#' package.
+"HMD"

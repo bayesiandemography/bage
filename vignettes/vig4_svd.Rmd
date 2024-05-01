@@ -2,7 +2,7 @@
 title: "4. Singular Value Decomposition"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{4. Singular Value Decomposision}
+  %\VignetteIndexEntry{4. Singular Value Decomposition}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
