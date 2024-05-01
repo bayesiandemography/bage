@@ -13,8 +13,9 @@ Human Mortality Database. Max Planck Institute for
 Demographic Research (Germany), University of California,
 Berkeley (USA), and French Institute for Demographic Studies
 (France). Available at www.mortality.org.
-Code for processing the data is
-\href{https://github.com/bayesiandemography/svd_hmd}{here}.
+Code to create \code{HMD}
+is in folder 'data-raw/ssvd_hmd' of the \strong{bage}
+package.
 }
 \usage{
 HMD

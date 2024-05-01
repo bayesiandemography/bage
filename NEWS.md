@@ -1,3 +1,18 @@
+
+# bage 0.4.0
+
+## Changes to back-end for SVD priors
+
+* Move most functions for creating 'bage_ssvd' objects to package
+  'bssvd'.
+* Allowed number of components of a 'bage_ssvd' object to differ from
+  10.
+  
+## Bug fixes
+
+* Corrected error in calculation of logit in `ssvd_comp()`.
+
+
 # bage 0.3.2
 
 ## New functions

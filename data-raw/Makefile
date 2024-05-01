@@ -4,12 +4,15 @@
 all: ../data/deaths.rda \
      ../data/divorces.rda \
      ../data/expenditure.rda \
-     ../data/HMD.rda \
      ../data/households.rda \
      ../data/injuries.rda \
      ../data/us_acc_deaths.rda \
+     ../data/LFP.rda \
+     ../data/HMD.rda \
 	documentation
 
+
+## Data frames
 
 ../data/deaths.rda: deaths/deaths.R \
   deaths/MAN02008_20230712-132130.csv.zip \
@@ -36,10 +39,6 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
   expenditure/POP_PROJ_04062016225548685.csv.gz
 	Rscript $^ $@
 
-../data/HMD.rda: ssvd_hmd/HMD.R \
-  ssvd_hmd/hmd_statistics_20240226.zip
-	Rscript $^ $@
-
 ../data/households.rda: households/households.R \
   households/TABLECODE8420_Data.csv.gz
 	Rscript $^ $@
@@ -53,9 +52,23 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
 ../data/us_acc_deaths.rda: us_acc_deaths/us_acc_deaths.R
 	Rscript $^ $@
 
+
+## 'bage_ssvd' objects
+
+../data/LFP.rda: ssvd_lfp/LFP.R
+	Rscript $^ $@
+
+../data/HMD.rda: ssvd_hmd/HMD.R \
+  ssvd_hmd/hmd_statistics_20240226.zip
+	Rscript $^ $@
+
+
+## update help files
+
 .PHONY: documentation
 documentation:
 	Rscript -e "devtools::document()"
+
 
 .PHONY: clean
 clean:
