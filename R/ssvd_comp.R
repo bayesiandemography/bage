@@ -104,7 +104,7 @@ ssvd_comp <- function(x, transform = c("log", "logit", "none"), n_comp = 10) {
   }
   if (transform == "logit") {
     x <- replace_zeros_ones(x)
-    x <- log(1 / (1 - x))
+    x <- log(x / (1 - x))
   }
   ## apply svd
   svd <- svd(x = x,

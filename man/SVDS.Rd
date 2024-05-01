@@ -11,9 +11,9 @@ SVDS(ssvd, n = 5, joint = FALSE)
 holding results from a scaled SVD.
 See below for current options.}
 
-\item{n}{Number of vectors from scaled SVD
-to use in modelling.
-Default is half the number of components of \code{ssvd}.}
+\item{n}{Number of components from scaled SVD
+to use in modelling. The default is half
+the number of components of \code{ssvd}.}
 
 \item{joint}{Whether to use combined or
 separate SVDs. Default is \code{FALSE}.
