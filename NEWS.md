@@ -1,4 +1,13 @@
 
+# bage 0.4.1
+
+## Changes to interface
+
+* `augment()` method for `bage_mod` objects now calculated value for
+  `.fitted` in cases where the outcome or exposure/size is NA, rather
+  than setting the value of `.fitted` to `NA`.
+
+
 # bage 0.4.0
 
 ## Changes to back-end for SVD priors
