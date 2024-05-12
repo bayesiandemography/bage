@@ -897,22 +897,12 @@ is_fitted.bage_mod <- function(x)
     !is.null(x$est)
 
 
-## 'make_par_disp_inner' ---------------------------------------------------
+## 'make_par_disp' ---------------------------------------------------
 
-#' Make random draws for 'make_par_disp'
-#' with dispersion term
+#' Make Random Draws of '.fitted' in Models
+#' with Dispersion term
 #'
 #' @param x Fitted object of class 'bage_mod'.
-#' @param outcome Values for outcome variable
-#' (where neither outcome or offset is NA).
-#' Aligned to data.
-#' @param offset Values for offset variable
-#' (where neither outcome or offset is NA).
-#' Aligned to data.
-#' @param meanpar An rvec with posterior
-#' distribution of expected values,
-#' based on (transformed) linear predictor.
-#' Aligned to data.
 #' @param disp An rvec of length 1 with
 #' posterior distribution for
 #' dispersion term.
@@ -920,36 +910,40 @@ is_fitted.bage_mod <- function(x)
 #' @returns An rvec
 #'
 #' @noRd
-make_par_disp_inner <- function(x,
-                                outcome,
-                                offset,
+make_par_disp <- function(x,
                                 meanpar,
                                 disp) {
-    UseMethod("make_par_disp_inner")
+    UseMethod("make_par_disp")
 }
 
 ## HAS_TESTS
 #' @export
-make_par_disp_inner.bage_mod_pois <- function(x,
-                                              outcome,
-                                              offset,
-                                              meanpar,
-                                              disp) {
-    rvec::rgamma_rvec(n = length(outcome),
-                      shape = outcome + 1 / disp,
-                      rate = offset + 1 / (disp * meanpar))
+make_par_disp.bage_mod_pois <- function(x,
+                                        meanpar,
+                                        disp) {
+  outcome <- x$outcome
+  offset <- x$offset
+  is_na <- is.na(outcome) | is.na(offset)
+  outcome[is_na] <- 0
+  offset[is_na] <- 0
+  rvec::rgamma_rvec(n = length(outcome),
+                    shape = outcome + 1 / disp,
+                    rate = offset + 1 / (disp * meanpar))
 }
 
 ## HAS_TESTS
 #' @export
-make_par_disp_inner.bage_mod_binom <- function(x,
-                                               outcome,
-                                               offset,
-                                               meanpar,
-                                               disp) {
-    rvec::rbeta_rvec(n = length(outcome),
-                     shape1 = outcome + meanpar / disp,
-                     shape2 = offset - outcome + (1 - meanpar) / disp)
+make_par_disp.bage_mod_binom <- function(x,
+                                         meanpar,
+                                         disp) {
+  outcome <- x$outcome
+  offset <- x$offset
+  is_na <- is.na(outcome) | is.na(offset)
+  outcome[is_na] <- 0
+  offset[is_na] <- 0
+  rvec::rbeta_rvec(n = length(outcome),
+                   shape1 = outcome + meanpar / disp,
+                   shape2 = offset - outcome + (1 - meanpar) / disp)
 }
 
 
