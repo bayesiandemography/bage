@@ -205,43 +205,6 @@ make_draws_components <- function(mod) {
 }
 
 
-## 'make_par_disp' ------------------------------------------------------------
-
-## HAS_TESTS
-#' Make modelled estimates for models
-#' with dispersion term
-#'
-#' @param x A fitted 'bage_mod' object.
-#' @param meanpar An rvec with posterior
-#' distribution of expected values,
-#' based on (transformed) linear predictor.
-#' Aligned to data (not outcome.)
-#' @param disp An rvec of length 1 with
-#' posterior distribution for
-#' dispersion term.
-#'
-#' @returns A vector of doubles.
-#'
-#' @noRd
-make_par_disp <- function(x, meanpar, disp) {
-    outcome <- x$outcome
-    offset <- x$offset
-    n_val <- length(outcome)
-    n_draw <- rvec::n_draw(meanpar)
-    ans <- rvec::rvec_dbl(matrix(NA, nrow = n_val, ncol = n_draw))
-    is_na <- is.na(outcome) | is.na(offset)
-    outcome <- outcome[!is_na]
-    offset <- offset[!is_na]
-    meanpar <- meanpar[!is_na]
-    ans[!is_na] <- make_par_disp_inner(x = x,
-                                       outcome = outcome,
-                                       offset = offset,
-                                       meanpar = meanpar,
-                                       disp = disp)
-    ans
-}
-
-
 ## HAS_TESTS
 #' Make logical vector indicating whether
 #' an element of 'est' is fixed
