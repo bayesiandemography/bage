@@ -1,4 +1,10 @@
 
+# bage 0.4.1
+
+## New functions
+
+* Added 'bage_ssvd' method for `components()`.
+
 # bage 0.4.0
 
 ## Changes to back-end for SVD priors

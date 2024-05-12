@@ -59,6 +59,8 @@ generate(HMD, age_labels = labels)
 }
 \seealso{
 \itemize{
+\item \link[=components]{components()} Components
+used by SVD prior.
 \item \code{\link[=SVD]{SVD()}} SVD prior for age main effect.
 \item \code{\link[=SVDS]{SVDS()}} SVD prior for interaction between
 age and sex or gender.
