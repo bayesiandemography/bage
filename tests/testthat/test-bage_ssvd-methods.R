@@ -1,4 +1,56 @@
 
+## 'components' ---------------------------------------------------------------
+
+test_that("'components' works with ssvd - all defaults", {
+  set.seed(0)
+  ssvd <- sim_ssvd()
+  set.seed(0)
+  ans_obtained <- components(ssvd)
+  set.seed(0)
+  matrix <- Matrix::as.matrix(ssvd$data$matrix[[1]][,1:5])
+  colnames(matrix) <- 1:5
+  ans_expected <- list(matrix = matrix,
+                       offset = ssvd$data$offset[[1]])
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'components' works with ssvd - indep", {
+  set.seed(0)
+  ssvd <- sim_ssvd()
+  set.seed(0)
+  ans_obtained <- components(ssvd, joint = FALSE, n_comp = 3)
+  set.seed(0)
+  matrix <- Matrix::as.matrix(ssvd$data$matrix[[3]][,c(1:3, 11:13)])
+  colnames(matrix) <- paste(rep(c("Female", "Male"), each = 3), 1:3, sep = ".")
+  ans_expected <- list(matrix = matrix,
+                       offset = ssvd$data$offset[[3]])
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with ssvd - joint", {
+  age_labels <- poputils::age_labels(type = "lt", max = 65)
+  ans_obtained <- components(HMD, joint = TRUE, age_labels = age_labels, n_comp = 1)
+  matrix <- Matrix::as.matrix(HMD$data$matrix[[79]][,1, drop = FALSE])
+  colnames(matrix) <- 1
+  ans_expected <- list(matrix = matrix,
+                       offset = HMD$data$offset[[79]])
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'components' method for ssvd - gives expected error with invalid age labels", {
+  age_labels <- poputils::age_labels(type = "lt", max = 65)
+  age_labels[10] <- "wrong"
+  expect_error(components(HMD, age_labels = age_labels),
+               "Problem with `age_labels`")
+})
+
+test_that("'components' method for ssvd - gives expected error with age labels not in x", {
+  age_labels <- poputils::age_labels(type = "lt", max = 120)
+  expect_error(components(HMD, age_labels = age_labels),
+               "Can't find labels from `age_labels` in `object`")
+})
+
+
 ## 'generate' -----------------------------------------------------------------
 
 test_that("'generate' works with ssvd - all defaults", {
