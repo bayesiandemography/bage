@@ -600,6 +600,15 @@ transform_draws_effect <- function(draws,
     linpred <- linpred - M %*% effect
     effects_standard[[i_effect]] <- Matrix::as.matrix(effect)
   }
+  if (any(abs(linpred) > 0.001)) {
+    for (i_effect in seq_len(n_effect)) {
+      M <- matrices_effect_outcome[[i_effect]]
+      n <- Matrix::colSums(M)
+      effect <- (Matrix::t(M) %*% linpred) / n ## works with Matrix
+      linpred <- linpred - M %*% effect
+      effects_standard[[i_effect]] <- effects_standard[[i_effect]] + Matrix::as.matrix(effect)
+    }
+  }
   if (any(abs(linpred) > 0.001))
     cli::cli_abort("Internal error: Final residual not 0")  ## nocov
   effects_standard <- do.call(rbind, effects_standard)
