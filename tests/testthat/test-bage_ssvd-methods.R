@@ -37,6 +37,12 @@ test_that("'components' method for ssvd - gives expected error with invalid age 
                "Problem with `age_labels`")
 })
 
+test_that("'components' method for ssvd - gives expected error when 'n_comp' too high", {
+  age_labels <- poputils::age_labels(type = "lt", max = 80)
+  expect_error(components(HMD, age_labels = age_labels, n_comp = 11),
+               "`n_comp` larger than number of components of `object`.")
+})
+
 test_that("'components' method for ssvd - gives expected error with age labels not in x", {
   age_labels <- poputils::age_labels(type = "lt", max = 120)
   expect_error(components(HMD, age_labels = age_labels),
