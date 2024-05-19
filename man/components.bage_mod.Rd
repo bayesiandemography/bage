@@ -4,12 +4,15 @@
 \alias{components.bage_mod}
 \title{Extract Components from a Model}
 \usage{
-\method{components}{bage_mod}(object, ...)
+\method{components}{bage_mod}(object, quiet = FALSE, ...)
 }
 \arguments{
-\item{object}{An fitted model.}
+\item{object}{A \code{bage_mod} object.}
 
-\item{...}{Not currently used.}
+\item{quiet}{Whether to suppress messages.
+Default is \code{FALSE}.}
+
+\item{...}{Unused. Included for generic consistency only.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}

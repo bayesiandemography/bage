@@ -80,7 +80,10 @@ mod_pois <- function(formula, data, exposure) {
                         data = data)
     check_resp_zero_if_offset_zero(formula = formula,
                                    vname_offset = vname_offset,
-                                   data = data)                                       
+                                   data = data)
+    check_offset_not_in_formula(vname_offset = vname_offset,
+                                nm_offset = "exposure",
+                                formula = formula)
     offset <- make_offset(vname_offset = vname_offset,
                           data = data)
   }
@@ -159,6 +162,9 @@ mod_binom <- function(formula, data, size) {
   check_offset_nonneg(vname_offset = vname_offset,
                       nm_offset = "size",
                       data = data)
+  check_offset_not_in_formula(vname_offset = vname_offset,
+                              nm_offset = "size",
+                              formula = formula)
   check_resp_zero_if_offset_zero(formula = formula,
                                  vname_offset = vname_offset,
                                  data = data)
@@ -246,6 +252,9 @@ mod_norm <- function(formula, data, weights) {
     check_offset_nonneg(vname_offset = vname_offset,
                         nm_offset = "weights",
                         data = data)
+    check_offset_not_in_formula(vname_offset = vname_offset,
+                                nm_offset = "weights",
+                                formula = formula)
     offset <- make_offset(vname_offset = vname_offset,
                           data = data)
   }
@@ -308,6 +317,7 @@ mod_helper <- function(formula, data, n_draw) {
                         lengths_effect = lengths_effect)
   matrices_along_by <- make_matrices_along_by(formula = formula,
                                               data = data)
+  seed_stored_draws <- make_seed()
   seed_components <- make_seed()
   seed_augment <- make_seed()
   seed_forecast_components <- make_seed()
@@ -330,8 +340,12 @@ mod_helper <- function(formula, data, n_draw) {
        is_fixed = NULL,
        R_prec = NULL,
        scaled_eigen = NULL,
-       components = NULL,
        n_draw = n_draw,
+       draws_linpred = NULL,
+       draws_hyper = NULL,
+       draws_disp = NULL,
+       store_draws = TRUE,
+       seed_stored_draws = seed_stored_draws,
        seed_components = seed_components,
        seed_augment = seed_augment,
        seed_forecast_components = seed_forecast_components,

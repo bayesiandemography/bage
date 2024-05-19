@@ -35,7 +35,9 @@ generics::augment
 #' Uncertain quantities are represented using
 #' [rvecs][rvec::rvec()].
 #'
-#' @param x A fitted `bage_mod` object.
+#' @param x A `bage_mod` object.
+#' @param quiet Whether to suppress messages.
+#' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
 #'
 #' @returns A [tibble][tibble::tibble-package].
@@ -63,63 +65,18 @@ generics::augment
 #' ## look at posterior distribution
 #' mod |> augment()
 #' @export
-augment.bage_mod <- function(x, ...) {
-  components <- components(x)
+augment.bage_mod <- function(x, quiet = FALSE, ...) {
+  check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(x)
   seed_augment <- x$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
-  if (is_fitted) {
-    ans <- x$data
-    ## make 'observed'
-    observed <- make_observed(x)
-    ans$.observed <- observed
-    ## if model not fitted, stop here
-    inv_transform <- get_fun_inv_transform(x)
-    has_disp <- has_disp(x)
-    linpred <- make_linpred_effect(mod = x,
-                                   components = components)
-    if (has_disp) {
-      expected <- inv_transform(linpred)
-      is_disp <- components$component == "disp"
-      disp <- components$.fitted[is_disp]
-      fitted <- make_par_disp(x = x,
-                              meanpar = expected,
-                              disp = disp)
-    }
-    else
-      fitted <- inv_transform(linpred)
-    ans$.fitted <- fitted
-    if (has_disp)
-      ans$.expected <- expected
-  }
+  if (is_fitted)
+    ans <- draw_vals_augment_fitted(x)
   else {
-    ans <- draw_vals_augment(mod = x, vals_components = components)
-  }
-  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  ans
-}
-
-## HAS_TESTS
-#' @export
-augment.bage_mod_norm <- function(x, ...) {
-  is_fitted <- is_fitted(x)
-  seed_augment <- x$seed_augment
-  seed_restore <- make_seed() ## create randomly-generated seed
-  set.seed(seed_augment) ## set pre-determined seed
-  if (is_fitted) {
-    ans <- x$data
-    components <- components(x)
-    linpred_effect <- make_linpred_effect(mod = x,
-                                          components = components)
-    scale_outcome <- get_fun_scale_outcome(x)
-    fitted <- scale_outcome(linpred_effect)
-    ans$.fitted <- fitted
-  }
-  else {
-    n_draw <- x$n_draw
-    vals_components <- draw_vals_components(mod = x, n_sim = n_draw)
-    ans <- draw_vals_augment(mod = x, vals_components = vals_components)
+    if (!quiet)
+      cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
+    ans <- draw_vals_augment_unfitted(x)
   }
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans
@@ -150,8 +107,10 @@ generics::components
 #' - `.fitted` An [rvec][rvec::rvec()] containing
 #' draws from the posterior distribution.
 #'
-#' @param object An fitted model.
-#' @param ... Not currently used.
+#' @param object A `bage_mod` object.
+#' @param quiet Whether to suppress messages.
+#' Default is `FALSE`.
+#' @param ... Unused. Included for generic consistency only.
 #'
 #' @returns A [tibble][tibble::tibble-package]
 #'
@@ -179,31 +138,20 @@ generics::components
 #' ## look at posterior distribution
 #' mod |> components() ## posterior distribution
 #' @export
-components.bage_mod <- function(object, ...) {
-  previously_computed <- object$components
-  if (!is.null(previously_computed))
-    return(previously_computed)
+components.bage_mod <- function(object, quiet = FALSE, ...) {
+  check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
   seed_components <- object$seed_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_components) ## set pre-determined seed
   if (is_fitted) {
-    term <- make_term_components(object)
-    comp <- make_comp_components(object)
-    level <- make_level_components(object)
-    draws <- make_draws_components(object)
-    draws <- as.matrix(draws)
-    .fitted <- rvec::rvec_dbl(draws)
-    ans <- tibble::tibble(term = term,
-                          component = comp,
-                          level = level,
-                          .fitted = .fitted)
-    ans <- reformat_hyperrand(components = ans,
-                              mod = object)
+    ans <- draw_vals_components_fitted(object)
   }
   else {
+    if (!quiet)
+      cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
-    ans <- draw_vals_components(mod = object, n_sim = n_draw)
+    ans <- draw_vals_components_unfitted(mod = object, n_sim = n_draw)
   }
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans <- sort_components(components = ans,
@@ -212,23 +160,76 @@ components.bage_mod <- function(object, ...) {
 }
 
 
-## 'draw_vals_augment' --------------------------------------------------------
+## 'draw_vals_augment_fitted' -------------------------------------------------
 
-#' Draw Values that are Produced by 'augment'
+#' Draw '.fitted' and Possibly '.expected' from Fitted Model
 #'
-#' @param mod Object of class 'bage_mod'
-#' @param n_sim Number of draws
+#' @param mod A fitted object of class 'bage_mod'
 #'
-#' @returns Named list
+#' @returns A tibble
 #'
 #' @noRd
-draw_vals_augment <- function(mod, vals_components) {
-  UseMethod("draw_vals_augment")
+draw_vals_augment_fitted <- function(mod) {
+  UseMethod("draw_vals_augment_fitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment.bage_mod <- function(mod, vals_components) {
+draw_vals_augment_fitted.bage_mod <- function(mod) {
+  ans <- mod$data
+  ans$.observed <- make_observed(mod)
+  linpred <- mod$draws_linpred
+  linpred <- Matrix::as.matrix(linpred)
+  inv_transform <- get_fun_inv_transform(mod)
+  has_disp <- has_disp(mod)
+  if (has_disp) {
+    expected <- inv_transform(linpred)
+    disp <- mod$draws_disp
+    disp <- matrix(disp, nrow = 1L)
+    expected <- rvec::rvec_dbl(expected)
+    disp <- rvec::rvec_dbl(disp)
+    ans$.fitted <- make_par_disp(x = mod,
+                                 meanpar = expected,
+                                 disp = disp)
+    ans$.expected <- expected
+  }
+  else
+    ans$.fitted <- inv_transform(linpred)
+  ans
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
+  ans <- mod$data
+  linpred <- mod$draws_linpred
+  linpred <- Matrix::as.matrix(linpred)
+  scale_outcome <- get_fun_scale_outcome(mod)
+  .fitted <- scale_outcome(linpred)
+  .fitted <- rvec::rvec_dbl(.fitted)
+  ans$.fitted <- .fitted
+  ans
+}
+
+
+## 'draw_vals_augment_unfitted' --------------------------------------------------------
+
+#' Draw '.fitted' and Possibly '.expected' from Unfitted Model
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns Named list
+#'
+#' @noRd
+draw_vals_augment_unfitted <- function(mod) {
+  UseMethod("draw_vals_augment_unfitted")
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_augment_unfitted.bage_mod <- function(mod) {
+  n_draw <- mod$n_draw
+  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_draw)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   nm_outcome <- get_nm_outcome(mod)
@@ -259,7 +260,9 @@ draw_vals_augment.bage_mod <- function(mod, vals_components) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment.bage_mod_norm <- function(mod, vals_components) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
+  n_draw <- mod$n_draw
+  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_draw)
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
   vals_linpred <- make_linpred_effect(mod = mod,
@@ -510,15 +513,15 @@ fit.bage_mod <- function(object, ...) {
     prec <- sdreport$jointPrecision
   else
     prec <- solve(sdreport$cov.fixed) ## should be very low dimension
-  R_prec <- tryCatch(chol(prec),
-                     error = function(e) e)
+  R_prec <- tryCatch(chol(prec), error = function(e) e)
   if (is.matrix(R_prec))
     object$R_prec <- R_prec
   else
     object$scaled_eigen <- make_scaled_eigen(prec)
   object$est <- est
   object$is_fixed <- is_fixed
-  object$components <- components(object)
+  if (object$store_draws)
+    object <- make_stored_draws(object)
   object
 }
 
@@ -529,7 +532,7 @@ fit.bage_mod <- function(object, ...) {
 #' @export
 generics::forecast
 
-## NO_TESTS
+## HAS_TESTS
 #' Use a Model to Make a Forecast
 #'
 #' Forecast rates, probabilities, or means, and
