@@ -23,16 +23,14 @@
 #' components of `object`.
 #' @param joint Whether to use joint or
 #' independent SVDs for each sex/gender. If
-#' no value is supplied, an SVD for all sexes/genders
+#' no value is supplied, an SVD for sexes/genders
 #' combined is used.
 #' @param age_labels Age labels for the
 #' desired profile. If no labels are supplied, the
 #' most detailed profile available is used. 
 #' @param ... Not currently used.
 #'
-#' @returns A named list with elements
-#' - `matrix` A matrix with `n_comp` columns.
-#' - `offset A numeric vector.
+#' @returns A tibble with the offset and components.
 #'
 #' @seealso
 #' - [generate()][bage::generate()] Randomly generate
@@ -44,25 +42,17 @@
 #'
 #' @examples
 #' ## components for females and males combined
-#' comp_total <- components(LFP, n_comp = 3)
-#' comp_total$matrix
-#' comp_total$offset
+#' components(LFP, n_comp = 3)
 #'
 #' ## joint model for females and males
-#' comp_joint <- components(LFP, joint = TRUE, n_comp = 3)
-#' comp_joint$matrix
-#' comp_joint$offset
+#' components(LFP, joint = TRUE, n_comp = 3)
 #'
 #' ## females and males modelled independently
-#' comp_indep <- components(LFP, joint = FALSE, n_comp = 3)
-#' comp_indep$matrix
-#' comp_indep$offset
+#' components(LFP, joint = FALSE, n_comp = 3)
 #' 
 #' ## specify age groups
 #' labels <- poputils::age_labels(type = "five", min = 15, max = 60)
-#' comp_labels <- components(LFP, age_labels = labels)
-#' comp_labels$matrix
-#' comp_labels$offset
+#' components(LFP, age_labels = labels)
 #' @export
 components.bage_ssvd <- function(object,
                                  n_comp = NULL,
@@ -86,6 +76,9 @@ components.bage_ssvd <- function(object,
   has_joint <- !is.null(joint)
   if (has_joint) {
     check_flag(x = joint, nm_x = "joint")
+    if (!has_sexgender(object))
+      cli::cli_abort(paste("Value supplied for {.arg joint}, but {.arg object}",
+                           "does not have a sex/gender dimension."))
     type <- if (joint) "joint" else "indep"
   }
   else
@@ -110,10 +103,10 @@ components.bage_ssvd <- function(object,
     lengths_labels <- lengths(data$labels_age)
     i_matched <- which.max(lengths_labels)
   }
-  levels_age <- data$labels_age[[i_matched]]
-  levels_sexgender <- data$labels_sexgender[[i_matched]]
-  levels_age <- unique(levels_age)
-  levels_sexgender <- unique(levels_sexgender)
+  labels_age <- data$labels_age[[i_matched]]
+  labels_sexgender <- data$labels_sexgender[[i_matched]]
+  levels_age <- unique(labels_age)
+  levels_sexgender <- unique(labels_sexgender)
   agesex <- if (has_joint) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = object,
                                      levels_age = levels_age,
@@ -129,16 +122,30 @@ components.bage_ssvd <- function(object,
                                      agesex = agesex,
                                      get_matrix = FALSE,
                                      n_comp = n_comp)
+  n_age <- length(levels_age)
+  n_sex <- length(unique(levels_sexgender))
+  keep <- seq_len(n_comp)
   matrix <- Matrix::as.matrix(matrix)
-  if (type == "indep")
-    colnames <- paste(rep(levels_sexgender, each = n_comp),
-                      seq_len(n_comp),
-                      sep = ".")
-  else
-    colnames <- seq_len(n_comp)
-  colnames(matrix) <- colnames
-  list(matrix = matrix,
-       offset = offset)
+  if (type == "indep") {
+    matrix <- lapply(seq_len(n_sex),
+                     function(i)
+                       matrix[seq_len(n_age) + (i - 1L) * n_age,
+                              seq_len(n_comp) + (i - 1L) * n_comp,
+                              drop = FALSE])
+    matrix <- do.call(rbind, matrix)
+  }
+  offset <- tibble::tibble(component = "Offset",
+                           sex = labels_sexgender,
+                           age = labels_age,
+                           value = as.numeric(offset))
+  component <- paste("Component", rep(seq_len(n_comp), each = length(labels_age)))
+  components <- tibble::tibble(component = component,
+                               sex = rep(labels_sexgender, times = n_comp),
+                               age = rep(labels_age, times = n_comp),
+                               value = as.numeric(matrix))
+  ans <- rbind(offset, components)
+  ans$component <- factor(ans$component, levels = unique(ans$component))
+  ans
 }
 
 
@@ -165,7 +172,7 @@ generics::generate
 #' half the number of components of `x`.
 #' @param joint Whether to use joint or
 #' independent SVDs for each sex/gender. If
-#' no value is supplied, an SVD for all sexes/genders
+#' no value is supplied, an SVD for sexes/genders
 #' combined is used.
 #' @param age_labels Age labels for the
 #' desired profile. If no labels are supplied, the
@@ -222,6 +229,9 @@ generate.bage_ssvd <- function(x,
   has_joint <- !is.null(joint)
   if (has_joint) {
     check_flag(x = joint, nm_x = "joint")
+    if (!has_sexgender(x))
+      cli::cli_abort(paste("Value supplied for {.arg joint}, but {.arg x}",
+                           "does not have a sex/gender dimension."))
     type <- if (joint) "joint" else "indep"
   }
   else
@@ -289,6 +299,30 @@ generate.bage_ssvd <- function(x,
 
 #' @export
 print.bage_ssvd <- function(x, ...) {
-    cat("<Object of class \"", class(x), "\">\n", sep = "")
-    invisible(x)
+  cat("\n")
+  cat(paste(rep("-", times = 60), collapse = ""), "\n")
+  cat("<Object of class \"", class(x), "\">\n\n", sep = "")
+  data <- x$data
+  type <- data$type
+  sexgender <- data$labels_sexgender
+  age <- data$labels_age
+  has_sexgender <- "joint" %in% type
+  if (has_sexgender) {
+    levels_sexgender <- unique(sexgender[type == "joint"][[1L]])
+    cat("sex/gender labels:\n")
+    for (level in levels_sexgender)
+      cat("    ", level, "\n")
+    cat("\n")
+  }
+  cat("age labels:\n")
+  labels_age <- age[data$type == "total"]
+  for (labels in labels_age) {
+    n <- length(labels)
+    if (n >= 9L)
+      labels <- c(labels[1:4], "...", labels[c(n - 2L, n - 1L, n)])
+    labels <- paste(labels, collapse = ", ")
+    cat("    ", labels, "\n")
+  }
+  cat(paste(rep("-", times = 60), collapse = ""), "\n")
 }
+

@@ -1229,6 +1229,11 @@ SVD <- function(ssvd, n = NULL) {
 SVDS <- function(ssvd, n = 5, joint = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  if (!has_sexgender(ssvd)) {
+    cli::cli_abort(c("{.arg ssvd} does not have a sex/gender dimension.",
+                     i = "Try prior {.val SVD()} instead?",
+                     i = "For a list of priors, see {.topic bage::priors}."))
+  }
   check_n(n,
           nm_n = "n",
           min = 1L,
@@ -1405,6 +1410,11 @@ ESVD <- function(ssvd, n = 5) {
 ESVDS <- function(ssvd, n = 5, joint = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  if (!has_sexgender(ssvd)) {
+    cli::cli_abort(c("{.arg ssvd} does not have a sex/gender dimension.",
+                     i = "Try prior {.val ESVD()} instead?",
+                     i = "For a list of priors, see {.topic bage::priors}."))
+  }
   check_n(n,
           nm_n = "n",
           min = 1L,

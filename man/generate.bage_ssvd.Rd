@@ -17,7 +17,7 @@ half the number of components of \code{x}.}
 
 \item{joint}{Whether to use joint or
 independent SVDs for each sex/gender. If
-no value is supplied, an SVD for all sexes/genders
+no value is supplied, an SVD for sexes/genders
 combined is used.}
 
 \item{age_labels}{Age labels for the

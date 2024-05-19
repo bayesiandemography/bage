@@ -15,7 +15,7 @@ components of \code{object}.}
 
 \item{joint}{Whether to use joint or
 independent SVDs for each sex/gender. If
-no value is supplied, an SVD for all sexes/genders
+no value is supplied, an SVD for sexes/genders
 combined is used.}
 
 \item{age_labels}{Age labels for the
@@ -25,11 +25,7 @@ most detailed profile available is used.}
 \item{...}{Not currently used.}
 }
 \value{
-A named list with elements
-\itemize{
-\item \code{matrix} A matrix with \code{n_comp} columns.
-\item `offset A numeric vector.
-}
+A tibble with the offset and components.
 }
 \description{
 Extract the matrix and offset used by an SVD prior.
@@ -59,25 +55,17 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 
 \examples{
 ## components for females and males combined
-comp_total <- components(LFP, n_comp = 3)
-comp_total$matrix
-comp_total$offset
+components(LFP, n_comp = 3)
 
 ## joint model for females and males
-comp_joint <- components(LFP, joint = TRUE, n_comp = 3)
-comp_joint$matrix
-comp_joint$offset
+components(LFP, joint = TRUE, n_comp = 3)
 
 ## females and males modelled independently
-comp_indep <- components(LFP, joint = FALSE, n_comp = 3)
-comp_indep$matrix
-comp_indep$offset
+components(LFP, joint = FALSE, n_comp = 3)
 
 ## specify age groups
 labels <- poputils::age_labels(type = "five", min = 15, max = 60)
-comp_labels <- components(LFP, age_labels = labels)
-comp_labels$matrix
-comp_labels$offset
+components(LFP, age_labels = labels)
 }
 \seealso{
 \itemize{
