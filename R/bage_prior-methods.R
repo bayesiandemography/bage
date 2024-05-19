@@ -879,7 +879,7 @@ forecast_effect.bage_prior <- function(prior,
   cli::cli_abort(c("Can't forecast term {.val {nm_prior}}.",
                    i = "Term {.val {nm_prior}} has a {.val {str_nm_prior(prior)}} prior.",
                    i = "Terms with a {.val {str_nm_prior(prior)}} prior cannot be forecasted.",
-                   i = "For a list of priors that can be forecasted see {.topic bage::priors}."))
+                   i = "For a list of priors that can be forecasted, see {.topic bage::priors}."))
 }
 
 ## HAS_TESTS

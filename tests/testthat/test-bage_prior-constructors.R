@@ -185,7 +185,6 @@ test_that("'SVD' throws correct error when n is too high", {
                "`n` larger than number of components of `ssvd`.")
 })
 
-
 test_that("'SVDS' works with valid inputs", {
     expect_identical(SVDS(HMD),
                      new_bage_prior_svd(HMD,
@@ -197,6 +196,13 @@ test_that("'SVDS' works with valid inputs", {
                                         nm_ssvd = "HMD",
                                         joint = TRUE,
                                         n = 3L))
+})
+
+test_that("'SVDS' throws correct error when ssvd has no sex diemnsion", {
+  ssvd <- sim_ssvd()
+  ssvd$data <- ssvd$data[1,]
+  expect_error(SVDS(ssvd),
+               "`ssvd` does not have a sex/gender dimension.")
 })
 
 test_that("'ESVD' works with valid inputs", {
@@ -224,6 +230,14 @@ test_that("'ESVDS' works with valid inputs", {
                                        joint = TRUE,
                                        n = 3L))
 })
+
+test_that("'ESVDS' throws correct error when ssvd has no sex diemnsion", {
+  ssvd <- sim_ssvd()
+  ssvd$data <- ssvd$data[1,]
+  expect_error(ESVDS(ssvd),
+               "`ssvd` does not have a sex/gender dimension.")
+})
+
 
 
 ## Internal constructors ------------------------------------------------------

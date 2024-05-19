@@ -143,3 +143,19 @@ get_n_comp <- function(ssvd) {
   matrix_total <- matrix[[i_total]]
   ncol(matrix_total)
 }
+
+
+## HAS_TESTS
+#' See if 'ssvd' Object has Sex/Gender Dimension
+#'
+#' @param ssvd Object of class bage_ssvd
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+has_sexgender <- function(ssvd) {
+  data <- ssvd$data
+  labels_sexgender <- data$labels_sexgender
+  is_null <- vapply(labels_sexgender, is.null, TRUE)
+  !all(is_null)
+}
