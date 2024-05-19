@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{object}{An fitted model.}
+\item{object}{A \code{bage_mod} object.}
 
 \item{output}{Type of output returned}
 

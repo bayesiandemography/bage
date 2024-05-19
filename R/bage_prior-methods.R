@@ -35,6 +35,8 @@ const.bage_prior_compose <- function(prior) {
 
 #' Draw Values for Main Effect or Interactions
 #'
+#' Effect is centered, unless it has a Known or SVD prior.
+#' 
 #' @param prior Object of class 'bage_prior'
 #' @param vals_hyper Named list with values of ordinary hyper-parameters
 #' @param vals_hyperrand Named list with values of hyper-parameters
@@ -83,6 +85,7 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   sd <- vals_hyper$sd
   n <- length(levels_effect)
   ans <- draw_vals_ar(n = n, coef = coef, sd = sd)
+  ans <- ans - rep(colMeans(ans), each = n)
   dimnames(ans) <- list(levels_effect, seq_len(n_sim))
   ans
 }
@@ -102,7 +105,8 @@ draw_vals_effect.bage_prior_compose <- function(prior,
   priors <- prior$specific$priors
   nms_priors <- names(priors)
   components <- vals_hyperrand[nms_priors]
-  ans <- Reduce(function(x, y) x[[1L]] + y[[1L]], components)
+  components <- lapply(components, `[[`, 1L)
+  ans <- Reduce(`+`, components)
   ans
 }
 
@@ -126,6 +130,7 @@ draw_vals_effect.bage_prior_ear <- function(prior,
   coef <- coef[, s]
   sd <- sd[s]
   ans <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
+  ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -150,7 +155,7 @@ draw_vals_effect.bage_prior_elin <- function(prior,
   draw_vals_elin(mslope = mslope,
                  sd = sd,
                  matrix_along_by = matrix_along_by,
-                 labels = levels_effect)
+                 labels = levels_effect) ## standardized internally
 }
 
 ## HAS_TESTS
@@ -168,7 +173,7 @@ draw_vals_effect.bage_prior_erw <- function(prior,
   sd <- vals_hyper$sd
   draw_vals_erw(sd = sd,
                 matrix_along_by = matrix_along_by,
-                labels = levels_effect)
+                labels = levels_effect) ## standardized internally
 }
 
 ## HAS_TESTS
@@ -186,7 +191,7 @@ draw_vals_effect.bage_prior_erw2 <- function(prior,
   sd <- vals_hyper$sd
   draw_vals_erw2(sd = sd,
                  matrix_along_by = matrix_along_by,
-                 labels = levels_effect)
+                 labels = levels_effect)  ## standardized internally
 }
 
 
@@ -207,7 +212,7 @@ draw_vals_effect.bage_prior_eseas <- function(prior,
   draw_vals_eseas(n = n,
                   sd = sd,
                   matrix_along_by = matrix_along_by,
-                  labels = levels_effect)
+                  labels = levels_effect) ## standardized internally
 }
 
 ## HAS_TESTS
@@ -244,9 +249,11 @@ draw_vals_effect.bage_prior_lin <- function(prior,
                                             n_sim) {
   slope <- vals_hyper$slope
   sd <- vals_hyper$sd
-  draw_vals_lin(slope = slope,
-                sd = sd,
-                labels = levels_effect)
+  ans <- draw_vals_lin(slope = slope,
+                       sd = sd,
+                       labels = levels_effect)
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
+  ans
 }
 
 
@@ -263,14 +270,18 @@ draw_vals_effect.bage_prior_norm <- function(prior,
                                              matrix_agesex,
                                              n_sim) {
   sd <- vals_hyper$sd
-  n_effect <- length(levels_effect)
+  n_along <- nrow(matrix_along_by) ## in case being used as error
+  n_by <- ncol(matrix_along_by)    ## term in an interaction
+  n_effect <- n_along * n_by
   n <- n_effect * n_sim
   sd <- rep(sd, each = n_effect)
   ans <- stats::rnorm(n = n, sd = sd)
-  ans <- matrix(ans,
-                nrow = n_effect,
-                ncol = n_sim,
-                dimnames = list(levels_effect, seq_len(n_sim)))
+  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
+  ans <- matrix(ans, nrow = n_effect, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
   ans
 }
 
@@ -294,6 +305,7 @@ draw_vals_effect.bage_prior_normfixed <- function(prior,
                 nrow = n_effect,
                 ncol = n_sim,
                 dimnames = list(levels_effect, seq_len(n_sim)))
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
   ans
 }
 
@@ -310,8 +322,10 @@ draw_vals_effect.bage_prior_rw <- function(prior,
                                            matrix_agesex,
                                            n_sim) {
   sd <- vals_hyper$sd
-  draw_vals_rw(sd = sd,
-               labels = levels_effect)
+  ans <- draw_vals_rw(sd = sd,
+                      labels = levels_effect)
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
+  ans
 }
 
 ## HAS_TESTS
@@ -327,8 +341,10 @@ draw_vals_effect.bage_prior_rw2 <- function(prior,
                                             matrix_agesex,
                                             n_sim) {
   sd <- vals_hyper$sd
-  draw_vals_rw2(sd = sd,
-                labels = levels_effect)
+  ans <- draw_vals_rw2(sd = sd,
+                       labels = levels_effect)
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
+  ans
 }
 
 ## HAS_TESTS
@@ -345,9 +361,11 @@ draw_vals_effect.bage_prior_seas <- function(prior,
                                              n_sim) {
   n <- prior$specific$n
   sd <- vals_hyper$sd
-  draw_vals_seas(n = n,
-                 sd = sd,
-                 labels = levels_effect)
+  ans <- draw_vals_seas(n = n,
+                        sd = sd,
+                        labels = levels_effect)
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
+  ans
 }
 
 ## HAS_TESTS
@@ -366,10 +384,14 @@ draw_vals_effect.bage_prior_spline <- function(prior,
   m <- make_matrix_effectfree_effect(prior = prior,
                                      levels_effect = levels_effect,
                                      agesex = NULL)
+  m <- Matrix::as.matrix(m)
   labels <- seq_len(ncol(m))
   effect <- draw_vals_rw2(sd = sd,
                           labels = labels)
-  m %*% effect
+  ans <- m %*% effect
+  ans <- ans - rep(colMeans(ans), each = nrow(ans))
+  ans
+
 }
 
 ## HAS_TESTS
@@ -405,6 +427,7 @@ draw_vals_effect.bage_prior_svd <- function(prior,
   z <- stats::rnorm(n = n_comp * n_sim)
   z <- matrix(z, nrow = n_comp, ncol = n_sim)
   ans <- m %*% z + b
+  ans <- Matrix::as.matrix(ans)
   colnames(ans) <- seq_len(n_sim)
   names(dimnames(ans)) <- NULL
   ans    
@@ -445,6 +468,7 @@ draw_vals_effect.bage_prior_esvd <- function(prior,
   z <- stats::rnorm(n = n_comp * n_by * n_sim)
   z <- matrix(z, nrow = n_comp, ncol = n_by * n_sim)
   ans <- m %*% z + b
+  ans <- Matrix::as.matrix(ans)
   ans <- matrix(ans, ncol = n_sim)
   m <- make_matrix_agesex_index(matrix_agesex)
   ans <- m %*% ans

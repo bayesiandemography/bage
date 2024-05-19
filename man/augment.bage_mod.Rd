@@ -4,10 +4,13 @@
 \alias{augment.bage_mod}
 \title{Data and Values from a Model}
 \usage{
-\method{augment}{bage_mod}(x, ...)
+\method{augment}{bage_mod}(x, quiet = FALSE, ...)
 }
 \arguments{
-\item{x}{A fitted \code{bage_mod} object.}
+\item{x}{A \code{bage_mod} object.}
+
+\item{quiet}{Whether to suppress messages.
+Default is \code{FALSE}.}
 
 \item{...}{Unused. Included for generic consistency only.}
 }

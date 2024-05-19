@@ -73,6 +73,12 @@ test_that("'generate' method for ssvd - gives expected error with age labels not
                "Can't find labels from `age_labels` in `x`")
 })
 
+test_that("'generate' method for ssvd - gives expected when 'n_comp' too high", {
+  age_labels <- poputils::age_labels(type = "lt", max = 80)
+  expect_error(generate(HMD, age_labels = age_labels, n_comp = 11),
+               "`n_comp` larger than number of components of `x`.")
+})
+
 
 ## 'print' --------------------------------------------------------------------
 

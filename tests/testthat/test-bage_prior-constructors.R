@@ -180,6 +180,12 @@ test_that("'SVD' works with valid inputs", {
                                         n = 3L))
 })
 
+test_that("'SVD' throws correct error when n is too high", {
+  expect_error(SVD(HMD, n = 11),
+               "`n` larger than number of components of `ssvd`.")
+})
+
+
 test_that("'SVDS' works with valid inputs", {
     expect_identical(SVDS(HMD),
                      new_bage_prior_svd(HMD,
