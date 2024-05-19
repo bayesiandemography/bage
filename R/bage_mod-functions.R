@@ -97,21 +97,18 @@ set_n_draw <- function(mod, n_draw = 1000L) {
           null_ok = FALSE)
   n_draw <- as.integer(n_draw)
   n_draw_old <- mod$n_draw
-  if (n_draw > n_draw_old)
-    mod[["components"]] <- NULL
-  if (n_draw < n_draw_old) {
-    comp <- mod[["components"]]
-    if (!is.null(comp)) {
-      fitted <- comp$.fitted
-      fitted <- as.matrix(fitted)
+  mod$n_draw <- n_draw
+  if (is_fitted(mod)) {
+    if (n_draw > n_draw_old)
+      mod <- make_stored_draws(mod)
+    if (n_draw < n_draw_old) {
       s <- seq_len(n_draw)
-      fitted <- fitted[, s, drop = FALSE]
-      fitted <- rvec::rvec(fitted)
-      comp$.fitted <- fitted
-      mod$components <- comp
+      mod$draws_linpred <- mod$draws_linpred[, s, drop = FALSE] 
+      mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
+      if (has_disp(mod))
+        mod$draws_disp <- mod$draws_disp[s]
     }
   }
-  mod$n_draw <- n_draw
   mod
 }
 

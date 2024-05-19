@@ -1,5 +1,30 @@
 
 ## HAS_TESTS
+#' Return Values for Higher-Level Parameters from Fitted Model
+#'
+#' @param mod A fitted object of class 'bage_mod'
+#'
+#' @returns A tibble
+#'
+#' @noRd
+draw_vals_components_fitted <- function(mod) {
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  ans <- tibble::tibble(term = term,
+                        component = comp,
+                        level = level,
+                        .fitted = .fitted)
+  ans <- reformat_hyperrand(components = ans,
+                            mod = mod)
+  ans
+}
+
+
+## HAS_TESTS
 #' Insert values for fixed parameters into
 #' random draws for non-fixed parameters
 #'
@@ -136,39 +161,6 @@ make_copies_repdata <- function(data, n) {
     
 
 ## HAS_TESTS
-#' Make initial draws for 'components' function
-#'
-#' Make draws of variables included in 'prec'
-#' matrix of TMB model output.
-#'
-#' If the Cholesky decomposition of
-#' 'prec' was successful, then use that.
-#' Otherwise, use the eigen decomposition.
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_draws_comp_raw <- function(mod) {
-    est <- mod$est
-    R_prec <- mod$R_prec
-    scaled_eigen <- mod$scaled_eigen
-    is_fixed <- mod$is_fixed
-    n_draw <- mod$n_draw
-    mean <- unlist(est)[!is_fixed]
-    if (is.matrix(R_prec))
-        rmvnorm_chol(n = n_draw,
-                     mean = mean,
-                     R_prec = R_prec)
-    else
-        rmvnorm_eigen(n = n_draw,
-                      mean = mean,
-                      scaled_eigen = scaled_eigen)
-}
-
-
-## HAS_TESTS
 #' Make draws from posterior distribution of
 #' all parameters other than lowest-level
 #' rates/probs/means
@@ -179,29 +171,137 @@ make_draws_comp_raw <- function(mod) {
 #'
 #' @noRd
 make_draws_components <- function(mod) {
-  est <- mod$est
-  is_fixed <- mod$is_fixed
-  matrices_effect_outcome <- mod$matrices_effect_outcome
+  linpred <- mod$draws_linpred
+  hyper <- mod$draws_hyper
+  ans_effects <- make_standardized_effects(mod = mod,
+                                           linpred = linpred)
+  ans_effects <- lapply(ans_effects, unname)
+  ans_effects <- lapply(ans_effects, Matrix::as.matrix)
+  ans_effects <- Reduce(rbind, ans_effects)
+  ans_effects <- rvec::rvec_dbl(ans_effects)
+  ans_hyper <- rvec::rvec_dbl(hyper)
+  ans <- c(ans_effects, ans_hyper)
+  if (has_disp(mod)) {
+    disp <- mod$draws_disp
+    disp <- matrix(disp, nrow = 1L)
+    ans_disp <- rvec::rvec_dbl(disp)
+    ans <- c(ans, ans_disp)
+  }
+  ans
+}
+
+
+
+## HAS_TESTS
+#' Make Draws for Dispersion Parameter
+#'
+#' Includes transforming back to natural units.
+#'
+#' @param mod A fitted object of class "bage_mod"
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A numeric vector.
+#' 
+#' @noRd
+make_draws_disp <- function(mod, draws_post) {
+  n_val <- nrow(draws_post)
+  ans <- draws_post[n_val, ]
+  ans <- exp(ans)
+  ans
+}
+ 
+
+## HAS_TESTS
+#' Make Draws from Hyper-Parameters
+#'
+#' Includes hyperrand, but not disp.
+#' Includes transforming back to natural units.
+#'
+#' @param mod A fitted object of class "bage_mod"
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_draws_hyper <- function(mod, draws_post) {
+  n_effectfree <- length(mod$est$effectfree)
+  n_val <- nrow(draws_post)
+  is_effect <- seq_len(n_val) <= n_effectfree
+  is_disp <- seq_len(n_val) == n_val ## even in models where has_disp(mod) is FALSE
+  is_hyper <- !is_effect & !is_disp
+  ans <- draws_post[is_hyper, , drop = FALSE]
+  transforms <- make_transforms_hyper(mod)
+  for (i in seq_along(transforms)) {
+    transform <- transforms[[i]]
+    if (!is.null(transform))
+      ans[i, ] <- transform(ans[i, ])
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Draws from the Linear Predictor Formed from 'effectfree'
+#'
+#' @param mod A fitted object of class "bage_mod"
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_draws_linpred <- function(mod, draws_post) {
   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
   offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-  transforms_hyper <- make_transforms_hyper(mod)
-  ## transforms_hyperrand <- make_transforms_hyperrand(mod)
-  ## WARNING The order of the following functions matters:
-  ## each makes assumptions about the rows of 'draws'
-  draws <- make_draws_comp_raw(mod)
-  draws <- insert_draws_known(draws = draws,
-                              est = est,
-                              is_fixed = is_fixed)
-  draws <- transform_draws_hyper(draws = draws,
-                                 transforms = transforms_hyper)
-  draws <- transform_draws_effect(draws = draws,
-                                  matrix_effectfree_effect = matrix_effectfree_effect,
-                                  offset_effectfree_effect = offset_effectfree_effect,
-                                  matrices_effect_outcome = matrices_effect_outcome)
-  if (!has_disp(mod))
-    draws <- draws[-nrow(draws), , drop = FALSE]
-  rownames(draws) <- NULL
-  draws
+  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  n_effectfree <- ncol(matrix_effectfree_effect)
+  n_val <- nrow(draws_post)
+  is_effectfree <- seq_len(n_val) <= n_effectfree
+  effectfree <- draws_post[is_effectfree, , drop = FALSE]
+  effect <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
+  matrix_effect_outcome %*% effect
+}
+
+
+## HAS_TESTS
+#' Make Initial Draws from Posterior Distribution
+#'
+#' Make draws of variables included in 'prec'
+#' matrix of TMB model output.
+#'
+#' If the Cholesky decomposition of
+#' 'prec' was successful, then use that.
+#' Otherwise, use the eigen decomposition.
+#' Insert values for parameters that were
+#' fixed via the 'map' function
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_draws_post <- function(mod) {
+  est <- unlist(mod$est)
+  R_prec <- mod$R_prec
+  scaled_eigen <- mod$scaled_eigen
+  is_fixed <- mod$is_fixed
+  n_draw <- mod$n_draw
+  ans <- matrix(nrow = length(is_fixed),
+                ncol = n_draw)
+  mean <- est[!is_fixed]
+  if (is.matrix(R_prec))
+    draws_nonfixed <- rmvnorm_chol(n = n_draw,
+                                   mean = mean,
+                                   R_prec = R_prec)
+  else
+    draws_nonfixed <- rmvnorm_eigen(n = n_draw,
+                                    mean = mean,
+                                    scaled_eigen = scaled_eigen)
+  ans[!is_fixed, ] <- draws_nonfixed
+  ans[is_fixed, ] <- est[is_fixed]
+  ans
 }
 
 
@@ -374,6 +474,79 @@ make_scaled_eigen <- function(prec) {
 
 
 ## HAS_TESTS
+#' Produce Standardized Effects from the Linear Predictor
+#'
+#' @param mod Object of class 'bage_mod'.
+#' @param linpred A matrix holding the linear predictor.
+#' 
+#' @returns A matrix
+#'
+#' @noRd
+make_standardized_effects <- function(mod, linpred) {
+  eps <- 0.0001
+  max_iter <- 100L
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  n_effect <- length(matrices_effect_outcome)
+  n_outcome <- nrow(linpred)
+  n_draw <- ncol(linpred)
+  n_element <- vapply(matrices_effect_outcome, ncol, 1L)
+  mult <- n_element / n_outcome
+  ans <- .mapply(matrix,
+                 dots = list(nrow = n_element),
+                 MoreArgs = list(data = 0, ncol = n_draw))
+  names(ans) <- names(mod$priors)
+  for (i_effect in seq_len(n_effect))
+    rownames(ans[[i_effect]]) <- colnames(matrices_effect_outcome[[i_effect]])
+  for (i_iter in seq_len(max_iter)) {
+    for (i_effect in seq_len(n_effect)) {
+      M <- matrices_effect_outcome[[i_effect]]
+      effect <- mult[[i_effect]] * Matrix::crossprod(M, linpred)
+      linpred <- linpred - M %*% effect
+      ans[[i_effect]] <- ans[[i_effect]] + effect
+    }
+    max_remainder <- max(abs(linpred))
+    if (max_remainder < eps)
+      return(ans)
+  }
+  cli::cli(c("Internal error: Unable to standardize effects.",   ## nocov
+             i = "Maximum remainder: {.val {max_remainder}}."))  ## nocov
+}
+
+
+## HAS_TESTS
+#' Make Draws Stored as Part of Model Object
+#'
+#' Draws created are 'draws_linpred', 'draws_hyper',
+#' and, optionally, 'draws_disp'.
+#'
+#' Repeatability is achieved via 'seed_stored_draws'.
+#'
+#' @param mod A fitted 'bage_mod' object
+#'
+#' @returns Modified version of 'mod'
+#'
+#' @noRd
+make_stored_draws <- function(mod) {
+  if (!is_fitted(mod))
+    cli::cli_abort("Internal error: Can't make stored draws for an unfitted model.")
+  seed_stored_draws <- mod$seed_stored_draws
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_stored_draws) ## set pre-determined seed
+  draws_post <- make_draws_post(mod)
+  mod$draws_linpred <- make_draws_linpred(mod = mod,
+                                          draws_post = draws_post)
+  mod$draws_hyper <- make_draws_hyper(mod = mod,
+                                      draws_post = draws_post)
+  if (has_disp(mod)) {
+    mod$draws_disp <- make_draws_disp(mod = mod,
+                                      draws_post = draws_post)
+  }
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  mod
+}
+
+
+## HAS_TESTS
 #' Make variable identifying term within each component
 #' of 'components'
 #'
@@ -405,14 +578,11 @@ make_term_components <- function(mod) {
 #' Includes ordinary hyper-parameters
 #' ("hyper"), hyper-parameters that can be
 #' treated as random effects ("hyperrand")
-#' and disperion, if present.
-#' Result applied to *all* parameters, and
-#' includes NULLs for parameters that are
-#' not hyper-parameters.
+#' but not dispersion.
 #'
 #' @param mod Object of class 'bage_mod'
 #'
-#' @returns A list of functions or NULL
+#' @returns A list, each element of which is a function or NULL
 #'
 #' @noRd
 make_transforms_hyper <- function(mod) {
@@ -420,10 +590,6 @@ make_transforms_hyper <- function(mod) {
   priors <- mod$priors
   matrices_along_by <- choose_matrices_along_by(mod)
   has_disp <- has_disp(mod)
-  n_effectfree <- length(est$effectfree)
-  nms_effectfree <- names(est$effectfree)
-  ans_effectfree <- rep(list(NULL), times = n_effectfree)
-  names(ans_effectfree) <- nms_effectfree
   ans_hyper <- lapply(priors, transform_hyper)
   ans_hyper <- unlist(ans_hyper, recursive = FALSE)
   ans_hyperrand <- .mapply(transform_hyperrand,
@@ -431,12 +597,8 @@ make_transforms_hyper <- function(mod) {
                                        matrix_along_by = matrices_along_by),
                            MoreArgs = list())
   ans_hyperrand <- unlist(ans_hyperrand, recursive = FALSE)
-  ans_log_disp <- if (has_disp) exp else NULL
-  ans_log_disp = list(log_disp = ans_log_disp)
-  c(ans_effectfree,
-    ans_hyper,
-    ans_hyperrand,
-    ans_log_disp)
+  c(ans_hyper,
+    ans_hyperrand)
 }
 
 
@@ -554,88 +716,7 @@ sort_components <- function(components, mod) {
   components[ord, , drop = FALSE]
 }
   
-## HAS_TESTS
-#' Convert 'effectfree' part of draws to 'effect'
-#'
-#' Use matrices and offset to convert free parameters
-#' (including ones with Known priors)
-#' into complete effects/interactions
-#'
-#' **Warning** this function must be called
-#' after `insert_draws_known()`.
-#'
-#' @param draws Matrix of draws from posterior
-#' distribution of all parameters, including
-#' parameters with Known priors.
-#' @param matrix Matrix mapping all
-#' effectfree to effect
-#' @param offset Offset converting all
-#' effectfree to effect
-#'
-#' @returns A matrix
-#'
-#' @noRd
-transform_draws_effect <- function(draws,
-                                   matrix_effectfree_effect,
-                                   offset_effectfree_effect,
-                                   matrices_effect_outcome) {
-  ## extract 'effectfree'
-  n_effectfree <- ncol(matrix_effectfree_effect)
-  n_val <- nrow(draws)
-  is_effectfree <- seq_len(n_val) <= n_effectfree
-  effectfree <- draws[is_effectfree, , drop = FALSE]
-  not_effectfree <- draws[!is_effectfree, , drop = FALSE]
-  ## transform 'effectfree' into 'effect'
-  effects_raw <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-  ## standardise effects
-  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
-  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
-  linpred <- matrix_effect_outcome %*% effects_raw
-  n_effect <- length(matrices_effect_outcome)
-  effects_standard <- vector(mode = "list", length = n_effect)
-  for (i_effect in seq_len(n_effect)) {
-    M <- matrices_effect_outcome[[i_effect]]
-    n <- Matrix::colSums(M)
-    effect <- (Matrix::t(M) %*% linpred) / n ## works with Matrix
-    linpred <- linpred - M %*% effect
-    effects_standard[[i_effect]] <- Matrix::as.matrix(effect)
-  }
-  if (any(abs(linpred) > 0.001)) {
-    for (i_effect in seq_len(n_effect)) {
-      M <- matrices_effect_outcome[[i_effect]]
-      n <- Matrix::colSums(M)
-      effect <- (Matrix::t(M) %*% linpred) / n ## works with Matrix
-      linpred <- linpred - M %*% effect
-      effects_standard[[i_effect]] <- effects_standard[[i_effect]] + Matrix::as.matrix(effect)
-    }
-  }
-  if (any(abs(linpred) > 0.001))
-    cli::cli_abort("Internal error: Final residual not 0")  ## nocov
-  effects_standard <- do.call(rbind, effects_standard)
-  ## combine and return
-  rbind(effects_standard,
-        not_effectfree)
-}
 
 
-## HAS_TESTS
-#' Transform hyper-parameters, and possibly dispersion
-#'
-#' Transform hyper-parameters, including
-#' hyper-parameters that can be treated as
-#' random effects and any dispersion term.
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A list of functions or NULL
-#'
-#' @noRd
-transform_draws_hyper <- function(draws, transforms) {
-    for (i in seq_along(transforms)) {
-        transform <- transforms[[i]]
-        if (!is.null(transform))
-            draws[i, ] <- transform(draws[i, ])
-    }
-    draws
-}
+  
 
