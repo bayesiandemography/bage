@@ -36,6 +36,7 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
                           matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_compose", {
@@ -61,6 +62,7 @@ test_that("'draw_vals_effect' works with bage_prior_compose", {
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
@@ -81,6 +83,8 @@ test_that("'draw_vals_effect' works with bage_prior_ear", {
                           matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
+  expect_equal(colMeans(ans[1:13,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_elin", {
@@ -105,6 +109,8 @@ test_that("'draw_vals_effect' works with bage_prior_elin", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
+  expect_equal(colMeans(ans[1:3,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_erw", {
@@ -125,6 +131,8 @@ test_that("'draw_vals_effect' works with bage_prior_erw", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
+  expect_equal(colMeans(ans[1:3,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_erw2", {
@@ -145,6 +153,8 @@ test_that("'draw_vals_effect' works with bage_prior_erw2", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
+  expect_equal(colMeans(ans[1:3,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_eseas", {
@@ -165,6 +175,7 @@ test_that("'draw_vals_effect' works with bage_prior_eseas", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_known", {
@@ -202,6 +213,7 @@ test_that("'draw_vals_effect' works with bage_prior_lin", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_norm", {
@@ -223,6 +235,7 @@ test_that("'draw_vals_effect' works with bage_prior_norm", {
   expect_identical(dimnames(ans),
                    list(as.character(1:1000), as.character(1:10)))
   expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_normfixed", {
@@ -242,6 +255,7 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
   expect_identical(dimnames(ans),
                    list(as.character(1:1000), as.character(1:10)))
   expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw", {
@@ -262,6 +276,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2", {
@@ -282,6 +297,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_seas", {
@@ -302,6 +318,7 @@ test_that("'draw_vals_effect' works with bage_prior_seas", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline", {
@@ -322,6 +339,7 @@ test_that("'draw_vals_effect' works with bage_prior_spline", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
@@ -2478,13 +2496,34 @@ test_that("'draw_vals_effect' works with bage_prior_lin", {
                    list(letters, as.character(1:10)))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_norm", {
+test_that("'draw_vals_effect' works with bage_prior_norm - single dimension", {
   prior <- N()
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- seq_len(1000)
+  matrix_along_by  <- matrix(0:999, nc = 1)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_hyper = vals_hyper,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(as.character(1:1000), as.character(1:10)))
+  expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
+})
+
+test_that("'draw_vals_effect' works with bage_prior_norm - two dimensions", {
+  prior <- N()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- seq_len(1000)
+  matrix_along_by  <- matrix(0:999, nc = 5)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyperrand = vals_hyperrand,
                           vals_hyper = vals_hyper,
@@ -3838,23 +3877,23 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - sex x re
 ## 'reformat_hyperrand_one' ---------------------------------------------------
 
 test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
-    set.seed(0)
-    data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ sex * time + age
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- fit(mod)
-    matrix_along_by <- choose_matrices_along_by(mod)[[2]]
-    comp <- components(mod)
-    ans_obtained <- reformat_hyperrand_one(prior = mod$priors[[2]],
-                                           nm_prior <- names(mod$priors)[[2]],
-                                           matrix_along_by = matrix_along_by,
-                                           components = comp)
-    ans_expected <- comp
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  matrix_along_by <- choose_matrices_along_by(mod)[[2]]
+  comp <- components(mod)
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[[2]],
+                                         nm_prior <- names(mod$priors)[[2]],
+                                         matrix_along_by = matrix_along_by,
+                                         components = comp)
+  ans_expected <- comp
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two components", {
@@ -3902,8 +3941,6 @@ test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two co
                                    hyperrand_new,
                                    components[47, , drop = FALSE])
   expect_identical(ans_obtained[1:3], ans_expected[1:3])
-  expect_equal(as.numeric(mean(subset(ans_obtained, component == "trend" & grepl("M", level))$.fitted)),
-               c(0, 0, 0, 0, 0))
 })
 
 test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, three components", {

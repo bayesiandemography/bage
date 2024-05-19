@@ -10,6 +10,25 @@
 * `augment()` method for `bage_mod` objects now calculated value for
   `.fitted` in cases where the outcome or exposure/size is NA, rather
   than setting the value of `.fitted` to `NA`.
+  
+## Internal calculations
+
+* Standardization of effects only done if `components()` is
+  called. `augment()` uses the linear predictor (which does not need
+  standardization.)
+* Internally, draws for the linear predictor, the hyper-parameters and
+  (if included in model) `disp` are stored, rather than the full
+  standardized components.
+* Standardization algorithm repeats up to 100 times, or until all
+  residuals are less than 0.0001.
+* With the new configuration, calculations for large matrices that
+  previously failed are now running.
+  
+## Simulations
+
+* When drawing from the prior, the intercept is always set to 0. Terms
+  with SVD or Known priors are not touched. All other terms are
+  centered.
 
 
 # bage 0.4.0

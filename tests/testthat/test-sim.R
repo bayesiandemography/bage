@@ -13,7 +13,7 @@ test_that("'aggregate_report_aug' works with valid inputs", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -47,8 +47,8 @@ test_that("'aggregate_report_comp' works with valid inputs", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  comp_sim <- components(mod_sim)
-  aug_sim <- augment(mod_sim)
+  comp_sim <- components(mod_sim, quiet = TRUE)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   comp_est <- components(mod_est)
@@ -123,9 +123,9 @@ test_that("'draw_vals_coef' works with n = 10", {
 })
 
 
-## 'draw_vals_components' -----------------------------------------------------
+## 'draw_vals_components_unfitted' --------------------------------------------
 
-test_that("'draw_vals_components' works", {
+test_that("'draw_vals_components_unfitted' works", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -136,7 +136,7 @@ test_that("'draw_vals_components' works", {
                   exposure = popn)
   mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
   n_sim <- 2
-  ans <- draw_vals_components(mod = mod, n_sim = n_sim)
+  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim)
   ans_est <- components(fit(mod))
   comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
                 all.y = TRUE)
@@ -190,7 +190,9 @@ test_that("'draw_vals_elin' works - along dimension is first", {
   sd <- matrix(rep(sd, each = 12), ncol = n_sim)
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
-                         ncol = n_sim)
+                         ncol = 4 * n_sim)
+  ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 3)
+  ans_expected <- matrix(ans_expected, ncol = n_sim)
   dimnames(ans_expected) <- list(1:12, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
 })
@@ -224,6 +226,9 @@ test_that("'draw_vals_elin' works - along dimension is second", {
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
                          ncol = n_sim)
+  ans_expected[1:4,] <- ans_expected[1:4,] - rep(colMeans(ans_expected[1:4,]), each = 4)
+  ans_expected[5:8,] <- ans_expected[5:8,] - rep(colMeans(ans_expected[5:8,]), each = 4)
+  ans_expected[9:12,] <- ans_expected[9:12,] - rep(colMeans(ans_expected[9:12,]), each = 4)
   ans_expected <- ans_expected[c(1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12),]
   dimnames(ans_expected) <- list(1:12, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
@@ -247,10 +252,8 @@ test_that("'draw_vals_erw' works - along dimension is first", {
   expect_identical(dim(ans), c(3000L, 10L))
   expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(mean(ans[1, ]),
-               0,
-               tolerance = 0.05)
-  expect_equal(unname(apply(ans[-1,], 2, function(x) sd(diff(x)))),
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
                rep(sd, each = 3),
                tolerance = 0.05)
 })
@@ -272,18 +275,16 @@ test_that("'draw_vals_erw' works - along dimension is second", {
   ans <- array(ans, dim = c(3, 1000, 10))
   ans <- aperm(ans, perm = c(2, 1, 3))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(mean(ans[1, ]),
-               0,
-               tolerance = 0.05)
-  expect_equal(unname(apply(ans[-1,], 2, function(x) sd(diff(x)))),
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
                rep(sd, each = 3),
-               tolerance = 0.03)
+               tolerance = 0.05)
 })
 
 
-## 'draw_vals_erw' ----------------------------------------------------------
+## 'draw_vals_erw2' -----------------------------------------------------------
 
-test_that("'draw_vals_erw' works - along dimension is first", {
+test_that("'draw_vals_erw2' works - along dimension is first", {
   set.seed(0)
   prior <- ERW2()
   n_sim <- 10
@@ -298,19 +299,8 @@ test_that("'draw_vals_erw' works - along dimension is first", {
   expect_identical(dim(ans), c(3000L, 10L))
   expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(mean(ans[1, ]),
-               0,
-               tolerance = 0.05)
-  expect_equal(sd(ans[1, ]),
-               1,
-               tolerance = 0.1)
-  expect_equal(mean(ans[2, ]),
-               0,
-               tolerance = 0.05)
-  expect_equal(sd(ans[2, ]),
-               1,
-               tolerance = 0.1)
-  expect_equal(unname(apply(ans[-(1:2),], 2, function(x) sd(diff(x, diff = 2)))),
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[3:1000,], 2, function(x) sd(diff(x, diff = 2)))),
                rep(sd, each = 3),
                tolerance = 0.05)
 })
@@ -334,9 +324,7 @@ test_that("'draw_vals_eseas' works - along dimension is first", {
   expect_identical(dim(ans), c(3000L, 10L))
   expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(mean(ans[1:4, ]),
-               0,
-               tolerance = 0.02)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
   expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
                rep(sd, each = 3),
                tolerance = 0.05)
@@ -360,9 +348,7 @@ test_that("'draw_vals_eseas' works - along dimension is second", {
   ans <- array(ans, dim = c(3, 1000, 10))
   ans <- aperm(ans, perm = c(2, 1, 3))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(mean(ans[1:4, ]),
-               0,
-               tolerance = 0.01)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
   expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
                rep(sd, each = 3),
                tolerance = 0.03)
@@ -407,48 +393,6 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
 })
 
 
-## ## draw_vals_hyperparam -------------------------------------------------------
-
-## test_that("'draw_vals_hyperparam' works - has cyclical, season and disp", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_cyclical(mod)
-##     mod <- set_season(mod, n = 2)
-##     ans <- draw_vals_hyperparam(mod, n_sim = 10)
-##     expect_identical(names(ans),
-##                      c("effect", "hyper", "disp", "cyclical", "season", "linpred"))
-##     expect_false(any(sapply(ans, is.null)))
-## })
-
-## test_that("'draw_vals_hyperparam' works - no cyclical, season or disp", {
-##     set.seed(0)
-##     data <- expand.grid(age = 0:9, time = 2001:2007, sex = c("F", "M"))
-##     data$popn <- rpois(n = nrow(data), lambda = 100)
-##     data$deaths <- rpois(n = nrow(data), lambda = 10)
-##     formula <- deaths ~ age + sex + time
-##     mod <- mod_pois(formula = formula,
-##                     data = data,
-##                     exposure = popn)
-##     mod <- set_disp(mod, s = 0)
-##     ans <- draw_vals_hyperparam(mod, n_sim = 10)
-##     expect_identical(names(ans),
-##                      c("effect", "hyper", "disp", "cyclical", "season", "linpred"))
-##     expect_identical(sapply(ans, is.null),
-##                      c(effect = FALSE,
-##                        hyper = FALSE,
-##                        disp = TRUE,
-##                        cyclical = TRUE,
-##                        season = TRUE,
-##                        linpred = FALSE))
-## })
-
-
 ## draw_vals_effect_mod ----------------------------------------------------------
 
 test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
@@ -460,7 +404,10 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
+  mod <- set_prior(mod, `(Intercept)` ~ Known(5)) ## over-ridden
+  mod <- set_prior(mod, time ~ compose_time(RW(),
+                                            seasonal = Seas(n = 2),
+                                            error = N()))
   mod <- set_prior(mod, age:sex ~ SVDS(HMD))
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
@@ -474,6 +421,10 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
   expect_true(all(sapply(ans, ncol) == n_sim))
   expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
+  expect_true(all(ans[[1L]] == 0))
+  for (i in 2:4)
+    expect_equal(colMeans(ans[[i]]), rep(0, 2), ignore_attr = "names")
+  expect_true(all(colMeans(ans[[5]]) != 0))
 })
 
 
@@ -674,7 +625,7 @@ test_that("'get_error_point_est' works with valid inputs", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -705,7 +656,7 @@ test_that("'get_is_in_interval' works with valid inputs", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -737,7 +688,7 @@ test_that("'get_error_point_est' works with valid inputs", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -772,66 +723,6 @@ test_that("'is_in_interval' works - include_upper is TRUE", {
 })
 
 
-## 'get_vals_hyperparam_est' --------------------------------------------------
-
-test_that("'get_vals_hyperparam_est' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod,
-                   time ~ compose_time(trend = RW2(), cyclical = AR(), seasonal = Seas(n = 2)))
-  mod <- fit(mod)
-  ans_obtained <- get_vals_hyperparam_est(mod)
-  components <- components(mod)
-  ans_expected <- list(effect = subset(components, component == "effect", select = ".fitted")[[1]],
-                       hyper = subset(components, component == "hyper", select = ".fitted")[[1]],
-                       trend = subset(components, component == "trend", select = ".fitted")[[1]],
-                       cyclical = subset(components, component == "cyclical",
-                                         select = ".fitted")[[1]],
-                       seasonal = subset(components, component == "seasonal",
-                                         select = ".fitted")[[1]],
-                       error = NULL,
-                       disp = subset(components, component == "disp", select = ".fitted")[[1]],
-                       linpred = make_linpred_effect(mod, components))
-  names(ans_expected[[1L]]) <- paste(subset(components, component == "effect",
-                                            select = "term")[[1]],
-                                     subset(components, component == "effect",
-                                            select = "level")[[1]],
-                                     sep = ".")
-  names(ans_expected[[2L]]) <- paste(subset(components, component == "hyper",
-                                            select = "term")[[1]],
-                                     subset(components, component == "hyper",
-                                            select = "level")[[1]],
-                                     sep = ".")
-  names(ans_expected[[3L]]) <- paste(subset(components, component == "trend",
-                                            select = "term")[[1]],
-                                     subset(components, component == "trend",
-                                            select = "level")[[1]],
-                                     sep = ".")
-  names(ans_expected[[4L]]) <- paste(subset(components, component == "cyclical",
-                                            select = "term")[[1]],
-                                     subset(components, component == "cyclical",
-                                            select = "level")[[1]],
-                                     sep = ".")
-  names(ans_expected[[5L]]) <- paste(subset(components, component == "seasonal",
-                                            select = "term")[[1]],
-                                     subset(components, component == "seasonal",
-                                            select = "level")[[1]],
-                                     sep = ".")
-  names(ans_expected[[7L]]) <- paste(subset(components, component == "disp",
-                                            select = "term")[[1]],
-                                     subset(components, component == "disp",
-                                            select = "level")[[1]],
-                                     sep = ".")
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## length_interval ------------------------------------------------------------
 
 test_that("'length_interval' works", {
@@ -861,7 +752,7 @@ test_that("'make_report_aug' works with valid inputs - Poisson", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -892,7 +783,7 @@ test_that("'make_report_aug' works with valid inputs - normal", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$income)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -927,8 +818,8 @@ test_that("'make_report_comp' works with valid inputs", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  comp_sim <- components(mod_sim)
-  aug_sim <- augment(mod_sim)
+  comp_sim <- components(mod_sim, quiet = TRUE)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   comp_est <- components(mod_est)
@@ -961,7 +852,7 @@ test_that("'perform_aug' works with valid inputs - models same", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -1011,7 +902,7 @@ test_that("'perform_aug' works with valid inputs - models different", {
                       data = data,
                       exposure = popn)
   mod_sim <- set_n_draw(mod_sim, n = 1)
-  aug_sim <- augment(mod_sim)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   aug_est <- augment(mod_est)
@@ -1064,8 +955,8 @@ test_that("'perform_comp' works with valid inputs - models same", {
   mod_sim <- mod
   mod_est <- mod
   mod_sim <- set_n_draw(mod, n = 1)
-  comp_sim <- components(mod_sim)
-  aug_sim <- augment(mod_sim)
+  comp_sim <- components(mod_sim, quiet = TRUE)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   comp_est <- components(mod_est)
@@ -1106,8 +997,8 @@ test_that("'perform_comp' works with valid inputs - models different", {
                       data = data,
                       exposure = popn)
   mod_sim <- set_n_draw(mod_sim, n = 1)
-  comp_sim <- components(mod_sim)
-  aug_sim <- augment(mod_sim)
+  comp_sim <- components(mod_sim, quiet = TRUE)
+  aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   comp_est <- components(mod_est)
@@ -1187,37 +1078,6 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - parallel pr
 })
 
 
-## 'standardize_vals_effect' --------------------------------------------------
-
-test_that("'standardize_vals_effect' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
-  n_sim <- 2
-  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
-                                            vals_hyper = vals_hyper,
-                                            n_sim = n_sim)
-  vals_effect <- draw_vals_effect_mod(mod,
-                                      vals_hyper = vals_hyper,
-                                      vals_hyperrand = vals_hyperrand,
-                                      n_sim = n_sim)
-  ans <- standardize_vals_effect(mod = mod, vals_effect = vals_effect)
-  means <- lapply(ans[-1], function(x) colMeans(x))
-  expect_equal(mean(unlist(means)), 0)
-  m <- make_combined_matrix_effect_outcome(mod)
-  x_raw <- do.call(rbind, vals_effect)
-  x_standard <- do.call(rbind, ans)
-  expect_equal(m %*% x_raw, m %*% x_standard)
-})
-
-
 ## 'vals_disp_to_dataframe' ---------------------------------------------------
 
 test_that("'draw_vals_disp' works with 'bage_mod_pois'", {
@@ -1260,7 +1120,6 @@ test_that("'vals_effect_to_dataframe' works", {
                                       vals_hyper = vals_hyper,
                                       vals_hyperrand = vals_hyperrand,
                                       n_sim = n_sim)
-  vals_effect <- standardize_vals_effect(mod = mod, vals_effect = vals_effect)
   ans_obtained <- vals_effect_to_dataframe(vals_effect)
   ans_expected <- tibble::tibble(term = rep(c("(Intercept)", "age", "time", "sex", "age:time"),
                                             times = c(1, 10, 6, 2, 60)),
