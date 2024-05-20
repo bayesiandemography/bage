@@ -75,13 +75,18 @@ fitted, or the prior distribution if it has not.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for bage_mod</span></span>
-<span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">x</span>, quiet <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>x</dt>
-<dd><p>A fitted <code>bage_mod</code> object.</p></dd>
+<dd><p>A <code>bage_mod</code> object.</p></dd>
+
+
+<dt>quiet</dt>
+<dd><p>Whether to suppress messages.
+Default is <code>FALSE</code>.</p></dd>
 
 
 <dt>...</dt>
@@ -127,19 +132,20 @@ to specify a model</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## look at prior distribution</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Model not fitted, so values drawn straight from prior distribution.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 912 × 9</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex    ethnicity  year             injuries  popn            .observed</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000  23716 (34, 1639418) <span style="text-decoration: underline;">35</span>830   0.66 (0.00095, 46)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000  20490 (50, 2353701) <span style="text-decoration: underline;">35</span>120    0.58 (0.0014, 67)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000  20330 (25, 4586407) <span style="text-decoration: underline;">32</span>830  0.62 (0.00076, 140)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000  14290 (22, 8528338) <span style="text-decoration: underline;">27</span>130  0.53 (0.00081, 314)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000  13385 (17, 5480495) <span style="text-decoration: underline;">24</span>380    0.55 (7e-04, 225)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000  14278 (20, 7299586) <span style="text-decoration: underline;">24</span>160  0.59 (0.00083, 302)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000 15702 (8.9, 1.2e+07) <span style="text-decoration: underline;">22</span>560     0.7 (4e-04, 531)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>000   14721 (5, 1.2e+07) <span style="text-decoration: underline;">22</span>230  0.66 (0.00022, 559)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>000   10155 (3, 2.2e+07) <span style="text-decoration: underline;">18</span>130 0.56 (0.00016, 1216)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>000    8464 (3, 1.6e+07) <span style="text-decoration: underline;">13</span>770 0.61 (0.00022, 1160)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex    ethnicity  year            injuries  popn           .observed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000 26091 (12, 1.5e+07) <span style="text-decoration: underline;">35</span>830 0.73 (0.00033, 414)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000 25769 (16, 1.1e+07) <span style="text-decoration: underline;">35</span>120 0.73 (0.00046, 317)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000 23152 (17, 1.1e+07) <span style="text-decoration: underline;">32</span>830 0.71 (0.00051, 336)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000 20067 (22, 8094501) <span style="text-decoration: underline;">27</span>130 0.74 (0.00081, 298)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000 16064 (33, 6118622) <span style="text-decoration: underline;">24</span>380  0.66 (0.0014, 251)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000   17744 (18, 4e+06) <span style="text-decoration: underline;">24</span>160 0.73 (0.00074, 167)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000   18134 (17, 6e+06) <span style="text-decoration: underline;">22</span>560  0.8 (0.00075, 266)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>000 17766 (15, 8560685) <span style="text-decoration: underline;">22</span>230  0.8 (0.00067, 385)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>000 14416 (13, 7353526) <span style="text-decoration: underline;">18</span>130  0.8 (0.00072, 406)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>000   9256 (9, 3690240) <span style="text-decoration: underline;">13</span>770 0.67 (0.00065, 268)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 902 more rows</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span>
 <span class="r-in"><span></span></span>

@@ -1495,14 +1495,14 @@ is a standardized version of <span class="math inline">\(\pmb{V}\)</span>.</p>
 <p>We can rewrite <a href="#eq:svd1">(11.1)</a> as
 <span class="math display" id="eq:svd2">\[\begin{align}
   \pmb{A} &amp; \approx \pmb{U} \pmb{D} (\text{diag}(\pmb{s}) \tilde{\pmb{V}} + \pmb{m} \pmb{1}^{\top}) \\
-  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{m} \pmb{1}^{\top}, \tag{11.2}
+  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{11.2}
 \end{align}\]</span>
-where <span class="math inline">\(\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})\)</span> and <span class="math inline">\(\pmb{m} = \pmb{U} \pmb{D} \pmb{m}\)</span>.</p>
+where <span class="math inline">\(\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})\)</span> and <span class="math inline">\(\pmb{g} = \pmb{U} \pmb{D} \pmb{m}\)</span>.</p>
 <p>Let <span class="math inline">\(\tilde{\pmb{v}}_l\)</span> be a randomly-selected column from <span class="math inline">\(\tilde{\pmb{V}}\)</span>. From the construction of <span class="math inline">\(\tilde{\pmb{V}}\)</span>, and the orthogonality of the rows of <span class="math inline">\(\pmb{V}\)</span>, we have <span class="math inline">\(\text{E}[\tilde{\pmb{v}}_l] = \pmb{0}\)</span> and <span class="math inline">\(\text{var}[\tilde{\pmb{v}}_l] = \pmb{I}\)</span>. This implies that if <span class="math inline">\(\pmb{z}\)</span> is a vector of standard normal variables, then
 <span class="math display">\[\begin{equation}
   \pmb{F} \pmb{z} + \pmb{g}
 \end{equation}\]</span>
-looks approximately like a randomly-selected column from the original data matrix <span class="math inline">\(\pmb{A}\)</span>.</p>
+should look approximately like a randomly-selected column from the original data matrix <span class="math inline">\(\pmb{A}\)</span>.</p>
 </div>
 </div>
 <div class="section level2">
