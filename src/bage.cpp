@@ -439,7 +439,7 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
   case 14:
     ans = logpost_esvd(effectfree, consts, matrix_along_by);
     break;
-  default:
+  default:                                                                                          // # nocov
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
@@ -486,7 +486,7 @@ Type logpost_uses_hyper(vector<Type> effectfree,
   case 15:
     ans = logpost_erw2(effectfree, hyper, consts, matrix_along_by);
     break;
-  default:
+  default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
@@ -504,7 +504,7 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
   case 9:
     ans = logpost_elin(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
-  default:
+  default:                                                                                          // # nocov
     error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior); // # nocov
   }
   return ans;
