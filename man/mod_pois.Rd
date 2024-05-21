@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-constructors.R
 \name{mod_pois}
 \alias{mod_pois}
-\title{Specify a Poisson model}
+\title{Specify a Poisson Model}
 \usage{
 mod_pois(formula, data, exposure)
 }
@@ -20,43 +20,70 @@ or a \code{1}.}
 An object of class \code{bage_mod_pois}.
 }
 \description{
-Specify a model where the outcome is drawn from
-a Poisson distribution.
+Specify a model where outcomes are draws from Poisson distributions.
 }
 \details{
+The model is hierarchical. The rates in the Poisson distribution
+are described by a prior model formed from dimensions such
+as age, sex, and time. The terms for these dimension themselves
+have models, as described in \link{priors}.
+}
+\section{Mathematical details}{
+
+
+The likelihood is
+
+\deqn{y_i \sim \text{Poisson}(\gamma_i w_i)}
+
+where
 \itemize{
-\item \code{formula} specifies the outcome and predictors,
-including interactions between predictors.
-It follows standard R \link[stats:formula]{formula}
-conventions, except that it cannot include
-transformations (e.g. \code{sqrt(deaths)}).
-\item \code{data} holds the outcome, the predictors, and,
-optionally, exposure.
-\item \code{exposure} is the name (bare or quoted) of the variable
-in \code{data} used to measure exposure, or, if the
-model does include exposure, a \code{1}.
+\item \eqn{y_i} is an outcome, such of deaths, for some
+combination of classifying variables, such as age, sex, and region;
+\item \eqn{\gamma_i} is a rates; and
+\item \eqn{w_i} is exposure.
 }
 
-If the model includes exposure, then the
-the first level of the model is
+In some models there is no obvious population at risk.
+Exposure \eqn{w_i} can, in such cases, be set to 1
+for all \eqn{i}.
 
-\deqn{y \sim \text{Poisson}(\mu w)}
+The rates \eqn{\gamma_i} are assumed to be drawn
+a gamma distribution
 
-where \eqn{\mu} is the underlying rate, and
-\eqn{w} is exposure. If the model does not
-include exposure, then the first level is
+\deqn{y_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})}
 
-\deqn{y \sim \text{Poisson}(\mu)}
-
-TODO - Include error term once specification finalised.
+where
+\itemize{
+\item \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
+\item \eqn{\xi} governs dispersion (ie variance.)
 }
+
+The expected values \eqn{\mu_i} equal, on the log scale,
+the sum of terms formed from classifying variables,
+
+\deqn{\log \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+
+where
+\itemize{
+\item \eqn{\beta^{0}} is an intercept;
+\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M} is a main effect
+or interaction; and
+\item \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+cell \eqn{i}.
+}
+
+The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
+
+The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
+}
+
 \examples{
-## model with exposure
+## specify a model with exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = injuries,
                 exposure = popn)
 
-## model without exposure
+## specify a model without exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = injuries,
                 exposure = 1)

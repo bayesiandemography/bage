@@ -32,7 +32,7 @@ different combinations of the 'by' variables.
 The series within each combination of the
 'by' variables are treated as exchangeable.
 }
-\section{Mathematical description}{
+\section{Mathematical details}{
 
 
 If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
