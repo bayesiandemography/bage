@@ -486,6 +486,8 @@ unfit <- function(mod) {
     mod["is_fixed"] <- list(NULL)
     mod["R_prec"] <- list(NULL)
     mod["scaled_eigen"] <- list(NULL)
-    mod["components"] <- list(NULL)
+    mod["draws_linpred"] <- list(NULL)
+    mod["draws_hyper"] <- list(NULL)
+    mod["draws_disp"] <- list(NULL)
     mod
 }
