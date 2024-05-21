@@ -317,7 +317,7 @@ EAR <- function(n = 2, s = 1, along = NULL) {
 #' 
 #' @inheritSection EAR 'Along' and 'by' variables
 #'
-#' @section Mathematical description:
+#' @section Mathematical details:
 #'
 #' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
 #' within the \eqn{u}th combination of the

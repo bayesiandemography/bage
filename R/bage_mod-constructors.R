@@ -1,58 +1,85 @@
 
 ## HAS_TESTS
-#' Specify a Poisson model
+#' Specify a Poisson Model
 #'
-#' Specify a model where the outcome is drawn from
-#' a Poisson distribution.
+#' Specify a model where the outcome is drawn from a Poisson distribution.
 #'
-#' - `formula` specifies the outcome and predictors,
-#' including interactions between predictors.
-#' It follows standard R [formula][stats::formula()]
-#' conventions, except that it cannot include
-#' transformations (e.g. `sqrt(deaths)`).
-#' - `data` holds the outcome, the predictors, and,
-#' optionally, exposure.
-#' - `exposure` is the name (bare or quoted) of the variable
-#' in `data` used to measure exposure, or, if the
-#' model does include exposure, a `1`.
+#' The model is hierarchical. The rates in the Poisson distribution
+#' are described by a prior model formed from dimensions such
+#' as age, sex, and time. The terms for these dimension themselves
+#' have models, as described in [priors]. These priors all have defaults,
+#' which depend on the type of term (eg an intercept, an age main effect,
+#' or an age-time interaction.)
 #'
+#' @section Mathematical details:
+#'
+#' The likelihood is
 #' 
+#' \deqn{y_i \sim \text{Poisson}(\gamma_i w_i)}
 #'
-#' If the model includes exposure, then the
-#' the first level of the model is
+#' where
 #'
-#' \deqn{y \sim \text{Poisson}(\mu w)}
+#' - \eqn{y_i} is an outcome, such of deaths, for some
+#'   combination \eqn{i} of classifying variables,
+#'   such as age, sex, and region;
+#' - \eqn{\gamma_i} is rates; and
+#' - \eqn{w_i} is exposure.
 #'
-#' where \eqn{\mu} is the underlying rate, and
-#' \eqn{w} is exposure. If the model does not
-#' include exposure, then the first level is
+#' In some applications, there is no obvious population at risk.
+#' In these cases, exposure \eqn{w_i} can be set to 1
+#' for all \eqn{i}.
 #'
-#' \deqn{y \sim \text{Poisson}(\mu)}
+#' The rates \eqn{\gamma_i} are assumed to be drawn 
+#' a gamma distribution
 #'
-#' TODO - Include error term once specification finalised.
+#' \deqn{y_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1})}
+#'
+#' where
+#'
+#' - \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
+#' - \eqn{\xi} governs dispersion (ie variance.)
+#'
+#' The expected values \eqn{\mu_i} equal, on the log scale,
+#' the sum of terms formed from classifying variables,
+#'
+#' \deqn{\log \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+#'
+#' where
+#'
+#' - \eqn{\beta^{0}} is an intercept;
+#' - \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+#'   or interaction; and
+#' - \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+#'   cell \eqn{i}.
+#'
+#' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
+#'
+#' The prior for \eqn{\xi} is described in [set_disp()].
 #'
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
-#' @param data A data frame containing the outcome,
-#' predictors, and, optionally, exposure.
+#' @param data A data frame containing outcome,
+#' predictor, and, optionally, exposure variables.
 #' @param exposure Name of the exposure variable,
 #' or a `1`.
 #'
 #' @returns An object of class `bage_mod_pois`.
 #'
 #' @seealso
-#' - [mod_binom()] and [mod_norm()] for specification
-#' of binomial and normal models
-#' - [set_prior()] to specify non-default priors
-#' - [fit()] to fit a model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
+#' - [set_prior()] Specify non-default priors for terms
+#'   formed from classifying dimensions
+#' - [set_disp()] Specify a non-default prior for dispersion
+#' - [fit()] Fit a model
 #'
 #' @examples
-#' ## model with exposure
+#' ## specify a model with exposure
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = injuries,
 #'                 exposure = popn)
 #'
-#' ## model without exposure
+#' ## specify a model without exposure
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = injuries,
 #'                 exposure = 1)
@@ -99,44 +126,75 @@ mod_pois <- function(formula, data, exposure) {
 
 
 ## HAS_TESTS
-#' Specify a binomial model
+#' Specify a Binomial Model
 #'
 #' Specify a model where the outcome is drawn from
 #' a binomial distribution.
 #'
-#' - `formula` specifies the outcome and predictors,
-#' including interactions between predictors.
-#' It follows standard R [formula][stats::formula()]
-#' conventions, except that it cannot include
-#' transformations (e.g. `sqrt(deaths)`).
-#' - `data` A data frame holding the outcome, the predictors,
-#' and number of trials.
-#' - `size` is the name (bare or quoted) of the variable
-#' in `data` measuring the number of trials.
+#' The model is hierarchical. The probabilities in the binomial distribution
+#' are described by a prior model formed from dimensions such
+#' as age, sex, and time. The terms for these dimension themselves
+#' have models, as described in [priors]. These priors all have defaults,
+#' which depend on the type of term (eg an intercept, an age main effect,
+#' or an age-time interaction.)
 #'
-#' The first level of the model is
+#' @section Mathematical details:
 #'
-#' \deqn{y \sim \text{binom}(n, \pi)}
+#' The likelihood is
+#' 
+#' \deqn{y_i \sim \text{binomial}(\gamma_i; w_i)}
 #'
-#' where \eqn{\pi} is the sucess probability,
-#' and \eqn{n} is the number of trials.
+#' where
 #'
-#' TODO - Include error term once specification finalised.
+#' - \eqn{y_i} is a count, such of number of births, for some
+#'   combination \eqn{i} of classifying variables,
+#'   such as age, sex, and region;
+#' - \eqn{\gamma_i} is a probability of 'success'; and
+#' - \eqn{w_i} is the number of trials.
 #'
+#' The probabilities \eqn{\gamma_i} are assumed to be drawn 
+#' a beta distribution
+#'
+#' \deqn{y_i \sim \text{Beta}(\xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i))}
+#'
+#' where
+#'
+#' - \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
+#' - \eqn{\xi} governs dispersion (ie variance.)
+#'
+#' The expected values \eqn{\mu_i} equal, on the logit scale,
+#' the sum of terms formed from classifying variables,
+#'
+#' \deqn{\text{logit} \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+#'
+#' where
+#'
+#' - \eqn{\beta^{0}} is an intercept;
+#' - \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+#'   or interaction; and
+#' - \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+#'   cell \eqn{i}.
+#'
+#' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
+#'
+#' The prior for \eqn{\xi} is described in [set_disp()].
+#' 
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
-#' @param data A data frame containing the outcome,
-#' predictors, and, number of trials
-#' @param size Name of the variable describing
+#' @param data A data frame containing the outcome
+#' and predictor variables, and the number of trials.
+#' @param size Name of the variable giving
 #' the number of trials.
 #'
 #' @returns An object of class `bage_mod`.
 #'
 #' @seealso
-#' - [mod_pois()] and [mod_norm()] for specification
-#' of Poisson and normal models
-#' - [set_prior()] to specify non-default priors
-#' - [fit()] to fit a model
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_norm()] Specify a normal model
+#' - [set_prior()] Specify non-default priors for terms
+#'   formed from classifying dimensions
+#' - [set_disp()] Specify a non-default prior for dispersion,
+#' - [fit()] Fit a model
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
@@ -183,52 +241,76 @@ mod_binom <- function(formula, data, size) {
 
 
 ## HAS_TESTS
-#' Specify a normal model
+#' Specify a Normal Model
 #'
-#' Specify a model where the outcome is drawn from
-#' a normal distribution.
+#' @description
+#' 
+#' The model is hierarchical. The means in the normal distribution
+#' are described by a prior model formed from dimensions such
+#' as age, sex, and time. The terms for these dimension themselves
+#' have models, as described in [priors]. These priors all have defaults,
+#' which depend on the type of term (eg an intercept, an age main effect,
+#' or an age-time interaction.)
 #'
-#' - `formula` specifies the outcome and predictors,
-#' including interactions between predictors.
-#' It follows standard R [formula][stats::formula()]
-#' conventions, except that it cannot include
-#' transformations (e.g. `sqrt(deaths)`).
-#' - `data` holds the outcome, the predictors, and,
-#' optionally, weights.
-#' - `weights` is the name (bare or quoted) of the variable
-#' in `data` used as weights, or, if the
-#' model does include weights, a `1`.
+#' Internally, the outcome
+#' variable scaled to have mean 0 and sd 1.
 #'
-#' If the model includes weights, then the
-#' the first level of the model is
+#' @section Mathematical details:
 #'
-#' \deqn{y \sim \text{norm}(\mu, \sigma^2 / w)}
+#' The likelihood is
+#' 
+#' \deqn{y_i \sim \text{N}(\mu_i, \xi^2 / w_i)}
 #'
-#' where \eqn{\mu} is the underlying rate, and
-#' \eqn{w} is weights. If the model does not
-#' include weights, then the first level is
+#' where
 #'
-#' \deqn{y \sim \text{norm}(\mu, \sigma^2)}
+#' - \eqn{y_i} is a scaled value for an, such of the log of income, for some
+#'   combination \eqn{i} of classifying variables,
+#'   such as age, sex, and region;
+#' - \eqn{\mu_i} is a mean;
+#' - \eqn{\xi} is a standard deviation parameter; and
+#' - \eqn{w_i} is a weight.
 #'
-#' TODO - Include error term once specification finalised.
+#' The scaling of the outcome variable is done internally.
+#' If \eqn{y_i^*} is the original, then \eqn{y_i = (y_i^* - m)/s}
+#' where \eqn{m} and \eqn{s} are the sample mean and standard
+#' deviation of \eqn{y_i^*}. 
+#'
+#' In some applications, \eqn{w_i} is set to 1
+#' for all \eqn{i}.
+#'
+#' The means \eqn{\mu_i} equal the sum of terms formed
+#' from classifying variables,
+#'
+#' \deqn{\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+#'
+#' where
+#'
+#' - \eqn{\beta^{0}} is an intercept;
+#' - \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+#'   or interaction; and
+#' - \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+#'   cell \eqn{i}.
+#'
+#' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
+#'
+#' The prior for \eqn{\xi} is described in [set_disp()].
 #'
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
-#' @param data A data frame containing the outcome,
-#' predictors, and, optionally, weights.
-#' @param weights Name of the weights variable,
+#' @param data A data frame containing outcome,
+#' predictor, and, optionally, weights variables.
+#' @param weight Name of the weights variable,
 #' or a `1`.
 #'
-#' Internally, outcome scaled to have mean 0 and sd 1;
-#' weights scaled to have mean 1.
-#'
-#' @returns An object of class `bage_mod`.
+#' @returns An object of class `bage_mod_norm`.
 #'
 #' @seealso
-#' - [mod_pois()] and [mod_binom()] for specification
-#' of Poisson and binomial models
-#' - [set_prior()] to specify non-default priors
-#' - [fit()] to fit a model
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [set_prior()] Specify non-default priors for terms
+#'   formed from classifying dimensions
+#' - [set_disp()] Specify a non-default prior for the standard deviation
+#' - [fit()] Fit a model
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,

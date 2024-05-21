@@ -4,12 +4,13 @@
 ## 'set_disp' -----------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set Mean Parameter for Dispersion
+#' Set Mean in Prior for Dispersion or Standard Deviation
 #'
-#' Specify the mean parameter `mean` in the prior
-#' for dispersion.
+#' Specify the mean of prior for the dispersion
+#' parameter (in Poisson and binomial models) or the
+#' standard deviation parameter (in normal models.)
 #'
-#' The dispersion parameter has an exponential
+#' The dispersion or mean parameter has an exponential
 #' distribution with mean \eqn{\mu}.
 #'
 #' \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
@@ -21,7 +22,7 @@
 #'
 #' If the `mod` argument to `set_disp` is
 #' a fitted model, then `set_disp` 'unfits'
-#' the model, by deleting existing estimates.
+#' the model, deleting existing estimates.
 #' 
 #' @param mod A `bage_mod` object, typically
 #' created with [mod_pois()],

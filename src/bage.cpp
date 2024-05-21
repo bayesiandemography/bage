@@ -421,6 +421,7 @@ Type logpost_svd(vector<Type> effectfree,
 }
 
 
+
 // Equivalent of method dispatch ----------------------------------------------
 
 template <class Type>
