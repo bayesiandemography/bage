@@ -49,6 +49,6 @@ RW(s = 0.5)
 \item \code{\link[=RW2]{RW2()}} Random walk with drift.
 \item \code{\link[=ERW]{ERW()}} Exchangeable version of \code{RW()},
 used with interactions.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

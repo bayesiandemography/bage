@@ -6,43 +6,51 @@
 ## HAS_TESTS
 #' Autoregressive Prior
 #'
-#' Autoregressive prior with order `k`. Used to model main effects:
-#' typically time main effects.
+#' Autoregressive prior with order `k`. Typically used with time effects.
 #'
+#' Parameter `s` controls the size of errors. Smaller values
+#' for `s` may lead to smoother series.
+#' 
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+#' With an `AR()` prior,
 #'
-#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_k \beta_{j-k} + \epsilon_j}
+#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-k} + \epsilon_j}
 #' \deqn{\epsilon_j \sim \text{N}(0, \omega^2)}
 #'
-#' where \eqn{\omega} is chosen so that each \eqn{\beta_j} has
-#' marginal variance \eqn{\sigma^2}. The value of
-#' \eqn{\tau} has prior
+#' where  \eqn{\beta_j} is the \eqn{j}th element of the main effect.
 #'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+#' The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
+#' marginal variance \eqn{\tau^2}.
+#'
+#' Parameter \eqn{\tau} has a half-normal prior
+#'
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#'
+#' where a value for `s` is provided by the user.
 #'
 #' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-#' between -1 and 1 that jointly lead to stationary models. The quantity
+#' between -1 and 1 that jointly lead to a stationary model. The quantity
 #' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
-#' boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
+#' boundary-avoiding prior
+#'
+#' \deqn{r \sim \text{Beta}(2, 2)}.
 #' 
-#' @param n The order of the model.
-#' Default is `2`.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\tau}).
+#' @param n The order of the model, i.e. the number of lagged
+#' terms included in the model. The default is `2`.
+#' @param s Scale for the prior for the errors.
 #' Default is `1`.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
 #' @seealso
-#' - [AR1()] Special case of `AR()`, though with
-#'   more options for damping.
+#' - [AR1()] Special case of `AR()`
 #' - [EAR()] Exchangeable version of `AR()`,
-#'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#'   used with interactions
+#' - [priors] Overview of priors implemented in **bage**
 #' 
-#' @references TMB documentation for
+#' @references
+#' - `AR()` is based on the TMB function
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
 #' @examples
@@ -67,48 +75,59 @@ AR <- function(n = 2, s = 1) {
 ## HAS_TESTS
 #' AR1 Prior
 #'
-#' Autoregressive prior of order 1
+#' Autoregressive prior of order 1. Typically used with time effects.
+#'
+#' Parameter `s` controls the size of errors. Smaller values
+#' for `s` may lead to smoother series.
 #'
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
-
-#' \deqn{\beta_0 \sim \text{N}(0, \sigma^2)}
-#' \deqn{\beta_j = \phi \beta_{j-1} + \sqrt{1 - \phi^2}\epsilon_j}
-#' \deqn{\epsilon \sim \text{N}(0, \tau^2)}
+#' With an `AR1()` prior,
 #'
-#' \eqn{\tau} is drawn from a half-normal distribition
-#' with scale set by the `s` argument.
+#' \deqn{\beta_j = \phi \beta_{j-1} + \epsilon_j}
+#' \deqn{\epsilon \sim \text{N}(0, \omega^2)}
 #'
-#' Correlation parameter \eqn{\phi} is constrained
-#' to lie in the interval `(\text{min}, \text{max})`.
-#' The prior distribution for \eqn{\phi} is
+#' where \eqn{\beta_j} is the \eqn{j}th element of the main effect.
+#'
+#' The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
+#' marginal variance \eqn{\tau^2}.
+#'
+#' Parameter \eqn{\tau} has half-normal prior
+#'
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#'
+#' where a value for `s` is provided by the user.
+#'
+#' Parameter \eqn{\phi} is constrained
+#' to lie between `min` and `max`.
+#' Its prior distribution is
 #' 
 #' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 #' 
 #' where
 #' 
-#' \deqn{\phi' \sim \text{beta}(2, 2)}.
+#' \deqn{\phi' \sim \text{Beta}(2, 2).}
 #'
 #' @param min,max Minimum and maximum values
 #' for autocorrelation parameter (\eqn{\phi}).
 #' Defaults are `0.8` and `0.98`.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\tau}).
-#' Default is `1`.
+#' @param s Scale for the prior for
+#' the errors. Default is `1`.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
 #' @seealso
-#' - [AR()] General case of `AR()`.
+#' - [AR()] Generalisation of `AR1()`
 #' - [EAR1()] Exchangeable version of `AR1()`,
-#'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#'   used with interactions
+#' - [priors] Overview of priors implemented in **bage**
+#'
+#' @references
+#'
+#' - `AR1()` is based on the TMB function
+#' [AR1](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details)
 #' - The values for `min` and `max` are based on the
 #'   defaults for function `forecast::ets()`.
-#'
-#' @references TMB documentation of
-#' [AR1](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details)
 #'
 #' @examples
 #' AR1()
@@ -215,11 +234,15 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' An exchangeable autoregressive prior
 #' is used with interactions. An autoregressive
 #' model of order \eqn{k} is applied to the 'along' 
-#' variable, within each combination of values of the 'by' variables.
+#' variable, within each combination of values
+#' of the 'by' variables. For instance, an AR2
+#' model might be applied to the time variable,
+#' within each combination of age and sex.
 #' The damping coefficients are shared across
 #' different combinations of the 'by' variables.
-#' The series within each combination of the
-#' 'by' variables are treated as exchangeable.
+#' Combination of 'by' variables are assumed to be
+#' "exchangeable", i.e., the order of the categories
+#' is ignored by the prior.
 #' 
 #' @section 'Along' and 'by' variables:
 #'
@@ -246,7 +269,7 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #'
 #' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
 #' within the \eqn{u}th combination of the
-#' 'by' variables, then
+#' 'by' variables, then, with an `EAR()` prior,
 #'
 #' \deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
@@ -277,7 +300,7 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' - [EAR1()] Special case of `EAR()`, though with
 #'   more options for damping.
 #' - [AR()] Autoregressive prior for main effects.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @references TMB documentation for
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
@@ -352,7 +375,7 @@ EAR <- function(n = 2, s = 1, along = NULL) {
 #' @seealso
 #' - [EAR()] More general exchangeable AR model.
 #' - [AR1()] AR1 prior for main effects.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #' - The values for `min` and `max` are based on the
 #'   defaults for function `forecast::ets()`.
 #'
@@ -442,7 +465,7 @@ EAR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
 #'
 #' @seealso
 #' - [Lin()] Linear prior for main effects.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' ELin()
@@ -511,7 +534,7 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' - [RW()] Random walk prior, used with main effects.
 #' - [ERW2()] Exchangeable random walk with drift prior,
 #'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' ERW()
@@ -576,7 +599,7 @@ ERW <- function(s = 1, along = NULL) {
 #'   used with main effects.
 #' - [ERW()] Exchangeable random walk prior,
 #'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' ERW2()
@@ -637,7 +660,7 @@ ERW2 <- function(s = 1, along = NULL) {
 #' - Seasonal effects are always
 #'   used within 'composite' priors, created using
 #'   [compose_time()].
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' ESeas(n = 4)
@@ -670,7 +693,7 @@ ESeas <- function(n, s = 1, along = NULL) {
 #'
 #' @seealso
 #' - [NFix()] Prior where level unknown, but variability known.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #'
 #' @examples
@@ -730,7 +753,7 @@ Known <- function(values) {
 #' @seealso
 #' - [ELin()] Exchangeable version of `Lin()`,
 #'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' Lin()
@@ -783,7 +806,7 @@ Lin <- function(s = 1, sd = 1) {
 #' @seealso 
 #' - [NFix()] Version of `N()` where the standard deviation
 #'   term is supplied rather than estimated from the data.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' N()
@@ -821,7 +844,7 @@ N <- function(s = 1) {
 #' @seealso 
 #' - [N()] Version of `NFix()` where the standard deviation
 #'   term is estimated from the data.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #' 
 #' @examples
 #' NFix()
@@ -872,7 +895,7 @@ NFix <- function(sd = 1) {
 #' - [RW2()] Random walk with drift.
 #' - [ERW()] Exchangeable version of `RW()`,
 #'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' RW()
@@ -923,7 +946,7 @@ RW <- function(s = 1) {
 #' - [RW()] Ordinary random wark.
 #' - [ERW2()] Exchangeable version of `RW2()`,
 #'   used with interactions.
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' RW2()
@@ -1020,7 +1043,7 @@ Seas <- function(n, s = 1) {
 #' @returns An object of class `"bage_prior_spline"`.
 #'
 #' @seealso
-#' - [priors] Overview of priors implemented in `bage`.
+#' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
 #' Sp()
@@ -1087,7 +1110,7 @@ Sp <- function(n = NULL, s = 1) {
 #' by preforming an SVD and then standardizing.
 #' For details see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @section Scaled SVDs currently implemented in bage:
+#' @section Scaled SVDs in bage:
 #'
 #' - \code{\link{HMD}} Mortality rates from the
 #' [Human Mortality Database](https://www.mortality.org).
@@ -1205,7 +1228,7 @@ SVD <- function(ssvd, n = NULL) {
 #' \eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
 #' see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @inheritSection SVD Scaled SVDs currently implemented in bage
+#' @inheritSection SVD Scaled SVDs in bage
 #'
 #' @inheritParams SVD
 #' @param joint Whether to use combined or
@@ -1291,7 +1314,7 @@ SVDS <- function(ssvd, n = 5, joint = FALSE) {
 #' by preforming an SVD and then extracting means and variances.
 #' For details see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @inheritSection SVD Scaled SVDs currently implemented in bage
+#' @inheritSection SVD Scaled SVDs in bage
 #'
 #' @inheritParams SVD
 #'
@@ -1386,7 +1409,7 @@ ESVD <- function(ssvd, n = 5) {
 #' \eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
 #' see TODO - REFERENCE TO VIGNETTE.
 #'
-#' @inheritSection SVD Scaled SVDs currently implemented in bage
+#' @inheritSection SVD Scaled SVDs in bage
 #'
 #' @inheritParams SVD
 #' @param joint Whether to use combined or
@@ -1450,8 +1473,8 @@ ESVDS <- function(ssvd, n = 5, joint = FALSE) {
 
 ## HAS_TESTS
 new_bage_prior_ar <- function(n, scale, min, max, nm) {
-  shape1 <- 3.0
-  shape2 <- 3.0
+  shape1 <- 2.0
+  shape2 <- 2.0
   ans <- list(i_prior = 5L,
               const = c(shape1 = shape1,
                         shape2 = shape2,
@@ -1482,8 +1505,8 @@ new_bage_prior_compose <- function(priors, along, nm) {
 
 ## HAS_TESTS
 new_bage_prior_ear <- function(n, scale, min, max, nm, along) {
-  shape1 <- 3.0
-  shape2 <- 3.0
+  shape1 <- 2.0
+  shape2 <- 2.0
   ans <- list(i_prior = 12L,
               const = c(shape1 = shape1,
                         shape2 = shape2,

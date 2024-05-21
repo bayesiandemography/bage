@@ -1,4 +1,10 @@
 
+# bage 0.4.2
+
+## Changes to interface
+
+* Tidying of online help (not yet complete).
+
 # bage 0.4.1
 
 ## New functions
@@ -22,7 +28,8 @@
 * Standardization algorithm repeats up to 100 times, or until all
   residuals are less than 0.0001.
 * With the new configuration, calculations for large matrices that
-  previously failed are now running.
+  previously failed with error message "Internal error: Final residual
+  not 0" are now running.
   
 ## Simulations
 

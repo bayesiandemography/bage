@@ -4,10 +4,64 @@
 \name{bage-package}
 \alias{bage}
 \alias{bage-package}
-\title{Bayesian estimation and forecasting of age-specific rates}
+\title{Package 'bage'}
 \description{
-Fast Bayesian estimation and forecasting of age-specific rates, probabilities, and means, based on Template Model Builder.
+Bayesian estimation and forecasting of age-specific rates.
+Estimation uses \href{https://CRAN.R-project.org/package=TMB}{TMB},
+and is fast.
 }
+\section{Functions}{
+
+
+\strong{Specify model}
+\itemize{
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for main effect or interaction
+\item \link{priors} List of available priors for main effects or interactions
+\item \code{\link[=set_disp]{set_disp()}} Specify prior for dispersion/variance
+\item \code{\link[=set_var_age]{set_var_age()}} Identify age variable in data
+\item \code{\link[=set_var_sexgender]{set_var_sexgender()}} Identify sex or gender variable in data
+\item \code{\link[=set_var_time]{set_var_time()}} Identify time variable in data
+}
+
+\strong{Fit model}
+\itemize{
+\item \code{\link[=fit]{fit()}} Derive posterior distribution
+\item \code{\link[=is_fitted]{is_fitted()}} See if model has been fitted
+}
+
+\strong{Extract results}
+\itemize{
+\item \code{\link[=augment]{augment()}} Add cell-level estimates to data
+\item \code{\link[=components]{components()}} Hyper-parameters
+\item \code{\link[=tidy]{tidy()}} One-line summary
+\item \code{\link[=set_n_draw]{set_n_draw()}} Specify number of posterior draws
+}
+
+\strong{Forecast}
+\itemize{
+\item \code{\link[=forecast]{forecast()}} Use model to obtain estimates for future periods
+}
+
+\strong{Check model}
+\itemize{
+\item \code{\link[=replicate_data]{replicate_data()}} Compare real and simulated data
+\item \code{\link[=report_sim]{report_sim()}} Simulation study of model
+}
+
+\strong{Data}
+\itemize{
+\item \link{deaths} Deaths in Iceland
+\item \link{divorces} Divorces in New Zealand
+\item \link{expenditure} Health expenditure in the Netherlands
+\item \link{us_acc_deaths} Accidental deaths in the USA
+\item \link{HMD} SVD of mortality rates from Human Mortality Database
+\item \link{LFP} SVD of Labour Force Participation rates from OECD
+}
+}
+
 \seealso{
 Useful links:
 \itemize{
@@ -20,7 +74,12 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Junni Zhang \email{junni@bayesiandemography.com}
+  \item Junni Zhang \email{junnizhang@163.com}
+}
+
+Other contributors:
+\itemize{
+  \item Bayesian Demography Limited [copyright holder]
 }
 
 }

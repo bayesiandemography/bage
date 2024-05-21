@@ -19,9 +19,9 @@
 #'
 #' where
 #'
-#' - \eqn{y_i} is an outcome, such of deaths, for some
-#'   combination \eqn{i} of classifying variables,
-#'   such as age, sex, and region;
+#' - subscript \eqn{i} identifies some combination of
+#'   classifying variables, such as age, sex, and time;
+#' - \eqn{y_i} is an outcome, such as deaths;
 #' - \eqn{\gamma_i} is rates; and
 #' - \eqn{w_i} is exposure.
 #'
@@ -299,7 +299,7 @@ mod_binom <- function(formula, data, size) {
 #' specifying the outcome and predictors.
 #' @param data A data frame containing outcome,
 #' predictor, and, optionally, weights variables.
-#' @param weight Name of the weights variable,
+#' @param weights Name of the weights variable,
 #' or a `1`.
 #'
 #' @returns An object of class `bage_mod_norm`.

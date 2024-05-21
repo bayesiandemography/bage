@@ -2,12 +2,12 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{components.bage_mod}
 \alias{components.bage_mod}
-\title{Extract Components from a Model}
+\title{Extract Values for Hyper-Parameters}
 \usage{
 \method{components}{bage_mod}(object, quiet = FALSE, ...)
 }
 \arguments{
-\item{object}{A \code{bage_mod} object.}
+\item{object}{An object of class \code{"bage_mod"}.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -16,16 +16,8 @@ Default is \code{FALSE}.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}
-}
-\description{
-Extract batches of hyper-parameters
-from a model object
-with class \code{"bage_mod"}.
-\link[tibble:tibble-package]{tibble}
-draws from the posterior distribution if the model has been
-fitted, or the prior distribution if it has not.
-}
-\details{
+with four columns columns:
+
 The return value contains the following columns:
 \itemize{
 \item \code{term} Model term that the hyper-parameter belongs to.
@@ -35,6 +27,28 @@ The return value contains the following columns:
 draws from the posterior distribution.
 }
 }
+\description{
+Extract values for hyper-parameters
+from a model object. Includes values for
+main effects and interactions, and values
+for any disperion or variance terms.
+}
+\section{Fitted vs unfitted models}{
+
+
+\code{components()} is typically called on a \link[=fit]{fitted}
+model. In this case, the modelled values are
+draws from the joint posterior distribution for the
+hyper-parameters in the model.
+
+\code{components()} can, however, be called on an
+unfitted model. In this case, the modelled values
+are draws from the joint prior distribution.
+In other words, the modelled values are informed by
+model priors, and by any \code{exposure}, \code{size}, or \code{weights}
+argument in the model, but not by the observed outcomes.
+}
+
 \examples{
 ## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
@@ -53,10 +67,13 @@ mod |> components() ## posterior distribution
 }
 \seealso{
 \itemize{
-\item \code{\link[=augment]{augment()}} A tibble with data and parameters.
-\item \code{\link[=tidy]{tidy()}} A one-line summary of a model.
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Functions
-to specify a model
-\item \code{\link[=fit]{fit()}} Function to fit a model
+\item \code{\link[=augment]{augment()}} Extract data and values for rates,
+means, or probabilities
+\item \code{\link[=tidy]{tidy()}} Extract a one-line summary of a model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=is_fitted]{is_fitted()}} See if a model has been fitted
 }
 }

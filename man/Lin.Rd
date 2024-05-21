@@ -58,6 +58,6 @@ Lin(s = 0.5, sd = 2)
 \itemize{
 \item \code{\link[=ELin]{ELin()}} Exchangeable version of \code{Lin()},
 used with interactions.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

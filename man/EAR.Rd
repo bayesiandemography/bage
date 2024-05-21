@@ -24,11 +24,15 @@ An object of class \code{"bage_prior_ear"}.
 An exchangeable autoregressive prior
 is used with interactions. An autoregressive
 model of order \eqn{k} is applied to the 'along'
-variable, within each combination of values of the 'by' variables.
+variable, within each combination of values
+of the 'by' variables. For instance, an AR2
+model might be applied to the time variable,
+within each combination of age and sex.
 The damping coefficients are shared across
 different combinations of the 'by' variables.
-The series within each combination of the
-'by' variables are treated as exchangeable.
+Combination of 'by' variables are assumed to be
+"exchangeable", i.e., the order of the categories
+is ignored by the prior.
 }
 \section{'Along' and 'by' variables}{
 
@@ -59,7 +63,7 @@ is assumed to be age;
 
 If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
 within the \eqn{u}th combination of the
-'by' variables, then
+'by' variables, then, with an \code{EAR()} prior,
 
 \deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
@@ -90,6 +94,6 @@ TMB documentation for
 \item \code{\link[=EAR1]{EAR1()}} Special case of \code{EAR()}, though with
 more options for damping.
 \item \code{\link[=AR]{AR()}} Autoregressive prior for main effects.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

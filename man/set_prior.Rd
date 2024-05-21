@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_prior}
 \alias{set_prior}
-\title{Change the prior for a model term}
+\title{Specify a Prior}
 \usage{
 set_prior(mod, formula)
 }
@@ -17,19 +17,13 @@ and a function for creating a prior.}
 A modified \code{bage_mod} object.
 }
 \description{
-Specify a non-default prior distribution
-for the intercept, a main effect,
-or an interaction.
+Specify a prior distribution for an intercept,
+a main effect, or an interaction.
 }
 \details{
 If the \code{mod} argument to \code{set_prior} is
 a fitted model, then \code{set_disp} 'unfits'
 the model, by deleting existing estimates.
-
-\code{formula} gives the name of a main
-effect or interaction, and a function
-specifying a prior, eg
-\code{age ~ RW2()}.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + year,
@@ -40,14 +34,7 @@ mod |> set_prior(age ~ RW2())
 }
 \seealso{
 \itemize{
-\item \code{\link[=N]{N()}}
-\item \code{\link[=NFix]{NFix()}}
-\item \code{\link[=RW]{RW()}}
-\item \code{\link[=RW2]{RW2()}}
-\item \code{\link[=AR1]{AR1()}}
-\item \code{\link[=Known]{Known()}}
-\item \code{\link[=SVD]{SVD()}}
-\item \code{\link[=Sp]{Sp()}}
+\item \link{priors} Current choices for prior distributions.
 \item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

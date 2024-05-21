@@ -14,7 +14,8 @@ Demographic Research (Germany), University of California,
 Berkeley (USA), and French Institute for Demographic Studies
 (France). Available at www.mortality.org.
 Code to create \code{HMD}
-is in folder 'data-raw/ssvd_hmd' of the \strong{bage}
+is in folder 'data-raw/ssvd_hmd'
+in the source code for \strong{bage}
 package.
 }
 \usage{
@@ -23,6 +24,7 @@ HMD
 \description{
 An object of class \link[=ssvd]{bage_ssvd}
 holding components extracted from mortality
-data from the \href{https://www.mortality.org}{Human Mortality Database}.
+data from the
+\href{https://www.mortality.org}{Human Mortality Database}.
 }
 \keyword{datasets}

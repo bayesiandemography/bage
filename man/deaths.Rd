@@ -5,13 +5,15 @@
 \alias{deaths}
 \title{Deaths in Iceland}
 \format{
-A tibble with 5300 rows and the following
+A \link[tibble:tibble-package]{tibble} with 5,300 rows and the following
 columns:
-\code{age} Single year of age, up to \code{"105+"}.
-\code{sex} \code{"Female"} and \code{"Male"}.
-\code{time} Calendar year, 1998-2022.
-\code{deaths} Counts of deaths.
-\code{popn} Mid-year population.
+\itemize{
+\item \code{age} Single year of age, up to \code{"105+"}
+\item \code{sex} \code{"Female"} and \code{"Male"}
+\item \code{time} Calendar year, 1998-2022
+\item \code{deaths} Counts of deaths
+\item \code{popn} Mid-year population
+}
 }
 \source{
 Tables "Deaths by municipalities, sex and age 1981-2022",

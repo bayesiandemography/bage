@@ -2,12 +2,12 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{is_fitted}
 \alias{is_fitted}
-\title{Test whether a model has been fitted}
+\title{Test Whether a Model has Been Fitted}
 \usage{
 is_fitted(x)
 }
 \arguments{
-\item{x}{A model object.}
+\item{x}{An object of class \code{"bage_mod"}.}
 }
 \value{
 \code{TRUE} or \code{FALSE}

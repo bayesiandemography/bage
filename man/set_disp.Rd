@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_disp}
 \alias{set_disp}
-\title{Set Mean Parameter for Dispersion}
+\title{Set Mean in Prior for Dispersion or Standard Deviation}
 \usage{
 set_disp(mod, mean)
 }
@@ -18,11 +18,12 @@ In Poisson and binomial models, can be set to 0.}
 A \code{bage_mod} object
 }
 \description{
-Specify the mean parameter \code{mean} in the prior
-for dispersion.
+Specify the mean of prior for the dispersion
+parameter (in Poisson and binomial models) or the
+standard deviation parameter (in normal models.)
 }
 \details{
-The dispersion parameter has an exponential
+The dispersion or mean parameter has an exponential
 distribution with mean \eqn{\mu}.
 
 \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
@@ -34,7 +35,7 @@ In normal models, \code{mean} must be non-negative.
 
 If the \code{mod} argument to \code{set_disp} is
 a fitted model, then \code{set_disp} 'unfits'
-the model, by deleting existing estimates.
+the model, deleting existing estimates.
 }
 \examples{
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,

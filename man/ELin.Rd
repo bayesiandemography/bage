@@ -103,6 +103,6 @@ ELin(s = 0.5, sd = 2, ms = 0.1, along = "cohort")
 \seealso{
 \itemize{
 \item \code{\link[=Lin]{Lin()}} Linear prior for main effects.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

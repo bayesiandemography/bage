@@ -1,7 +1,7 @@
 Package: bage
 Type: Package
 Title: Bayesian Estimation and Forecasting of Age-Specific Rates
-Version: 0.4.1
+Version: 0.4.2
 Authors@R: 
     c(person(given = "John",
              family = "Bryant",
@@ -10,7 +10,9 @@ Authors@R:
       person(given = "Junni",
              family = "Zhang",
              role = "aut",
-             email = "junni@bayesiandemography.com"))
+             email = "junnizhang@163.com"),
+      person(given = "Bayesian Demography Limited",
+             role = "cph"))
 Description: Fast Bayesian estimation and forecasting of age-specific
     rates, probabilities, and means, based on Template Model Builder.
 License: MIT + file LICENSE

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-constructors.R
 \name{mod_binom}
 \alias{mod_binom}
-\title{Specify a binomial model}
+\title{Specify a Binomial Model}
 \usage{
 mod_binom(formula, data, size)
 }
@@ -10,10 +10,10 @@ mod_binom(formula, data, size)
 \item{formula}{An R \link[stats:formula]{formula},
 specifying the outcome and predictors.}
 
-\item{data}{A data frame containing the outcome,
-predictors, and, number of trials}
+\item{data}{A data frame containing the outcome
+and predictor variables, and the number of trials.}
 
-\item{size}{Name of the variable describing
+\item{size}{Name of the variable giving
 the number of trials.}
 }
 \value{
@@ -24,27 +24,59 @@ Specify a model where the outcome is drawn from
 a binomial distribution.
 }
 \details{
+The model is hierarchical. The probabilities in the binomial distribution
+are described by a prior model formed from dimensions such
+as age, sex, and time. The terms for these dimension themselves
+have models, as described in \link{priors}. These priors all have defaults,
+which depend on the type of term (eg an intercept, an age main effect,
+or an age-time interaction.)
+}
+\section{Mathematical details}{
+
+
+The likelihood is
+
+\deqn{y_i \sim \text{binomial}(\gamma_i; w_i)}
+
+where
 \itemize{
-\item \code{formula} specifies the outcome and predictors,
-including interactions between predictors.
-It follows standard R \link[stats:formula]{formula}
-conventions, except that it cannot include
-transformations (e.g. \code{sqrt(deaths)}).
-\item \code{data} A data frame holding the outcome, the predictors,
-and number of trials.
-\item \code{size} is the name (bare or quoted) of the variable
-in \code{data} measuring the number of trials.
+\item \eqn{y_i} is a count, such of number of births, for some
+combination \eqn{i} of classifying variables,
+such as age, sex, and region;
+\item \eqn{\gamma_i} is a probability of 'success'; and
+\item \eqn{w_i} is the number of trials.
 }
 
-The first level of the model is
+The probabilities \eqn{\gamma_i} are assumed to be drawn
+a beta distribution
 
-\deqn{y \sim \text{binom}(n, \pi)}
+\deqn{y_i \sim \text{Beta}(\xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i))}
 
-where \eqn{\pi} is the sucess probability,
-and \eqn{n} is the number of trials.
-
-TODO - Include error term once specification finalised.
+where
+\itemize{
+\item \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
+\item \eqn{\xi} governs dispersion (ie variance.)
 }
+
+The expected values \eqn{\mu_i} equal, on the logit scale,
+the sum of terms formed from classifying variables,
+
+\deqn{\text{logit} \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
+
+where
+\itemize{
+\item \eqn{\beta^{0}} is an intercept;
+\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+or interaction; and
+\item \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+cell \eqn{i}.
+}
+
+The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
+
+The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
+}
+
 \examples{
 mod <- mod_binom(oneperson ~ age:region + age:year,
                  data = households,
@@ -52,9 +84,11 @@ mod <- mod_binom(oneperson ~ age:region + age:year,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_norm]{mod_norm()}} for specification
-of Poisson and normal models
-\item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
-\item \code{\link[=fit]{fit()}} to fit a model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=set_prior]{set_prior()}} Specify non-default priors for terms
+formed from classifying dimensions
+\item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for dispersion,
+\item \code{\link[=fit]{fit()}} Fit a model
 }
 }

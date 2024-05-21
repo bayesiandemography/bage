@@ -48,6 +48,6 @@ N(s = 0.5)
 \itemize{
 \item \code{\link[=NFix]{NFix()}} Version of \code{N()} where the standard deviation
 term is supplied rather than estimated from the data.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

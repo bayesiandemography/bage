@@ -3,10 +3,10 @@
 \docType{data}
 \name{us_acc_deaths}
 \alias{us_acc_deaths}
-\title{Accidental deaths in the USA}
+\title{Accidental Deaths in the USA}
 \format{
-A data frame with 72 rows and the
-following variables:
+A \link[tibble:tibble-package]{tibble}
+with 72 rows and the following columns:
 \itemize{
 \item \code{month}: Year and month.
 \item \code{deaths}: Count of deaths.
