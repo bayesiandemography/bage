@@ -38,6 +38,6 @@ NFix(sd = 10) ## prior used for intercept
 \itemize{
 \item \code{\link[=N]{N()}} Version of \code{NFix()} where the standard deviation
 term is estimated from the data.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

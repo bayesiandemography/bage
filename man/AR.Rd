@@ -7,38 +7,47 @@
 AR(n = 2, s = 1)
 }
 \arguments{
-\item{n}{The order of the model.
-Default is \code{2}.}
+\item{n}{The order of the model, i.e. the number of lagged
+terms included in the model. The default is \code{2}.}
 
-\item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\tau}).
+\item{s}{Scale for the prior for the errors.
 Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
 }
 \description{
-Autoregressive prior with order \code{k}. Used to model main effects:
-typically time main effects.
+Autoregressive prior with order \code{k}. Typically used with time effects.
+}
+\details{
+Parameter \code{s} controls the size of errors. Smaller values
+for \code{s} may lead to smoother series.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+With an \code{AR()} prior,
 
-\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_k \beta_{j-k} + \epsilon_j}
+\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-k} + \epsilon_j}
 \deqn{\epsilon_j \sim \text{N}(0, \omega^2)}
 
-where \eqn{\omega} is chosen so that each \eqn{\beta_j} has
-marginal variance \eqn{\sigma^2}. The value of
-\eqn{\tau} has prior
+where  \eqn{\beta_j} is the \eqn{j}th element of the main effect.
 
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
+marginal variance \eqn{\tau^2}.
+
+Parameter \eqn{\tau} has a half-normal prior
+
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+
+where a value for \code{s} is provided by the user.
 
 The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-between -1 and 1 that jointly lead to stationary models. The quantity
+between -1 and 1 that jointly lead to a stationary model. The quantity
 \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
-boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
+boundary-avoiding prior
+
+\deqn{r \sim \text{Beta}(2, 2)}.
 }
 
 \examples{
@@ -46,15 +55,16 @@ AR(n = 3)
 AR(n = 3, s = 2.4)
 }
 \references{
-TMB documentation for
+\itemize{
+\item \code{AR()} is based on the TMB function
 \href{http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details}{ARk}
+}
 }
 \seealso{
 \itemize{
-\item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}, though with
-more options for damping.
+\item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}
 \item \code{\link[=EAR]{EAR()}} Exchangeable version of \code{AR()},
-used with interactions.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+used with interactions
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

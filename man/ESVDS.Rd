@@ -100,7 +100,7 @@ is obtained by setting the \code{joint} argument to \code{TRUE}.
 The default is \code{FALSE}.
 }
 
-\section{Scaled SVDs currently implemented in bage}{
+\section{Scaled SVDs in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the

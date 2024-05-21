@@ -11,43 +11,55 @@
 generics::augment
 
 ## HAS_TESTS
-#' Data and Values from a Model
+#' Extract Data and Modelled Values
 #'
-#' Extract data and values from a model object
-#' with class `"bage_mod"`.
-#' The returne value is a
-#' [tibble][tibble::tibble-package]
-#' containing the original data, plus draws from
-#' the posterior distribution if the model has been
-#' fitted, or the prior distribution if it has not.
+#' Extract data and values from a model object.
+#' The return value consists of the original
+#' data and one or more columns of modelled values.
 #'
-#' The return value contains the following columns:
+#' @section Fitted vs unfitted models:
+#'
+#' `augment()` is typically called on a [fitted][fit()]
+#' model. In this case, the modelled values are
+#' draws from the joint posterior distribution for rates,
+#' probabilities, or means.
+#'
+#' `augment()` can, however, be called on an
+#' unfitted model. In this case, the modelled values
+#' are draws from the joint prior distribution.
+#' In other words, the modelled values are informed by
+#' model priors, and by any `exposure`, `size`, or `weights`
+#' arguments in the model, but not by the observed outcomes.
+#'
+#' @param x An object of class `"bage_mod"`.
+#' @param quiet Whether to suppress messages.
+#' Default is `FALSE`.
+#' @param ... Unused. Included for generic consistency only.
+#'
+#' @returns
+#' A [tibble][tibble::tibble-package], with the original
+#' data plus the following columns:
 #'
 #' - `.observed` 'Direct' estimates of rates or
-#' probabilities, ie counts divided by exposure/size.
-#' (Poisson and binomial models only.)
+#' probabilities, ie counts divided by exposure orsize
+#' (in Poisson and binomial models.)
 #' - `.fitted` Draws of rates, probabilities,
 #' or means.
-#' - `expected` Draws of expected values for
-#' rates or probabilities. (Inly in Poisson
+#' - `.expected` Draws of expected values for
+#' rates or probabilities (in Poisson
 #' that include exposure, or in binomial models.)
 #'
 #' Uncertain quantities are represented using
 #' [rvecs][rvec::rvec()].
 #'
-#' @param x A `bage_mod` object.
-#' @param quiet Whether to suppress messages.
-#' Default is `FALSE`.
-#' @param ... Unused. Included for generic consistency only.
-#'
-#' @returns A [tibble][tibble::tibble-package].
-#'
 #' @seealso
-#' - [components()] A tibble with hyper-parameters.
-#' - [tidy()] A one-line summary of a model.
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Functions
-#' to specify a model
-#' - [fit()] Function to fit a model
+#' - [components()] Extract values for hyper-parameters from a model
+#' - [tidy()] Extract a one-line summary of a model
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
+#' - [fit()] Fit a model
+#' - [is_fitted()] See if a model has been fitted
 #' 
 #' @examples
 #' ## specify model
@@ -90,14 +102,35 @@ augment.bage_mod <- function(x, quiet = FALSE, ...) {
 generics::components
 
 ## HAS_TESTS
-#' Extract Components from a Model
+#' Extract Values for Hyper-Parameters
 #'
-#' Extract batches of hyper-parameters
-#' from a model object
-#' with class `"bage_mod"`.
-#' [tibble][tibble::tibble-package]
-#' draws from the posterior distribution if the model has been
-#' fitted, or the prior distribution if it has not.
+#' Extract values for hyper-parameters
+#' from a model object. Includes values for
+#' main effects and interactions, and values
+#' for any disperion or variance terms.
+#' 
+#' @section Fitted vs unfitted models:
+#'
+#' `components()` is typically called on a [fitted][fit()]
+#' model. In this case, the modelled values are
+#' draws from the joint posterior distribution for the
+#' hyper-parameters in the model.
+#'
+#' `components()` can, however, be called on an
+#' unfitted model. In this case, the modelled values
+#' are draws from the joint prior distribution.
+#' In other words, the modelled values are informed by
+#' model priors, and by any `exposure`, `size`, or `weights`
+#' argument in the model, but not by the observed outcomes.
+#'
+#' @param object An object of class `"bage_mod"`.
+#' @param quiet Whether to suppress messages.
+#' Default is `FALSE`.
+#' @param ... Unused. Included for generic consistency only.
+#'
+#' @returns
+#' A [tibble][tibble::tibble-package]
+#' with four columns columns:
 #'
 #' The return value contains the following columns:
 #'
@@ -105,22 +138,17 @@ generics::components
 #' - `component` Component within term.
 #' - `level` Element within component .
 #' - `.fitted` An [rvec][rvec::rvec()] containing
-#' draws from the posterior distribution.
-#'
-#' @param object A `bage_mod` object.
-#' @param quiet Whether to suppress messages.
-#' Default is `FALSE`.
-#' @param ... Unused. Included for generic consistency only.
-#'
-#' @returns A [tibble][tibble::tibble-package]
+#'   draws from the posterior distribution.
 #'
 #' @seealso
-#' - [augment()] A tibble with data and parameters.
-#' - [tidy()] A one-line summary of a model.
-#' - [mod_pois()], [mod_binom()], [mod_norm()] Functions
-#' to specify a model
-#' - [fit()] Function to fit a model
-#' 
+#' - [augment()] Extract data and values for rates,
+#'   means, or probabilities
+#' - [tidy()] Extract a one-line summary of a model
+#' - [mod_pois()] Specify a Poisson model
+#' - [mod_binom()] Specify a binomial model
+#' - [mod_norm()] Specify a normal model
+#' - [fit()] Fit a model
+#' - [is_fitted()] See if a model has been fitted
 #'
 #' @examples
 #' ## specify model
@@ -873,12 +901,12 @@ has_disp.bage_mod <- function(mod) {
 
 ## 'is_fitted' ----------------------------------------------------------------
 
-#' Test whether a model has been fitted
+#' Test Whether a Model has Been Fitted
 #'
 #' Test whether [fit()][fit.bage_mod] has been
 #' called on a model object.
 #'
-#' @param x A model object.
+#' @param x An object of class `"bage_mod"`.
 #'
 #' @returns `TRUE` or `FALSE`
 #'
@@ -891,13 +919,13 @@ has_disp.bage_mod <- function(mod) {
 #' is_fitted(mod)
 #' @export
 is_fitted <- function(x) {
-    UseMethod("is_fitted")
+  UseMethod("is_fitted")
 }
 
 ## HAS_TESTS
 #' @export
 is_fitted.bage_mod <- function(x)
-    !is.null(x$est)
+  !is.null(x$est)
 
 
 ## 'make_par_disp' ---------------------------------------------------

@@ -11,7 +11,8 @@ An object of class \code{bage_ssvd} of length 1.
 Derived from data in the "Labour Force Indicators"
 table of the OECD Data Explorer.
 Code to create \code{LFS}
-is in folder 'data-raw/ssvd_lfp' of the \strong{bage}
+is in folder 'data-raw/ssvd_lfp' in
+the source code for the \strong{bage}
 package.
 }
 \usage{

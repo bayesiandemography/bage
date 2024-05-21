@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-constructors.R
 \name{mod_norm}
 \alias{mod_norm}
-\title{Specify a normal model}
+\title{Specify a Normal Model}
 \usage{
 mod_norm(formula, data, weights)
 }
@@ -10,49 +10,70 @@ mod_norm(formula, data, weights)
 \item{formula}{An R \link[stats:formula]{formula},
 specifying the outcome and predictors.}
 
-\item{data}{A data frame containing the outcome,
-predictors, and, optionally, weights.}
+\item{data}{A data frame containing outcome,
+predictor, and, optionally, weights variables.}
 
 \item{weights}{Name of the weights variable,
-or a \code{1}.
-
-Internally, outcome scaled to have mean 0 and sd 1;
-weights scaled to have mean 1.}
+or a \code{1}.}
 }
 \value{
-An object of class \code{bage_mod}.
+An object of class \code{bage_mod_norm}.
 }
 \description{
-Specify a model where the outcome is drawn from
-a normal distribution.
+The model is hierarchical. The means in the normal distribution
+are described by a prior model formed from dimensions such
+as age, sex, and time. The terms for these dimension themselves
+have models, as described in \link{priors}. These priors all have defaults,
+which depend on the type of term (eg an intercept, an age main effect,
+or an age-time interaction.)
+
+Internally, the outcome
+variable scaled to have mean 0 and sd 1.
 }
-\details{
+\section{Mathematical details}{
+
+
+The likelihood is
+
+\deqn{y_i \sim \text{N}(\mu_i, \xi^2 / w_i)}
+
+where
 \itemize{
-\item \code{formula} specifies the outcome and predictors,
-including interactions between predictors.
-It follows standard R \link[stats:formula]{formula}
-conventions, except that it cannot include
-transformations (e.g. \code{sqrt(deaths)}).
-\item \code{data} holds the outcome, the predictors, and,
-optionally, weights.
-\item \code{weights} is the name (bare or quoted) of the variable
-in \code{data} used as weights, or, if the
-model does include weights, a \code{1}.
+\item \eqn{y_i} is a scaled value for an, such of the log of income, for some
+combination \eqn{i} of classifying variables,
+such as age, sex, and region;
+\item \eqn{\mu_i} is a mean;
+\item \eqn{\xi} is a standard deviation parameter; and
+\item \eqn{w_i} is a weight.
 }
 
-If the model includes weights, then the
-the first level of the model is
+The scaling of the outcome variable is done internally.
+If \eqn{y_i^*} is the original, then \eqn{y_i = (y_i^* - m)/s}
+where \eqn{m} and \eqn{s} are the sample mean and standard
+deviation of \eqn{y_i^*}.
 
-\deqn{y \sim \text{norm}(\mu, \sigma^2 / w)}
+In some applications, \eqn{w_i} is set to 1
+for all \eqn{i}.
 
-where \eqn{\mu} is the underlying rate, and
-\eqn{w} is weights. If the model does not
-include weights, then the first level is
+The means \eqn{\mu_i} equal the sum of terms formed
+from classifying variables,
 
-\deqn{y \sim \text{norm}(\mu, \sigma^2)}
+\deqn{\mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
 
-TODO - Include error term once specification finalised.
+where
+\itemize{
+\item \eqn{\beta^{0}} is an intercept;
+\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
+or interaction; and
+\item \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
+cell \eqn{i}.
 }
+
+The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
+
+The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
+}
+
 \examples{
 mod <- mod_norm(value ~ diag:age + year,
                 data = expenditure,
@@ -60,9 +81,11 @@ mod <- mod_norm(value ~ diag:age + year,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}} for specification
-of Poisson and binomial models
-\item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
-\item \code{\link[=fit]{fit()}} to fit a model
+\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=set_prior]{set_prior()}} Specify non-default priors for terms
+formed from classifying dimensions
+\item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for the standard deviation
+\item \code{\link[=fit]{fit()}} Fit a model
 }
 }

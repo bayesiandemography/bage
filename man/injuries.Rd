@@ -3,17 +3,17 @@
 \docType{data}
 \name{injuries}
 \alias{injuries}
-\title{Fatal injuries in New Zealand}
+\title{Fatal Injuries in New Zealand}
 \format{
-A data frame with 912 rows and the
-following variables:
+A \link[tibble:tibble-package]{tibble}
+with 912 rows and the following columns:
 \itemize{
-\item \code{age}: Age, in 5-year age groups, up to age 55-59.
+\item \code{age}: 5-year age groups, up to age 55-59
 \item \code{sex}: \code{"Female"} or \code{"Male"}
 \item \code{ethnicity}: \code{"Maori"} or \code{"Non Maori"}
 \item \code{year}: Calendar year
-\item \code{injuries}: Count of injuries, randomly rounded to base 3.
-\item \code{popn}: Population on 30 June.
+\item \code{injuries}: Count of injuries, randomly rounded to base 3
+\item \code{popn}: Population on 30 June
 }
 }
 \source{

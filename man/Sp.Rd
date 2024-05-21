@@ -49,6 +49,6 @@ Sp(n = 10)
 }
 \seealso{
 \itemize{
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

@@ -63,7 +63,7 @@ mod |>
 \itemize{
 \item \code{\link[=set_var_sexgender]{set_var_sexgender()}} sets the sex or gender variable
 \item \code{\link[=set_var_time]{set_var_time()}} sets the time variable
-\item internally, \code{bage} uses \code{\link[poputils:find_var_age]{poputils::find_var_age()}}
+\item internally, \strong{bage} uses \code{\link[poputils:find_var_age]{poputils::find_var_age()}}
 to locate age variables
 \item \code{\link[=is_fitted]{is_fitted()}}
 }

@@ -3,12 +3,12 @@
 \docType{data}
 \name{households}
 \alias{households}
-\title{People in one-person households in New Zealand}
+\title{People in One-person households in New Zealand}
 \format{
-A data frame with 528 rows and the
-following variables:
+A \link[tibble:tibble-package]{tibble} with 528 rows and the
+following columns:
 \itemize{
-\item \code{age}: Age, in 5-year age groups, with open age
+\item \code{age}: 5-year age groups, with open age
 group of 65+
 \item \code{region}: Region within New Zealand
 \item \code{year}: Calendar year

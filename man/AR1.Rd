@@ -11,36 +11,47 @@ AR1(min = 0.8, max = 0.98, s = 1)
 for autocorrelation parameter (\eqn{\phi}).
 Defaults are \code{0.8} and \code{0.98}.}
 
-\item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\tau}).
-Default is \code{1}.}
+\item{s}{Scale for the prior for
+the errors. Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
 }
 \description{
-Autoregressive prior of order 1
+Autoregressive prior of order 1. Typically used with time effects.
+}
+\details{
+Parameter \code{s} controls the size of errors. Smaller values
+for \code{s} may lead to smoother series.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
-\deqn{\beta_0 \sim \text{N}(0, \sigma^2)}
-\deqn{\beta_j = \phi \beta_{j-1} + \sqrt{1 - \phi^2}\epsilon_j}
-\deqn{\epsilon \sim \text{N}(0, \tau^2)}
+With an \code{AR1()} prior,
 
-\eqn{\tau} is drawn from a half-normal distribition
-with scale set by the \code{s} argument.
+\deqn{\beta_j = \phi \beta_{j-1} + \epsilon_j}
+\deqn{\epsilon \sim \text{N}(0, \omega^2)}
 
-Correlation parameter \eqn{\phi} is constrained
-to lie in the interval \verb{(\\text\{min\}, \\text\{max\})}.
-The prior distribution for \eqn{\phi} is
+where \eqn{\beta_j} is the \eqn{j}th element of the main effect.
+
+The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
+marginal variance \eqn{\tau^2}.
+
+Parameter \eqn{\tau} has half-normal prior
+
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+
+where a value for \code{s} is provided by the user.
+
+Parameter \eqn{\phi} is constrained
+to lie between \code{min} and \code{max}.
+Its prior distribution is
 
 \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 
 where
 
-\deqn{\phi' \sim \text{beta}(2, 2)}.
+\deqn{\phi' \sim \text{Beta}(2, 2).}
 }
 
 \examples{
@@ -48,16 +59,18 @@ AR1()
 AR1(min = 0, max = 1, s = 2.4)
 }
 \references{
-TMB documentation of
+\itemize{
+\item \code{AR1()} is based on the TMB function
 \href{http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details}{AR1}
+\item The values for \code{min} and \code{max} are based on the
+defaults for function \code{forecast::ets()}.
+}
 }
 \seealso{
 \itemize{
-\item \code{\link[=AR]{AR()}} General case of \code{AR()}.
+\item \code{\link[=AR]{AR()}} Generalisation of \code{AR1()}
 \item \code{\link[=EAR1]{EAR1()}} Exchangeable version of \code{AR1()},
-used with interactions.
-\item \link{priors} Overview of priors implemented in \code{bage}.
-\item The values for \code{min} and \code{max} are based on the
-defaults for function \code{forecast::ets()}.
+used with interactions
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

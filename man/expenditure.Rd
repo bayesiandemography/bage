@@ -3,13 +3,13 @@
 \docType{data}
 \name{expenditure}
 \alias{expenditure}
-\title{Per capital health expenditure in the Netherlands, 2003-2011}
+\title{Per Capita Health Expenditure in the Netherlands, 2003-2011}
 \format{
-A data frame with 1296 rows and the
-following variables:
+A \link[tibble:tibble-package]{tibble} with 1,296 rows and the
+following columns:
 \itemize{
 \item \code{diag} Diagnostic group
-\item \code{age} Age, in 5-year age groups, with open age
+\item \code{age} 5-year age groups, with open age
 group of 85+
 \item \code{year} 2003, 2005, 2007, and 2011
 }
@@ -29,6 +29,6 @@ expenditure
 }
 \description{
 Per capita health expenditure, in Euros, for all providers,
-by diagnostic group, age group, and year.
+by diagnostic group, age group, and year, in the Netherlands.
 }
 \keyword{datasets}

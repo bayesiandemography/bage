@@ -65,7 +65,7 @@ by preforming an SVD and then standardizing.
 For details see TODO - REFERENCE TO VIGNETTE.
 }
 
-\section{Scaled SVDs currently implemented in bage}{
+\section{Scaled SVDs in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the

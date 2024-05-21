@@ -5,13 +5,13 @@
 \alias{divorces}
 \title{Divorces in New Zealand}
 \format{
-A data frame with the following variables:
+A \link[tibble:tibble-package]{tibble} 660 rows and the following columns:
 \itemize{
-\item \code{age}: Age, in 5-year age groups, \code{"15-19"} to \code{"65+"}.
-\item \code{sex}: \code{"Female"} or \code{"Male"}.
-\item \code{time}: Calendar year.
-\item \code{divorces}: Numbers of divorces during year.
-\item \code{population}: Person-years lived during year.
+\item \code{age}: Age, in 5-year age groups, \code{"15-19"} to \code{"65+"}
+\item \code{sex}: \code{"Female"} or \code{"Male"}
+\item \code{time}: Calendar year
+\item \code{divorces}: Numbers of divorces during year
+\item \code{population}: Person-years lived during year
 }
 }
 \source{

@@ -7,13 +7,14 @@
 #' by age, sex, and calendar year.
 #'
 #' @format
-#' A tibble with 5300 rows and the following
+#' A [tibble][tibble::tibble-package] with 5,300 rows and the following
 #' columns:
-#' `age` Single year of age, up to `"105+"`.
-#' `sex` `"Female"` and `"Male"`.
-#' `time` Calendar year, 1998-2022.
-#' `deaths` Counts of deaths.
-#' `popn` Mid-year population.
+#' 
+#' - `age` Single year of age, up to `"105+"`
+#' - `sex` `"Female"` and `"Male"`
+#' - `time` Calendar year, 1998-2022
+#' - `deaths` Counts of deaths
+#' - `popn` Mid-year population
 #'
 #' @source Tables "Deaths by municipalities, sex and age 1981-2022",
 #' and "Average annual population by municipality,
@@ -28,12 +29,14 @@
 #' Counts of divorces and population, by age, sex,
 #' and calendar year, in New Zealand, 1992-2021.
 #'
-#' @format A data frame with the following variables:
-#' - `age`: Age, in 5-year age groups, `"15-19"` to `"65+"`.
-#' - `sex`: `"Female"` or `"Male"`.
-#' - `time`: Calendar year.
-#' - `divorces`: Numbers of divorces during year.
-#' - `population`: Person-years lived during year.
+#' @format
+#' A [tibble][tibble::tibble-package] 660 rows and the following columns:
+#' 
+#' - `age`: Age, in 5-year age groups, `"15-19"` to `"65+"`
+#' - `sex`: `"Female"` or `"Male"`
+#' - `time`: Calendar year
+#' - `divorces`: Numbers of divorces during year
+#' - `population`: Person-years lived during year
 #'
 #'
 #' @source Divorce counts from data in table "Age at divorces by
@@ -50,15 +53,16 @@
 "divorces"
 
 
-#' Per capital health expenditure in the Netherlands, 2003-2011
+#' Per Capita Health Expenditure in the Netherlands, 2003-2011
 #' 
 #' Per capita health expenditure, in Euros, for all providers,
-#' by diagnostic group, age group, and year.
+#' by diagnostic group, age group, and year, in the Netherlands.
 #'
-#' @format A data frame with 1296 rows and the
-#' following variables:
+#' @format A [tibble][tibble::tibble-package] with 1,296 rows and the
+#' following columns:
+#' 
 #' - `diag` Diagnostic group
-#' - `age` Age, in 5-year age groups, with open age
+#' - `age` 5-year age groups, with open age
 #' group of 85+
 #' - `year` 2003, 2005, 2007, and 2011
 #'
@@ -73,15 +77,17 @@
 "expenditure"
 
 
-#' People in one-person households in New Zealand
+#' People in One-person households in New Zealand
 #'
 #' Counts of people in one-person households, and
 #' counts of people living in any household, by
 #' age, region, and year.
 #'
-#' @format A data frame with 528 rows and the
-#' following variables:
-#' - `age`: Age, in 5-year age groups, with open age
+#' @format
+#' A [tibble][tibble::tibble-package] with 528 rows and the
+#' following columns:
+#' 
+#' - `age`: 5-year age groups, with open age
 #'    group of 65+
 #' - `region`: Region within New Zealand
 #' - `year`: Calendar year
@@ -100,20 +106,22 @@
 "households"
 
 
-#' Fatal injuries in New Zealand
+#' Fatal Injuries in New Zealand
 #'
 #' Counts of fatal injuries in New Zealand, by age, sex,
 #' ethnicity, and year, plus estimates of the population
 #' at risk.
 #'
-#' @format A data frame with 912 rows and the
-#' following variables:
-#' - `age`: Age, in 5-year age groups, up to age 55-59.
+#' @format
+#' A [tibble][tibble::tibble-package]
+#' with 912 rows and the following columns:
+#' 
+#' - `age`: 5-year age groups, up to age 55-59
 #' - `sex`: `"Female"` or `"Male"`
 #' - `ethnicity`: `"Maori"` or `"Non Maori"`
 #' - `year`: Calendar year
-#' - `injuries`: Count of injuries, randomly rounded to base 3.
-#' - `popn`: Population on 30 June.
+#' - `injuries`: Count of injuries, randomly rounded to base 3
+#' - `popn`: Population on 30 June
 #'
 #' @source Derived from data in tables "Estimated Resident
 #' Population by Age and Sex (1991+) (Annual-Jun)" and
@@ -128,13 +136,15 @@
 "injuries"
 
 
-#' Accidental deaths in the USA
+#' Accidental Deaths in the USA
 #'
 #' Counts of accidental deaths in the USA,
 #' by month, for 1973-1978.
 #'
-#' @format A data frame with 72 rows and the
-#' following variables:
+#' @format
+#' A [tibble][tibble::tibble-package]
+#' with 72 rows and the following columns:
+#' 
 #' - `month`: Year and month.
 #' - `deaths`: Count of deaths.
 #'
@@ -155,7 +165,8 @@
 #' @source Derived from data in the "Labour Force Indicators"
 #' table of the OECD Data Explorer.
 #' Code to create `LFS`
-#' is in folder 'data-raw/ssvd_lfp' of the **bage**
+#' is in folder 'data-raw/ssvd_lfp' in
+#' the source code for the **bage**
 #' package.
 "LFP"
 
@@ -164,7 +175,8 @@
 #'
 #' An object of class [bage_ssvd][ssvd()]
 #' holding components extracted from mortality
-#' data from the [Human Mortality Database](https://www.mortality.org).
+#' data from the
+#' [Human Mortality Database](https://www.mortality.org).
 #'
 #' @source Derived from data at
 #' Human Mortality Database. Max Planck Institute for
@@ -172,6 +184,7 @@
 #' Berkeley (USA), and French Institute for Demographic Studies
 #' (France). Available at www.mortality.org.
 #' Code to create `HMD`
-#' is in folder 'data-raw/ssvd_hmd' of the **bage**
+#' is in folder 'data-raw/ssvd_hmd'
+#' in the source code for **bage**
 #' package.
 "HMD"

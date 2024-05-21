@@ -49,6 +49,6 @@ RW2(s = 0.2)
 \item \code{\link[=RW]{RW()}} Ordinary random wark.
 \item \code{\link[=ERW2]{ERW2()}} Exchangeable version of \code{RW2()},
 used with interactions.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

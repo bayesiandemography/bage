@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_ssvd-methods.R
 \name{components.bage_ssvd}
 \alias{components.bage_ssvd}
-\title{Extract Components used by SVD Prior}
+\title{Extract Components used by SVD Summary}
 \usage{
 \method{components}{bage_ssvd}(object, n_comp = NULL, joint = NULL, age_labels = NULL, ...)
 }
@@ -15,11 +15,12 @@ components of \code{object}.}
 
 \item{joint}{Whether to use joint or
 independent SVDs for each sex/gender. If
-no value is supplied, an SVD for sexes/genders
-combined is used.}
+no value is supplied, an SVD with no
+sex/gender dimension is used.}
 
 \item{age_labels}{Age labels for the
-desired profile. If no labels are supplied, the
+desired age or age-sex profile.
+If no labels are supplied, the
 most detailed profile available is used.}
 
 \item{...}{Not currently used.}
@@ -28,22 +29,10 @@ most detailed profile available is used.}
 A tibble with the offset and components.
 }
 \description{
-Extract the matrix and offset used by an SVD prior.
+Extract the matrix and offset used by a scaled SVD
+summary of a demographic database.
 }
-\section{Mathematical details}{
-
-
-If \eqn{\pmb{F}} is the matrix and \eqn{\pmb{g}}
-is the offset returned by \code{components()},
-then an \code{\link[=SVD]{SVD()}} or \code{\link[=SVDS]{SVDS()}} prior
-is generated using
-\deqn{\pmb{beta} = \pmb{F} \pmb{z} + \pmb{g}}
-where \eqn{\pmb{z}} is vector of standard normal
-variates. More complicated SVD-based priors use
-more complicated versions of \eqn{\pmb{z}}.
-}
-
-\section{Scaled SVDs currently implemented in bage}{
+\section{Scaled SVDs in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the
@@ -54,7 +43,7 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 }
 
 \examples{
-## components for females and males combined
+## females and males combined
 components(LFP, n_comp = 3)
 
 ## joint model for females and males
@@ -70,7 +59,8 @@ components(LFP, age_labels = labels)
 \seealso{
 \itemize{
 \item \link[=generate]{generate()} Randomly generate
-age or age-sex profiles.
+age-profiles, or age-sex profiles, based on a
+scaled SVD summary.
 \item \code{\link[=SVD]{SVD()}} SVD prior for age main effect.
 \item \code{\link[=SVDS]{SVDS()}} SVD prior for interaction between
 age and sex or gender.

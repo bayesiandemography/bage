@@ -117,21 +117,15 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 ## 'set_prior' ----------------------------------------------------------------
 
 ## HAS_TESTS
-#' Change the prior for a model term
+#' Specify a Prior
 #'
-#' Specify a non-default prior distribution
-#' for the intercept, a main effect,
-#' or an interaction.
+#' Specify a prior distribution for an intercept,
+#' a main effect, or an interaction.
 #'
 #' If the `mod` argument to `set_prior` is
 #' a fitted model, then `set_disp` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' `formula` gives the name of a main
-#' effect or interaction, and a function
-#' specifying a prior, eg
-#' `age ~ RW2()`.
-#'
 #' @param mod A `bage_mod` object, created with
 #' [mod_pois()], [mod_binom()], or [mod_norm()].
 #' @param formula A formula giving the term
@@ -140,14 +134,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' @returns A modified `bage_mod` object.
 #'
 #' @seealso
-#' - [N()]
-#' - [NFix()]
-#' - [RW()]
-#' - [RW2()]
-#' - [AR1()]
-#' - [Known()]
-#' - [SVD()]
-#' - [Sp()]
+#' - [priors] Current choices for prior distributions.
 #' - [is_fitted()]
 #'
 #' @examples
@@ -248,7 +235,7 @@ set_prior <- function(mod, formula) {
 #' @seealso
 #' - [set_var_sexgender()] sets the sex or gender variable
 #' - [set_var_time()] sets the time variable
-#' - internally, `bage` uses [poputils::find_var_age()]
+#' - internally, **bage** uses [poputils::find_var_age()]
 #'   to locate age variables
 #' - [is_fitted()]
 #' 
@@ -306,11 +293,11 @@ set_var_age <- function(mod, name) {
 #' @seealso
 #' - [set_var_age()] sets the age variable
 #' - [set_var_time()] sets the time variable
-#' - internally, `bage` uses [poputils::find_var_sexgender()]
+#' - internally, **bage** uses [poputils::find_var_sexgender()]
 #'   to locate sex or gender variables
-#' - internally, `bage` uses [poputils::find_label_female()]
+#' - internally, **bage** uses [poputils::find_label_female()]
 #'   to locate female categories within a sex or gender variable
-#' - internally, `bage` uses [poputils::find_label_male()]
+#' - internally, **bage** uses [poputils::find_label_male()]
 #'   to locate male categories within a sex or gender variable
 #' - [is_fitted()]
 #' 
@@ -373,7 +360,7 @@ set_var_sexgender <- function(mod, name) {
 #' @seealso
 #' - [set_var_age()] sets the age variable
 #' - [set_var_sexgender()] sets the sex or gender
-#' - internally, `bage` uses [poputils::find_var_time()]
+#' - internally, **bage** uses [poputils::find_var_time()]
 #'   to locate time variables
 #' - [is_fitted()]
 #'

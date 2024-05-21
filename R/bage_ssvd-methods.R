@@ -1,21 +1,11 @@
 ## 'components' ---------------------------------------------------------------
 
-#' Extract Components used by SVD Prior
+#' Extract Components used by SVD Summary
 #'
-#' Extract the matrix and offset used by an SVD prior.
+#' Extract the matrix and offset used by a scaled SVD
+#' summary of a demographic database.
 #'
-#' @section Mathematical details:
-#'
-#' If \eqn{\pmb{F}} is the matrix and \eqn{\pmb{g}}
-#' is the offset returned by `components()`,
-#' then an [SVD()] or [SVDS()] prior
-#' is generated using
-#' \deqn{\pmb{beta} = \pmb{F} \pmb{z} + \pmb{g}}
-#' where \eqn{\pmb{z}} is vector of standard normal
-#' variates. More complicated SVD-based priors use
-#' more complicated versions of \eqn{\pmb{z}}.
-#'
-#' @inheritSection SVD Scaled SVDs currently implemented in bage
+#' @inheritSection SVD Scaled SVDs in bage
 #'
 #' @param object An object of class `"bage_ssvd"`.
 #' @param n_comp The number of components.
@@ -23,10 +13,11 @@
 #' components of `object`.
 #' @param joint Whether to use joint or
 #' independent SVDs for each sex/gender. If
-#' no value is supplied, an SVD for sexes/genders
-#' combined is used.
+#' no value is supplied, an SVD with no
+#' sex/gender dimension is used.
 #' @param age_labels Age labels for the
-#' desired profile. If no labels are supplied, the
+#' desired age or age-sex profile.
+#' If no labels are supplied, the
 #' most detailed profile available is used. 
 #' @param ... Not currently used.
 #'
@@ -34,14 +25,15 @@
 #'
 #' @seealso
 #' - [generate()][bage::generate()] Randomly generate
-#'   age or age-sex profiles.
+#'   age-profiles, or age-sex profiles, based on a
+#'   scaled SVD summary.
 #' - [SVD()] SVD prior for age main effect.
 #' - [SVDS()] SVD prior for interaction between
 #'   age and sex or gender.
 #' - [poputils::age_labels()] Generate age labels.
 #'
 #' @examples
-#' ## components for females and males combined
+#' ## females and males combined
 #' components(LFP, n_comp = 3)
 #'
 #' ## joint model for females and males
@@ -163,7 +155,7 @@ generics::generate
 #' an [SVD][base::svd()] decomposition of demographic
 #' data.
 #'
-#' @inheritSection SVD Scaled SVDs currently implemented in bage
+#' @inheritSection SVD Scaled SVDs in bage
 #'
 #' @param x An object of class `"bage_ssvd"`.
 #' @param n_draw Number of random draws to generate.

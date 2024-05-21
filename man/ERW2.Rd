@@ -88,6 +88,6 @@ ERW2(s = 0.5)
 used with main effects.
 \item \code{\link[=ERW]{ERW()}} Exchangeable random walk prior,
 used with interactions.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

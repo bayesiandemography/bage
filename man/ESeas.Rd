@@ -85,6 +85,6 @@ ESeas(n = 12, s = 0.5, along = "cohort")
 \item Seasonal effects are always
 used within 'composite' priors, created using
 \code{\link[=compose_time]{compose_time()}}.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

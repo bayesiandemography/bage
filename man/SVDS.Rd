@@ -90,7 +90,7 @@ For a description of the construction of \eqn{\pmb{F}_s},
 see TODO - REFERENCE TO VIGNETTE.
 }
 
-\section{Scaled SVDs currently implemented in bage}{
+\section{Scaled SVDs in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the

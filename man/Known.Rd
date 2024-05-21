@@ -23,6 +23,6 @@ Known(c(0.1, 2, -0.11))
 \seealso{
 \itemize{
 \item \code{\link[=NFix]{NFix()}} Prior where level unknown, but variability known.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

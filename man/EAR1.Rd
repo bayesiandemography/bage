@@ -96,7 +96,7 @@ TMB documentation for
 \itemize{
 \item \code{\link[=EAR]{EAR()}} More general exchangeable AR model.
 \item \code{\link[=AR1]{AR1()}} AR1 prior for main effects.
-\item \link{priors} Overview of priors implemented in \code{bage}.
+\item \link{priors} Overview of priors implemented in \strong{bage}
 \item The values for \code{min} and \code{max} are based on the
 defaults for function \code{forecast::ets()}.
 }

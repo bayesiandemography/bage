@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{object}{A \code{bage_mod} object.}
+\item{object}{An object of class \code{"bage_mod"}.}
 
 \item{output}{Type of output returned}
 

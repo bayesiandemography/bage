@@ -10,8 +10,8 @@ mod_pois(formula, data, exposure)
 \item{formula}{An R \link[stats:formula]{formula},
 specifying the outcome and predictors.}
 
-\item{data}{A data frame containing the outcome,
-predictors, and, optionally, exposure.}
+\item{data}{A data frame containing outcome,
+predictor, and, optionally, exposure variables.}
 
 \item{exposure}{Name of the exposure variable,
 or a \code{1}.}
@@ -20,13 +20,15 @@ or a \code{1}.}
 An object of class \code{bage_mod_pois}.
 }
 \description{
-Specify a model where outcomes are draws from Poisson distributions.
+Specify a model where the outcome is drawn from a Poisson distribution.
 }
 \details{
 The model is hierarchical. The rates in the Poisson distribution
 are described by a prior model formed from dimensions such
 as age, sex, and time. The terms for these dimension themselves
-have models, as described in \link{priors}.
+have models, as described in \link{priors}. These priors all have defaults,
+which depend on the type of term (eg an intercept, an age main effect,
+or an age-time interaction.)
 }
 \section{Mathematical details}{
 
@@ -37,14 +39,15 @@ The likelihood is
 
 where
 \itemize{
-\item \eqn{y_i} is an outcome, such of deaths, for some
-combination of classifying variables, such as age, sex, and region;
-\item \eqn{\gamma_i} is a rates; and
+\item subscript \eqn{i} identifies some combination of
+classifying variables, such as age, sex, and time;
+\item \eqn{y_i} is an outcome, such as deaths;
+\item \eqn{\gamma_i} is rates; and
 \item \eqn{w_i} is exposure.
 }
 
-In some models there is no obvious population at risk.
-Exposure \eqn{w_i} can, in such cases, be set to 1
+In some applications, there is no obvious population at risk.
+In these cases, exposure \eqn{w_i} can be set to 1
 for all \eqn{i}.
 
 The rates \eqn{\gamma_i} are assumed to be drawn
@@ -66,7 +69,7 @@ the sum of terms formed from classifying variables,
 where
 \itemize{
 \item \eqn{\beta^{0}} is an intercept;
-\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M} is a main effect
+\item \eqn{\beta^{(m)}}, \eqn{m = 1, \dots, M}, is a main effect
 or interaction; and
 \item \eqn{j_i^m} is the element of \eqn{\beta^{(m)}} associated with
 cell \eqn{i}.
@@ -90,9 +93,11 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_binom]{mod_binom()}} and \code{\link[=mod_norm]{mod_norm()}} for specification
-of binomial and normal models
-\item \code{\link[=set_prior]{set_prior()}} to specify non-default priors
-\item \code{\link[=fit]{fit()}} to fit a model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
+\item \code{\link[=set_prior]{set_prior()}} Specify non-default priors for terms
+formed from classifying dimensions
+\item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for dispersion
+\item \code{\link[=fit]{fit()}} Fit a model
 }
 }
