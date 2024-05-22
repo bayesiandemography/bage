@@ -7,17 +7,16 @@
 ELin(s = 1, sd = 1, ms = 1, along = NULL)
 }
 \arguments{
-\item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\tau}).
-Defaults to 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
 
 \item{sd}{A postive number. Default is 1.}
 
 \item{ms}{A positive number. Default is 1.}
 
-\item{along}{Name of one of the dimensions
+\item{along}{Name of one of the variables
 in the interaction. Optional, provided
-the data contain a time or age dimension.}
+the interaction includes a time or age variable.}
 }
 \value{
 An object of class \code{"bage_prior_elin"}.

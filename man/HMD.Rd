@@ -16,7 +16,7 @@ Berkeley (USA), and French Institute for Demographic Studies
 Code to create \code{HMD}
 is in folder 'data-raw/ssvd_hmd'
 in the source code for \strong{bage}
-package.
+package.[
 }
 \usage{
 HMD
