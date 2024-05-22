@@ -7,32 +7,35 @@
 EAR(n = 2, s = 1, along = NULL)
 }
 \arguments{
-\item{n}{The order of the model.}
+\item{n}{The order of the model, i.e. the number
+of lagged terms included in the model. The default
+is \code{2}.}
 
-\item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\tau}).
-Defaults to 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
 
-\item{along}{Name of one of the dimensions
+\item{along}{Name of one of the variables
 in the interaction. Optional, provided
-the data contain a time or age dimension.}
+the interaction includes a time or age variable.}
 }
 \value{
 An object of class \code{"bage_prior_ear"}.
 }
 \description{
-An exchangeable autoregressive prior
-is used with interactions. An autoregressive
-model of order \eqn{k} is applied to the 'along'
-variable, within each combination of values
-of the 'by' variables. For instance, an AR2
+An \code{EAR()} prior is designed for use with interactions,
+typically involving time or age.
+
+With this prior, an autogressive time series model is
+applied to the 'along'
+variable, within each combination
+of the 'by' variables. For instance,
+an autoregressive time series
 model might be applied to the time variable,
-within each combination of age and sex.
-The damping coefficients are shared across
-different combinations of the 'by' variables.
-Combination of 'by' variables are assumed to be
-"exchangeable", i.e., the order of the categories
-is ignored by the prior.
+within each combination of age and sex variables.
+The same set of coefficients is shared
+across all combinations of the 'by' variables.
+The time series are "exchangeable" in the sense
+that they are drawn from a common distribution.
 }
 \section{'Along' and 'by' variables}{
 
@@ -61,23 +64,34 @@ is assumed to be age;
 \section{Mathematical details}{
 
 
-If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-within the \eqn{u}th combination of the
-'by' variables, then, with an \code{EAR()} prior,
+With an \code{EAR()} prior,
 
-\deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
+\deqn{\beta_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_n x_{u,v-n} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 
-where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-marginal variance \eqn{\tau^2}. The value of
-\eqn{\tau} has prior
+where
+\itemize{
+\item \eqn{u} denotes a position within the the 'along' variable;
+\item \eqn{v} denotes a position within the classification
+formed by the 'by' variable(s);
+\item \eqn{\beta_{u,v}} is an element of an interaction;
+\item \eqn{\phi_1, \dots, \phi_n} are autoregression coefficients; and
+\item \epsilon_{u,v} is an error term.
+}
+
+The value for \eqn{\omega} is chosen so that each
+\eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
+
+Parameter \eqn{\tau} has prior
 
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
 The \eqn{\phi_1, \cdots, \phi_k} are jointly restricted to values
 between -1 and 1 that lead to stationary models. The quantity
 \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
-boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
+boundary-avoiding prior
+
+\deqn{r \sim \text{Beta}(2, 2)}.
 }
 
 \examples{
@@ -86,14 +100,15 @@ EAR(n = 3, s = 2.4)
 EAR(along = "cohort")
 }
 \references{
-TMB documentation for
+\itemize{
+\item \code{EAR()} is based partly on the TMB function
 \href{http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details}{ARk}
+}
 }
 \seealso{
 \itemize{
-\item \code{\link[=EAR1]{EAR1()}} Special case of \code{EAR()}, though with
-more options for damping.
-\item \code{\link[=AR]{AR()}} Autoregressive prior for main effects.
+\item \code{\link[=EAR1]{EAR1()}} Special case of \code{EAR()}
+\item \code{\link[=AR]{AR()}} Autoregressive prior for main effects
 \item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }

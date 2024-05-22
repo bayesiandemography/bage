@@ -30,9 +30,10 @@
 #' and calendar year, in New Zealand, 1992-2021.
 #'
 #' @format
-#' A [tibble][tibble::tibble-package] 660 rows and the following columns:
+#' A [tibble][tibble::tibble-package] with 660 rows
+#' and the following columns:
 #' 
-#' - `age`: Age, in 5-year age groups, `"15-19"` to `"65+"`
+#' - `age`: 5-year age groups, `"15-19"` to `"65+"`
 #' - `sex`: `"Female"` or `"Male"`
 #' - `time`: Calendar year
 #' - `divorces`: Numbers of divorces during year
@@ -186,5 +187,5 @@
 #' Code to create `HMD`
 #' is in folder 'data-raw/ssvd_hmd'
 #' in the source code for **bage**
-#' package.
+#' package.[
 "HMD"

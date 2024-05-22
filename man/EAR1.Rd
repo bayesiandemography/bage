@@ -8,43 +8,57 @@ EAR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
-for autocorrelation parameter (\eqn{\phi}).
+for autocorrelation parameter.
 Defaults are \code{0.8} and \code{0.98}.}
 
-\item{s}{Scale of half-normal prior for
-standard deviation (\eqn{\tau}).
-Defaults to 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
 
-\item{along}{Name of one of the dimensions
+\item{along}{Name of one of the variables
 in the interaction. Optional, provided
-the data contain a time or age dimension.}
+the interaction includes a time or age variable.}
 }
 \value{
 An object of class \code{"bage_prior_ear"}.
 }
 \description{
-An exchangeable AR1 prior
-is used with interactions. An autoregressive
-model of order \eqn{k} is applied to the 'along'
-variable, within each combination of values of the 'by' variables.
-The damping coefficients are shared across
-different combinations of the 'by' variables.
-The series within each combination of the
-'by' variables are treated as exchangeable.
+An \code{EAR1()} prior is designed for use with interactions,
+typicallly involving time or age.
+}
+\details{
+With this prior, an AR1 time series model
+is applied to the 'along' variable, within
+each combination of the 'by' variables.
+For instance, an AR1 model might be applied
+to the time veriable, which each combination
+of age and sex variables.
+The same coefficient is shared across
+combinations of the 'by' variables.
+The time series are "exchangeable" in the sense
+that they are drawn from a common distribution.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-within the \eqn{u}th combination of the
-'by' variables, then
+With an \code{EAR1()} prior,
 
-\deqn{x_{u,v} = \phi x_{u,v-1} + \epsilon_{u,v}}
+\deqn{\beta_{u,v} = \phi \beta_{u,v-1} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 
-where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-marginal variance \eqn{\tau^2}. The value of
-\eqn{\tau} has prior
+where
+\itemize{
+\item \eqn{u} denotes a position within the the 'along' variable;
+\item \eqn{v} denotes a position within the classification
+formed by the 'by' variable(s);
+\item \eqn{\beta_{u,v}} is an element of an interaction;
+\item \eqn{\phi} is the autoregression coefficient; and
+\item \epsilon_{u,v} is an error term.
+}
+
+The value for \eqn{\omega} is chosen so that each
+\eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
+
+Parameter \eqn{\tau} has prior
 
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 
@@ -56,7 +70,7 @@ The prior distribution for \eqn{\phi} is
 
 where
 
-\deqn{\phi' \sim \text{beta}(2, 2)}.
+\deqn{\phi' \sim \text{Beta}(2, 2)}.
 }
 
 \section{'Along' and 'by' variables}{
@@ -89,15 +103,17 @@ EAR1(min = 0, max = 1, s = 2.4)
 EAR1(along = "cohort")
 }
 \references{
-TMB documentation for
+\itemize{
+\item `EAR1()' is partly based on the TMB function
 \href{http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details}{ARk}
+\item The values for \code{min} and \code{max} are based on the
+defaults for function \code{forecast::ets()}.
+}
 }
 \seealso{
 \itemize{
-\item \code{\link[=EAR]{EAR()}} More general exchangeable AR model.
-\item \code{\link[=AR1]{AR1()}} AR1 prior for main effects.
+\item \code{\link[=EAR]{EAR()}} More general exchangeable AR model
+\item \code{\link[=AR1]{AR1()}} AR1 prior for main effects
 \item \link{priors} Overview of priors implemented in \strong{bage}
-\item The values for \code{min} and \code{max} are based on the
-defaults for function \code{forecast::ets()}.
 }
 }

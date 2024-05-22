@@ -5,9 +5,10 @@
 \alias{divorces}
 \title{Divorces in New Zealand}
 \format{
-A \link[tibble:tibble-package]{tibble} 660 rows and the following columns:
+A \link[tibble:tibble-package]{tibble} with 660 rows
+and the following columns:
 \itemize{
-\item \code{age}: Age, in 5-year age groups, \code{"15-19"} to \code{"65+"}
+\item \code{age}: 5-year age groups, \code{"15-19"} to \code{"65+"}
 \item \code{sex}: \code{"Female"} or \code{"Male"}
 \item \code{time}: Calendar year
 \item \code{divorces}: Numbers of divorces during year

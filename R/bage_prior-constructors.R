@@ -231,18 +231,22 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 ## HAS_TESTS
 #' Exchangeable Autoregressive Prior
 #'
-#' An exchangeable autoregressive prior
-#' is used with interactions. An autoregressive
-#' model of order \eqn{k} is applied to the 'along' 
-#' variable, within each combination of values
-#' of the 'by' variables. For instance, an AR2
+#' @description
+#'
+#' An `EAR()` prior is designed for use with interactions,
+#' typically involving time or age.
+#'
+#' With this prior, an autogressive time series model is
+#' applied to the 'along' 
+#' variable, within each combination
+#' of the 'by' variables. For instance,
+#' an autoregressive time series
 #' model might be applied to the time variable,
-#' within each combination of age and sex.
-#' The damping coefficients are shared across
-#' different combinations of the 'by' variables.
-#' Combination of 'by' variables are assumed to be
-#' "exchangeable", i.e., the order of the categories
-#' is ignored by the prior.
+#' within each combination of age and sex variables.
+#' The same set of coefficients is shared
+#' across all combinations of the 'by' variables.
+#' The time series are "exchangeable" in the sense
+#' that they are drawn from a common distribution.
 #' 
 #' @section 'Along' and 'by' variables:
 #'
@@ -267,42 +271,51 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #' 
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-#' within the \eqn{u}th combination of the
-#' 'by' variables, then, with an `EAR()` prior,
-#'
-#' \deqn{x_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_k x_{u,v-k} + \epsilon_{u,v}}
+#' With an `EAR()` prior,
+#' 
+#' \deqn{\beta_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_n x_{u,v-n} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 #'
-#' where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-#' marginal variance \eqn{\tau^2}. The value of
-#' \eqn{\tau} has prior
+#' where
+#' - \eqn{u} denotes a position within the the 'along' variable;
+#' - \eqn{v} denotes a position within the classification
+#'   formed by the 'by' variable(s);
+#' - \eqn{\beta_{u,v}} is an element of an interaction;
+#' - \eqn{\phi_1, \dots, \phi_n} are autoregression coefficients; and
+#' - \epsilon_{u,v} is an error term.
+#'
+#' The value for \eqn{\omega} is chosen so that each
+#' \eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
+#'
+#' Parameter \eqn{\tau} has prior
 #'
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
 #'
 #' The \eqn{\phi_1, \cdots, \phi_k} are jointly restricted to values
 #' between -1 and 1 that lead to stationary models. The quantity
 #' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
-#' boundary-avoiding prior \eqn{r \sim \text{Beta}(3, 3)}.
+#' boundary-avoiding prior
+#'
+#' \deqn{r \sim \text{Beta}(2, 2)}.
 #' 
-#' @param n The order of the model.
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\tau}).
-#' Defaults to 1.
-#' @param along Name of one of the dimensions
+#' @param n The order of the model, i.e. the number
+#' of lagged terms included in the model. The default
+#' is `2`.
+#' @param s Scale for the prior for the errors.
+#' Default is `1`.
+#' @param along Name of one of the variables
 #' in the interaction. Optional, provided
-#' the data contain a time or age dimension.
+#' the interaction includes a time or age variable.
 #'
 #' @returns An object of class `"bage_prior_ear"`.
 #'
 #' @seealso
-#' - [EAR1()] Special case of `EAR()`, though with
-#'   more options for damping.
-#' - [AR()] Autoregressive prior for main effects.
+#' - [EAR1()] Special case of `EAR()`
+#' - [AR()] Autoregressive prior for main effects
 #' - [priors] Overview of priors implemented in **bage**
 #'
-#' @references TMB documentation for
+#' @references
+#' - `EAR()` is based partly on the TMB function
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
 #' @examples
@@ -329,29 +342,41 @@ EAR <- function(n = 2, s = 1, along = NULL) {
 ## HAS_TESTS
 #' Exchangeable AR1 Prior
 #'
-#' An exchangeable AR1 prior
-#' is used with interactions. An autoregressive
-#' model of order \eqn{k} is applied to the 'along' 
-#' variable, within each combination of values of the 'by' variables.
-#' The damping coefficients are shared across
-#' different combinations of the 'by' variables.
-#' The series within each combination of the
-#' 'by' variables are treated as exchangeable.
+#' An `EAR1()` prior is designed for use with interactions,
+#' typicallly involving time or age.
+#'
+#' With this prior, an AR1 time series model
+#' is applied to the 'along' variable, within
+#' each combination of the 'by' variables.
+#' For instance, an AR1 model might be applied
+#' to the time veriable, which each combination
+#' of age and sex variables.
+#' The same coefficient is shared across
+#' combinations of the 'by' variables.
+#' The time series are "exchangeable" in the sense
+#' that they are drawn from a common distribution.
 #' 
 #' @inheritSection EAR 'Along' and 'by' variables
 #'
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-#' within the \eqn{u}th combination of the
-#' 'by' variables, then
+#' With an `EAR1()` prior,
 #'
-#' \deqn{x_{u,v} = \phi x_{u,v-1} + \epsilon_{u,v}}
+#' \deqn{\beta_{u,v} = \phi \beta_{u,v-1} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
 #'
-#' where \eqn{\omega} is chosen so that each \eqn{x_{u,v}} has
-#' marginal variance \eqn{\tau^2}. The value of
-#' \eqn{\tau} has prior
+#' where
+#' - \eqn{u} denotes a position within the the 'along' variable;
+#' - \eqn{v} denotes a position within the classification
+#'   formed by the 'by' variable(s);
+#' - \eqn{\beta_{u,v}} is an element of an interaction;
+#' - \eqn{\phi} is the autoregression coefficient; and
+#' - \epsilon_{u,v} is an error term.
+#'
+#' The value for \eqn{\omega} is chosen so that each
+#' \eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
+#'
+#' Parameter \eqn{\tau} has prior
 #'
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
 #'
@@ -363,24 +388,25 @@ EAR <- function(n = 2, s = 1, along = NULL) {
 #'
 #' where
 #' 
-#' \deqn{\phi' \sim \text{beta}(2, 2)}.
+#' \deqn{\phi' \sim \text{Beta}(2, 2)}.
 #'
 #' @inheritParams EAR
 #' @param min,max Minimum and maximum values
-#' for autocorrelation parameter (\eqn{\phi}).
+#' for autocorrelation parameter.
 #' Defaults are `0.8` and `0.98`.
 #'
 #' @returns An object of class `"bage_prior_ear"`.
 #'
 #' @seealso
-#' - [EAR()] More general exchangeable AR model.
-#' - [AR1()] AR1 prior for main effects.
+#' - [EAR()] More general exchangeable AR model
+#' - [AR1()] AR1 prior for main effects
 #' - [priors] Overview of priors implemented in **bage**
+#'
+#' @references
+#' - `EAR1()' is partly based on the TMB function
+#'   [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #' - The values for `min` and `max` are based on the
 #'   defaults for function `forecast::ets()`.
-#'
-#' @references TMB documentation for
-#' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
 #' @examples
 #' EAR1()

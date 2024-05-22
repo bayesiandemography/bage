@@ -11,9 +11,9 @@ ERW(s = 1, along = NULL)
 standard deviation (\eqn{\sigma}).
 Defaults to 1.}
 
-\item{along}{Name of one of the dimensions
+\item{along}{Name of one of the variables
 in the interaction. Optional, provided
-the data contain a time or age dimension.}
+the interaction includes a time or age variable.}
 }
 \value{
 An object of class \code{bage_prior_erw}.
