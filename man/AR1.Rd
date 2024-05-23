@@ -8,7 +8,7 @@ AR1(min = 0.8, max = 0.98, s = 1)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
-for autocorrelation parameter (\eqn{\phi}).
+for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale for the prior for
@@ -43,7 +43,7 @@ Parameter \eqn{\tau} has half-normal prior
 
 where a value for \code{s} is provided by the user.
 
-Parameter \eqn{\phi} is constrained
+Coefficient \eqn{\phi} is constrained
 to lie between \code{min} and \code{max}.
 Its prior distribution is
 

@@ -29,7 +29,9 @@
 #' | [AR()]    | Auto-regressive prior of order *k*. | Main effects for time, or for other variables that revert towards the mean. | Yes |
 #' | [AR1()]   | Auto-regressive prior of order 1. Special case of `AR()`, though has more options for controlling damping. | As for `AR()`. | Yes |
 #' | [Known()] | Values supplied by treated and treated as known. | Simulations and experiments. | No |
-#' | [Lin()]   | Linear trend, with idiosyncratic errors. | Simple model for time main effect. | Yes |
+#' | [Lin()]   | Linear trend, with independent normal. | Simple model for time main effect. | Yes |
+#' | [LinAR()]   | Linear trend, with autoregressive errors. | Model for time main effect. | Yes |
+#' | [LinAR1()]   | Linear trend, with autoregressive errors of order 1. | Model for time main effect. | Yes |
 #' | [Sp()]    | P-Spline (penalised spline). | Main effects that vary smoothly, eg age. | No |
 #' | [SVD()]   | Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). | Age main effect. | No |
 #' | [SVDS()]  | Age-sex or age-gender profile, similar to `SVD()` | Age-sex or age-gender interaction. | No |

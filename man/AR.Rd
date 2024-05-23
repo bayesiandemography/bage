@@ -7,8 +7,9 @@
 AR(n = 2, s = 1)
 }
 \arguments{
-\item{n}{The order of the model, i.e. the number of lagged
-terms included in the model. The default is \code{2}.}
+\item{n}{The order of the model,
+i.e. the number of lagged
+terms that are included. Default is \code{2}.}
 
 \item{s}{Scale for the prior for the errors.
 Default is \code{1}.}

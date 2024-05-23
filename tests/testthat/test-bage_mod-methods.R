@@ -964,6 +964,20 @@ test_that("'fit' works with ESVDS", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' works with LinAR", {
+    set.seed(0)
+    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:reg + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, time ~ LinAR())
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
 
 ## 'forecast' -----------------------------------------------------------------
 

@@ -31,7 +31,9 @@ Priors without links are next in the queue for implementation.\tabular{llll}{
    \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k}. \tab Main effects for time, or for other variables that revert towards the mean. \tab Yes \cr
    \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1. Special case of \code{AR()}, though has more options for controlling damping. \tab As for \code{AR()}. \tab Yes \cr
    \code{\link[=Known]{Known()}} \tab Values supplied by treated and treated as known. \tab Simulations and experiments. \tab No \cr
-   \code{\link[=Lin]{Lin()}} \tab Linear trend, with idiosyncratic errors. \tab Simple model for time main effect. \tab Yes \cr
+   \code{\link[=Lin]{Lin()}} \tab Linear trend, with independent normal. \tab Simple model for time main effect. \tab Yes \cr
+   \code{\link[=LinAR]{LinAR()}} \tab Linear trend, with autoregressive errors. \tab Model for time main effect. \tab Yes \cr
+   \code{\link[=LinAR1]{LinAR1()}} \tab Linear trend, with autoregressive errors of order 1. \tab Model for time main effect. \tab Yes \cr
    \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline). \tab Main effects that vary smoothly, eg age. \tab No \cr
    \code{\link[=SVD]{SVD()}} \tab Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Age main effect. \tab No \cr
    \code{\link[=SVDS]{SVDS()}} \tab Age-sex or age-gender profile, similar to \code{SVD()} \tab Age-sex or age-gender interaction. \tab No \cr

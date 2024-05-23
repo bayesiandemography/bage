@@ -216,6 +216,27 @@ test_that("'draw_vals_effect' works with bage_prior_lin", {
   expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
+test_that("'draw_vals_effect' works with bage_prior_linar", {
+  prior <- LinAR()
+  n_sim <- 10
+  vals_hyperrand <- list()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  levels_effect <- letters
+  matrix_along_by = matrix(0:25, nc = 2)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters, as.character(1:10)))
+  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
+})
+
 test_that("'draw_vals_effect' works with bage_prior_norm", {
   prior <- N()
   n_sim <- 10
@@ -504,6 +525,14 @@ test_that("'draw_vals_hyper' works with bage_prior_lin", {
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), c("slope", "sd"))
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_linar", {
+  prior <- LinAR()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("slope", "sd", "coef"))
   expect_identical(length(ans$sd), 10L)
 })
 
@@ -1263,6 +1292,76 @@ test_that("'forecast_effect' works with bage_prior_lin", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'forecast_effect' works with bage_prior_linar", {
+  set.seed(0)
+  prior <- LinAR()
+  hyper_est <- tibble::tibble(term = "year",
+                              component = "hyper",
+                              level = c("slope", "sd", "coef1", "coef2"),
+                              .fitted = rvec::runif_rvec(n = 4, n_draw = 10))
+  effect_est <- tibble::tibble(term = "year",
+                               component = "effect",
+                               level = letters[1:5],
+                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_effect(prior = prior,
+                                  nm_prior = "year",
+                                  hyper_est =  hyper_est,
+                                  hyper_forecast = NULL,
+                                  compose_est = NULL,
+                                  compose_forecast = NULL,
+                                  effect_est = effect_est,
+                                  matrix_along_by_est = matrix_along_by_est,
+                                  matrix_along_by_forecast = matrix_along_by_forecast,
+                                  levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = "effect",
+                                 level = letters[6:11])
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  slope <- hyper_est$.fitted[hyper_est$level == "slope"]
+  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  coef <- hyper_est$.fitted[hyper_est$level %in% c("coef1", "coef2")]
+  q_est <- seq(from = -1, by = 0.5, to = 1)
+  q_forecast <- seq(from = 1.5, by = 0.5, length.out = 6)
+  set.seed(1)
+  ans_expected$.fitted[1] <-
+    rvec::rnorm_rvec(n = 1,
+                     mean = sum(coef * (effect_est$.fitted[4:5] - slope * q_est[4:5])) +
+                       slope * q_forecast[1],
+                     sd = sd)
+  ans_expected$.fitted[2] <-
+    rvec::rnorm_rvec(n = 1,
+                     mean = sum(coef * c(effect_est$.fitted[5] - slope * q_est[5],
+                                         ans_expected$.fitted[1] - slope * q_forecast[1]))+
+                       slope * q_forecast[2],
+                     sd = sd)
+  ans_expected$.fitted[3] <-
+    rvec::rnorm_rvec(n = 1,
+                     mean = sum(coef * (ans_expected$.fitted[1:2] - slope * q_forecast[1:2]))+
+                       slope * q_forecast[3],
+                     sd = sd)
+  ans_expected$.fitted[4] <-
+    rvec::rnorm_rvec(n = 1,
+                     mean = sum(coef * (ans_expected$.fitted[2:3] - slope * q_forecast[2:3])) +
+                       slope * q_forecast[4],
+                     sd = sd)
+  ans_expected$.fitted[5] <-
+    rvec::rnorm_rvec(n = 1,
+                     mean = sum(coef * (ans_expected$.fitted[3:4] - slope * q_forecast[3:4]))+
+                       slope * q_forecast[5],
+                     sd = sd)
+  ans_expected$.fitted[6] <-
+    rvec::rnorm_rvec(n = 1,
+                     mean = sum(coef * (ans_expected$.fitted[4:5] - slope * q_forecast[4:5]))+
+                       slope * q_forecast[6],
+                     sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 test_that("'forecast_effect' works with bage_prior_norm", {
   set.seed(0)
   prior <- N()
@@ -1701,6 +1800,17 @@ test_that("'is_prior_ok_for_term' works with bage_prior_lin", {
                                    agesex = "other"))
 })
 
+test_that("'is_prior_ok_for_term' works with bage_prior_linar", {
+  expect_true(is_prior_ok_for_term(prior = LinAR(),
+                                   nm = "sex",
+                                   matrix_along_by = matrix(0:2, nc = 1),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   var_sexgender = "sex",
+                                   is_in_compose = FALSE,
+                                   agesex = "other"))
+})
+
 test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
   expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
                                     nm = "sex",
@@ -2026,6 +2136,12 @@ test_that("'levels_hyper' works with 'bage_prior_lin'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = Lin()),
                    c("slope", "sd"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_linar'", {
+  matrix_along_by <- matrix(0:9, ncol = 1L)
+  expect_identical(levels_hyper(prior = LinAR()),
+                   c("slope", "sd", "coef1", "coef2"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_norm'", {
@@ -3873,7 +3989,6 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - sex x re
 })
 
 
-
 ## 'reformat_hyperrand_one' ---------------------------------------------------
 
 test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
@@ -4085,6 +4200,22 @@ test_that("'str_call_prior' works with bage_prior_lin", {
     expect_identical(str_call_prior(Lin(sd = 0.1, s = 0.95)), "Lin(s=0.95,sd=0.1)")
 })
 
+test_that("'str_call_prior' works with bage_prior_linar - AR format", {
+    expect_identical(str_call_prior(LinAR()), "LinAR()")
+    expect_identical(str_call_prior(LinAR(sd = 0.5)), "LinAR(sd=0.5)")
+    expect_identical(str_call_prior(LinAR(sd=2L,s = 0.95)), "LinAR(s=0.95,sd=2)")
+    expect_identical(str_call_prior(LinAR(sd = 0.1, s = 0.95,n=3)),
+                     "LinAR(n=3,s=0.95,sd=0.1)")
+})
+
+test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
+    expect_identical(str_call_prior(LinAR1()), "LinAR1()")
+    expect_identical(str_call_prior(LinAR1(sd = 0.5)), "LinAR1(sd=0.5)")
+    expect_identical(str_call_prior(LinAR1(sd=2L,s = 0.95)), "LinAR1(s=0.95,sd=2)")
+    expect_identical(str_call_prior(LinAR1(sd = 0.1, max=1,s = 0.95, min = 0.5)),
+                     "LinAR1(min=0.5,max=1,s=0.95,sd=0.1)")
+})
+
 test_that("'str_call_prior' works with bage_prior_norm", {
     expect_identical(str_call_prior(N()), "N()")
     expect_identical(str_call_prior(N(s = 0.95)), "N(s=0.95)")
@@ -4188,6 +4319,16 @@ test_that("'str_nm_prior' works with bage_prior_known", {
 test_that("'str_nm_prior' works with bage_prior_lin", {
     expect_identical(str_nm_prior(Lin()), "Lin()")
     expect_identical(str_nm_prior(Lin(sd = 0.1, s = 0.95)), "Lin()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_linar - AR", {
+   expect_identical(str_nm_prior(LinAR(n = 1)), "LinAR()")
+   expect_identical(str_nm_prior(LinAR(n = 3, s = 0.3)), "LinAR()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_linar - AR1", {
+   expect_identical(str_nm_prior(LinAR1(max = 1)), "LinAR1()")
+   expect_identical(str_nm_prior(LinAR1(sd = 3, s = 0.3)), "LinAR1()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_norm", {
@@ -4319,6 +4460,29 @@ test_that("'transform_hyper' works with 'bage_prior_lin'", {
   l <- transform_hyper(prior = Lin())
   expect_equal(0.35, l[[1]](0.35))
   expect_equal(exp(0.35), l[[2]](0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_linar - AR'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    2 * ans - 1
+  }
+  l <- transform_hyper(prior = LinAR(n = 2))
+  expect_equal(l[[1]](0.35), 0.35)
+  expect_equal(l[[2]](0.35), exp(0.35))
+  expect_equal(l[[3]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[4]](0.35), shifted_invlogit(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_linar - AR1'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper(prior = LinAR1())
+  expect_equal(l[[1]](0.35), 0.35)
+  expect_equal(l[[2]](0.35), exp(0.35))
+  expect_equal(l[[3]](0.35), shifted_invlogit(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_norm'", {
@@ -4492,6 +4656,8 @@ test_that("'use_for_compose_trend' returns FALSE with priors that cannot be used
 test_that("'use_for_interaction' returns FALSE with priors that are not necessarily interactions", {
     expect_false(use_for_interaction(AR1()))
     expect_false(use_for_interaction(Lin()))
+    expect_false(use_for_interaction(LinAR()))
+    expect_false(use_for_interaction(LinAR1()))
     expect_false(use_for_interaction(RW()))
     expect_false(use_for_interaction(RW2()))
     expect_false(use_for_interaction(Sp()))
@@ -4528,6 +4694,8 @@ test_that("'use_for_main_effect' returns FALSE with priors that are not necessar
 test_that("'use_for_main_effect' returns TRUE with priors that are always main effects", {
     expect_true(use_for_main_effect(AR1()))
     expect_true(use_for_main_effect(Lin()))
+    expect_true(use_for_main_effect(LinAR()))
+    expect_true(use_for_main_effect(LinAR1()))
     expect_true(use_for_main_effect(RW()))
     expect_true(use_for_main_effect(RW2()))
     expect_true(use_for_main_effect(Sp()))

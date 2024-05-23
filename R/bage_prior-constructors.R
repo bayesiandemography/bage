@@ -36,8 +36,9 @@
 #'
 #' \deqn{r \sim \text{Beta}(2, 2)}.
 #' 
-#' @param n The order of the model, i.e. the number of lagged
-#' terms included in the model. The default is `2`.
+#' @param n The order of the model,
+#' i.e. the number of lagged
+#' terms that are included. Default is `2`.
 #' @param s Scale for the prior for the errors.
 #' Default is `1`.
 #'
@@ -58,8 +59,14 @@
 #' AR(n = 3, s = 2.4)
 #' @export
 AR <- function(n = 2, s = 1) {
-  check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_n(n = n,
+          nm_n = "n",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_scale(s,
+              x_arg = "s",
+              zero_ok = FALSE)
   n <- as.integer(n)
   scale <- as.double(s)
   new_bage_prior_ar(n = n,
@@ -98,7 +105,7 @@ AR <- function(n = 2, s = 1) {
 #'
 #' where a value for `s` is provided by the user.
 #'
-#' Parameter \eqn{\phi} is constrained
+#' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
 #' Its prior distribution is
 #' 
@@ -109,7 +116,7 @@ AR <- function(n = 2, s = 1) {
 #' \deqn{\phi' \sim \text{Beta}(2, 2).}
 #'
 #' @param min,max Minimum and maximum values
-#' for autocorrelation parameter (\eqn{\phi}).
+#' for autocorrelation coefficient.
 #' Defaults are `0.8` and `0.98`.
 #' @param s Scale for the prior for
 #' the errors. Default is `1`.
@@ -282,7 +289,7 @@ compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) 
 #'   formed by the 'by' variable(s);
 #' - \eqn{\beta_{u,v}} is an element of an interaction;
 #' - \eqn{\phi_1, \dots, \phi_n} are autoregression coefficients; and
-#' - \epsilon_{u,v} is an error term.
+#' - \eqn{\epsilon_{u,v}} is an error term.
 #'
 #' The value for \eqn{\omega} is chosen so that each
 #' \eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
@@ -371,7 +378,7 @@ EAR <- function(n = 2, s = 1, along = NULL) {
 #'   formed by the 'by' variable(s);
 #' - \eqn{\beta_{u,v}} is an element of an interaction;
 #' - \eqn{\phi} is the autoregression coefficient; and
-#' - \epsilon_{u,v} is an error term.
+#' - \eqn{\epsilon_{u,v}} is an error term.
 #'
 #' The value for \eqn{\omega} is chosen so that each
 #' \eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
@@ -392,7 +399,7 @@ EAR <- function(n = 2, s = 1, along = NULL) {
 #'
 #' @inheritParams EAR
 #' @param min,max Minimum and maximum values
-#' for autocorrelation parameter.
+#' for autocorrelation coeffient.
 #' Defaults are `0.8` and `0.98`.
 #'
 #' @returns An object of class `"bage_prior_ear"`.
@@ -554,7 +561,7 @@ ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
 #' standard deviation (\eqn{\sigma}).
 #' Defaults to 1.
 #'
-#' @returns An object of class `bage_prior_erw`.
+#' @returns An object of class `"bage_prior_erw"`.
 #'
 #' @seealso
 #' - [RW()] Random walk prior, used with main effects.
@@ -618,7 +625,7 @@ ERW <- function(s = 1, along = NULL) {
 #'
 #' @inheritParams EAR
 #'
-#' @returns An object of class `bage_prior_erw2`.
+#' @returns An object of class `"bage_prior_erw2"`.
 #'
 #' @seealso
 #' - [RW2()] Random walk with drift prior,
@@ -679,7 +686,7 @@ ERW2 <- function(s = 1, along = NULL) {
 #' @inheritParams EAR
 #' @param n Number of seasons.
 #'
-#' @returns An object of class `bage_prior_eseas`.
+#' @returns An object of class `"bage_prior_eseas"`.
 #'
 #' @seealso
 #' - [Seas()] Seasonal effect for main effects.
@@ -715,7 +722,7 @@ ESeas <- function(n, s = 1, along = NULL) {
 #'
 #' @param values A numeric vector
 #'
-#' @returns An object of class `bage_prior_known`.
+#' @returns An object of class `"bage_prior_known"`.
 #'
 #' @seealso
 #' - [NFix()] Prior where level unknown, but variability known.
@@ -739,22 +746,23 @@ Known <- function(values) {
 #' Linear Prior
 #'
 #' Prior for a main effect where the elements
-#' follow a straight line, with idiosyncratic
+#' follow a straight line, with independent normal
 #' errors around this line.
 #'
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+#' With a `Lin()` prior,
 #'
 #' \deqn{\beta_j \sim \text{N}(\eta q_j, \tau^2)}
 #'
-#' where
-#'
+#' where \eqn{\beta_j} is the \eqn{j}th element of the main effect
+#' and
+#' 
 #' \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1).}
 #'
-#' The slope term is drawn from a normal distribution,
+#' Slope \eqn{\eta} is drawn from a normal distribution,
 #'
-#' \deqn{\eta ~ \text{N}(0, (\text{sd})^2)}.
+#' \deqn{\eta \sim \text{N}(0, (\text{sd})^2)}.
 #' 
 #' The standard deviation for the normal distribution,
 #' `sd`, defaults to 1, but can be set to other values.
@@ -764,21 +772,21 @@ Known <- function(values) {
 #' Standard deviation \eqn{\tau} is drawn from a
 #' half-normal distribution,
 #' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 #'
-#' (\eqn{\text{N}^+} denotes a half-normal distribution,
-#' which has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
+#' @param s A positive number. Controls the size of
+#' errors, with larger values of `s` encouraging larger
+#' errors. Default is 1.
+#' @param sd A postive number. Controls the absolute
+#' size of the slope of the line, with larger values
+#' of `sd` encouraging steeper slopes. Default is 1.
 #'
-#' @param s A positive number. Default is 1.
-#' @param sd A postive number. Default is 1.
-#'
-#' @returns An object of class `bage_prior_lin`.
+#' @returns An object of class `"bage_prior_lin"`.
 #'
 #' @seealso
+#' - [LinAR()] Linear prior with autoregressive errors
 #' - [ELin()] Exchangeable version of `Lin()`,
-#'   used with interactions.
+#'   used with interactions
 #' - [priors] Overview of priors implemented in **bage**
 #'
 #' @examples
@@ -792,6 +800,174 @@ Lin <- function(s = 1, sd = 1) {
   sd_slope <- as.double(sd)
   new_bage_prior_lin(scale = scale,
                      sd_slope = sd_slope)
+}
+
+
+## HAS_TESTS
+#' Linear Prior with Autoregressive Errors
+#'
+#' Prior for a main effect where the elements
+#' follow a straight line, with autoregressive
+#' errors around this line.
+#'
+#' @section Mathematical details:
+#'
+#' With a `LinAR()` prior,
+#'
+#' \deqn{\beta_j = \eta q_j + \epsilon_j}
+#'
+#' where
+#'
+#' - \eqn{\beta_j} is the \eqn{j}th element of the main effect
+#' - \eqn{q_j} is defined as
+#'   \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1)}
+#' - \eqn{\epsilon_j} has an autoregressive structure
+#'   \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-k} + \varepsilon_j}
+#'   \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+#'
+#' The value of \eqn{\omega} is chosen so that each \eqn{\epsilon_j} has
+#' marginal variance \eqn{\tau^2}.
+#'
+#' Parameter \eqn{\tau} has a half-normal prior
+#'
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#'
+#' where a value for `s` is provided by the user.
+#'
+#' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
+#' between -1 and 1 that jointly lead to a stationary model. The quantity
+#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+#' boundary-avoiding prior
+#'
+#' \deqn{r \sim \text{Beta}(2, 2).}
+#' 
+#' Slope \eqn{\eta} is drawn from a normal distribution,
+#'
+#' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
+#' 
+#' @param n The order of the model for the
+#' errors, i.e. the number of lagged
+#' terms that are included. Default is `2`.
+#' @param s Scale for the prior for the errors.
+#' Smaller values imply a smoother series. Default is 1.
+#' @param sd Standard deviation in the prior for
+#' the slope of the line. Larger values imply
+#' steeper slopes. Default is 1.
+#'
+#' @returns An object of class `"bage_prior_linar"`.
+#'
+#' @seealso
+#' - [LinAR1()] Linear prior with AR1 errors
+#' - [Lin()] Linear prior with independent normal errors
+#' - [ELin()] Exchangeable version of `Lin()`,
+#'   used with interactions
+#' - [priors] Overview of priors implemented in **bage**
+#'
+#' @examples
+#' LinAR()
+#' LinAR(n = 3, s = 0.5, sd = 2)
+#' @export
+LinAR <- function(n = 2, s = 1, sd = 1) {
+  check_n(n = n,
+          nm_n = "n",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_scale(s,
+              x_arg = "s",
+              zero_ok = FALSE)
+  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  n <- as.integer(n)
+  scale <- as.double(s)
+  sd_slope <- as.double(sd)
+  new_bage_prior_linar(n = n,
+                       scale = scale,
+                       sd_slope = sd_slope,
+                       min = -1,
+                       max = 1,
+                       nm = "LinAR")
+}
+
+
+## HAS_TESTS
+#' Linear Prior with AR1 Errors
+#'
+#' Prior for a main effect where the elements
+#' follow a straight line, with errors that form
+#' an autoregressive series of order 1.
+#'
+#' @section Mathematical details:
+#'
+#' With a `LinAR1()` prior,
+#'
+#' \deqn{\beta_j = \eta q_j + \epsilon_j}
+#'
+#' where
+#'
+#' - \eqn{\beta_j} is the \eqn{j}th element of the main effect
+#' - \eqn{q_j} is defined as
+#'   \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1),}
+#' - \eqn{\epsilon_j} has an AR1 structure
+#'    \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
+#'    \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+#'
+#' The value of \eqn{\omega} is chosen so that each \eqn{\epsilon_j} has
+#' marginal variance \eqn{\tau^2}.
+#'
+#' Parameter \eqn{\tau} has a half-normal prior
+#'
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#'
+#' where a value for `s` is provided by the user.
+#'
+#' Coefficient \eqn{\phi} is constrained
+#' to lie between `min` and `max`.
+#' Its prior distribution is
+#' 
+#' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+#' 
+#' where
+#' 
+#' \deqn{\phi' \sim \text{Beta}(2, 2).}
+#' 
+#' Slope \eqn{\eta} is drawn from a normal distribution,
+#'
+#' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
+#' 
+#' @inheritParams LinAR
+#' @param min,max Minimum and maximum values
+#' for autocorrelation coefficient (\eqn{\phi}).
+#' Defaults are `0.8` and `0.98`.
+#'
+#' @returns An object of class `"bage_prior_linar"`.
+#'
+#' @seealso
+#' - [LinAR()] Generalisation of `LinAR1()`
+#' - [Lin()] Linear prior with independent normal errors
+#' - [ELin()] Exchangeable version of `Lin()`,
+#'   used with interactions
+#' - [priors] Overview of priors implemented in **bage**
+#'
+#' @examples
+#' LinAR1()
+#' LinAR1(min = 0, s = 0.5, sd = 2)
+#' @export
+LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1) {
+  check_min_max_ar(min = min, max = max)
+  check_scale(s,
+              x_arg = "s",
+              zero_ok = FALSE)
+  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  scale <- as.double(s)
+  sd_slope <- as.double(sd)
+  min <- as.double(min)
+  max <- as.double(max)
+  new_bage_prior_linar(n = 1L,
+                       scale = scale,
+                       sd_slope = sd_slope,
+                       min = min,
+                       max = max,
+                       nm = "LinAR1")
 }
 
 
@@ -827,7 +1003,7 @@ Lin <- function(s = 1, sd = 1) {
 #'
 #' @param s A positive, finite number.
 #'
-#' @returns An object of class `bage_prior_norm`.
+#' @returns An object of class `"bage_prior_norm"`.
 #'
 #' @seealso 
 #' - [NFix()] Version of `N()` where the standard deviation
@@ -1629,6 +1805,29 @@ new_bage_prior_lin <- function(scale, sd_slope) {
                                 sd_slope = sd_slope))
     class(ans) <- c("bage_prior_lin", "bage_prior")
     ans
+}
+
+## HAS_TESTS
+new_bage_prior_linar <- function(n, scale, sd_slope, min, max, nm) {
+  shape1 <- 2.0
+  shape2 <- 2.0
+  ans <- list(i_prior = 16L,
+              const = c(scale = scale,
+                        sd_slope = sd_slope,
+                        shape1 = shape1,
+                        shape2 = shape2,
+                        min = min,
+                        max = max),
+              specific = list(n = n,
+                              scale = scale,
+                              sd_slope = sd_slope,
+                              shape1 = shape1,
+                              shape2 = shape2,
+                              min = min,
+                              max = max,
+                              nm = nm))
+  class(ans) <- c("bage_prior_linar", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS

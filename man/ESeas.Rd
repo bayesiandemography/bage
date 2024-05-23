@@ -17,7 +17,7 @@ in the interaction. Optional, provided
 the interaction includes a time or age variable.}
 }
 \value{
-An object of class \code{bage_prior_eseas}.
+An object of class \code{"bage_prior_eseas"}.
 }
 \description{
 Prior for a seasonal effect, within an interaction.

@@ -10,7 +10,7 @@ N(s = 1)
 \item{s}{A positive, finite number.}
 }
 \value{
-An object of class \code{bage_prior_norm}.
+An object of class \code{"bage_prior_norm"}.
 }
 \description{
 Prior in which units are drawn independently from a normal

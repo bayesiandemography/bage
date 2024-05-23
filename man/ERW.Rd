@@ -16,7 +16,7 @@ in the interaction. Optional, provided
 the interaction includes a time or age variable.}
 }
 \value{
-An object of class \code{bage_prior_erw}.
+An object of class \code{"bage_prior_erw"}.
 }
 \description{
 Prior for an interaction,
