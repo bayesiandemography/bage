@@ -10,7 +10,7 @@ Known(values)
 \item{values}{A numeric vector}
 }
 \value{
-An object of class \code{bage_prior_known}.
+An object of class \code{"bage_prior_known"}.
 }
 \description{
 Treat the intercept, a main effect, or an interaction

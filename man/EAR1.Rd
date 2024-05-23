@@ -8,7 +8,7 @@ EAR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
-for autocorrelation parameter.
+for autocorrelation coeffient.
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale for the prior for the errors.
@@ -52,7 +52,7 @@ where
 formed by the 'by' variable(s);
 \item \eqn{\beta_{u,v}} is an element of an interaction;
 \item \eqn{\phi} is the autoregression coefficient; and
-\item \epsilon_{u,v} is an error term.
+\item \eqn{\epsilon_{u,v}} is an error term.
 }
 
 The value for \eqn{\omega} is chosen so that each

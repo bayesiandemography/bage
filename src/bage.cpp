@@ -323,6 +323,45 @@ Type logpost_lin(vector<Type> effectfree,
   return ans;
 }
 
+
+template <class Type>
+Type logpost_linar(vector<Type> effectfree,
+		   vector<Type> hyper,
+		   vector<Type> consts,
+		   matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type sd_slope = consts[1];
+  Type shape1 = consts[2];
+  Type shape2 = consts[3];
+  Type min = consts[4];
+  Type max = consts[5];
+  Type slope = hyper[0];
+  Type log_sd = hyper[1];
+  int n_coef = hyper.size() - 2;
+  vector<Type> logit_coef = hyper.segment(2, n_coef);
+  Type sd = exp(log_sd);
+  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
+  vector<Type> coef = (max - min) * coef_raw + min;
+  int n = effectfree.size();
+  Type a0 = -1 * (n + 1.0) / (n - 1.0);
+  Type a1 = 2 / (n - 1.0);
+  vector<Type> err(n);
+  for (int i = 0; i < n; i++) {
+    Type q = a0 + a1 * (i + 1.0);
+    err[i] = effectfree[i] - q * slope;
+  }
+  Type radius = sqrt((coef_raw * coef_raw).sum());
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans += dnorm(slope, Type(0), sd_slope, true);
+  ans += dbeta(radius, shape1, shape2, true)
+    + log(coef_raw).sum()
+    + log(1 - coef_raw).sum();
+  ans -= SCALE(ARk(coef), sd)(err); // ARk returns neg log-lik
+  return ans;
+}
+
+
 template <class Type>
 Type logpost_norm(vector<Type> effectfree,
 		  vector<Type> hyper,
@@ -486,6 +525,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 15:
     ans = logpost_erw2(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 16:
+    ans = logpost_linar(effectfree, hyper, consts, matrix_along_by);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov

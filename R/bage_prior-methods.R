@@ -256,6 +256,33 @@ draw_vals_effect.bage_prior_lin <- function(prior,
   ans
 }
 
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_linar <- function(prior,
+                                              vals_hyper,
+                                              vals_hyperrand,
+                                              levels_effect,
+                                              levels_age,
+                                              levels_sexgender,
+                                              agesex,
+                                              matrix_along_by,
+                                              matrix_agesex,
+                                              n_sim) {
+  slope <- vals_hyper$slope
+  coef <- vals_hyper$coef
+  sd <- vals_hyper$sd
+  n_effect <- length(levels_effect)
+  n_sim <- length(slope)
+  q <- seq(from = -1, to = 1, length.out = n_effect)
+  mean <- outer(q, slope)
+  error <- draw_vals_ar(n = n_effect,
+                        coef = coef,
+                        sd = sd)
+  ans <- mean + error
+  ans <- ans - rep(colMeans(ans), each = n_effect)
+  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  ans
+}
 
 ## HAS_TESTS
 #' @export
@@ -571,6 +598,17 @@ draw_vals_hyper.bage_prior_lin <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_linar <- function(prior, n_sim) {
+  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+  list(slope = slope,
+       sd = sd,
+       coef = coef)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_norm <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
@@ -705,7 +743,6 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
                              n_sim = n_sim)
   list(mslope = mslope)
 }
-
 
 
 ## 'forecast_compose' ---------------------------------------------------------
@@ -1129,18 +1166,60 @@ forecast_effect.bage_prior_lin <- function(prior,
                                            matrix_along_by_est,
                                            matrix_along_by_forecast,
                                            levels_forecast) {
-  n_along_est <- nrow(matrix_along_by_est)
-  n_along_forecast <- nrow(matrix_along_by_forecast)
-  n_by <- ncol(matrix_along_by_est)
-  slope <- hyper_est$.fitted[[hyper_est$level == "slope"]]
-  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
-  incr_q <- 2 / (n_along_est - 1)
+  n_est <- nrow(matrix_along_by_est)
+  n_forecast <- nrow(matrix_along_by_forecast)
+  slope <- hyper_est$.fitted[hyper_est$level == "slope"]
+  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  incr_q <- 2 / (n_est - 1)
   q <- seq(from = 1 + incr_q,
            by = incr_q,
-           length.out = n_along_forecast)
-  .fitted <- rvec::rnorm_rvec(n = n_along_forecast,
+           length.out = n_forecast)
+  .fitted <- rvec::rnorm_rvec(n = n_forecast,
                               mean = slope * q,
                               sd = sd)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_effect.bage_prior_linar <- function(prior,
+                                             nm_prior,
+                                             hyper_est,
+                                             hyper_forecast,
+                                             compose_est,
+                                             compose_forecast,
+                                             effect_est,
+                                             matrix_along_by_est,
+                                             matrix_along_by_forecast,
+                                             levels_forecast) {
+  n_ar <- prior$specific$n
+  n_est <- nrow(matrix_along_by_est)
+  n_forecast <- nrow(matrix_along_by_forecast)
+  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  slope <- hyper_est$.fitted[hyper_est$level == "slope"]
+  coef <- hyper_est$.fitted[grepl("^coef", hyper_est$level)]
+  incr_q <- 2 / (n_est - 1)
+  q_tail <- seq(to = 1,
+                by = incr_q,
+                length.out = n_ar)
+  mean_tail <- slope * q_tail
+  effect_tail <- utils::tail(effect_est$.fitted, n = n_ar)
+  error_tail <- effect_tail - mean_tail
+  tmp <- c(error_tail, rep(error_tail[[1L]], times = n_forecast))
+  for (j in seq_len(n_forecast)) {
+    s_ar <- seq(from = j, to = j + n_ar - 1L)
+    mean <- sum(coef * tmp[s_ar])
+    tmp[[j + n_ar]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+  }
+  error_forecast <- utils::tail(tmp, n = n_forecast)
+  q_forecast <- seq(from = 1 + incr_q,
+                    by = incr_q,
+                    length.out = n_forecast)
+  mean_forecast <- slope * q_forecast
+  .fitted <- mean_forecast + error_forecast
   tibble::tibble(term = nm_prior,
                  component = "effect",
                  level = levels_forecast,
@@ -1472,7 +1551,7 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
   length_effect <- length(matrix_along_by)
   n <- prior$specific$n
   check_length_effect_ge(length_effect = length_effect,
-                         min = n,
+                         min = n + 1L,
                          nm = nm,
                          prior = prior)
   invisible(TRUE)
@@ -1527,7 +1606,7 @@ is_prior_ok_for_term.bage_prior_ear <- function(prior,
   length_along <- nrow(matrix_along_by)
   n <- prior$specific$n
   check_length_along_ge(length_along = length_along,
-                        min = n,
+                        min = n + 1L,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1646,6 +1725,27 @@ is_prior_ok_for_term.bage_prior_lin <- function(prior,
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
                          min = 2L,
+                         nm = nm,
+                         prior = prior)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
+is_prior_ok_for_term.bage_prior_linar <- function(prior,
+                                                  nm,
+                                                  matrix_along_by,
+                                                  var_time,
+                                                  var_age,
+                                                  var_sexgender, 
+                                                  is_in_compose,
+                                                  agesex) {
+  check_is_main_effect(nm = nm,
+                       prior = prior)
+  length_effect <- length(matrix_along_by)
+  n <- prior$specific$n
+  check_length_effect_ge(length_effect = length_effect,
+                         min = n + 1L,
                          nm = nm,
                          prior = prior)
   invisible(TRUE)
@@ -2029,6 +2129,14 @@ levels_hyper.bage_prior_known <- function(prior)
 #' @export
 levels_hyper.bage_prior_lin <- function(prior)
     c("slope", "sd")
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_linar <- function(prior) {
+  n <- prior$specific$n
+  coef <- paste0("coef", seq_len(n))
+  c("slope", "sd", coef)
+}
 
 ## HAS_TESTS
 #' @export
@@ -2640,6 +2748,43 @@ str_call_prior.bage_prior_lin <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_call_prior.bage_prior_linar <- function(prior) {
+  specific <- prior$specific
+  n <- specific$n
+  min <- specific$min
+  max <- specific$max
+  scale <- specific$scale
+  sd_slope <- specific$sd_slope
+  nm <- specific$nm
+  if (nm == "LinAR") {
+    args <- character(3L)
+    if (n != 2L)
+      args[[1L]] <- sprintf("n=%d", n)
+    if (scale != 1)
+      args[[2L]] <- sprintf("s=%s", scale)
+    if (sd_slope != 1)
+      args[[3L]] <- sprintf("sd=%s", sd_slope)
+  }
+  else if (nm == "LinAR1") {
+    args <- character(4L)
+    if (min != 0.8)
+      args[[1L]] <- sprintf("min=%s", min)
+    if (max != 0.98)
+      args[[2L]] <- sprintf("max=%s", max)
+    if (scale != 1)
+      args[[3L]] <- sprintf("s=%s", scale)
+    if (sd_slope != 1)
+      args[[4L]] <- sprintf("sd=%s", sd_slope)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for 'nm'.") ## nocov
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("%s(%s)", nm, args)
+}
+
+## HAS_TESTS
+#' @export
 str_call_prior.bage_prior_norm <- function(prior) {
     scale <- prior$specific$scale
     if (isTRUE(all.equal(scale, 1)))
@@ -2822,6 +2967,13 @@ str_nm_prior.bage_prior_lin <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_nm_prior.bage_prior_linar <- function(prior) {
+  nm <- prior$specific$nm
+  sprintf("%s()", nm)
+}
+
+## HAS_TESTS
+#' @export
 str_nm_prior.bage_prior_norm <- function(prior) {
   "N()"
 }
@@ -2962,7 +3114,25 @@ transform_hyper.bage_prior_known <- function(prior)
 #' @export
 transform_hyper.bage_prior_lin <- function(prior)
     list(slope = identity, sd = exp)
-    
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_linar <- function(prior) {
+  specific <- prior$specific
+  n <- specific$n
+  min <- specific$min
+  max <- specific$max
+  shifted_inv_logit <- function(x) {
+    ans_raw <- exp(x) / (1 + exp(x))
+    ans <- (max - min) * ans_raw + min
+    ans
+  }
+  rep(list(slope = identity,
+           sd = exp,
+           coef = shifted_inv_logit),
+      times = c(1L, 1L, n))
+}
+
 ## HAS_TESTS
 #' @export
 transform_hyper.bage_prior_norm <- function(prior)
@@ -3228,6 +3398,9 @@ use_for_main_effect.bage_prior_ar <- function(prior) TRUE
 
 #' @export
 use_for_main_effect.bage_prior_lin <- function(prior) TRUE
+
+#' @export
+use_for_main_effect.bage_prior_linar <- function(prior) TRUE
 
 #' @export
 use_for_main_effect.bage_prior_rw <- function(prior) TRUE

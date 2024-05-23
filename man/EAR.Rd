@@ -76,7 +76,7 @@ where
 formed by the 'by' variable(s);
 \item \eqn{\beta_{u,v}} is an element of an interaction;
 \item \eqn{\phi_1, \dots, \phi_n} are autoregression coefficients; and
-\item \epsilon_{u,v} is an error term.
+\item \eqn{\epsilon_{u,v}} is an error term.
 }
 
 The value for \eqn{\omega} is chosen so that each

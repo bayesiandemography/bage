@@ -7,32 +7,37 @@
 Lin(s = 1, sd = 1)
 }
 \arguments{
-\item{s}{A positive number. Default is 1.}
+\item{s}{A positive number. Controls the size of
+errors, with larger values of \code{s} encouraging larger
+errors. Default is 1.}
 
-\item{sd}{A postive number. Default is 1.}
+\item{sd}{A postive number. Controls the absolute
+size of the slope of the line, with larger values
+of \code{sd} encouraging steeper slopes. Default is 1.}
 }
 \value{
-An object of class \code{bage_prior_lin}.
+An object of class \code{"bage_prior_lin"}.
 }
 \description{
 Prior for a main effect where the elements
-follow a straight line, with idiosyncratic
+follow a straight line, with independent normal
 errors around this line.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of the main effect, then
+With a \code{Lin()} prior,
 
 \deqn{\beta_j \sim \text{N}(\eta q_j, \tau^2)}
 
-where
+where \eqn{\beta_j} is the \eqn{j}th element of the main effect
+and
 
 \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1).}
 
-The slope term is drawn from a normal distribution,
+Slope \eqn{\eta} is drawn from a normal distribution,
 
-\deqn{\eta ~ \text{N}(0, (\text{sd})^2)}.
+\deqn{\eta \sim \text{N}(0, (\text{sd})^2)}.
 
 The standard deviation for the normal distribution,
 \code{sd}, defaults to 1, but can be set to other values.
@@ -42,12 +47,7 @@ the slope term.
 Standard deviation \eqn{\tau} is drawn from a
 half-normal distribution,
 
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-
-(\eqn{\text{N}^+} denotes a half-normal distribution,
-which has the same shape as a normal
-distribution, but is defined only for non-negative
-values.)
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 }
 
 \examples{
@@ -56,8 +56,9 @@ Lin(s = 0.5, sd = 2)
 }
 \seealso{
 \itemize{
+\item \code{\link[=LinAR]{LinAR()}} Linear prior with autoregressive errors
 \item \code{\link[=ELin]{ELin()}} Exchangeable version of \code{Lin()},
-used with interactions.
+used with interactions
 \item \link{priors} Overview of priors implemented in \strong{bage}
 }
 }
