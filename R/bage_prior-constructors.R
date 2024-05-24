@@ -155,87 +155,6 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1) {
 
 
 ## HAS_TESTS
-#' Compose a Prior for a Time Main Effect or Interaction
-#'
-#' Create a composite prior for a time main effect,
-#' or for an interaction involving time.
-#' The composite prior always contains a trend,
-#' and may contain a cyclical effect,
-#' a seasonal effect, and an error.
-#'
-#'
-#' | Term       | Main effects                     | Interactions      |
-#' |------------|----------------------------------|-------------------|
-#' | `trend`    | [AR1()], [AR()], [Lin()], [RW()], [RW2()], [Sp()] | [EAR1()], [EAR()], [ELin()] |
-#' | `seasonal` | [Seas()]                         | [ESeas()]         |
-#' | `cyclical` | [AR()], [AR1()]                  | [EAR()], [EAR1()] |
-#' | `error`    | [N()]                            | [N()]             |
-#' 
-#'
-#' @param trend Prior describing the long-run behavior
-#' of the series. See below for choices. Required.
-#' @param cyclical Prior describing departures from the
-#' long-run trend that do not have a fixed
-#' period. See below for choices. Optional.
-#' @param seasonal Prior describing departures from the
-#' long-run trend that have a fixed period.
-#' See below for choices. Optional.
-#' @param error Prior for additional idiosyncratic variation.
-#' See below for choices. Optional
-#'
-#' @returns An object of class `"bage_prior_compose"`
-#'
-#' @examples
-#' compose_time(
-#'   trend = Lin(),
-#'   cyclical = AR()
-#' )
-#'
-#' compose_time(
-#'   trend = RW2(),
-#'   error = N()
-#' )
-#'
-#' compose_time(
-#'   trend = ELin(),
-#'   cyclical = EAR(),
-#'   season = ESeas(n = 4)
-#' )
-#' @export
-compose_time <- function(trend, cyclical = NULL, seasonal = NULL, error = NULL) {
-  if (!inherits(trend, "bage_prior"))
-    cli::cli_abort("{.arg trend} has class {.cls {class(trend)}}.")
-  if (!use_for_compose_trend(trend))
-    cli::cli_abort("{.var {str_call_prior(trend)}} prior cannot be used for {.arg trend}.")
-  priors <- list(trend = trend)
-  for (nm in c("cyclical", "seasonal", "error")) {
-    val <- get(nm)
-    if (!is.null(val)) {
-      if (!inherits(val, "bage_prior"))
-        cli::cli_abort("{.arg {nm}} has class {.cls {class(val)}}.")
-      use_for_compose <- get(paste0("use_for_compose_", nm))
-      if (!use_for_compose(val))
-        cli::cli_abort("{.var {str_call_prior(val)}} prior cannot be used for {.arg {nm}}.")
-      check_main_effect_interaction(x1 = trend,
-                                    x2 = val,
-                                    nm1 = "trend",
-                                    nm2 = nm)
-      val <- list(val)
-      names(val) <- nm
-      priors <- c(priors, val)
-    }
-  }
-  if (length(priors) == 1L)
-    cli::cli_abort(c("Not enough priors specified.",
-                     i = "No values supplied for {.arg cyclical}, {.arg seasonal}, or {.arg error}."))
-  along <- make_compose_along(priors)
-  new_bage_prior_compose(priors = priors,
-                         along = along,
-                         nm = "compose_time")
-}
-  
-
-## HAS_TESTS
 #' Exchangeable Autoregressive Prior
 #'
 #' @description
@@ -1691,17 +1610,6 @@ new_bage_prior_ar <- function(n, scale, min, max, nm) {
                               scale = scale,
                               nm = nm))
   class(ans) <- c("bage_prior_ar", "bage_prior")
-  ans
-}
-
-## HAS_TESTS
-new_bage_prior_compose <- function(priors, along, nm) {
-  ans <- list(i_prior = 1000L,
-              const = 0L, ## not used
-              specific = list(priors = priors,
-                              along = along,
-                              nm = nm))
-  class(ans) <- c("bage_prior_compose", "bage_prior")
   ans
 }
 

@@ -276,37 +276,6 @@ make_agesex_inner <- function(nm, var_age, var_sexgender) {
 
 
 ## HAS_TESTS
-#' Make 'along' Value for 'compose' Priors
-#'
-#' @param priors List of objects of class 'bage_prior'
-#'
-#' @returns NULL or a string
-#'
-#' @noRd
-make_compose_along <- function(priors) {
-  ans <- NULL
-  for (prior in priors) {
-    if (uses_along(prior)) {
-      along <- prior$specific$along
-      if (!is.null(along)) {
-        if (is.null(ans)) {
-          str_ans <- str_call_prior(prior)
-          ans <- along
-        }
-        else {
-          if (!identical(along, ans)) {
-            str_oth <- str_call_prior(prior)
-            cli::cli_abort("{.var {str_ans}} and {.var {str_oth}} have different 'along' dimensions.")
-          }
-        }
-      }
-    }
-  }
-  ans
-}
-
-
-## HAS_TESTS
 #' Make 'const'
 #'
 #' Make vector to hold real-valued constants for priors.
@@ -432,27 +401,6 @@ make_hyperrand <- function(mod) {
 make_i_prior <- function(mod) {
     priors <- mod$priors
     vapply(priors, function(x) x$i_prior, 0L)
-}
-
-
-## HAS_TESTS
-#' Make Indices to Priors Used within 'compose' Priors
-#'
-#' @param mod Object of class "bage_mod".
-#'
-#' @returns An integer vector
-#'
-#' @noRd
-make_indices_priors <- function(mod) {
-  priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
-  ans <- .mapply(indices_priors,
-                 dots = list(priors,
-                             matrix_along_by = matrices_along_by),
-                 MoreArgs = list())
-  names(ans) <- names(priors)
-  ans <- unlist(ans)
-  ans
 }
 
 
@@ -1375,29 +1323,6 @@ make_terms_hyperrand <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make Factor Indentifying Components of 'indices_priors'
-#'
-#' @param mod Object of class "bage_mod".
-#'
-#' @returns A factor
-#'
-#' @noRd
-make_terms_indices_priors <- function(mod) {
-  priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
-  nms_terms <- names(priors)
-  indices <- .mapply(indices_priors,
-                     dots = list(priors,
-                                 matrix_along_by = matrices_along_by),
-                     MoreArgs = list())
-  lengths <- lengths(indices)
-  ans <- rep(nms_terms, times = lengths)
-  ans <- factor(ans, levels = nms_terms)
-  ans
-}
-
-
-## HAS_TESTS
 #' Make integer vector of flags for whether
 #' each prior uses hyper-parameters
 #'
@@ -1427,33 +1352,6 @@ make_uses_hyper <- function(mod) {
 make_uses_hyperrand <- function(mod) {
   priors <- mod$priors
   1L * vapply(priors, uses_hyperrand, FALSE)
-}
-
-
-## HAS_TESTS
-#' Make Integer Vector of Flags for Whether
-#' Each Prior Uses 'indices_priors'
-#'
-#' Currently only 'compose' priors
-#' use 'indices_priors'
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns An integer vector
-#'
-#' @noRd
-make_uses_indices_priors <- function(mod) {
-  priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
-  indices_priors <- .mapply(indices_priors,
-                            dots = list(priors,
-                                        matrix_along_by = matrices_along_by),
-                            MoreArgs = list())
-  lengths <- lengths(indices_priors)
-  ans <- lengths > 0L
-  ans <- 1L * ans
-  names(ans) <- names(priors)
-  ans
 }
 
 
