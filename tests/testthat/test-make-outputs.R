@@ -107,11 +107,11 @@ test_that("'make_comp_components' works - has hyperrand", {
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
+    formula <- deaths ~ age + sex * time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-                    set_prior(time ~ compose_time(trend = Lin(), error = N()))
+                    set_prior(sex:time ~ ELin())
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
     draws <- make_draws_components(mod)
@@ -169,12 +169,11 @@ test_that("'make_draws_disp' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- set_n_draw(mod, 5)
     mod <- fit(mod)
     draws <- make_draws_post(mod)
     ans_obtained <- make_draws_disp(mod, draws_post = draws)
-    ans_expected <- exp(draws[29,])
+    ans_expected <- exp(draws[22,])
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -217,13 +216,11 @@ test_that("'make_draws_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- set_n_draw(mod, 5)
     mod <- fit(mod)
     draws <- make_draws_post(mod)
     ans_obtained <- make_draws_hyper(mod, draws_post = draws)
-    ans_expected <- rbind(exp(draws[20:22, ]),
-                          draws[23:28, ])
+    ans_expected <- exp(draws[20:21, ])
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -436,12 +433,12 @@ test_that("'make_level_components' works - has hyperrand", {
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
+    formula <- deaths ~ age + sex * time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
     mod <- set_disp(mod, mean = 0)
-    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), seasonal = Seas(n = 3)))
+    mod <- set_prior(mod, sex:time ~ ELin())
     mod <- fit(mod)
     comp <- make_comp_components(mod)
     ans <- make_level_components(mod)
@@ -596,7 +593,6 @@ test_that("'make_term_components' works - no hyperrand", {
                     exposure = popn)
     mod <- set_disp(mod, mean = 0)
     mod <- set_prior(mod, age ~ Sp())
-    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), cyclical = AR()))
     mod <- set_n_draw(mod, n = 1)       
     mod <- fit(mod)
     comp <- make_comp_components(mod)
@@ -616,15 +612,13 @@ test_that("'make_transforms_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, time ~ compose_time(trend = RW(), error = N()))
     mod <- fit(mod)
     ans_obtained <- make_transforms_hyper(mod)
     invlogit2 <- function(x) {
         ans <- exp(x) / (1 + exp(x))
         2 * ans - 1
     }
-    ans_expected <- c(rep(list(exp), 3),
-                      rep(list(identity), 6))
+    ans_expected <- rep(list(exp), 2)
     expect_identical(unname(ans_obtained), ans_expected,
                      ignore_function_env = TRUE)
 })
@@ -642,7 +636,7 @@ test_that("'reformat_hyperrand' works", {
                   data = data,
                   exposure = popn) |>
                   set_prior(time ~ RW2()) |>
-                  set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
+                  set_prior(sex:time ~ ELin()) |>
                   fit(mod)
   mod <- set_n_draw(mod, 5)
   comp <- make_comp_components(mod)
@@ -656,7 +650,7 @@ test_that("'reformat_hyperrand' works", {
                                level = level,
                                .fitted = .fitted)
   ans_obtained <- reformat_hyperrand(components = components, mod = mod)
-  expect_setequal(ans_obtained$component, c("effect", "hyper", "disp", "trend", "error"))
+  expect_setequal(ans_obtained$component, c("effect", "hyper", "disp"))
 })
 
 

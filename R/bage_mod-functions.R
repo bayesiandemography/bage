@@ -191,7 +191,6 @@ set_prior <- function(mod, formula) {
                        matrix_along_by = matrix_along_by,
                        var_time = var_time,
                        var_age = var_age,
-                       is_in_compose = FALSE,
                        agesex = agesex)
   mod$priors[[i]] <- prior
   mod <- unfit(mod)

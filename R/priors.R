@@ -10,8 +10,6 @@
 #' and interaction between age and sex/gender,
 #' or age and time.
 #'
-#' @section Ordinary Priors:
-#' 
 #' The intercept, main effects, and interactions
 #' all have prior models that capture the expected
 #' behavior of the term. Current choices of prior
@@ -45,20 +43,5 @@
 #' | `ESp()`   | Exchangeable P-Spline. `Sp()` within each combination of the 'by' variables. | Interaction between smooth variable and other variables. | No |
 #'
 #'
-#' @section Composite Priors:
-#'
-#' Time main effects, and interactions involving time, can be modelled
-#' using a prior built up from several components. A composite time
-#' prior is specified using [compose_time()]. The elements of the
-#' prior are as follows. All elements other than `trend` are optional.
-#'
-#' | **Term**   | **Main effects**                 | **Interactions**  |
-#' |------------|----------------------------------|-------------------|
-#' | `trend`    | [Lin()], [RW()], [RW2()], [Sp()] | [ELin()]          |
-#' | `seasonal` | [Seas()]                         | [ESeas()]         |
-#' | `cyclical` | [AR()], [AR1()]                  | [EAR()], [EAR1()] |
-#' | `error`    | [N()]                            | [N()]             |
-#' 
-#' 
 #' @name priors
 NULL

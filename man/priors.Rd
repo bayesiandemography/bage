@@ -13,9 +13,7 @@ include an age effect, and many include
 and interaction between age and sex/gender,
 or age and time.
 }
-\section{Ordinary Priors}{
-
-
+\details{
 The intercept, main effects, and interactions
 all have prior models that capture the expected
 behavior of the term. Current choices of prior
@@ -47,19 +45,3 @@ Priors without links are next in the queue for implementation.\tabular{llll}{
    \code{ESp()} \tab Exchangeable P-Spline. \code{Sp()} within each combination of the 'by' variables. \tab Interaction between smooth variable and other variables. \tab No \cr
 }
 }
-
-\section{Composite Priors}{
-
-
-Time main effects, and interactions involving time, can be modelled
-using a prior built up from several components. A composite time
-prior is specified using \code{\link[=compose_time]{compose_time()}}. The elements of the
-prior are as follows. All elements other than \code{trend} are optional.\tabular{lll}{
-   \strong{Term} \tab \strong{Main effects} \tab \strong{Interactions} \cr
-   \code{trend} \tab \code{\link[=Lin]{Lin()}}, \code{\link[=RW]{RW()}}, \code{\link[=RW2]{RW2()}}, \code{\link[=Sp]{Sp()}} \tab \code{\link[=ELin]{ELin()}} \cr
-   \code{seasonal} \tab \code{\link[=Seas]{Seas()}} \tab \code{\link[=ESeas]{ESeas()}} \cr
-   \code{cyclical} \tab \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}} \tab \code{\link[=EAR]{EAR()}}, \code{\link[=EAR1]{EAR1()}} \cr
-   \code{error} \tab \code{\link[=N]{N()}} \tab \code{\link[=N]{N()}} \cr
-}
-}
-

@@ -81,71 +81,6 @@ Type logpost_ar(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_compose(vector<Type> effectfree,
-		     vector<Type> hyper,
-		     vector<Type> hyperrand,
-		     vector<Type> consts,
-		     matrix<int> matrix_along_by,
-		     vector<int> indices_priors) {
-  constexpr int n_position = 7;
-  int n_comp = indices_priors.size() / n_position;
-  int n_effect = effectfree.size();
-  Type ans = 0;
-  vector<Type> effectfree_comp(n_effect);       
-  vector<Type> effectfree_total(n_effect); 
-  for (int i_effect = 0; i_effect < n_effect; i_effect++)
-    effectfree_total[i_effect] = 0;
-  for (int i_comp = 0; i_comp < n_comp; i_comp++) {
-    int offset = i_comp * n_position;
-    int hyper_start = indices_priors[offset];
-    int hyper_length = indices_priors[offset + 1];
-    int hyperrand_start = indices_priors[offset + 2];
-    int hyperrand_length = indices_priors[offset + 3];
-    int consts_start = indices_priors[offset + 4];
-    int consts_length = indices_priors[offset + 5];
-    int i_prior_comp = indices_priors[offset + 6];
-    // extract info
-    bool uses_hyper = hyper_length > 0;
-    bool is_comp_last = i_comp == n_comp - 1;
-    bool uses_hyperrand;
-    if (is_comp_last) {
-      effectfree_comp = effectfree - effectfree_total;
-      uses_hyperrand = hyperrand_length > 0;
-    }
-    else {
-      effectfree_comp = hyperrand.segment(hyperrand_start, n_effect);
-      effectfree_total += effectfree_comp;
-      uses_hyperrand = hyperrand_length > n_effect;
-    }
-    vector<Type> consts_comp = consts.segment(consts_start, consts_length);
-    // calculate log posterior density
-    if (uses_hyper) {
-      vector<Type> hyper_comp = hyper.segment(hyper_start, hyper_length);
-      if (uses_hyperrand) {
-	vector<Type> hyperrand_comp = hyperrand.segment(hyperrand_start, hyperrand_length);
-	ans += logpost_uses_hyperrand(effectfree_comp,
-				      hyper_comp,
-				      hyperrand_comp,
-				      consts_comp,
-				      matrix_along_by,
-				      i_prior_comp);
-      }
-      else {
-	ans += logpost_uses_hyper(effectfree_comp,
-				  hyper_comp,
-				  consts_comp,
-				  matrix_along_by,
-				  i_prior_comp);
-      }
-    }
-    else {
-      error("Internal error: 'compose' prior with no hyper-parameters."); // # nocov
-    }
-  }
-  return ans;
-}
-
-template <class Type>
 Type logpost_ear(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
@@ -620,9 +555,6 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR(consts);
   DATA_FACTOR(terms_consts);
   DATA_STRUCT(matrices_along_by, LIST_M_t);
-  DATA_IVECTOR(uses_indices_priors);
-  DATA_IVECTOR(indices_priors);
-  DATA_FACTOR(terms_indices_priors);
   DATA_SCALAR(mean_disp);
 
   PARAMETER_VECTOR(effectfree); 
@@ -639,7 +571,6 @@ Type objective_function<Type>::operator() ()
   vector<vector<Type> > hyper_split = split(hyper, terms_hyper);
   vector<vector<Type> > hyperrand_split = split(hyperrand, terms_hyperrand);
   vector<vector<Type> > consts_split = split(consts, terms_consts);
-  vector<vector<int> > indices_priors_split = split(indices_priors, terms_indices_priors);
   int has_disp = mean_disp > 0;
   Type disp = has_disp ? exp(log_disp) : 0;
 
@@ -682,23 +613,12 @@ Type objective_function<Type>::operator() ()
 	vector<Type> hyper_term = hyper_split[i_term];
 	if (uses_hyperrand[i_term]) { // if a prior uses hyperrand, then it uses hyper
 	  vector<Type> hyperrand_term = hyperrand_split[i_term];
-	  if (uses_indices_priors[i_term]) {
-	    vector<int> indices_priors_term = indices_priors_split[i_term];
-	    ans -= logpost_compose(effectfree_term,
-				   hyper_term,
-				   hyperrand_term,
-				   consts_term,
-				   matrix_along_by,
-				   indices_priors_term);
-	  }
-	  else {
-	    ans -= logpost_uses_hyperrand(effectfree_term,
-					  hyper_term,
-					  hyperrand_term,
-					  consts_term,
-					  matrix_along_by,
-					  i_prior_term);
-	  }
+	  ans -= logpost_uses_hyperrand(effectfree_term,
+					hyper_term,
+					hyperrand_term,
+					consts_term,
+					matrix_along_by,
+					i_prior_term);
 	}
 	else {
 	  ans -= logpost_uses_hyper(effectfree_term,

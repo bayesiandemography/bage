@@ -8,14 +8,6 @@ test_that("'const' works with bage_prior_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
-  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
-  ans_obtained <- const(prior)
-  ans_expected <- unlist(c(list(trend = const(Lin())),
-                           list(seasonal = const(Seas(n = 3)))))
-  expect_identical(ans_obtained, ans_expected)
-})
-
 
 ## draw_vals_effect --------------------------------------------------------------
 
@@ -37,33 +29,6 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
   expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
-})
-
-test_that("'draw_vals_effect' works with bage_prior_compose", {
-  prior <- compose_time(trend = RW(), error = N())
-  agesex <- "other"
-  levels_effect <- letters
-  matrix_along_by <- matrix(0:25, nr = 26)
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
-                                        vals_hyper = vals_hyper,
-                                        levels_effect = levels_effect,
-                                        agesex = agesex,
-                                        matrix_agesex = NULL,
-                                        matrix_along_by = matrix_along_by,
-                                        n_sim = n_sim)
-  ans <- draw_vals_effect(prior = prior,
-                          vals_hyper = vals_hyper,
-                          vals_hyperrand = vals_hyperrand,
-                          levels_effect = levels_effect,
-                          agesex = agesex,
-                          matrix_along_by = matrix_along_by,
-                          matrix_agesex = NULL,
-                          n_sim = n_sim)
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
-  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_ear", {
@@ -455,14 +420,6 @@ test_that("'draw_vals_hyper' works with bage_prior_ar", {
   expect_identical(dim(ans$coef), c(3L, 10L))
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_compose", {
-  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 2))
-  ans <- draw_vals_hyper(prior = prior,
-                         n_sim = 10)
-  expect_identical(names(ans), c("trend", "cyclical", "seasonal"))
-  expect_identical(length(ans$trend$slope), 10L)
-})
-
 test_that("'draw_vals_hyper' works with bage_prior_ear", {
   prior <- EAR(n = 3)
   ans <- draw_vals_hyper(prior = prior,
@@ -600,26 +557,6 @@ test_that("'draw_vals_hyper' works with bage_prior_esvd", {
 
 ## 'draw_vals_hyperrand' ------------------------------------------------------
 
-test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
-  set.seed(0)
-  prior <- compose_time(trend = ELin(), seasonal = ESeas(n = 2))
-  levels_effect <- letters[1:12]
-  agesex <- "other"
-  matrix_along_by <- matrix(0:11, nr = 3)
-  colnames(matrix_along_by) <- 1:4
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  ans <- draw_vals_hyperrand(prior = prior,
-                             vals_hyper = vals_hyper,
-                             levels_effect = levels_effect,
-                             agesex = agesex,
-                             matrix_along_by = matrix_along_by,
-                             matrix_agesex = "other",
-                             n_sim = n_sim)
-  expect_identical(names(ans), c("trend", "seasonal"))
-})
-
 test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
   set.seed(0)
   prior <- ELin()
@@ -662,197 +599,6 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
 })
 
 
-## forecast_compose -----------------------------------------------------------
-
-test_that("'forecast_compose' returns NULL for non-compose prior", {
-  set.seed(0)
-  prior <- Known(value = 1:5)
-  matrix_along_by_est <- matrix(0:4, nr = 5)
-  matrix_along_by_forecast <- matrix(0:5, nr = 6)
-  expect_identical(forecast_compose(prior = prior,
-                                    nm_prior = "year",
-                                    hyper_est =  NULL,
-                                    hyper_forecast = NULL,
-                                    compose_est = NULL,
-                                    matrix_along_by_est = matrix_along_by_est,
-                                    matrix_along_by_forecast = matrix_along_by_forecast,
-                                    levels_forecast = 1:5),
-                   NULL)
-})
-
-test_that("'forecast_compose' works with compose prior - main effect", {
-  set.seed(0)
-  prior <- compose_time(trend = Lin(), error = N())
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = c("trend.slope", "trend.sd", "error.sd"),
-                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
-  ## 'hyper_forecast' ignored, by forecast_effect, but include to test 'forecast_compose' code
-  hyper_forecast <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = letters[6:11],
-                              .fitted = rvec::runif_rvec(n = 6, n_draw = 10))
-  compose_est <- tibble::tibble(term = "year",
-                                component = rep(c("trend", "error"), each = 5),
-                                level = c(1:5, 1:5),
-                                .fitted = rvec::runif_rvec(n = 10, n_draw = 10))
-  matrix_along_by_est <- matrix(0:4, nr = 5)
-  matrix_along_by_forecast <- matrix(0:5, nr = 6)
-  levels_forecast <- letters[6:11]
-  set.seed(1)
-  ans_obtained <- forecast_compose(prior = prior,
-                                   nm_prior = "year",
-                                   hyper_est =  hyper_est,
-                                   hyper_forecast = hyper_forecast,
-                                   compose_est = compose_est,
-                                   matrix_along_by_est = matrix_along_by_est,
-                                   matrix_along_by_forecast = matrix_along_by_forecast,
-                                   levels_forecast = levels_forecast)
-  set.seed(1)
-  ans_trend <- forecast_effect(prior = Lin(),
-                               nm_prior = "year",
-                               hyper_est = tibble::tibble(term = "year",
-                                                          component = "hyper",
-                                                          level = c("slope", "sd"),
-                                                          .fitted = hyper_est$.fitted[1:2]),
-                               hyper_forecast = NULL,
-                               compose_est = NULL,
-                               compose_forecast = NULL,
-                               effect_est = compose_est[1:5,],
-                               matrix_along_by_est = matrix_along_by_est,
-                               matrix_along_by_forecast = matrix_along_by_forecast,
-                               levels_forecast = levels_forecast)
-  ans_trend$component <- "trend"
-  ans_error <- forecast_effect(prior = N(),
-                               nm_prior = "year",
-                               hyper_est = tibble::tibble(term = "year",
-                                                          component = "hyper",
-                                                          level = "sd",
-                                                          .fitted = hyper_est$.fitted[3]),
-                               hyper_forecast = NULL,
-                               compose_est = NULL,
-                               compose_forecast = NULL,
-                               effect_est = compose_est[6:10,],
-                               matrix_along_by_est = matrix_along_by_est,
-                               matrix_along_by_forecast = matrix_along_by_forecast,
-                               levels_forecast = levels_forecast)
-  ans_error$component <- "error"
-  ans_expected <- vctrs::vec_rbind(ans_trend, ans_error)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'forecast_compose' works with compose prior - interaction", {
-  set.seed(0)
-  prior <- compose_time(trend = ELin(), cyclical = EAR1(), seasonal = ESeas(n = 2))
-  hyper_est <- tibble::tibble(term = "year:sex",
-                              component = "hyper",
-                              level = c("trend.mslope", "trend.mslope", "trend.sd",
-                                        "cyclical.coef", "cyclical.sd",
-                                        "seasonal.sd"),
-                              .fitted = rvec::runif_rvec(n = 6, n_draw = 10))
-  compose_est <- tibble::tibble(term = "year:sex",
-                                component = rep(c("trend", "cyclical", "seasonal"), each = 10),
-                                level = rep(letters[1:10], times = 3),
-                                .fitted = rvec::runif_rvec(n = 30, n_draw = 10))
-  matrix_along_by_est <- matrix(0:9, nr = 5)
-  matrix_along_by_forecast <- matrix(0:11, nr = 6)
-  levels_forecast <- letters[11:22]
-  set.seed(1)
-  ans_obtained <- forecast_compose(prior = prior,
-                                   nm_prior = "year:sex",
-                                   hyper_est =  hyper_est,
-                                   hyper_forecast = NULL,
-                                   compose_est = compose_est,
-                                   matrix_along_by_est = matrix_along_by_est,
-                                   matrix_along_by_forecast = matrix_along_by_forecast,
-                                   levels_forecast = levels_forecast)
-  set.seed(1)
-  ans_trend <- forecast_effect(prior = ELin(),
-                               nm_prior = "year:sex",
-                               hyper_est = tibble::tibble(term = "year:sex",
-                                                          component = "hyper",
-                                                          level = c("mslope", "mslope", "sd"),
-                                                          .fitted = hyper_est$.fitted[1:3]),
-                               hyper_forecast = NULL,
-                               compose_est = NULL,
-                               compose_forecast = NULL,
-                               effect_est = compose_est[1:10,],
-                               matrix_along_by_est = matrix_along_by_est,
-                               matrix_along_by_forecast = matrix_along_by_forecast,
-                               levels_forecast = levels_forecast)
-  ans_trend$component <- "trend"
-  ans_cyclical <- forecast_effect(prior = EAR1(),
-                                  nm_prior = "year:sex",
-                                  hyper_est = tibble::tibble(term = "year:sex",
-                                                             component = "hyper",
-                                                             level = c("coef", "sd"),
-                                                             .fitted = hyper_est$.fitted[4:5]),
-                                  hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
-                                  effect_est = compose_est[11:20,],
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
-  ans_cyclical$component <- "cyclical"
-  ans_seasonal <- forecast_effect(prior = ESeas(n = 2),
-                                  nm_prior = "year:sex",
-                                  hyper_est = tibble::tibble(term = "year:sex",
-                                                             component = "hyper",
-                                                             level = "sd",
-                                                             .fitted = hyper_est$.fitted[6]),
-                                  hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
-                                  effect_est = compose_est[21:30,],
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
-  ans_seasonal$component <- "seasonal"
-  ans_expected <- vctrs::vec_rbind(ans_trend,
-                                   ans_cyclical,
-                                   ans_seasonal)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-test_that("'forecast_compose' works with compose prior - hyper out of order", {
-  set.seed(0)
-  prior <- compose_time(trend = Lin(), error = N())
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = c("trend.slope", "trend.sd", "error.sd"),
-                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
-  hyper_est_unord <- hyper_est[c(3, 2, 1), ]
-  compose_est <- tibble::tibble(term = "year",
-                                component = rep(c("trend", "error"), each = 5),
-                                level = c(1:5, 1:5),
-                                .fitted = rvec::runif_rvec(n = 10, n_draw = 10))
-  matrix_along_by_est <- matrix(0:4, nr = 5)
-  matrix_along_by_forecast <- matrix(0:5, nr = 6)
-  levels_forecast <- letters[6:11]
-  set.seed(1)
-  ans_ord <- forecast_compose(prior = prior,
-                              nm_prior = "year",
-                              hyper_est =  hyper_est,
-                              hyper_forecast = NULL,
-                              compose_est = compose_est,
-                              matrix_along_by_est = matrix_along_by_est,
-                              matrix_along_by_forecast = matrix_along_by_forecast,
-                              levels_forecast = levels_forecast)
-  set.seed(1)
-  ans_unord <- forecast_compose(prior = prior,
-                                nm_prior = "year",
-                                hyper_est =  hyper_est_unord,
-                                hyper_forecast = NULL,
-                                compose_est = compose_est,
-                                matrix_along_by_est = matrix_along_by_est,
-                                matrix_along_by_forecast = matrix_along_by_forecast,
-                                levels_forecast = levels_forecast)
-  expect_identical(ans_ord, ans_unord)
-})
-
-
 ## forecast_effect ------------------------------------------------------------
 
 test_that("'forecast_effect' gives correct error with prior for which method does not exist", {
@@ -869,8 +615,6 @@ test_that("'forecast_effect' gives correct error with prior for which method doe
                                   nm_prior = "year",
                                   hyper_est =  NULL,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -897,8 +641,6 @@ test_that("'forecast_effect' works with bage_prior_ar", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -933,50 +675,6 @@ test_that("'forecast_effect' works with bage_prior_ar", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with compose prior", {
-  set.seed(0)
-  prior <- compose_time(trend = Lin(), error = N())
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = c("trend.slope", "trend.sd", "error.sd"),
-                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
-  compose_est <- tibble::tibble(term = "year",
-                                component = rep(c("trend", "error"), each = 5),
-                                level = c(1:5, 1:5),
-                                .fitted = rvec::runif_rvec(n = 10, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = 1:5,
-                               .fitted = compose_est$.fitted[1:5] + compose_est$.fitted[6:10])
-  matrix_along_by_est <- matrix(0:4, nr = 5)
-  matrix_along_by_forecast <- matrix(0:5, nr = 6)
-  levels_forecast <- letters[6:11]
-  compose_forecast <- forecast_compose(prior = prior,
-                                       nm_prior = "year",
-                                       hyper_est =  hyper_est,
-                                       hyper_forecast = NULL,
-                                       compose_est = compose_est,
-                                       matrix_along_by_est = matrix_along_by_est,
-                                       matrix_along_by_forecast = matrix_along_by_forecast,
-                                       levels_forecast = levels_forecast)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est = hyper_est,
-                                  hyper_forecast = NULL,
-                                  compose_est = compose_est,
-                                  compose_forecast = compose_forecast,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
-  ans_expected <- tibble::tibble(term = "year",
-                                 component = "effect",
-                                 level = levels_forecast,
-                                 .fitted = compose_forecast$.fitted[1:6] +
-                                   compose_forecast$.fitted[7:12])
-  expect_identical(ans_obtained, ans_expected)
-})
-
 test_that("'forecast_effect' works with bage_prior_ear", {
   set.seed(0)
   prior <- EAR(n = 2)
@@ -996,8 +694,6 @@ test_that("'forecast_effect' works with bage_prior_ear", {
                                   nm_prior = "year:reg",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1069,8 +765,6 @@ test_that("'forecast_effect' works with bage_prior_elin", {
                                   nm_prior = "year:reg",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1111,8 +805,6 @@ test_that("'forecast_effect' works with bage_prior_erw", {
                                   nm_prior = "year:reg",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1159,8 +851,6 @@ test_that("'forecast_effect' works with bage_prior_erw", {
                                   nm_prior = "year:reg",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1218,8 +908,6 @@ test_that("'forecast_effect' works with bage_prior_eseas", {
                                   nm_prior = "year:reg",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1272,8 +960,6 @@ test_that("'forecast_effect' works with bage_prior_lin", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1311,8 +997,6 @@ test_that("'forecast_effect' works with bage_prior_linar", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1381,8 +1065,6 @@ test_that("'forecast_effect' works with bage_prior_norm", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1412,8 +1094,6 @@ test_that("'forecast_effect' works with bage_prior_normfixed", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1445,8 +1125,6 @@ test_that("'forecast_effect' works with bage_prior_rw", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1486,8 +1164,6 @@ test_that("'forecast_effect' works with bage_prior_rw2", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1533,8 +1209,6 @@ test_that("'forecast_effect' works with bage_prior_seas", {
                                   nm_prior = "year",
                                   hyper_est =  hyper_est,
                                   hyper_forecast = NULL,
-                                  compose_est = NULL,
-                                  compose_forecast = NULL,
                                   effect_est = effect_est,
                                   matrix_along_by_est = matrix_along_by_est,
                                   matrix_along_by_forecast = matrix_along_by_forecast,
@@ -1593,77 +1267,8 @@ test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
 })
 
 test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
-  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
-  expect_true(has_hyperrand(prior))
   prior <- ELin()
   expect_true(has_hyperrand(prior))
-})
-
-
-## 'indices_priors' -----------------------------------------------------------
-
-test_that("'indices_priors' works with non-compose prior", {
-  prior <- Lin()
-  matrix_along_by <- matrix(0:9, nr = 10)
-  ans_obtained <- indices_priors(prior = prior,
-                                 matrix_along_by = matrix_along_by)
-  expect_identical(ans_obtained, integer())                                 
-})
-
-test_that("'indices_priors' works with compose time prior - 2 priors", {
-  prior <- compose_time(trend = ELin(),
-                        cyclical = EAR())
-  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(a = 1:5, b = 1:2))
-  ans_obtained <- indices_priors(prior = prior,
-                                 matrix_along_by = matrix_along_by)
-  ans_expected <- c(hyper_start = 0L,
-                    hyper_length = 3L,
-                    hyperrand_start = 0L,
-                    hyperrand_length = 12L,
-                    consts_start = 0L,
-                    consts_length = 3L,
-                    i_prior = 9L,
-                    hyper_start = 3L,
-                    hyper_length = 3L,
-                    hyperrand_start = 12L,
-                    hyperrand_length = 0L,
-                    consts_start = 3L,
-                    consts_length = 5L,
-                    i_prior = 12L)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'indices_priors' works with compose time prior - 3 priors", {
-  prior <- compose_time(trend = RW2(),
-                        cyclical = AR(),
-                        error = N())
-  matrix_along_by <- matrix(0:9, nr = 10)
-  rownames(matrix_along_by) <- 1:10
-  names(dimnames(matrix_along_by))[1] <- "x"
-  ans_obtained <- indices_priors(prior = prior,
-                                 matrix_along_by = matrix_along_by)
-  ans_expected <- c(hyper_start = 0L,
-                    hyper_length = 1L,
-                    hyperrand_start = 0L,
-                    hyperrand_length = 10L,
-                    consts_start = 0L,
-                    consts_length = 1L,
-                    i_prior = 4L,
-                    hyper_start = 1L,
-                    hyper_length = 3L,
-                    hyperrand_start = 10L,
-                    hyperrand_length = 10L,
-                    consts_start = 1L,
-                    consts_length = 5L,
-                    i_prior = 5L,
-                    hyper_start = 4L,
-                    hyper_length = 1L,
-                    hyperrand_start = 20L,
-                    hyperrand_length = 0L,
-                    consts_start = 6L,
-                    consts_length = 1L,
-                    i_prior = 1L)
-  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -1684,31 +1289,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' works with bage_prior_compose - time", {
-  prior <- compose_time(trend = RW2(),
-                        cyclical = AR(),
-                        seas = Seas(n = 4))
-  expect_true(is_prior_ok_for_term(prior = prior,
-                                   nm = "time",
-                                   matrix_along_by = matrix(0:9, nc = 1),
-                                   var_time = "time",
-                                   var_age = "age",
-                                   var_sexgender = "sex",
-                                   is_in_compose = FALSE,
-                                   agesex = "other"))
-  expect_error(is_prior_ok_for_term(prior = prior,
-                                    nm = "bla:blu",
-                                    matrix_along_by = matrix(0:9, nc = 2),
-                                    var_time = "time",
-                                    var_age = "age",
-                                    var_sexgender = "sex",
-                                    is_in_compose = TRUE,
-                                    agesex = "other"),
-               "Problem with call to `bage::compose_time\\(\\)`.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_ear", {
@@ -1718,7 +1299,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ear", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -1729,7 +1309,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_elin", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -1740,7 +1319,6 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_erw", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
 })
 
@@ -1751,31 +1329,7 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_erw", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' works with bage_prior_eseas", {
-  expect_true(is_prior_ok_for_term(prior = ESeas(n = 4),
-                                   nm = "time",
-                                   matrix_along_by = matrix(0:11, nc = 3),
-                                   var_time = "time",
-                                   var_age = "age",
-                                   var_sexgender = "sex",
-                                   is_in_compose = TRUE,
-                                   agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_eseas", {
-  expect_error(is_prior_ok_for_term(prior = ESeas(n = 4),
-                                    nm = "time",
-                                    matrix_along_by = matrix(0:12, nc = 3),
-                                    var_time = "time",
-                                    var_age = "age",
-                                    var_sexgender = "sex",
-                                    is_in_compose = FALSE,
-                                    agesex = "other"),
-               "`ESeas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
@@ -1785,7 +1339,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_known", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
 })
 
@@ -1796,7 +1349,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_lin", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
 })
 
@@ -1807,7 +1359,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_linar", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
 })
 
@@ -1818,7 +1369,6 @@ test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", 
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
 })
@@ -1830,7 +1380,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -1841,7 +1390,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -1852,7 +1400,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -1862,30 +1409,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
                                      matrix_along_by = matrix(0:2, nc = 1),
                                      var_time = "time",
                                      var_age = "age",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
-  expect_true(is_prior_ok_for_term(prior = Seas(n = 4),
-                                   nm = "time",
-                                   matrix_along_by = matrix(0:3, nc = 1),
-                                   var_time = "time",
-                                   var_age = "age",
-                                   is_in_compose = TRUE,
-                                   agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
-  expect_error(is_prior_ok_for_term(prior = Seas(n = 4),
-                                    nm = "time",
-                                    matrix_along_by = matrix(0:3, nc = 1),
-                                    var_time = "time",
-                                    var_age = "age",
-                                    var_sexgender = "sex",
-                                    is_in_compose = FALSE,
-                                    agesex = "other"),
-               "`Seas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
@@ -1895,7 +1419,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -1907,7 +1430,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "age:sex"))
 })
 
@@ -1919,7 +1441,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = NULL,
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `SVD\\(s\\)` prior for `bla` term.")
 })
@@ -1932,7 +1453,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `SVDS\\(s\\)` prior for `bla` term.")
 })
@@ -1945,7 +1465,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age"),
                "Problem with `SVDS\\(s\\)` prior for `age` term.")
 })
@@ -1958,7 +1477,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age"),
                "Problem with `SVD\\(s\\)` prior for `sex:age` term.")
 })
@@ -1971,7 +1489,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVD\\(s\\)` prior for `age:reg` term.")
 })
@@ -1985,7 +1502,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = NULL,
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVDS\\(s\\)` prior for `sex:age` term.")
 })
@@ -1998,7 +1514,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVDS\\(s\\)` prior for `bla:age` term.")
 })
@@ -2011,7 +1526,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "wrong"),
                "Internal error: unexpected value for `agesex`.")
 })
@@ -2024,7 +1538,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age:other"),
                "Problem with `SVDS\\(s\\)` prior for `sex:age:time` term.")
 })
@@ -2037,7 +1550,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age:other"),
                "Problem with `SVD\\(s\\)` prior for `sex:age:time` term.")
 })
@@ -2050,7 +1562,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVDS\\(s\\)` prior for `reg:age:time` term.")
 })
@@ -2063,7 +1574,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVD\\(s\\)` prior for `reg:age:time` term.")
 })
@@ -2076,7 +1586,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "wrong"),
                "Internal error: unexpected value for `agesex`.")
 })
@@ -2087,14 +1596,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
   expect_identical(levels_hyper(prior = AR(n = 2)),
                    c("coef1", "coef2", "sd"))
-})
-
-test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
-  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 4))
-  expect_identical(levels_hyper(prior),
-                   unname(c(trend = paste("trend", levels_hyper(Lin()), sep = "."),
-                            cyclical = paste("cyclical", levels_hyper(AR()), sep = "."),
-                            seasonal = paste("seasonal", levels_hyper(Seas(n = 4)), sep = "."))))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_ear'", {
@@ -2194,51 +1695,6 @@ test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
   ans_obtained <- levels_hyperrand(prior = AR(n = 2), levels_effect = levels_effect)
   ans_expected <- character()
   expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'levels_hyperrand' works with 'bage_prior_compose' - 2 priors", {
-  prior <- compose_time(ELin(), seasonal = ESeas(n = 4))
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
-  matrix_along_by <- matrix(0:25,
-                            nr = 13,
-                            dimnames = list(x = letters[1:13], y = c("a", "b")))
-  ans_obtained <- levels_hyperrand(prior = prior,
-                                   matrix_along_by = matrix_along_by,
-                                   levels_effect = levels_effect)
-  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
-                    c("trend.mslope.a", "trend.mslope.b"))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
-  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR())
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
-  matrix_along_by <- matrix(0:25,
-                            nr = 13,
-                            dimnames = list(x = letters[1:13], y = c("a", "b")))
-  ans_obtained <- levels_hyperrand(prior = prior,
-                                   matrix_along_by = matrix_along_by,
-                                   levels_effect = levels_effect)
-  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
-                    c("trend.mslope.a", "trend.mslope.b"),
-                    paste("cyclical.effect", levels_effect, sep = "."))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
-  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR(), error = N())
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
-  matrix_along_by <- matrix(0:25,
-                            nr = 13,
-                            dimnames = list(x = letters[1:13], y = c("a", "b")))
-  ans_obtained <- levels_hyperrand(prior = prior,
-                                   matrix_along_by = matrix_along_by,
-                                   levels_effect = levels_effect)
-  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
-                     c("trend.mslope.a", "trend.mslope.b"),
-                     paste("cyclical.effect", levels_effect, sep = "."),
-                     paste("seasonal.effect", levels_effect, sep = "."))
-  expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_elin'", {
@@ -2447,14 +1903,6 @@ test_that("'const' works with bage_prior_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
-  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
-  ans_obtained <- const(prior)
-  ans_expected <- unlist(c(list(trend = const(Lin())),
-                           list(seasonal = const(Seas(n = 3)))))
-  expect_identical(ans_obtained, ans_expected)
-})
-
 
 ## draw_vals_effect --------------------------------------------------------------
 
@@ -2470,31 +1918,6 @@ test_that("'draw_vals_effect' works with bage_prior_ar", {
                           vals_hyperrand = vals_hyperrand,
                           levels_effect = levels_effect,
                           agesex = "other",
-                          matrix_along_by = matrix_along_by,
-                          n_sim = n_sim)
-  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
-})
-
-test_that("'draw_vals_effect' works with bage_prior_compose", {
-  prior <- compose_time(trend = RW(), error = N())
-  agesex <- "other"
-  levels_effect <- letters
-  matrix_along_by <- matrix(0:25, nr = 26)
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
-                                        vals_hyper = vals_hyper,
-                                        levels_effect = levels_effect,
-                                        agesex = agesex,
-                                        matrix_along_by = matrix_along_by,
-                                        matrix_agesex = NULL,
-                                        n_sim = n_sim)
-  ans <- draw_vals_effect(prior = prior,
-                          vals_hyper = vals_hyper,
-                          vals_hyperrand = vals_hyperrand,
-                          levels_effect = levels_effect,
-                          agesex = agesex,
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
@@ -2793,14 +2216,6 @@ test_that("'draw_vals_hyper' works with bage_prior_ar", {
   expect_identical(dim(ans$coef), c(3L, 10L))
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_compose", {
-  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 2))
-  ans <- draw_vals_hyper(prior = prior,
-                         n_sim = 10)
-  expect_identical(names(ans), c("trend", "cyclical", "seasonal"))
-  expect_identical(length(ans$trend$slope), 10L)
-})
-
 test_that("'draw_vals_hyper' works with bage_prior_ear", {
   prior <- EAR(n = 3)
   ans <- draw_vals_hyper(prior = prior,
@@ -2913,26 +2328,6 @@ test_that("'draw_vals_hyper' works with bage_prior_svd", {
 
 ## 'draw_vals_hyperrand' ------------------------------------------------------
 
-test_that("'draw_vals_hyperrand' works with bage_prior_compose", {
-  set.seed(0)
-  prior <- compose_time(trend = ELin(), seasonal = ESeas(n = 2))
-  levels_effect <- letters[1:12]
-  agesex <- "other"
-  matrix_along_by <- matrix(0:11, nr = 3)
-  colnames(matrix_along_by) <- 1:4
-  n_sim <- 10
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = n_sim)
-  ans <- draw_vals_hyperrand(prior = prior,
-                             vals_hyper = vals_hyper,
-                             levels_effect = levels_effect,
-                             agesex = agesex,
-                             matrix_along_by = matrix_along_by,
-                             matrix_agesex = NULL,
-                             n_sim = n_sim)
-  expect_identical(names(ans), c("trend", "seasonal"))
-})
-
 test_that("'draw_vals_hyperrand' works with bage_prior_elin", {
   set.seed(0)
   prior <- ELin()
@@ -2982,80 +2377,6 @@ test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
   expect_false(has_hyperrand(prior))
 })
 
-test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
-  prior <- compose_time(trend = Lin(), season = Seas(n = 3))
-  expect_true(has_hyperrand(prior))
-  prior <- ELin()
-  expect_true(has_hyperrand(prior))
-})
-
-
-## 'indices_priors' -----------------------------------------------------------
-
-test_that("'indices_priors' works with non-compose prior", {
-  prior <- Lin()
-  matrix_along_by <- matrix(0:9, nr = 10)
-  ans_obtained <- indices_priors(prior = prior,
-                                 matrix_along_by = matrix_along_by)
-  expect_identical(ans_obtained, integer())                                 
-})
-
-test_that("'indices_priors' works with compose time prior - 2 priors", {
-  prior <- compose_time(trend = ELin(),
-                        cyclical = EAR())
-  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(a = 1:5, b = 1:2))
-  ans_obtained <- indices_priors(prior = prior,
-                                 matrix_along_by = matrix_along_by)
-  ans_expected <- c(hyper_start = 0L,
-                    hyper_length = 3L,
-                    hyperrand_start = 0L,
-                    hyperrand_length = 12L,
-                    consts_start = 0L,
-                    consts_length = 3L,
-                    i_prior = 9L,
-                    hyper_start = 3L,
-                    hyper_length = 3L,
-                    hyperrand_start = 12L,
-                    hyperrand_length = 0L,
-                    consts_start = 3L,
-                    consts_length = 5L,
-                    i_prior = 12L)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'indices_priors' works with compose time prior - 3 priors", {
-  prior <- compose_time(trend = RW2(),
-                        cyclical = AR(),
-                        error = N())
-  matrix_along_by <- matrix(0:9, nr = 10)
-  rownames(matrix_along_by) <- 1:10
-  names(dimnames(matrix_along_by))[1] <- "x"
-  ans_obtained <- indices_priors(prior = prior,
-                                 matrix_along_by = matrix_along_by)
-  ans_expected <- c(hyper_start = 0L,
-                    hyper_length = 1L,
-                    hyperrand_start = 0L,
-                    hyperrand_length = 10L,
-                    consts_start = 0L,
-                    consts_length = 1L,
-                    i_prior = 4L,
-                    hyper_start = 1L,
-                    hyper_length = 3L,
-                    hyperrand_start = 10L,
-                    hyperrand_length = 10L,
-                    consts_start = 1L,
-                    consts_length = 5L,
-                    i_prior = 5L,
-                    hyper_start = 4L,
-                    hyper_length = 1L,
-                    hyperrand_start = 20L,
-                    hyperrand_length = 0L,
-                    consts_start = 6L,
-                    consts_length = 1L,
-                    i_prior = 1L)
-  expect_identical(ans_obtained, ans_expected)
-})
-
 
 ## is_known -------------------------------------------------------------------
 
@@ -3074,31 +2395,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar1", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' works with bage_prior_compose - time", {
-  prior <- compose_time(trend = RW2(),
-                        cyclical = AR(),
-                        seas = Seas(n = 4))
-  expect_true(is_prior_ok_for_term(prior = prior,
-                                   nm = "time",
-                                   matrix_along_by = matrix(0:9, nc = 1),
-                                   var_time = "time",
-                                   var_age = "age",
-                                   var_sexgender = "sex",
-                                   is_in_compose = FALSE,
-                                   agesex = "other"))
-  expect_error(is_prior_ok_for_term(prior = prior,
-                                    nm = "bla:blu",
-                                    matrix_along_by = matrix(0:9, nc = 2),
-                                    var_time = "time",
-                                    var_age = "age",
-                                    var_sexgender = "sex",
-                                    is_in_compose = TRUE,
-                                    agesex = "other"),
-               "Problem with call to `bage::compose_time\\(\\)`.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_ear", {
@@ -3108,7 +2405,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ear", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -3119,7 +2415,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_elin", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -3130,31 +2425,7 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_erw", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' works with bage_prior_eseas", {
-  expect_true(is_prior_ok_for_term(prior = ESeas(n = 4),
-                                   nm = "time",
-                                   matrix_along_by = matrix(0:11, nc = 3),
-                                   var_time = "time",
-                                   var_age = "age",
-                                   var_sexgender = "sex",
-                                   is_in_compose = TRUE,
-                                   agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_eseas", {
-  expect_error(is_prior_ok_for_term(prior = ESeas(n = 4),
-                                    nm = "time",
-                                    matrix_along_by = matrix(0:12, nc = 3),
-                                    var_time = "time",
-                                    var_age = "age",
-                                    var_sexgender = "sex",
-                                    is_in_compose = FALSE,
-                                    agesex = "other"),
-               "`ESeas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_known", {
@@ -3164,7 +2435,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_known", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
 })
 
@@ -3175,7 +2445,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_lin", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "other"))
 })
 
@@ -3186,7 +2455,6 @@ test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", 
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "`Known\\(c\\(0.1,-0.1\\)\\)` prior for `sex` term invalid.")    
 })
@@ -3198,7 +2466,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -3209,7 +2476,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -3220,7 +2486,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -3230,30 +2495,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2", {
                                      matrix_along_by = matrix(0:2, nc = 1),
                                      var_time = "time",
                                      var_age = "age",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
-  expect_true(is_prior_ok_for_term(prior = Seas(n = 4),
-                                   nm = "time",
-                                   matrix_along_by = matrix(0:3, nc = 1),
-                                   var_time = "time",
-                                   var_age = "age",
-                                   is_in_compose = TRUE,
-                                   agesex = "other"))
-})
-
-test_that("'is_prior_ok_for_term' throws correct error with bage_prior_seas", {
-  expect_error(is_prior_ok_for_term(prior = Seas(n = 4),
-                                    nm = "time",
-                                    matrix_along_by = matrix(0:3, nc = 1),
-                                    var_time = "time",
-                                    var_age = "age",
-                                    var_sexgender = "sex",
-                                    is_in_compose = FALSE,
-                                    agesex = "other"),
-               "`Seas\\(n=4\\)` prior cannot be used on its own.")
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
@@ -3263,7 +2505,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_spline", {
                                      var_time = "time",
                                      var_age = "age",
                                      var_sexgender = "sex",
-                                     is_in_compose = FALSE,
                                      agesex = "other"))
 })
 
@@ -3275,7 +2516,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "age:sex"))
 })
 
@@ -3287,7 +2527,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = NULL,
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `SVD\\(s\\)` prior for `bla` term.")
 })
@@ -3300,7 +2539,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `SVDS\\(s\\)` prior for `bla` term.")
 })
@@ -3313,7 +2551,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age"),
                "Problem with `SVDS\\(s\\)` prior for `age` term.")
 })
@@ -3326,7 +2563,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age"),
                "Problem with `SVD\\(s\\)` prior for `sex:age` term.")
 })
@@ -3339,7 +2575,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = NULL,
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVDS\\(s\\)` prior for `sex:age` term.")
 })
@@ -3352,7 +2587,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVDS\\(s\\)` prior for `bla:age` term.")
 })
@@ -3365,7 +2599,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "wrong"),
                "Internal error: unexpected value for `agesex`.")
 })
@@ -3378,7 +2611,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age:other"),
                "Problem with `SVDS\\(s\\)` prior for `sex:age:time` term.")
 })
@@ -3391,7 +2623,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age:other"),
                "Problem with `SVD\\(s\\)` prior for `sex:age:time` term.")
 })
@@ -3404,7 +2635,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVDS\\(s\\)` prior for `reg:age:time` term.")
 })
@@ -3417,7 +2647,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `SVD\\(s\\)` prior for `reg:age:time` term.")
 })
@@ -3430,20 +2659,9 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "wrong"),
                "Internal error: unexpected value for `agesex`.")
 })
-
-
-
-
-
-
-
-
-
-
 
 test_that("'is_prior_ok_for_term' works with bage_prior_esvd, correct inputs", {
   s <- sim_ssvd()
@@ -3453,7 +2671,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_esvd, correct inputs", {
                                    var_time = "time",
                                    var_age = "age",
                                    var_sexgender = "sex",
-                                   is_in_compose = FALSE,
                                    agesex = "age:sex:other"))
 })
 
@@ -3465,7 +2682,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = NULL,
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `ESVD\\(s\\)` prior for `bla` term.")
 })
@@ -3478,7 +2694,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "other"),
                "Problem with `ESVDS\\(s\\)` prior for `bla` term.")
 })
@@ -3492,7 +2707,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age"),
                "Problem with `ESVDS\\(s\\)` prior for `age` term.")
 })
@@ -3505,7 +2719,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age"),
                "Problem with `ESVD\\(s\\)` prior for `age` term.")
 })
@@ -3519,7 +2732,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age"),
                "Problem with `ESVDS\\(s\\)` prior for `sex:age` term.")
 })
@@ -3532,7 +2744,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age"),
                "Problem with `ESVD\\(s\\)` prior for `sex:age` term.")
 })
@@ -3545,7 +2756,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = NULL,
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `ESVDS\\(s\\)` prior for `sex:age` term.")
 })
@@ -3558,7 +2768,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `ESVDS\\(s\\)` prior for `bla:age` term.")
 })
@@ -3571,7 +2780,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "wrong"),
                "Internal error: unexpected value for `agesex`.")
 })
@@ -3584,7 +2792,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "sex:age:other"),
                "Problem with `ESVD\\(s\\)` prior for `sex:age:time` term.")
 })
@@ -3597,7 +2804,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "age:other"),
                "Problem with `ESVDS\\(s\\)` prior for `reg:age:time` term.")
 })
@@ -3610,7 +2816,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
                                     var_time = "time",
                                     var_age = "age",
                                     var_sexgender = "sex",
-                                    is_in_compose = FALSE,
                                     agesex = "wrong"),
                "Internal error: unexpected value for `agesex`.")
 })
@@ -3621,14 +2826,6 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
   expect_identical(levels_hyper(prior = AR(n = 2)),
                    c("coef1", "coef2", "sd"))
-})
-
-test_that("'levels_hyper' works with 'bage_prior_compose - time'", {
-  prior <- compose_time(trend = Lin(), cyclical = AR(), seasonal = Seas(n = 4))
-  expect_identical(levels_hyper(prior),
-                   unname(c(trend = paste("trend", levels_hyper(Lin()), sep = "."),
-                            cyclical = paste("cyclical", levels_hyper(AR()), sep = "."),
-                            seasonal = paste("seasonal", levels_hyper(Seas(n = 4)), sep = "."))))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_ear'", {
@@ -3721,51 +2918,6 @@ test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
   ans_obtained <- levels_hyperrand(prior = AR(n = 2), levels_effect = levels_effect)
   ans_expected <- character()
   expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'levels_hyperrand' works with 'bage_prior_compose' - 2 priors", {
-  prior <- compose_time(ELin(), seasonal = ESeas(n = 4))
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
-  matrix_along_by <- matrix(0:25,
-                            nr = 13,
-                            dimnames = list(x = letters[1:13], y = c("a", "b")))
-  ans_obtained <- levels_hyperrand(prior = prior,
-                                   matrix_along_by = matrix_along_by,
-                                   levels_effect = levels_effect)
-  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
-                    c("trend.mslope.a", "trend.mslope.b"))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'levels_hyperrand' works with 'bage_prior_compose' - 3 priors", {
-  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR())
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
-  matrix_along_by <- matrix(0:25,
-                            nr = 13,
-                            dimnames = list(x = letters[1:13], y = c("a", "b")))
-  ans_obtained <- levels_hyperrand(prior = prior,
-                                   matrix_along_by = matrix_along_by,
-                                   levels_effect = levels_effect)
-  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
-                    c("trend.mslope.a", "trend.mslope.b"),
-                    paste("cyclical.effect", levels_effect, sep = "."))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'levels_hyperrand' works with 'bage_prior_compose' - 4 priors", {
-  prior <- compose_time(ELin(), seasonal = ESeas(n = 4), cyclical = EAR(), error = N())
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
-  matrix_along_by <- matrix(0:25,
-                            nr = 13,
-                            dimnames = list(x = letters[1:13], y = c("a", "b")))
-  ans_obtained <- levels_hyperrand(prior = prior,
-                                   matrix_along_by = matrix_along_by,
-                                   levels_effect = levels_effect)
-  ans_expected <- c(paste("trend.effect", levels_effect, sep = "."),
-                     c("trend.mslope.a", "trend.mslope.b"),
-                     paste("cyclical.effect", levels_effect, sep = "."),
-                     paste("seasonal.effect", levels_effect, sep = "."))
-  expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_elin'", {
@@ -4011,89 +3163,6 @@ test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, two components", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ compose_time(ELin(), error = N())) |>
-                  fit(mod)
-  mod <- set_n_draw(mod, 5)
-  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
-  comp <- make_comp_components(mod)
-  term <- make_term_components(mod)
-  level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
-  draws <- as.matrix(draws)
-  .fitted <- rvec::rvec_dbl(draws)
-  components <- tibble::tibble(component = comp,
-                               term = term,
-                               level = level,
-                               .fitted = .fitted)
-  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
-                                         components = components)
-  hyperrand_comp <- subset(components,
-                           component == "hyperrand" & grepl("trend\\.effect\\.", level))
-  effect_comp <- subset(components, component == "effect" & term == "sex:time")
-  hyperrand_new <- hyperrand_comp
-  hyperrand_new$.fitted <- effect_comp$.fitted - hyperrand_comp$.fitted
-  hyperrand_new$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
-  hyperrand_new$component <- "error"
-  hyperrand_comp$level <- sub("trend\\.effect\\.", "", hyperrand_new$level)
-  hyperrand_comp$component <- "trend"
-  hyper <- subset(components,
-                  component == "hyperrand" & grepl("mslope", level))
-  hyper$component <- "hyper"
-  ans_expected <- vctrs::vec_rbind(components[1:32,],
-                                   hyper,
-                                   hyperrand_comp,
-                                   hyperrand_new,
-                                   components[47, , drop = FALSE])
-  expect_identical(ans_obtained[1:3], ans_expected[1:3])
-})
-
-test_that("'reformat_hyperrand_one' works with bage_prior_compose - time, three components", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ compose_time(ELin(), cyclical = EAR(), error = N())) |>
-                  fit(mod)
-  mod <- set_n_draw(mod, 5)
-  comp <- make_comp_components(mod)
-  term <- make_term_components(mod)
-  level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
-  draws <- as.matrix(draws)
-  .fitted <- rvec::rvec_dbl(draws)
-  components <- tibble::tibble(component = comp,
-                               term = term,
-                               level = level,
-                               .fitted = .fitted)
-  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
-  comp_reformatted <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                             nm_prior <- "sex:time",
-                                             matrix_along_by = matrix_along_by,
-                                             components = components)
-  ans_obtained <- subset(comp_reformatted, component == "effect" & term == "sex:time")
-  ans_expected <- subset(comp_reformatted, component %in% c("trend", "cyclical", "error"))
-  ans_expected <- aggregate(ans_expected[".fitted"], ans_expected["level"], sum)
-  ans_expected <- ans_expected[match(ans_obtained$level, ans_expected$level),]
-  ans_expected <- ans_expected$.fitted
-  ans_obtained <- ans_obtained$.fitted
-  expect_equal(ans_obtained, ans_expected)
-})
-
 test_that("'reformat_hyperrand_one' works with bage_prior_elin", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
@@ -4134,15 +3203,6 @@ test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n = 3, s = 0.3)), "AR(n=3,s=0.3)")
     expect_identical(str_call_prior(AR(s = 0.3, n = 2)),
                      "AR(s=0.3)")
-})
-
-test_that("'str_call_prior' works with bage_prior_compose", {
-  expect_identical(str_call_prior(compose_time(Lin(), error = N())),
-                   "compose_time(trend=Lin(), error=N())")
-  expect_identical(str_call_prior(compose_time(trend = Lin(), seasonal = Seas(n = 3))),
-                   "compose_time(trend=Lin(), seasonal=Seas(n=3))")
-  expect_identical(str_call_prior(compose_time(error = N(s = 0.1), trend = ELin())),
-                   "compose_time(trend=ELin(), error=N(s=0.1))")
 })
 
 test_that("'str_call_prior' works with bage_prior_ear - EAR1", {
@@ -4277,11 +3337,6 @@ test_that("'str_nm_prior' works with bage_prior_ar - AR", {
    expect_identical(str_nm_prior(AR(n = 3, s = 0.3)), "AR()")
 })
 
-test_that("'str_nm_prior' works with bage_prior_compose", {
-  expect_identical(str_nm_prior(compose_time(Lin(), error = N())),
-                   "compose_time()")
-})
-
 test_that("'str_nm_prior' works with bage_prior_ear - EAR1", {
     expect_identical(str_nm_prior(EAR1()), "EAR1()")
     expect_identical(str_nm_prior(EAR1(min = 0.5)), "EAR1()")
@@ -4395,14 +3450,6 @@ test_that("'transform_hyper' works with 'bage_prior_ar - AR'", {
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
-})
-
-test_that("'transform_hyper' works with 'bage_prior_compose'", {
-  prior <- compose_time(trend = Lin(), cyclical = AR())
-  ans_obtained <- transform_hyper(prior = prior)
-  ans_expected <- unlist(c(list(trend = transform_hyper(Lin())),
-                           list(cyclical = transform_hyper(AR()))))
-  expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
 })
 
 test_that("'transform_hyper' works with 'bage_prior_ar - EAR1'", {
@@ -4536,16 +3583,6 @@ test_that("'transform_hyperrand' works with 'bage_prior_ar1'", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'transform_hyperrand' works with 'bage_prior_compose'", {
-  matrix_along_by <- matrix(0:9, nc = 2)
-  prior <- compose_time(trend = ELin(), cyclical = EAR(), error = N())
-  ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
-  ans_expected <- c(rep(list(trend.effect = identity), times = 10),
-                    rep(list(trend.mslope = identity), times = 2),
-                    rep(list(cyclical.effect = identity), times = 10))
-  expect_equal(ans_obtained, ans_expected, ignore_function_env = TRUE)
-})
-
 test_that("'transform_hyperrand' works with 'bage_prior_elin'", {
   matrix_along_by <- matrix(0:9, nc = 2)
   l <- transform_hyperrand(prior = ELin(),
@@ -4553,101 +3590,6 @@ test_that("'transform_hyperrand' works with 'bage_prior_elin'", {
   expect_equal(0.35, l[[1]](0.35))
   expect_equal(0.35, l[[2]](0.35))
   expect_identical(length(l), 2L)
-})
-
-
-## use_for_compose_cyclical ---------------------------------------------------
-
-test_that("'use_for_compose_cyclical' returns TRUE with priors that can be used for cyclical", {
-  expect_true(use_for_compose_cyclical(AR1()))
-  expect_true(use_for_compose_cyclical(EAR()))
-})
-
-test_that("'use_for_compose_cyclical' returns FALSE with priors that cannot be used for cyclical", {
-  expect_false(use_for_compose_cyclical(ESeas(n = 12)))
-  expect_false(use_for_compose_cyclical(ELin()))
-  expect_false(use_for_compose_cyclical(ERW()))
-  expect_false(use_for_compose_cyclical(ERW2()))
-  expect_false(use_for_compose_cyclical(Known(c(a = 1, b = -1))))
-  expect_false(use_for_compose_cyclical(Lin()))
-  expect_false(use_for_compose_cyclical(NFix()))
-  expect_false(use_for_compose_cyclical(RW()))
-  expect_false(use_for_compose_cyclical(RW2()))
-  expect_false(use_for_compose_cyclical(Seas(n = 4)))
-  expect_false(use_for_compose_cyclical(Sp()))
-  expect_false(use_for_compose_cyclical(SVD(HMD)))
-})
-
-
-## use_for_compose_error ------------------------------------------------------
-
-test_that("'use_for_compose_error' returns TRUE with priors that can be used for error", {
-  expect_true(use_for_compose_error(N()))
-})
-
-test_that("'use_for_compose_error' returns FALSE with priors that cannot be used for error", {
-  expect_false(use_for_compose_error(AR1()))
-  expect_false(use_for_compose_error(EAR1()))
-  expect_false(use_for_compose_error(ELin()))
-  expect_false(use_for_compose_error(ERW()))
-  expect_false(use_for_compose_error(ERW2()))
-  expect_false(use_for_compose_error(ESeas(n = 12)))
-  expect_false(use_for_compose_error(Known(c(a = 1, b = -1))))
-  expect_false(use_for_compose_error(Lin()))
-  expect_false(use_for_compose_error(NFix()))
-  expect_false(use_for_compose_error(RW()))
-  expect_false(use_for_compose_error(RW2()))
-  expect_false(use_for_compose_error(Seas(n = 4)))
-  expect_false(use_for_compose_error(Sp()))
-  expect_false(use_for_compose_error(SVD(HMD)))
-})
-
-
-## use_for_compose_seasonal ------------------------------------------------------
-
-test_that("'use_for_compose_seasonal' returns TRUE with priors that can be used for seasonal", {
-    expect_true(use_for_compose_seasonal(ESeas(n = 12)))
-    expect_true(use_for_compose_seasonal(Seas(n = 4)))
-})
-
-test_that("'use_for_compose_seasonal' returns FALSE with priors that cannot be used for seasonal", {
-    expect_false(use_for_compose_seasonal(AR1()))
-    expect_false(use_for_compose_seasonal(EAR1()))
-    expect_false(use_for_compose_seasonal(ELin()))
-    expect_false(use_for_compose_seasonal(ERW()))
-    expect_false(use_for_compose_seasonal(ERW2()))
-    expect_false(use_for_compose_seasonal(Lin()))
-    expect_false(use_for_compose_seasonal(N()))
-    expect_false(use_for_compose_seasonal(NFix()))
-    expect_false(use_for_compose_seasonal(RW()))
-    expect_false(use_for_compose_seasonal(RW2()))
-    expect_false(use_for_compose_seasonal(Sp()))
-    expect_false(use_for_compose_seasonal(Known(c(a = 1, b = -1))))
-    expect_false(use_for_compose_seasonal(SVD(HMD)))
-})
-
-
-## use_for_compose_trend ------------------------------------------------------
-
-test_that("'use_for_compose_trend' returns TRUE with priors that can be used for trend", {
-    expect_true(use_for_compose_trend(AR()))
-    expect_true(use_for_compose_trend(EAR()))
-    expect_true(use_for_compose_trend(ELin()))
-    expect_true(use_for_compose_trend(ERW()))
-    expect_true(use_for_compose_trend(ERW2()))
-    expect_true(use_for_compose_trend(Lin()))
-    expect_true(use_for_compose_trend(RW()))
-    expect_true(use_for_compose_trend(RW2()))
-    expect_true(use_for_compose_trend(Sp()))
-})
-
-test_that("'use_for_compose_trend' returns FALSE with priors that cannot be used for trend", {
-    expect_false(use_for_compose_trend(Known(c(a = 1, b = -1))))
-    expect_false(use_for_compose_trend(N()))
-    expect_false(use_for_compose_trend(NFix()))
-    expect_false(use_for_compose_trend(Seas(n = 4)))
-    expect_false(use_for_compose_trend(ESeas(n = 12)))
-    expect_false(use_for_compose_trend(SVD(HMD)))
 })
 
 
@@ -4713,22 +3655,10 @@ test_that("'uses_along' works with valid inputs", {
     expect_true(uses_along(ESeas(n = 2)))
 })
 
-test_that("'uses_along' works with 'compose_time", {
-  prior <- compose_time(trend = RW(), error = N())
-  expect_false(uses_along(prior))
-  prior <- compose_time(trend = ERW(), error = N())
-  expect_true(uses_along(prior))
-})
-
 
 ## uses_hyperrand ------------------------------------------------------
 
-test_that("'uses_hyperrand' returns TRUE with priors that can be used for seasonal", {
-  expect_true(uses_hyperrand(compose_time(ERW(), err = N())))
-  expect_true(uses_hyperrand(ELin()))
-})
-
-test_that("'uses_hyperrand' returns FALSE with priors that cannot be used for seasonal", {
+test_that("'uses_hyperrand' returns FALSE with priors that do not use hyperrand parameters", {
   expect_false(uses_hyperrand(AR1()))
   expect_false(uses_hyperrand(EAR1()))
   expect_false(uses_hyperrand(ERW()))
@@ -4780,30 +3710,6 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
                                  component = "hyper",
                                  level = c("coef1", "coef2", "coef3", "sd"),
                                  .fitted = rvec::rvec(unname(rbind(vals_hyper[[1]], vals_hyper[[2]]))))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'vals_hyper_to_dataframe' works with bage_prior_compose", {
-  prior <- compose_time(RW2(), cyclical = AR(), seasonal = Seas(n = 2))
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = 10)
-  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
-                                          nm_prior = "time",
-                                          vals_hyper = vals_hyper,
-                                          n_sim = 10)
-  fitted <- vctrs::vec_rbind(vals_hyper[[1]][[1]],
-                             vals_hyper[[2]][[1]],
-                             vals_hyper[[2]][[2]],
-                             vals_hyper[[3]][[1]],
-                             .name_repair = "universal_quiet")
-  fitted <- as.matrix(fitted)
-  dimnames(fitted) <- NULL
-  ans_expected <- tibble::tibble(term = "time",
-                                 component = "hyper",
-                                 level = c("trend.sd",
-                                           "cyclical.coef1", "cyclical.coef2", "cyclical.sd",
-                                           "seasonal.sd"),
-                                 .fitted = rvec::rvec(fitted))
   expect_equal(ans_obtained, ans_expected)
 })
 

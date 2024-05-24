@@ -210,26 +210,6 @@ test_that("'components' gives same answer when run twice - no data", {
     expect_identical(ans1, ans2)
 })
 
-test_that("'components' works with compose_time", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), error = N()))
-    comp_nodata <- components(mod, quiet = TRUE)
-    expect_setequal(unique(comp_nodata$component), c("effect", "hyper", "trend", "error", "disp"))
-    mod_fitted <- fit(mod)
-    comp_data <- components(mod_fitted)
-    expect_true(is.data.frame(comp_data))
-    expect_setequal(unique(comp_data$component), c("effect", "hyper", "trend", "error", "disp"))
-    comp_both <- merge(comp_nodata[1:3], comp_data[1:3])
-    expect_identical(nrow(comp_both), nrow(comp_nodata))
-})
-
 test_that("'components' gives message when used unfitted and quiet is FALSE", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
@@ -862,7 +842,7 @@ test_that("'fit' works with ERW", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ compose_time(ERW(), error = N()))
+    mod <- set_prior(mod, sex:time ~ ERW())
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -890,21 +870,7 @@ test_that("'fit' works with ESeas", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ compose_time(ERW(), seasonal = ESeas(n = 2)))
-    ans_obtained <- fit(mod)
-    expect_s3_class(ans_obtained, "bage_mod")
-})
-
-test_that("'fit' works with compose_time", {
-    set.seed(0)
-    data <- expand.grid(age = 0:4, time = 2000:2009, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ sex * time + age
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, time ~ compose_time(trend = Lin(), error = N()))
+    mod <- set_prior(mod, sex:time ~ ERW())
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -1091,7 +1057,6 @@ test_that("'forecast_augment' works - Poisson, has disp", {
                   data = data,
                   exposure = exposure)
   mod <- set_n_draw(mod, n = 10)
-  mod <- set_prior(mod, time ~ compose_time(trend = RW(), seasonal = Seas(n = 2)))
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
@@ -1121,34 +1086,6 @@ test_that("'forecast_augment' works - binomial, no disp", {
                   size = popn)
   mod <- set_n_draw(mod, n = 10)
   mod <- set_disp(mod, mean = 0)
-  mod <- fit(mod)
-  components_est <- components(mod)
-  labels_forecast <- 2006:2008
-  set.seed(1)
-  components_forecast <- forecast_components(mod = mod,
-                                             components_est = components_est,
-                                             labels_forecast = labels_forecast)
-  ans <- forecast_augment(mod = mod,
-                          components_est = components_est,
-                          components_forecast = components_forecast,
-                          labels_forecast = labels_forecast)
-  aug_est <- augment(mod)
-  expect_setequal(ans$age, aug_est$age)
-  expect_setequal(ans$sex, aug_est$sex)
-  expect_setequal(ans$time, 2006:2008)
-  expect_identical(names(ans), names(aug_est))
-})
-
-test_that("'forecast_augment' works - normal model", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$income <- rnorm(n = nrow(data))
-  formula <- income ~ age * sex + sex * time
-  mod <- mod_norm(formula = formula,
-                  data = data,
-                  weights = 1)
-  mod <- set_n_draw(mod, n = 10)
-  mod <- set_prior(mod, time ~ compose_time(trend = RW(), seasonal = Seas(n = 2)))
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008

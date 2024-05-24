@@ -21,15 +21,6 @@ const <- function(prior) {
 #' @export
 const.bage_prior <- function(prior) prior$const
 
-## HAS_TESTS
-#' @export
-const.bage_prior_compose <- function(prior) {
-  priors <- prior$specific$priors
-  ans <- lapply(priors, const)
-  ans <- unlist(ans)
-  ans
-}
-
 
 ## 'draw_vals_effect' ------------------------------------------------------------
 
@@ -87,26 +78,6 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   ans <- draw_vals_ar(n = n, coef = coef, sd = sd)
   ans <- ans - rep(colMeans(ans), each = n)
   dimnames(ans) <- list(levels_effect, seq_len(n_sim))
-  ans
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_effect.bage_prior_compose <- function(prior,
-                                                vals_hyper,
-                                                vals_hyperrand,
-                                                levels_effect,
-                                                levels_age,
-                                                levels_sexgender,
-                                                agesex,
-                                                matrix_along_by,
-                                                matrix_agesex,
-                                                n_sim) {
-  priors <- prior$specific$priors
-  nms_priors <- names(priors)
-  components <- vals_hyperrand[nms_priors]
-  components <- lapply(components, `[[`, 1L)
-  ans <- Reduce(`+`, components)
   ans
 }
 
@@ -530,13 +501,6 @@ draw_vals_hyper.bage_prior_ar <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_compose <- function(prior, n_sim) {
-  priors <- prior$specific$priors
-  ans <- lapply(priors, draw_vals_hyper, n_sim = n_sim)
-}
-
-## HAS_TESTS
-#' @export
 draw_vals_hyper.bage_prior_ear <- function(prior, n_sim) {
     coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
@@ -699,35 +663,6 @@ draw_vals_hyperrand.bage_prior <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_compose <- function(prior,
-                                                   vals_hyper,
-                                                   levels_effect,
-                                                   agesex,
-                                                   matrix_along_by,
-                                                   matrix_agesex,
-                                                   n_sim) {
-  priors <- prior$specific$priors
-  vals_hyperrand <- .mapply(draw_vals_hyperrand,
-                            dots = list(prior = priors,
-                                        vals_hyper = vals_hyper),
-                            MoreArgs = list(matrix_along_by = matrix_along_by,
-                                            n_sim = n_sim))
-  ans <- .mapply(draw_vals_effect,
-                 dots = list(prior = priors,
-                             vals_hyper = vals_hyper,
-                             vals_hyperrand = vals_hyperrand),
-                 MoreArgs = list(levels_effect = levels_effect,
-                                 agesex = agesex,
-                                 matrix_along_by = matrix_along_by,
-                                 matrix_agesex = matrix_agesex,
-                                 n_sim = n_sim))
-  ans <- lapply(ans, list)
-  names(ans) <- names(priors)
-  ans                 
-}
-
-## HAS_TESTS
-#' @export
 draw_vals_hyperrand.bage_prior_elin <- function(prior,
                                                 vals_hyper,
                                                 levels_effect,
@@ -742,114 +677,6 @@ draw_vals_hyperrand.bage_prior_elin <- function(prior,
                              matrix_along_by = matrix_along_by,
                              n_sim = n_sim)
   list(mslope = mslope)
-}
-
-
-## 'forecast_compose' ---------------------------------------------------------
-
-#' Forecast a 'compose' Main Effect or Interaction
-#'
-#' Forecast values for term with a
-#' composed of two or more components,
-#' eg trend, seasoonal, error.
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param nm_prior Name of the prior
-#' @param hyper_est Tibble holding draws
-#' for estimates of hyper-parameters (or NULL)
-#' @param hyper_forecast Tibble holding draws
-#' for forecasts of hyper-parameters (or NULL)
-#' @param compose_est Tibble holding draws
-#' for estimates of components from
-#' 'compose' prior (or NULL)
-#' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
-#' @param matrix_along_by_forecast Matrix mapping
-#' along and by dimensions to position in forecasts
-#' @param levels_forecast Labels for elements
-#' of forecasted term
-#'
-#' @returns A tibble
-#'
-#' @noRd
-forecast_compose <- function(prior,
-                             nm_prior,
-                             hyper_est,
-                             hyper_forecast,
-                             compose_est,
-                             matrix_along_by_est,
-                             matrix_along_by_forecast,
-                             levels_forecast) {
-  UseMethod("forecast_compose")
-}
-
-## HAS_TESTS
-#' @export
-forecast_compose.bage_prior <- function(prior,
-                                        nm_prior,
-                                        hyper_est,
-                                        hyper_forecast,
-                                        compose_est,
-                                        matrix_along_by_est,
-                                        matrix_along_by_forecast,
-                                        levels_forecast) {
-  NULL
-}
-
-## HAS_TESTS
-#' @export
-forecast_compose.bage_prior_compose <- function(prior,
-                                                nm_prior,
-                                                hyper_est,
-                                                hyper_forecast,
-                                                compose_est,
-                                                matrix_along_by_est,
-                                                matrix_along_by_forecast,
-                                                levels_forecast) {
-  priors <- prior$specific$priors
-  nms_priors <- names(priors)
-  n_prior <- length(nms_priors)
-  p_hyper <- "^(.*)\\.(.*)$"
-  hypers_est <- rep(list(NULL), times = n_prior)
-  if (!is.null(hyper_est)) {
-    comp_hyper_est <- sub(p_hyper, "\\1", hyper_est$level)
-    hyper_est$level <- sub(p_hyper, "\\2", hyper_est$level)
-    hyper_est <- vctrs::vec_split(x = hyper_est, by = comp_hyper_est)
-    nms_hyper_est <- hyper_est$key
-    val_hyper_est <- hyper_est$val
-    i_hyper_est <- match(nms_priors, nms_hyper_est, nomatch = 0L)
-    hypers_est[i_hyper_est] <- val_hyper_est
-  }
-  hypers_forecast <- rep(list(NULL), times = n_prior)
-  if (!is.null(hyper_forecast)) {
-    comp_hyper_forecast <- sub(p_hyper, "\\1", hyper_forecast$level)
-    hyper_forecast$level <- sub(p_hyper, "\\2", hyper_forecast$level)
-    hyper_forecast <- vctrs::vec_split(x = hyper_forecast, by = comp_hyper_forecast)
-    nms_hyper_forecast <- hyper_forecast$key
-    val_hyper_forecast <- hyper_forecast$val
-    i_hyper_forecast <- match(nms_priors, nms_hyper_forecast, nomatch = 0L)
-    hypers_forecast[i_hyper_forecast] <- val_hyper_forecast
-  }
-  compose_est <- vctrs::vec_split(x = compose_est,
-                                  by = compose_est["component"])
-  nms_compose_est <- compose_est$key$component
-  compose_est <- compose_est$val
-  i_compose_est <- match(nms_priors, nms_compose_est)
-  compose_est <- compose_est[i_compose_est]
-  ans <- .mapply(forecast_effect,
-                 dots = list(prior = priors,
-                             nm_prior = nms_priors,
-                             hyper_est = hypers_est,
-                             hyper_forecast = hypers_forecast,
-                             effect_est = compose_est),
-                 MoreArgs = list(compose_est = NULL,
-                                 levels_forecast = levels_forecast,
-                                 matrix_along_by_est = matrix_along_by_est,
-                                 matrix_along_by_forecast = matrix_along_by_forecast))
-  ans <- vctrs::vec_rbind(!!!ans, .name_repair = "universal_quiet")
-  ans$component <- ans$term
-  ans$term <- nm_prior
-  ans
 }
 
 
@@ -870,12 +697,6 @@ forecast_compose.bage_prior_compose <- function(prior,
 #' for estimates of hyper-parameters (or NULL)
 #' @param hyper_forecast Tibble holding draws
 #' for forecasts of hyper-parameters (or NULL)
-#' @param compose_est Tibble holding draws
-#' for estimates of components from
-#' 'compose' prior (or NULL)
-#' @param compose_forecast Tibble holding draws
-#' for forecasts of components from 'compose'
-#' prior (or NULL)
 #' @param effect_est Tibble holding
 #' draws from estimates of effect
 #' @param matrix_along_by_est Matrix mapping
@@ -892,8 +713,6 @@ forecast_effect <- function(prior,
                             nm_prior,
                             hyper_est,
                             hyper_forecast,
-                            compose_est,
-                            compose_forecast,
                             effect_est,
                             matrix_along_by_est,
                             matrix_along_by_forecast,
@@ -907,8 +726,6 @@ forecast_effect.bage_prior <- function(prior,
                                        nm_prior,
                                        hyper_est,
                                        hyper_forecast,
-                                       compose_est,
-                                       compose_forecast,
                                        effect_est,
                                        matrix_along_by_est,
                                        matrix_along_by_forecast,
@@ -925,8 +742,6 @@ forecast_effect.bage_prior_ar <- function(prior,
                                           nm_prior,
                                           hyper_est,
                                           hyper_forecast,
-                                          compose_est,
-                                          compose_forecast,
                                           effect_est,
                                           matrix_along_by_est,
                                           matrix_along_by_forecast,
@@ -952,33 +767,10 @@ forecast_effect.bage_prior_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-forecast_effect.bage_prior_compose <- function(prior,
-                                               nm_prior,
-                                               hyper_est,
-                                               hyper_forecast,
-                                               compose_est,
-                                               compose_forecast,
-                                               effect_est,
-                                               matrix_along_by_est,
-                                               matrix_along_by_forecast,
-                                               levels_forecast) {
-  .fitted <- split(compose_forecast$.fitted,
-                   compose_forecast$component)
-  .fitted <- Reduce("+", .fitted)
-  tibble::tibble(term = nm_prior,
-                 component = "effect",
-                 level = levels_forecast,
-                 .fitted = .fitted)
-}
-
-## HAS_TESTS
-#' @export
 forecast_effect.bage_prior_ear <- function(prior,
                                            nm_prior,
                                            hyper_est,
                                            hyper_forecast,
-                                           compose_est,
-                                           compose_forecast,
                                            effect_est,
                                            matrix_along_by_est,
                                            matrix_along_by_forecast,
@@ -1016,8 +808,6 @@ forecast_effect.bage_prior_elin <- function(prior,
                                             nm_prior,
                                             hyper_est,
                                             hyper_forecast,
-                                            compose_est,
-                                            compose_forecast,
                                             effect_est,
                                             matrix_along_by_est,
                                             matrix_along_by_forecast,
@@ -1051,8 +841,6 @@ forecast_effect.bage_prior_erw <- function(prior,
                                            nm_prior,
                                            hyper_est,
                                            hyper_forecast,
-                                           compose_est,
-                                           compose_forecast,
                                            effect_est,
                                            matrix_along_by_est,
                                            matrix_along_by_forecast,
@@ -1085,8 +873,6 @@ forecast_effect.bage_prior_erw2 <- function(prior,
                                             nm_prior,
                                             hyper_est,
                                             hyper_forecast,
-                                            compose_est,
-                                            compose_forecast,
                                             effect_est,
                                             matrix_along_by_est,
                                             matrix_along_by_forecast,
@@ -1123,8 +909,6 @@ forecast_effect.bage_prior_eseas <- function(prior,
                                              nm_prior,
                                              hyper_est,
                                              hyper_forecast,
-                                             compose_est,
-                                             compose_forecast,
                                              effect_est,
                                              matrix_along_by_est,
                                              matrix_along_by_forecast,
@@ -1160,8 +944,6 @@ forecast_effect.bage_prior_lin <- function(prior,
                                            nm_prior,
                                            hyper_est,
                                            hyper_forecast,
-                                           compose_est,
-                                           compose_forecast,
                                            effect_est,
                                            matrix_along_by_est,
                                            matrix_along_by_forecast,
@@ -1189,8 +971,6 @@ forecast_effect.bage_prior_linar <- function(prior,
                                              nm_prior,
                                              hyper_est,
                                              hyper_forecast,
-                                             compose_est,
-                                             compose_forecast,
                                              effect_est,
                                              matrix_along_by_est,
                                              matrix_along_by_forecast,
@@ -1232,8 +1012,6 @@ forecast_effect.bage_prior_norm <- function(prior,
                                            nm_prior,
                                            hyper_est,
                                            hyper_forecast,
-                                           compose_est,
-                                           compose_forecast,
                                            effect_est,
                                            matrix_along_by_est,
                                            matrix_along_by_forecast,
@@ -1254,8 +1032,6 @@ forecast_effect.bage_prior_normfixed <- function(prior,
                                                  nm_prior,
                                                  hyper_est,
                                                  hyper_forecast,
-                                                 compose_est,
-                                                 compose_forecast,
                                                  effect_est,
                                                  matrix_along_by_est,
                                                  matrix_along_by_forecast,
@@ -1279,8 +1055,6 @@ forecast_effect.bage_prior_rw <- function(prior,
                                           nm_prior,
                                           hyper_est,
                                           hyper_forecast,
-                                          compose_est,
-                                          compose_forecast,
                                           effect_est,
                                           matrix_along_by_est,
                                           matrix_along_by_forecast,
@@ -1305,8 +1079,6 @@ forecast_effect.bage_prior_rw2 <- function(prior,
                                            nm_prior,
                                            hyper_est,
                                            hyper_forecast,
-                                           compose_est,
-                                           compose_forecast,
                                            effect_est,
                                            matrix_along_by_est,
                                            matrix_along_by_forecast,
@@ -1334,8 +1106,6 @@ forecast_effect.bage_prior_seas <- function(prior,
                                             nm_prior,
                                             hyper_est,
                                             hyper_forecast,
-                                            compose_est,
-                                            compose_forecast,
                                             effect_est,
                                             matrix_along_by_est,
                                             matrix_along_by_forecast,
@@ -1413,74 +1183,7 @@ has_hyperrand.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-has_hyperrand.bage_prior_compose <- function(prior) TRUE
-
-## HAS_TESTS
-#' @export
 has_hyperrand.bage_prior_elin <- function(prior) TRUE
-
-
-## 'indices_priors' ----------------------------------------------------------------
-
-#' Information on Priors Making Up Compose Prior
-#'
-#' Creates index vector describing priors
-#' making up an object of class 'bage_prior_compose'.
-#'
-#' @param prior An object of class "bage_prior"
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
-#'
-#' @returns An integer vector
-#'
-#' @noRd
-indices_priors <- function(prior, matrix_along_by) {
-    UseMethod("indices_priors")
-}
-
-## HAS_TESTS
-#' @export
-indices_priors.bage_prior <- function(prior, matrix_along_by) {
-  integer()
-}
-
-## HAS_TESTS
-#' @export
-indices_priors.bage_prior_compose <- function(prior, matrix_along_by) {
-  priors <- prior$specific$priors
-  n_prior <- length(priors)
-  n_effect <- length(matrix_along_by)
-  levels_hyper <- lapply(priors, levels_hyper)
-  lengths_hyper <- lengths(levels_hyper)
-  levels_hyperrand <- lapply(priors,
-                             levels_hyperrand,
-                             matrix_along_by = matrix_along_by)
-  lengths_hyperrand <- lengths(levels_hyperrand)
-  lengths_hyperrand[-n_prior] <- lengths_hyperrand[-n_prior] + n_effect
-  consts <- lapply(priors, const)
-  lengths_consts <- lengths(consts)
-  ans <- integer()
-  hyper_start <- 0L
-  hyperrand_start <- 0L
-  consts_start <- 0L
-  for (i_prior in seq_len(n_prior)) {
-    hyper_length <- lengths_hyper[[i_prior]]
-    hyperrand_length <- lengths_hyperrand[[i_prior]]
-    consts_length <- lengths_consts[[i_prior]]
-    i_prior_index = priors[[i_prior]]$i_prior
-    ans <- c(ans,
-             hyper_start = hyper_start,
-             hyper_length = hyper_length,
-             hyperrand_start = hyperrand_start,
-             hyperrand_length = hyperrand_length,
-             consts_start = consts_start,
-             consts_length = consts_length,
-             i_prior = i_prior_index)
-    hyper_start <- hyper_start + hyper_length
-    hyperrand_start <- hyperrand_start + hyperrand_length
-    consts_start <- consts_start + consts_length
-  }
-  ans
-}
 
 
 ## 'is_known' -----------------------------------------------------------------
@@ -1517,8 +1220,6 @@ is_known.bage_prior_known <- function(prior) TRUE
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
-#' @param is_in_compose Whether prior is being used as an
-#' argument in a call to a 'compose' function
 #' @param agesex String. One of "age", "age:sex",
 #' "sex:age" or "other"
 #'
@@ -1531,7 +1232,6 @@ is_prior_ok_for_term <- function(prior,
                                  var_time,
                                  var_age,
                                  var_sexgender,
-                                 is_in_compose,
                                  agesex) {
   UseMethod("is_prior_ok_for_term")
 }
@@ -1544,7 +1244,6 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender,
-                                                is_in_compose,
                                                 agesex) {
   check_is_main_effect(nm = nm,
                        prior = prior)
@@ -1559,47 +1258,12 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_compose <- function(prior,
-                                                    nm,
-                                                    matrix_along_by,
-                                                    var_time,
-                                                    var_age,
-                                                    var_sexgender,
-                                                    is_in_compose,
-                                                    agesex) {
-  priors <- prior$specific$priors
-  nm_compose <- prior$specific$nm
-  nm_split <- strsplit(nm, split = ":")[[1L]]
-  if (nm_compose == "compose_time") {
-    if (!(var_time %in% nm_split)) {
-      msg <- c("Problem with call to {.fun bage::compose_time}.",
-               i = "Term {.val {nm}} does not include a time dimension.")
-      if (!is.null(var_time))
-        msg <- c(msg, i = "Time dimension: {.val {var_time}}.")
-      cli::cli_abort(msg)
-    }
-  }
-  vapply(priors,
-         is_prior_ok_for_term,
-         TRUE,
-         nm = nm,
-         matrix_along_by = matrix_along_by,
-         var_time = var_time,
-         var_age = var_age,
-         is_in_compose = TRUE,
-         agesex = agesex)
-  invisible(TRUE)
-}
-
-## HAS_TESTS
-#' @export
 is_prior_ok_for_term.bage_prior_ear <- function(prior,
                                                 nm,
                                                 matrix_along_by,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender,
-                                                is_in_compose,
                                                 agesex) {
   check_is_interaction(nm = nm,
                        prior = prior)
@@ -1620,7 +1284,6 @@ is_prior_ok_for_term.bage_prior_elin <- function(prior,
                                                  var_time,
                                                  var_age,
                                                  var_sexgender,
-                                                 is_in_compose,
                                                  agesex) {
   check_is_interaction(nm = nm, prior = prior)
   length_along <- nrow(matrix_along_by)
@@ -1639,7 +1302,6 @@ is_prior_ok_for_term.bage_prior_erw <- function(prior,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender,
-                                                is_in_compose,
                                                 agesex) {
   check_is_interaction(nm = nm,
                        prior = prior)
@@ -1659,7 +1321,6 @@ is_prior_ok_for_term.bage_prior_erw2 <- function(prior,
                                                  var_time,
                                                  var_age,
                                                  var_sexgender,
-                                                 is_in_compose,
                                                  agesex) {
   check_is_interaction(nm = nm,
                        prior = prior)
@@ -1673,31 +1334,12 @@ is_prior_ok_for_term.bage_prior_erw2 <- function(prior,
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_eseas <- function(prior,
-                                                  nm,
-                                                  matrix_along_by,
-                                                  var_time,
-                                                  var_age,
-                                                  var_sexgender,
-                                                  is_in_compose,
-                                                  agesex) {
-  if (!is_in_compose) {
-    str <- str_call_prior(prior)
-    cli::cli_abort(c("{.var {str}} prior cannot be used on its own.",
-                     i = "{.var {str}} prior can only be inside 'compose' function."))
-  }
-  invisible(TRUE)
-}
-
-## HAS_TESTS
-#' @export
 is_prior_ok_for_term.bage_prior_known <- function(prior,
                                                   nm,
                                                   matrix_along_by,
                                                   var_time,
                                                   var_age,
                                                   var_sexgender,
-                                                  is_in_compose,
                                                   agesex) {
   values <- prior$specific$values
   n_values <- length(values)
@@ -1719,7 +1361,6 @@ is_prior_ok_for_term.bage_prior_lin <- function(prior,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender, 
-                                                is_in_compose,
                                                 agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
@@ -1738,7 +1379,6 @@ is_prior_ok_for_term.bage_prior_linar <- function(prior,
                                                   var_time,
                                                   var_age,
                                                   var_sexgender, 
-                                                  is_in_compose,
                                                   agesex) {
   check_is_main_effect(nm = nm,
                        prior = prior)
@@ -1759,7 +1399,6 @@ is_prior_ok_for_term.bage_prior_norm <- function(prior,
                                                  var_time,
                                                  var_age,
                                                  var_sexgender,
-                                                 is_in_compose,
                                                  agesex) {
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
@@ -1777,7 +1416,6 @@ is_prior_ok_for_term.bage_prior_normfixed <- function(prior,
                                                       var_time,
                                                       var_age,
                                                       var_sexgender,
-                                                      is_in_compose,
                                                       agesex) {
   length_effect <- length(matrix_along_by)
   check_length_effect_ge(length_effect = length_effect,
@@ -1795,7 +1433,6 @@ is_prior_ok_for_term.bage_prior_rw <- function(prior,
                                                var_time,
                                                var_age,
                                                var_sexgender,
-                                               is_in_compose,
                                                agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
@@ -1814,7 +1451,6 @@ is_prior_ok_for_term.bage_prior_rw2 <- function(prior,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender,
-                                                is_in_compose,
                                                 agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
@@ -1827,31 +1463,12 @@ is_prior_ok_for_term.bage_prior_rw2 <- function(prior,
 
 ## HAS_TESTS
 #' @export
-is_prior_ok_for_term.bage_prior_seas <- function(prior,
-                                                 nm,
-                                                 matrix_along_by,
-                                                 var_time,
-                                                 var_age,
-                                                 var_sexgender,
-                                                 is_in_compose,
-                                                 agesex) {
-  if (!is_in_compose) {
-    str <- str_call_prior(prior)
-    cli::cli_abort(c("{.var {str}} prior cannot be used on its own.",
-                     i = "{.var {str}} prior can only be inside 'compose' function."))
-  }
-  invisible(TRUE)
-}
-
-## HAS_TESTS
-#' @export
 is_prior_ok_for_term.bage_prior_spline <- function(prior,
                                                    nm,
                                                    matrix_along_by,
                                                    var_time,
                                                    var_age,
                                                    var_sexgender,
-                                                   is_in_compose,
                                                    agesex) {
   check_is_main_effect(nm = nm, prior = prior)
   length_effect <- length(matrix_along_by)
@@ -1870,7 +1487,6 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender,
-                                                is_in_compose,
                                                 agesex) {
   n_dim <- length(strsplit(nm, split = ":")[[1L]])
   str <- str_call_prior(prior)
@@ -1969,7 +1585,6 @@ is_prior_ok_for_term.bage_prior_esvd <- function(prior,
                                                  var_time,
                                                  var_age,
                                                  var_sexgender,
-                                                 is_in_compose,
                                                  agesex) {
   n_dim <- length(strsplit(nm, split = ":")[[1L]])
   str <- str_call_prior(prior)
@@ -2083,17 +1698,6 @@ levels_hyper.bage_prior_ar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_compose <- function(prior) {
-  priors <- prior$specific$priors
-  nms_priors <- names(priors)
-  ans <- lapply(priors, levels_hyper)
-  for (i in seq_along(ans))
-    ans[[i]] <- paste(nms_priors[[i]], ans[[i]], sep = ".")
-  unlist(ans, use.names = FALSE)
-}
-
-## HAS_TESTS
-#' @export
 levels_hyper.bage_prior_ear <- function(prior) {
   n <- prior$specific$n
   rep(c("coef", "sd"), times = c(n, 1L))
@@ -2202,31 +1806,6 @@ levels_hyperrand <- function(prior, matrix_along_by, levels_effect) {
 #' @export
 levels_hyperrand.bage_prior <- function(prior, matrix_along_by, levels_effect) {
   character()
-}
-
-## HAS_TESTS
-#' @export
-levels_hyperrand.bage_prior_compose <- function(prior, matrix_along_by, levels_effect) {
-  priors <- prior$specific$priors
-  nms_comp <- names(priors)
-  levels_effect <- paste("effect", levels_effect, sep = ".")
-  ans <- lapply(priors,
-                levels_hyperrand,
-                matrix_along_by = matrix_along_by,
-                levels_effect = levels_effect)
-  n_comp <- length(ans)
-  for (i_comp in seq_len(n_comp)) {
-    ans_comp <- ans[[i_comp]]
-    nm_comp <- nms_comp[[i_comp]]
-    if (length(ans_comp) > 0L)
-      ans_comp <- paste(nm_comp, ans_comp, sep = ".")
-    if (i_comp < n_comp) {
-      levels_effect_comp <- paste(nm_comp, levels_effect, sep = ".")
-      ans_comp <- c(levels_effect_comp, ans_comp)
-    }
-    ans[[i_comp]] <- ans_comp
-  }
-  unlist(ans, use.names = FALSE)
 }
 
 ## HAS_TESTS
@@ -2449,8 +2028,7 @@ make_offset_effectfree_effect.bage_prior_esvd <- function(prior,
 #' Prior that has Hyper-Parameters Treated as Random Effects
 #'
 #' In all priors with 'hyperrand' elements, the reformatting involves
-#' renaming columns. With 'compose' priors, it also includes adding
-#' rows for an omitted components.
+#' renaming columns. 
 #'
 #' @param prior Object of class 'bage_prior'.
 #' @param nm_prior Name of the prior (ie name of the term).
@@ -2474,73 +2052,6 @@ reformat_hyperrand_one.bage_prior <- function(prior,
                                               matrix_along_by,
                                               components)
   components
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_compose <- function(prior,
-                                                      nm_prior,
-                                                      matrix_along_by,
-                                                      components) {
-  nm_compose <- prior$specific$nm
-  priors <- prior$specific$priors
-  if (nm_compose == "compose_time") {
-    p_hyper <- "^(trend|cyclical|seasonal|error)\\.(.*)$"
-    p_hyperrand <- "^(trend|cyclical|seasonal|error)\\.effect\\.(.*)$"
-  }
-  else
-    cli::cli_abort("Internal error: {.var nm_compose} is {.val {nm_compose}}.") ## nocov
-  ## extract rows to change
-  is_hyperrand <- with(components, component == "hyperrand" & term == nm_prior)
-  hyperrand_old <- components[is_hyperrand, , drop = FALSE]
-  ## extract and reformat components within prior,
-  ## eg trend, cyclical, seasonal error (if prior for time)
-  is_comp <- grepl(p_hyperrand, hyperrand_old[["level"]])
-  comp_old <- hyperrand_old[is_comp, , drop = FALSE]
-  comp_old$component <- sub(p_hyperrand, "\\1", comp_old$level)
-  comp_old$level <- sub(p_hyperrand, "\\2", comp_old$level)
-  ## centre components
-  i_along_by <- match(seq_along(matrix_along_by), matrix_along_by + 1L)
-  by <- col(matrix_along_by)[i_along_by]
-  by <- paste(comp_old$component, by)
-  center <- function(x) x - mean(x)
-  split(comp_old$.fitted, by) <- lapply(split(comp_old$.fitted, by), center)
-  ## add estimates for components
-  n_comp <- length(unique(comp_old$component))
-  if (n_comp > 1L)
-    total <- stats::aggregate(comp_old[".fitted"],
-                              comp_old["level"],
-                              sum)
-  else
-    total <- comp_old[c("level", ".fitted")]
-  ## obtain 'effect' for prior
-  is_effect <- with(components, component == "effect" & term == nm_prior)
-  effect <- components[is_effect, c("level", ".fitted") , drop = FALSE]
-  ## obtain the omitted component
-  nm_missing <- names(priors)[length(priors)]
-  i_total <- match(effect$level, total$level)
-  .fitted_new <- effect$.fitted - total$.fitted[i_total]
-  comp_new <- tibble::tibble(component = rep(nm_missing, times = nrow(total)),
-                             term = rep(nm_prior, times = nrow(total)),
-                             level = effect[["level"]],
-                             .fitted = .fitted_new)
-  ## reformat remaining parts of  'hyperrand'
-  hyper_new <- hyperrand_old[!is_comp, , drop = FALSE]
-  hyper_new$component <- "hyper"
-  ## assemble the new hyperrand
-  hyperrand_new <- vctrs::vec_rbind(hyper_new,
-                                    comp_old,
-                                    comp_new)
-  ## insert into 'components'
-  i_hyperrand <- which(is_hyperrand)
-  i_component <- seq_len(nrow(components))
-  is_before <- i_component < min(i_hyperrand)
-  is_after <- i_component > max(i_hyperrand)
-  ans <- vctrs::vec_rbind(components[is_before, , drop = FALSE],
-                          hyperrand_new,
-                          components[is_after, , drop = FALSE])
-  ## return modified version of 'components'
-  ans
-}
 
 ## HAS_TESTS
 #' @export
@@ -2601,17 +2112,6 @@ str_call_prior.bage_prior_ar <- function(prior) {
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
-}
-
-## HAS_TESTS
-#' @export
-str_call_prior.bage_prior_compose <- function(prior) {
-  priors <- prior$specific$priors
-  nm <- prior$specific$nm
-  str_priors <- vapply(priors, str_call_prior, "")
-  str_priors <- paste(names(priors), str_priors, sep = "=")
-  str_priors <- paste(str_priors, collapse = ", ")
-  sprintf("%s(%s)", nm, str_priors)
 }
 
 ## HAS_TESTS
@@ -2917,13 +2417,6 @@ str_nm_prior.bage_prior_ar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_compose <- function(prior) {
-  nm <- prior$specific$nm
-  sprintf("%s()", nm)
-}
-
-## HAS_TESTS
-#' @export
 str_nm_prior.bage_prior_ear <- function(prior) {
   nm <- prior$specific$nm
   sprintf("%s()", nm)
@@ -3053,14 +2546,6 @@ transform_hyper.bage_prior_ar <- function(prior) {
   }
   rep(list(coef = shifted_inv_logit, sd = exp),
       times = c(n, 1L))
-}
-
-## HAS_TESTS
-#' @export
-transform_hyper.bage_prior_compose <- function(prior) {
-  priors <- prior$specific$priors
-  ans <- lapply(priors, transform_hyper)
-  unlist(ans)
 }
 
 ## HAS_TESTS
@@ -3196,142 +2681,11 @@ transform_hyperrand.bage_prior <- function(prior, matrix_along_by)
 
 ## HAS_TESTS
 #' @export
-transform_hyperrand.bage_prior_compose <- function(prior, matrix_along_by) {
-  priors <- prior$specific$priors
-  n_prior <- length(priors)
-  n_effect <- length(matrix_along_by)
-  ans <- lapply(priors,
-                transform_hyperrand,
-                matrix_along_by = matrix_along_by)
-  for (i_prior in seq_len(n_prior - 1L))
-    ans[[i_prior]] <- c(rep(list(effect = identity),
-                            times = n_effect),
-                        ans[[i_prior]])
-  unlist(ans)
-}
-
-## HAS_TESTS
-#' @export
 transform_hyperrand.bage_prior_elin <- function(prior, matrix_along_by) {
   n_by <- ncol(matrix_along_by)
   rep(list(mslope = identity),
       times = n_by)
 }
-
-
-## 'use_for_compose_cyclical' -------------------------------------------------
-
-## HAS_TESTS
-#' Whether a Prior can Be Used as a 'cyclical' Argument in 'compose_time' and 'compose_age'
-#'
-#' @param prior Object of class `"bage_prior"`.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-use_for_compose_cyclical <- function(prior) {
-  UseMethod("use_for_compose_cyclical")
-}
-
-#' @export
-use_for_compose_cyclical.bage_prior <- function(prior) FALSE
-
-#' @export
-use_for_compose_cyclical.bage_prior_ar <- function(prior) TRUE
-
-#' @export
-use_for_compose_cyclical.bage_prior_ear <- function(prior) TRUE
-
-
-## 'use_for_compose_error' -------------------------------------------------
-
-## HAS_TESTS
-#' Whether a Prior can Be Used as a 'error' Argument in 'compose_time' and 'compose_age'
-#'
-#' @param prior Object of class `"bage_prior"`.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-use_for_compose_error <- function(prior) {
-  UseMethod("use_for_compose_error")
-}
-
-#' @export
-use_for_compose_error.bage_prior <- function(prior) FALSE
-
-#' @export
-use_for_compose_error.bage_prior_norm <- function(prior) TRUE
-
-
-## 'use_for_compose_seasonal' -------------------------------------------------
-
-## HAS_TESTS
-#' Whether a Prior can Be Used as a 'seasonal' Argument in 'compose_time'
-#'
-#' @param prior Object of class `"bage_prior"`.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-use_for_compose_seasonal <- function(prior) {
-  UseMethod("use_for_compose_seasonal")
-}
-
-#' @export
-use_for_compose_seasonal.bage_prior <- function(prior) FALSE
-
-#' @export
-use_for_compose_seasonal.bage_prior_seas <- function(prior) TRUE
-
-#' @export
-use_for_compose_seasonal.bage_prior_eseas <- function(prior) TRUE
-
-
-## 'use_for_compose_trend' ----------------------------------------------------
-
-## HAS_TESTS
-#' Whether a Prior can Be Used as a 'trend' Argument in 'compose_time'
-#'
-#' @param prior Object of class `"bage_prior"`.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-use_for_compose_trend <- function(prior) {
-  UseMethod("use_for_compose_trend")
-}
-
-#' @export
-use_for_compose_trend.bage_prior <- function(prior) FALSE
-
-#' @export
-use_for_compose_trend.bage_prior_ar <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_ear <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_elin <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_erw <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_erw2 <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_lin <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_rw <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_rw2 <- function(prior) TRUE
-
-#' @export
-use_for_compose_trend.bage_prior_spline <- function(prior) TRUE
-
 
 
 ## 'use_for_interaction' ------------------------------------------------------
@@ -3431,14 +2785,6 @@ uses_along.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_compose <- function(prior) {
-  priors <- prior$specific$priors
-  comp_uses_along <- vapply(priors, uses_along, FALSE)
-  any(comp_uses_along)
-}
-
-## HAS_TESTS
-#' @export
 uses_along.bage_prior_ear <- function(prior) TRUE
 
 ## HAS_TESTS
@@ -3463,10 +2809,6 @@ uses_along.bage_prior_eseas <- function(prior) TRUE
 #' Whether Prior Uses Hyper-Paremters that
 #' Can Be Treated As Random Effects
 #'
-#' Safer to have a method than to test
-#' for the length of 'hyperrand', since this
-#' depends can vary (eg with 'bage_prior_compose')
-#'
 #' @param prior Object of class 'bage_prior'
 #'
 #' @returns TRUE or FALSE.
@@ -3479,10 +2821,6 @@ uses_hyperrand <- function(prior) {
 ## HAS_TESTS
 #' @export
 uses_hyperrand.bage_prior <- function(prior) FALSE
-
-## HAS_TESTS
-#' @export
-uses_hyperrand.bage_prior_compose <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -3591,21 +2929,6 @@ vals_hyper_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyper, n_si
                  .fitted = .fitted)
 }
 
-## HAS_TESTS
-#' @export
-vals_hyper_to_dataframe.bage_prior_compose <- function(prior, nm_prior, vals_hyper, n_sim) {
-  priors <- prior$specific$priors
-  nms_priors <- names(priors)
-  ans <- .mapply(vals_hyper_to_dataframe,
-                 dots = list(prior = priors,
-                             vals_hyper = vals_hyper),
-                 MoreArgs = list(nm_prior = nm_prior,
-                                 n_sim = n_sim))
-  for (i in seq_along(ans))
-    ans[[i]]$level <- paste(nms_priors[[i]], ans[[i]]$level, sep = ".")
-  vctrs::vec_rbind(!!!ans)
-}
-
 
 ## 'vals_hyperrand_to_dataframe' ----------------------------------------------
 
@@ -3652,22 +2975,6 @@ vals_hyperrand_to_dataframe.bage_prior <- function(prior, nm_prior, vals_hyperra
                  level = level,
                  .fitted = .fitted)
 }
-
-## HAS_TESTS
-#' @export
-vals_hyperrand_to_dataframe.bage_prior_compose <- function(prior, nm_prior, vals_hyperrand, n_sim) {
-  priors <- prior$specific$priors
-  nms_priors <- names(priors)
-  ans <- .mapply(vals_hyperrand_to_dataframe,
-                 dots = list(prior = priors,
-                             vals_hyperrand = vals_hyperrand),
-                 MoreArgs = list(nm_prior = nm_prior,
-                                 n_sim = n_sim))
-  for (i in seq_along(ans))
-    ans[[i]]$component <- nms_priors[[i]]
-  vctrs::vec_rbind(!!!ans)
-}
-
 
 
 ## 'values_known' -------------------------------------------------------------

@@ -134,7 +134,6 @@ test_that("'draw_vals_components_unfitted' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
   n_sim <- 2
   ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim)
   ans_est <- components(fit(mod))
@@ -405,9 +404,6 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, `(Intercept)` ~ Known(5)) ## over-ridden
-  mod <- set_prior(mod, time ~ compose_time(RW(),
-                                            seasonal = Seas(n = 2),
-                                            error = N()))
   mod <- set_prior(mod, age:sex ~ SVDS(HMD))
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
@@ -1110,7 +1106,6 @@ test_that("'vals_effect_to_dataframe' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, time ~ compose_time(RW(), seasonal = Seas(n = 2), error = N()))
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
