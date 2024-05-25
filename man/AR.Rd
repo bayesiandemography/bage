@@ -7,53 +7,77 @@
 AR(n = 2, s = 1)
 }
 \arguments{
-\item{n}{The order of the model,
-i.e. the number of lagged
+\item{n}{The order of the model, i.e. the number of lagged
 terms that are included. Default is \code{2}.}
 
 \item{s}{Scale for the prior for the errors.
 Default is \code{1}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
 }
 \description{
-Autoregressive prior with order \code{k}. Typically used with time effects.
+Prior for main effects or interaction.
+An autoreggressive process
+with order \code{k}. Typically used with time.
 }
 \details{
-Parameter \code{s} controls the size of errors. Smaller values
-for \code{s} may lead to smoother series.
+If \code{AR()} is used with an interaction,
+then separate AR series are constructed along
+the "along" variable within
+each combination of the
+"by" variables.
+
+Argument \code{s} controls the size of errors. Smaller values
+for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
 
 
-With an \code{AR()} prior,
+When \code{AR()} is used with a main effect,
 
-\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-k} + \epsilon_j}
-\deqn{\epsilon_j \sim \text{N}(0, \omega^2)}
+\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-n} + \epsilon_j}
+\deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 
-where  \eqn{\beta_j} is the \eqn{j}th element of the main effect.
+and when it is used with an interaction,
 
-The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
-marginal variance \eqn{\tau^2}.
+\deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_n \beta_{u,v-n} + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
 
-Parameter \eqn{\tau} has a half-normal prior
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{v} denotes position within the "along" variable of the interaction; and
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+}
+
+Internally, \code{AR()} derives a value for \eqn{\omega} that
+gives every element of \eqn{\beta} a marginal
+variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+has a half-normal prior
 
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
 
-where a value for \code{s} is provided by the user.
+where \code{s} is provided by the user.
 
-The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-between -1 and 1 that jointly lead to a stationary model. The quantity
-\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+The autocorrelation coefficients \eqn{\phi_1, \cdots, \phi_n}
+are restricted to values between -1 and 1 that jointly
+lead to a stationary model. The quantity
+\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_n^2}} has the
 boundary-avoiding prior
 
-\deqn{r \sim \text{Beta}(2, 2)}.
+\deqn{r \sim \text{Beta}(2, 2).}
 }
 
 \examples{
 AR(n = 3)
 AR(n = 3, s = 2.4)
+AR(along = "cohort")
 }
 \references{
 \itemize{
@@ -64,8 +88,9 @@ AR(n = 3, s = 2.4)
 \seealso{
 \itemize{
 \item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}
-\item \code{\link[=EAR]{EAR()}} Exchangeable version of \code{AR()},
-used with interactions
+\item \code{\link[=LinAR]{LinAR()}} AR process combined with straight line
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

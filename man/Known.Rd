@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{Known}
 \alias{Known}
-\title{Treat an Intercept, Main Effect, or Interaction as Known}
+\title{Known Prior}
 \usage{
 Known(values)
 }
@@ -13,8 +13,8 @@ Known(values)
 An object of class \code{"bage_prior_known"}.
 }
 \description{
-Treat the intercept, a main effect, or an interaction
-in an model as fixed and known.
+Treat an intercept, a main effect, or an interaction
+as fixed and known.
 }
 \examples{
 Known(-2.3)
@@ -24,5 +24,7 @@ Known(c(0.1, 2, -0.11))
 \itemize{
 \item \code{\link[=NFix]{NFix()}} Prior where level unknown, but variability known.
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

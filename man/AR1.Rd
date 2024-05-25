@@ -4,44 +4,65 @@
 \alias{AR1}
 \title{AR1 Prior}
 \usage{
-AR1(min = 0.8, max = 0.98, s = 1)
+AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
 
-\item{s}{Scale for the prior for
-the errors. Default is \code{1}.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
 }
 \description{
-Autoregressive prior of order 1. Typically used with time effects.
+Prior for main effect or interaction.
+An autoregressive process with order 1.
+Typically used with time.
 }
 \details{
-Parameter \code{s} controls the size of errors. Smaller values
-for \code{s} may lead to smoother series.
+If \code{AR1()} is used with an interaction,
+then separate AR1 series constructed along
+the "along" variable within
+each combination of the
+"by" variables.
+
+Argument \code{s} controls the size of errors. Smaller values
+for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
 
 
-With an \code{AR1()} prior,
+When \code{AR1()} is used with a main effect,
 
 \deqn{\beta_j = \phi \beta_{j-1} + \epsilon_j}
-\deqn{\epsilon \sim \text{N}(0, \omega^2)}
+\deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 
-where \eqn{\beta_j} is the \eqn{j}th element of the main effect.
+and when it is used with an interaction,
 
-The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
-marginal variance \eqn{\tau^2}.
+\deqn{\beta_{u,v} = \phi \beta_{u,v-1} + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
 
-Parameter \eqn{\tau} has half-normal prior
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{v} denotes position within the "along" variable of the interaction; and
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+}
 
+Internally, \code{AR1()} derives a value for \eqn{\omega} that
+gives every element of \eqn{\beta} a marginal
+variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-
-where a value for \code{s} is provided by the user.
+where \code{s} is provided by the user.
 
 Coefficient \eqn{\phi} is constrained
 to lie between \code{min} and \code{max}.
@@ -56,21 +77,23 @@ where
 
 \examples{
 AR1()
-AR1(min = 0, max = 1, s = 2.4)
+AR1(min = 0, max = 1, s = 2.4,
+AR1(along = "cohort")
 }
 \references{
 \itemize{
 \item \code{AR1()} is based on the TMB function
 \href{http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details}{AR1}
-\item The values for \code{min} and \code{max} are based on the
-defaults for function \code{forecast::ets()}.
+\item The defaults for \code{min} and \code{max} are based on the
+defaults for \code{forecast::ets()}.
 }
 }
 \seealso{
 \itemize{
 \item \code{\link[=AR]{AR()}} Generalisation of \code{AR1()}
-\item \code{\link[=EAR1]{EAR1()}} Exchangeable version of \code{AR1()},
-used with interactions
+\item \code{\link[=LinAR1]{LinAR1()}} AR1 process combined with straight line
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

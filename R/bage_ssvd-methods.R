@@ -5,7 +5,7 @@
 #' Extract the matrix and offset used by a scaled SVD
 #' summary of a demographic database.
 #'
-#' @inheritSection SVD Scaled SVDs in bage
+#' @inheritSection SVD Scaled SVDs of demographic databases in bage
 #'
 #' @param object An object of class `"bage_ssvd"`.
 #' @param n_comp The number of components.
@@ -155,7 +155,7 @@ generics::generate
 #' an [SVD][base::svd()] decomposition of demographic
 #' data.
 #'
-#' @inheritSection SVD Scaled SVDs in bage
+#' @inheritSection SVD Scaled SVDs of demographic databases in bage
 #'
 #' @param x An object of class `"bage_ssvd"`.
 #' @param n_draw Number of random draws to generate.

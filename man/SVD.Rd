@@ -2,14 +2,14 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{SVD}
 \alias{SVD}
-\title{SVD Prior for Age Main Effect}
+\title{SVD Prior for Age}
 \usage{
 SVD(ssvd, n = NULL)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
-holding results from a scaled SVD.
-See below for current options.}
+holding a scaled SVD. See below for scaled SVDs
+of databases currently available in \strong{bage}.}
 
 \item{n}{Number of components from scaled SVD
 to use in modelling. The default is half
@@ -19,53 +19,64 @@ the number of components of \code{ssvd}.}
 An object of class \code{"bage_prior_svd"}.
 }
 \description{
-Specify a Singular Value Decomposition (SVD) prior
-for an age main effect.
+A Singular Value Decomposition (SVD) prior
+for a main effect or interaction involving age.
 }
 \details{
-An SVD prior assumes that the age profile for the quantity
-being modelled looks like an age profile drawn at random
+A \code{SVD()} prior assumes that the age profile for the quantity
+being modelled looks like it was drawn at random
 from an external demographic database. For instance,
+the \code{SVD()} prior obtained via
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{set_prior(mod, age ~ SVD(HMD))
+\if{html}{\out{<div class="sourceCode">}}\preformatted{SVD(HMD)
 }\if{html}{\out{</div>}}
 
-specifies that the age profile looks like it was drawn from
+favours age profiles that look like
+they were obtained from the
 \href{https://www.mortality.org}{Human Mortality Database}.
 
-A \link[=svd]{Singular Value Decomposition} is closely related
-to a Principal Components analysis, and is a way of
-extracting patterns from large volumes of data.
+If \code{SVD()} is used with an interaction,
+then separate profiles are constructed along
+within each combination of the "by" variables.
+
+Age-sex or age-gender profiles should be
+modelled using \code{\link[=SVDS]{SVDS()}} rather than \code{SVD()}.
 }
 \section{Mathematical details}{
 
 
-With an SVD prior,
+When \code{SVD()} is used with a main effect,
 
-\deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
+\deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
+
+and when it is used with an interaction,
+
+\deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
 
 where
 \itemize{
-\item \eqn{\pmb{\beta}} is an age effect with \eqn{J} elements;
-\item \eqn{\pmb{X}} is a known \eqn{J \times K} matrix, where \eqn{J}
-is the number of age groups and \eqn{K} is the number of
-vectors from the SVD to use (with \eqn{K} typically much
-less than than \eqn{J});
-\item \eqn{\pmb{\alpha}} is a vector with \eqn{K} elements; and
-\item \eqn{\pmb{g}} is a known vector with \eqn{J} elements.
+\item \eqn{\pmb{\beta}} is a main effect or interaction with \eqn{J} elements;
+\item \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+values for the  \eqn{u}th combination of the "by" variables;
+\item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+\item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+\item \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
+if \eqn{\pmb{\beta}} is a main effect and dimension \eqn{V \times n}
+if \eqn{\pmb{\beta}} is an interaction; and
+\item \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
+if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
+elements if \eqn{\pmb{\beta}} is an interaction.
 }
-
-The elements of \eqn{\pmb{\alpha}} have prior
-
-\deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
 
 \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
 a large database of age-specific demographic estimates
-by preforming an SVD and then standardizing.
-For details see TODO - REFERENCE TO VIGNETTE.
+by performing an SVD and standardizing.
+
+The elements of \eqn{\pmb{\alpha}} have prior
+\deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
 }
 
-\section{Scaled SVDs in bage}{
+\section{Scaled SVDs of demographic databases in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the
@@ -79,14 +90,21 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 SVD(HMD)
 SVD(HMD, n = 3)
 }
+\references{
+\itemize{
+\item For details of the construction of
+scaled SVDS see the vignette
+\href{https://bayesiandemography.github.io/bage/articles/vig4_svd.html}{here}.
+}
+}
 \seealso{
 \itemize{
-\item \code{\link[=set_prior]{set_prior()}} Specify the prior for a model
-\item \code{\link[=SVDS]{SVDS()}} SVD prior for interaction between
-age and sex/gender.
-\item \code{\link[=ESVD]{ESVD()}} Exchangeable SVD prior for interaction involving
-age and other dimensions, but not sex/gender.
-\item \code{\link[=ESVDS]{ESVDS()}} Exchangeable SVD prior for interaction involving
-age, sex/gender, and other dimension(s).
+\item \code{\link[=SVDS]{SVDS()}} SVD prior for age-sex or age-gender profile.
+\item \code{\link[=RW]{RW()}} Smoothing via random walk
+\item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
+\item \code{\link[=Sp]{Sp()}} Smoothing via splines
+\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

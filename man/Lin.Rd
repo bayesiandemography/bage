@@ -4,61 +4,81 @@
 \alias{Lin}
 \title{Linear Prior}
 \usage{
-Lin(s = 1, sd = 1)
+Lin(s = 1, sd = 1, along = NULL)
 }
 \arguments{
-\item{s}{A positive number. Controls the size of
-errors, with larger values of \code{s} encouraging larger
-errors. Default is 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
 
-\item{sd}{A postive number. Controls the absolute
-size of the slope of the line, with larger values
-of \code{sd} encouraging steeper slopes. Default is 1.}
+\item{sd}{Standard deviation in prior for slope
+of line. Default is 1.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_lin"}.
 }
 \description{
-Prior for a main effect where the elements
-follow a straight line, with independent normal
-errors around this line.
+Prior for main effect or interaction.
+A straight line or lines, combined with independent
+normal errors. Typically used with time.
+}
+\details{
+If \code{Lin()} is used with an interaction,
+then separate lines are constructed along
+the "along" variable, within each combination
+of the "by" variables.
+
+Argument \code{s} controls the size of the errors.
 }
 \section{Mathematical details}{
 
 
-With a \code{Lin()} prior,
+When \code{Lin()} is used with a main effect,
 
-\deqn{\beta_j \sim \text{N}(\eta q_j, \tau^2)}
+\deqn{\beta_j = \eta q_j + \epsilon_j}
+\deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 
-where \eqn{\beta_j} is the \eqn{j}th element of the main effect
+and when it is used with an interaction,
+
+\deqn{\beta_{u,v} \sim \eta_u q_v + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{u} denotes position within the "along" variable of the interaction;
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction;
+\item \deqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
+\item \deqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+}
+
+The slopes have priors
+\deqn{\eta \sim \text{N}(0, \text{sd}^2)}
 and
+\deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+Larger values for \code{sd} permit steeper slopes.
 
-\deqn{q_j = - (J+1)/(J-1) + 2j/(J-1).}
-
-Slope \eqn{\eta} is drawn from a normal distribution,
-
-\deqn{\eta \sim \text{N}(0, (\text{sd})^2)}.
-
-The standard deviation for the normal distribution,
-\code{sd}, defaults to 1, but can be set to other values.
-Lower values for \code{sd} lead to smaller values for
-the slope term.
-
-Standard deviation \eqn{\tau} is drawn from a
-half-normal distribution,
-
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+Parameter \eqn{\tau} has a half-normal prior
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+where \code{s} is provided by the user.
 }
 
 \examples{
 Lin()
 Lin(s = 0.5, sd = 2)
+Lin(along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=LinAR]{LinAR()}} Linear prior with autoregressive errors
-\item \code{\link[=ELin]{ELin()}} Exchangeable version of \code{Lin()},
-used with interactions
+\item \code{\link[=LinAR]{LinAR()}} Linear with AR errors
+\item \code{\link[=LinAR1]{LinAR1()}} Linear with AR1 errors
+\item \code{\link[=RW2]{RW2()}} Random walk with drift
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

@@ -2,21 +2,19 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{NFix}
 \alias{NFix}
-\title{Normal Prior with Fixed Standard Deviation}
+\title{Normal Prior with Fixed Variance}
 \usage{
 NFix(sd = 1)
 }
 \arguments{
-\item{sd}{Standard deviation.
-A positive, finite number.
-Default is \code{1}.}
+\item{sd}{Standard deviation. Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_normfixed"}.
 }
 \description{
 Normal prior where, in contrast to \code{\link[=N]{N()}}, the
-standard deviation is treated as fixed and known.
+variance is treated as fixed and known.
 }
 \details{
 \code{NFix()} is the default prior for the intercept.
@@ -24,20 +22,23 @@ standard deviation is treated as fixed and known.
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of a main effect
-or interaction, then
+\deqn{\beta_j \sim \text{N}(0, \tau^2)}
 
-\deqn{\beta_j \sim \text{N}(0, \text{sd}^2).}
+where \eqn{\beta} is the main effect or interaction,
+and a value for \code{sd} is supplied by the user.
 }
 
 \examples{
 NFix()
-NFix(sd = 10) ## prior used for intercept
+NFix(sd = 10)
 }
 \seealso{
 \itemize{
-\item \code{\link[=N]{N()}} Version of \code{NFix()} where the standard deviation
-term is estimated from the data.
+\item \code{\link[=N]{N()}} Similar to \code{NFix()}, but standard deviation
+parameter is estimated from the data rather
+than being fixed in advance
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

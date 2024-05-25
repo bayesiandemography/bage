@@ -4,11 +4,11 @@
 \alias{LinAR1}
 \title{Linear Prior with AR1 Errors}
 \usage{
-LinAR1(min = 0.8, max = 0.98, s = 1, sd = 1)
+LinAR1(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
-for autocorrelation coefficient (\eqn{\phi}).
+for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale for the prior for the errors.
@@ -22,61 +22,80 @@ steeper slopes. Default is 1.}
 An object of class \code{"bage_prior_linar"}.
 }
 \description{
-Prior for a main effect where the elements
-follow a straight line, with errors that form
-an autoregressive series of order 1.
+Prior for main effect or interaction.
+Combines a straight line or lines with
+AR1 errors. Typically used with time.
+}
+\details{
+If \code{LinAR1()} is used with an interaction,
+then, within each combination of the "by" variables,
+the "along" variable is modelled as a straight line
+with autoregressive errors.
+
+Argument \code{s} controls the size of the errors.
 }
 \section{Mathematical details}{
 
 
-With a \code{LinAR1()} prior,
+When \code{LinAR1()} is being used with a main effect,
 
 \deqn{\beta_j = \eta q_j + \epsilon_j}
+\deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j,}
+\deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+
+and when it is being used with an interaction,
+
+\deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} = \phi + \varepsilon_{u,v},}
+\deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 
 where
 \itemize{
-\item \eqn{\beta_j} is the \eqn{j}th element of the main effect
-\item \eqn{q_j} is defined as
-\deqn{q_j = - (J+1)/(J-1) + 2j/(J-1),}
-\item \eqn{\epsilon_j} has an AR1 structure
-\deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
-\deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{u} denotes position within the "along" variable of the interaction;
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction;
+\item \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
+\item \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 }
 
-The value of \eqn{\omega} is chosen so that each \eqn{\epsilon_j} has
-marginal variance \eqn{\tau^2}.
+The slopes have priors
+\deqn{\eta \sim \text{N}(0, \text{sd}^2)}
+and
+\deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+Larger values for \code{sd} permit steeper slopes.
 
-Parameter \eqn{\tau} has a half-normal prior
-
+Internally, \code{LinAR1()} derives a value for \eqn{\omega} that
+gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
+variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-
 where a value for \code{s} is provided by the user.
 
 Coefficient \eqn{\phi} is constrained
 to lie between \code{min} and \code{max}.
 Its prior distribution is
-
 \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
-
 where
-
 \deqn{\phi' \sim \text{Beta}(2, 2).}
-
-Slope \eqn{\eta} is drawn from a normal distribution,
-
-\deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
 }
 
 \examples{
 LinAR1()
 LinAR1(min = 0, s = 0.5, sd = 2)
 }
+\references{
+\itemize{
+\item The defaults for \code{min} and \code{max} are based on the
+defaults for \code{forecast::ets()}.
+}
+}
 \seealso{
 \itemize{
 \item \code{\link[=LinAR]{LinAR()}} Generalisation of \code{LinAR1()}
-\item \code{\link[=Lin]{Lin()}} Linear prior with independent normal errors
-\item \code{\link[=ELin]{ELin()}} Exchangeable version of \code{Lin()},
-used with interactions
+\item \code{\link[=AR1]{AR1()}} AR1 process with no line
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

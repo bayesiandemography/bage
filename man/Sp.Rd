@@ -2,53 +2,82 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{Sp}
 \alias{Sp}
-\title{P-spline prior}
+\title{P-Spline Prior}
 \usage{
-Sp(n = NULL, s = 1)
+Sp(n = NULL, s = 1, along = NULL)
 }
 \arguments{
-\item{n}{Number of spline vectors.
-By default is \code{NULL}, in which case the number of
-vectors is set to \code{max(ceiling(0.7 * k), 4)}
-where \code{k} is the number
-of elements in the term being modelled.}
+\item{n}{Number of spline basis functions to use.}
 
-\item{s}{A positive, finite number. Default is 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_spline"}.
 }
 \description{
-Specify a P-spline (penalised spline) prior.
-A P-spline is flexible, but
-favours profiles that are relatively smooth.
+A p-spline (penalised spine) prior for main
+effects or interactions. Typically used with age,
+but can be used with any variable where outcomes are
+expected to vary smoothly from one element to the next.
+}
+\details{
+If \code{Sp()} is used with an interaction,
+then separate splines are used for
+the "along" variable within
+each combination of the
+"by" variables.
 }
 \section{Mathematical details}{
 
 
-The model for the effect, on the log scale, is
+When \code{Sp()} is used with a main effect,
 
-\deqn{\beta = X \gamma}
+\deqn{\pmb{\beta} = \pmb{X} \pmb{\alpha}}
+
+and when it is used with an interaction,
+
+\deqn{\pmb{\beta}_u = \pmb{X} \pmb{\alpha}_u}
 
 where
 \itemize{
-\item \eqn{\beta} is a main effect,
-\item \eqn{X} is a matrix holding the basis functions
-for the spline, with \code{n} columns, and
-\item \eqn{\alpha} is a vector of coefficients,
-with \code{n} elements.
+\item \eqn{\pmb{\beta}} is the main effect or interaction, with \eqn{J} elements;
+\item \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+values for the  \eqn{u}th combination of the "by" variables;
+\item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+\item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u}; and
+\item \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
+spline basis functions.
 }
 
-The elements of \eqn{\gamma} are assumed to follow
-a random walk with drift (see \code{\link[=RW2]{RW2()}}).
+The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
+to follow a \link[=RW2]{random walk with drift}.
 }
 
 \examples{
 Sp()
 Sp(n = 10)
 }
+\references{
+\itemize{
+\item Eilers, P.H.C. and Marx B. (1996).
+"Flexible smoothing with B-splines and penalties".
+Statistical Science. 11 (2): 89–121.
+}
+}
 \seealso{
 \itemize{
+\item \code{\link[=RW]{RW()}} Smoothing via random walk
+\item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
+\item \code{\link[=SVD]{SVD()}} Smoothing of age via singlular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
+\item \strong{bage} uses function \code{\link[splines:bs]{splines::bs()}} to construct
+spline basis functions
 }
 }
