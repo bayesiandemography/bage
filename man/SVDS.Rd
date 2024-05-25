@@ -2,14 +2,14 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{SVDS}
 \alias{SVDS}
-\title{SVD Prior for Interaction Between Age and Sex/Gender}
+\title{SVD Prior for Age-Sex or Age-Gender}
 \usage{
 SVDS(ssvd, n = 5, joint = FALSE)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
-holding results from a scaled SVD.
-See below for current options.}
+holding a scaled SVD. See below for scaled SVDs
+of databases currently available in \strong{bage}.}
 
 \item{n}{Number of components from scaled SVD
 to use in modelling. The default is half
@@ -23,22 +23,39 @@ See below for details.}
 An object of class \code{"bage_prior_svd"}.
 }
 \description{
-Specify a Singular Value Decomposition (SVD) prior
-for an interaction between age and sex/gender.
-The age-sex profile is assumed to look like it
-was drawn at random
+A Singular Value Decomposition (SVD) prior
+for an interaction involving age-sex
+profiles or age-gender profiles.
+}
+\details{
+A \code{SVDS()} prior assumes that the age-sex profile
+or age-gender profile for the quantity being
+modelled looks like it was drawn at random
 from an external demographic database. For instance,
+the prior obtained via
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{set_prior(mod, age:sex ~ SVDS(HMD))
+\if{html}{\out{<div class="sourceCode">}}\preformatted{SVDS(HMD)
 }\if{html}{\out{</div>}}
 
-specifies that age-sex profile looks like it was drawn from the
+favours age-sex profiles that look like
+they were obtained from the
 \href{https://www.mortality.org}{Human Mortality Database}.
+
+If \code{SVDS()} is used with an interaction
+between age, sex or gender, and one or more
+"by" variables, then separate age-sex or
+age-gender profiles are constructed within
+each combination of the
+"by" variables.
+
+Age profiles with no sex or gender dimension
+should be modelled using \code{\link[=SVD]{SVD()}} rather than
+\code{SVDS()}.
 }
 \section{Joint or independent SVDs}{
 
 
-To possible ways of extracting patterns
+Two possible ways of extracting patterns
 from age-sex-specific data are
 \enumerate{
 \item carry out separate SVDs on separate datasets for
@@ -58,39 +75,67 @@ The default is \code{FALSE}.
 \section{Mathematical details}{
 
 
-Let \eqn{A} denote the number of age groups, and \eqn{S} the
-number of sexes/genders. When \code{joint} is \code{FALSE},
+\strong{Case 1: Interaction involving age and sex or gender, but no other variables}
 
-\deqn{\pmb{\beta}_s = \pmb{F}_s \pmb{\alpha}_s + \pmb{g}_s, \quad s = 1, \cdots S}
+When \code{SVDS()} is used with \code{joint = FALSE},
 
-where \eqn{\pmb{\beta}_s}, \eqn{\pmb{\alpha}_s},
-and \eqn{\pmb{g}_s} each have \eqn{A}
-elements, and \eqn{\pmb{F}} has \eqn{A} rows.
+\deqn{\pmb{\beta}_{s} = \pmb{F}_s \pmb{\alpha}_{s} + \pmb{g}_s,}
 
-When \code{joint} is \code{TRUE},
+and when \code{SVDS()} is used with \code{joint = TRUE},
 
-\deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
+\deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
 
 where
-
-where \eqn{\pmb{\beta}}, \eqn{\pmb{\alpha}},
-and \eqn{\pmb{g}} each have \eqn{A \times S}
-elements, and \eqn{\pmb{F}_s} has \eqn{A \times S} rows.
-
-\eqn{\pmb{F}_s}, \eqn{\pmb{g}_s}, \eqn{\pmb{F}}, and \eqn{\pmb{g}},
-are all estimated externally, using estimates from a
-demographic database, and are treated as fixed and known.
-
-The elements of \eqn{\pmb{\alpha}_s} and \eqn{\pmb{\alpha}} have prior
-
-\deqn{\alpha_k \sim \text{N}(0, 1)}
-
-For a description of the construction of \eqn{\pmb{F}_s},
-\eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
-see TODO - REFERENCE TO VIGNETTE.
+\itemize{
+\item \eqn{\pmb{\beta}} is an interaction;
+\item \eqn{\pmb{\beta}_{s}} is a subvector of \eqn{\pmb{\beta}},
+holding values for sex/gender \eqn{s}, with \eqn{s = 1, \dots, S};
+\item \eqn{J} is the number of elements in \eqn{\pmb{\beta}};
+\item \eqn{\pmb{F}_s} is a known \eqn{(J/S) \times n} matrix, specific
+to sex/gender \eqn{s};
+\item \eqn{\pmb{g}_s} is a known vector with \eqn{J/S} elements,
+specific to sex/gender \eqn{s};
+\item \eqn{\pmb{F}} is a known \eqn{J \times n} matrix, with values
+for all sexes/genders.
+\item \eqn{\pmb{g}} is a known vector with \eqn{J} elements, with values
+for all sexes/genders.
 }
 
-\section{Scaled SVDs in bage}{
+The elements of \eqn{\pmb{\alpha}_s} and \eqn{\pmb{\alpha}} have prior
+\deqn{\alpha_k \sim \text{N}(0, 1).}
+
+\strong{Case 2: Interaction involving age and sex or gender, and one or more other variables}
+
+When \code{SVDS()} is used with \code{joint = FALSE},
+
+\deqn{\pmb{\beta}_{u,s} = \pmb{F}_s \pmb{\alpha}_{u,s} + \pmb{g}_s,}
+
+and when \code{SVDS()} is used with \code{joint = TRUE},
+
+\deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
+
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is an interaction;
+\item \eqn{\pmb{\beta}_{u,s}} is a subvector of \eqn{\pmb{\beta}},
+holding values for sex/gender \eqn{s} for the \eqn{u}th
+combination of "by" variables, with \eqn{s = 1, \dots, S};
+\item \eqn{V} is the number of elements in \eqn{\pmb{\beta}_u};
+\item \eqn{\pmb{F}_s} is a known \eqn{(V/S) \times n} matrix, specific
+to sex/gender \eqn{s};
+\item \eqn{\pmb{g}_s} is a known vector with \eqn{V/S} elements,
+specific to sex/gender \eqn{s};
+\item \eqn{\pmb{F}} is a known \eqn{V \times n} matrix, with values
+for all sexes/genders.
+\item \eqn{\pmb{g}} is a known vector with \eqn{V} elements, with values
+for all sexes/genders.
+}
+
+The elements of \eqn{\pmb{\alpha}_{u,s}} and \eqn{\pmb{\alpha}_u} have prior
+\deqn{\alpha_k \sim \text{N}(0, 1).}
+}
+
+\section{Scaled SVDs of demographic databases in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the
@@ -104,13 +149,21 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 SVDS(HMD)
 SVDS(HMD, joint = TRUE)
 }
+\references{
+\itemize{
+\item For details of the construction of
+scaled SVDS see the vignette
+\href{https://bayesiandemography.github.io/bage/articles/vig4_svd.html}{here}.
+}
+}
 \seealso{
 \itemize{
-\item \code{\link[=set_prior]{set_prior()}} Specify the prior for a model.
-\item \code{\link[=SVD]{SVD()}} SVD prior for age main effect.
-\item \code{\link[=ESVD]{ESVD()}} Exchangeable SVD prior for interaction involving
-age and other dimensions, but not sex/gender.
-\item \code{\link[=ESVDS]{ESVDS()}} Exchangeable SVD prior for interaction involving
-age, sex/gender, and other dimension(s).
+\item \code{\link[=SVD]{SVD()}} SVD prior for age, with no sex or gender
+\item \code{\link[=RW]{RW()}} Smoothing via random walk
+\item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
+\item \code{\link[=Sp]{Sp()}} Smoothing via splines
+\item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

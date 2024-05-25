@@ -36,7 +36,7 @@ of class \code{"bage_ssvd"} holds results from
 an \link[base:svd]{SVD} decomposition of demographic
 data.
 }
-\section{Scaled SVDs in bage}{
+\section{Scaled SVDs of demographic databases in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the

@@ -2,53 +2,76 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{RW}
 \alias{RW}
-\title{Random walk prior}
+\title{Random Walk Prior}
 \usage{
-RW(s = 1)
+RW(s = 1, along = NULL)
 }
 \arguments{
-\item{s}{A positive, finite number. Default is 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_rw"}.
 }
 \description{
-Prior in which units follow a (first order)
-random walk. Increments between neighbouring
-elements are assumed to be normally distibuted.
+Prior for a main effect or interaction.
+A random walk. Typically used with time.
+}
+\details{
+If \code{RW()} is used with an interaction,
+then separate random walks are used for
+the "along" variable within
+each combination of the
+"by" variables.
+
+Argument \code{s} controls the size of errors. Smaller values
+for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
+When \code{RW()} is used with a main effect,
 
-\deqn{\beta_1 \sim \text{N}(0, 1)}
-\deqn{\beta_j \sim \text{N}(\beta_{j - 1}, \tau^2), \quad j = 2, \cdots, J.}
+\deqn{\beta_j = \beta_{j-1} + \epsilon_j}
+\deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 
-Standard deviation \eqn{\tau} is drawn from a
-half-normal distribution,
+and when it is used with an interaction,
 
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+\deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 
-(A half-normal distribution has the same shape as a normal
-distribution, but is defined only for non-negative
-values.)
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{v} denotes position within the "along" variable of the interaction; and
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+}
 
-The scale for the half-normal distribution, \code{s}, defaults
-to 1, but can be set to other values. Lower values
-for \code{scale} lead to smoother series of \code{x}s, and
-higher values lead to rougher series.
+Parameter \eqn{\tau}
+has a half-normal prior
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+where \code{s} is provided by the user.
 }
 
 \examples{
 RW()
 RW(s = 0.5)
+RW(along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW2]{RW2()}} Random walk with drift.
-\item \code{\link[=ERW]{ERW()}} Exchangeable version of \code{RW()},
-used with interactions.
+\item \code{\link[=RW2]{RW2()}} Random walk with drift
+\item \code{\link[=AR]{AR()}} Autoressive with order k
+\item \code{\link[=AR1]{AR1()}} Autoressive with order 1
+\item \code{\link[=Sp]{Sp()}} Smoothing via splines
+\item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

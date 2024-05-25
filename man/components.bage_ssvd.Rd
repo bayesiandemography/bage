@@ -32,7 +32,7 @@ A tibble with the offset and components.
 Extract the matrix and offset used by a scaled SVD
 summary of a demographic database.
 }
-\section{Scaled SVDs in bage}{
+\section{Scaled SVDs of demographic databases in bage}{
 
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the

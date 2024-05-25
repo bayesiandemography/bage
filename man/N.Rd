@@ -7,37 +7,35 @@
 N(s = 1)
 }
 \arguments{
-\item{s}{A positive, finite number.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_norm"}.
 }
 \description{
-Prior in which units are drawn independently from a normal
-distribution. The default prior for most terms.
+Prior for a main effect or interaction.
+Values are drawn independently from
+a common normal distribution.
+Typically used with variables other than
+age or time, such as region or ethncity.
+}
+\details{
+Argument \code{s} controls the size of errors. Smaller values
+for \code{s} tend to give more tightly clustered estimates
+for the elements of the main effect or interaction.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of a main effect
-or interaction, then
+\deqn{\beta_j \sim \text{N}(0, \tau^2)}
 
-\deqn{\beta_j \sim \text{N}(0, \tau^2).}
+where \eqn{\beta} is the main effect or interaction.
 
-Standard deviation \eqn{\tau} is drawn from a half-normal
-distribution,
-
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-
-(A half-normal distribution has the same shape as a normal
-distribution, but is defined only for non-negative
-values.)
-
-The scale for the half-normal distribution defaults
-to 1, but can be set to other values. Lower values
-lead to more tightly concentrated
-estimates for \verb{\\beta_j}, and higher values lead to less tightly
-concentrated estimates.
+Parameter \eqn{\tau}
+has a half-normal prior
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+where \code{s} is provided by the user.
 }
 
 \examples{
@@ -46,8 +44,10 @@ N(s = 0.5)
 }
 \seealso{
 \itemize{
-\item \code{\link[=NFix]{NFix()}} Version of \code{N()} where the standard deviation
-term is supplied rather than estimated from the data.
+\item \code{\link[=NFix]{NFix()}} Similar to \code{N()} but standard deviation
+parameter is supplied rather than estimated from data
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

@@ -4,51 +4,77 @@
 \alias{RW2}
 \title{Random Walk with Drift Prior}
 \usage{
-RW2(s = 1)
+RW2(s = 1, along = NULL)
 }
 \arguments{
-\item{s}{A positive, finite number. Default is 1.}
+\item{s}{Scale for the prior for the errors.
+Default is \code{1}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_rw2"}.
 }
 \description{
-Prior in which units follow a random walk with drift,
-also known as a second-order random walk.
+Prior for a main effect or interaction.
+A random walk with drift, also referred
+to as a second-order random walk.
+Typically used with age, or used with time
+when there are sustained upward
+or downward trends.
+}
+\details{
+If \code{RW2()} is used with an interaction,
+then separate random walks are used for
+the "along" variable within
+each combination of the
+"by" variables.
+
+Argument \code{s} controls the size of errors. Smaller values
+for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
 
 
-If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
+When \code{RW()} is used with a main effect,
 
-\deqn{\beta_j \sim \text{N}(0, 1), \quad j = 1,2}
-\deqn{\beta_j \sim \text{N}(\beta_{j-1} + \delta_{j-1}, \tau^2), \quad j = 3, \cdots, J,}
+\deqn{\beta_j = 2 \beta_{j-1} - \beta_{j-2} + \epsilon_j}
+\deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+
+and when it is used with an interaction,
+
+\deqn{\beta_{u,v} = 2\beta_{u,v-1} - \beta_{u,v-2} + \epsilon_{u,v}}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+
 where
-\deqn{\delta_j = \beta_j - \beta_{j-1}.}
+\itemize{
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{v} denotes position within the "along" variable of the interaction; and
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+}
 
-Standard deviation \eqn{\tau} is drawn from a
-half-normal distribution,
-
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-
-(A half-normal distribution has the same shape as a normal
-distribution, but is defined only for non-negative
-values.)
-
-The scale for the half-normal distribution, \code{s}, defaults
-to 1, but can be set to other values. Lower values
-for \code{s} lead to smoother series .
+Parameter \eqn{\tau}
+has a half-normal prior
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+where \code{s} is provided by the user.
 }
 
 \examples{
 RW2()
-RW2(s = 0.2)
+RW2(s = 0.5)
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW]{RW()}} Ordinary random wark.
-\item \code{\link[=ERW2]{ERW2()}} Exchangeable version of \code{RW2()},
-used with interactions.
+\item \code{\link[=RW]{RW()}} Random walk
+\item \code{\link[=AR]{AR()}} Autoressive with order k
+\item \code{\link[=AR1]{AR1()}} Autoressive with order 1
+\item \code{\link[=Sp]{Sp()}} Smoothing via splines
+\item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
+main effect, or interaction
 }
 }

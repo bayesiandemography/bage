@@ -8,30 +8,6 @@ using namespace Eigen;
 using namespace tmbutils;
 
 
-// Types of priors ------------------------------------------------------------
-
-template <class Type>
-Type logpost_not_uses_hyper(vector<Type> effectfree,
-			    vector<Type> consts,
-			    matrix<int> matrix_along_by,
-			    int i_prior);
-
-template <class Type>
-Type logpost_uses_hyper(vector<Type> effectfree,
-			vector<Type> hyper,
-			vector<Type> consts,
-			matrix<int> matrix_along_by,
-			int i_prior);
-
-template <class Type>
-Type logpost_uses_hyperrand(vector<Type> effectfree,
-			    vector<Type> hyper,
-			    vector<Type> hyperrand,
-			    vector<Type> consts,
-			    matrix<int> matrix_along_by,
-			    int i_prior);
-
-
 // Helper functions -----------------------------------------------------------
 
 template <class Type>
@@ -48,7 +24,7 @@ Type logpost_betabinom(Type x,
 }
 
 
-// "methods" for 'logpost' function  ------------------------------------------
+// "Methods" for 'logpost' function  ------------------------------------------
 
 // Assume inputs all valid (checking done in R).
 // Note that the 'Known' prior does not have
@@ -56,32 +32,6 @@ Type logpost_betabinom(Type x,
 
 template <class Type>
 Type logpost_ar(vector<Type> effectfree,
-		vector<Type> hyper,
-		vector<Type> consts,
-		matrix<int> matrix_along_by) {
-  Type shape1 = consts[0];
-  Type shape2 = consts[1];
-  Type min = consts[2];
-  Type max = consts[3];
-  Type scale = consts[4];
-  int n_coef = hyper.size() - 1;
-  vector<Type> logit_coef = hyper.head(n_coef);
-  Type log_sd = hyper[n_coef];
-  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
-  vector<Type> coef = (max - min) * coef_raw + min;
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  Type radius = sqrt((coef_raw * coef_raw).sum());
-  ans += dbeta(radius, shape1, shape2, true)
-    + log(coef_raw).sum()
-    + log(1 - coef_raw).sum();
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans -= SCALE(ARk(coef), sd)(effectfree); // ARk returns neg log-lik
-  return ans;
-}
-
-template <class Type>
-Type logpost_ear(vector<Type> effectfree,
 		 vector<Type> hyper,
 		 vector<Type> consts,
 		 matrix<int> matrix_along_by) {
@@ -116,152 +66,37 @@ Type logpost_ear(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_elin(vector<Type> effectfree,
-		  vector<Type> hyper,
-		  vector<Type> hyperrand,
-		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
+Type logpost_lin(vector<Type> effectfree,
+		 vector<Type> hyper,
+		 vector<Type> hyperrand,
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by) {
   Type scale = consts[0];
   Type sd_slope = consts[1];
-  Type mscale = consts[2];
   int n_along = matrix_along_by.rows();
   int n_by = matrix_along_by.cols();
-  Type slope = hyper[0];
-  Type log_sd = hyper[1];
-  Type log_msd = hyper[2];
-  vector<Type> mslope = hyperrand;
+  Type log_sd = hyper[0];
+  vector<Type> slope = hyperrand;
   Type sd = exp(log_sd);
-  Type msd = exp(log_msd);
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(msd, Type(0), mscale, true) + log_msd;
-  ans += dnorm(slope, Type(0), sd_slope, true);
-  ans += dnorm(mslope, slope, msd, true).sum();
+  ans += dnorm(slope, Type(0), sd_slope, true).sum();
   Type a0 = -1 * (n_along + 1.0) / (n_along - 1.0);
   Type a1 = 2 / (n_along - 1.0);
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_along; i_along++) {
       int i = matrix_along_by(i_along, i_by);
       Type q = a0 + a1 * (i_along + 1.0);
-      ans += dnorm(effectfree[i], q * mslope[i_by], sd, true);
+      ans += dnorm(effectfree[i], q * slope[i_by], sd, true);
     }
   }
   return ans;
 }
-
-template <class Type>
-Type logpost_erw(vector<Type> effectfree,
-		 vector<Type> hyper,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type log_sd = hyper[0];
-  Type sd = exp(log_sd);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i = matrix_along_by(0, i_by);
-    ans += dnorm(effectfree[i], Type(0), Type(1), true);
-    for (int i_along = 1; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - 1, i_by);
-      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
-    }
-  }
-  return ans;
-}
-
-template <class Type>
-Type logpost_erw2(vector<Type> effectfree,
-		  vector<Type> hyper,
-		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type log_sd = hyper[0];
-  Type sd = exp(log_sd);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i_0 = matrix_along_by(0, i_by);
-    int i_1 = matrix_along_by(1, i_by);
-    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
-    ans += dnorm(effectfree[i_1], Type(0), Type(1), true);
-    for (int i_along = 2; i_along < n_along; i_along++) {
-      int i_2 = matrix_along_by(i_along, i_by);
-      int i_1 = matrix_along_by(i_along - 1, i_by);
-      int i_0 = matrix_along_by(i_along - 2, i_by);
-      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
-      ans += dnorm(diff, Type(0), sd, true);
-    }
-  }
-  return ans;
-}
-
-template <class Type>
-Type logpost_eseas(vector<Type> effectfree,
-		   vector<Type> hyper,
-		   vector<Type> consts,
-		   matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  int n_season = consts.size(); // size of 'consts' used to record 'n_season'
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type log_sd = hyper[0];
-  Type sd = exp(log_sd);
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_along = 0; i_along < n_season; i_along++) {
-      int i = matrix_along_by(i_along, i_by);
-      ans += dnorm(effectfree[i], Type(0), Type(1), true);
-    }
-    for (int i_along = n_season; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - n_season, i_by);
-      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
-    }
-  }
-  return ans;
-}
-
-template <class Type>
-Type logpost_esvd(vector<Type> effectfree,
-		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
-  return dnorm(effectfree, Type(0), Type(1), true).sum();
-}
-
-template <class Type>
-Type logpost_lin(vector<Type> effectfree,
-		 vector<Type> hyper,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type sd_slope = consts[1];
-  Type slope = hyper[0];
-  Type log_sd = hyper[1];
-  Type sd = exp(log_sd);
-  int n = effectfree.size();
-  Type ans = 0;
-  ans += dnorm(slope, Type(0), sd_slope, true);
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  Type a0 = -1 * (n + 1.0) / (n - 1.0);
-  Type a1 = 2 / (n - 1.0);
-  for (int i = 0; i < n; i++) {
-    Type q = a0 + a1 * (i + 1.0);
-    ans += dnorm(effectfree[i], q * slope, sd, true);
-  }
-  return ans;
-}
-
 
 template <class Type>
 Type logpost_linar(vector<Type> effectfree,
 		   vector<Type> hyper,
+		   vector<Type> hyperrand,
 		   vector<Type> consts,
 		   matrix<int> matrix_along_by) {
   Type scale = consts[0];
@@ -270,32 +105,35 @@ Type logpost_linar(vector<Type> effectfree,
   Type shape2 = consts[3];
   Type min = consts[4];
   Type max = consts[5];
-  Type slope = hyper[0];
-  Type log_sd = hyper[1];
-  int n_coef = hyper.size() - 2;
-  vector<Type> logit_coef = hyper.segment(2, n_coef);
+  Type log_sd = hyper[0];
+  int n_coef = hyper.size() - 1;
+  vector<Type> logit_coef = hyper.segment(1, n_coef);
+  vector<Type> slope = hyperrand;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
   Type sd = exp(log_sd);
   vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
   vector<Type> coef = (max - min) * coef_raw + min;
-  int n = effectfree.size();
-  Type a0 = -1 * (n + 1.0) / (n - 1.0);
-  Type a1 = 2 / (n - 1.0);
-  vector<Type> err(n);
-  for (int i = 0; i < n; i++) {
-    Type q = a0 + a1 * (i + 1.0);
-    err[i] = effectfree[i] - q * slope;
-  }
-  Type radius = sqrt((coef_raw * coef_raw).sum());
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(slope, Type(0), sd_slope, true);
+  ans += dnorm(slope, Type(0), sd_slope, true).sum();
+  Type radius = sqrt((coef_raw * coef_raw).sum());
   ans += dbeta(radius, shape1, shape2, true)
     + log(coef_raw).sum()
     + log(1 - coef_raw).sum();
-  ans -= SCALE(ARk(coef), sd)(err); // ARk returns neg log-lik
+  Type a0 = -1 * (n_along + 1.0) / (n_along - 1.0);
+  Type a1 = 2 / (n_along - 1.0);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    vector<Type> err(n_along);
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      Type q = a0 + a1 * (i_along + 1.0);
+      int i = matrix_along_by(i_along, i_by);
+      err[i_along] = effectfree[i] - q * slope[i_by];
+    }
+    ans -= SCALE(ARk(coef), sd)(err); // ARk returns neg log-lik
+  }
   return ans;
 }
-
 
 template <class Type>
 Type logpost_norm(vector<Type> effectfree,
@@ -329,53 +167,47 @@ Type logpost_rw(vector<Type> effectfree,
   Type scale = consts[0];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
-  int n = effectfree.size();
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(effectfree[0], Type(0), Type(1), true);
-  for (int i = 1; i < n; i++) {
-    Type diff = effectfree[i] - effectfree[i-1];
-    ans += dnorm(diff, Type(0), sd, true);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(effectfree[i], Type(0), Type(1), true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
+    }
   }
   return ans;
 }
 
 template <class Type>
 Type logpost_rw2(vector<Type> effectfree,
-		 vector<Type> hyper,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type log_sd = hyper[0];
-  Type sd = exp(log_sd);
-  int n = effectfree.size();
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(effectfree[0], Type(0), Type(1), true);
-  ans += dnorm(effectfree[1], Type(0), Type(1), true);
-  for (int i = 2; i < n; i++) {
-    Type diff = effectfree[i] - 2 * effectfree[i-1] + effectfree[i-2];
-    ans += dnorm(diff, Type(0), sd, true);
-  }
-  return ans;
-}
-
-template <class Type>
-Type logpost_seas(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts,
 		  matrix<int> matrix_along_by) {
   Type scale = consts[0];
-  int n_season = consts.size(); // size of 'consts' used to record 'n_season'
-  int n_effect = effectfree.size();
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i = 0; i < n_season; i++)
-    ans += dnorm(effectfree[i], Type(0), Type(1), true);
-  for (int i = n_season; i < n_effect; i++)
-    ans += dnorm(effectfree[i], effectfree[i-n_season], sd, true);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
+    ans += dnorm(effectfree[i_1], Type(0), Type(1), true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      ans += dnorm(diff, Type(0), sd, true);
+    }
+  }
   return ans;
 }
 
@@ -405,14 +237,11 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
 			    int i_prior) {
   Type ans = 0;
   switch(i_prior) {
-  case 2:
+  case 5:
     ans = logpost_normfixed(effectfree, consts, matrix_along_by);
     break;
-  case 7:
+  case 9:
     ans = logpost_svd(effectfree, consts, matrix_along_by);
-    break;
-  case 14:
-    ans = logpost_esvd(effectfree, consts, matrix_along_by);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
@@ -429,40 +258,19 @@ Type logpost_uses_hyper(vector<Type> effectfree,
   Type ans = 0;
   switch(i_prior) {
   case 1:
-    ans = logpost_norm(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 3:
-    ans = logpost_rw(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 4:
-    ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 5:
     ans = logpost_ar(effectfree, hyper, consts, matrix_along_by);
     break;
+  case 4:
+    ans = logpost_norm(effectfree, hyper, consts, matrix_along_by);
+    break;
   case 6:
-    ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_rw(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 7:
+    ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by);
     break;
   case 8:
-    ans = logpost_lin(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 10:
-    ans = logpost_seas(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 11:
-    ans = logpost_eseas(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 12:
-    ans = logpost_ear(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 13:
-    ans = logpost_erw(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 15:
-    ans = logpost_erw2(effectfree, hyper, consts, matrix_along_by);
-    break;
-  case 16:
-    ans = logpost_linar(effectfree, hyper, consts, matrix_along_by);
+    ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
@@ -479,8 +287,11 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
 			    int i_prior) {
   Type ans = 0;
   switch(i_prior) {
-  case 9:
-    ans = logpost_elin(effectfree, hyper, hyperrand, consts, matrix_along_by);
+  case 2:
+    ans = logpost_lin(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    break;
+  case 3:
+    ans = logpost_linar(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior); // # nocov

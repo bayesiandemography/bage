@@ -1,54 +1,73 @@
 
 ## User-visible constructors --------------------------------------------------
 
-## 'bage_prior_ar' only ever created via 'set_prior()'
-
 ## HAS_TESTS
 #' Autoregressive Prior
 #'
-#' Autoregressive prior with order `k`. Typically used with time effects.
+#' Prior for main effects or interaction.
+#' An autoreggressive process
+#' with order `k`. Typically used with time.
 #'
-#' Parameter `s` controls the size of errors. Smaller values
-#' for `s` may lead to smoother series.
+#' If `AR()` is used with an interaction,
+#' then separate AR series are constructed along
+#' the "along" variable within
+#' each combination of the
+#' "by" variables. 
 #' 
+#' Argument `s` controls the size of errors. Smaller values
+#' for `s` tend to give smoother series.
+#'
 #' @section Mathematical details:
 #'
-#' With an `AR()` prior,
+#' When `AR()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-k} + \epsilon_j}
-#' \deqn{\epsilon_j \sim \text{N}(0, \omega^2)}
+#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-n} + \epsilon_j}
+#' \deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 #'
-#' where  \eqn{\beta_j} is the \eqn{j}th element of the main effect.
+#' and when it is used with an interaction,
 #'
-#' The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
-#' marginal variance \eqn{\tau^2}.
+#' \deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_n \beta_{u,v-n} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the "along" variable of the interaction; and
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
 #'
-#' Parameter \eqn{\tau} has a half-normal prior
+#' Internally, `AR()` derives a value for \eqn{\omega} that
+#' gives every element of \eqn{\beta} a marginal
+#' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+#' has a half-normal prior
 #'
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
 #'
-#' where a value for `s` is provided by the user.
-#'
-#' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-#' between -1 and 1 that jointly lead to a stationary model. The quantity
-#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+#' where `s` is provided by the user.
+#' 
+#' The autocorrelation coefficients \eqn{\phi_1, \cdots, \phi_n}
+#' are restricted to values between -1 and 1 that jointly
+#' lead to a stationary model. The quantity
+#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_n^2}} has the
 #' boundary-avoiding prior
 #'
-#' \deqn{r \sim \text{Beta}(2, 2)}.
+#' \deqn{r \sim \text{Beta}(2, 2).}
 #' 
-#' @param n The order of the model,
-#' i.e. the number of lagged
+#' @param n The order of the model, i.e. the number of lagged
 #' terms that are included. Default is `2`.
 #' @param s Scale for the prior for the errors.
 #' Default is `1`.
+#' @param along Name of the variable to be used
+#' as the "along" variable. Only used with
+#' interactions.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
 #' @seealso
 #' - [AR1()] Special case of `AR()`
-#' - [EAR()] Exchangeable version of `AR()`,
-#'   used with interactions
+#' - [LinAR()] AR process combined with straight line
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #' 
 #' @references
 #' - `AR()` is based on the TMB function
@@ -57,8 +76,9 @@
 #' @examples
 #' AR(n = 3)
 #' AR(n = 3, s = 2.4)
+#' AR(along = "cohort")
 #' @export
-AR <- function(n = 2, s = 1) {
+AR <- function(n = 2, s = 1, along = NULL) {
   check_n(n = n,
           nm_n = "n",
           min = 1L,
@@ -69,42 +89,58 @@ AR <- function(n = 2, s = 1) {
               zero_ok = FALSE)
   n <- as.integer(n)
   scale <- as.double(s)
+  if (!is.null(along))
+    check_string(x = along, nm_x = "along")
   new_bage_prior_ar(n = n,
                     min = -1,
                     max = 1,
                     scale = scale,
+                    along = along,
                     nm = "AR")
 }
 
 
-## 'bage_prior_ar1' only ever created via 'set_prior()'
-
 ## HAS_TESTS
 #' AR1 Prior
 #'
-#' Autoregressive prior of order 1. Typically used with time effects.
+#' Prior for main effect or interaction. 
+#' An autoregressive process with order 1.
+#' Typically used with time.
 #'
-#' Parameter `s` controls the size of errors. Smaller values
-#' for `s` may lead to smoother series.
+#' If `AR1()` is used with an interaction,
+#' then separate AR1 series constructed along
+#' the "along" variable within
+#' each combination of the
+#' "by" variables. 
+#' 
+#' Argument `s` controls the size of errors. Smaller values
+#' for `s` tend to give smoother series.
 #'
 #' @section Mathematical details:
 #'
-#' With an `AR1()` prior,
+#' When `AR1()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \phi \beta_{j-1} + \epsilon_j}
-#' \deqn{\epsilon \sim \text{N}(0, \omega^2)}
+#' \deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 #'
-#' where \eqn{\beta_j} is the \eqn{j}th element of the main effect.
+#' and when it is used with an interaction,
 #'
-#' The value of \eqn{\omega} is chosen so that each \eqn{\beta_j} has
-#' marginal variance \eqn{\tau^2}.
+#' \deqn{\beta_{u,v} = \phi \beta_{u,v-1} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the "along" variable of the interaction; and
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
 #'
-#' Parameter \eqn{\tau} has half-normal prior
-#'
+#' Internally, `AR1()` derives a value for \eqn{\omega} that
+#' gives every element of \eqn{\beta} a marginal
+#' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+#' has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-#'
-#' where a value for `s` is provided by the user.
-#'
+#' where `s` is provided by the user.
+#' 
 #' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
 #' Its prior distribution is
@@ -114,530 +150,58 @@ AR <- function(n = 2, s = 1) {
 #' where
 #' 
 #' \deqn{\phi' \sim \text{Beta}(2, 2).}
-#'
+#' 
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient.
 #' Defaults are `0.8` and `0.98`.
-#' @param s Scale for the prior for
-#' the errors. Default is `1`.
+#' @param s Scale for the prior for the errors.
+#' Default is `1`.
+#' @param along Name of the variable to be used
+#' as the "along" variable. Only used with
+#' interactions.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
 #' @seealso
 #' - [AR()] Generalisation of `AR1()`
-#' - [EAR1()] Exchangeable version of `AR1()`,
-#'   used with interactions
+#' - [LinAR1()] AR1 process combined with straight line
 #' - [priors] Overview of priors implemented in **bage**
-#'
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#' 
 #' @references
-#'
 #' - `AR1()` is based on the TMB function
 #' [AR1](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html#details)
-#' - The values for `min` and `max` are based on the
-#'   defaults for function `forecast::ets()`.
+#' - The defaults for `min` and `max` are based on the
+#'   defaults for `forecast::ets()`.
 #'
 #' @examples
 #' AR1()
-#' AR1(min = 0, max = 1, s = 2.4)
+#' AR1(min = 0, max = 1, s = 2.4,
+#' AR1(along = "cohort")
 #' @export
-AR1 <- function(min = 0.8, max = 0.98, s = 1) {
+AR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   scale <- as.double(s)
   min <- as.double(min)
   max <- as.double(max)
+  if (!is.null(along))
+    check_string(x = along, nm_x = "along")
   new_bage_prior_ar(n = 1L,
                     min = min,
                     max = max,
                     scale = scale,
+                    along = along,
                     nm = "AR1")
 }
 
 
 ## HAS_TESTS
-#' Exchangeable Autoregressive Prior
+#' Known Prior
 #'
-#' @description
-#'
-#' An `EAR()` prior is designed for use with interactions,
-#' typically involving time or age.
-#'
-#' With this prior, an autogressive time series model is
-#' applied to the 'along' 
-#' variable, within each combination
-#' of the 'by' variables. For instance,
-#' an autoregressive time series
-#' model might be applied to the time variable,
-#' within each combination of age and sex variables.
-#' The same set of coefficients is shared
-#' across all combinations of the 'by' variables.
-#' The time series are "exchangeable" in the sense
-#' that they are drawn from a common distribution.
-#' 
-#' @section 'Along' and 'by' variables:
-#'
-#' Some priors for interactions distinguish
-#' between 'along' and 'by' variables. The 'along'
-#' variable is typically time, or, in interactions
-#' not involving time, is typically age. The 'by'
-#' variables are everything else. In an interaction
-#' between region, sex, and time, for instance,
-#' the 'along' variable is likely to be time,
-#' and the 'by' variables are likely to be region and sex.
-#'
-#' If no `along` argument is supplied, a default value
-#' is chosen as follows:
-#'
-#' - if the interaction contains a time variable, then
-#'   the 'along' variable is assumed to be time;
-#' - otherwise, if the interaction contains an
-#'   age variable, then the 'along' variable
-#'   is assumed to be age;
-#' - otherwise, an error is raised.
-#' 
-#' @section Mathematical details:
-#'
-#' With an `EAR()` prior,
-#' 
-#' \deqn{\beta_{u,v} = \phi_1 x_{u,v-1} + \cdots + \phi_n x_{u,v-n} + \epsilon_{u,v}}
-#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
-#'
-#' where
-#' - \eqn{u} denotes a position within the the 'along' variable;
-#' - \eqn{v} denotes a position within the classification
-#'   formed by the 'by' variable(s);
-#' - \eqn{\beta_{u,v}} is an element of an interaction;
-#' - \eqn{\phi_1, \dots, \phi_n} are autoregression coefficients; and
-#' - \eqn{\epsilon_{u,v}} is an error term.
-#'
-#' The value for \eqn{\omega} is chosen so that each
-#' \eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
-#'
-#' Parameter \eqn{\tau} has prior
-#'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' The \eqn{\phi_1, \cdots, \phi_k} are jointly restricted to values
-#' between -1 and 1 that lead to stationary models. The quantity
-#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
-#' boundary-avoiding prior
-#'
-#' \deqn{r \sim \text{Beta}(2, 2)}.
-#' 
-#' @param n The order of the model, i.e. the number
-#' of lagged terms included in the model. The default
-#' is `2`.
-#' @param s Scale for the prior for the errors.
-#' Default is `1`.
-#' @param along Name of one of the variables
-#' in the interaction. Optional, provided
-#' the interaction includes a time or age variable.
-#'
-#' @returns An object of class `"bage_prior_ear"`.
-#'
-#' @seealso
-#' - [EAR1()] Special case of `EAR()`
-#' - [AR()] Autoregressive prior for main effects
-#' - [priors] Overview of priors implemented in **bage**
-#'
-#' @references
-#' - `EAR()` is based partly on the TMB function
-#' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
-#'
-#' @examples
-#' EAR(n = 3)
-#' EAR(n = 3, s = 2.4)
-#' EAR(along = "cohort")
-#' @export
-EAR <- function(n = 2, s = 1, along = NULL) {
-  check_n(n = n, nm_n = "n", min = 1L, max = NULL, null_ok = FALSE)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  n <- as.integer(n)
-  scale <- as.double(s)
-  if (!is.null(along))
-    check_string(along, nm_x = "along")
-  new_bage_prior_ear(n = n,
-                     min = -1,
-                     max = 1,
-                     scale = scale,
-                     along = along,
-                     nm = "EAR")
-}
-
-
-## HAS_TESTS
-#' Exchangeable AR1 Prior
-#'
-#' An `EAR1()` prior is designed for use with interactions,
-#' typicallly involving time or age.
-#'
-#' With this prior, an AR1 time series model
-#' is applied to the 'along' variable, within
-#' each combination of the 'by' variables.
-#' For instance, an AR1 model might be applied
-#' to the time veriable, which each combination
-#' of age and sex variables.
-#' The same coefficient is shared across
-#' combinations of the 'by' variables.
-#' The time series are "exchangeable" in the sense
-#' that they are drawn from a common distribution.
-#' 
-#' @inheritSection EAR 'Along' and 'by' variables
-#'
-#' @section Mathematical details:
-#'
-#' With an `EAR1()` prior,
-#'
-#' \deqn{\beta_{u,v} = \phi \beta_{u,v-1} + \epsilon_{u,v}}
-#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2)}
-#'
-#' where
-#' - \eqn{u} denotes a position within the the 'along' variable;
-#' - \eqn{v} denotes a position within the classification
-#'   formed by the 'by' variable(s);
-#' - \eqn{\beta_{u,v}} is an element of an interaction;
-#' - \eqn{\phi} is the autoregression coefficient; and
-#' - \eqn{\epsilon_{u,v}} is an error term.
-#'
-#' The value for \eqn{\omega} is chosen so that each
-#' \eqn{\beta_{u,v}} has marginal variance \eqn{\tau^2}.
-#'
-#' Parameter \eqn{\tau} has prior
-#'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' Correlation parameter \eqn{\phi} is constrained
-#' to lie in the interval `(\text{min}, \text{max})`.
-#' The prior distribution for \eqn{\phi} is
-#' 
-#' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
-#'
-#' where
-#' 
-#' \deqn{\phi' \sim \text{Beta}(2, 2)}.
-#'
-#' @inheritParams EAR
-#' @param min,max Minimum and maximum values
-#' for autocorrelation coeffient.
-#' Defaults are `0.8` and `0.98`.
-#'
-#' @returns An object of class `"bage_prior_ear"`.
-#'
-#' @seealso
-#' - [EAR()] More general exchangeable AR model
-#' - [AR1()] AR1 prior for main effects
-#' - [priors] Overview of priors implemented in **bage**
-#'
-#' @references
-#' - `EAR1()' is partly based on the TMB function
-#'   [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
-#' - The values for `min` and `max` are based on the
-#'   defaults for function `forecast::ets()`.
-#'
-#' @examples
-#' EAR1()
-#' EAR1(min = 0, max = 1, s = 2.4)
-#' EAR1(along = "cohort")
-#' @export
-EAR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
-  check_min_max_ar(min = min, max = max)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  min <- as.double(min)
-  max <- as.double(max)
-  scale <- as.double(s)
-  if (!is.null(along))
-    check_string(along, nm_x = "along")
-  new_bage_prior_ear(n = 1L,
-                     min = min,
-                     max = max,
-                     scale = scale,
-                     along = along,
-                     nm = "EAR1")
-}
-
-## 'bage_prior_elin' only ever created via 'set_prior()'
-
-## HAS_TESTS
-#' Exchangeable Linear Prior
-#'
-#' Prior for an interaction where, within each combination
-#' of the 'by' variables, the elements of the 'along'
-#' variable follow a straight line, with idiosyncratic
-#' errors around that line.
-#' Each combination of the 'by' variables has a different
-#' line, with a different slope. The slopes are drawn
-#' from a common distribution.
-#'
-#' @inheritSection EAR 'Along' and 'by' variables
-#'
-#' @section Mathematical details:
-#' 
-#' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-#' within the \eqn{u}th combination of the
-#' 'by' variables, then
-#' 
-#' \deqn{\beta_{u,v} \sim \text{N}(\eta_u q_v, \tau^2)}
-#'
-#' where
-#'
-#' \deqn{q_v = - (V+1)/(V-1) + 2v/(V-1).}
-#'
-#' The slopes \eqn{\eta_u} are drawn from a common distribution,
-#'
-#' \deqn{\eta_u \sim \text{N}(\eta, \omega^2).}
-#'
-#' The absolute value of mean \eqn{\eta}
-#' is governed by parameter `s`:
-#'
-#' \deqn{\eta \sim \text{N}(0, \text{s}^2).}
-#'
-#' Larger values for \eqn{\omega} imply more variability
-#' in slopes across different combinations of the 'by'
-#' variables. The size of \eqn{\omega} is governed by
-#' parameter `ms`,
-#'
-#' \deqn{\omega \sim \text{N}^+(0, (\text{ms})^2)}
-#' 
-#' Larger values for \eqn{\tau} imply more variability
-#' around each line. The size of \eqn{\tau} is
-#' governed by parameter `s`:
-#'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' (\eqn{\text{N}^+} denotes a half-normal distribution,
-#' which has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
-#'
-#' @inheritParams EAR
-#' @param sd A postive number. Default is 1.
-#' @param ms A positive number. Default is 1.
-#'
-#' @returns An object of class `"bage_prior_elin"`.
-#'
-#' @seealso
-#' - [Lin()] Linear prior for main effects.
-#' - [priors] Overview of priors implemented in **bage**
-#'
-#' @examples
-#' ELin()
-#' ELin(s = 0.5, sd = 2, ms = 0.1, along = "cohort")
-#' @export
-ELin <- function(s = 1, sd = 1, ms = 1, along = NULL) {
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
-  check_scale(ms, x_arg = "ms", zero_ok = FALSE)
-  if (!is.null(along))
-    check_string(along, nm_x = "along")
-  scale <- as.double(s)
-  sd_slope <- as.double(sd)
-  mscale <- as.double(ms)
-  new_bage_prior_elin(scale = scale,
-                      sd_slope = sd_slope,
-                      mscale = mscale,
-                      along = along)
-}
-
-
-## HAS_TESTS
-#' Exchangeable Random Walk Prior
-#'
-#' Prior for an interaction,
-#' where a (first order) random walk model
-#' is applied to the 'along' variable, within each
-#' combination of values of the 'by' variables.
-#' Standard deviations are shared across
-#' different combinations of the 'by' variables.
-#' The series within each combination of the
-#' 'by' variables are treated as exchangeable.
-#' 
-#' @inheritSection EAR 'Along' and 'by' variables
-#'
-#' @section Mathematical details:
-#'
-#' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-#' within the \eqn{u}th combination of the
-#' 'by' variables, then
-#'
-#' \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
-#' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1}, \tau^2), \quad v = 2, \cdots, V.}
-#'
-#' Standard deviation \eqn{\tau} is drawn from a
-#' half-normal distribution,
-#' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' (A half-normal distribution has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
-#'
-#' The scale for the half-normal distribution, `s`, defaults
-#' to 1, but can be set to other values. Lower values
-#' for `s` lead to smoother series.
-#'
-#' @inheritParams EAR
-#' @param s Scale of half-normal prior for
-#' standard deviation (\eqn{\sigma}).
-#' Defaults to 1.
-#'
-#' @returns An object of class `"bage_prior_erw"`.
-#'
-#' @seealso
-#' - [RW()] Random walk prior, used with main effects.
-#' - [ERW2()] Exchangeable random walk with drift prior,
-#'   used with interactions.
-#' - [priors] Overview of priors implemented in **bage**
-#'
-#' @examples
-#' ERW()
-#' ERW(s = 0.5)
-#' @export
-ERW <- function(s = 1, along = NULL) {
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  scale <- as.double(s)
-  if (!is.null(along))
-    check_string(along, nm_x = "along")
-  new_bage_prior_erw(scale = scale,
-                     along = along)
-}
-
-
-## 'bage_prior_erw2' only ever created via 'set_prior()'
-
-## HAS_TESTS
-#' Exchangeable Random Walk with Drift Prior
-#'
-#' Prior for an interaction,
-#' where a random walk with drift model
-#' is applied to the 'along' variable, within each
-#' combination of values of the 'by' variables.
-#' Standard deviations are shared across
-#' different combinations of the 'by' variables.
-#' The series within each combination of the
-#' 'by' variables are treated as exchangeable.
-#' 
-#' @inheritSection EAR 'Along' and 'by' variables
-#'
-#' @section Mathematical details:
-#'
-#' If \eqn{\beta_{u,v}} is the \eqn{v}th element of the interaction
-#' within the \eqn{u}th combination of the
-#' 'by' variables, then
-#'
-#' \deqn{\beta_{u,v}  \sim \text{N}(0, 1), \quad v = 1,2},
-#' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1} + \delta_{u,v-1}, \tau^2), \quad v = 2, \cdots, V}
-#' where
-#' \deqn{\delta_{u,v} =  \beta_{u,v} - \beta_{u,v-1}.}
-#'
-#' Standard deviation \eqn{\tau} is drawn from a
-#' half-normal distribution,
-#' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' (A half-normal distribution has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
-#'
-#' The scale for the half-normal distribution, `s`, defaults
-#' to 1, but can be set to other values. Lower values
-#' for `s` lead to smoother series.
-#'
-#' @inheritParams EAR
-#'
-#' @returns An object of class `"bage_prior_erw2"`.
-#'
-#' @seealso
-#' - [RW2()] Random walk with drift prior,
-#'   used with main effects.
-#' - [ERW()] Exchangeable random walk prior,
-#'   used with interactions.
-#' - [priors] Overview of priors implemented in **bage**
-#'
-#' @examples
-#' ERW2()
-#' ERW2(s = 0.5)
-#' @export
-ERW2 <- function(s = 1, along = NULL) {
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  if (!is.null(along))
-    check_string(along, nm_x = "along")
-  scale <- as.double(s)
-  new_bage_prior_erw2(scale = scale,
-                      along = along)
-}
-
-
-## 'bage_prior_eseas' only ever created via 'set_prior()'
-
-## HAS_TESTS
-#' Exchangeable Seasonal Prior
-#'
-#' Prior for a seasonal effect, within an interaction.
-#' Each combination of the 'by' variables,
-#' has a separate seasonal effect.
-#' The `along` variable is almost always
-#' time.
-#'
-#' @inheritSection EAR 'Along' and 'by' variables
-#'
-#' @section Mathematical details:
-#' 
-#' If \eqn{\beta_{u,v}^{\text{seas}}} is the \eqn{v}th
-#' element of the seasonal effect within
-#' within the \eqn{u}th combination of the
-#' 'by' variables, then
-#' 
-#' \deqn{\beta_{u,v}^{\text{seas}} \sim \text{N}(\beta_{u,v-n}^{\text{seas}}, \tau^2),}
-#'
-#' where \eqn{n} is the number of seasons.
-#'
-#' Larger values for \eqn{\tau} imply more variability
-#' in seasonal effects over time. The size of \eqn{\tau} is
-#' governed by parameter `s`:
-#'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' (\eqn{\text{N}^+} denotes a half-normal distribution,
-#' which has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
-#'
-#' @inheritParams EAR
-#' @param n Number of seasons.
-#'
-#' @returns An object of class `"bage_prior_eseas"`.
-#'
-#' @seealso
-#' - [Seas()] Seasonal effect for main effects.
-#' - Seasonal effects are always
-#'   used within 'composite' priors, created using
-#'   [compose_time()].
-#' - [priors] Overview of priors implemented in **bage**
-#'
-#' @examples
-#' ESeas(n = 4)
-#' ESeas(n = 12, s = 0.5, along = "cohort")
-#' @export
-ESeas <- function(n, s = 1, along = NULL) {
-  check_n(n = n, nm_n = "n", min = 2L, max = NULL, null_ok = FALSE)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  if (!is.null(along))
-    check_string(along, nm_x = "along")
-  n <- as.integer(n)
-  scale <- as.double(s)
-  new_bage_prior_eseas(n = n,
-                       scale = scale,
-                       along = along)
-}
-
-
-## 'bage_prior_known' only ever created via 'set_prior()'
-
-## HAS_TESTS
-#' Treat an Intercept, Main Effect, or Interaction as Known
-#'
-#' Treat the intercept, a main effect, or an interaction
-#' in an model as fixed and known.
+#' Treat an intercept, a main effect, or an interaction
+#' as fixed and known.
 #'
 #' @param values A numeric vector
 #'
@@ -646,7 +210,8 @@ ESeas <- function(n, s = 1, along = NULL) {
 #' @seealso
 #' - [NFix()] Prior where level unknown, but variability known.
 #' - [priors] Overview of priors implemented in **bage**
-#'
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #'
 #' @examples
 #' Known(-2.3)
@@ -659,98 +224,129 @@ Known <- function(values) {
 }
 
 
-## 'bage_prior_lin' only ever created via 'set_prior()'
-
 ## HAS_TESTS
 #' Linear Prior
 #'
-#' Prior for a main effect where the elements
-#' follow a straight line, with independent normal
-#' errors around this line.
+#' Prior for main effect or interaction.
+#' A straight line or lines, combined with independent
+#' normal errors. Typically used with time.
 #'
+#' If `Lin()` is used with an interaction,
+#' then separate lines are constructed along 
+#' the "along" variable, within each combination
+#' of the "by" variables.
+#' 
+#' Argument `s` controls the size of the errors.
+#' 
 #' @section Mathematical details:
 #'
-#' With a `Lin()` prior,
+#' When `Lin()` is used with a main effect,
 #'
-#' \deqn{\beta_j \sim \text{N}(\eta q_j, \tau^2)}
-#'
-#' where \eqn{\beta_j} is the \eqn{j}th element of the main effect
+#' \deqn{\beta_j = \eta q_j + \epsilon_j}
+#' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+#' 
+#' and when it is used with an interaction,
+#' 
+#' \deqn{\beta_{u,v} \sim \eta_u q_v + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{u} denotes position within the "along" variable of the interaction;
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
+#' - \deqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
+#' - \deqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+#' 
+#' The slopes have priors
+#' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
 #' and
-#' 
-#' \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1).}
+#' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+#' Larger values for `sd` permit steeper slopes.
 #'
-#' Slope \eqn{\eta} is drawn from a normal distribution,
+#' Parameter \eqn{\tau} has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' where `s` is provided by the user.
 #'
-#' \deqn{\eta \sim \text{N}(0, (\text{sd})^2)}.
-#' 
-#' The standard deviation for the normal distribution,
-#' `sd`, defaults to 1, but can be set to other values.
-#' Lower values for `sd` lead to smaller values for
-#' the slope term.
-#'
-#' Standard deviation \eqn{\tau} is drawn from a
-#' half-normal distribution,
-#' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
-#'
-#' @param s A positive number. Controls the size of
-#' errors, with larger values of `s` encouraging larger
-#' errors. Default is 1.
-#' @param sd A postive number. Controls the absolute
-#' size of the slope of the line, with larger values
-#' of `sd` encouraging steeper slopes. Default is 1.
+#' @inheritParams AR
+#' @param sd Standard deviation in prior for slope
+#' of line. Default is 1.
 #'
 #' @returns An object of class `"bage_prior_lin"`.
 #'
 #' @seealso
-#' - [LinAR()] Linear prior with autoregressive errors
-#' - [ELin()] Exchangeable version of `Lin()`,
-#'   used with interactions
+#' - [LinAR()] Linear with AR errors
+#' - [LinAR1()] Linear with AR1 errors
+#' - [RW2()] Random walk with drift
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #'
 #' @examples
 #' Lin()
 #' Lin(s = 0.5, sd = 2)
+#' Lin(along = "cohort")
 #' @export
-Lin <- function(s = 1, sd = 1) {
+Lin <- function(s = 1, sd = 1, along = NULL) {
   check_scale(s, x_arg = "s", zero_ok = FALSE)
   check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(x = along, nm_x = "along")
   scale <- as.double(s)
   sd_slope <- as.double(sd)
   new_bage_prior_lin(scale = scale,
-                     sd_slope = sd_slope)
+                     sd_slope = sd_slope,
+                     along = along)
 }
 
 
 ## HAS_TESTS
 #' Linear Prior with Autoregressive Errors
 #'
-#' Prior for a main effect where the elements
-#' follow a straight line, with autoregressive
-#' errors around this line.
+#' Prior for main effect or interaction.
+#' A straight line or lines, combined with
+#' autoregressive errors. Typically used with time.
 #'
+#' If `LinAR()` is used with an interaction,
+#' then, within each combination of the "by" variables,
+#' the "along" variable is modelled as a straight line
+#' with autoregressive errors.
+#'
+#' Argument `s` controls the size of the errors.
+#' 
 #' @section Mathematical details:
 #'
-#' With a `LinAR()` prior,
+#' When `LinAR()` is being used with a main effect,
 #'
 #' \deqn{\beta_j = \eta q_j + \epsilon_j}
+#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j,}
+#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
 #'
+#' and when it is being used with an interaction,
+#'
+#' \deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
+#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
+#' 
 #' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{u} denotes position within the "along" variable of the interaction;
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
+#' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
+#' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 #'
-#' - \eqn{\beta_j} is the \eqn{j}th element of the main effect
-#' - \eqn{q_j} is defined as
-#'   \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1)}
-#' - \eqn{\epsilon_j} has an autoregressive structure
-#'   \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-k} + \varepsilon_j}
-#'   \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+#' The slopes have priors
+#' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
+#' and
+#' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+#' Larger values for `sd` permit steeper slopes.
 #'
-#' The value of \eqn{\omega} is chosen so that each \eqn{\epsilon_j} has
-#' marginal variance \eqn{\tau^2}.
-#'
-#' Parameter \eqn{\tau} has a half-normal prior
-#'
+#' Internally, `LinAR()` derives a value for \eqn{\omega} that
+#' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
+#' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+#' has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-#'
 #' where a value for `s` is provided by the user.
 #'
 #' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
@@ -761,7 +357,6 @@ Lin <- function(s = 1, sd = 1) {
 #' \deqn{r \sim \text{Beta}(2, 2).}
 #' 
 #' Slope \eqn{\eta} is drawn from a normal distribution,
-#'
 #' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
 #' 
 #' @param n The order of the model for the
@@ -776,17 +371,17 @@ Lin <- function(s = 1, sd = 1) {
 #' @returns An object of class `"bage_prior_linar"`.
 #'
 #' @seealso
-#' - [LinAR1()] Linear prior with AR1 errors
-#' - [Lin()] Linear prior with independent normal errors
-#' - [ELin()] Exchangeable version of `Lin()`,
-#'   used with interactions
+#' - [LinAR1()] Special case of `LinAR()`
+#' - [AR()] AR process with no line
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #'
 #' @examples
 #' LinAR()
 #' LinAR(n = 3, s = 0.5, sd = 2)
 #' @export
-LinAR <- function(n = 2, s = 1, sd = 1) {
+LinAR <- function(n = 2, s = 1, sd = 1, along = NULL) {
   check_n(n = n,
           nm_n = "n",
           min = 1L,
@@ -796,6 +391,8 @@ LinAR <- function(n = 2, s = 1, sd = 1) {
               x_arg = "s",
               zero_ok = FALSE)
   check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
   n <- as.integer(n)
   scale <- as.double(s)
   sd_slope <- as.double(sd)
@@ -804,6 +401,7 @@ LinAR <- function(n = 2, s = 1, sd = 1) {
                        sd_slope = sd_slope,
                        min = -1,
                        max = 1,
+                       along = along,
                        nm = "LinAR")
 }
 
@@ -811,72 +409,89 @@ LinAR <- function(n = 2, s = 1, sd = 1) {
 ## HAS_TESTS
 #' Linear Prior with AR1 Errors
 #'
-#' Prior for a main effect where the elements
-#' follow a straight line, with errors that form
-#' an autoregressive series of order 1.
+#' Prior for main effect or interaction.
+#' Combines a straight line or lines with
+#' AR1 errors. Typically used with time.
+#'
+#' If `LinAR1()` is used with an interaction,
+#' then, within each combination of the "by" variables,
+#' the "along" variable is modelled as a straight line
+#' with autoregressive errors.
+#'
+#' Argument `s` controls the size of the errors.
 #'
 #' @section Mathematical details:
 #'
-#' With a `LinAR1()` prior,
+#' When `LinAR1()` is being used with a main effect,
 #'
 #' \deqn{\beta_j = \eta q_j + \epsilon_j}
+#' \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j,}
+#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
 #'
+#' and when it is being used with an interaction,
+#'
+#' \deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} = \phi + \varepsilon_{u,v},}
+#' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
+#' 
 #' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{u} denotes position within the "along" variable of the interaction;
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
+#' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
+#' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 #'
-#' - \eqn{\beta_j} is the \eqn{j}th element of the main effect
-#' - \eqn{q_j} is defined as
-#'   \deqn{q_j = - (J+1)/(J-1) + 2j/(J-1),}
-#' - \eqn{\epsilon_j} has an AR1 structure
-#'    \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
-#'    \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+#' The slopes have priors
+#' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
+#' and
+#' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+#' Larger values for `sd` permit steeper slopes.
 #'
-#' The value of \eqn{\omega} is chosen so that each \eqn{\epsilon_j} has
-#' marginal variance \eqn{\tau^2}.
-#'
-#' Parameter \eqn{\tau} has a half-normal prior
-#'
+#' Internally, `LinAR1()` derives a value for \eqn{\omega} that
+#' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
+#' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
+#' has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-#'
 #' where a value for `s` is provided by the user.
 #'
 #' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
 #' Its prior distribution is
-#' 
 #' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
-#' 
 #' where
-#' 
 #' \deqn{\phi' \sim \text{Beta}(2, 2).}
-#' 
-#' Slope \eqn{\eta} is drawn from a normal distribution,
-#'
-#' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
 #' 
 #' @inheritParams LinAR
 #' @param min,max Minimum and maximum values
-#' for autocorrelation coefficient (\eqn{\phi}).
+#' for autocorrelation coefficient.
 #' Defaults are `0.8` and `0.98`.
 #'
 #' @returns An object of class `"bage_prior_linar"`.
 #'
 #' @seealso
 #' - [LinAR()] Generalisation of `LinAR1()`
-#' - [Lin()] Linear prior with independent normal errors
-#' - [ELin()] Exchangeable version of `Lin()`,
-#'   used with interactions
+#' - [AR1()] AR1 process with no line
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#'
+#' @references
+#' - The defaults for `min` and `max` are based on the
+#'   defaults for `forecast::ets()`.
 #'
 #' @examples
 #' LinAR1()
 #' LinAR1(min = 0, s = 0.5, sd = 2)
 #' @export
-LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1) {
+LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
   check_scale(s,
               x_arg = "s",
               zero_ok = FALSE)
   check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  if (!is.null(along))
+    check_string(x = along, nm_x = "along")
   scale <- as.double(s)
   sd_slope <- as.double(sd)
   min <- as.double(min)
@@ -886,48 +501,45 @@ LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1) {
                        sd_slope = sd_slope,
                        min = min,
                        max = max,
+                       along = along,
                        nm = "LinAR1")
 }
 
 
-## 'bage_prior_norm' can be created during initial call to mod_* function
-
 ## HAS_TESTS
 #' Normal Prior
 #'
-#' Prior in which units are drawn independently from a normal
-#' distribution. The default prior for most terms.
+#' Prior for a main effect or interaction.
+#' Values are drawn independently from
+#' a common normal distribution.
+#' Typically used with variables other than
+#' age or time, such as region or ethncity.
+#'
+#' Argument `s` controls the size of errors. Smaller values
+#' for `s` tend to give more tightly clustered estimates
+#' for the elements of the main effect or interaction.
 #'
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of a main effect
-#' or interaction, then
+#' \deqn{\beta_j \sim \text{N}(0, \tau^2)}
 #'
-#' \deqn{\beta_j \sim \text{N}(0, \tau^2).}
+#' where \eqn{\beta} is the main effect or interaction.
+#' 
+#' Parameter \eqn{\tau}
+#' has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' where `s` is provided by the user.
 #'
-#' Standard deviation \eqn{\tau} is drawn from a half-normal
-#' distribution,
-#'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' (A half-normal distribution has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
-#'
-#' The scale for the half-normal distribution defaults
-#' to 1, but can be set to other values. Lower values
-#' lead to more tightly concentrated
-#' estimates for `\beta_j`, and higher values lead to less tightly
-#' concentrated estimates.
-#'
-#' @param s A positive, finite number.
-#'
+#' @inheritParams AR
+#' 
 #' @returns An object of class `"bage_prior_norm"`.
 #'
 #' @seealso 
-#' - [NFix()] Version of `N()` where the standard deviation
-#'   term is supplied rather than estimated from the data.
+#' - [NFix()] Similar to `N()` but standard deviation
+#'   parameter is supplied rather than estimated from data
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #'
 #' @examples
 #' N()
@@ -940,36 +552,36 @@ N <- function(s = 1) {
 }
 
 
-## 'bage_prior_normfixed' priors can be created during intial call to mod_* function
-
-#' Normal Prior with Fixed Standard Deviation
+## HAS_TESTS
+#' Normal Prior with Fixed Variance
 #'
 #' Normal prior where, in contrast to [N()], the
-#' standard deviation is treated as fixed and known.
+#' variance is treated as fixed and known.
 #'
 #' `NFix()` is the default prior for the intercept.
 #'
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of a main effect
-#' or interaction, then
+#' \deqn{\beta_j \sim \text{N}(0, \tau^2)}
 #'
-#' \deqn{\beta_j \sim \text{N}(0, \text{sd}^2).}
+#' where \eqn{\beta} is the main effect or interaction,
+#' and a value for `sd` is supplied by the user.
 #'
-#' @param sd Standard deviation.
-#' A positive, finite number.
-#' Default is `1`.
+#' @param sd Standard deviation. Default is `1`.
 #'
 #' @returns An object of class `"bage_prior_normfixed"`.
 #'
 #' @seealso 
-#' - [N()] Version of `NFix()` where the standard deviation
-#'   term is estimated from the data.
+#' - [N()] Similar to `NFix()`, but standard deviation
+#'   parameter is estimated from the data rather
+#'   than being fixed in advance
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #' 
 #' @examples
 #' NFix()
-#' NFix(sd = 10) ## prior used for intercept
+#' NFix(sd = 10)
 #' @export
 NFix <- function(sd = 1) {
     check_scale(sd, x_arg = "sd", zero_ok = FALSE) 
@@ -978,260 +590,275 @@ NFix <- function(sd = 1) {
 }
 
 
-## 'bage_prior_rw' can be created during initial call to mod_* function
-
 ## HAS_TESTS
-#' Random walk prior
+#' Random Walk Prior
 #'
-#' Prior in which units follow a (first order)
-#' random walk. Increments between neighbouring
-#' elements are assumed to be normally distibuted.
+#' Prior for a main effect or interaction.
+#' A random walk. Typically used with time.
 #'
+#' If `RW()` is used with an interaction,
+#' then separate random walks are used for
+#' the "along" variable within
+#' each combination of the
+#' "by" variables.
+#' 
+#' Argument `s` controls the size of errors. Smaller values
+#' for `s` tend to give smoother series.
+#' 
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
+#' When `RW()` is used with a main effect,
 #'
-#' \deqn{\beta_1 \sim \text{N}(0, 1)}
-#' \deqn{\beta_j \sim \text{N}(\beta_{j - 1}, \tau^2), \quad j = 2, \cdots, J.}
+#' \deqn{\beta_j = \beta_{j-1} + \epsilon_j}
+#' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 #'
-#' Standard deviation \eqn{\tau} is drawn from a
-#' half-normal distribution,
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the "along" variable of the interaction; and
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
 #'
-#' (A half-normal distribution has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
+#' Parameter \eqn{\tau}
+#' has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' where `s` is provided by the user.
 #'
-#' The scale for the half-normal distribution, `s`, defaults
-#' to 1, but can be set to other values. Lower values
-#' for `scale` lead to smoother series of `x`s, and
-#' higher values lead to rougher series.
-#'
-#' @param s A positive, finite number. Default is 1.
+#' @inheritParams AR
 #'
 #' @returns An object of class `"bage_prior_rw"`.
 #'
 #' @seealso
-#' - [RW2()] Random walk with drift.
-#' - [ERW()] Exchangeable version of `RW()`,
-#'   used with interactions.
+#' - [RW2()] Random walk with drift
+#' - [AR()] Autoressive with order k
+#' - [AR1()] Autoressive with order 1
+#' - [Sp()] Smoothing via splines
+#' - [SVD()] Smoothing of age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #'
 #' @examples
 #' RW()
 #' RW(s = 0.5)
+#' RW(along = "cohort")
 #' @export
-RW <- function(s = 1) {
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    new_bage_prior_rw(scale = scale)
+RW <- function(s = 1, along = NULL) {
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  new_bage_prior_rw(scale = scale,
+                    along = along)
 }
 
-
-## 'bage_prior_rw2' only ever created by call to 'set_prior' function
 
 ## HAS_TESTS
 #' Random Walk with Drift Prior
 #'
-#' Prior in which units follow a random walk with drift,
-#' also known as a second-order random walk.
+#' Prior for a main effect or interaction.
+#' A random walk with drift, also referred
+#' to as a second-order random walk.
+#' Typically used with age, or used with time
+#' when there are sustained upward
+#' or downward trends.
+#'
+#' If `RW2()` is used with an interaction,
+#' then separate random walks are used for
+#' the "along" variable within
+#' each combination of the
+#' "by" variables.
+#' 
+#' Argument `s` controls the size of errors. Smaller values
+#' for `s` tend to give smoother series.
 #'
 #' @section Mathematical details:
 #'
-#' If \eqn{\beta_j} is the \eqn{j}th element of a main effect, then
+#' When `RW()` is used with a main effect,
+#'
+#' \deqn{\beta_j = 2 \beta_{j-1} - \beta_{j-2} + \epsilon_j}
+#' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,v} = 2\beta_{u,v-1} - \beta_{u,v-2} + \epsilon_{u,v}}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
-#' \deqn{\beta_j \sim \text{N}(0, 1), \quad j = 1,2}
-#' \deqn{\beta_j \sim \text{N}(\beta_{j-1} + \delta_{j-1}, \tau^2), \quad j = 3, \cdots, J,}
 #' where
-#' \deqn{\delta_j = \beta_j - \beta_{j-1}.}
-#' 
-#' Standard deviation \eqn{\tau} is drawn from a
-#' half-normal distribution,
-#' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the "along" variable of the interaction; and
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
 #'
-#' (A half-normal distribution has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
+#' Parameter \eqn{\tau}
+#' has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' where `s` is provided by the user.
 #'
-#' The scale for the half-normal distribution, `s`, defaults
-#' to 1, but can be set to other values. Lower values
-#' for `s` lead to smoother series .
-#'
-#' @param s A positive, finite number. Default is 1.
-#'
+#' @inheritParams AR
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
 #' @seealso
-#' - [RW()] Ordinary random wark.
-#' - [ERW2()] Exchangeable version of `RW2()`,
-#'   used with interactions.
+#' - [RW()] Random walk
+#' - [AR()] Autoressive with order k
+#' - [AR1()] Autoressive with order 1
+#' - [Sp()] Smoothing via splines
+#' - [SVD()] Smoothing of age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
 #'
 #' @examples
 #' RW2()
-#' RW2(s = 0.2)
+#' RW2(s = 0.5)
 #' @export
-RW2 <- function(s = 1) {
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    new_bage_prior_rw2(scale = scale)
-}
-
-
-## HAS_TESTS
-#' Prior for Seasonal Effect
-#'
-#' Prior for seasonal effect, where the size of
-#' the effects evolve over time. Each season follows its
-#' own random walk.
-#'
-#' @section Mathematical details:
-#'
-#' If \eqn{\beta_j^{\text{seas}}} is the \eqn{j}th element of a
-#' seasonal effect, then
-#'
-#' \deqn{\beta_j^{\text{seas}} - \beta_{j-n}^{\text{seas}} \sim \text{N}(x_{j - n}, \tau^2).}
-#'
-#' Standard deviation \eqn{\tau} is drawn from a
-#' half-normal distribution,
-#' 
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}
-#'
-#' (A half-normal distribution has the same shape as a normal
-#' distribution, but is defined only for non-negative
-#' values.)
-#'
-#' The scale for the half-normal distribution, `s`, defaults
-#' to 1, but can be set to other values. Lower values
-#' for `scale` lead to smoother series.
-#'
-#' @param n The number of seasons.
-#' @param s A positive, finite number. Default is 1.
-#'
-#' @returns An object of class `"bage_prior_seas"`.
-#'
-#' @seealso
-#' - [RW()] for an ordinary random walk.
-#'
-#' @examples
-#' Seas(n = 4)
-#' Seas(n = 12, s = 0.5)
-#' @export
-Seas <- function(n, s = 1) {
-  check_n(n = n, nm_n = "n", min = 2L, max = NULL, null_ok = FALSE)
+RW2 <- function(s = 1, along = NULL) {
   check_scale(s, x_arg = "s", zero_ok = FALSE)
-  n <- as.integer(n)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
   scale <- as.double(s)
-  new_bage_prior_seas(n = n,
-                      scale = scale)
+  new_bage_prior_rw2(scale = scale,
+                     along = along)
 }
 
 
-## 'bage_prior_spline' only ever created by call to 'set_prior' function
-
 ## HAS_TESTS
-#' P-spline prior
+#' P-Spline Prior
 #'
-#' Specify a P-spline (penalised spline) prior.
-#' A P-spline is flexible, but
-#' favours profiles that are relatively smooth.
+#' A p-spline (penalised spine) prior for main
+#' effects or interactions. Typically used with age,
+#' but can be used with any variable where outcomes are
+#' expected to vary smoothly from one element to the next.
+#'
+#' If `Sp()` is used with an interaction,
+#' then separate splines are used for
+#' the "along" variable within
+#' each combination of the
+#' "by" variables.
 #'
 #' @section Mathematical details:
 #'
-#' The model for the effect, on the log scale, is
+#' When `Sp()` is used with a main effect,
 #'
-#' \deqn{\beta = X \gamma}
+#' \deqn{\pmb{\beta} = \pmb{X} \pmb{\alpha}}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\pmb{\beta}_u = \pmb{X} \pmb{\alpha}_u}
 #'
 #' where
-#' - \eqn{\beta} is a main effect,
-#' - \eqn{X} is a matrix holding the basis functions
-#' for the spline, with `n` columns, and
-#' - \eqn{\alpha} is a vector of coefficients,
-#' with `n` elements.
+#' - \eqn{\pmb{\beta}} is the main effect or interaction, with \eqn{J} elements;
+#' - \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+#'   values for the  \eqn{u}th combination of the "by" variables;
+#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u}; and
+#' - \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
+#'   spline basis functions.
 #'
-#' The elements of \eqn{\gamma} are assumed to follow
-#' a random walk with drift (see [RW2()]).
+#' The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
+#' to follow a [random walk with drift][RW2()].
 #'
 #' @inheritParams RW2
-#' @param n Number of spline vectors.
-#' By default is `NULL`, in which case the number of
-#' vectors is set to `max(ceiling(0.7 * k), 4)`
-#' where `k` is the number
-#' of elements in the term being modelled.
+#' @param n Number of spline basis functions to use.
 #'
 #' @returns An object of class `"bage_prior_spline"`.
 #'
 #' @seealso
+#' - [RW()] Smoothing via random walk
+#' - [RW2()] Smoothing via random walk with drift
+#' - [SVD()] Smoothing of age via singlular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#' - **bage** uses function [splines::bs()] to construct
+#'   spline basis functions
+#'
+#' @references
+#' - Eilers, P.H.C. and Marx B. (1996).
+#'   "Flexible smoothing with B-splines and penalties".
+#'   Statistical Science. 11 (2): 89–121.
 #'
 #' @examples
 #' Sp()
 #' Sp(n = 10)
 #' @export
-Sp <- function(n = NULL, s = 1) {
-    check_n(n,
-            nm_n = "n",
-            min = 4L,
-            max = NULL,
-            null_ok = TRUE)
-    if (!is.null(n))
-        n <- as.integer(n)
-    check_scale(s, x_arg = "s", zero_ok = FALSE)
-    scale <- as.double(s)
-    new_bage_prior_spline(n = n,
-                          scale = scale)
+Sp <- function(n = NULL, s = 1, along = NULL) {
+  check_n(n,
+          nm_n = "n",
+          min = 4L,
+          max = NULL,
+          null_ok = TRUE)
+  if (!is.null(n))
+    n <- as.integer(n)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  if (!is.null(along))
+    check_string(x = along, nm_x = "along")
+  new_bage_prior_spline(n = n,
+                        scale = scale,
+                        along = along)
 }
 
 
-## 'bage_prior_svd' only ever created by call to 'set_prior' function
-
 ## HAS_TESTS
-#' SVD Prior for Age Main Effect
+#' SVD Prior for Age
 #'
-#' Specify a Singular Value Decomposition (SVD) prior
-#' for an age main effect.
+#' A Singular Value Decomposition (SVD) prior
+#' for a main effect or interaction involving age.
 #'
-#' An SVD prior assumes that the age profile for the quantity
-#' being modelled looks like an age profile drawn at random
+#' A `SVD()` prior assumes that the age profile for the quantity
+#' being modelled looks like it was drawn at random
 #' from an external demographic database. For instance,
+#' the `SVD()` prior obtained via
 #' ```
-#' set_prior(mod, age ~ SVD(HMD))
+#' SVD(HMD)
 #' ```
-#' specifies that the age profile looks like it was drawn from
+#' favours age profiles that look like
+#' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
-#' A [Singular Value Decomposition][bage::svd()] is closely related
-#' to a Principal Components analysis, and is a way of
-#' extracting patterns from large volumes of data.
+#' If `SVD()` is used with an interaction,
+#' then separate profiles are constructed along
+#' within each combination of the "by" variables.
+#'
+#' Age-sex or age-gender profiles should be
+#' modelled using [SVDS()] rather than `SVD()`.
 #'
 #' @section Mathematical details:
 #' 
-#' With an SVD prior,
+#' When `SVD()` is used with a main effect,
 #' 
-#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
+#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
 #'
 #' where
-#' 
-#' - \eqn{\pmb{\beta}} is an age effect with \eqn{J} elements;
-#' - \eqn{\pmb{X}} is a known \eqn{J \times K} matrix, where \eqn{J}
-#'   is the number of age groups and \eqn{K} is the number of
-#'   vectors from the SVD to use (with \eqn{K} typically much
-#'   less than than \eqn{J});
-#' - \eqn{\pmb{\alpha}} is a vector with \eqn{K} elements; and
-#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements.
-#'
-#' The elements of \eqn{\pmb{\alpha}} have prior
-#' 
-#' \deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
+#' - \eqn{\pmb{\beta}} is a main effect or interaction with \eqn{J} elements;
+#' - \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+#'   values for the  \eqn{u}th combination of the "by" variables;
+#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
+#'   if \eqn{\pmb{\beta}} is a main effect and dimension \eqn{V \times n}
+#'   if \eqn{\pmb{\beta}} is an interaction; and
+#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
+#'   if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
+#'   elements if \eqn{\pmb{\beta}} is an interaction.
 #' 
 #' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
 #' a large database of age-specific demographic estimates
-#' by preforming an SVD and then standardizing.
-#' For details see TODO - REFERENCE TO VIGNETTE.
+#' by performing an SVD and standardizing.
 #'
-#' @section Scaled SVDs in bage:
+#' The elements of \eqn{\pmb{\alpha}} have prior
+#' \deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
+#' 
+#' @section Scaled SVDs of demographic databases in bage:
 #'
 #' - \code{\link{HMD}} Mortality rates from the
 #' [Human Mortality Database](https://www.mortality.org).
@@ -1239,8 +866,8 @@ Sp <- function(n = NULL, s = 1) {
 #' rates from the [OECD](https://data-explorer.oecd.org).
 #'
 #' @param ssvd Object of class `"bage_ssvd"`
-#' holding results from a scaled SVD.
-#' See below for current options.
+#' holding a scaled SVD. See below for scaled SVDs
+#' of databases currently available in **bage**.
 #' @param n Number of components from scaled SVD
 #' to use in modelling. The default is half
 #' the number of components of `ssvd`.
@@ -1248,13 +875,18 @@ Sp <- function(n = NULL, s = 1) {
 #' @returns An object of class `"bage_prior_svd"`.
 #'
 #' @seealso
-#' - [set_prior()] Specify the prior for a model
-#' - [SVDS()] SVD prior for interaction between
-#'   age and sex/gender.
-#' - [ESVD()] Exchangeable SVD prior for interaction involving
-#'   age and other dimensions, but not sex/gender.
-#' - [ESVDS()] Exchangeable SVD prior for interaction involving
-#'   age, sex/gender, and other dimension(s).
+#' - [SVDS()] SVD prior for age-sex or age-gender profile.
+#' - [RW()] Smoothing via random walk
+#' - [RW2()] Smoothing via random walk with drift
+#' - [Sp()] Smoothing via splines
+#' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#'
+#' @references
+#' - For details of the construction of
+#'   scaled SVDS see the vignette
+#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
 #'
 #' @examples
 #' SVD(HMD)
@@ -1286,22 +918,38 @@ SVD <- function(ssvd, n = NULL) {
 
 
 ## HAS_TESTS
-#' SVD Prior for Interaction Between Age and Sex/Gender
+#' SVD Prior for Age-Sex or Age-Gender
 #'
-#' Specify a Singular Value Decomposition (SVD) prior
-#' for an interaction between age and sex/gender.
-#' The age-sex profile is assumed to look like it
-#' was drawn at random
+#' A Singular Value Decomposition (SVD) prior
+#' for an interaction involving age-sex
+#' profiles or age-gender profiles.
+#'
+#' A `SVDS()` prior assumes that the age-sex profile
+#' or age-gender profile for the quantity being
+#' modelled looks like it was drawn at random
 #' from an external demographic database. For instance,
+#' the prior obtained via
 #' ```
-#' set_prior(mod, age:sex ~ SVDS(HMD))
+#' SVDS(HMD)
 #' ```
-#' specifies that age-sex profile looks like it was drawn from the
+#' favours age-sex profiles that look like
+#' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
+#'
+#' If `SVDS()` is used with an interaction
+#' between age, sex or gender, and one or more
+#' "by" variables, then separate age-sex or
+#' age-gender profiles are constructed within
+#' each combination of the
+#' "by" variables.
+#'
+#' Age profiles with no sex or gender dimension
+#' should be modelled using [SVD()] rather than
+#' `SVDS()`.
 #'
 #' @section Joint or independent SVDs:
 #'
-#' To possible ways of extracting patterns
+#' Two possible ways of extracting patterns
 #' from age-sex-specific data are
 #'
 #' 1. carry out separate SVDs on separate datasets for
@@ -1318,38 +966,66 @@ SVD <- function(ssvd, n = NULL) {
 #'
 #' @section Mathematical details:
 #' 
-#' Let \eqn{A} denote the number of age groups, and \eqn{S} the
-#' number of sexes/genders. When `joint` is `FALSE`,
+#'
+#' **Case 1: Interaction involving age and sex or gender, but no other variables**
+#'
+#' When `SVDS()` is used with `joint = FALSE`,
 #' 
-#' \deqn{\pmb{\beta}_s = \pmb{F}_s \pmb{\alpha}_s + \pmb{g}_s, \quad s = 1, \cdots S}
+#' \deqn{\pmb{\beta}_{s} = \pmb{F}_s \pmb{\alpha}_{s} + \pmb{g}_s,}
 #'
-#' where \eqn{\pmb{\beta}_s}, \eqn{\pmb{\alpha}_s},
-#' and \eqn{\pmb{g}_s} each have \eqn{A}
-#' elements, and \eqn{\pmb{F}} has \eqn{A} rows.
+#' and when `SVDS()` is used with `joint = TRUE`,
 #'
-#' When `joint` is `TRUE`,
-#'
-#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}}
+#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
 #'
 #' where
-#' 
-#' where \eqn{\pmb{\beta}}, \eqn{\pmb{\alpha}},
-#' and \eqn{\pmb{g}} each have \eqn{A \times S}
-#' elements, and \eqn{\pmb{F}_s} has \eqn{A \times S} rows.
-#'
-#' \eqn{\pmb{F}_s}, \eqn{\pmb{g}_s}, \eqn{\pmb{F}}, and \eqn{\pmb{g}},
-#' are all estimated externally, using estimates from a
-#' demographic database, and are treated as fixed and known.
+#' - \eqn{\pmb{\beta}} is an interaction;
+#' - \eqn{\pmb{\beta}_{s}} is a subvector of \eqn{\pmb{\beta}},
+#'   holding values for sex/gender \eqn{s}, with \eqn{s = 1, \dots, S};
+#' - \eqn{J} is the number of elements in \eqn{\pmb{\beta}};
+#' - \eqn{\pmb{F}_s} is a known \eqn{(J/S) \times n} matrix, specific
+#'   to sex/gender \eqn{s};
+#' - \eqn{\pmb{g}_s} is a known vector with \eqn{J/S} elements,
+#'   specific to sex/gender \eqn{s};
+#' - \eqn{\pmb{F}} is a known \eqn{J \times n} matrix, with values
+#'   for all sexes/genders.
+#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements, with values
+#'   for all sexes/genders.
 #'
 #' The elements of \eqn{\pmb{\alpha}_s} and \eqn{\pmb{\alpha}} have prior
-#' 
-#' \deqn{\alpha_k \sim \text{N}(0, 1)}
-#' 
-#' For a description of the construction of \eqn{\pmb{F}_s},
-#' \eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
-#' see TODO - REFERENCE TO VIGNETTE.
+#' \deqn{\alpha_k \sim \text{N}(0, 1).}
 #'
-#' @inheritSection SVD Scaled SVDs in bage
+#' 
+#' 
+#' **Case 2: Interaction involving age and sex or gender, and one or more other variables**
+#'
+#' When `SVDS()` is used with `joint = FALSE`,
+#' 
+#' \deqn{\pmb{\beta}_{u,s} = \pmb{F}_s \pmb{\alpha}_{u,s} + \pmb{g}_s,}
+#'
+#' and when `SVDS()` is used with `joint = TRUE`,
+#'
+#' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
+#'
+#' where
+#' - \eqn{\pmb{\beta}} is an interaction;
+#' - \eqn{\pmb{\beta}_{u,s}} is a subvector of \eqn{\pmb{\beta}},
+#'   holding values for sex/gender \eqn{s} for the \eqn{u}th
+#'   combination of "by" variables, with \eqn{s = 1, \dots, S};
+#' - \eqn{V} is the number of elements in \eqn{\pmb{\beta}_u};
+#' - \eqn{\pmb{F}_s} is a known \eqn{(V/S) \times n} matrix, specific
+#'   to sex/gender \eqn{s};
+#' - \eqn{\pmb{g}_s} is a known vector with \eqn{V/S} elements,
+#'   specific to sex/gender \eqn{s};
+#' - \eqn{\pmb{F}} is a known \eqn{V \times n} matrix, with values
+#'   for all sexes/genders.
+#' - \eqn{\pmb{g}} is a known vector with \eqn{V} elements, with values
+#'   for all sexes/genders.
+#'
+#' The elements of \eqn{\pmb{\alpha}_{u,s}} and \eqn{\pmb{\alpha}_u} have prior
+#' \deqn{\alpha_k \sim \text{N}(0, 1).}
+#' 
+#'
+#' @inheritSection SVD Scaled SVDs of demographic databases in bage
 #'
 #' @inheritParams SVD
 #' @param joint Whether to use combined or
@@ -1359,12 +1035,18 @@ SVD <- function(ssvd, n = NULL) {
 #' @returns An object of class `"bage_prior_svd"`.
 #'
 #' @seealso
-#' - [set_prior()] Specify the prior for a model.
-#' - [SVD()] SVD prior for age main effect.
-#' - [ESVD()] Exchangeable SVD prior for interaction involving
-#'   age and other dimensions, but not sex/gender.
-#' - [ESVDS()] Exchangeable SVD prior for interaction involving
-#'   age, sex/gender, and other dimension(s).
+#' - [SVD()] SVD prior for age, with no sex or gender
+#' - [RW()] Smoothing via random walk
+#' - [RW2()] Smoothing via random walk with drift
+#' - [Sp()] Smoothing via splines
+#' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#'
+#' @references
+#' - For details of the construction of
+#'   scaled SVDS see the vignette
+#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
 #'
 #' @examples
 #' SVDS(HMD)
@@ -1392,187 +1074,6 @@ SVDS <- function(ssvd, n = 5, joint = FALSE) {
 }
 
 
-## HAS_TESTS
-#' Exchangeable SVD Prior for Interactions Involving Age
-#'
-#' Specify a Singular Value Decomposition (SVD) prior
-#' for interactions involving age but not sex/gender.
-#' Age profiles are "exchangeable" in that
-#' profiles for all combinations of the non-age variables
-#' are drawn from the same distribution.
-#' The age profiles are assumed to look like
-#' they were drawn at random
-#' from an external demographic database. For instance,
-#' ```
-#' set_prior(mod, age ~ ESVD(HMD))
-#' ```
-#' specifies that the age profiles should look like they
-#' were drawn from the
-#' [Human Mortality Database](https://www.mortality.org).
-#'
-#' @section Mathematical details:
-#' 
-#' With an ESVD prior,
-#' 
-#' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g}}
-#'
-#' where
-#' 
-#' - \eqn{\pmb{\beta}}_u is the age profile associated with
-#'   combination \eqn{u} of the non-age variables;
-#' - \eqn{\pmb{X}} is a known \eqn{V \times K} matrix, where
-#'   \eqn{V} is the number of age groups, and \eqn{K} is much
-#'   less than \eqn{V};
-#' - \eqn{\pmb{\alpha}}_u is a vector with \eqn{V} elements; and
-#' - \eqn{\pmb{g}} is a known vector with \eqn{V} elements.
-#'
-#' The elements of \eqn{\pmb{\alpha}}_u have prior
-#' 
-#' \deqn{\alpha_{uk} \sim \text{N}(0, 1), \quad i = 1, \cdots, K}
-#' 
-#' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
-#' a large database of age-specific demographic estimates
-#' by preforming an SVD and then extracting means and variances.
-#' For details see TODO - REFERENCE TO VIGNETTE.
-#'
-#' @inheritSection SVD Scaled SVDs in bage
-#'
-#' @inheritParams SVD
-#'
-#' @returns An object of class `"bage_prior_esvd"`.
-#'
-#' @seealso
-#' - [set_prior()] Specify the prior for a model
-#' - [SVD()] SVD prior for age main effect.
-#' - [SVDS()] SVD prior for interaction between
-#'   age and sex/gender.
-#' - [ESVDS()] Exchangeable SVD prior for interaction involving
-#'   age, sex/gender, and other dimension(s).
-#' - XXX Create a new scaled SVD.
-#'
-#' @examples
-#' ESVD(HMD)
-#' ESVD(HMD, n = 3)
-#' @export
-ESVD <- function(ssvd, n = 5) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  check_n(n,
-          nm_n = "n",
-          min = 1L,
-          max = 10L,
-          null_ok = FALSE)
-  n <- as.integer(n)
-  new_bage_prior_esvd(ssvd = ssvd,
-                      nm_ssvd = nm_ssvd,
-                      n = n,
-                      joint = NULL)
-}
-
-
-## HAS_TESTS
-#' Exchangeable SVD Prior for Interactions Involving Age
-#' and Sex/Gender
-#'
-#' Specify a Singular Value Decomposition (SVD) prior
-#' for an interaction involving age, sex/gender,
-#' and at least one other dimension.
-#' Age-sex profiles are "exchangeable", in that
-#' profiles for all combinations of the 
-#' non-age, non-sex variables are drawn
-#' from the same distribution.
-#' The age-sex profiles are assumed to look like they
-#' were drawn at random
-#' from an external demographic database. For instance,
-#' ```
-#' set_prior(mod, age:sex ~ ESVDS(HMD))
-#' ```
-#' specifies that age-sex profiles should look
-#' like they was drawn from the
-#' [Human Mortality Database](https://www.mortality.org).
-#'
-#' @inheritSection SVDS Joint or independent SVDs
-#'
-#' @section Mathematical details:
-#' 
-#' Let \eqn{V} denote the number of age groups, \eqn{S} the
-#' number of sexes/genders, and \eqn{U} the number of combinations
-#' of non-age, non-sex variables.
-#' When `joint` is `FALSE`,
-#' 
-#' \deqn{\pmb{\beta}_{us} = \pmb{F}_s \pmb{\alpha}_{us} + \pmb{g}_s,
-#'   \quad, u = 1, \cdots, U, s = 1, \cdots S}
-#'
-#' where \eqn{\pmb{\beta}_{us}}, \eqn{\pmb{\alpha}_{us}},
-#' and \eqn{\pmb{g}_{us}} each have \eqn{V}
-#' elements, and \eqn{\pmb{F}} has \eqn{V} rows.
-#'
-#' When `joint` is `TRUE`,
-#'
-#' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g}}
-#'
-#' where
-#' 
-#' where \eqn{\pmb{\beta}_u}, \eqn{\pmb{\alpha}_u},
-#' and \eqn{\pmb{g}} each have \eqn{V \times S}
-#' elements, and \eqn{\pmb{F}} has \eqn{V \times S} rows.
-#'
-#' \eqn{\pmb{F}_s}, \eqn{\pmb{g}_s}, \eqn{\pmb{F}}, and \eqn{\pmb{g}},
-#' are all estimated externally, using estimates from a
-#' demographic database, and are treated as fixed and known.
-#'
-#'
-#' The elements of \eqn{\pmb{\alpha}_{us}} and \eqn{\pmb{\alpha}_u} have prior
-#' 
-#' \deqn{\alpha_{uk} \sim \text{N}(0, 1)}
-#' 
-#' For a description of the construction of \eqn{\pmb{F}_s},
-#' \eqn{\pmb{F}}, \eqn{\pmb{g}_s}, and \eqn{\pmb{g}},
-#' see TODO - REFERENCE TO VIGNETTE.
-#'
-#' @inheritSection SVD Scaled SVDs in bage
-#'
-#' @inheritParams SVD
-#' @param joint Whether to use combined or
-#' separate SVDs. Default is `FALSE`.
-#' See below for details.
-#'
-#' @returns An object of class `"bage_prior_esvd"`.
-#'
-#' @seealso
-#' - [set_prior()] Specify the prior for a model
-#' - [SVD()] SVD prior for age main effect.
-#' - [SVDS()] SVD prior for interaction between
-#'   age and sex/gender.
-#' - [ESVD()] Exchangeable SVD prior for interaction involving
-#'   age and other dimensions, but not sex/gender.
-#'
-#' @examples
-#' ESVDS(HMD)
-#' ESVDS(HMD, joint = TRUE)
-#' @export
-ESVDS <- function(ssvd, n = 5, joint = FALSE) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  if (!has_sexgender(ssvd)) {
-    cli::cli_abort(c("{.arg ssvd} does not have a sex/gender dimension.",
-                     i = "Try prior {.val ESVD()} instead?",
-                     i = "For a list of priors, see {.topic bage::priors}."))
-  }
-  check_n(n,
-          nm_n = "n",
-          min = 1L,
-          max = 10L,
-          null_ok = FALSE)
-  n <- as.integer(n)
-  check_flag(x = joint, nm_x = "joint")
-  new_bage_prior_esvd(ssvd = ssvd,
-                      nm_ssvd = nm_ssvd,
-                      n = n,
-                      joint = joint)
-}
-
-
 ## Internal constructors ------------------------------------------------------
 
 ## Assume that inputs are all correct.
@@ -1593,31 +1094,10 @@ ESVDS <- function(ssvd, n = 5, joint = FALSE) {
 
 
 ## HAS_TESTS
-new_bage_prior_ar <- function(n, scale, min, max, nm) {
+new_bage_prior_ar <- function(n, scale, min, max, nm, along) {
   shape1 <- 2.0
   shape2 <- 2.0
-  ans <- list(i_prior = 5L,
-              const = c(shape1 = shape1,
-                        shape2 = shape2,
-                        min = min,
-                        max = max,
-                        scale = scale),
-              specific = list(n = n,
-                              shape1 = shape1,
-                              shape2 = shape2,
-                              min = min,
-                              max = max,
-                              scale = scale,
-                              nm = nm))
-  class(ans) <- c("bage_prior_ar", "bage_prior")
-  ans
-}
-
-## HAS_TESTS
-new_bage_prior_ear <- function(n, scale, min, max, nm, along) {
-  shape1 <- 2.0
-  shape2 <- 2.0
-  ans <- list(i_prior = 12L,
+  ans <- list(i_prior = 1L,
               const = c(shape1 = shape1,
                         shape2 = shape2,
                         min = min,
@@ -1631,68 +1111,8 @@ new_bage_prior_ear <- function(n, scale, min, max, nm, along) {
                               scale = scale,
                               along = along,
                               nm = nm))
-  class(ans) <- c("bage_prior_ear", "bage_prior")
+  class(ans) <- c("bage_prior_ar", "bage_prior")
   ans
-}
-
-## HAS_TESTS
-new_bage_prior_elin <- function(scale, sd_slope, mscale, along) {
-    ans <- list(i_prior = 9L,
-                const = c(scale = scale,
-                          sd_slope = sd_slope,
-                          mscale = mscale),
-                specific = list(scale = scale,
-                                sd_slope = sd_slope,
-                                mscale = mscale,
-                                along = along))
-    class(ans) <- c("bage_prior_elin", "bage_prior")
-    ans
-}
-
-## HAS_TESTS
-new_bage_prior_erw <- function(scale, along) {
-    ans <- list(i_prior = 13L,
-                const = c(scale = scale),
-                specific = list(scale = scale,
-                                along = along))
-    class(ans) <- c("bage_prior_erw", "bage_prior")
-    ans
-}
-
-## HAS_TESTS
-new_bage_prior_erw2 <- function(scale, along) {
-    ans <- list(i_prior = 15L,
-                const = c(scale = scale),
-                specific = list(scale = scale,
-                                along = along))
-    class(ans) <- c("bage_prior_erw2", "bage_prior")
-    ans
-}
-
-## HAS_TESTS
-new_bage_prior_eseas <- function(n, scale, along) {
-    ans <- list(i_prior = 11L,
-                const = c(scale = scale,
-                          rep(c("<unused>" = 0), times = n - 1L)),
-                specific = list(n = n,
-                                scale = scale,
-                                along = along))
-    class(ans) <- c("bage_prior_eseas", "bage_prior")
-    ans
-}
-
-## HAS_TESTS
-## Doesn't use 'along', because can potentially have two
-## 'along' dimensions (age and sex/gender)
-new_bage_prior_esvd <- function(ssvd, nm_ssvd, n, joint) {
-    ans <- list(i_prior = 14L,
-                const = 0, ## not used
-                specific = list(ssvd = ssvd,
-                                nm_ssvd = nm_ssvd,
-                                n = n,
-                                joint = joint))
-    class(ans) <- c("bage_prior_esvd", "bage_prior")
-    ans
 }
 
 ## HAS_TESTS
@@ -1705,21 +1125,22 @@ new_bage_prior_known <- function(values) {
 }
 
 ## HAS_TESTS
-new_bage_prior_lin <- function(scale, sd_slope) {
-    ans <- list(i_prior = 8L,
+new_bage_prior_lin <- function(scale, sd_slope, along) {
+    ans <- list(i_prior = 2L,
                 const = c(scale = scale,
                           sd_slope = sd_slope),
                 specific = list(scale = scale,
-                                sd_slope = sd_slope))
+                                sd_slope = sd_slope,
+                                along = along))
     class(ans) <- c("bage_prior_lin", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_linar <- function(n, scale, sd_slope, min, max, nm) {
+new_bage_prior_linar <- function(n, scale, sd_slope, min, max, along, nm) {
   shape1 <- 2.0
   shape2 <- 2.0
-  ans <- list(i_prior = 16L,
+  ans <- list(i_prior = 3L,
               const = c(scale = scale,
                         sd_slope = sd_slope,
                         shape1 = shape1,
@@ -1733,6 +1154,7 @@ new_bage_prior_linar <- function(n, scale, sd_slope, min, max, nm) {
                               shape2 = shape2,
                               min = min,
                               max = max,
+                              along = along,
                               nm = nm))
   class(ans) <- c("bage_prior_linar", "bage_prior")
   ans
@@ -1740,7 +1162,7 @@ new_bage_prior_linar <- function(n, scale, sd_slope, min, max, nm) {
 
 ## HAS_TESTS
 new_bage_prior_norm <- function(scale) {
-    ans <- list(i_prior = 1L,
+    ans <- list(i_prior = 4L,
                 const = c(scale = scale),
                 specific = list(scale = scale))
     class(ans) <- c("bage_prior_norm", "bage_prior")
@@ -1749,7 +1171,7 @@ new_bage_prior_norm <- function(scale) {
 
 ## HAS_TESTS
 new_bage_prior_normfixed <- function(sd) {
-    ans <- list(i_prior = 2L,
+    ans <- list(i_prior = 5L,
                 const = c(sd = sd),
                 specific = list(sd = sd))
     class(ans) <- c("bage_prior_normfixed", "bage_prior")
@@ -1757,46 +1179,39 @@ new_bage_prior_normfixed <- function(sd) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw <- function(scale) {
-    ans <- list(i_prior = 3L,
+new_bage_prior_rw <- function(scale, along) {
+    ans <- list(i_prior = 6L,
                 const = c(scale = scale),
-                specific = list(scale = scale))
+                specific = list(scale = scale,
+                                along = along))
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale) {
-    ans <- list(i_prior = 4L,
+new_bage_prior_rw2 <- function(scale, along) {
+    ans <- list(i_prior = 7L,
                 const = c(scale = scale),
-                specific = list(scale = scale))
+                specific = list(scale = scale,
+                                along = along))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_seas <- function(n, scale) {
-    ans <- list(i_prior = 10L,
+new_bage_prior_spline <- function(n, scale, along) {
+    ans <- list(i_prior = 8L,
                 const = c(scale = scale),
                 specific = list(n = n,
-                                scale = scale))
-    class(ans) <- c("bage_prior_seas", "bage_prior")
-    ans
-}
-
-## HAS_TESTS
-new_bage_prior_spline <- function(n, scale) {
-    ans <- list(i_prior = 6L,
-                const = c(scale = scale),
-                specific = list(n = n,
-                                scale = scale))
+                                scale = scale,
+                                along = along))
     class(ans) <- c("bage_prior_spline", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
 new_bage_prior_svd <- function(ssvd, nm_ssvd, n, joint) {
-    ans <- list(i_prior = 7L,
+    ans <- list(i_prior = 9L,
                 const = 0, ## not used
                 specific = list(ssvd = ssvd,
                                 nm_ssvd = nm_ssvd,
@@ -1805,3 +1220,4 @@ new_bage_prior_svd <- function(ssvd, nm_ssvd, n, joint) {
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans
 }
+
