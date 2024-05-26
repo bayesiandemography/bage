@@ -4,7 +4,7 @@
 \alias{AR}
 \title{Autoregressive Prior}
 \usage{
-AR(n = 2, s = 1)
+AR(n = 2, s = 1, along = NULL)
 }
 \arguments{
 \item{n}{The order of the model, i.e. the number of lagged

@@ -274,12 +274,12 @@ test_that("'default_prior' works with age interaction", {
                                    var_age = "AgeGroup",
                                    var_time = "time",
                                    length_effect = 5),
-                     ERW())
+                     RW())
     expect_identical(default_prior(nm_term = "time:AgeGroup",
                                    var_age = "AgeGroup",
                                    var_time = "time",
                                    length_effect = 5),
-                     ERW())
+                     RW())
     expect_identical(default_prior(nm_term = "period:AgeGroup",
                                    var_age = NULL,
                                    var_time = NULL,
@@ -300,12 +300,12 @@ test_that("'default_prior' works with time interaction", {
                                    var_age = "AgeGroup",
                                    var_time = "year",
                                    length_effect = 5),
-                     ERW())
+                     RW())
     expect_identical(default_prior(nm_term = "sex:year:region",
                                    var_age = "AgeGroup",
                                    var_time = "year",
                                    length_effect = 5),
-                     ERW())
+                     RW())
 })
 
 
@@ -1137,9 +1137,9 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 })
 
 
-## 'make_matrix_agesex_index' -------------------------------------------------
+## 'make_index_matrix' -------------------------------------------------
 
-test_that("'make_matrix_agesex_index' works with valid inputs", {
+test_that("'make_index_matrix' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(sex = c("F", "M"),
                         age = 0:3,
@@ -1150,7 +1150,7 @@ test_that("'make_matrix_agesex_index' works with valid inputs", {
                     data = data,
                     exposure = popn)
     matrices <- make_matrices_agesex(mod)
-    ans_obtained <- make_matrix_agesex_index(matrices[["reg:age:sex"]])
+    ans_obtained <- make_index_matrix(matrices[["reg:age:sex"]])
     cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
     rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
     ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
@@ -1396,7 +1396,7 @@ test_that("'make_seed' returns a single unique integer", {
 
 test_that("'make_spline_matrix' works", {
     set.seed(0)
-    m <- make_spline_matrix(length_effect = 10, n_spline = 5)
+    m <- make_spline_matrix(n_along = 10, n_spline = 5)
     expect_equal(dim(m), c(10L, 5L))
     expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
 })        

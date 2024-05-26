@@ -238,30 +238,6 @@ test_that("'check_is_formula' throws correct error when not formula", {
 })
 
 
-## 'check_is_interaction' -----------------------------------------------------
-
-test_that("'check_is_interaction' returns TRUE with valid inputs", {
-    expect_true(check_is_interaction("age:sex", ELin))
-})
-
-test_that("'check_is_interaction' throws correct error when interaction", {
-    expect_error(check_is_interaction("age", ELin()),
-                 "`ELin\\(\\)` prior cannot be used for `age` term.")
-})
-
-
-## 'check_is_main_effect' -----------------------------------------------------
-
-test_that("'check_is_main_effect' returns TRUE with valid inputs", {
-    expect_true(check_is_main_effect("age", AR1()))
-})
-
-test_that("'check_is_main_effect' throws correct error when interaction", {
-    expect_error(check_is_main_effect("age:sex", AR1()),
-                 "`AR1\\(\\)` prior cannot be used for `age:sex` term.")                 
-})    
-
-
 ## 'check_is_matrix' ----------------------------------------------------------
 
 test_that("'check_is_matrix' works with valid inputs", {

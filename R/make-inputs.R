@@ -92,28 +92,18 @@ choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
 default_prior <- function(nm_term, var_age, var_time, length_effect) {
   is_length_le_2 <- length_effect <= 2L
   nm_term_split <- strsplit(nm_term, split = ":")[[1L]]
-  if (is.null(var_age)) {
-    is_age_maineffect <- FALSE
-    is_age_interact <- FALSE
-  }
-  else {
-    is_age_maineffect <- identical(nm_term, var_age)
-    is_age_interact <- !is_age_maineffect && (var_age %in% nm_term_split)
-  }
-  if (is.null(var_time)) {
-    is_time_maineffect <- FALSE
-    is_time_interact <- FALSE
-  }
-  else {
-    is_time_maineffect <- identical(nm_term, var_time)
-    is_time_interact <- !is_time_maineffect && (var_time %in% nm_term_split)
-  }
+  if (is.null(var_age))
+    is_age <- FALSE
+  else
+    is_age <- var_age %in% nm_term_split
+  if (is.null(var_time))
+    is_time <- FALSE
+  else
+    is_time <- var_time %in% nm_term_split
   if (is_length_le_2)
     return(NFix())
-  if (is_age_maineffect || is_time_maineffect)
+  if (is_age || is_time)
     return(RW())
-  if (is_age_interact || is_time_interact)
-    return(ERW())
   N()
 }
 
@@ -741,27 +731,31 @@ make_matrices_agesex <- function(mod) {
 
 
 ## HAS_TESTS
-#' Convert 'matrix_agesex' to Sparse Index Matrix
+#' Convert 'matrix_agesex' or 'matrix_along_by'
+#' to Sparse Index Matrix
 #'
-#' @param matrix_agesex Matrix produced by
-#' 'make_matrix_agesex'
+#' @param m Matrix produced by
+#' 'make_matrices_agesex' or 'make_matrices_along_by'
 #'
 #' @returns A sparse matrix consisting of
 #' 1s and 0s
 #'
 #' @noRd
-make_matrix_agesex_index <- function(matrix_agesex) {
-  n <- length(matrix_agesex)
-  i <- as.integer(matrix_agesex) + 1L
+make_index_matrix <- function(m) {
+  n <- length(m)
+  i <- as.integer(m) + 1L
   j <- seq_len(n)
   x <- rep.int(1L, times = n)
   ans <- Matrix::sparseMatrix(i = i,
                               j = j,
                               x = x)
-  rn_old <- rownames(matrix_agesex)
-  cn_old <- colnames(matrix_agesex)
-  cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
-  rn_new <- cn_new[match(seq_len(n), matrix_agesex + 1L)]
+  rn_old <- rownames(m)
+  cn_old <- colnames(m)
+  if (is.null(cn_old))
+    cn_new <- rep(rn_old, times = ncol(m))
+  else
+    cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
+  rn_new <- cn_new[match(seq_len(n), m + 1L)]
   dimnames(ans) <- list(rn_new, cn_new)
   ans
 }
@@ -936,6 +930,7 @@ make_matrices_effectfree_effect <- function(mod) {
     levels_effect <- mod$levels_effect
     terms_effect <- mod$terms_effect
     agesex <- make_agesex(mod)
+    matrices_along_by <- choose_matrices_along_by(mod)
     matrices_agesex <- make_matrices_agesex(mod)
     levels_age <- make_levels_age(mod)
     levels_sexgender <- make_levels_sexgender(mod)
@@ -944,6 +939,7 @@ make_matrices_effectfree_effect <- function(mod) {
                    dots = list(prior = priors,
                                levels_effect = levels_effect,
                                agesex = agesex,
+                               matrix_along_by = matrices_along_by,
                                matrix_agesex = matrices_agesex),
                    MoreArgs = list(levels_age = levels_age,
                                    levels_sexgender = levels_sexgender))
@@ -1154,21 +1150,20 @@ make_seed <- function()
 #' with B-splines and Penalties.
 #' Statistical Science, 11(2), 89-121.
 #'
-#' @param length_effect Number of elements in main
-#' effect.
+#' @param n_along Number of elements of dimension being modelled
 #' @param n_spline Number of columns in spline matrix
 #'
-#' @returns Matrix with 'length_effect' rows and 'n_spline' columns
+#' @returns Matrix with 'n_along' rows and 'n_spline' columns
 #'
 #' @noRd
-make_spline_matrix <- function(length_effect, n_spline) {
+make_spline_matrix <- function(n_along, n_spline) {
     n_interval <- n_spline - 3L
-    interval_length <- (length_effect - 1L) / n_interval
+    interval_length <- (n_along - 1L) / n_interval
     start <- 1 - 3 * interval_length
-    end <- length_effect + 3 * interval_length
+    end <- n_along + 3 * interval_length
     x <- seq(from = start, to = end, by = 0.001)
     base <- splines::bs(x = x, df = n_spline + 5L)
-    i_keep <- findInterval(seq_len(length_effect), x)
+    i_keep <- findInterval(seq_len(n_along), x)
     j_keep <- seq.int(from = 3L, length.out = n_spline)
     ans <- base[i_keep, j_keep]
     colmeans <- colMeans(ans)
