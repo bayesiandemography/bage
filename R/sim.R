@@ -159,7 +159,6 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
   vals_hyper <- draw_vals_hyper_mod(mod = mod,
                                     n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,
-                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod = mod,
                                       vals_hyper = vals_hyper,
@@ -253,13 +252,13 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
 
 
 ## HAS_TESTS
-#' Generate Draws from ELin
+#' Generate Draws from Lin
 #'
 #' Each column is one draw.
 #'
 #' Results are standardized
 #'
-#' @param mslope Matrix of values
+#' @param slope Matrix of values
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #' @param labels Names of elements
@@ -267,16 +266,16 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
-  n_sim <- ncol(mslope)
+draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
+  n_sim <- ncol(slope)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   q <- seq(from = -1, to = 1, length.out = n_along)
   q <- rep(q, times = n_by * n_sim)
-  mslope <- rep(mslope, each = n_along)
+  slope <- rep(slope, each = n_along)
   sd <- rep(sd, each = n_along * n_by)
   ans <- stats::rnorm(n = n_along * n_by * n_sim,
-                      mean = q * mslope,
+                      mean = q * slope,
                       sd = sd)
   ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
   ans <- ans - rep(colMeans(ans), each = n_along)
@@ -288,7 +287,46 @@ draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
 }
 
 ## HAS_TESTS
-#' Generate Draws from ERW
+#' Generate Draws from LinAR
+#'
+#' Each column is one draw.
+#'
+#' Results are standardized
+#'
+#' @param slope Matrix of values
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
+  n_sim <- ncol(slope)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  n_ar <- nrow(coef)
+  q <- seq(from = -1, to = 1, length.out = n_along)
+  slope <- as.numeric(slope)
+  mean <- outer(q, slope)
+  coef <- array(coef, dim = c(n_ar, n_sim, n_by))
+  coef <- aperm(coef, perm = c(1L, 3L, 2L))
+  coef <- matrix(coef, nrow = n_ar, ncol = n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  error <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
+  ans <- mean + error
+  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
+  ans <- ans - rep(colMeans(ans), each = n_along)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from RW
 #'
 #' Each column is one draw.
 #'
@@ -299,7 +337,7 @@ draw_vals_elin <- function(mslope, sd, matrix_along_by, labels) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_erw <- function(sd, matrix_along_by, labels) {
+draw_vals_rw <- function(sd, matrix_along_by, labels) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
@@ -320,7 +358,7 @@ draw_vals_erw <- function(sd, matrix_along_by, labels) {
 }
 
 ## HAS_TESTS
-#' Generate Draws from ERW2
+#' Generate Draws from RW2
 #'
 #' Each column is one draw.
 #'
@@ -331,7 +369,7 @@ draw_vals_erw <- function(sd, matrix_along_by, labels) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_erw2 <- function(sd, matrix_along_by, labels) {
+draw_vals_rw2 <- function(sd, matrix_along_by, labels) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
@@ -344,39 +382,6 @@ draw_vals_erw2 <- function(sd, matrix_along_by, labels) {
                                    mean = 2 * ans[i_along - 1L, ] - ans[i_along - 2L, ],
                                    sd = sd)
   ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
-  ans <- ans - rep(colMeans(ans), each = n_along)
-  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
-  i <- match(sort(matrix_along_by), matrix_along_by)
-  ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
-  ans
-}
-
-
-## HAS_TESTS
-#' Generate Draws from ESeas
-#'
-#' Each column is one draw.
-#'
-#' @param n Number of seasons
-#' @param sd Vector of values
-#' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_eseas <- function(n, sd, matrix_along_by, labels) {
-  n_sim <- length(sd)
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
-  sd <- rep(sd, each = n_by)
-  for (i_along in seq.int(from = n + 1L, to = n_along))
-    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
-                                   mean = ans[i_along - n, ],
-                                   sd = sd)
   ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
@@ -411,21 +416,12 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 #' @returns A named list
 #'
 #' @noRd
-draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
+draw_vals_hyperrand_mod <- function(mod, n_sim) {
   priors <- mod$priors
-  levels_effect <- mod$levels_effect
-  terms_effect <- mod$terms_effect
-  levels_effect <- split(levels_effect, terms_effect)
-  agesex <- make_agesex(mod)
   matrices_along_by <- choose_matrices_along_by(mod)
-  matrices_agesex <- make_matrices_agesex(mod)
   ans <- .mapply(draw_vals_hyperrand,
                  dots = list(prior = priors,
-                             vals_hyper = vals_hyper,
-                             levels_effect = levels_effect,
-                             agesex = agesex,
-                             matrix_along_by = matrices_along_by,
-                             matrix_agesex = matrices_agesex),
+                             matrix_along_by = matrices_along_by),
                  MoreArgs = list(n_sim = n_sim))
   names(ans) <- names(priors)
   ans
@@ -433,119 +429,22 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 
 
 ## HAS_TESTS
-#' Generate Draws from Lin
-#'
-#' Each column is one draw.
-#'
-#' @param slope Vector of values
-#' @param sd Vector of values
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_lin <- function(slope, sd, labels) {
-  n_effect <- length(labels)
-  n_sim <- length(slope)
-  q <- seq(from = -1, to = 1, length.out = n_effect)
-  mean <- outer(q, slope)
-  error <- stats::rnorm(n = n_effect * n_sim,
-                        sd = rep(sd, each = n_effect))
-  ans <- mean + error
-  dimnames(ans) <- list(labels, seq_len(n_sim))
-  ans
-}
-
-
-## HAS_TESTS
-#' Draw Values for the 'msd' Hyper-Parameters of a Prior
+#' Draw Values for the 'slope' Hyper-Parameters of a Prior
 #'
 #' @param prior An object of class 'bage_prior'
-#' @param n_sim Number of draws
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-draw_vals_msd <- function(prior, n_sim) {
-  mscale <- prior$specific$mscale
-  abs(stats::rnorm(n = n_sim, sd = mscale))
-}
-
-
-## HAS_TESTS
-#' Draw Values for the 'mslope' Hyper-Parameters of a Prior
-#'
-#' @param prior An object of class 'bage_prior'
-#' @param slope Vector of mean slopes
-#' @param msd Vector of standard deviations
 #' @param matrix_along_by Matrix with mapping for along and by dimensions
 #' @param n_sim Number of draws
 #'
 #' @returns A matrix
 #'
 #' @noRd
-draw_vals_mslope <- function(slope, msd, matrix_along_by, n_sim) {
+draw_vals_slope <- function(sd_slope, matrix_along_by, n_sim) {
   n_by <- ncol(matrix_along_by)
-  ans <- stats::rnorm(n = n_by * n_sim,
-                      mean = rep(slope, each = n_by),
-                      sd = rep(msd, each = n_by))
+  ans <- stats::rnorm(n = n_by * n_sim, sd = sd_slope)
   ans <- matrix(ans, nrow = n_by, ncol = n_sim)
   nms_by <- colnames(matrix_along_by)
-  rownames <- paste("mslope", nms_by, sep = ".")
+  rownames <- paste("slope", nms_by, sep = ".")
   rownames(ans) <- rownames
-  ans
-}
-
-
-## HAS_TESTS
-#' Generate Draws from RW 
-#'
-#' Each column is one draw.
-#'
-#' @param sd Vector of values
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_rw <- function(sd, labels) {
-  n_effect <- length(labels)
-  n_sim <- length(sd)
-  ans <- matrix(nrow = n_effect,
-                ncol = n_sim,
-                dimnames = list(labels, seq_len(n_sim)))
-  ans[1L, ] <- stats::rnorm(n = n_sim)
-  for (i_effect in seq.int(from = 2L, to = n_effect))
-    ans[i_effect, ] <- stats::rnorm(n = n_sim,
-                                    mean = ans[i_effect - 1L, ],
-                                    sd = sd)
-  ans
-}
-
-
-## HAS_TESTS
-#' Generate Draws from RW2
-#'
-#' Each column is one draw.
-#'
-#' @param sd Vector of values
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_rw2 <- function(sd, labels) {
-  n_effect <- length(labels)
-  n_sim <- length(sd)
-  ans <- matrix(nrow = n_effect,
-                ncol = n_sim,
-                dimnames = list(labels, seq_len(n_sim)))
-  ans[1L, ] <- stats::rnorm(n = n_sim)
-  ans[2L, ] <- stats::rnorm(n = n_sim)
-  for (i_effect in seq.int(from = 3L, to = n_effect))
-    ans[i_effect, ] <- stats::rnorm(n = n_sim,
-                                    mean = 2 * ans[i_effect - 1L, ] - ans[i_effect - 2L, ],
-                                    sd = sd)
   ans
 }
 
@@ -564,47 +463,6 @@ draw_vals_sd <- function(prior, n_sim) {
     ans <- stats::rnorm(n = n_sim, sd = scale)
     ans <- abs(ans)
     ans
-}
-
-
-## HAS_TESTS
-#' Generate Draws from Seas
-#'
-#' Each column is one draw.
-#'
-#' @param n Number of seasons
-#' @param sd Vector of values
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_seas <- function(n, sd, labels) {
-  n_effect <- length(labels)
-  n_sim <- length(sd)
-  ans <- matrix(nrow = n_effect,
-                ncol = n_sim,
-                dimnames = list(labels, seq_len(n_sim)))
-  ans[seq_len(n), ] <- stats::rnorm(n = n_sim)
-  for (i_effect in seq.int(from = n + 1L, to = n_effect))
-    ans[i_effect, ] <- stats::rnorm(n = n_sim,
-                                    mean = ans[i_effect - n, ],
-                                    sd = sd)
-  ans
-}
-
-## HAS_TESTS
-#' Draw Values for the 'slope' Parameter of a Prior
-#'
-#' @param prior An object of class 'bage_prior'
-#' @param n_sim Number of draws
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-draw_vals_slope <- function(prior, n_sim) {
-    sd_slope <- prior$specific$sd_slope
-    stats::rnorm(n = n_sim, sd = sd_slope)
 }
 
 

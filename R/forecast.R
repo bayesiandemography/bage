@@ -145,6 +145,8 @@ forecast_effects <- function(mod,
 #' Forecast Time-Varying Hyper-Parameters
 #' for Main Effects and Interactions
 #'
+#' Includes hyperrand.
+#'
 #' Returns NULL if no hyper-parameters are forecast.
 #' 
 #' @param mod Object of class 'bage_mod'

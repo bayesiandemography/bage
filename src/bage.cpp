@@ -216,7 +216,15 @@ Type logpost_spline(vector<Type> effectfree,
    		    vector<Type> hyper,
 		    vector<Type> consts,
 		    matrix<int> matrix_along_by) {
-  return logpost_rw2(effectfree, hyper, consts, matrix_along_by);
+  int n_by = matrix_along_by.cols();
+  int n_free = effectfree.size();
+  int n_along_free = n_free / n_by;
+  matrix<int> matrix_along_by_free(n_along_free, n_by);
+  int index = 0;
+  for (int j = 0; j < n_by; j++)
+    for (int i = 0; i < n_along_free; i++)
+      matrix_along_by_free(i, j) = index++;
+  return logpost_rw2(effectfree, hyper, consts, matrix_along_by_free);
 }
 
 template <class Type>

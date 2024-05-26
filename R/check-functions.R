@@ -263,42 +263,6 @@ check_is_formula <- function(formula) {
 
 
 ## HAS_TESTS
-#' Check, Based on its Name, that a Term is an Interaction
-#'
-#' @param nm Name of the term.
-#'
-#' @returns TRUE, invisibly
-#'
-#' @noRd
-check_is_interaction <- function(nm, prior) {
-    nms_dims <- strsplit(nm, split = ":")[[1L]]
-    is_interaction <- length(nms_dims) > 1L
-    if (!is_interaction)
-        cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used for {.var {nm}} term.",
-                         i = "{.var {str_call_prior(prior)}} prior can only be used with interactions."))
-    invisible(TRUE)
-}
-
-
-## HAS_TESTS
-#' Check, based on its name, that a term is a main effect
-#'
-#' @param nm Name of the term.
-#'
-#' @returns TRUE, invisibly
-#'
-#' @noRd
-check_is_main_effect <- function(nm, prior) {
-    nms_dims <- strsplit(nm, split = ":")[[1L]]
-    is_main_effect <- length(nms_dims) == 1L
-    if (!is_main_effect)
-        cli::cli_abort(c("{.var {str_call_prior(prior)}} prior cannot be used for {.var {nm}} term.",
-                         i = "{.var {str_call_prior(prior)}} prior can only be used with main effects."))
-    invisible(TRUE)
-}
-
-
-## HAS_TESTS
 #' Check that an Object is a Matrix
 #'
 #' @param x An object

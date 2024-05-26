@@ -159,33 +159,59 @@ test_that("'draw_vals_disp' works with 'bage_mod_norm'", {
 })
 
 
-## 'draw_vals_elin' -----------------------------------------------------------
+## draw_vals_effect_mod ----------------------------------------------------------
 
-test_that("'draw_vals_elin' works - along dimension is first", {
+test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   set.seed(0)
-  prior <- ELin()
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + age:sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, `(Intercept)` ~ Known(5)) ## over-ridden
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            n_sim = n_sim)
+  ans <- draw_vals_effect_mod(mod,
+                              vals_hyper = vals_hyper,
+                              vals_hyperrand = vals_hyperrand,
+                              n_sim = n_sim)
+  expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
+  expect_true(all(sapply(ans, ncol) == n_sim))
+  expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
+  expect_true(all(ans[[1L]] == 0))
+  for (i in 2:4)
+    expect_equal(colMeans(ans[[i]]), rep(0, 2), ignore_attr = "names")
+  expect_true(all(colMeans(ans[[5]]) != 0))
+})
+
+
+## 'draw_vals_lin' -----------------------------------------------------------
+
+test_that("'draw_vals_lin' works - along dimension is first", {
+  set.seed(0)
+  prior <- Lin()
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 11:14
-  slope <- draw_vals_slope(prior = prior,
+  slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
+                           matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  msd <- draw_vals_msd(prior = prior,
-                       n_sim = n_sim)
-  mslope <- draw_vals_mslope(slope = slope,
-                             msd = msd,
-                             matrix_along_by = matrix_along_by,
-                             n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_elin(mslope = mslope,
-                                 sd = sd,
-                                 matrix_along_by = matrix_along_by,
-                                 labels = labels)
+  ans_obtained <- draw_vals_lin(slope,
+                                sd = sd,
+                                matrix_along_by = matrix_along_by,
+                                labels = labels)
   q <- -(3 + 1) / (3 - 1) + (1:3) * 2 / (3 - 1)
   mean <- matrix(q, nrow = 12, ncol = n_sim) *
-    matrix(rep(mslope, each = 3), nrow = 12)
+    matrix(rep(slope, each = 3), nrow = 12)
   sd <- matrix(rep(sd, each = 12), ncol = n_sim)
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
@@ -196,31 +222,26 @@ test_that("'draw_vals_elin' works - along dimension is first", {
   expect_equal(ans_obtained, ans_expected)  
 })
 
-test_that("'draw_vals_elin' works - along dimension is second", {
+test_that("'draw_vals_lin' works - along dimension is second", {
   set.seed(0)
-  prior <- ELin()
+  prior <- Lin()
   n_sim <- 10
   matrix_along_by <- t(matrix(0:11, nr = 3))
   colnames(matrix_along_by) <- 1:3
-  slope <- draw_vals_slope(prior = prior,
-                           n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  msd <- draw_vals_msd(prior = prior,
-                       n_sim = n_sim)
-  mslope <- draw_vals_mslope(slope = slope,
-                             msd = msd,
-                             matrix_along_by = matrix_along_by,
-                             n_sim = n_sim)
+  slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_elin(mslope = mslope,
-                                 sd = sd,
-                                 matrix_along_by = matrix_along_by,
-                                 labels = labels)
+  ans_obtained <- draw_vals_lin(slope = slope,
+                                sd = sd,
+                                matrix_along_by = matrix_along_by,
+                                labels = labels)
   q <- -(4 + 1) / (4 - 1) + (1:4) * 2 / (4 - 1)
   mean <- matrix(q, nrow = 12, ncol = n_sim) *
-    matrix(rep(mslope, each = 4), nrow = 12)
+    matrix(rep(slope, each = 4), nrow = 12)
   sd <- matrix(rep(sd, each = 12), ncol = n_sim)
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
@@ -233,124 +254,39 @@ test_that("'draw_vals_elin' works - along dimension is second", {
   expect_equal(ans_obtained, ans_expected)  
 })
 
+## 'draw_vals_linar' -----------------------------------------------------------
 
-## 'draw_vals_erw' ----------------------------------------------------------
-
-test_that("'draw_vals_erw' works - along dimension is first", {
+test_that("'draw_vals_linar' works - along dimension is first", {
   set.seed(0)
-  prior <- ERW()
+  prior <- LinAR()
   n_sim <- 10
-  matrix_along_by <- matrix(0:2999, nc = 3)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 11:14
+  slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  labels <- 1:3000
+  coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
+  labels <- 1:12
   set.seed(0)
-  ans <- draw_vals_erw(sd = sd,
-                       matrix_along_by = matrix_along_by,
-                       labels = labels)
-  expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
-  ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
-               rep(sd, each = 3),
-               tolerance = 0.05)
-})
-
-test_that("'draw_vals_erw' works - along dimension is second", {
+  ans_obtained <- draw_vals_linar(slope = slope,
+                                  sd = sd,
+                                  coef = coef,
+                                  matrix_along_by = matrix_along_by,
+                                  labels = labels)
+  q <- -(3 + 1) / (3 - 1) + (1:3) * 2 / (3 - 1)
+  mean <- matrix(q, nrow = 3, ncol = 4 * n_sim) *
+    rep(slope, each = 3)
+  sd <- rep(sd, each = 4)
+  coef <- matrix(apply(coef, 2, rep, times = 4), nr = 2)
   set.seed(0)
-  prior <- ERW()
-  n_sim <- 10
-  matrix_along_by <- t(matrix(0:2999, nc = 1000))
-  sd <- draw_vals_sd(prior = prior,
-                     n_sim = n_sim)
-  labels <- 1:3000
-  set.seed(0)
-  ans <- draw_vals_erw(sd = sd,
-                       matrix_along_by = matrix_along_by,
-                       labels = labels)
-  expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
-  ans <- array(ans, dim = c(3, 1000, 10))
-  ans <- aperm(ans, perm = c(2, 1, 3))
-  ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
-               rep(sd, each = 3),
-               tolerance = 0.05)
-})
-
-
-## 'draw_vals_erw2' -----------------------------------------------------------
-
-test_that("'draw_vals_erw2' works - along dimension is first", {
-  set.seed(0)
-  prior <- ERW2()
-  n_sim <- 10
-  matrix_along_by <- matrix(0:2999, nc = 3)
-  sd <- draw_vals_sd(prior = prior,
-                     n_sim = n_sim)
-  labels <- 1:3000
-  set.seed(0)
-  ans <- draw_vals_erw2(sd = sd,
-                        matrix_along_by = matrix_along_by,
-                        labels = labels)
-  expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
-  ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[3:1000,], 2, function(x) sd(diff(x, diff = 2)))),
-               rep(sd, each = 3),
-               tolerance = 0.05)
-})
-
-
-## 'draw_vals_eseas' ----------------------------------------------------------
-
-test_that("'draw_vals_eseas' works - along dimension is first", {
-  set.seed(0)
-  prior <- ESeas(n = 4)
-  n_sim <- 10
-  matrix_along_by <- matrix(0:2999, nc = 3)
-  sd <- draw_vals_sd(prior = prior,
-                     n_sim = n_sim)
-  labels <- 1:3000
-  set.seed(0)
-  ans <- draw_vals_eseas(n = 4,
-                         sd = sd,
-                         matrix_along_by = matrix_along_by,
-                         labels = labels)
-  expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
-  ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
-               rep(sd, each = 3),
-               tolerance = 0.05)
-})
-
-test_that("'draw_vals_eseas' works - along dimension is second", {
-  set.seed(0)
-  prior <- ESeas(n = 4)
-  n_sim <- 10
-  matrix_along_by <- t(matrix(0:2999, nc = 1000))
-  sd <- draw_vals_sd(prior = prior,
-                     n_sim = n_sim)
-  labels <- 1:3000
-  set.seed(0)
-  ans <- draw_vals_eseas(n = 4,
-                         sd = sd,
-                         matrix_along_by = matrix_along_by,
-                         labels = labels)
-  expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
-  ans <- array(ans, dim = c(3, 1000, 10))
-  ans <- aperm(ans, perm = c(2, 1, 3))
-  ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
-               rep(sd, each = 3),
-               tolerance = 0.03)
+  error <- draw_vals_ar(n = 3, coef = coef, sd = sd)
+  ans_expected <- mean + error
+  ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 3)
+  ans_expected <- matrix(ans_expected, ncol = n_sim)
+  dimnames(ans_expected) <- list(1:12, 1:n_sim)
+  expect_equal(ans_obtained, ans_expected)  
 })
 
 
@@ -382,7 +318,7 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:time ~ ELin())
+    mod <- set_prior(mod, age:time ~ Lin())
     vals_hyper <- draw_vals_hyper_mod(mod, n_sim = 10)
     ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
@@ -392,112 +328,20 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
 })
 
 
-## draw_vals_effect_mod ----------------------------------------------------------
+## 'draw_vals_rw' ----------------------------------------------------------
 
-test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
-  set.seed(0)
-  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + age:sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, `(Intercept)` ~ Known(5)) ## over-ridden
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
-  n_sim <- 2
-  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
-                                            vals_hyper = vals_hyper,
-                                            n_sim = n_sim)
-  ans <- draw_vals_effect_mod(mod,
-                              vals_hyper = vals_hyper,
-                              vals_hyperrand = vals_hyperrand,
-                              n_sim = n_sim)
-  expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
-  expect_true(all(sapply(ans, ncol) == n_sim))
-  expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
-  expect_true(all(ans[[1L]] == 0))
-  for (i in 2:4)
-    expect_equal(colMeans(ans[[i]]), rep(0, 2), ignore_attr = "names")
-  expect_true(all(colMeans(ans[[5]]) != 0))
-})
-
-
-## 'draw_vals_lin' ------------------------------------------------------------
-
-test_that("'draw_vals_lin' works", {
-  set.seed(0)
-  prior <- Lin()
-  n_sim <- 10
-  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
-  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-  labels <- 1:20
-  set.seed(0)
-  ans_obtained <- draw_vals_lin(slope = slope,
-                                sd = sd,
-                                labels = labels)
-  q <- -(20 + 1) / (20 - 1) + (1:20) * 2 / (20 - 1)
-  ans_expected <- matrix(rep(q, times = n_sim) * rep(slope, each = 20),
-                         nrow = 20)
-  set.seed(0)
-  ans_expected <- ans_expected + rnorm(n = n_sim * 20, sd = rep(sd, each = 20))
-  dimnames(ans_expected) <- list(1:20, 1:n_sim)
-  expect_equal(ans_obtained, ans_expected)  
-})
-
-## draw_vals_msd --------------------------------------------------------------
-
-test_that("'draw_vals_msd' works", {
-  prior <- ELin(ms = 0.5)
-  n_sim <- 1000
-  set.seed(0)
-  ans_obtained <- draw_vals_msd(prior = prior, n_sim = n_sim)
-  set.seed(0)
-  ans_expected <- abs(rnorm(n = 1000, sd = 0.5))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## draw_vals_mslope -----------------------------------------------------------
-
-test_that("'draw_vals_mslope' works", {
-  set.seed(0)
-  prior <- ELin(ms = 0.5)
-  n_sim <- 1000
-  slope <- draw_vals_slope(prior = prior, n_sim = n_sim)
-  msd <- draw_vals_msd(prior = prior, n_sim = n_sim)
-  matrix_along_by <- matrix(0:11, nr = 3)
-  colnames(matrix_along_by) <- 11:14
-  set.seed(0)
-  ans_obtained <- draw_vals_mslope(slope = slope,
-                                   msd = msd,
-                                   matrix_along_by = matrix_along_by,
-                                   n_sim = n_sim)
-  set.seed(0)
-  ans_expected <- matrix(rnorm(n = 4000,
-                               mean = rep(slope, each = 4),
-                               sd = rep(msd, each = 4)),
-                         nr = 4)
-  rownames(ans_expected) <- paste("mslope", 11:14, sep = ".")
-  expect_identical(ans_obtained, ans_expected)
-})
-
-  
-## draw_vals_rw ---------------------------------------------------------------
-
-test_that("'draw_vals_rw' works", {
+test_that("'draw_vals_rw' works - n_by = 1", {
     set.seed(0)
     prior <- RW()
     n_sim <- 1000
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     labels <- 1:200
+    matrix_along_by <- matrix(0:199, 200)
     set.seed(0)
     ans <- draw_vals_rw(sd = sd,
+                        matrix_along_by = matrix_along_by,
                         labels = labels)
-    expect_equal(mean(ans[1, ]),
-                 0,
-                 tolerance = 0.02)
+    expect_true(all(abs(colMeans(ans) < 0.0000001)))
     expect_equal(unname(apply(ans, 2, function(x) sd(diff(x)))),
                  sd,
                  tolerance = 0.05)
@@ -507,8 +351,52 @@ test_that("'draw_vals_rw' works", {
                           as.character(seq_len(1000))))
 })
 
+test_that("'draw_vals_rw' works - along dimension is first", {
+  set.seed(0)
+  prior <- RW()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:2999, nc = 3)
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  labels <- 1:3000
+  set.seed(0)
+  ans <- draw_vals_rw(sd = sd,
+                      matrix_along_by = matrix_along_by,
+                      labels = labels)
+  expect_identical(dim(ans), c(3000L, 10L))
+  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
+               rep(sd, each = 3),
+               tolerance = 0.05)
+})
 
-## draw_vals_rw2 --------------------------------------------------------------
+test_that("'draw_vals_rw' works - along dimension is second", {
+  set.seed(0)
+  prior <- RW()
+  n_sim <- 10
+  matrix_along_by <- t(matrix(0:2999, nc = 1000))
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  labels <- 1:3000
+  set.seed(0)
+  ans <- draw_vals_rw(sd = sd,
+                      matrix_along_by = matrix_along_by,
+                      labels = labels)
+  expect_identical(dim(ans), c(3000L, 10L))
+  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  ans <- array(ans, dim = c(3, 1000, 10))
+  ans <- aperm(ans, perm = c(2, 1, 3))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
+               rep(sd, each = 3),
+               tolerance = 0.05)
+})
+
+
+## 'draw_vals_rw2' -----------------------------------------------------------
 
 test_that("'draw_vals_rw2' works", {
   set.seed(0)
@@ -519,26 +407,36 @@ test_that("'draw_vals_rw2' works", {
   labels <- 1:100
   set.seed(0)
   ans <- draw_vals_rw2(sd = sd,
+                       matrix_along_by = matrix(0:99, nr = 100),
                        labels = labels)
   expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, diff = 2)))),
                sd,
-               tolerance = 0.1)
-  expect_equal(mean(ans[1,]),
-               0,
-               tolerance = 0.1)
-  expect_equal(mean(ans[2,]),
-               0,
-               tolerance = 0.1)
-  expect_equal(sd(ans[1,]),
-               1,
-               tolerance = 0.1)
-  expect_equal(sd(ans[2,]),
-               1,
                tolerance = 0.1)
   expect_identical(dim(ans), c(100L, 1000L))
   expect_identical(dimnames(ans),
                    list(as.character(seq_len(100)),
                         as.character(seq_len(1000))))
+})
+
+test_that("'draw_vals_rw2' works - along dimension is first", {
+  set.seed(0)
+  prior <- RW2()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:2999, nc = 3)
+  sd <- draw_vals_sd(prior = prior,
+                     n_sim = n_sim)
+  labels <- 1:3000
+  set.seed(0)
+  ans <- draw_vals_rw2(sd = sd,
+                       matrix_along_by = matrix_along_by,
+                       labels = labels)
+  expect_identical(dim(ans), c(3000L, 10L))
+  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[3:1000,], 2, function(x) sd(diff(x, diff = 2)))),
+               rep(sd, each = 3),
+               tolerance = 0.05)
 })
 
 
@@ -555,40 +453,22 @@ test_that("'draw_vals_sd' works", {
 })
 
 
-## draw_vals_seas -------------------------------------------------------------
-
-test_that("'draw_vals_seas' works", {
-  set.seed(0)
-  prior <- Seas(n = 4)
-  n_sim <- 1000
-  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-  labels <- 1:200
-  set.seed(0)
-  ans <- draw_vals_seas(n = 4L,
-                        sd = sd,
-                        labels = labels)
-  expect_equal(mean(ans[1:4, ]),
-               0,
-               tolerance = 0.02)
-  expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, lag = 4)))),
-               sd,
-               tolerance = 0.05)
-  expect_identical(dim(ans), c(200L, 1000L))
-  expect_identical(dimnames(ans),
-                   list(as.character(seq_len(200)),
-                        as.character(seq_len(1000))))
-})
-
-
 ## draw_vals_slope ------------------------------------------------------------
 
 test_that("'draw_vals_slope' works", {
-  prior <- Lin(sd = 0.2)
-  n_sim <- 10
   set.seed(0)
-  ans_obtained <- draw_vals_slope(prior = prior, n_sim = n_sim)
+  n_sim <- 1000
+  sd_slope <- 0.5
+  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(1:5, c("a", "b")))
+  ans_obtained <- draw_vals_slope(sd_slope = 0.5,
+                                  matrix_along_by = matrix_along_by,
+                                  n_sim = n_sim)
   set.seed(0)
-  ans_expected <- rnorm(n = 10, sd = 0.2)
+  ans_expected <- matrix(rnorm(n = 2000,
+                               mean = rep(0, each = 2),
+                               sd = rep(0.5, each = 2)),
+                         nr = 2)
+  rownames(ans_expected) <- paste("slope", c("a", "b"), sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
 
