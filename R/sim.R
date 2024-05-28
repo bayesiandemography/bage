@@ -138,7 +138,8 @@ draw_vals_coef <- function(prior, n_sim) {
       cli::cli_abort("Internal error: coud not generate stationary distribution.")  ## nocov
     ans[, i_sim] <- val
   }
-  rownames(ans) <- paste0("coef", seq_len(n))
+  rn <- if (n == 1L) "coef" else paste0("coef", seq_len(n))
+  rownames(ans) <- rn
   ans
 }
 
@@ -148,14 +149,19 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws
+#' @param center Whether to center effects (other than
+#' the first effect with a SVD prior)
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_components_unfitted <- function(mod, n_sim) {
+draw_vals_components_unfitted <- function(mod, n_sim, center) {
   priors <- mod$priors
   nms_priors <- names(priors)
   has_disp <- has_disp(mod)
+  seed_components <- mod$seed_components
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_components) ## set pre-determined seed
   vals_hyper <- draw_vals_hyper_mod(mod = mod,
                                     n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,
@@ -164,6 +170,9 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
                                       vals_hyper = vals_hyper,
                                       vals_hyperrand = vals_hyperrand,
                                       n_sim = n_sim)
+  vals_effect <- standardize_draws_effect(mod = mod,
+                                          vals_effect = vals_effect,
+                                          center = center)  
   vals_hyper <- .mapply(vals_hyper_to_dataframe,
                         dots = list(prior = priors,
                                     nm_prior = nms_priors,
@@ -184,6 +193,7 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
     vals_disp <- vals_disp_to_dataframe(vals_disp)
     ans <- vctrs::vec_rbind(ans, vals_disp)
   }
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans    
 }
 
@@ -243,9 +253,9 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
                  MoreArgs = list(levels_age = levels_age,
                                  levels_sexgender = levels_sexgender,
                                  n_sim = n_sim))
-  has_intercept <- identical(nrow(ans[[1L]]), 1L)
-  if (has_intercept)
-    ans[[1L]][] <- 0
+  ## has_intercept <- identical(nrow(ans[[1L]]), 1L)
+  ## if (has_intercept)
+  ##   ans[[1L]][] <- 0
   names(ans) <- names(priors)
   ans
 }
@@ -277,8 +287,6 @@ draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
   ans <- stats::rnorm(n = n_along * n_by * n_sim,
                       mean = q * slope,
                       sd = sd)
-  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
-  ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -315,8 +323,6 @@ draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
   sd <- rep(sd, each = n_by)
   error <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
   ans <- mean + error
-  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
-  ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -348,8 +354,6 @@ draw_vals_rw <- function(sd, matrix_along_by, labels) {
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
                                    mean = ans[i_along - 1L, ],
                                    sd = sd)
-  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
-  ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -381,8 +385,6 @@ draw_vals_rw2 <- function(sd, matrix_along_by, labels) {
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
                                    mean = 2 * ans[i_along - 1L, ] - ans[i_along - 2L, ],
                                    sd = sd)
-  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
-  ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -806,12 +808,7 @@ perform_comp <- function(est,
 #' Simulation study of a model
 #'
 #' Use simulated data to assess the performance of
-#' and estimated model.
-#'
-#' @section Warning:
-#'
-#' The interface for `report_sim` is still
-#' experimental, and may change in future.
+#' an estimation model.
 #'
 #' @section Comparisons included in report:
 #'
@@ -832,12 +829,19 @@ perform_comp <- function(est,
 #' since, for most model specifications,
 #' these terms are not comparable across models.
 #'
+#' @section Centering:
+#'
+#' TODO - COMPLETE THIS
+#'
 #' @param mod_est The model whose performance is being
 #' assessed. An object of class `bage_mod`.
 #' @param mod_sim The model used to generate the simulated
 #' data. If no value is supplied, `mod_est` is used.
 #' @param n_sim Number of sets of simulated data to use.
 #' Default is 100.
+#' @param center Whether to centre effects (apart from
+#' an effect with an SVD-type prior) at 0.
+#' See below for details. Default is `TRUE`.
 #' @param point_est_fun Name of the function to use
 #' to calculate point estimates. The options are `"mean"`
 #' and `"median"`. The default is `"mean"`.
@@ -913,6 +917,7 @@ perform_comp <- function(est,
 report_sim <- function(mod_est,
                        mod_sim = NULL,
                        n_sim = 100,
+                       center = TRUE,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95),
                        report_type = c("short", "long", "full"),
@@ -929,6 +934,7 @@ report_sim <- function(mod_est,
           min = 1L,
           max = NULL,
           null_ok = FALSE)
+  check_flag(x = center, nm_x = "center")
   point_est_fun <- match.arg(point_est_fun)
   check_widths(widths)
   report_type <- match.arg(report_type)
@@ -1003,6 +1009,66 @@ report_sim <- function(mod_est,
     return(list(components = report_comp,
                 augment = report_aug))
   cli::cli_abort("Internal error: Invalid value for {.val report_type}.") ## nocov
+}
+
+
+## HAS_TESTS
+#' Apply Standardization Algorithm to Simulated Effects
+#'
+#' @param mod Object of class `"bage_mod"`
+#' @param vals_effect List of matrices, each holding 'n_sim'
+#' draws of an effect
+#'
+#' @returns A list of standardized values
+#'
+#' @noRd
+standardize_draws_effect <- function(mod, vals_effect, center) {
+  eps <- 0.0001
+  max_iter <- 100L
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  priors <- mod$priors
+  n_effect <- length(priors)
+  linpred <- .mapply(`%*%`,
+                     dots = list(x = matrices_effect_outcome,
+                                 y = vals_effect),
+                     MoreArgs = list())
+  linpred <- Reduce(`+`, linpred)
+  set_matrix_to_zero <- function(x) {
+    x[] <- 0
+    x
+  }
+  ans <- lapply(vals_effect, set_matrix_to_zero)
+  n_outcome <- nrow(linpred)
+  n_draw <- ncol(linpred)
+  n_element <- vapply(matrices_effect_outcome, ncol, 1L)
+  mult <- n_element / n_outcome
+  found_svd <- FALSE
+  for (i_iter in seq_len(max_iter)) {
+    for (i_effect in seq_len(n_effect)) {
+      M <- matrices_effect_outcome[[i_effect]]
+      effect <- mult[[i_effect]] * Matrix::crossprod(M, linpred)
+      contrib_to_linpred <- M %*% effect
+      linpred <- linpred - contrib_to_linpred
+      is_intercept <- i_effect == 1L
+      if (center) {
+        if (!is_intercept)
+          ans[[i_effect]] <- ans[[i_effect]] + effect
+        if (!found_svd && is_svd(priors[[i_effect]])) {
+          ans[[1L]][] <- Matrix::colMeans(vals_effect[[i_effect]])
+          found_svd <- TRUE
+        }
+      }
+      else
+        ans[[i_effect]] <- ans[[i_effect]] + effect
+    }
+    max_remainder <- max(abs(linpred))
+    if (max_remainder < eps) {
+      ans <- lapply(ans, Matrix::as.matrix)
+      return(ans)
+    }
+  }
+  cli::cli(c("Internal error: Unable to standardize effects.",   ## nocov
+             i = "Maximum remainder: {.val {max_remainder}}."))  ## nocov
 }
 
 

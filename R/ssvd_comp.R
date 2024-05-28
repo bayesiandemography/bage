@@ -589,7 +589,7 @@ hmd_indep <- function(data, n) {
 #'   set_prior(age ~ SVD(MyHMD))
 #' ```
 #' @seealso
-#' - [SVD()], [SVDS()], [ESVD()], [ESVDS()]
+#' - [SVD()], [SVDS()]
 #'   to use an object of class 
 #'   [`"bage_ssvd"`][ssvd()] in a prior.
 #' @export

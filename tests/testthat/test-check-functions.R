@@ -1,4 +1,5 @@
 
+
 ## 'check_along_is_time' ------------------------------------------------------
 
 test_that("'check_along_is_time' returns true with valid model object", {
@@ -24,7 +25,7 @@ test_that("'check_along_is_time' returns true when there is no time variable", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:sex ~ ERW(along = "age"))
+    mod <- set_prior(mod, age:sex ~ RW(along = "age"))
     expect_true(check_along_is_time(mod))
 })
 
@@ -37,7 +38,7 @@ test_that("'check_bage_mod' returns expected error message with invalid model ob
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:time ~ ERW(along = "age", s = 0.5))
+    mod <- set_prior(mod, age:time ~ RW(along = "age", s = 0.5))
     expect_error(check_along_is_time(mod),
                  "Unable to forecast term \"age:time\".")
 })
@@ -61,6 +62,16 @@ test_that("'check_bage_mod' returns expected error message with invalid model ob
     expect_error(check_bage_mod(x = NULL, nm_x = "model"),
                  "`model` does not have class")
 })
+
+
+## 'check_center_is_default' ------------------------------------------------------------
+
+test_that("'check_center_is_default' works", {
+  expect_true(check_center_is_default(center = FALSE, default = FALSE))
+  expect_true(check_center_is_default(center = TRUE, default = TRUE))
+  expect_message(check_center_is_default(center = TRUE, default = FALSE),
+                 "Non-default value for `center` ignored when model has been fitted.")
+})              
 
 
 ## 'check_flag' ---------------------------------------------------------------
@@ -264,15 +275,15 @@ test_that("'check_length_along_ge' returns TRUE with valid inputs", {
   expect_true(check_length_along_ge(length_along = 10L,
                                     min = 3L,
                                     nm = "age:sex",
-                                    prior = ELin()))
+                                    prior = Lin()))
 })
 
 test_that("'check_length_along_ge' throws correct error with length less than min", {
   expect_error(check_length_along_ge(length_along = 1L,
                                      min = 2L,
                                      nm = "age:sex",
-                                     prior = ELin()),
-               "`ELin\\(\\)` prior cannot be used for `age:sex` term.")                
+                                     prior = Lin()),
+               "`Lin\\(\\)` prior cannot be used for `age:sex` term.")                
 })
 
 
@@ -292,41 +303,6 @@ test_that("'check_length_effect_ge' throws correct error with length less than m
                                         prior = N()),
                  "`N\\(\\)` prior cannot be used for `age` term.")                
 })
-
-
-## 'check_main_effect_interaction' --------------------------------------------
-
-test_that("'check_main_effect_interaction' returns TRUE with compatible priors", {
-  expect_true(check_main_effect_interaction(x1 = AR1(),
-                                            x2 = N(),
-                                            nm1 = "x1",
-                                            nm2 = "x2"))
-  expect_true(check_main_effect_interaction(x1 = EAR1(),
-                                            x2 = N(),
-                                            nm1 = "x1",
-                                            nm2 = "x2"))
-  expect_true(check_main_effect_interaction(x1 = AR1(),
-                                            x2 = Lin(),
-                                            nm1 = "x1",
-                                            nm2 = "x2"))
-  expect_true(check_main_effect_interaction(x1 = EAR1(),
-                                            x2 = ELin(),
-                                            nm1 = "x1",
-                                            nm2 = "x2"))
-})
-
-test_that("'check_main_effect_interaction' raises correct error with incompatible priors", {
-  expect_error(check_main_effect_interaction(x1 = AR1(),
-                                            x2 = EAR1(),
-                                            nm1 = "x1",
-                                            nm2 = "x2"),
-               "`x1` uses prior `AR1\\(\\)` but `x2` uses prior `EAR1\\(\\)`")
-  expect_error(check_main_effect_interaction(x1 = EAR1(),
-                                            x2 = AR(n = 3),
-                                            nm1 = "x1",
-                                            nm2 = "x2"),
-               "`x1` uses prior `EAR1\\(\\)` but `x2` uses prior `AR\\(n=3\\)`")
-})  
 
 
 ## 'check_mod_est_sim_compatible' ---------------------------------------------

@@ -42,7 +42,7 @@ test_that("'choose_matrix_along_by' works with main effect", {
 })
 
 test_that("'choose_matrix_along_by' works with interaction - default to time", {
-  prior <- ELin()
+  prior <- Lin()
   matrices <- list(age = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -63,7 +63,7 @@ test_that("'choose_matrix_along_by' works with interaction - default to time", {
 })
 
 test_that("'choose_matrix_along_by' works with interaction - default to age", {
-  prior <- ELin()
+  prior <- Lin()
   matrices <- list(age = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -104,9 +104,8 @@ test_that("'choose_matrix_along_by' works with interaction - default to first if
   expect_identical(ans_obtained, ans_expected)
 })
 
-
 test_that("'choose_matrix_along_by' works with interaction - specify along", {
-  prior <- ELin(along = "reg")
+  prior <- Lin(along = "reg")
   matrices <- list(age = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -126,9 +125,8 @@ test_that("'choose_matrix_along_by' works with interaction - specify along", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-
 test_that("'choose_matrix_along_by' works when only one matrix", {
-  prior <- ELin(along = "reg")
+  prior <- Lin(along = "reg")
   matrices <- list(age = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
@@ -142,9 +140,8 @@ test_that("'choose_matrix_along_by' works when only one matrix", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
-  prior <- ELin()
+  prior <- Lin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -164,7 +161,7 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ti
 })
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
-  prior <- ELin()
+  prior <- Lin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -184,7 +181,7 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ti
 })
 
 test_that("'choose_matrix_along_by' throws expected error when can't find and age not specified", {
-  prior <- ELin()
+  prior <- Lin()
   matrices <- list(bla = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -204,7 +201,7 @@ test_that("'choose_matrix_along_by' throws expected error when can't find and ag
 })
 
 test_that("'choose_matrix_along_by' throws expected error when along invalid", {
-  prior <- ELin(along = "wrong")
+  prior <- Lin(along = "wrong")
   matrices <- list(age = make_matrix_along_by(i_along = 1L,
                                               dim = 2:4,
                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
@@ -307,7 +304,6 @@ test_that("'default_prior' works with time interaction", {
                                    length_effect = 5),
                      RW())
 })
-
 
 
 ## 'infer_var_age' ------------------------------------------------------------
@@ -564,7 +560,7 @@ test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, SEX:time ~ ELin())
+  mod <- set_prior(mod, SEX:time ~ Lin())
   ans_obtained <- make_hyperrand(mod)
   ans_expected <- rep(c("SEX:time" = 0), 2)
   expect_identical(ans_obtained, ans_expected)
@@ -576,7 +572,7 @@ test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
 test_that("'make_i_prior' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_i_prior(mod)
-    ans_expected <- c(a = 1L, b = 3L, c = 1L)
+    ans_expected <- c(a = 4L, b = 6L, c = 4L)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -662,14 +658,14 @@ test_that("'make_lengths_hyper' works with valid inputs", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ ELin())
+  mod <- set_prior(mod, age:sex ~ Lin())
   mod <- set_prior(mod, sex ~ NFix())
   ans_obtained <- make_lengths_hyper(mod)
   ans_expected <- c("(Intercept)" = 0L,
                     age = 1L,
                     sex = 0L,
                     region = 1L,
-                    "age:sex" = 3L)
+                    "age:sex" = 1L)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -687,7 +683,7 @@ test_that("'make_lengths_hyperrand' works with valid inputs", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ ELin())
+  mod <- set_prior(mod, age:sex ~ Lin())
   mod <- set_prior(mod, sex ~ NFix())
   ans_obtained <- make_lengths_hyperrand(mod)
   ans_expected <- c("(Intercept)" = 0L,
@@ -1357,7 +1353,7 @@ test_that("'make_priors' works with valid inputs - has intercept", {
                                 lengths_effect = c(1L, 10L, 12L))
     ans_expected <- list("(Intercept)" = NFix(),
                          time = RW(),
-                         "age:sex" = ERW())
+                         "age:sex" = RW())
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1375,7 +1371,7 @@ test_that("'make_random' works when hyper, no hyperrand", {
 })
 
 test_that("'make_random' works when hyper, hyperrand", {
-    mod <- structure(.Data = list(priors = list(N(), RW2(), ELin())))
+    mod <- structure(.Data = list(priors = list(N(), RW2(), Lin())))
     expect_identical(make_random(mod), c("effectfree", "hyperrand"))
 })
 
@@ -1495,7 +1491,7 @@ test_that("'make_terms_hyperrand' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- set_prior(mod, sex:time ~ Lin())
     ans_obtained <- make_terms_hyperrand(mod)
     ans_expected <- factor(rep("sex:time", 2),
                            levels = c("(Intercept)",
@@ -1542,7 +1538,7 @@ test_that("'make_uses_hyperrand' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- set_prior(mod, sex:time ~ Lin())
     ans_obtained <- make_uses_hyperrand(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       age = 0L,

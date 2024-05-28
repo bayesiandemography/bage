@@ -64,6 +64,24 @@ check_bage_mod <- function(x, nm_x) {
 
 
 ## HAS_TESTS
+#' Check that 'center' has Default Value when Model is Fitted
+#'
+#' Throw a message (not an error) if it is
+#'
+#' @param center Supplied for 'center' argument
+#' @param default Default value for 'center' argument
+#'
+#' @returns TRUE invisibly
+#'
+#' @noRd
+check_center_is_default <- function(center, default) {
+  if (!identical(center, default))
+    cli::cli_alert_info("Non-default value for {.arg center} ignored when model has been fitted.")
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check a Logical Flag
 #'
 #' @param x TRUE or FALSE
@@ -338,37 +356,6 @@ check_length_effect_ge <- function(length_effect, min, nm, prior) {
                                    "used with terms that have at least {min} element{?s}."),
                          i = "{.var {nm}} term has {length_effect} element{?s}."))
     invisible(TRUE)
-}
-
-
-## HAS_TESTS
-#' Check that Not Mixing Priors for Main Effects with Priors for Interactions
-#'
-#' @param x1,x2 Objects of class `"bage_prior"`
-#' @param nm1,nm2 Names to be used in error messages
-#'
-#' @returns TRUE, invisibly
-#'
-#' @noRd
-check_main_effect_interaction <- function(x1, x2, nm1, nm2) {
-  is_main_1 <- use_for_main_effect(x1)
-  is_main_2 <- use_for_main_effect(x2)
-  is_int_1 <- use_for_interaction(x1)
-  is_int_2 <- use_for_interaction(x2)
-  str1 <- str_call_prior(x1)
-  str2 <- str_call_prior(x2)
-  msg <- "{.arg {nm1}} uses prior {.var {str1}} but {.arg {nm2}} uses prior {.var {str2}}."
-  if (is_main_1 && is_int_2) {
-    cli::cli_abort(c(msg,
-                     i = "{.var {str1}} is only used for main effects.",
-                     i = "{.var {str2}} is only used for interactions."))
-  }
-  if (is_int_1 && is_main_2) {
-    cli::cli_abort(c(msg,
-                     i = "{.var {str1}} is only used for interactions.",
-                     i = "{.var {str2}} is only used for main effects."))
-  }
-  invisible(TRUE)
 }
 
 

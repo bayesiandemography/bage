@@ -12,6 +12,7 @@ for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale for the prior for the errors.
+Smaller values can lead to smoother series.
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
@@ -77,7 +78,7 @@ where
 
 \examples{
 AR1()
-AR1(min = 0, max = 1, s = 2.4,
+AR1(min = 0, max = 1, s = 2.4)
 AR1(along = "cohort")
 }
 \references{
