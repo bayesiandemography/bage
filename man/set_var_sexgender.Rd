@@ -33,7 +33,7 @@ and terms \code{gender}, \code{region}, and \code{gender:region}.
 
 If the \code{mod} argument to \code{set_var_sexgender} is
 a fitted model, then \code{set_var_sexgender} 'unfits'
-the model, by deleting existing estimates.
+the model deleting existing estimates.
 }
 \examples{
 ## rename 'sex' variable to something unexpected

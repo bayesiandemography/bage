@@ -111,7 +111,7 @@ test_that("'make_comp_components' works - has hyperrand", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-                    set_prior(sex:time ~ ELin())
+                    set_prior(sex:time ~ Lin())
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
     draws <- make_draws_components(mod)
@@ -438,7 +438,7 @@ test_that("'make_level_components' works - has hyperrand", {
                     data = data,
                     exposure = popn)
     mod <- set_disp(mod, mean = 0)
-    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- set_prior(mod, sex:time ~ Lin())
     mod <- fit(mod)
     comp <- make_comp_components(mod)
     ans <- make_level_components(mod)
@@ -476,10 +476,10 @@ test_that("'make_levels_hyperrand' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, sex:time ~ ELin())
+    mod <- set_prior(mod, sex:time ~ Lin())
     mod <- fit(mod)
     ans_obtained <- make_levels_hyperrand(mod)
-    ans_expected <- c("mslope.F", "mslope.M")
+    ans_expected <- c("slope.F", "slope.M")
     expect_identical(ans_obtained, ans_expected)                      
 })
 
@@ -636,7 +636,7 @@ test_that("'reformat_hyperrand' works", {
                   data = data,
                   exposure = popn) |>
                   set_prior(time ~ RW2()) |>
-                  set_prior(sex:time ~ ELin()) |>
+                  set_prior(sex:time ~ Lin()) |>
                   fit(mod)
   mod <- set_n_draw(mod, 5)
   comp <- make_comp_components(mod)

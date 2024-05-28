@@ -215,16 +215,14 @@ set_prior <- function(mod, formula) {
 #' contains variables `age` and `region`,
 #' and terms `age`, `region`, and `age:region`.
 #'
-#' By default, an age main effect has a random walk
-#' ([RW()]) prior, and an interaction involving
-#' age has an exchangeable random walk ([ERW()])
-#' prior. Changing the age variable
+#' By default, **bage** gives a term involving age a
+#' ([RW()]) prior. Changing the age variable
 #' via `set_var_age()` can change priors:
 #' see below for an example.
 #'
 #' If the `mod` argument to `set_var_age` is
 #' a fitted model, then `set_var_age` 'unfits'
-#' the model, by deleting existing estimates.
+#' the model by deleting existing estimates.
 #' 
 #' @inheritParams set_disp
 #' @param name The name of the age variable.
@@ -282,7 +280,7 @@ set_var_age <- function(mod, name) {
 #'
 #' If the `mod` argument to `set_var_sexgender` is
 #' a fitted model, then `set_var_sexgender` 'unfits'
-#' the model, by deleting existing estimates.
+#' the model deleting existing estimates.
 #' 
 #' @inheritParams set_disp
 #' @param name The name of the sex or gender variable.
@@ -340,10 +338,8 @@ set_var_sexgender <- function(mod, name) {
 #' contains variables `time` and `region`,
 #' and terms `time`, `region`, and `time:region`.
 #'
-#' By default, a time main effect has a random walk
-#' ([RW()]) prior and an interaction involving
-#' time has an exchangeable random walk ([ERW()])
-#' prior. Changing the time variable
+#' By default, **bage** gives a term involving time a
+#' ([RW()]) prior. Changing the time variable
 #' via `set_var_time()` can change priors:
 #' see below for an example.
 #'

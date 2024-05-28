@@ -12,11 +12,16 @@ for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale for the prior for the errors.
-Smaller values imply a smoother series. Default is 1.}
+Smaller values can lead to smoother series.
+Default is \code{1}.}
 
 \item{sd}{Standard deviation in the prior for
 the slope of the line. Larger values imply
 steeper slopes. Default is 1.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 An object of class \code{"bage_prior_linar"}.

@@ -31,7 +31,13 @@ generics::augment
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' arguments in the model, but not by the observed outcomes.
 #'
+#' @section The 'center' argument:
+#'
+#' TODO - WRITE THIS
+#'
 #' @param x An object of class `"bage_mod"`.
+#' @param center Whether to center simulation draws.
+#' Used only with unfitted models. See below for details.
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
@@ -77,20 +83,22 @@ generics::augment
 #' ## look at posterior distribution
 #' mod |> augment()
 #' @export
-augment.bage_mod <- function(x, quiet = FALSE, ...) {
+augment.bage_mod <- function(x,
+                             center = FALSE,
+                             quiet = FALSE,
+                             ...) {
+  check_flag(x = center, nm_x = "center")
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(x)
-  seed_augment <- x$seed_augment
-  seed_restore <- make_seed() ## create randomly-generated seed
-  set.seed(seed_augment) ## set pre-determined seed
-  if (is_fitted)
+  if (is_fitted) {
+    check_center_is_default(center = center, default = FALSE)
     ans <- draw_vals_augment_fitted(x)
+  }
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
-    ans <- draw_vals_augment_unfitted(x)
+    ans <- draw_vals_augment_unfitted(x, center = center)
   }
-  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans
 }
 
@@ -123,6 +131,9 @@ generics::components
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' argument in the model, but not by the observed outcomes.
 #'
+#' @inheritSection augment.bage_mod The 'center' argument
+#'
+#' @inheritParams augment.bage_mod
 #' @param object An object of class `"bage_mod"`.
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
@@ -166,22 +177,25 @@ generics::components
 #' ## look at posterior distribution
 #' mod |> components() ## posterior distribution
 #' @export
-components.bage_mod <- function(object, quiet = FALSE, ...) {
+components.bage_mod <- function(object,
+                                center = FALSE,
+                                quiet = FALSE,
+                                ...) {
+  check_flag(x = center, nm_x = "center")
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
-  seed_components <- object$seed_components
-  seed_restore <- make_seed() ## create randomly-generated seed
-  set.seed(seed_components) ## set pre-determined seed
   if (is_fitted) {
+    check_center_is_default(center = center, default = FALSE)
     ans <- draw_vals_components_fitted(object)
   }
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
-    ans <- draw_vals_components_unfitted(mod = object, n_sim = n_draw)
+    ans <- draw_vals_components_unfitted(mod = object,
+                                         n_sim = n_draw,
+                                         center = center)
   }
-  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans <- sort_components(components = ans,
                          mod = object)
   ans
@@ -216,9 +230,13 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
     disp <- matrix(disp, nrow = 1L)
     expected <- rvec::rvec_dbl(expected)
     disp <- rvec::rvec_dbl(disp)
+    seed_augment <- mod$seed_augment
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
     ans$.fitted <- make_par_disp(x = mod,
                                  meanpar = expected,
                                  disp = disp)
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     ans$.expected <- expected
   }
   else
@@ -245,25 +263,31 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
 #' Draw '.fitted' and Possibly '.expected' from Unfitted Model
 #'
 #' @param mod Object of class 'bage_mod'
+#' @param center Whether to center simulation draws
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_augment_unfitted <- function(mod) {
+draw_vals_augment_unfitted <- function(mod, center) {
   UseMethod("draw_vals_augment_unfitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod <- function(mod) {
+draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
   n_draw <- mod$n_draw
-  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_draw)
+  vals_components <- draw_vals_components_unfitted(mod = mod,
+                                                   n_sim = n_draw,
+                                                   center = center)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   nm_outcome <- get_nm_outcome(mod)
   offset <- mod$offset
   vals_linpred <- make_linpred_effect(mod = mod,
                                       components = vals_components)
+  seed_augment <- mod$seed_augment
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_augment) ## set pre-determined seed
   if (has_disp) {
     vals_expected <- inv_transform(vals_linpred)
     is_disp <- vals_components$component == "disp"
@@ -276,6 +300,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
     vals_fitted <- inv_transform(vals_linpred)
   vals_outcome <- draw_vals_outcome(mod = mod,
                                     vals_fitted = vals_fitted)
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   vals_observed <- vals_outcome / offset
   ans <- mod$data
   ans[[nm_outcome]] <- vals_outcome
@@ -288,9 +313,11 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod, center) {
   n_draw <- mod$n_draw
-  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_draw)
+  vals_components <- draw_vals_components_unfitted(mod = mod,
+                                                   n_sim = n_draw,
+                                                   center = center)
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
   vals_linpred <- make_linpred_effect(mod = mod,
@@ -298,9 +325,13 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   vals_fitted <- scale_outcome(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
+  seed_augment <- mod$seed_augment
+  seed_restore <- make_seed() ## create randomly-generated seed
+  set.seed(seed_augment) ## set pre-determined seed
   vals_outcome <- draw_vals_outcome(mod = mod,
                                     vals_fitted = vals_fitted,
                                     vals_disp = vals_disp)
+  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans <- mod$data
   ans[[nm_outcome]] <- vals_outcome
   ans$.fitted <- vals_fitted

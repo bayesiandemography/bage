@@ -58,7 +58,7 @@ to function \code{svd_hmd()}, eg
 
 \seealso{
 \itemize{
-\item \code{\link[=SVD]{SVD()}}, \code{\link[=SVDS]{SVDS()}}, \code{\link[=ESVD]{ESVD()}}, \code{\link[=ESVDS]{ESVDS()}}
+\item \code{\link[=SVD]{SVD()}}, \code{\link[=SVDS]{SVDS()}}
 to use an object of class
 \code{\link[=ssvd]{"bage_ssvd"}} in a prior.
 }

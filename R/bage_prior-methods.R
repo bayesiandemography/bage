@@ -77,10 +77,9 @@ draw_vals_effect.bage_prior_ar <- function(prior,
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   s <- rep(seq_len(n_sim), each = n_by)
-  coef <- coef[, s]
+  coef <- coef[, s, drop = FALSE]
   sd <- sd[s]
   ans <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
-  ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -170,8 +169,6 @@ draw_vals_effect.bage_prior_norm <- function(prior,
   n <- n_effect * n_sim
   sd <- rep(sd, each = n_effect)
   ans <- stats::rnorm(n = n, sd = sd)
-  ans <- matrix(ans, nrow = n_along, ncol = n_by * n_sim)
-  ans <- ans - rep(colMeans(ans), each = nrow(ans))
   ans <- matrix(ans, nrow = n_effect, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -199,7 +196,6 @@ draw_vals_effect.bage_prior_normfixed <- function(prior,
                 nrow = n_effect,
                 ncol = n_sim,
                 dimnames = list(levels_effect, seq_len(n_sim)))
-  ans <- ans - rep(colMeans(ans), each = nrow(ans))
   ans
 }
 
@@ -273,7 +269,6 @@ draw_vals_effect.bage_prior_spline <- function(prior,
                           labels = labels)
   ans <- m %*% effect
   rownames(ans) <- levels_effect
-  ans <- ans - rep(colMeans(ans), each = nrow(ans))
   ans
 }
 
@@ -313,10 +308,10 @@ draw_vals_effect.bage_prior_svd <- function(prior,
   z <- stats::rnorm(n = n_comp_obtained * n_by * n_sim)
   z <- matrix(z, nrow = n_comp_obtained, ncol = n_by * n_sim)
   ans <- m %*% z + b
-  ans <- Matrix::as.matrix(ans)
   ans <- matrix(ans, ncol = n_sim)
   m <- make_index_matrix(matrix_agesex)
   ans <- m %*% ans
+  ans <- Matrix::as.matrix(ans)
   rownames(ans) <- levels_effect
   colnames(ans) <- seq_len(n_sim)
   names(dimnames(ans)) <- NULL
@@ -1093,6 +1088,28 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
   invisible(TRUE)
 }
       
+
+## 'is_svd' -------------------------------------------------------------------
+
+#' Test Whether Prior is SVD Prior
+#'
+#' @param prior An object of class 'bage_prior'.
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_svd <- function(prior) {
+    UseMethod("is_svd")
+}
+
+## HAS_TESTS
+#' @export
+is_svd.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+is_svd.bage_prior_svd <- function(prior) TRUE
+
 
 ## 'levels_hyper' -------------------------------------------------------------
 
@@ -1909,7 +1926,6 @@ transform_hyperrand.bage_prior_linar <- function(prior, matrix_along_by) {
 }
 
 
-
 ## 'uses_along' ---------------------------------------------------------------
 
 #' Whether Prior uses an 'along' Dimension
@@ -1923,29 +1939,47 @@ uses_along <- function(prior) {
     UseMethod("uses_along")
 }
 
-## HAS_TESTS
-#' @export
-uses_along.bage_prior <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_ear <- function(prior) TRUE
+uses_along.bage_prior_ar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_elin <- function(prior) TRUE
+uses_along.bage_prior_known <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_erw <- function(prior) TRUE
+uses_along.bage_prior_lin <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_erw2 <- function(prior) TRUE
+uses_along.bage_prior_linar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_eseas <- function(prior) TRUE
+uses_along.bage_prior_norm <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_normfixed <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw2 <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_spline <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_svd <- function(prior) FALSE
+
 
 
 ## 'uses_hyperrand' -----------------------------------------------------------

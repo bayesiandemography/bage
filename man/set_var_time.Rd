@@ -31,10 +31,8 @@ from a 'term'. For instance,
 contains variables \code{time} and \code{region},
 and terms \code{time}, \code{region}, and \code{time:region}.
 
-By default, a time main effect has a random walk
-(\code{\link[=RW]{RW()}}) prior and an interaction involving
-time has an exchangeable random walk (\code{\link[=ERW]{ERW()}})
-prior. Changing the time variable
+By default, \strong{bage} gives a term involving time a
+(\code{\link[=RW]{RW()}}) prior. Changing the time variable
 via \code{set_var_time()} can change priors:
 see below for an example.
 

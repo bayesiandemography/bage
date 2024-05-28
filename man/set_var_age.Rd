@@ -31,16 +31,14 @@ from a 'term'. For instance,
 contains variables \code{age} and \code{region},
 and terms \code{age}, \code{region}, and \code{age:region}.
 
-By default, an age main effect has a random walk
-(\code{\link[=RW]{RW()}}) prior, and an interaction involving
-age has an exchangeable random walk (\code{\link[=ERW]{ERW()}})
-prior. Changing the age variable
+By default, \strong{bage} gives a term involving age a
+(\code{\link[=RW]{RW()}}) prior. Changing the age variable
 via \code{set_var_age()} can change priors:
 see below for an example.
 
 If the \code{mod} argument to \code{set_var_age} is
 a fitted model, then \code{set_var_age} 'unfits'
-the model, by deleting existing estimates.
+the model by deleting existing estimates.
 }
 \examples{
 ## rename 'age' variable to something unusual

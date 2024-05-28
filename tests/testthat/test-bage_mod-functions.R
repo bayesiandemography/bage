@@ -96,7 +96,7 @@ test_that("'set_prior' throws correct error with SVD prior but var_age not inden
                     data = data,
                     exposure = popn)
     expect_error(set_prior(mod, v:sex ~ SVD(HMD)),
-                 "Problem with `SVD\\(HMD\\)` prior for `v:sex` term.")
+                 "Problem with `SVD\\(\\)` prior for `v:sex` term.")
 })
 
 test_that("'set_prior' unfits a fitted model", {

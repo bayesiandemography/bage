@@ -4,10 +4,13 @@
 \alias{components.bage_mod}
 \title{Extract Values for Hyper-Parameters}
 \usage{
-\method{components}{bage_mod}(object, quiet = FALSE, ...)
+\method{components}{bage_mod}(object, center = FALSE, quiet = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"bage_mod"}.}
+
+\item{center}{Whether to center simulation draws.
+Used only with unfitted models. See below for details.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -47,6 +50,12 @@ are draws from the joint prior distribution.
 In other words, the modelled values are informed by
 model priors, and by any \code{exposure}, \code{size}, or \code{weights}
 argument in the model, but not by the observed outcomes.
+}
+
+\section{The 'center' argument}{
+
+
+TODO - WRITE THIS
 }
 
 \examples{

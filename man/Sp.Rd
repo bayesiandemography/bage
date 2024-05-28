@@ -10,6 +10,7 @@ Sp(n = NULL, s = 1, along = NULL)
 \item{n}{Number of spline basis functions to use.}
 
 \item{s}{Scale for the prior for the errors.
+Smaller values can lead to smoother series.
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used

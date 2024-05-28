@@ -135,7 +135,7 @@ test_that("'draw_vals_components_unfitted' works", {
                   data = data,
                   exposure = popn)
   n_sim <- 2
-  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim)
+  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, center = FALSE)
   ans_est <- components(fit(mod))
   comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
                 all.y = TRUE)
@@ -170,7 +170,6 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, `(Intercept)` ~ Known(5)) ## over-ridden
   mod <- set_prior(mod, age:sex ~ SVDS(HMD))
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
@@ -183,10 +182,6 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
   expect_true(all(sapply(ans, ncol) == n_sim))
   expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
-  expect_true(all(ans[[1L]] == 0))
-  for (i in 2:4)
-    expect_equal(colMeans(ans[[i]]), rep(0, 2), ignore_attr = "names")
-  expect_true(all(colMeans(ans[[5]]) != 0))
 })
 
 
@@ -214,9 +209,7 @@ test_that("'draw_vals_lin' works - along dimension is first", {
     matrix(rep(slope, each = 3), nrow = 12)
   sd <- matrix(rep(sd, each = 12), ncol = n_sim)
   set.seed(0)
-  ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
-                         ncol = 4 * n_sim)
-  ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 3)
+  ans_expected <- rnorm(n = 12 * n_sim, mean = mean, sd = sd)
   ans_expected <- matrix(ans_expected, ncol = n_sim)
   dimnames(ans_expected) <- list(1:12, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
@@ -246,9 +239,6 @@ test_that("'draw_vals_lin' works - along dimension is second", {
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
                          ncol = n_sim)
-  ans_expected[1:4,] <- ans_expected[1:4,] - rep(colMeans(ans_expected[1:4,]), each = 4)
-  ans_expected[5:8,] <- ans_expected[5:8,] - rep(colMeans(ans_expected[5:8,]), each = 4)
-  ans_expected[9:12,] <- ans_expected[9:12,] - rep(colMeans(ans_expected[9:12,]), each = 4)
   ans_expected <- ans_expected[c(1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12),]
   dimnames(ans_expected) <- list(1:12, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
@@ -283,7 +273,6 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   set.seed(0)
   error <- draw_vals_ar(n = 3, coef = coef, sd = sd)
   ans_expected <- mean + error
-  ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 3)
   ans_expected <- matrix(ans_expected, ncol = n_sim)
   dimnames(ans_expected) <- list(1:12, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
@@ -319,10 +308,9 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, age:time ~ Lin())
-    vals_hyper <- draw_vals_hyper_mod(mod, n_sim = 10)
-    ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+    ans <- draw_vals_hyperrand_mod(mod, n_sim = 10)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
-    expect_identical(nrow(ans[["age:time"]]$mslope), 10L)
+    expect_identical(nrow(ans[["age:time"]]$slope), 10L)
     expect_identical(sapply(ans, length),
                      c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 1L))
 })
@@ -341,7 +329,6 @@ test_that("'draw_vals_rw' works - n_by = 1", {
     ans <- draw_vals_rw(sd = sd,
                         matrix_along_by = matrix_along_by,
                         labels = labels)
-    expect_true(all(abs(colMeans(ans) < 0.0000001)))
     expect_equal(unname(apply(ans, 2, function(x) sd(diff(x)))),
                  sd,
                  tolerance = 0.05)
@@ -366,7 +353,6 @@ test_that("'draw_vals_rw' works - along dimension is first", {
   expect_identical(dim(ans), c(3000L, 10L))
   expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
   expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
                rep(sd, each = 3),
                tolerance = 0.05)
@@ -389,7 +375,6 @@ test_that("'draw_vals_rw' works - along dimension is second", {
   ans <- array(ans, dim = c(3, 1000, 10))
   ans <- aperm(ans, perm = c(2, 1, 3))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
   expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
                rep(sd, each = 3),
                tolerance = 0.05)
@@ -433,7 +418,6 @@ test_that("'draw_vals_rw2' works - along dimension is first", {
   expect_identical(dim(ans), c(3000L, 10L))
   expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
   expect_equal(unname(apply(ans[3:1000,], 2, function(x) sd(diff(x, diff = 2)))),
                rep(sd, each = 3),
                tolerance = 0.05)
@@ -954,6 +938,94 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - parallel pr
 })
 
 
+## 'standardize_draws_effect' -------------------------------------------------
+
+test_that("'standardize_draws_effect' works with valid input - center = FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + age:sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            n_sim = n_sim)
+  vals_effect <- draw_vals_effect_mod(mod,
+                                      vals_hyper = vals_hyper,
+                                      vals_hyperrand = vals_hyperrand,
+                                      n_sim = n_sim)
+  ans <- standardize_draws_effect(mod = mod,
+                                  vals_effect = vals_effect,
+                                  center = FALSE)
+  m <- Matrix::as.matrix(make_combined_matrix_effect_outcome(mod))
+  x0 <- do.call(rbind, vals_effect)
+  x1 <- do.call(rbind, ans)
+  expect_equal(m %*% x0, m %*% x1, ignore_attr = "dimnames")
+})
+
+test_that("'standardize_draws_effect' works with valid input - center = TRUE, no SVD priors", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + age:sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            n_sim = n_sim)
+  vals_effect <- draw_vals_effect_mod(mod,
+                                      vals_hyper = vals_hyper,
+                                      vals_hyperrand = vals_hyperrand,
+                                      n_sim = n_sim)
+  ans <- standardize_draws_effect(mod = mod,
+                                  vals_effect = vals_effect,
+                                  center = TRUE)
+  m <- Matrix::as.matrix(make_combined_matrix_effect_outcome(mod))
+  x0 <- do.call(rbind, vals_effect)
+  x1 <- do.call(rbind, ans)
+  expect_equal(scale(m %*% x0, center = TRUE, scale = FALSE), m %*% x1,
+               ignore_attr = c("dimnames", "scaled:center"))
+})
+
+test_that("'standardize_draws_effect' works with valid input - center = TRUE, has SVD priors", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + age:sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  n_sim <- 2
+  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            n_sim = n_sim)
+  vals_effect <- draw_vals_effect_mod(mod,
+                                      vals_hyper = vals_hyper,
+                                      vals_hyperrand = vals_hyperrand,
+                                      n_sim = n_sim)
+  ans <- standardize_draws_effect(mod = mod,
+                                  vals_effect = vals_effect,
+                                  center = TRUE)
+  m <- Matrix::as.matrix(make_combined_matrix_effect_outcome(mod))
+  x0 <- do.call(rbind, vals_effect)
+  mean_age <- apply(vals_effect[[2]], 2, mean)
+  x1 <- do.call(rbind, ans)
+  expect_equal(scale(m %*% x0, center = TRUE, scale = FALSE) +
+                 rep(mean_age, each = nrow(m)),
+               m %*% x1,
+               ignore_attr = c("dimnames", "scaled:center"))
+})
+
+
 ## 'vals_disp_to_dataframe' ---------------------------------------------------
 
 test_that("'draw_vals_disp' works with 'bage_mod_pois'", {
@@ -989,7 +1061,6 @@ test_that("'vals_effect_to_dataframe' works", {
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
-                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod,
                                       vals_hyper = vals_hyper,

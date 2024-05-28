@@ -27,7 +27,6 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 1", {
                           matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2", {
@@ -47,8 +46,6 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2", {
                           matrix_agesex = NULL,
                           n_sim = n_sim)
   expect_identical(dimnames(ans), list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
-  expect_equal(colMeans(ans[1:13,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_known", {
@@ -88,7 +85,6 @@ test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 4", {
@@ -112,8 +108,6 @@ test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 4", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
-  expect_equal(colMeans(ans[1:3,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_linar", {
@@ -136,7 +130,6 @@ test_that("'draw_vals_effect' works with bage_prior_linar", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_norm", {
@@ -158,7 +151,6 @@ test_that("'draw_vals_effect' works with bage_prior_norm", {
   expect_identical(dimnames(ans),
                    list(as.character(1:1000), as.character(1:10)))
   expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_normfixed", {
@@ -178,7 +170,6 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
   expect_identical(dimnames(ans),
                    list(as.character(1:1000), as.character(1:10)))
   expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 1", {
@@ -199,7 +190,6 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 1", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4", {
@@ -220,8 +210,6 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
-  expect_equal(colMeans(ans[1:3,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 1", {
@@ -242,7 +230,6 @@ test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 1", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 4", {
@@ -263,8 +250,6 @@ test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 4", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
-  expect_equal(colMeans(ans[1:3,]), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 1", {
@@ -285,7 +270,6 @@ test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 1", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters, as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 2", {
@@ -306,7 +290,6 @@ test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 2", {
                           n_sim = n_sim)
   expect_identical(dimnames(ans),
                    list(letters[1:12], as.character(1:10)))
-  expect_equal(colMeans(ans), rep(0, times = n_sim), ignore_attr = "names")
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
@@ -460,7 +443,6 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - 
                           n_sim = n_sim)
   expect_identical(dim(ans), c(162L, 10L))
 })
-
 
 
 ## draw_vals_hyper ------------------------------------------------------------
@@ -1444,6 +1426,14 @@ test_that("'is_prior_ok_for_term' method for bage_prior_svd throws correct error
 })
 
 
+## is_svd -------------------------------------------------------------------
+
+test_that("'is_svd' works with valid inputs", {
+    expect_false(is_svd(N()))
+    expect_true(is_svd(SVDS(HMD)))
+})
+
+
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
@@ -2104,12 +2094,16 @@ test_that("'transform_hyperrand' works with 'bage_prior_linar'", {
 ## uses_along -----------------------------------------------------------------
 
 test_that("'uses_along' works with valid inputs", {
-    expect_false(uses_along(N()))
-    expect_true(uses_along(EAR()))
-    expect_true(uses_along(ELin()))
-    expect_true(uses_along(ERW()))
-    expect_true(uses_along(ERW2()))
-    expect_true(uses_along(ESeas(n = 2)))
+  expect_true(uses_along(AR()))
+  expect_false(uses_along(Known(c(a = 1))))
+  expect_true(uses_along(Lin()))
+  expect_true(uses_along(LinAR()))
+  expect_false(uses_along(N()))
+  expect_false(uses_along(NFix()))
+  expect_true(uses_along(RW()))
+  expect_true(uses_along(RW2()))
+  expect_true(uses_along(Sp()))
+  expect_false(uses_along(SVD(HMD)))
 })
 
 
@@ -2138,7 +2132,6 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
     expect_false(uses_matrix_effectfree_effect(N()))
     expect_true(uses_matrix_effectfree_effect(Sp()))
     expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
-    expect_true(uses_matrix_effectfree_effect(ESVD(HMD)))
 })
 
 
@@ -2148,7 +2141,6 @@ test_that("'uses_offset_effectfree_effect' works with valid inputs", {
     expect_false(uses_offset_effectfree_effect(N()))
     expect_false(uses_offset_effectfree_effect(Sp()))
     expect_true(uses_offset_effectfree_effect(SVD(HMD)))
-    expect_true(uses_offset_effectfree_effect(ESVD(HMD)))
 })
 
 
@@ -2181,6 +2173,38 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_fixed", {
                                  component = character(),
                                  level = character(),
                                  .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## vals_hyperrand_to_dataframe ----------------------------------------------------
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
+  prior <- AR(n = 3)
+  vals_hyperrand <- list()
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec(matrix(0, nrow = 1, ncol = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyper_to_dataframe' works with bage_prior_lin", {
+  set.seed(0)
+  prior <- Lin()
+  vals_hyperrand <- list(slope = matrix(rnorm(30), nr = 3))
+  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
+                                              nm_prior = "time",
+                                              vals_hyperrand = vals_hyperrand,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
+                                 level = c("slope", "slope", "slope"),
+                                 .fitted = rvec::rvec(vals_hyperrand$slope))
   expect_equal(ans_obtained, ans_expected)
 })
 

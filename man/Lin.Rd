@@ -8,6 +8,7 @@ Lin(s = 1, sd = 1, along = NULL)
 }
 \arguments{
 \item{s}{Scale for the prior for the errors.
+Smaller values can lead to smoother series.
 Default is \code{1}.}
 
 \item{sd}{Standard deviation in prior for slope

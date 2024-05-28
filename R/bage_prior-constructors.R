@@ -55,6 +55,7 @@
 #' @param n The order of the model, i.e. the number of lagged
 #' terms that are included. Default is `2`.
 #' @param s Scale for the prior for the errors.
+#' Smaller values can lead to smoother series.
 #' Default is `1`.
 #' @param along Name of the variable to be used
 #' as the "along" variable. Only used with
@@ -151,14 +152,10 @@ AR <- function(n = 2, s = 1, along = NULL) {
 #' 
 #' \deqn{\phi' \sim \text{Beta}(2, 2).}
 #' 
+#' @inheritParams AR
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient.
 #' Defaults are `0.8` and `0.98`.
-#' @param s Scale for the prior for the errors.
-#' Default is `1`.
-#' @param along Name of the variable to be used
-#' as the "along" variable. Only used with
-#' interactions.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
@@ -177,7 +174,7 @@ AR <- function(n = 2, s = 1, along = NULL) {
 #'
 #' @examples
 #' AR1()
-#' AR1(min = 0, max = 1, s = 2.4,
+#' AR1(min = 0, max = 1, s = 2.4)
 #' AR1(along = "cohort")
 #' @export
 AR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
@@ -359,11 +356,10 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' Slope \eqn{\eta} is drawn from a normal distribution,
 #' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
 #' 
+#' @inheritParams AR
 #' @param n The order of the model for the
 #' errors, i.e. the number of lagged
 #' terms that are included. Default is `2`.
-#' @param s Scale for the prior for the errors.
-#' Smaller values imply a smoother series. Default is 1.
 #' @param sd Standard deviation in the prior for
 #' the slope of the line. Larger values imply
 #' steeper slopes. Default is 1.
@@ -700,6 +696,7 @@ RW <- function(s = 1, along = NULL) {
 #' where `s` is provided by the user.
 #'
 #' @inheritParams AR
+#'
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
 #' @seealso
@@ -762,7 +759,7 @@ RW2 <- function(s = 1, along = NULL) {
 #' The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
 #' to follow a [random walk with drift][RW2()].
 #'
-#' @inheritParams RW2
+#' @inheritParams AR
 #' @param n Number of spline basis functions to use.
 #'
 #' @returns An object of class `"bage_prior_spline"`.
