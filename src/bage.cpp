@@ -211,6 +211,122 @@ Type logpost_rw2(vector<Type> effectfree,
   return ans;
 }
 
+Type logpost_seasfix(vector<Type> seas,
+		     int n_by) {
+  int n = seas.size();
+  int n_seas = n / n_by;
+  Type ans = 0;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_seas = 0; i_seas < n_seas; i_seas++) {
+      int i = i_by * n_by + i_seas;
+      ans += dnorm(seas[i], Type(0), Type(1));
+    }
+  }
+  return ans;
+}
+
+Type logpost_seasfix(vector<Type> seas,
+		     int n_by) {
+  int n = seas.size();
+  int n_seas = n / n_by;
+  Type ans = 0;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_seas = 0; i_seas < n_seas; i_seas++) {
+      int i = i_by * n_by + i_seas;
+      ans += dnorm(seas[i], Type(0), Type(1));
+    }
+  }
+  return ans;
+}
+
+
+Type logpost_seasvary(vector<Type> seas,
+		      matrix<int> matrix_along_by,
+		      int n_seas,
+		      Type sd_seas) {
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_seas; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      ans += dnorm(seas[i], Type(0), Type(1), true);
+    }
+    for (int i_along = n_seas; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - n_seas, i_by);
+      ans += dnorm(seas[i_curr], seas[i_prev], sd_seas, true);
+    }
+  }
+  return ans;
+}
+      
+template <class Type>
+Type logpost_rwseasfix(vector<Type> effectfree,
+		       vector<Type> hyper,
+		       vector<Type> hyperrand,
+		       vector<Type> consts,
+		       matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type scale_seas = consts[1];
+  Type log_sd = hyper[0];
+  vector<Type> seas = hyperrand;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  int n_seas = seas.size();
+  Type sd = exp(log_sd);
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  ans += logpost_seasfix(seas, n_by);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(effectfree[i], Type(0) + seas[i_by], Type(1), true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      int i_seas_curr = i_by * n_by + (i_along %% n_seas);
+      int i_seas_prev = i_by * n_by + ((i_along - 1) %% n_seas);
+      Type mean = effectfree[i_prev] + seas[i_seas_curr] - seas[i_seas_prev];
+      ans += dnorm(effectfree[i_curr], mean, sd, true);
+    }
+  }
+  return ans;
+}
+
+
+template <class Type>
+Type logpost_rwseasvary(vector<Type> effectfree,
+			vector<Type> hyper,
+			vector<Type> hyperrand,
+			vector<Type> consts,
+			matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type scale_seas = consts[1];
+  Type log_sd = hyper[0];
+  Type log_sd_seas = hyper[1];
+  vector<Type> seas = hyperrand;
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  int n_seas = seas.size();
+  Type sd = exp(log_sd);
+  Type sd_seas = exp(log_sd);
+  Type ans = 0;
+  ans += logpost_seasvary(seas, matrix_along_by, n_seas, sd_seas);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(effectfree[i], Type(0) + seas[0], Type(1), true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      Type mean = effectfree[i_prev] + seas[i_curr] - seas[i_prev];
+      ans += dnorm(effectfree[i_curr], mean, sd, true);
+    }
+  }
+  return ans;
+}
+
+
+
 template <class Type>
 Type logpost_spline(vector<Type> effectfree,
    		    vector<Type> hyper,
@@ -300,6 +416,9 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
     break;
   case 3:
     ans = logpost_linar(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    break;
+  case 10:
+    ans = logpost_rwseas(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior); // # nocov
