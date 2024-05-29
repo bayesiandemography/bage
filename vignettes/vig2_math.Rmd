@@ -178,7 +178,7 @@ The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (S
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, \tau_m^2) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, \tau_m^2) 
 \end{equation}
 
 
@@ -248,49 +248,6 @@ NFix(sd = 1)
 ### Model
 
 \begin{align}
-  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
-  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-\end{align}
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\beta_1^{(m)} \mid 0, 1)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} \mid \beta_{j-1}^{(m)}, \tau_m^2 \right) 
-\end{equation}
-
-
-### Simulation
-
-\begin{align}
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
-  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
-\end{align}
-
-
-### Forecasting
-
-\begin{equation}
-  \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-1}^{(m)}, \tau_m^2)
-\end{equation}
-
-
-### Code
-
-```
-RW(s = 1)
-```
-
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-
-
-
-## Exchangeable first-order random walk {#sec:pr-erw}
-
-### Model
-
-\begin{align}
   \beta_{u1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
   \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
@@ -299,7 +256,7 @@ RW(s = 1)
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u1}^{(m)} \mid 0, 1)  \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u1}^{(m)} \mid 0, 1)  \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -322,10 +279,11 @@ RW(s = 1)
 ### Code
 
 ```
-ERW(s = 1)
+RW(s = 1, along = NULL)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `along` used to identify "along" and "by" dimensions
 
 
 ## Second-order random walk {#sec:pr-rw2}
@@ -333,16 +291,15 @@ ERW(s = 1)
 ### Model
 
 \begin{align}
-  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
-  \beta_2^{(m)} & \sim \text{N}(\beta_1^{(m)}, A_{\eta}^{(m)2}) \\
-  \beta_{j}^{(m)} & \sim \text{N}(2 \beta_{j-1}^{(m)} - \beta_{j-2}^{(m)}, \tau_m^2), \quad j = 3, \cdots, J_m
+  \beta_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots, U_m, \quad v = 1,2 \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m
 \end{align}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\beta_1^{(m)} \mid 0, 1) \text{N}(\beta_2^{(m)}  \mid \beta_1^{(m)}, A_{\eta}^{(m)2}) \prod_{j=3}^{J_m} \text{N}\left(\beta_j^{(m)} - 2 \beta_{j-1}^{(m)} + \beta_{j-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^2 \text{N}(\beta_{u,v}^{(m)} \mid 0, 1) \prod_{u=1}^{U_m}\prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} - 2 \beta_{u,v-1}^{(m)} + \beta_{u,v-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -350,37 +307,36 @@ ERW(s = 1)
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_1^{(m)} & \sim \text{N}(0, 1) \\
-  \beta_2^{(m)} & \sim \text{N}(\beta_1^{(m)}, A_{\eta}^{(m)2}) \\
-  \beta_j^{(m)} & \sim \text{N}(\beta_{j-1}^{(m)}, \tau_m^2), \quad j = 2, \cdots, J_m
+  \beta_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1,2 \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3,\cdots,V_m
 \end{align}
 
 ### Forecasting
 
 \begin{equation}
-  \beta_{J_m+h}^{(m)} \sim \text{N}(2 \beta_{J_m+h-1}^{(m)} - \beta_{J_m+h-2}^{(m)}, \tau_m^2)
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(2 \beta_{u,V_m+h-1}^{(m)} - \beta_{u,V_m+h-2}^{(m)}, \tau_m^2)
 \end{equation}
 
 
 ### Code
 
 ```
-RW2(s = 1, sd = 1)
+RW2(s = 1, sd = 1, along = NULL)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
+- `along` used to identify "along" and "by" dimensions
 
 
 ## Autoregressive {#sec:pr-ar}
 
-
 ### Model
 
 \begin{equation}
-  \beta_j^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{j-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{j-{K_m}}^{(m)},  \omega_m^2\right), \quad j = K_m + 1, \cdots, J_m.
+  \beta_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
 \end{equation}
-Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_j^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
+Internally, TMB derives values for $\beta_{u,v}^{(m)}, v = 1, \cdots, K_m$, and for $\omega_m$, that imply a stationary distribution, and that give every term $\beta_{u,v}^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
 \begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}
@@ -397,45 +353,48 @@ We assign $r^{(m)}$ the prior
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r^{(m)} \mid 2, 2 \right) p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
 \end{equation}
-where $p\left( \beta_1^{(m)}, \cdots, \beta_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
+where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
 ### Forecasting
 
 \begin{equation}
-  \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{J_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{J_m+h-K_m}^{(m)}, \tau_m^2\right)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
 \end{equation}
 
 
 ### Code
 
 ```
-AR(n = 2, s = 1)
+AR(n = 2, s = 1, along = NULL)
 ```
 
 - `n` is $K_m$
 - `s` is $A_{\tau}^{(m)}$
+- `along` is used to indentify the "along" and "by" dimensions
 
 
 ## AR1 {#sec:pr-ar1}
 
+Special case or AR, but with extra options for autocorrelation coefficient.
+
 ### Model
 
 \begin{align}
-  \beta_1^{(m)} & \sim \text{N}(0, \tau_m^2) \\
-  \beta_j^{(m)} & \sim \text{N}(\phi_m \beta_{j-1}^{(m)}, (1 - \phi^2) \tau_m^2), \quad j = 2, \cdots, J_m \\
+  \beta_{u,1}^{(m)} & \sim \text{N}(0, \tau_m^2), \quad u = 1, \cdots, U_m \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 2, \cdots, V_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
   \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right).
-\end{align}
-This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). We require that $-1 < a_{0m} < a_{1m} < 1$.
+p\end{align}
+This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). It implies that the marginal variance of all $\beta_{u,v}^{(m)}$ is $\tau_m^2$. We require that $-1 < a_{0m} < a_{1m} < 1$.
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} | 2, 2) \text{N}\left(\beta_1^{(m)} \mid 0, \tau_m^2 \right)  \prod_{j=2}^{J_m} \text{N}\left(\beta_j^{(m)} \mid \phi_m \beta_{j-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid 2, 2) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{u=1}^{U_m} \prod_{j=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
 \end{equation}
 
 
@@ -450,116 +409,24 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Code
 
 ```
-AR1(min = 0.8, max = 0.98, s = 1)
+AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 ```
 
 - `min` is $a_{0m}$
 - `max` is $a_{1m}$
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `along` is used to identify "along" and "by" dimensions
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
-
-## Exchangeable Autoregressive {#sec:pr-ear}
-
-
-### Model
-
-\begin{equation}
-  \beta_{uv}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m; v = V_m + 1, \cdots, V_m.
-\end{equation}
-Internally, TMB derives a value for $\omega_m$ that gives every term $\beta_{uv}^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
-\begin{equation}
-  \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
-\end{equation}
-Each of the individual $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$, and the $\phi_k^{(m)}$ are jointly restricted to values that yield stationary models. Let
-\begin{equation}
-  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
-\end{equation}
-We assign $r^{(m)}$ the prior
-\begin{equation}
-  r^{(m)} \sim \text{Beta}(2, 2).
-\end{equation}
-
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
-\end{equation}
-where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
-
-### Forecasting
-
-\begin{equation}
-  \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
-\end{equation}
-
-
-### Code
-
-```
-EAR(n = 2, s = 1, along = NULL)
-```
-
-- `n` is $K_m$
-- `s` is $A_{\tau}^{(m)}$
-- `along` is the name of the "along" dimension. If no value given, the algorithm is:
-    - if interaction includes a time dimension, use that;
-    - otherwise, if the interaction includes an age dimension, use that;
-    - otherwise, throw an error.
-
-
-## Exchangeable AR1 {#sec:pr-ear1}
-
-TODO - complete
 
 ## Linear {#sec:pr-lin}
 
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} & \sim \text{N}(q_j^{(m)} \eta^{(m)}, \tau_m^2) \\
-  \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-\end{align}
-where
-\begin{equation}
-   q_j^{(m)} = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j
-\end{equation}
-
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2})   \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) \prod_{j=1}^{J_m} \text{N}\left(\beta_j^{(m)} \mid q_j^{(m)} \eta^{(m)}, \tau_m^2 \right) 
-\end{equation}
-
-
-### Forecasting
-
-\begin{equation}
-  \beta_{J_m + h}^{(m)} \sim \text{N}(q_{J_m + h} \eta^{(m)}, \tau_m^2)
-\end{equation}
-
-
-### Code
-
-```
-Lin(s = 1, sd = 1)
-```
-
-- `s` is $A_{\tau}^{(m)}$
-- `sd` is $A_{\eta}^{(m)}$
-
-
-## Exchangeable Linear {#sec:pr-elin}
-
-### Model
-
-\begin{align}
-  \beta_{uv}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_u^{(m)}, \tau_m^2) \\
-  \eta_u^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right) \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m \ \\
+  \eta_u^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 where
@@ -567,34 +434,30 @@ where
    q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v
 \end{equation}
 
+
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) 
-  \quad \times \prod_{u=1}^{U_m} \text{N}\left(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2} \right) 
-  \quad \times \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
 ### Forecasting
 
 \begin{equation}
-  \beta_{u, V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
 \end{equation}
 
 
 ### Code
 
 ```
-ELin(s = 1, sd = 1, along = NULL)
+Lin(s = 1, sd = 1, along = NULL)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
-- `along` is the name of the "along" dimension. If no value given, the algorithm is:
-    - if interaction includes a time dimension, use that;
-    - otherwise, if the interaction includes an age dimension, use that;
-    - otherwise, throw an error.
+- `along` is used to indentify "along" and "by" dimensions
 
 
 
@@ -603,17 +466,17 @@ ELin(s = 1, sd = 1, along = NULL)
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} & = q_j^{(m)} \eta^{(m)} + \epsilon_j^{(m)} \\
-  \epsilon_j^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{j-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{j-{K_m}}^{(m)},  \omega_m^2\right), \quad j = K_m + 1, \cdots, J_m. \\
-  \eta^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right)
+  \beta_{u,v}^{(m)} & = q_v^{(m)} \eta_u^{(m)} + \epsilon_{u,v}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
+  \epsilon_{u,v}^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m. \\
+  \eta_u^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m
 \end{align}
 where
 \begin{equation}
-   q_j^{(m)} = -\frac{J_m + 1}{J_m - 1} + \frac{2}{J_m - 1} j
+   q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v.
 \end{equation}
 
 
-Internally, TMB derives values for $\omega_m$ and $\epsilon_1^{(m)}, \cdots, \epsilon_{K_m -1}^{(m)}$ that give every error term $\epsilon_j^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
+Internally, TMB derives values for $\epsilon_{u,v}^{(m)}, v = 1, \cdots, K_m$, and for $\omega_m$, that provide the $\epsilon_{u,v}^{(m)}$ with a stationary distribution in which each term has the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
 \begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}
@@ -630,26 +493,27 @@ We assign $r^{(m)}$ the prior
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_m | 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 2, 2 \right) \text{N}(\eta^{(m)} | 0, A_{\eta}^{(m)2}) p\left( \epsilon_1^{(m)}, \cdots, \epsilon_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
 \end{equation}
-where $p\left( \epsilon_1^{(m)}, \cdots, \epsilon_{J_m}^{(m)} | \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
+where $p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
 ### Forecasting
 
 \begin{align}
-  \beta_{J_m + h}^{(m)} & = q_{J_m + h} \eta^{(m)} + \epsilon_{J_m+h}^{(m)} \\
-  \epsilon_{J_m+h}^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{J_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{J_m+h-K_m}^{(m)}, \tau_m^2\right)
+  \beta_{u, V_m + h}^{(m)} & = q_{V_m + h} \eta_u^{(m)} + \epsilon_{u,V_m+h}^{(m)} \\
+  \epsilon_{u,V_m+h}^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
 \end{align}
 
 
 ### Code
 
 ```
-LinAR(s = 1, sd = 1)
+LinAR(s = 1, sd = 1, along = NULL)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
+- `along` is used to indentify "along" and "by" variables
 
 
 ## P-Spline {#sec:pr-spline}
@@ -657,29 +521,24 @@ LinAR(s = 1, sd = 1)
 ### Model
 
 \begin{equation}
-  \pmb{\beta}^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}^{(m)}
+  \pmb{\beta}_u^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}_u^{(m)}, \quad u = 1, \cdots, U_m
 \end{equation}
-where $\pmb{B}^{(m)}$ is a $J_m \times K_m$ matrix of B-splines, and $\pmb{\alpha}^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
+where $\pmb{\beta}_u^{(m)}$ is the subvector of $\pmb{\beta}^{(m)}$ composed of elements from the $u$th combination of the "by" variables, $\pmb{B}^{(m)}$ is a $V_m \times K_m$ matrix of B-splines, and $\pmb{\alpha}_u^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
 
-$\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{j}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{j}))$, with $\pmb{j} = (1, \cdots, J_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{j}) = 0$, $k = 1, \cdots, K_m$.
+
+$\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{v}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{v}))$, with $\pmb{v} = (1, \cdots, V_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{v}) = 0$, $k = 1, \cdots, K_m$.
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \text{N}(\eta_0^{(m)} \mid 0, A_{\eta,0}^{(m)})  \text{N}(\eta_1^{(m)} \mid 0, A_{\eta,1}^{(m)}) \prod_{k=3}^{K_m} \text{N}\left(\alpha_k^{(m)} - 2 \alpha_{k-1}^{(m)} + \alpha_{k-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^2 \text{N}(\alpha_{u,k}^{(m)} \mid 0, 1) \prod_{u=1}^{U_m}\prod_{k=3}^{K_m} \text{N}\left(\alpha_{u,k}^{(m)} - 2 \alpha_{u,k-1}^{(m)} + \alpha_{u,k-2}^{(m)} \mid 0, \tau_m^2 \right) 
 \end{equation}
-where
-\begin{align}
-  \eta_0^{(m)} & = \frac{1}{K_m} \sum_{k=1}^{K_m} \alpha_k^{(m)} \\
-  \eta_1^{(m)} & = \frac{\sum_{k=1}^{K_m} \alpha_k^{(m)} q_k^{(m)}}{\sum_{k=1}^{K_m} q_k^{(m)2}} \\
-  q_k^{(m)} & = -\frac{K_m + 1}{K_m - 1} + \frac{2}{K_m - 1} j \\
-\end{align}
 
 
 ### Forecasting
 
-Main effects with a P-Spline prior cannot be forecasted.
+Terms with a P-Spline prior cannot be forecasted.
 
 
 ### Code
@@ -688,8 +547,9 @@ Main effects with a P-Spline prior cannot be forecasted.
 Sp(n = NULL, s = 1)
 ```
 
-- `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$. *This is the current default for BayesRates. Could we use a smaller multiplier?*
+- `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$.
 - `s` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to 1.
+- `along` is used to identify "along" and "by" variables
 
 
 ## SVD {#sec:pr-svd}
@@ -799,7 +659,7 @@ Known(values)
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
 \end{equation}n
 
 ### Forecasting
@@ -831,7 +691,7 @@ Seas(n, s = 1)
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m | 0, A_{\tau}^{(m)2}) \left( \prod_{u=1}^{U_m} \prod_{v=1}^{S_m} \text{N}(\beta_{uv}^{(m)} \mid 0, 1 ) \right)  \left( \prod_{u=1}^{U_M} \prod_{v=S_m+1}^{V_m} \text{N}(\beta_{uv}^{(m)} \mid \beta_{u,v-S_m}^{(m)}, \tau_m^2) \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \left( \prod_{u=1}^{U_m} \prod_{v=1}^{S_m} \text{N}(\beta_{uv}^{(m)} \mid 0, 1 ) \right)  \left( \prod_{u=1}^{U_M} \prod_{v=S_m+1}^{V_m} \text{N}(\beta_{uv}^{(m)} \mid \beta_{u,v-S_m}^{(m)}, \tau_m^2) \right) 
 \end{equation}
 
 ### Forecasting
@@ -862,7 +722,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 ### Standard prior
 
 \begin{align}
-  \zeta_p | \varphi & \sim \text{N}(0, \varphi^2) \\
+  \zeta_p \mid \varphi & \sim \text{N}(0, \varphi^2) \\
   \varphi & \sim \text{N}^+(0, 1)
 \end{align}
 
@@ -872,7 +732,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 Regularised horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
-  \zeta_p | \vartheta_p, \varphi & \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
+  \zeta_p \mid \vartheta_p, \varphi & \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
   \vartheta_p & \sim \text{Cauchy}^+(0, 1) \\
   \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
   A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}
