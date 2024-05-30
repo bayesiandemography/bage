@@ -645,14 +645,16 @@ Known(values)
 - `values` is a vector containing the $\beta_j^{(m)}$.
 
 
-## Seasonal effects {#sec:pr-season}
+## Random walk with fixed seasonal effect {#sec:rwseasfix}
 
 ### Model
 
 \begin{align}
-  \beta_j^{(m)} & \sim \text{N}(0, 1), \quad j = 1, \cdots, S_m \\
-  \beta_j^{(m)} & \sim \text{N}(\beta_{j - S_m}^{(m)}, \tau_m^2 ), \quad j = S_m+1, \cdots, J_m \\ 
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
+  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
+  \alpha_{u,1} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
+  \alpha_{u,v} & \sim \text{N}(\alpha_{u,v-1}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m \\
+  \lambda_{u,s} & \sim \text{N}(0, A_{\lambda}^{(m)}), \quad s = 1, \cdots, S_m, \quad u = 1, \cdots, U_m \\
+  s_v & = ((v-1) \; \text{mod} \; S_m) + 1, \quad v = 1, \cdots, V_m
 \end{align}
 
 

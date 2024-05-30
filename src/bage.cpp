@@ -11,6 +11,24 @@ using namespace tmbutils;
 // Helper functions -----------------------------------------------------------
 
 template <class Type>
+vector<Type> alpha_seasfix(vector<Type> effectfree,
+			   vector<Type> seas,
+			   matrix<int> matrix_along_by) {
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  int n_season = seas.size() / n_by;
+  vector<Type> ans = effectfree;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i_seas = i_along % n_season + i_by * n_season;
+      int i_alpha = i_along + i_by * n_along;
+      ans[i_alpha] -= seas[i_seas];
+    }
+  }
+  return ans;
+}
+
+template <class Type>
 Type logpost_betabinom(Type x,
 		       Type n,
 		       Type logit_mu,
@@ -21,6 +39,32 @@ Type logpost_betabinom(Type x,
   Type log_num = lgamma(x + alpha) + lgamma(n - x + beta) - lgamma(n + alpha + beta);
   Type log_den = lgamma(alpha) + lgamma(beta) - lgamma(alpha + beta);
   return log_num - log_den;
+}
+
+
+template <class Type>
+Type logpost_seasvary(vector<Type> seas,
+		      int n_season,
+		      Type scale_alpha,
+		      Type log_sd_alpha,
+		      matrix<int> matrix_along_by) {
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type sd_alpha = exp(log_sd_alpha);
+  Type ans = 0;
+  ans += dnorm(sd_alpha, Type(0), scale_alpha, true) + log_sd_alpha;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_season; i_along++) {
+      int i = matrix_along_by(i_along, i_by);
+      ans += dnorm(seas[i], Type(0), Type(1), true);
+    }
+    for (int i_along = n_season; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - n_season, i_by);
+      ans += dnorm(seas[i_curr], seas[i_prev], sd_alpha, true);
+    }
+  }
+  return ans;
 }
 
 
@@ -211,121 +255,38 @@ Type logpost_rw2(vector<Type> effectfree,
   return ans;
 }
 
-Type logpost_seasfix(vector<Type> seas,
-		     int n_by) {
-  int n = seas.size();
-  int n_seas = n / n_by;
-  Type ans = 0;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_seas = 0; i_seas < n_seas; i_seas++) {
-      int i = i_by * n_by + i_seas;
-      ans += dnorm(seas[i], Type(0), Type(1));
-    }
-  }
-  return ans;
-}
-
-Type logpost_seasfix(vector<Type> seas,
-		     int n_by) {
-  int n = seas.size();
-  int n_seas = n / n_by;
-  Type ans = 0;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_seas = 0; i_seas < n_seas; i_seas++) {
-      int i = i_by * n_by + i_seas;
-      ans += dnorm(seas[i], Type(0), Type(1));
-    }
-  }
-  return ans;
-}
-
-
-Type logpost_seasvary(vector<Type> seas,
-		      matrix<int> matrix_along_by,
-		      int n_seas,
-		      Type sd_seas) {
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_along = 0; i_along < n_seas; i_along++) {
-      int i = matrix_along_by(i_along, i_by);
-      ans += dnorm(seas[i], Type(0), Type(1), true);
-    }
-    for (int i_along = n_seas; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - n_seas, i_by);
-      ans += dnorm(seas[i_curr], seas[i_prev], sd_seas, true);
-    }
-  }
-  return ans;
-}
-      
 template <class Type>
 Type logpost_rwseasfix(vector<Type> effectfree,
 		       vector<Type> hyper,
-		       vector<Type> hyperrand,
+		       vector<Type> hyperrand, // seasonal effect
 		       vector<Type> consts,
 		       matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type scale_seas = consts[1];
-  Type log_sd = hyper[0];
-  vector<Type> seas = hyperrand;
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  int n_seas = seas.size();
-  Type sd = exp(log_sd);
+  vector<Type> alpha = alpha_seasfix(effectfree, hyperrand, matrix_along_by);
   Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += logpost_seasfix(seas, n_by);
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i = matrix_along_by(0, i_by);
-    ans += dnorm(effectfree[i], Type(0) + seas[i_by], Type(1), true);
-    for (int i_along = 1; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - 1, i_by);
-      int i_seas_curr = i_by * n_by + (i_along %% n_seas);
-      int i_seas_prev = i_by * n_by + ((i_along - 1) %% n_seas);
-      Type mean = effectfree[i_prev] + seas[i_seas_curr] - seas[i_seas_prev];
-      ans += dnorm(effectfree[i_curr], mean, sd, true);
-    }
-  }
+  ans += dnorm(hyperrand, Type(0), Type(1), true).sum();
+  ans += logpost_rw(alpha, hyper, consts, matrix_along_by);
   return ans;
 }
-
 
 template <class Type>
 Type logpost_rwseasvary(vector<Type> effectfree,
 			vector<Type> hyper,
-			vector<Type> hyperrand,
+			vector<Type> hyperrand, // seasonal effect
 			vector<Type> consts,
 			matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type scale_seas = consts[1];
-  Type log_sd = hyper[0];
-  Type log_sd_seas = hyper[1];
-  vector<Type> seas = hyperrand;
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  int n_seas = seas.size();
-  Type sd = exp(log_sd);
-  Type sd_seas = exp(log_sd);
+  vector<Type> alpha = effectfree - hyperrand;
+  Type log_sd_alpha = hyper[0];
+  int n_season = CppAD::Integer(consts[0]);
+  Type scale_alpha = consts[1];
+  int n_hyper = hyper.size();
+  int n_consts = consts.size();
+  vector<Type> hyper_alpha = hyper.segment(1, n_hyper - 1);
+  vector<Type> consts_alpha = consts.segment(2, n_consts - 2);
   Type ans = 0;
-  ans += logpost_seasvary(seas, matrix_along_by, n_seas, sd_seas);
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i = matrix_along_by(0, i_by);
-    ans += dnorm(effectfree[i], Type(0) + seas[0], Type(1), true);
-    for (int i_along = 1; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - 1, i_by);
-      Type mean = effectfree[i_prev] + seas[i_curr] - seas[i_prev];
-      ans += dnorm(effectfree[i_curr], mean, sd, true);
-    }
-  }
+  ans += logpost_seasvary(hyperrand, n_season, scale_alpha, log_sd_alpha, matrix_along_by);
+  ans += logpost_rw(alpha, hyper_alpha, consts_alpha, matrix_along_by);
   return ans;
 }
-
-
 
 template <class Type>
 Type logpost_spline(vector<Type> effectfree,
@@ -418,7 +379,10 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
     ans = logpost_linar(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   case 10:
-    ans = logpost_rwseas(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    ans = logpost_rwseasfix(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    break;
+  case 11:
+    ans = logpost_rwseasvary(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior); // # nocov
