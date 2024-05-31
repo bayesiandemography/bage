@@ -165,6 +165,7 @@ draw_vals_components_unfitted <- function(mod, n_sim, center) {
   vals_hyper <- draw_vals_hyper_mod(mod = mod,
                                     n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,
+                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod = mod,
                                       vals_hyper = vals_hyper,
@@ -413,21 +414,80 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 #' Treated as Random Effects
 #'
 #' @param mod Object of class "bage_mod"
+#' @param vals_hyper List of lists.
 #' @param n_sim Number of draws
 #'
 #' @returns A named list
 #'
 #' @noRd
-draw_vals_hyperrand_mod <- function(mod, n_sim) {
+draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
   priors <- mod$priors
   matrices_along_by <- choose_matrices_along_by(mod)
   ans <- .mapply(draw_vals_hyperrand,
                  dots = list(prior = priors,
+                             vals_hyper = vals_hyper,
                              matrix_along_by = matrices_along_by),
                  MoreArgs = list(n_sim = n_sim))
   names(ans) <- names(priors)
   ans
 }
+
+
+## HAS_TESTS
+#' Generate Draws for Fixed Seasonal Effects
+#'
+#' Each column is one draw.
+#'
+#' @param n Number of seasons
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_seasfix <- function(n, matrix_along_by, n_sim) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
+  for (i_along in seq.int(from = n + 1L, to = n_along))
+    ans[i_along, ] <- ans[i_along - n, ]
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  ans
+}
+
+## HAS_TESTS
+#' Generate Draws for Time-Varying Seasonal Effects
+#'
+#' Each column is one draw.
+#'
+#' @param n Number of seasons
+#' @param sd_seas Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_seasvary <- function(n, sd_seas, matrix_along_by) {
+  n_sim <- length(sd_seas)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
+  sd_seas <- rep(sd_seas, each = n_by)
+  for (i_along in seq.int(from = n + 1L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - n, ],
+                                   sd = sd_seas)
+  ans <- ans - rep(colMeans(ans), each = n_along)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  ans
+}
+  
 
 
 ## HAS_TESTS
@@ -450,7 +510,6 @@ draw_vals_slope <- function(sd_slope, matrix_along_by, n_sim) {
   ans
 }
 
-
 ## HAS_TESTS
 #' Draw the 'sd' parameter for a prior
 #'
@@ -467,6 +526,21 @@ draw_vals_sd <- function(prior, n_sim) {
     ans
 }
 
+## HAS_TESTS
+#' Draw the 'sd' parameter for a prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_sd_seas <- function(prior, n_sim) {
+    scale <- prior$specific$scale_seas
+    ans <- stats::rnorm(n = n_sim, sd = scale)
+    ans <- abs(ans)
+    ans
+}
 
 ## HAS_TESTS
 #' Calculate Errors from Using Point Estimates from Posterior Distribution

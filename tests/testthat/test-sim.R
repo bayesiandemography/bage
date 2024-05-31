@@ -174,6 +174,7 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   ans <- draw_vals_effect_mod(mod,
                               vals_hyper = vals_hyper,
@@ -308,7 +309,8 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, age:time ~ Lin())
-    ans <- draw_vals_hyperrand_mod(mod, n_sim = 10)
+    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+    ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
     expect_identical(nrow(ans[["age:time"]]$slope), 10L)
     expect_identical(sapply(ans, length),
@@ -434,6 +436,88 @@ test_that("'draw_vals_sd' works", {
   set.seed(0)
   ans_expected <- abs(rnorm(n = 10, sd = 0.2))
   expect_identical(ans_obtained, ans_expected)
+})
+
+
+## draw_vals_sd_seas ---------------------------------------------------------------
+
+test_that("'draw_vals_sd_seas' works", {
+  prior <- RWSeas(n = 2, seas = 0.5)
+  n_sim <- 10
+  set.seed(0)
+  ans_obtained <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- abs(rnorm(n = 10, sd = 0.5))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'draw_vals_seasfix' ----------------------------------------------------------
+
+test_that("'draw_vals_seasfix' works - along dimension is first", {
+  set.seed(0)
+  n_sim <- 10
+  matrix_along_by <- matrix(0:29, nc = 3)
+  set.seed(0)
+  ans <- draw_vals_seasfix(n = 4,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
+  expect_identical(dim(ans), c(30L, 10L))
+  expect_equal(ans[1:4,], ans[5:8,], ignore_attr = "dimnames")
+})
+
+test_that("'draw_vals_seasfix' works - along dimension is second", {
+  set.seed(0)
+  n_sim <- 10
+  matrix_along_by <- t(matrix(0:29, nc = 10))
+  set.seed(0)
+  ans <- draw_vals_seasfix(n = 4,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = 10)
+  expect_identical(dim(ans), c(30L, 10L))
+  ans <- array(ans, dim = c(3, 10, 10))
+  ans <- aperm(ans, perm = c(2, 1, 3))
+  ans <- matrix(ans, nrow = 10)
+  expect_equal(ans[1:4,], ans[5:8,], ignore_attr = "dimnames")
+})
+
+
+## 'draw_vals_seasvary' ----------------------------------------------------------
+
+test_that("'draw_vals_seasvary' works - along dimension is first", {
+  set.seed(0)
+  n_sim <- 10
+  matrix_along_by <- matrix(0:2999, nc = 3)
+  sd <- abs(rnorm(n = 10))
+  set.seed(0)
+  ans <- draw_vals_seasvary(n = 4,
+                            sd = sd,
+                            matrix_along_by = matrix_along_by)
+  expect_identical(dim(ans), c(3000L, 10L))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
+               rep(sd, each = 3),
+               tolerance = 0.05)
+})
+
+test_that("'draw_vals_seasvary' works - along dimension is second", {
+  set.seed(0)
+  n_sim <- 10
+  matrix_along_by <- t(matrix(0:2999, nc = 1000))
+  sd <- abs(rnorm(n = 10))
+  set.seed(0)
+  ans <- draw_vals_seasvary(n = 4,
+                         sd = sd,
+                         matrix_along_by = matrix_along_by)
+  expect_identical(dim(ans), c(3000L, 10L))
+  ans <- array(ans, dim = c(3, 1000, 10))
+  ans <- aperm(ans, perm = c(2, 1, 3))
+  ans <- matrix(ans, nrow = 1000)
+  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
+  expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
+               rep(sd, each = 3),
+               tolerance = 0.03)
 })
 
 
@@ -953,6 +1037,7 @@ test_that("'standardize_draws_effect' works with valid input - center = FALSE", 
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod,
                                       vals_hyper = vals_hyper,
@@ -979,6 +1064,7 @@ test_that("'standardize_draws_effect' works with valid input - center = TRUE, no
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod,
                                       vals_hyper = vals_hyper,
@@ -1007,6 +1093,7 @@ test_that("'standardize_draws_effect' works with valid input - center = TRUE, ha
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod,
                                       vals_hyper = vals_hyper,
@@ -1061,6 +1148,7 @@ test_that("'vals_effect_to_dataframe' works", {
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
+                                            vals_hyper = vals_hyper,
                                             n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod,
                                       vals_hyper = vals_hyper,

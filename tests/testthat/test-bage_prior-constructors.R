@@ -108,6 +108,18 @@ test_that("'RW' works with valid inputs", {
                                      along = "reg"))
 })
 
+
+test_that("'RWSeas' works with valid inputs", {
+  expect_identical(RWSeas(n = 2, seas = 0),
+                   new_bage_prior_rwseasfix(n = 2L, scale = 1, along = NULL))
+  expect_identical(RWSeas(s = 0.3, n = 12, seas = 0.1, along = "reg"),
+                   new_bage_prior_rwseasvary(n = 12L,
+                                             scale_seas = 0.1,
+                                             scale = 0.3,
+                                             along = "reg"))
+})
+
+
 test_that("'RW2' works with valid inputs", {
   expect_identical(RW2(),
                    new_bage_prior_rw2(scale = 1,
@@ -297,6 +309,29 @@ test_that("'new_bage_prior_rw' works", {
   expect_identical(obj$i_prior, 6L)
   expect_identical(obj$const, c(scale = 1))
   expect_identical(obj$specific, list(scale = 1,
+                                      along = NULL))
+})
+
+test_that("'new_bage_prior_rwseasfix' works", {
+  obj <- new_bage_prior_rwseasfix(n = 4, scale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_rwseasfix")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 10L)
+  expect_identical(obj$const, c(n = 4, scale = 1))
+  expect_identical(obj$specific, list(n = 4,
+                                      scale = 1,
+                                      along = NULL))
+})
+
+test_that("'new_bage_prior_rwseasvary' works", {
+  obj <- new_bage_prior_rwseasvary(n = 4, scale = 1, scale_seas = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_rwseasvary")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 11L)
+  expect_identical(obj$const, c(n = 4, scale_seas = 1, scale = 1))
+  expect_identical(obj$specific, list(n = 4,
+                                      scale_seas = 1,
+                                      scale = 1,
                                       along = NULL))
 })
 

@@ -7,8 +7,7 @@
 RW(s = 1, along = NULL)
 }
 \arguments{
-\item{s}{Scale for the prior for the errors.
-Smaller values can lead to smoother series.
+\item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used

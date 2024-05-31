@@ -14,7 +14,7 @@
 #' each combination of the
 #' "by" variables. 
 #' 
-#' Argument `s` controls the size of errors. Smaller values
+#' Argument `s` controls the size of innovations. Smaller values
 #' for `s` tend to give smoother series.
 #'
 #' @section Mathematical details:
@@ -54,8 +54,7 @@
 #' 
 #' @param n The order of the model, i.e. the number of lagged
 #' terms that are included. Default is `2`.
-#' @param s Scale for the prior for the errors.
-#' Smaller values can lead to smoother series.
+#' @param s Scale for the prior for the innovations.
 #' Default is `1`.
 #' @param along Name of the variable to be used
 #' as the "along" variable. Only used with
@@ -114,7 +113,7 @@ AR <- function(n = 2, s = 1, along = NULL) {
 #' each combination of the
 #' "by" variables. 
 #' 
-#' Argument `s` controls the size of errors. Smaller values
+#' Argument `s` controls the size of innovations. Smaller values
 #' for `s` tend to give smoother series.
 #'
 #' @section Mathematical details:
@@ -266,6 +265,8 @@ Known <- function(values) {
 #' where `s` is provided by the user.
 #'
 #' @inheritParams AR
+#' @param s Scale for the prior for the errors.
+#' Default is `1`.
 #' @param sd Standard deviation in prior for slope
 #' of line. Default is 1.
 #'
@@ -360,6 +361,8 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' @param n The order of the model for the
 #' errors, i.e. the number of lagged
 #' terms that are included. Default is `2`.
+#' @param s Scale for the innovations in the
+#' AR process. Default is `1`.
 #' @param sd Standard deviation in the prior for
 #' the slope of the line. Larger values imply
 #' steeper slopes. Default is 1.
@@ -526,7 +529,8 @@ LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
 #' where `s` is provided by the user.
 #'
-#' @inheritParams AR
+#' @param s Scale for the standard deviation.
+#' Default is `1`.
 #' 
 #' @returns An object of class `"bage_prior_norm"`.
 #'
@@ -653,6 +657,48 @@ RW <- function(s = 1, along = NULL) {
 }
 
 
+#' Random Walk with Seasonal Effect
+#'
+#' @param n Number of seasons
+#' @param s Scale for prior for innovations in
+#' the random walk. Default is `1`.
+#' @param seas Scale for prior for innovations
+#' in the seasonal effect. Default is `1`.
+#' Can be `0`.
+#'
+#' @returns Object of class `"bage_prior_rwseasvary"`
+#' or `"bage_prior_rwseasfix"`.
+#'
+#' @examples
+#' RWSeas(n = 4)           ## seasonal effects evolve
+#' RWSeas(n = 4, a = 0) ## seasonal effects fixed
+
+RWSeas <- function(n, s = 1, seas = 1, along = NULL) {
+  check_n(n = n,
+          nm_n = "n",
+          min = 2L,
+          max = NULL,
+          null_ok = FALSE)
+  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(seas, x_arg = "seas", zero_ok = TRUE)
+  n <- as.integer(n)
+  scale <- as.double(s)
+  scale_seas = as.double(seas)
+  if (!is.null(along))
+    check_string(along, nm_x = "along")
+  if (scale_seas > 0)
+    new_bage_prior_rwseasvary(n = n,
+                              scale = scale,
+                              scale_seas = scale_seas,
+                              along = along)
+  else
+    new_bage_prior_rwseasfix(n = n,
+                             scale = scale,
+                             along = along)
+}
+  
+
+
 ## HAS_TESTS
 #' Random Walk with Drift Prior
 #'
@@ -721,6 +767,9 @@ RW2 <- function(s = 1, along = NULL) {
   new_bage_prior_rw2(scale = scale,
                      along = along)
 }
+
+
+
 
 
 ## HAS_TESTS
@@ -1182,6 +1231,32 @@ new_bage_prior_rw <- function(scale, along) {
                 specific = list(scale = scale,
                                 along = along))
     class(ans) <- c("bage_prior_rw", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_rwseasfix <- function(n, scale, along) {
+    ans <- list(i_prior = 10L,
+                const = c(n = n,            ## put season-related quantities at beginning
+                          scale = scale),
+                specific = list(n = n,      ## put season-related quantities at beginning
+                                scale = scale,
+                                along = along))
+    class(ans) <- c("bage_prior_rwseasfix", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_rwseasvary <- function(n, scale_seas, scale, along) {
+    ans <- list(i_prior = 11L,
+                const = c(n = n,       ## put season-related quantities at beginning
+                          scale_seas = scale_seas,  
+                          scale = scale),
+                specific = list(n = n, ## put season-related quantities at beginning
+                                scale_seas = scale_seas,
+                                scale = scale,
+                                along = along))
+    class(ans) <- c("bage_prior_rwseasvary", "bage_prior")
     ans
 }
 

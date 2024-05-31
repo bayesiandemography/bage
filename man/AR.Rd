@@ -10,8 +10,7 @@ AR(n = 2, s = 1, along = NULL)
 \item{n}{The order of the model, i.e. the number of lagged
 terms that are included. Default is \code{2}.}
 
-\item{s}{Scale for the prior for the errors.
-Smaller values can lead to smoother series.
+\item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
@@ -33,7 +32,7 @@ the "along" variable within
 each combination of the
 "by" variables.
 
-Argument \code{s} controls the size of errors. Smaller values
+Argument \code{s} controls the size of innovations. Smaller values
 for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
