@@ -212,6 +212,52 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4", {
                    list(letters[1:12], as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_rwseasfix", {
+  prior <- RWSeas(n = 2, s = 0.01, seas = 0)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_rwseasvary", {
+  prior <- RWSeas(n = 2, s = 0.01, seas = 0.5)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 1", {
   prior <- RW2()
   n_sim <- 10
@@ -501,6 +547,23 @@ test_that("'draw_vals_hyper' works with bage_prior_rw", {
   expect_identical(length(ans$sd), 10L)
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_rwseasfix", {
+  prior <- RWSeas(n = 2, seas = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rwseasvary", {
+  prior <- RWSeas(n = 2, seas = 0.1)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("sd_seas", "sd"))
+  expect_identical(length(ans$sd_seas), 10L)
+  expect_identical(length(ans$sd), 10L)
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_rw2", {
   prior <- RW2()
   ans <- draw_vals_hyper(prior = prior,
@@ -533,7 +596,10 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 1:4
   n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
   ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
                              matrix_along_by = matrix_along_by,
                              n_sim = n_sim)
   expect_identical(names(ans), "slope")
@@ -546,7 +612,10 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar", {
   prior <- LinAR()
   matrix_along_by <- matrix(0:11, nr = 12)
   n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
   ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
                              matrix_along_by = matrix_along_by,
                              n_sim = n_sim)
   expect_identical(names(ans), "slope")
@@ -554,6 +623,43 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar", {
                    c(slope = 10L))
 })
 
+test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
+  set.seed(0)
+  prior <- RWSeas(n = 2, s = 0.01, seas = 0)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans_obtained <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      matrix_along_by = matrix_along_by,
+                                      n_sim = n_sim)
+  set.seed(1)
+  ans_expected <- list(seas = draw_vals_seasfix(n = 2,
+                                                matrix_along_by = matrix_along_by,
+                                                n_sim = n_sim))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary", {
+  set.seed(0)
+  prior <- RWSeas(n = 2, s = 0.01, seas = 0.4)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans_obtained <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      matrix_along_by = matrix_along_by,
+                                      n_sim = n_sim)
+  set.seed(1)
+  ans_expected <- list(seas = draw_vals_seasvary(n = 2,
+                                                 sd_seas = vals_hyper$sd_seas,
+                                                 matrix_along_by = matrix_along_by))
+  expect_identical(ans_obtained, ans_expected)
+})
 
 ## forecast_effect ------------------------------------------------------------
 

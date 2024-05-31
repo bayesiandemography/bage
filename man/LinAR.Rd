@@ -11,9 +11,8 @@ LinAR(n = 2, s = 1, sd = 1, along = NULL)
 errors, i.e. the number of lagged
 terms that are included. Default is \code{2}.}
 
-\item{s}{Scale for the prior for the errors.
-Smaller values can lead to smoother series.
-Default is \code{1}.}
+\item{s}{Scale for the innovations in the
+AR process. Default is \code{1}.}
 
 \item{sd}{Standard deviation in the prior for
 the slope of the line. Larger values imply

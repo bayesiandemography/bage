@@ -214,8 +214,51 @@ draw_vals_effect.bage_prior_rw <- function(prior,
   sd <- vals_hyper$sd
   draw_vals_rw(sd = sd,
                matrix_along_by = matrix_along_by,
-               labels = levels_effect) ## standardized internally
+               labels = levels_effect)
 }
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_rwseasfix <- function(prior,
+                                                  vals_hyper,
+                                                  vals_hyperrand,
+                                                  levels_effect,
+                                                  levels_age,
+                                                  levels_sexgender,
+                                                  agesex,
+                                                  matrix_along_by,
+                                                  matrix_agesex,
+                                                  n_sim) {
+  n <- prior$specific$n
+  sd <- vals_hyper$sd
+  seas <- vals_hyperrand$seas
+  alpha <- draw_vals_rw(sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        labels = levels_effect)
+  alpha + seas  
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_effect.bage_prior_rwseasvary <- function(prior,
+                                                   vals_hyper,
+                                                   vals_hyperrand,
+                                                   levels_effect,
+                                                   levels_age,
+                                                   levels_sexgender,
+                                                   agesex,
+                                                   matrix_along_by,
+                                                   matrix_agesex,
+                                                   n_sim) {
+  sd <- vals_hyper$sd
+  seas <- vals_hyperrand$seas
+  alpha <- draw_vals_rw(sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        labels = levels_effect)
+  alpha + seas  
+}
+
+
 
 ## HAS_TESTS
 #' @export
@@ -384,6 +427,22 @@ draw_vals_hyper.bage_prior_rw <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_rwseasfix <- function(prior, n_sim) {
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rwseasvary <- function(prior, n_sim) {
+    sd_seas <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)
+    sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+    list(sd_seas = sd_seas,
+         sd = sd)
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_rw2 <- function(prior, n_sim) {
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
     list(sd = sd)
@@ -407,6 +466,7 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
 #' Draw Values for Hyper-Parameters that can be Treated as Random Effects
 #'
 #' @param prior Object of class 'bage_prior'
+#' @param vals_hyper Named list with values of ordinary hyper-parameters
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #' @param n_sim Number of simulation draws
 #'
@@ -414,6 +474,7 @@ draw_vals_hyper.bage_prior_svd <- function(prior, n_sim)
 #'
 #' @noRd
 draw_vals_hyperrand <- function(prior,
+                                vals_hyper,
                                 matrix_along_by,
                                 n_sim) {
   UseMethod("draw_vals_hyperrand")
@@ -422,6 +483,7 @@ draw_vals_hyperrand <- function(prior,
 ## HAS_TESTS
 #' @export
 draw_vals_hyperrand.bage_prior <- function(prior,
+                                           vals_hyper,
                                            matrix_along_by,
                                            n_sim) {
   list()
@@ -430,6 +492,7 @@ draw_vals_hyperrand.bage_prior <- function(prior,
 ## HAS_TESTS
 #' @export
 draw_vals_hyperrand.bage_prior_lin <- function(prior,
+                                               vals_hyper,
                                                matrix_along_by,
                                                n_sim) {
   sd_slope <- prior$const[["sd_slope"]]
@@ -442,6 +505,7 @@ draw_vals_hyperrand.bage_prior_lin <- function(prior,
 ## HAS_TESTS
 #' @export
 draw_vals_hyperrand.bage_prior_linar <- function(prior,
+                                                 vals_hyper,
                                                  matrix_along_by,
                                                  n_sim) {
   sd_slope <- prior$const[["sd_slope"]]
@@ -451,6 +515,32 @@ draw_vals_hyperrand.bage_prior_linar <- function(prior,
   list(slope = slope)
 }
 
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
+                                                     vals_hyper,
+                                                     matrix_along_by,
+                                                     n_sim) {
+  n <- prior$specific$n
+  seas <- draw_vals_seasfix(n = n,
+                            matrix_along_by = matrix_along_by,
+                            n_sim = n_sim)
+  list(seas = seas)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rwseasvary <- function(prior,
+                                                     vals_hyper,
+                                                     matrix_along_by,
+                                                     n_sim) {
+  n <- prior$specific$n
+  sd_seas <- vals_hyper$sd_seas
+  seas <- draw_vals_seasvary(n = n,
+                             sd_seas = sd_seas,
+                             matrix_along_by = matrix_along_by)
+  list(seas = seas)
+}
 
 ## 'forecast_effect' ----------------------------------------------------------
 

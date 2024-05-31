@@ -7,8 +7,7 @@
 N(s = 1)
 }
 \arguments{
-\item{s}{Scale for the prior for the errors.
-Smaller values can lead to smoother series.
+\item{s}{Scale for the standard deviation.
 Default is \code{1}.}
 }
 \value{

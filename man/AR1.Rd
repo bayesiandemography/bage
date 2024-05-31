@@ -11,8 +11,7 @@ AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
 
-\item{s}{Scale for the prior for the errors.
-Smaller values can lead to smoother series.
+\item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
@@ -34,7 +33,7 @@ the "along" variable within
 each combination of the
 "by" variables.
 
-Argument \code{s} controls the size of errors. Smaller values
+Argument \code{s} controls the size of innovations. Smaller values
 for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
