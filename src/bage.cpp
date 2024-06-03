@@ -20,8 +20,8 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
   vector<Type> ans = effectfree;
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_along; i_along++) {
+      int i_alpha = matrix_along_by(i_along, i_by);
       int i_seas = i_along % n_season + i_by * n_season;
-      int i_alpha = i_along + i_by * n_along;
       ans[i_alpha] -= seas[i_seas];
     }
   }

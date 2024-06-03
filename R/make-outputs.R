@@ -1,4 +1,23 @@
 
+#' Center Values Within Each Combination of By Variables
+#'
+#' @param x A numeric vector or rvec
+#' @param matrix_along_by Mapping matrix for 'x'
+#'
+#' @returns A modifed version of 'x'
+#'
+#' @noRd
+center_within_by <- function(x, matrix_along_by) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  for (i_by in seq_len(n_by)) {
+    i_along <- matrix_along_by[, i_by] + 1L
+    x[i_along] <- x[i_along] - mean(x[i_along])
+  }
+  x
+}
+
+
 ## HAS_TESTS
 #' Return Values for Higher-Level Parameters from Fitted Model
 #'
@@ -173,6 +192,7 @@ make_copies_repdata <- function(data, n) {
 make_draws_components <- function(mod) {
   linpred <- mod$draws_linpred
   hyper <- mod$draws_hyper
+  hyperrand <- mod$draws_hyperrand
   ans_effects <- make_standardized_effects(mod = mod,
                                            linpred = linpred)
   ans_effects <- lapply(ans_effects, unname)
@@ -180,7 +200,8 @@ make_draws_components <- function(mod) {
   ans_effects <- Reduce(rbind, ans_effects)
   ans_effects <- rvec::rvec_dbl(ans_effects)
   ans_hyper <- rvec::rvec_dbl(hyper)
-  ans <- c(ans_effects, ans_hyper)
+  ans_hyperrand <- rvec::rvec_dbl(hyperrand)
+  ans <- c(ans_effects, ans_hyper, ans_hyperrand)
   if (has_disp(mod)) {
     disp <- mod$draws_disp
     disp <- matrix(disp, nrow = 1L)
@@ -215,7 +236,7 @@ make_draws_disp <- function(mod, draws_post) {
 ## HAS_TESTS
 #' Make Draws from Hyper-Parameters
 #'
-#' Includes hyperrand, but not disp.
+#' Does not include hyperrand or disp.
 #' Includes transforming back to natural units.
 #'
 #' @param mod A fitted object of class "bage_mod"
@@ -227,10 +248,8 @@ make_draws_disp <- function(mod, draws_post) {
 #' @noRd
 make_draws_hyper <- function(mod, draws_post) {
   n_effectfree <- length(mod$est$effectfree)
-  n_val <- nrow(draws_post)
-  is_effect <- seq_len(n_val) <= n_effectfree
-  is_disp <- seq_len(n_val) == n_val ## even in models where has_disp(mod) is FALSE
-  is_hyper <- !is_effect & !is_disp
+  n_hyper <- length(mod$est$hyper)
+  is_hyper <- seq.int(from = n_effectfree + 1L, length.out = n_hyper)
   ans <- draws_post[is_hyper, , drop = FALSE]
   transforms <- make_transforms_hyper(mod)
   for (i in seq_along(transforms)) {
@@ -239,6 +258,27 @@ make_draws_hyper <- function(mod, draws_post) {
       ans[i, ] <- transform(ans[i, ])
   }
   ans
+}
+
+
+## HAS_TESTS
+#' Make Draws from Hyper-Parameters that can be
+#' Treated as Random Effects
+#'
+#' @param mod A fitted object of class "bage_mod"
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_draws_hyperrand <- function(mod, draws_post) {
+  n_effectfree <- length(mod$est$effectfree)
+  n_hyper <- length(mod$est$hyper)
+  n_hyperrand <- length(mod$est$hyperrand)
+  is_hyperrand <- seq.int(from = n_effectfree + n_hyper + 1L,
+                          length.out = n_hyperrand)
+  draws_post[is_hyperrand, , drop = FALSE]
 }
 
 
@@ -537,6 +577,8 @@ make_stored_draws <- function(mod) {
                                           draws_post = draws_post)
   mod$draws_hyper <- make_draws_hyper(mod = mod,
                                       draws_post = draws_post)
+  mod$draws_hyperrand <- make_draws_hyperrand(mod = mod,
+                                              draws_post = draws_post)
   if (has_disp(mod)) {
     mod$draws_disp <- make_draws_disp(mod = mod,
                                       draws_post = draws_post)
@@ -575,10 +617,9 @@ make_term_components <- function(mod) {
 #' Make List of Transforms to be Applied to
 #' Hyper-Parameters
 #'
-#' Includes ordinary hyper-parameters
-#' ("hyper"), hyper-parameters that can be
-#' treated as random effects ("hyperrand")
-#' but not dispersion.
+#' Does not include hyper-parameters
+#' that can be treated as random effects
+#'  ("hyperrand") or dispersion.
 #'
 #' @param mod Object of class 'bage_mod'
 #'
@@ -590,15 +631,9 @@ make_transforms_hyper <- function(mod) {
   priors <- mod$priors
   matrices_along_by <- choose_matrices_along_by(mod)
   has_disp <- has_disp(mod)
-  ans_hyper <- lapply(priors, transform_hyper)
-  ans_hyper <- unlist(ans_hyper, recursive = FALSE)
-  ans_hyperrand <- .mapply(transform_hyperrand,
-                           dots = list(prior = priors,
-                                       matrix_along_by = matrices_along_by),
-                           MoreArgs = list())
-  ans_hyperrand <- unlist(ans_hyperrand, recursive = FALSE)
-  c(ans_hyper,
-    ans_hyperrand)
+  ans <- lapply(priors, transform_hyper)
+  ans <- unlist(ans, recursive = FALSE)
+  ans
 }
 
 
