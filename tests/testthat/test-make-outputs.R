@@ -1,4 +1,25 @@
 
+## 'center_within_by' ---------------------------------------------------------
+
+test_that("'center_within_by' works with numeric vector", {
+  x <- matrix(11:22, nr = 4)
+  matrix_along_by <- t(matrix(0:11, nrow = 4))
+  ans_obtained <- center_within_by(as.numeric(x), matrix_along_by)
+  ans_expected <- as.numeric(x - apply(x, 1, mean))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'center_within_by' works with numeric vector", {
+  x <- rvec::rvec(matrix(rnorm(120), nr = 12))
+  matrix_along_by <- matrix(0:11, nrow = 4)
+  ans_obtained <- center_within_by(x, matrix_along_by)
+  ans_expected <- c(x[1:4] - mean(x[1:4]),
+                    x[5:8] - mean(x[5:8]),
+                    x[9:12] - mean(x[9:12]))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'draw_vals_components_fitted' ----------------------------------------------
 
 test_that("'draw_vals_components_fitted' works", {
@@ -221,6 +242,44 @@ test_that("'make_draws_hyper' works", {
     draws <- make_draws_post(mod)
     ans_obtained <- make_draws_hyper(mod, draws_post = draws)
     ans_expected <- exp(draws[20:21, ])
+    expect_identical(unname(ans_obtained), ans_expected)
+})
+
+
+## 'make_draws_hyperrand' -----------------------------------------------------
+
+test_that("'make_draws_hyperrand' works - has hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_n_draw(mod, 5)
+    mod <- set_prior(mod, age:time ~ Lin())
+    mod <- fit(mod)
+    draws <- make_draws_post(mod)
+    ans_obtained <- make_draws_hyperrand(mod, draws_post = draws)
+    ans_expected <- draws[65:74, ]
+    expect_identical(unname(ans_obtained), ans_expected)
+})
+
+test_that("'make_draws_hyperrand' works - no hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_n_draw(mod, 5)
+    mod <- fit(mod)
+    draws <- make_draws_post(mod)
+    ans_obtained <- make_draws_hyperrand(mod, draws_post = draws)
+    ans_expected <- matrix(NA_real_, nrow = 0, ncol = 5)
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -614,11 +673,7 @@ test_that("'make_transforms_hyper' works", {
                     exposure = popn)
     mod <- fit(mod)
     ans_obtained <- make_transforms_hyper(mod)
-    invlogit2 <- function(x) {
-        ans <- exp(x) / (1 + exp(x))
-        2 * ans - 1
-    }
-    ans_expected <- rep(list(exp), 2)
+    ans_expected <- list(exp, exp)
     expect_identical(unname(ans_obtained), ans_expected,
                      ignore_function_env = TRUE)
 })

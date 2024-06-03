@@ -1003,6 +1003,22 @@ make_par_disp.bage_mod_binom <- function(x,
 }
 
 
+
+## 'make_subseries' -----------------------------------------------------------
+
+
+
+make_subseries.bage_prior_rwseasfix <- function(prior,
+                                                hyperrand,
+                                                effect,
+                                                matrix_along_by) {
+  NULL
+}
+  
+  
+
+
+
 ## 'make_observed' ------------------------------------------------------------
 
 #' Make direct estimates

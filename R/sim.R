@@ -195,6 +195,8 @@ draw_vals_components_unfitted <- function(mod, n_sim, center) {
     ans <- vctrs::vec_rbind(ans, vals_disp)
   }
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  ans <- reformat_hyperrand(components = ans,
+                            mod = mod)
   ans    
 }
 

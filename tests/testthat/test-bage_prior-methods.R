@@ -1012,7 +1012,6 @@ test_that("'forecast_effect' works with bage_prior_normfixed", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
 test_that("'forecast_effect' works with bage_prior_rw - n_by = 1", {
   set.seed(0)
   prior <- RW()
@@ -1097,7 +1096,6 @@ test_that("'forecast_effect' works with bage_prior_rw - n_by = 2", {
                                                 sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
-
 
 test_that("'forecast_effect' works with bage_prior_rw2 - n_by = 1", {
   set.seed(0)
@@ -1227,14 +1225,10 @@ test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
 })
 
 test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
-  prior <- Lin()
-  expect_true(has_hyperrand(prior))
-})
-
-
-test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
-  prior <- LinAR()
-  expect_true(has_hyperrand(prior))
+  expect_true(has_hyperrand(Lin()))
+  expect_true(has_hyperrand(LinAR()))
+  expect_true(has_hyperrand(RWSeas(n=2, seas = 0)))
+  expect_true(has_hyperrand(RWSeas(n=2, seas = 0.1)))
 })
 
 
@@ -1347,6 +1341,26 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw - n_by
                                    var_age = "age",
                                    var_sexgender = "sex",
                                    agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rwseasfix", {
+    expect_true(is_prior_ok_for_term(prior = RWSeas(n = 2, seas = 0),
+                                     nm = "time",
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex",
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rwseasvary", {
+    expect_true(is_prior_ok_for_term(prior = RWSeas(n = 2),
+                                     nm = "time",
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex",
+                                     agesex = "other"))
 })
 
 test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw2 - n_by = 3", {
@@ -1587,6 +1601,18 @@ test_that("'levels_hyper' works with 'bage_prior_rw'", {
                    "sd")
 })
 
+test_that("'levels_hyper' works with 'bage_prior_rwseasfix'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = RWSeas(n = 3, seas = 0)),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_rwseasvary'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = RWSeas(n = 3)),
+                   c("sd_seas", "sd"))
+})
+
 test_that("'levels_hyper' works with 'bage_prior_rw2'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
   expect_identical(levels_hyper(prior = RW2()),
@@ -1627,6 +1653,19 @@ test_that("'levels_hyperrand' works with 'bage_prior_lin'", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
+test_that("'levels_hyperrand' works with 'bage_prior_lin' - n_by = 1", {
+  levels_effect <- letters[1:13]
+  matrix_along_by <- matrix(0:12,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = NULL))
+  ans_obtained <- levels_hyperrand(prior = Lin(),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- "slope"
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+
 test_that("'levels_hyperrand' works with 'bage_prior_linar'", {
   levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
   matrix_along_by <- matrix(0:25,
@@ -1638,6 +1677,44 @@ test_that("'levels_hyperrand' works with 'bage_prior_linar'", {
   ans_expected <- c("slope.a", "slope.b")
   expect_identical(ans_obtained, ans_expected)                   
 })
+
+test_that("'levels_hyperrand' works with 'bage_prior_linar' - n_by = 1", {
+  levels_effect <- letters[1:13]
+  matrix_along_by <- matrix(0:12,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = NULL))
+  ans_obtained <- levels_hyperrand(prior = LinAR(),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- "slope"
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix'", {
+  levels_effect <- letters[1:13]
+  matrix_along_by <- matrix(0:12,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = NULL))
+  ans_obtained <- levels_hyperrand(prior = RWSeas(n = 3, seas = 0),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c("1", "2", "3")
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix'", {
+  levels_effect <- letters[1:13]
+  matrix_along_by <- matrix(0:12,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = NULL))
+  ans_obtained <- levels_hyperrand(prior = RWSeas(n = 3),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- levels_effect
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+
 
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
@@ -1920,16 +1997,161 @@ test_that("'reformat_hyperrand_one' works with bage_prior_linar", {
                   exposure = popn) |>
                   set_prior(sex:time ~ LinAR()) |>
                   fit(mod)
-  comp <- components(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior <- "sex:time",
+                                         nm_prior = "sex:time",
                                          matrix_along_by = matrix_along_by,
-                                         components = comp)
-  ans_expected <- comp
-  ans_expected$component[ans_expected$component == "hyperrand" &
-                           ans_expected$term == "sex:time"] <- "hyper"
-  expect_identical(ans_obtained, ans_expected)
+                                         components = components)
+  trend <- ans_obtained$.fitted[ans_obtained$component == "trend"]
+  cyclical <- ans_obtained$.fitted[ans_obtained$component == "cyclical"]
+  effect <- ans_obtained$.fitted[ans_obtained$component == "effect" & ans_obtained$term == "sex:time"]
+  expect_equal(effect, trend + cyclical)
+  expect_equal(rvec::draws_mean(sum(trend)), 0)
+  expect_identical(ans_obtained$component[ans_obtained$term == "sex:time"
+                                          & grepl("slope", ans_obtained$level)],
+                   c("hyper", "hyper"))
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RWSeas(n = 3, seas = 0)) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior = "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas[1:3] <- seas[1:3] - mean(seas[1:3])
+  seas[4:6] <- seas[4:6] - mean(seas[4:6])
+  seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  seasonal <- tibble::tibble(term = "sex:time",
+                             component = "seasonal",
+                             level = level,
+                             .fitted = seas)
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  trend <- tibble::tibble(term = "sex:time",
+                         component = "trend",
+                         level = level,
+                         .fitted = trend)
+  ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
+  ans_expected <- vctrs::vec_rbind(ans_expected, seasonal, trend)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RWSeas(n = 3)) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior = "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas <- center_within_by(seas, matrix_along_by = matrix_along_by)
+  ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
+  ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- tibble::tibble(term = "sex:time",
+                         component = "trend",
+                         level = level,
+                         .fitted = trend)
+  ans_expected <- vctrs::vec_rbind(ans_expected, trend)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RWSeas(n = 3)) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior = "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas <- center_within_by(seas, matrix_along_by = matrix_along_by)
+  ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
+  ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- tibble::tibble(term = "sex:time",
+                         component = "trend",
+                         level = level,
+                         .fitted = trend)
+  ans_expected <- vctrs::vec_rbind(ans_expected, trend)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -1995,6 +2217,18 @@ test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW()), "RW()")
     expect_identical(str_call_prior(RW(along = "a", s = 2)),
                      "RW(s=2,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_rwseasfix", {
+    expect_identical(str_call_prior(RWSeas(n=2, seas = 0)), "RWSeas(n=2,seas=0)")
+    expect_identical(str_call_prior(RWSeas(along = "a", s = 2, n = 5, seas=0)),
+                     "RWSeas(n=5,s=2,seas=0,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_rwseasvary", {
+    expect_identical(str_call_prior(RWSeas(n=2)), "RWSeas(n=2)")
+    expect_identical(str_call_prior(RWSeas(along = "a", s = 2, n = 5, seas=0.1)),
+                     "RWSeas(n=5,s=2,seas=0.1,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
@@ -2063,6 +2297,16 @@ test_that("'str_nm_prior' works with bage_prior_normfixed", {
 test_that("'str_nm_prior' works with bage_prior_rw", {
     expect_identical(str_nm_prior(RW()), "RW()")
     expect_identical(str_nm_prior(RW(s = 0.95)), "RW()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_rwseasfix", {
+    expect_identical(str_nm_prior(RWSeas(n = 3, seas = 0)), "RWSeas()")
+    expect_identical(str_nm_prior(RWSeas(n = 3, s = 0.95, seas = 0)), "RWSeas()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_rwseasvary", {
+    expect_identical(str_nm_prior(RWSeas(n = 3, seas = 4)), "RWSeas()")
+    expect_identical(str_nm_prior(RWSeas(n = 3, s = 0.95)), "RWSeas()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_rw2", {
@@ -2151,6 +2395,17 @@ test_that("'transform_hyper' works with 'bage_prior_rw'", {
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_rwseasfix'", {
+  l <- transform_hyper(prior = RWSeas(n = 3, seas=0))
+  expect_equal(0.35, l[[1]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_rwseasvary'", {
+  l <- transform_hyper(prior = RWSeas(n = 3))
+  expect_equal(0.35, l[[1]](log(0.35)))
+  expect_equal(0.35, l[[2]](log(0.35)))
+})
+
 test_that("'transform_hyper' works with 'bage_prior_rw2'", {
   l <- transform_hyper(prior = RW2())
   expect_equal(0.35, l[[1]](log(0.35)))
@@ -2207,6 +2462,8 @@ test_that("'uses_along' works with valid inputs", {
   expect_false(uses_along(N()))
   expect_false(uses_along(NFix()))
   expect_true(uses_along(RW()))
+  expect_true(uses_along(RWSeas(n = 3, seas = 0)))
+  expect_true(uses_along(RWSeas(n = 3)))
   expect_true(uses_along(RW2()))
   expect_true(uses_along(Sp()))
   expect_false(uses_along(SVD(HMD)))
@@ -2221,6 +2478,8 @@ test_that("'uses_hyperrand' returns FALSE with priors that do not use hyperrand 
   expect_false(uses_hyperrand(N()))
   expect_false(uses_hyperrand(NFix()))
   expect_false(uses_hyperrand(RW()))
+  expect_true(uses_hyperrand(RWSeas(n = 3, seas = 0)))
+  expect_true(uses_hyperrand(RWSeas(n = 3)))
   expect_false(uses_hyperrand(RW2()))
   expect_false(uses_hyperrand(Sp()))
   expect_false(uses_hyperrand(SVD(HMD)))
@@ -2308,7 +2567,7 @@ test_that("'vals_hyper_to_dataframe' works with bage_prior_lin", {
                                               vals_hyperrand = vals_hyperrand,
                                               n_sim = 10)
   ans_expected <- tibble::tibble(term = "time",
-                                 component = "hyper",
+                                 component = "hyperrand",
                                  level = c("slope", "slope", "slope"),
                                  .fitted = rvec::rvec(vals_hyperrand$slope))
   expect_equal(ans_obtained, ans_expected)

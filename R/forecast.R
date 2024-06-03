@@ -47,7 +47,7 @@ forecast_components <- function(mod,
 ## HAS_TESTS
 #' Forecast Time-Varying Main Effects and Interactions
 #'
-#' Returns NULL if no terms involving timer are present
+#' Returns NULL if no terms involving time are present
 #' in the model.
 #' 
 #' @param mod Object of class 'bage_mod'
@@ -199,7 +199,107 @@ forecast_hypers <- function(mod,
     vctrs::vec_rbind(!!!ans)  ## nocov - no priors currently have time-varying hyper
 }
 
-  
+
+## HAS_TESTS
+#' Forecast a Random Walk
+#'
+#' @param rw_est Historical estimates. An rvec.
+#' @param sd Standard deviation for RW model. An rvec of length 1.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_rw <- function(rw_est,
+                        sd,
+                        matrix_along_by_est,
+                        matrix_along_by_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  ans <- rep(rw_est[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(rw_est[[1L]], times = n_along_forecast + 1L)
+  for (i_by in seq_len(n_by)) {
+    i_last <- matrix_along_by_est[n_along_est, i_by] + 1L
+    tmp[[1L]] <- rw_est[[i_last]]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + 1L]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-1L]
+  }
+  ans
+}
+
+## HAS_TESTS
+#' Forecast Fixed Seasonal Effects
+#'
+#' @param seas_est Historical estimates. An rvec.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_seasfix <- function(seas_est,
+                             matrix_along_by_est,
+                             matrix_along_by_forecast) {
+  n_season <- prior$specific$n
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  ans <- rep(seas_est[[1L]], times = n_along_forecast * n_by)
+  for (i_by in seq_len(n_by)) {
+    for (i_along in seq_len(n_along_forecast)) {
+      i_ans = matrix_along_by_forecast[i_along, i_by] + 1L
+      i_seas = (i_along + n_along_est - 1L) %% n_season + (i_by - 1L) * n_season + 1L
+      ans[i_ans] <- seas_est[i_seas]
+    }
+  }
+  ans
+}
+
+## HAS_TESTS
+#' Forecast Time-Varying Seasonal Effects
+#'
+#' @param seas_est Historical estimates. An rvec.
+#' @param sd Standard deviation for seasonal effects. An rvec of length 1.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_seasvary <- function(seas_est,
+                              sd,
+                              matrix_along_by_est,
+                              matrix_along_by_forecast) {
+  n_seas <- prior$specific$n
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  ans <- rep(seas_est[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n_seas)
+  s_head <- seq_len(n_seas)
+  s_tail <- seq.int(to = n_along_est, length.out = n_seas)
+  for (i_by in seq_len(n_by)) {
+    i_tail <- matrix_along_by_est[s_tail, i_by] + 1L
+    tmp[s_head] <- seas_est[i_tail]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + n_seas]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-s_head]
+  }
+  ans
+}
+
+
 ## HAS_TESTS
 #' Create Extra Rows for 'data', holding Values for
 #' Predictor Variables Used in Forecast
