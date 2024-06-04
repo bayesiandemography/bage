@@ -110,9 +110,9 @@ test_that("'RW' works with valid inputs", {
 
 
 test_that("'RWSeas' works with valid inputs", {
-  expect_identical(RWSeas(n = 2, seas = 0),
+  expect_identical(RWSeas(n = 2, s_seas = 0),
                    new_bage_prior_rwseasfix(n = 2L, scale = 1, along = NULL))
-  expect_identical(RWSeas(s = 0.3, n = 12, seas = 0.1, along = "reg"),
+  expect_identical(RWSeas(s = 0.3, n = 12, s_seas = 0.1, along = "reg"),
                    new_bage_prior_rwseasvary(n = 12L,
                                              scale_seas = 0.1,
                                              scale = 0.3,

@@ -880,6 +880,292 @@ forecast_hyper.bage_prior <- function(prior,
 }
 
 
+## 'forecast_term' ------------------------------------------------------------
+
+forecast_term <- function(prior,
+                          nm_prior,
+                          components,
+                          matrix_along_by_est,
+                          matrix_along_by_forecast,
+                          levels_forecast) {
+  UseMethod("forecast_term")
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior <- function(prior,
+                                     nm_prior,
+                                     components,
+                                     matrix_along_by_est,
+                                     matrix_along_by_forecast,
+                                     levels_forecast) {
+  cli::cli_abort(c("Can't forecast term {.val {nm_prior}}.",
+                   i = "Term {.val {nm_prior}} has a {.val {str_nm_prior(prior)}} prior.",
+                   i = "Terms with a {.val {str_nm_prior(prior)}} prior cannot be forecasted.",
+                   i = "For a list of priors that can be forecasted, see {.topic bage::priors}."))
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_ar <- function(prior,
+                                        nm_prior,
+                                        components,
+                                        matrix_along_by_est,
+                                        matrix_along_by_forecast,
+                                        levels_forecast) {
+  is_ar <- with(components,
+                term == nm_prior & component == "effect")
+  is_coef <- with(components,
+                  term == nm_prior & component == "hyper" & grepl("^coef", level))
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  ar_est <- components$.fitted[is_ar]
+  coef <- components$.fitted[is_coef]
+  sd <- components$.fitted[is_sd]
+  ar_forecast <- forecast_ar(ar_est = ar_est,
+                             coef = coef,
+                             sd = sd,
+                             matrix_along_by_est = matrix_along_by_est,
+                             matrix_along_by_forecast = matrix_along_by_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = ar_forecast)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_lin <- function(prior,
+                                         nm_prior,
+                                         components,
+                                         matrix_along_by_est,
+                                         matrix_along_by_forecast,
+                                         levels_forecast) {
+  is_slope <- with(components,
+                   term == nm_prior & component == "hyper" & grepl("^slope", level))
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  slope <- components$.fitted[is_slope]
+  sd <- components$.fitted[is_sd]
+  lin_forecast <- forecast_lin(slope = slope,
+                      matrix_along_by_est = matrix_along_by_est,
+                      matrix_along_by_forecast = matrix_along_by_forecast)
+  error_forecast <- forecast_norm(sd = sd,
+                         matrix_along_by_forecast = matrix_along_by_forecast)
+  .fitted <- lin_forecast + error_forecast
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_linar <- function(prior,
+                                           nm_prior,
+                                           components,
+                                           matrix_along_by_est,
+                                           matrix_along_by_forecast,
+                                           levels_forecast) {
+  is_effect <- with(components,
+                    term == nm_prior & component == "effect")
+  is_coef <- with(components,
+                  term == nm_prior & component == "hyper" & grepl("^coef", level))
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  effect_est <- components$.fitted[is_effect]
+  coef <- components$.fitted[is_coef]
+  sd <- components$.fitted[is_sd]
+  lin_est <- estimate_lin(slope = slope,
+                          matrix_along_by_est = matrix_along_by_est)
+  lin_forecast <- forecast_lin(slope = slope,
+                               matrix_along_by_est = matrix_along_by_est,
+                               matrix_along_by_forecast = matrix_along_by_forecast)
+  error_est <- effect_est - lin_est
+  error_forecast <- forecast_ar(ar_est = error_est,
+                                coef = coef,
+                                sd = sd,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast)
+  effect_forecast <- lin_forecast + error_forecast
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = effect_forecast)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_norm <- function(prior,
+                                          nm_prior,
+                                          components,
+                                          matrix_along_by_est,
+                                          matrix_along_by_forecast,
+                                          levels_forecast) {
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  sd <- components$.fitted[is_sd]
+  norm_forecast <- forecast_norm(sd = sd,
+                                 matrix_along_by_forecast = matrix_along_by_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = norm_forecast)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_normfixed <- function(prior,
+                                               nm_prior,
+                                               components,
+                                               matrix_along_by_est,
+                                               matrix_along_by_forecast,
+                                               levels_forecast) {
+  n <- length(matrix_along_by_forecast)
+  sd <- prior$specific$sd
+  n_draw <- rvec::n_draw(components$.fitted[[1L]])
+  norm_forecast <- rvec::rnorm_rvec(n = n,
+                                    sd = sd,
+                                    n_draw = n_draw)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = norm_forecast)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_rw <- function(prior,
+                                        nm_prior,
+                                        components,
+                                        matrix_along_by_est,
+                                        matrix_along_by_forecast,
+                                        levels_forecast) {
+  is_effect <- with(components,
+                    term == nm_prior & component == "effect")
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & term == "sd")
+  rw_est <- components$.fitted[is_effect]
+  sd <- components$.fitted[[is_sd]]
+  rw_forecast <- forecast_rw(rw_est = rw_est,
+                             sd = sd,
+                             matrix_along_by_est = matrix_along_by_est,
+                             matrix_along_by_forecast = matrix_along_by_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = rw_forecast)
+}
+
+## NO_TESTS
+#' @export
+forecast_term.bage_prior_rwseasfix <- function(prior,
+                                               nm_prior,
+                                               components,
+                                               matrix_along_by_est,
+                                               matrix_along_by_forecast,
+                                               levels_forecast) {
+  is_trend <- with(components,
+                   term == nm_prior & component == "trend")
+  is_seasonal <- with(components,
+                      term == nm_prior & component == "seasonal")
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & term == "sd")
+  rw_est <- components$.fitted[is_trend]
+  seas_est <- components$.fitted[is_seasonal]
+  sd <- components$.fitted[is_sd]
+  rw_forecast <- forecast_rw(rw_est = rw_est,
+                             sd = sd,
+                             matrix_along_by_est = matrix_along_by_est,
+                             matrix_along_by_forecast = matrix_along_by_forecast)
+  seas_forecast <- forecast_seasfix(seas_est = seas_set,
+                                    matrix_along_by_est = matrix_along_by_est,
+                                    matrix_along_by_forecast = matrix_along_by_forecast)
+  .fitted <- rw_forecast + seas_forecast
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+
+## NO_TESTS
+#' @export
+forecast_term.bage_prior_rwseasvary <- function(prior,
+                                                nm_prior,
+                                                components,
+                                                matrix_along_by_est,
+                                                matrix_along_by_forecast,
+                                                levels_forecast) {
+  is_trend <- with(components,
+                   term == nm_prior & component == "trend")
+  is_seasonal <- with(components,
+                      term == nm_prior & component == "seasonal")
+  is_sd_seas <- with(components,
+                     term == nm_prior & component == "hyper" & term == "sd_seas")
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & term == "sd")
+  rw_est <- components$.fitted[is_trend]
+  seas_est <- components$.fitted[is_seasonal]
+  sd_seas <- components$.fitted[is_sd_seas]
+  sd <- components$.fitted[is_sd]
+  rw_forecast <- forecast_rw(rw_est = rw_est,
+                             sd = sd,
+                             matrix_along_by_est = matrix_along_by_est,
+                             matrix_along_by_forecast = matrix_along_by_forecast)
+  seas_forecast <- forecast_seasvary(seas_est = seas_set,
+                                     sd_seas = sd_seas,
+                                     matrix_along_by_est = matrix_along_by_est,
+                                     matrix_along_by_forecast = matrix_along_by_forecast)
+  .fitted <- rw_forecast + seas_forecast
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_rw2 <- function(prior,
+                                            nm_prior,
+                                            hyper_est,
+                                            hyper_forecast,
+                                            effect_est,
+                                            matrix_along_by_est,
+                                            matrix_along_by_forecast,
+                                            levels_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  sd <- hyper_est$.fitted[[hyper_est$level == "sd"]]
+  .fitted <- rep(effect_est$.fitted[[1L]],
+                 times = n_along_forecast * n_by)
+  tmp <- rep(effect_est$.fitted[[1L]],
+             times = n_along_forecast + 2L)
+  for (i_by in seq_len(n_by)) {
+    i_last <- matrix_along_by_est[n_along_est, i_by] + 1L
+    i_second_last <- matrix_along_by_est[n_along_est, i_by]
+    tmp[[2L]] <- effect_est$.fitted[[i_last]]
+    tmp[[1L]] <- effect_est$.fitted[[i_second_last]]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + 2L]] <- rvec::rnorm_rvec(n = 1L,
+                                        mean = 2 * tmp[[j + 1L]] - tmp[[j]],
+                                        sd = sd)
+    i_fitted <- matrix_along_by_forecast[, i_by] + 1L
+    .fitted[i_fitted] <- tmp[-(1:2)]
+  }
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+
+
+
+
 ## 'has_hyperrand' ------------------------------------------------------------
 
 #' Has Hyper-Parameters that can be Treated as Random Effects
@@ -1919,7 +2205,7 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
   args[[1L]] <- sprintf("n=%s", n)
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
-  args[[3L]] <- "seas=0"
+  args[[3L]] <- "s_seas=0"
   if (!is.null(along))
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
@@ -1939,7 +2225,7 @@ str_call_prior.bage_prior_rwseasvary <- function(prior) {
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
   if (scale_seas != 1)
-    args[[3L]] <- sprintf("seas=%s", scale_seas)
+    args[[3L]] <- sprintf("s_seas=%s", scale_seas)
   if (!is.null(along))
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
@@ -2109,12 +2395,6 @@ str_nm_prior.bage_prior_rwseasvary <- function(prior) {
 #' @export
 str_nm_prior.bage_prior_rw2 <- function(prior) {
   "RW2()"
-}
-
-## HAS_TESTS
-#' @export
-str_nm_prior.bage_prior_seas <- function(prior) {
-  "Seas()"
 }
 
 ## HAS_TESTS

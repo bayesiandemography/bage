@@ -213,7 +213,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rwseasfix", {
-  prior <- RWSeas(n = 2, s = 0.01, seas = 0)
+  prior <- RWSeas(n = 2, s = 0.01, s_seas = 0)
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -236,7 +236,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwseasfix", {
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rwseasvary", {
-  prior <- RWSeas(n = 2, s = 0.01, seas = 0.5)
+  prior <- RWSeas(n = 2, s = 0.01, s_seas = 0.5)
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -548,7 +548,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw", {
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rwseasfix", {
-  prior <- RWSeas(n = 2, seas = 0)
+  prior <- RWSeas(n = 2, s_seas = 0)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
@@ -556,7 +556,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rwseasfix", {
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rwseasvary", {
-  prior <- RWSeas(n = 2, seas = 0.1)
+  prior <- RWSeas(n = 2, s_seas = 0.1)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), c("sd_seas", "sd"))
@@ -625,7 +625,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar", {
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
   set.seed(0)
-  prior <- RWSeas(n = 2, s = 0.01, seas = 0)
+  prior <- RWSeas(n = 2, s = 0.01, s_seas = 0)
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -636,7 +636,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
                                       matrix_along_by = matrix_along_by,
                                       n_sim = n_sim)
   set.seed(1)
-  ans_expected <- list(seas = draw_vals_seasfix(n = 2,
+  ans_expected <- list(s_seas = draw_vals_seasfix(n = 2,
                                                 matrix_along_by = matrix_along_by,
                                                 n_sim = n_sim))
   expect_identical(ans_obtained, ans_expected)
@@ -644,7 +644,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary", {
   set.seed(0)
-  prior <- RWSeas(n = 2, s = 0.01, seas = 0.4)
+  prior <- RWSeas(n = 2, s = 0.01, s_seas = 0.4)
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -1227,8 +1227,8 @@ test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
 test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
   expect_true(has_hyperrand(Lin()))
   expect_true(has_hyperrand(LinAR()))
-  expect_true(has_hyperrand(RWSeas(n=2, seas = 0)))
-  expect_true(has_hyperrand(RWSeas(n=2, seas = 0.1)))
+  expect_true(has_hyperrand(RWSeas(n=2, s_seas = 0)))
+  expect_true(has_hyperrand(RWSeas(n=2, s_seas = 0.1)))
 })
 
 
@@ -1344,7 +1344,7 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw - n_by
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rwseasfix", {
-    expect_true(is_prior_ok_for_term(prior = RWSeas(n = 2, seas = 0),
+    expect_true(is_prior_ok_for_term(prior = RWSeas(n = 2, s_seas = 0),
                                      nm = "time",
                                      matrix_along_by = matrix(0:1, nc = 1),
                                      var_time = "time",
@@ -1603,7 +1603,7 @@ test_that("'levels_hyper' works with 'bage_prior_rw'", {
 
 test_that("'levels_hyper' works with 'bage_prior_rwseasfix'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyper(prior = RWSeas(n = 3, seas = 0)),
+  expect_identical(levels_hyper(prior = RWSeas(n = 3, s_seas = 0)),
                    "sd")
 })
 
@@ -1695,7 +1695,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix'", {
   matrix_along_by <- matrix(0:12,
                             nr = 13,
                             dimnames = list(x = letters[1:13], y = NULL))
-  ans_obtained <- levels_hyperrand(prior = RWSeas(n = 3, seas = 0),
+  ans_obtained <- levels_hyperrand(prior = RWSeas(n = 3, s_seas = 0),
                                    matrix_along_by = matrix_along_by,
                                    levels_effect = levels_effect)
   ans_expected <- c("1", "2", "3")
@@ -2031,7 +2031,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RWSeas(n = 3, seas = 0)) |>
+                  set_prior(sex:time ~ RWSeas(n = 3, s_seas = 0)) |>
                   fit(mod)
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
@@ -2220,15 +2220,15 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 })
 
 test_that("'str_call_prior' works with bage_prior_rwseasfix", {
-    expect_identical(str_call_prior(RWSeas(n=2, seas = 0)), "RWSeas(n=2,seas=0)")
-    expect_identical(str_call_prior(RWSeas(along = "a", s = 2, n = 5, seas=0)),
-                     "RWSeas(n=5,s=2,seas=0,along=\"a\")")
+    expect_identical(str_call_prior(RWSeas(n=2, s_seas = 0)), "RWSeas(n=2,s_seas=0)")
+    expect_identical(str_call_prior(RWSeas(along = "a", s = 2, n = 5, s_seas=0)),
+                     "RWSeas(n=5,s=2,s_seas=0,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwseasvary", {
     expect_identical(str_call_prior(RWSeas(n=2)), "RWSeas(n=2)")
-    expect_identical(str_call_prior(RWSeas(along = "a", s = 2, n = 5, seas=0.1)),
-                     "RWSeas(n=5,s=2,seas=0.1,along=\"a\")")
+    expect_identical(str_call_prior(RWSeas(along = "a", s = 2, n = 5, s_seas=0.1)),
+                     "RWSeas(n=5,s=2,s_seas=0.1,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
@@ -2300,12 +2300,12 @@ test_that("'str_nm_prior' works with bage_prior_rw", {
 })
 
 test_that("'str_nm_prior' works with bage_prior_rwseasfix", {
-    expect_identical(str_nm_prior(RWSeas(n = 3, seas = 0)), "RWSeas()")
-    expect_identical(str_nm_prior(RWSeas(n = 3, s = 0.95, seas = 0)), "RWSeas()")
+    expect_identical(str_nm_prior(RWSeas(n = 3, s_seas = 0)), "RWSeas()")
+    expect_identical(str_nm_prior(RWSeas(n = 3, s = 0.95, s_seas = 0)), "RWSeas()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_rwseasvary", {
-    expect_identical(str_nm_prior(RWSeas(n = 3, seas = 4)), "RWSeas()")
+    expect_identical(str_nm_prior(RWSeas(n = 3, s_seas = 4)), "RWSeas()")
     expect_identical(str_nm_prior(RWSeas(n = 3, s = 0.95)), "RWSeas()")
 })
 
@@ -2396,7 +2396,7 @@ test_that("'transform_hyper' works with 'bage_prior_rw'", {
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rwseasfix'", {
-  l <- transform_hyper(prior = RWSeas(n = 3, seas=0))
+  l <- transform_hyper(prior = RWSeas(n = 3, s_seas=0))
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
@@ -2462,7 +2462,7 @@ test_that("'uses_along' works with valid inputs", {
   expect_false(uses_along(N()))
   expect_false(uses_along(NFix()))
   expect_true(uses_along(RW()))
-  expect_true(uses_along(RWSeas(n = 3, seas = 0)))
+  expect_true(uses_along(RWSeas(n = 3, s_seas = 0)))
   expect_true(uses_along(RWSeas(n = 3)))
   expect_true(uses_along(RW2()))
   expect_true(uses_along(Sp()))
@@ -2478,7 +2478,7 @@ test_that("'uses_hyperrand' returns FALSE with priors that do not use hyperrand 
   expect_false(uses_hyperrand(N()))
   expect_false(uses_hyperrand(NFix()))
   expect_false(uses_hyperrand(RW()))
-  expect_true(uses_hyperrand(RWSeas(n = 3, seas = 0)))
+  expect_true(uses_hyperrand(RWSeas(n = 3, s_seas = 0)))
   expect_true(uses_hyperrand(RWSeas(n = 3)))
   expect_false(uses_hyperrand(RW2()))
   expect_false(uses_hyperrand(Sp()))
