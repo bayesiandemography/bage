@@ -662,7 +662,7 @@ RW <- function(s = 1, along = NULL) {
 #' @param n Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
-#' @param seas Scale for prior for innovations
+#' @param s_seas Scale for prior for innovations
 #' in the seasonal effect. Default is `1`.
 #' Can be `0`.
 #'
@@ -673,17 +673,17 @@ RW <- function(s = 1, along = NULL) {
 #' RWSeas(n = 4)           ## seasonal effects evolve
 #' RWSeas(n = 4, a = 0) ## seasonal effects fixed
 
-RWSeas <- function(n, s = 1, seas = 1, along = NULL) {
+RWSeas <- function(n, s = 1, s_seas = 1, along = NULL) {
   check_n(n = n,
           nm_n = "n",
           min = 2L,
           max = NULL,
           null_ok = FALSE)
   check_scale(s, x_arg = "s", zero_ok = FALSE)
-  check_scale(seas, x_arg = "seas", zero_ok = TRUE)
+  check_scale(s_seas, x_arg = "s_seas", zero_ok = TRUE)
   n <- as.integer(n)
   scale <- as.double(s)
-  scale_seas = as.double(seas)
+  scale_seas = as.double(s_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   if (scale_seas > 0)

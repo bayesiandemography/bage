@@ -1,4 +1,30 @@
 
+
+## NO_TESTS
+#' Estimate a Line
+#'
+#' @param slope Slope of line.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#'
+#' @returns An rvec
+#'
+#' @noRd
+estimate_lin <- function(slope,
+                         matrix_along_by_est) {
+  n_along <- nrow(matrix_along_by_est)
+  n_by <- ncol(matrix_along_by_est)
+  ans <- rep(slope[[1L]], times = n_along * n_by)
+  q <- seq(from = -1, to = 1, length.out = n_along)
+  for (i_by in seq_len(n_by)) {
+    tmp <- mean = slope[i_by] * q
+    i_ans <- matrix_along_by_est[, i_by] + 1L
+    ans[i_ans] <- tmp
+  }
+  ans
+}
+
+
 #' Forecast Contents of 'components'
 #'
 #' @param mod Object of class 'bage_mod'
@@ -200,6 +226,96 @@ forecast_hypers <- function(mod,
 }
 
 
+## NO_TESTS
+#' Forecast an AR Process
+#'
+#' @param ar_est Historical estimates. An rvec.
+#' @param coef AR coefficients. An rvec.
+#' @param sd Standard deviation for AR model. An rvec of length 1.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_ar <- function(ar_est,
+                        coef,
+                        sd,
+                        matrix_along_by_est,
+                        matrix_along_by_forecast) {
+  n_ar <- length(coef)
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  ans <- rep(rw_est[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(rw_est[[1L]], times = n_along_forecast + n_ar)
+  s_head <- seq_len(n_ar)
+  s_tail <- seq(to = n_along_est, length.out = n_ar)
+  for (i_by in seq_len(n_by)) {
+    i_tail <- matrix_along_by_est[s_tail, i_by] + 1L ## matrix uses 0-based index
+    tmp[s_head] <- effect_est$.fitted[i_tail]
+    for (j in seq_len(n_along_forecast)) {
+      s_ar <- seq(from = j, to = j + n_ar - 1L)
+      mean <- sum(coef * tmp[s_ar])
+      tmp[[j + n_ar]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+    }
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-s_head]
+  }
+  ans
+}
+
+
+## NO_TESTS
+#' Forecast a Line
+#'
+#' @param slope Slope of line.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_lin <- function(slope,
+                         matrix_along_by_est,
+                         matrix_along_by_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  ans <- rep(rw_est[[1L]], times = n_along_forecast * n_by)
+  incr_q <- 2 / (n_along_est - 1)
+  q <- seq(from = 1 + incr_q,
+           by = incr_q,
+           length.out = n_along_forecast)
+  for (i_by in seq_len(n_by)) {
+    tmp <- slope[i_by] * q
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp
+  }
+  ans
+}
+
+## NO_TESTS
+#' Forecast Normal Distribution
+#'
+#' @param sd Standard deviation. An rvec of length 1.
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_norm <- function(sd,
+                          matrix_along_by_forecast) {
+  n <- length(matrix_along_by_forecast)
+  rvec::rnorm_rvec(n = n, sd = sd)
+}
+
+
 ## HAS_TESTS
 #' Forecast a Random Walk
 #'
@@ -233,8 +349,12 @@ forecast_rw <- function(rw_est,
   ans
 }
 
+
 ## HAS_TESTS
 #' Forecast Fixed Seasonal Effects
+#'
+#' Use first 'n_season' entries from historical
+#' estimates, within each combination of 'by' variables
 #'
 #' @param seas_est Historical estimates. An rvec.
 #' @param matrix_along_by_est Matrix mapping
@@ -256,7 +376,7 @@ forecast_seasfix <- function(seas_est,
   for (i_by in seq_len(n_by)) {
     for (i_along in seq_len(n_along_forecast)) {
       i_ans = matrix_along_by_forecast[i_along, i_by] + 1L
-      i_seas = (i_along + n_along_est - 1L) %% n_season + (i_by - 1L) * n_season + 1L
+      i_seas = (i_along + n_along_est - 1L) %% n_season + (i_by - 1L) * n_along_est + 1L
       ans[i_ans] <- seas_est[i_seas]
     }
   }
