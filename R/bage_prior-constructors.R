@@ -602,8 +602,8 @@ NFix <- function(sd = 1) {
 #' each combination of the
 #' "by" variables.
 #' 
-#' Argument `s` controls the size of errors. Smaller values
-#' for `s` tend to give smoother series.
+#' Argument `s` controls the size of innovations.
+#' Smaller values for `s` tend to give smoother series.
 #' 
 #' @section Mathematical details:
 #'
@@ -660,9 +660,61 @@ RW <- function(s = 1, along = NULL) {
 ## HAS_TESTS
 #' Random Walk with Seasonal Effect
 #'
-#' TODO - NEED TO FINISH THIS
+#' Prior for a main effect or interaction,
+#' typically involving time. Combines
+#' a random walk with a seasonal effect.
 #'
+#' If `RWSeas()` is used with an interaction,
+#' then separate series are used for
+#' the "along" variable within
+#' each combination of the
+#' "by" variables.
+#'
+#' Argument `s` controls the size of innovations. Smaller values
+#' for `s` tend to give smoother series.
+#'
+#' Argument `n` controls the number of `seasons`. For instance,
+#' when using quarterly data, `n` should be `4`, and when using
+#' monthly data, `n` should be `12`.
+#'
+#' The default is for the magnitude of seasonal effects
+#' to evolve over time. However, setting the `s_seas` argument
+#' to `0` gives seasonal effects that are "fixed", ie that
+#' are the same every year.
+#'
+#' @section Mathematical details:
+#'
+#' When `RWSeas()` is used with a main effect,
+#'
+#' \deqn{\beta_j = \beta_{j-1} + \lambda_j + \epsilon_j}
+#' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,v} = \beta_{u,v-1} + \lambda_{u,v} + \epsilon_{u,v}}
+#' \deqn{\lambda_{u,v} \sim \text{N}(\epsilon_{u,v-n}, \omega_{u,v})}
+#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is the main effect or interaction;
+#' - \eqn{\lambda_j} and \eqn{\lambda_{u,v}} are seasonal effects;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the "along" variable of the interaction;
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{n} is the number of seasons.
+#'
+#' Parameter \eqn{\omega} has a half-normal prior
+#' \deqn{\omega \sim \text{N}^+(0, \text{s_seas}^2),}
+#' where `s_seas` is provided by the user. If
+#' `s_seas` is set to 0, then \eqn{\omega} is 0,
+#' and the seasonal effects are fixed over time.
+#'
+#' Parameter \eqn{\tau} has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' where `s` is provided by the user.
+#' 
 #' @inheritParams AR
+#' 
 #' @param n Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.

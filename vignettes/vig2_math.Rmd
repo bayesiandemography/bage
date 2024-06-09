@@ -136,23 +136,6 @@ where
 - $\pmb{\zeta}$ is a coefficent vector with $P$ elements.
 
 
-# Standardization {#sec:standard}
-
-NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
-
-Although the sum $\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}$ is well identified by the data, the individual $\pmb{\beta}^{(m)}$ are not. When reporting estimated $\pmb{\beta}^{(m)}$, we standardize. The standarization algorithm is as follows.
-
-Set
-\begin{equation}
-  \pmb{r}^{(0)} = \pmb{\mu}
-\end{equation}
-
-For $m = 0, \cdots, M$:
-
-- Set $\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}$
-- Set $\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}$
-
-
 
 # Priors for Intercept, Main Effects, and Interactions {#sec:priors}
 
@@ -292,7 +275,8 @@ RW(s = 1, along = NULL)
 
 \begin{align}
   \beta_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots, U_m, \quad v = 1,2 \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m
+  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
 
@@ -327,6 +311,58 @@ RW2(s = 1, sd = 1, along = NULL)
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
 - `along` used to identify "along" and "by" dimensions
+
+
+
+## Random walk with seasonal effect {#sec:rwseas}
+
+### Model
+
+\begin{align}
+  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
+  \alpha_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
+  \alpha_{u,v}^{(m)} & \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 2, \cdots, V_m \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m (\#eq:lambda-rwseas) \\ \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
+\end{align}
+
+We allow $A_{\omega}^{(m)2}$ to be set to zero, in which case \@ref(eq:lambda-rwseas) reduces to
+\begin{equation}
+  \lambda_{u,v}^{(m)} = \lambda_{u,v-S_m}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m,
+\end{equation}
+implying that seasonal effects are constant across years.
+
+### Contribution to posterior density
+
+\begin{equation}
+\begin{split}
+  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
+  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, 1 ) \prod_{v=2}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m} \text{N}(\lambda_{u,v}^{(m)} \mid 0, 1) \prod_{v=S_m+1}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+\end{split}
+\end{equation}
+
+### Forecasting
+
+\begin{align}
+  \beta_{J_m+h}^{(m)} & = \alpha_{J_m+h}^{(m)} + \lambda_{J_m+h}^{(m)} \\
+  \alpha_{J_m+h}^{(m)} & \sim \text{N}(\lambda_{J_m+h-1}^{(m)}, \tau_m^2) \\
+  \lambda_{J_m+h}^{(m)} & \sim \text{N}(\lambda_{J_m+h-S_m}^{(m)}, \omega_m^2)
+\end{align}
+
+### Code
+
+```
+RWSeas(n, s = 1, s_seas = 1, along = NULL)
+```
+
+- `n` is $S_m$
+- `s` is $A_{\tau}^{(m)}$
+- `s_seas` is $A_{\omega}^{(m)}$
+- `along` used to identify "along" and "by" dimensions
+
+
 
 
 ## Autoregressive {#sec:pr-ar}
@@ -557,16 +593,16 @@ Sp(n = NULL, s = 1)
 ### Model
 
 \begin{align}
-  \pmb{\beta}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}^{(m)} + \pmb{g}^{(m)} \\
-  \alpha_k^{(m)} & \sim \text{N}(0, 1), \quad k = 1, \cdots, K_m
+  \pmb{\beta}_u^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m \\
+  \alpha_{uk}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m
 \end{align}
-where $\pmb{F}^{(m)}$ is a $J_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $J_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
+where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $V_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \prod_{k=1}^{K_m} \text{N}\left(\alpha_k^{(m)} \mid 0, 1 \right) 
+  \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right) 
 \end{equation}
 
 ### Forecasting
@@ -592,35 +628,6 @@ SVD2(scaled_svd, joint = FALSE, n = 5)
 When `joint` is FALSE, the first version is used, and when `joint` is TRUE the second version is used.
 
 
-## Exchangeable SVD {#sec:pr-esvd}
-
-### Model
-
-\begin{align}
-  \pmb{\beta}_u^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m \\
-  \alpha_{uk}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m
-\end{align}
-where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $V_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined.
-
-
-### Contribution to posterior density
-
-\begin{equation}
-  \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right) 
-\end{equation}
-
-### Forecasting
-
-Main effects with a SVD prior cannot be forecasted.
-
-
-### Code
-
-```
-ESVD(scaled_svd, n = 5)
-```
-
-
 ## Known {#sec:pr-known}
 
 ### Model
@@ -643,73 +650,6 @@ Known(values)
 ```
 
 - `values` is a vector containing the $\beta_j^{(m)}$.
-
-
-## Random walk with fixed seasonal effect {#sec:rwseasfix}
-
-### Model
-
-\begin{align}
-  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_{u,1} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
-  \alpha_{u,v} & \sim \text{N}(\alpha_{u,v-1}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m \\
-  \lambda_{u,s} & \sim \text{N}(0, A_{\lambda}^{(m)}), \quad s = 1, \cdots, S_m, \quad u = 1, \cdots, U_m \\
-  s_v & = ((v-1) \; \text{mod} \; S_m) + 1, \quad v = 1, \cdots, V_m
-\end{align}
-
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \left( \prod_{j=1}^{S_m} \text{N}(\beta_j^{(m)} \mid 0, 1 ) \right)  \left( \prod_{j=S_m+1}^{J_m} \text{N}(\beta_j^{(m)} \mid \beta_{j-S_m}^{(m)}, \tau_m^2) \right) 
-\end{equation}n
-
-### Forecasting
-
-\begin{equation}
-  \beta_{J_m+h}^{(m)} \sim \text{N}(\beta_{J_m+h-S_m}^{(m)}, \tau_m^2)
-\end{equation}
-
-### Code
-
-```
-Seas(n, s = 1)
-```
-
-- `n` is $S_m$
-- `s` is $A_{\tau}^{(m)}$
-
-## Exchangeable seasonal {#sec:pr_eseas}
-
-### Model
-
-\begin{align}
-  \beta_{uv}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
-  \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v - S_m}^{(m)}, \tau_m^2 ), \quad u = 1, \cdots, U_m,\quad v = S_m+1, \cdots, V_m \\ 
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2} \right) \\
-\end{align}
-
-
-### Contribution to posterior density
-
-\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \left( \prod_{u=1}^{U_m} \prod_{v=1}^{S_m} \text{N}(\beta_{uv}^{(m)} \mid 0, 1 ) \right)  \left( \prod_{u=1}^{U_M} \prod_{v=S_m+1}^{V_m} \text{N}(\beta_{uv}^{(m)} \mid \beta_{u,v-S_m}^{(m)}, \tau_m^2) \right) 
-\end{equation}
-
-### Forecasting
-
-\begin{equation}
-  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-S_m}^{(m)}, \tau_m^2)
-\end{equation}
-
-### Code
-
-```
-ESeas(n, s = 1)
-```
-
-- `n` is $S_m$
-- `s` is $A_{\tau}^{(m)}$
 
 
 # Covariates {#sec:pr-cov}
@@ -849,6 +789,25 @@ and setting
 Next we convert any transformed hyper-parameters back to the original units, and insert values for $\pmb{\beta}^{(m)}$ for terms that have Known priors. We denote the resulting vector $\pmb{\theta}$.
 
 Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Section \@ref(sec:lik).
+
+
+## Standardization {#sec:standard}
+
+NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
+
+Although the sum $\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}$ is well identified by the data, the individual $\pmb{\beta}^{(m)}$ are not. When reporting estimated $\pmb{\beta}^{(m)}$, we standardize. The standarization algorithm is as follows.
+
+Set
+\begin{equation}
+  \pmb{r}^{(0)} = \pmb{\mu}
+\end{equation}
+
+For $m = 0, \cdots, M$:
+
+- Set $\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}$
+- Set $\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}$
+
+TODO - describe derivaition of components within LinAR, RWSeas, RW2Seas.
 
 # Simulation
 
