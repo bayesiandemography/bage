@@ -25,8 +25,64 @@ Object of class \code{"bage_prior_rwseasvary"}
 or \code{"bage_prior_rwseasfix"}.
 }
 \description{
-TODO - NEED TO FINISH THIS
+Prior for a main effect or interaction,
+typically involving time. Combines
+a random walk with a seasonal effect.
 }
+\details{
+If \code{RWSeas()} is used with an interaction,
+then separate series are used for
+the "along" variable within
+each combination of the
+"by" variables.
+
+Argument \code{s} controls the size of innovations. Smaller values
+for \code{s} tend to give smoother series.
+
+Argument \code{n} controls the number of \code{seasons}. For instance,
+when using quarterly data, \code{n} should be \code{4}, and when using
+monthly data, \code{n} should be \code{12}.
+
+The default is for the magnitude of seasonal effects
+to evolve over time. However, setting the \code{s_seas} argument
+to \code{0} gives seasonal effects that are "fixed", ie that
+are the same every year.
+}
+\section{Mathematical details}{
+
+
+When \code{RWSeas()} is used with a main effect,
+
+\deqn{\beta_j = \beta_{j-1} + \lambda_j + \epsilon_j}
+\deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+
+and when it is used with an interaction,
+
+\deqn{\beta_{u,v} = \beta_{u,v-1} + \lambda_{u,v} + \epsilon_{u,v}}
+\deqn{\lambda_{u,v} \sim \text{N}(\epsilon_{u,v-n}, \omega_{u,v})}
+\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+
+where
+\itemize{
+\item \eqn{\pmb{\beta}} is the main effect or interaction;
+\item \eqn{\lambda_j} and \eqn{\lambda_{u,v}} are seasonal effects;
+\item \eqn{j} denotes position within the main effect;
+\item \eqn{v} denotes position within the "along" variable of the interaction;
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+\item \eqn{n} is the number of seasons.
+}
+
+Parameter \eqn{\omega} has a half-normal prior
+\deqn{\omega \sim \text{N}^+(0, \text{s_seas}^2),}
+where \code{s_seas} is provided by the user. If
+\code{s_seas} is set to 0, then \eqn{\omega} is 0,
+and the seasonal effects are fixed over time.
+
+Parameter \eqn{\tau} has a half-normal prior
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+where \code{s} is provided by the user.
+}
+
 \examples{
 RWSeas(n = 4)             ## seasonal effects evolve
 RWSeas(n = 4, s_seas = 0) ## seasonal effects fixed

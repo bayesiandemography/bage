@@ -28,8 +28,8 @@ the "along" variable within
 each combination of the
 "by" variables.
 
-Argument \code{s} controls the size of errors. Smaller values
-for \code{s} tend to give smoother series.
+Argument \code{s} controls the size of innovations.
+Smaller values for \code{s} tend to give smoother series.
 }
 \section{Mathematical details}{
 
