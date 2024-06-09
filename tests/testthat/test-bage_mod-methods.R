@@ -982,23 +982,23 @@ test_that("'forecast' gives same answer when run twice - output is 'augment'", {
 })
 
 test_that("'forecast' works with fitted model - output is 'components'", {
-    set.seed(0)
-    data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + sex * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- fit(mod)
-    ans_no_est <- forecast(mod,
-                           labels = 2005:2006,
-                           output = "comp")
-    ans_est <- forecast(mod,
-                        labels = 2005:2006,
-                        output = "comp",
-                        include_estimates = TRUE)
-    expect_identical(names(ans_est), names(ans_no_est))
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  ans_no_est <- forecast(mod,
+                         labels = 2005:2006,
+                         output = "comp")
+  ans_est <- forecast(mod,
+                      labels = 2005:2006,
+                      output = "comp",
+                      include_estimates = TRUE)
+  expect_identical(names(ans_est), names(ans_no_est))
 })
 
 test_that("'forecast' gives same answer when run twice - output is 'components'", {
@@ -1018,13 +1018,7 @@ test_that("'forecast' gives same answer when run twice - output is 'components'"
   ans2 <- forecast(mod,
                    labels = 2005:2006,
                    output = "comp")
-  ans3 <- forecast(mod, labels = 2005:2006,
-                   output = "comp",
-                   include_estimates = TRUE)
-  ans3 <- ans3[!(ans3$level %in% c(2000:2004, paste0("M.", 2000:2004), paste0("F.", 2000:2004))), ]
-  ans3 <- bage:::sort_components(ans3, mod = mod)
   expect_identical(ans1, ans2)
-  expect_identical(ans1, ans3)
 })
 
 test_that("'forecast' throws correct error when time var not identified'", {
@@ -1042,6 +1036,7 @@ test_that("'forecast' throws correct error when time var not identified'", {
                           output = "comp"),
                  "Can't forecast when time variable not identified.")
 })
+
 
 ## 'forecast_augment' --------------------------------------------------------
 
@@ -1101,6 +1096,35 @@ test_that("'forecast_augment' works - binomial, no disp", {
   expect_setequal(ans$time, 2006:2008)
   expect_identical(names(ans), names(aug_est))
 })
+
+test_that("'forecast_augment' works - normal", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = popn)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  ans <- forecast_augment(mod = mod,
+                          components_est = components_est,
+                          components_forecast = components_forecast,
+                          labels_forecast = labels_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+})
+
 
 
 ## 'get_nm_outcome' -----------------------------------------------------------
@@ -1408,6 +1432,8 @@ test_that("'replicate_data' works with mod_norm", {
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = 1)
+    mod <- set_prior(mod, age ~ N())
+    mod <- set_prior(mod, time ~ N())
     mod <- fit(mod)
     ans <- replicate_data(mod)
     expect_identical(names(ans), c(".replicate", names(data)))

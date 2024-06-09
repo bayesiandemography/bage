@@ -106,7 +106,7 @@ get_matrix_or_offset_svd <- function(ssvd,
   if (type_req == "total")
     i <- match(labels_age_clean, nms_ans)
   else {
-    age_varies_fastest <- grepl("^age", agesex)
+    age_varies_fastest <- startsWith(agesex, "age")
     n_age <- length(labels_age_clean)
     n_sexgender <- length(labels_sexgender_clean)
     if (age_varies_fastest)

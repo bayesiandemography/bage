@@ -442,7 +442,7 @@ test_that("'draw_vals_sd' works", {
 ## draw_vals_sd_seas ---------------------------------------------------------------
 
 test_that("'draw_vals_sd_seas' works", {
-  prior <- RWSeas(n = 2, seas = 0.5)
+  prior <- RWSeas(n = 2, s_seas = 0.5)
   n_sim <- 10
   set.seed(0)
   ans_obtained <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)

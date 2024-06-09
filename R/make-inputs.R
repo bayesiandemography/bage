@@ -565,7 +565,7 @@ make_levels_effect <- function(matrices_effect_outcome) {
 #' and character vectors (for terms forecasted)
 #'
 #' @noRd
-make_levels_forecast <- function(mod, labels_forecast) {
+make_levels_forecast_all <- function(mod, labels_forecast) {
   formula <- mod$formula
   data <- mod$data
   var_time <- mod$var_time
@@ -809,8 +809,8 @@ make_matrices_along_by <- function(formula, data) {
 #' of 'along' and 'by' to Positions
 #' in Main Effects and Interactions for Forecasts
 #'
-#' Only creates matrices for main effects
-#' and interactions that include time
+#' If a term does not include time,
+#' return NULL for that term
 #' (since these are the only terms that are
 #' expanded during forecasting.)
 #'
@@ -847,9 +847,9 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
         dimnames <- lapply(data_term, unique)
         dimnames[[i_time]] <- labels_forecast
         dim <- lengths(dimnames)
-        ans[[i_term + 1L]] <- make_matrix_along_by(i_along = i_time,
-                                                   dim = dim,
-                                                   dimnames = dimnames)
+        ans_terms[[i_term]] <- make_matrix_along_by(i_along = i_time,
+                                                    dim = dim,
+                                                    dimnames = dimnames)
       }
     }
     names(ans_terms) <- nms_terms

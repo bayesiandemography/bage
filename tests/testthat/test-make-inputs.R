@@ -786,9 +786,9 @@ test_that("'make_levels_effect' works with valid inputs - norm", {
 })
 
 
-## 'make_levels_forecast' -----------------------------------------------------
+## 'make_levels_forecast_all' -------------------------------------------------
 
-test_that("'make_levels_forecast' works with single time dimension", {
+test_that("'make_levels_forecast_all' works with single time dimension", {
   set.seed(0)
   data <- expand.grid(age = 0:2,
                       time = 2000:2005,
@@ -798,7 +798,7 @@ test_that("'make_levels_forecast' works with single time dimension", {
   mod <- mod_pois(deaths ~ age + sex + time,
                   data = data,
                   exposure = popn)
-  ans_obtained <- make_levels_forecast(mod, labels_forecast = 2006:2007)
+  ans_obtained <- make_levels_forecast_all(mod, labels_forecast = 2006:2007)
   ans_expected <- list("(Intercept)" = NULL,
                        age = NULL,
                        sex = NULL,
@@ -806,7 +806,7 @@ test_that("'make_levels_forecast' works with single time dimension", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_forecast' works with single time dimension", {
+test_that("'make_levels_forecast_all' works with single time dimension", {
   set.seed(0)
   data <- expand.grid(age = 0:2,
                       time = 2000:2005,
@@ -816,7 +816,7 @@ test_that("'make_levels_forecast' works with single time dimension", {
   mod <- mod_pois(deaths ~ age + sex * time,
                   data = data,
                   exposure = popn)
-  ans_obtained <- make_levels_forecast(mod, labels_forecast = 2006:2007)
+  ans_obtained <- make_levels_forecast_all(mod, labels_forecast = 2006:2007)
   ans_expected <- list("(Intercept)" = NULL,
                        age = NULL,
                        sex = NULL,
@@ -1083,6 +1083,36 @@ test_that("'make_matrices_along_by' works with valid inputs", {
                                           sex = t(agesex)),
                          "age:time" = list(age = agetime,
                                            time = t(agetime)))
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_matrices_along_by_forecast' ------------------------------------------
+
+test_that("'make_matrices_along_by_forecast' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 1:2,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex  + age * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_matrices_along_by_forecast(mod = mod,
+                                                    labels_forecast = 3:4)
+    time <- matrix(0:1, nr = 2)
+    rownames(time) <- 3:4
+    names(dimnames(time)) <- "time"
+    agetime <- t(matrix(0:19, nr = 10))
+    dimnames(agetime) <- list(time = 3:4, age = 0:9)
+    ans_expected <- list("(Intercept)" = NULL,
+                         age = NULL,
+                         sex = NULL,
+                         time = time,
+                         "age:sex" = NULL,
+                         "age:time" = agetime)
     expect_identical(ans_obtained, ans_expected)
 })
 
