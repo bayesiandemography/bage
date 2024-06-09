@@ -657,8 +657,12 @@ RW <- function(s = 1, along = NULL) {
 }
 
 
+## HAS_TESTS
 #' Random Walk with Seasonal Effect
 #'
+#' TODO - NEED TO FINISH THIS
+#'
+#' @inheritParams AR
 #' @param n Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
@@ -670,9 +674,9 @@ RW <- function(s = 1, along = NULL) {
 #' or `"bage_prior_rwseasfix"`.
 #'
 #' @examples
-#' RWSeas(n = 4)           ## seasonal effects evolve
-#' RWSeas(n = 4, a = 0) ## seasonal effects fixed
-
+#' RWSeas(n = 4)             ## seasonal effects evolve
+#' RWSeas(n = 4, s_seas = 0) ## seasonal effects fixed
+#' @export
 RWSeas <- function(n, s = 1, s_seas = 1, along = NULL) {
   check_n(n = n,
           nm_n = "n",
@@ -697,7 +701,6 @@ RWSeas <- function(n, s = 1, s_seas = 1, along = NULL) {
                              along = along)
 }
   
-
 
 ## HAS_TESTS
 #' Random Walk with Drift Prior

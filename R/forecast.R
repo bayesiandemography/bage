@@ -1,9 +1,8 @@
 
-
-## NO_TESTS
-#' Estimate a Line
+## HAS_TESTS
+#' Estimate Values on a Line or Lines
 #'
-#' @param slope Slope of line.
+#' @param slope Slope(s) of line(s). An rvec.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estiamtes
 #'
@@ -17,216 +16,14 @@ estimate_lin <- function(slope,
   ans <- rep(slope[[1L]], times = n_along * n_by)
   q <- seq(from = -1, to = 1, length.out = n_along)
   for (i_by in seq_len(n_by)) {
-    tmp <- mean = slope[i_by] * q
     i_ans <- matrix_along_by_est[, i_by] + 1L
-    ans[i_ans] <- tmp
+    ans[i_ans] <- slope[i_by] * q
   }
-  ans
-}
-
-
-#' Forecast Contents of 'components'
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param components_est Tibble with results
-#' of call to 'components'.
-#' @param labels_forecast Vector
-#' with labels for future time periods
-#' @param include_non_time_varying Whether to
-#' include forecasts for non-time-varying
-#' parameters in results.
-#'
-#' @returns A tibble or NULL
-#'
-#' @noRd
-forecast_components <- function(mod,
-                                components_est,
-                                labels_forecast) {
-  is_hyper <- components_est$component == "hyper"
-  is_effect <- components_est$component == "effect"
-  hypers_est <- components_est[is_hyper, ]
-  effects_est <- components_est[is_effect, ]
-  hypers_forecast <- forecast_hypers(mod = mod,
-                                     hypers_est = hypers_est,
-                                     labels_forecast = labels_forecast)
-  effects_forecast <- forecast_effects(mod = mod,
-                                       hypers_est = hypers_est,
-                                       hypers_forecast = hypers_forecast,
-                                       effects_est = effects_est,
-                                       labels_forecast = labels_forecast)
-  time_varying <- vctrs::vec_rbind(hypers_forecast,
-                                   effects_forecast,
-                                   .name_repair = "universal_quiet")
-  is_time_varying <- make_is_time_varying(term = components_est$term,
-                                          level = components_est$level,
-                                          var_time = mod$var_time)
-  non_time_varying <- components_est[!is_time_varying, ]
-  ans <- vctrs::vec_rbind(time_varying,
-                          non_time_varying,
-                          .name_repair = "universal_quiet")
-  ans <- sort_components(components = ans,
-                         mod = mod)
   ans
 }
 
 
 ## HAS_TESTS
-#' Forecast Time-Varying Main Effects and Interactions
-#'
-#' Returns NULL if no terms involving time are present
-#' in the model.
-#' 
-#' @param mod Object of class 'bage_mod'
-#' @param hypers_est Tibble with estimates
-#' for hyper-parameters, obtained from
-#' call to 'components'
-#' @param hypers_forecast Tibble with estimates
-#' for hyper-parameters, obtained from
-#' call to 'components'
-#' @param effects_est Estimates for terms
-#' @param labels_forecast Vector
-#' with labels for future time periods
-#'
-#' @returns A tibble or NULL
-#'
-#' @noRd
-forecast_effects <- function(mod,
-                             hypers_est,
-                             hypers_forecast,
-                             effects_est,
-                             labels_forecast) {
-  priors <- mod$priors
-  var_time <- mod$var_time
-  nms_priors <- names(priors)
-  n_prior <- length(nms_priors)
-  matrices_along_by_est <- choose_matrices_along_by(mod)
-  matrices_along_by_forecast <- make_matrices_along_by_forecast(
-    mod = mod,
-    labels_forecast = labels_forecast
-  )
-  levels_forecast <- make_levels_forecast(mod = mod,
-                                          labels_forecast = labels_forecast)
-  has_hypers_est <- !is.null(hypers_est) && (nrow(hypers_est) > 0L)
-  if (has_hypers_est) {
-    hypers_est <- vctrs::vec_split(x = hypers_est,
-                                   by = hypers_est["term"])
-    nms_hypers_est <- hypers_est$key$term
-    hypers_est <- hypers_est$val
-  }
-  else
-    nms_hypers_est <- character()
-  has_hypers_forecast <- !is.null(hypers_forecast) && (nrow(hypers_forecast) > 0L)
-  if (has_hypers_forecast) {
-    hypers_forecast <- vctrs::vec_split(x = hypers_forecast,
-                                        by = hypers_forecast["term"])
-    nms_hypers_forecast <- hypers_forecast$key$term
-    hypers_forecast <- hypers_forecast$val
-  }
-  else
-    nms_hypers_forecast <- character()
-  effects_est <- vctrs::vec_split(x = effects_est,
-                                  by = effects_est["term"])
-  nms_effects_est <- effects_est$key$term
-  effects_est <- effects_est$val
-  ans <- rep(list(NULL), times = n_prior)
-  for (i_prior in seq_len(n_prior)) {
-    nm_prior <- nms_priors[[i_prior]]
-    nm_prior_split <- strsplit(nm_prior, split = ":")[[1L]]
-    term_involves_time <- var_time %in% nm_prior_split
-    if (term_involves_time) {
-      prior <- priors[[i_prior]]
-      i_hyper_est <- match(nm_prior, nms_hypers_est, nomatch = 0L)
-      if (i_hyper_est > 0L)
-        hyper_est <- hypers_est[[i_hyper_est]]
-      else
-        hyper_est <- NULL
-      i_hyper_forecast <- match(nm_prior, nms_hypers_forecast, nomatch = 0L)
-      if (i_hyper_forecast > 0L)
-        hyper_forecast <- hypers_forecast[[i_hyper_forecast]]
-      else
-        hyper_forecast <- NULL
-      effect_forecast <- forecast_effect(
-        prior = prior,
-        nm_prior = nm_prior,
-        hyper_est = hyper_est,
-        hyper_forecast = hyper_forecast,
-        effect_est = effects_est[[i_prior]],
-        matrix_along_by_est = matrices_along_by_est[[i_prior]],
-        matrix_along_by_forecast = matrices_along_by_forecast[[i_prior]],
-        levels_forecast = levels_forecast[[i_prior]]
-      )
-      ans[[i_prior]] <- effect_forecast
-    }
-  }
-  is_null <- vapply(ans, is.null, TRUE)
-  if (all(is_null))
-    cli::cli_abort("Internal error: No effects forecasted.") ## nocov
-  else
-    vctrs::vec_rbind(!!!ans)
-}
-
-
-
-## HAS_TESTS 
-#' Forecast Time-Varying Hyper-Parameters
-#' for Main Effects and Interactions
-#'
-#' Includes hyperrand.
-#'
-#' Returns NULL if no hyper-parameters are forecast.
-#' 
-#' @param mod Object of class 'bage_mod'
-#' @param hypers_est Tibble with estimates
-#' for hyper-parameters, obtained from
-#' call to 'components'
-#' @param labels_forecast Vector
-#' with labels for future time periods
-#'
-#' @returns A tibble or NULL
-#'
-#' @noRd
-forecast_hypers <- function(mod,
-                            hypers_est,
-                            labels_forecast) {
-  has_hypers_est <- !is.null(hypers_est) && (nrow(hypers_est) > 0L)
-  if (!has_hypers_est)
-    return(NULL)
-  priors <- mod$priors
-  var_time <- mod$var_time
-  nms_priors <- names(priors)
-  n_prior <- length(nms_priors)
-  levels_forecast <- make_levels_forecast(mod = mod,
-                                          labels_forecast = labels_forecast)
-  hypers_est <- vctrs::vec_split(x = hypers_est,
-                                 by = hypers_est["term"])
-  nms_hypers <- hypers_est$key$term
-  hypers_est <- hypers_est$val
-  ans <- rep(list(NULL), times = n_prior)
-  for (i_prior in seq_len(n_prior)) {
-    nm_prior <- nms_priors[[i_prior]]
-    i_hyper <- match(nm_prior, nms_hypers, nomatch = 0L)
-    if (i_hyper > 0L) {
-      nm_prior_split <- strsplit(nm_prior, split = ":")[[1L]]
-      term_involves_time <- var_time %in% nm_prior_split
-      if (term_involves_time) {
-        prior <- priors[[i_prior]]
-        hyper_est <- hypers_est[[i_hyper]]
-        hyper_forecast <- forecast_hyper(prior = prior,
-                                         hyper_est = hyper_est,
-                                         levels_forecast = levels_forecast[[i_prior]])
-        ans[[i_hyper]] <- hyper_forecast
-      }
-    }
-  }
-  is_null <- vapply(ans, is.null, TRUE)
-  if (all(is_null))
-    NULL
-  else
-    vctrs::vec_rbind(!!!ans)  ## nocov - no priors currently have time-varying hyper
-}
-
-
-## NO_TESTS
 #' Forecast an AR Process
 #'
 #' @param ar_est Historical estimates. An rvec.
@@ -249,13 +46,13 @@ forecast_ar <- function(ar_est,
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
-  ans <- rep(rw_est[[1L]], times = n_along_forecast * n_by)
-  tmp <- rep(rw_est[[1L]], times = n_along_forecast + n_ar)
+  ans <- rep(ar_est[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(ar_est[[1L]], times = n_along_forecast + n_ar)
   s_head <- seq_len(n_ar)
   s_tail <- seq(to = n_along_est, length.out = n_ar)
   for (i_by in seq_len(n_by)) {
     i_tail <- matrix_along_by_est[s_tail, i_by] + 1L ## matrix uses 0-based index
-    tmp[s_head] <- effect_est$.fitted[i_tail]
+    tmp[s_head] <- ar_est[i_tail]
     for (j in seq_len(n_along_forecast)) {
       s_ar <- seq(from = j, to = j + n_ar - 1L)
       mean <- sum(coef * tmp[s_ar])
@@ -268,10 +65,48 @@ forecast_ar <- function(ar_est,
 }
 
 
-## NO_TESTS
-#' Forecast a Line
+## HAS_TESTS
+#' Forecast Time-Varying Effects in 'components'
 #'
-#' @param slope Slope of line.
+#' @param mod Object of class 'bage_mod'
+#' @param components_est Tibble with results
+#' of call to 'components'.
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns A tibble
+#'
+#' @noRd
+forecast_components <- function(mod,
+                                components_est,
+                                labels_forecast) {
+  priors <- mod$priors
+  var_time <- mod$var_time
+  nms_priors <- names(priors)
+  matrices_along_by_est <- choose_matrices_along_by(mod)
+  matrices_along_by_forecast <- make_matrices_along_by_forecast(mod = mod,
+                                                                labels_forecast = labels_forecast)
+  levels_forecast_all <- make_levels_forecast_all(mod = mod,
+                                                  labels_forecast = labels_forecast)
+  is_time_varying_one <- function(nm) var_time %in% strsplit(nm, split = ":")[[1L]]
+  is_time_varying <- vapply(nms_priors, is_time_varying_one, TRUE)
+  ans <- .mapply(forecast_term,
+                 dots = list(prior = priors[is_time_varying],
+                             nm_prior = nms_priors[is_time_varying],
+                             matrix_along_by_est = matrices_along_by_est[is_time_varying],
+                             matrix_along_by_forecast = matrices_along_by_forecast[is_time_varying],
+                             levels_forecast = levels_forecast_all[is_time_varying]),
+                 MoreArgs = list(components = components_est))
+  ans <- vctrs::vec_rbind(!!!ans)
+  ans <- sort_components(ans, mod = mod)
+  ans
+}
+
+
+## HAS_TESTS
+#' Forecast Line or Lines
+#'
+#' @param slope Slope of line(s).
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estiamtes
 #' @param matrix_along_by_forecast Matrix mapping
@@ -286,20 +121,19 @@ forecast_lin <- function(slope,
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
-  ans <- rep(rw_est[[1L]], times = n_along_forecast * n_by)
+  ans <- rep(slope[[1L]], times = n_along_forecast * n_by)
   incr_q <- 2 / (n_along_est - 1)
   q <- seq(from = 1 + incr_q,
            by = incr_q,
            length.out = n_along_forecast)
   for (i_by in seq_len(n_by)) {
-    tmp <- slope[i_by] * q
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
-    ans[i_ans] <- tmp
+    ans[i_ans] <- slope[i_by] * q
   }
   ans
 }
 
-## NO_TESTS
+## HAS_TESTS
 #' Forecast Normal Distribution
 #'
 #' @param sd Standard deviation. An rvec of length 1.
@@ -351,11 +185,50 @@ forecast_rw <- function(rw_est,
 
 
 ## HAS_TESTS
+#' Forecast a Second Order Random Walk
+#'
+#' @param rw2_est Historical estimates. An rvec.
+#' @param sd Standard deviation for RW model. An rvec of length 1.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estiamtes
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_rw2 <- function(rw2_est,
+                         sd,
+                         matrix_along_by_est,
+                         matrix_along_by_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)  
+  ans <- rep(rw2_est[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(rw2_est[[1L]], times = n_along_forecast + 2L)
+  for (i_by in seq_len(n_by)) {
+    i_last <- matrix_along_by_est[n_along_est, i_by] + 1L
+    i_second_last <- matrix_along_by_est[n_along_est - 1L, i_by] + 1L
+    tmp[[2L]] <- rw2_est[[i_last]]
+    tmp[[1L]] <- rw2_est[[i_second_last]]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + 2L]] <- rvec::rnorm_rvec(n = 1L,
+                                        mean = 2 * tmp[[j + 1L]] - tmp[[j]],
+                                        sd = sd)
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-(1:2)]
+  }
+  ans
+}
+
+
+## HAS_TESTS
 #' Forecast Fixed Seasonal Effects
 #'
 #' Use first 'n_season' entries from historical
 #' estimates, within each combination of 'by' variables
 #'
+#' @param n Number of seasons.
 #' @param seas_est Historical estimates. An rvec.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estiamtes
@@ -365,27 +238,33 @@ forecast_rw <- function(rw_est,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_seasfix <- function(seas_est,
+forecast_seasfix <- function(n,
+                             seas_est,
                              matrix_along_by_est,
                              matrix_along_by_forecast) {
-  n_season <- prior$specific$n
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   ans <- rep(seas_est[[1L]], times = n_along_forecast * n_by)
+  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n)
+  s_head <- seq_len(n)
+  s_tail <- seq.int(to = n_along_est, length.out = n)
   for (i_by in seq_len(n_by)) {
-    for (i_along in seq_len(n_along_forecast)) {
-      i_ans = matrix_along_by_forecast[i_along, i_by] + 1L
-      i_seas = (i_along + n_along_est - 1L) %% n_season + (i_by - 1L) * n_along_est + 1L
-      ans[i_ans] <- seas_est[i_seas]
-    }
+    i_tail <- matrix_along_by_est[s_tail, i_by] + 1L
+    tmp[s_head] <- seas_est[i_tail]
+    for (j in seq_len(n_along_forecast))
+      tmp[[j + n]] <- tmp[[j]]
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- tmp[-s_head]
   }
   ans
 }
 
+
 ## HAS_TESTS
 #' Forecast Time-Varying Seasonal Effects
 #'
+#' @param n Number of seasons.
 #' @param seas_est Historical estimates. An rvec.
 #' @param sd Standard deviation for seasonal effects. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
@@ -396,23 +275,23 @@ forecast_seasfix <- function(seas_est,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_seasvary <- function(seas_est,
+forecast_seasvary <- function(n,
+                              seas_est,
                               sd,
                               matrix_along_by_est,
                               matrix_along_by_forecast) {
-  n_seas <- prior$specific$n
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   ans <- rep(seas_est[[1L]], times = n_along_forecast * n_by)
-  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n_seas)
-  s_head <- seq_len(n_seas)
-  s_tail <- seq.int(to = n_along_est, length.out = n_seas)
+  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n)
+  s_head <- seq_len(n)
+  s_tail <- seq.int(to = n_along_est, length.out = n)
   for (i_by in seq_len(n_by)) {
     i_tail <- matrix_along_by_est[s_tail, i_by] + 1L
     tmp[s_head] <- seas_est[i_tail]
     for (j in seq_len(n_along_forecast))
-      tmp[[j + n_seas]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+      tmp[[j + n]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
     ans[i_ans] <- tmp[-s_head]
   }

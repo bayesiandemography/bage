@@ -106,6 +106,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
       s <- seq_len(n_draw)
       mod$draws_linpred <- mod$draws_linpred[, s, drop = FALSE] 
       mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
+      mod$draws_hyperrand <- mod$draws_hyperrand[, s, drop = FALSE]
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
     }
@@ -470,6 +471,7 @@ unfit <- function(mod) {
     mod["scaled_eigen"] <- list(NULL)
     mod["draws_linpred"] <- list(NULL)
     mod["draws_hyper"] <- list(NULL)
+    mod["draws_hyperrand"] <- list(NULL)
     mod["draws_disp"] <- list(NULL)
     mod
 }

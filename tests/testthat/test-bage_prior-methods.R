@@ -636,7 +636,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
                                       matrix_along_by = matrix_along_by,
                                       n_sim = n_sim)
   set.seed(1)
-  ans_expected <- list(s_seas = draw_vals_seasfix(n = 2,
+  ans_expected <- list(seas = draw_vals_seasfix(n = 2,
                                                 matrix_along_by = matrix_along_by,
                                                 n_sim = n_sim))
   expect_identical(ans_obtained, ans_expected)
@@ -661,68 +661,66 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-## forecast_effect ------------------------------------------------------------
 
-test_that("'forecast_effect' gives correct error with prior for which method does not exist", {
+
+## forecast_term ------------------------------------------------------------
+
+test_that("'forecast_term' raises error with time-varying term for which method does not exist", {
   set.seed(0)
   prior <- Known(value = 1:5)
-  effect_est <- tibble::tibble(term = "year",
+  components <- tibble::tibble(term = "year",
                                component = "effect",
                                level = letters[1:5],
                                .fitted = c(-2, -1, 0, 1, 2))
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
-  expect_error(forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  NULL,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                               levels_forecast = levels_forecast),
-               "Can't forecast term \"year\".")
+  expect_error(forecast_term(prior = prior,
+                             nm_prior = "year",
+                             components = components,
+                             matrix_along_by_est = matrix_along_by_est,
+                             matrix_along_by_forecast = matrix_along_by_forecast,
+                             levels_forecast = levels_forecast),
+               "Can't forecast term \"year\"")
 })
 
-test_that("'forecast_effect' works with bage_prior_ar - n_by = 1", {
+test_that("'forecast_term' works with bage_prior_ar", {
   set.seed(0)
   prior <- AR(n = 3)
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = c("coef", "coef", "coef", "sd"),
-                              .fitted = rvec::runif_rvec(n = 4, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = letters[1:5],
-                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("coef", "coef", "coef", "sd"),
+                                                .fitted = rvec::runif_rvec(n = 4, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year",
                                  component = "effect",
                                  level = letters[6:11])
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
-  coef <- hyper_est$.fitted[hyper_est$level == "coef"]
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  coef <- components$.fitted[components$level == "coef"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * effect_est$.fitted[3:5]),
+                                              mean = sum(coef * components$.fitted[4 + 3:5]),
                                               sd = sd)
   ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(effect_est$.fitted[4:5],
+                                              mean = sum(coef * c(components$.fitted[4 + 4:5],
                                                                   ans_expected$.fitted[1])),
                                               sd = sd)
   ans_expected$.fitted[3] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(effect_est$.fitted[5],
+                                              mean = sum(coef * c(components$.fitted[4 + 5],
                                                                   ans_expected$.fitted[1:2])),
                                               sd = sd)
   ans_expected$.fitted[4] <- rvec::rnorm_rvec(n = 1,
@@ -737,195 +735,79 @@ test_that("'forecast_effect' works with bage_prior_ar - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_ar - n_by = 2", {
+test_that("'forecast_term' works with bage_prior_lin", {
   set.seed(0)
-  prior <- AR(n = 2)
-  hyper_est <- tibble::tibble(term = "year:reg",
-                              component = "hyper",
-                              level = c("coef", "coef", "sd"),
-                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year:reg",
-                               component = "effect",
-                               level = letters[1:10],
-                               .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10))
+  prior <- Lin()
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = c("slope", "slope", "sd"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = letters[1:10],
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
   matrix_along_by_est <- matrix(0:9, nr = 5)
   matrix_along_by_forecast <- matrix(0:11, nr = 6)
   levels_forecast <- letters[11:22]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year:reg",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year:reg",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year:reg",
                                  component = "effect",
                                  level = letters[11:22])
-  ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
-  coef <- hyper_est$.fitted[hyper_est$level == "coef"]
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
-  set.seed(1)
-  ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * effect_est$.fitted[4:5]),
-                                              sd = sd)
-  ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(effect_est$.fitted[5],
-                                                                  ans_expected$.fitted[1])),
-                                              sd = sd)
-  ans_expected$.fitted[3] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[1:2]),
-                                              sd = sd)
-  ans_expected$.fitted[4] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[2:3]),
-                                              sd = sd)
-  ans_expected$.fitted[5] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[3:4]),
-                                              sd = sd)
-  ans_expected$.fitted[6] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[4:5]),
-                                              sd = sd)
-  ans_expected$.fitted[7] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * effect_est$.fitted[9:10]),
-                                              sd = sd)
-  ans_expected$.fitted[8] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(effect_est$.fitted[10],
-                                                                  ans_expected$.fitted[7])),
-                                              sd = sd)
-  ans_expected$.fitted[9] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[7:8]),
-                                              sd = sd)
-  ans_expected$.fitted[10] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[8:9]),
-                                              sd = sd)
-  ans_expected$.fitted[11] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[9:10]),
-                                              sd = sd)
-  ans_expected$.fitted[12] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[10:11]),
-                                              sd = sd)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'forecast_effect' works with bage_prior_lin - n = 2", {
-  set.seed(0)
-  prior <- Lin()
-  hyper_est <- tibble::tibble(term = "year:reg",
-                              component = "hyper",
-                              level = c("slope", "slope", "sd"),
-                              .fitted = rvec::runif_rvec(n = 3, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year:reg",
-                               component = "effect",
-                               level = letters[1:10],
-                               .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10))
-  matrix_along_by_est <- matrix(0:9, nr = 5)
-  matrix_along_by_forecast <- matrix(0:11, nr = 6)
-  levels_forecast <- letters[11:22]
-  set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year:reg",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
-  ans_expected <- tibble::tibble(term = "year:reg",
-                                 component = "effect",
-                                 level = letters[11:22])
-  ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
-  slope <- hyper_est$.fitted[hyper_est$level == "slope"]
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  slope <- components$.fitted[components$level == "slope"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   q <- seq(from = 1.5, by = 0.5, length.out = 6)
-  ans_expected$.fitted[1:6] <- rvec::rnorm_rvec(n = 6,
-                                                mean = q * slope[1],
-                                                sd = sd)
-  ans_expected$.fitted[7:12] <- rvec::rnorm_rvec(n = 6,
-                                                 mean = q * slope[2],
-                                                 sd = sd)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'forecast_effect' works with bage_prior_lin - n_by = 1", {
-  set.seed(0)
-  prior <- Lin()
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = c("slope", "sd"),
-                              .fitted = rvec::runif_rvec(n = 2, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = letters[1:5],
-                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
-  matrix_along_by_est <- matrix(0:4, nr = 5)
-  matrix_along_by_forecast <- matrix(0:5, nr = 6)
-  levels_forecast <- letters[6:11]
-  set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
-  ans_expected <- tibble::tibble(term = "year",
-                                 component = "effect",
-                                 level = letters[6:11])
-  ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
-  slope <- hyper_est$.fitted[hyper_est$level == "slope"]
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
-  q <- seq(from = 1.5, by = 0.5, length.out = 6)
-  set.seed(1)
-  ans_expected$.fitted <- rvec::rnorm_rvec(n = 6,
-                                           mean = q * slope,
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 12,
+                                           mean = c(q * slope[1], q * slope[2]),
                                            sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_linar - n__by = 1", {
+test_that("'forecast_term' works with bage_prior_linar - n__by = 1", {
   set.seed(0)
   prior <- LinAR()
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = c("slope", "sd", "coef1", "coef2"),
-                              .fitted = rvec::runif_rvec(n = 4, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = letters[1:5],
-                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("slope", "sd", "coef1", "coef2"),
+                                                .fitted = rvec::runif_rvec(n = 4, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year",
                                  component = "effect",
                                  level = letters[6:11])
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
-  slope <- hyper_est$.fitted[hyper_est$level == "slope"]
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
-  coef <- hyper_est$.fitted[hyper_est$level %in% c("coef1", "coef2")]
+  slope <- components$.fitted[components$level == "slope"]
+  sd <- components$.fitted[components$level == "sd"]
+  coef <- components$.fitted[components$level %in% c("coef1", "coef2")]
   q_est <- seq(from = -1, by = 0.5, to = 1)
   q_forecast <- seq(from = 1.5, by = 0.5, length.out = 6)
   set.seed(1)
   ans_expected$.fitted[1] <-
     rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * (effect_est$.fitted[4:5] - slope * q_est[4:5])) +
+                     mean = sum(coef * (components$.fitted[4 + 4:5] - slope * q_est[4:5])) +
                        slope * q_forecast[1],
                      sd = sd)
   ans_expected$.fitted[2] <-
     rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * c(effect_est$.fitted[5] - slope * q_est[5],
+                     mean = sum(coef * c(components$.fitted[4 + 5] - slope * q_est[5],
                                          ans_expected$.fitted[1] - slope * q_forecast[1]))+
                        slope * q_forecast[2],
                      sd = sd)
@@ -952,43 +834,40 @@ test_that("'forecast_effect' works with bage_prior_linar - n__by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_norm", {
+test_that("'forecast_term' works with bage_prior_norm", {
   set.seed(0)
   prior <- N()
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = "sd",
-                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = letters[1:5],
-                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year",
                                  component = "effect",
                                  level = letters[6:11])
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, mean = 0, sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_normfixed", {
+test_that("'forecast_term' works with bage_prior_normfixed", {
   set.seed(0)
   prior <- NFix()
-  hyper_est <- NULL
-  effect_est <- tibble::tibble(term = "year",
+  components <- tibble::tibble(term = "year",
                                component = "effect",
                                level = letters[1:5],
                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
@@ -996,14 +875,12 @@ test_that("'forecast_effect' works with bage_prior_normfixed", {
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year",
                                  component = "effect",
                                  level = letters[6:11])
@@ -1012,37 +889,35 @@ test_that("'forecast_effect' works with bage_prior_normfixed", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_rw - n_by = 1", {
+test_that("'forecast_term' works with bage_prior_rw - n_by = 1", {
   set.seed(0)
   prior <- RW()
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = "sd",
-                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = letters[1:5],
-                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year",
                                  component = "effect",
                                  level = letters[6:11])
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = effect_est$.fitted[5],
+                                              mean = components$.fitted[6],
                                               sd = sd)
   for (i in 2:6)
     ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
@@ -1051,44 +926,42 @@ test_that("'forecast_effect' works with bage_prior_rw - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_rw - n_by = 2", {
+test_that("'forecast_term' works with bage_prior_rw - n_by = 2", {
   set.seed(0)
   prior <- RW()
-  hyper_est <- tibble::tibble(term = "year:reg",
-                              component = "hyper",
-                              level = "sd",
-                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year:reg",
-                               component = "effect",
-                               level = letters[1:10],
-                               .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = letters[1:10],
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
   matrix_along_by_est <- matrix(0:9, nr = 5)
   matrix_along_by_forecast <- matrix(0:11, nr = 6)
   levels_forecast <- letters[11:22]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year:reg",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year:reg",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year:reg",
                                  component = "effect",
                                  level = letters[11:22])
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = effect_est$.fitted[5],
+                                              mean = components$.fitted[1 + 5],
                                               sd = sd)
   for (i in 2:6)
     ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
                                                 mean = ans_expected$.fitted[i-1],
                                                 sd = sd)
   ans_expected$.fitted[7] <- rvec::rnorm_rvec(n = 1,
-                                              mean = effect_est$.fitted[10],
+                                              mean = components$.fitted[1 + 10],
                                               sd = sd)
   for (i in 8:12)
     ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
@@ -1097,41 +970,154 @@ test_that("'forecast_effect' works with bage_prior_rw - n_by = 2", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_rw2 - n_by = 1", {
+test_that("'forecast_term' works with bage_prior_rwseasfix", {
   set.seed(0)
-  prior <- RW2()
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = "sd",
-                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year",
-                               component = "effect",
-                               level = letters[1:5],
-                               .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10))
+  prior <- RWSeas(n = 2, s_seas = 0)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "seasonal",
+                                                level = letters[1:5],
+                                                .fitted = rep(rvec::rnorm_rvec(n = 2, n_draw = 10),
+                                                              length.out = 5)))
+  trend <- components$.fitted[2:6] - components$.fitted[7:11]
+  components <- vctrs::vec_rbind(components,
+                                 tibble::tibble(term = "year",
+                                                component = "trend",
+                                                level = letters[1:5],
+                                                .fitted = trend))
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   levels_forecast <- letters[6:11]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "seasonal"), each = 6),
+                                 level = rep(letters[6:11], 3))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 18, n_draw = 10)
+  rw_est <- components$.fitted[12:16]
+  rw_forecast <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd <- components$.fitted[[1]]
+  set.seed(1)
+  rw_forecast[1] <- rvec::rnorm_rvec(n = 1, mean = rw_est[5], sd = sd)
+  for (i in 2:6)
+    rw_forecast[i] <- rvec::rnorm_rvec(n = 1, mean = rw_forecast[i-1], sd = sd)
+  ans_expected$.fitted[13] <- components$.fitted[8]
+  ans_expected$.fitted[14] <- components$.fitted[7]
+  ans_expected$.fitted[15] <- components$.fitted[8]
+  ans_expected$.fitted[16] <- components$.fitted[7]
+  ans_expected$.fitted[17] <- components$.fitted[8]
+  ans_expected$.fitted[18] <- components$.fitted[7]
+  effect_forecast <- ans_expected$.fitted[13:18] + rw_forecast
+  ans_expected$.fitted[1:6] <- effect_forecast
+  ans_expected$.fitted[7:12] <- rw_forecast
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term' works with bage_prior_rwseasvary", {
+  set.seed(0)
+  prior <- RWSeas(n = 2)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("sd_seas", "sd"),
+                                                .fitted = rvec::runif_rvec(n = 2, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "seasonal",
+                                                level = letters[1:5],
+                                                .fitted = rep(rvec::rnorm_rvec(n = 2, n_draw = 10),
+                                                              length.out = 5)))
+  trend <- components$.fitted[3:7] - components$.fitted[8:12]
+  components <- vctrs::vec_rbind(components,
+                                 tibble::tibble(term = "year",
+                                                component = "trend",
+                                                level = letters[1:5],
+                                                .fitted = trend))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "seasonal"), each = 6),
+                                 level = rep(letters[6:11], 3))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 18, n_draw = 10)
+  rw_est <- components$.fitted[13:17]
+  rw_forecast <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_seas <- components$.fitted[[1]]
+  sd <- components$.fitted[[2]]
+  set.seed(1)
+  rw_forecast[1] <- rvec::rnorm_rvec(n = 1, mean = rw_est[5], sd = sd)
+  for (i in 2:6)
+    rw_forecast[i] <- rvec::rnorm_rvec(n = 1, mean = rw_forecast[i-1], sd = sd)
+  ans_expected$.fitted[13] <- rvec::rnorm_rvec(n = 1,
+                                               components$.fitted[11],
+                                               sd = sd_seas)
+  ans_expected$.fitted[14] <- rvec::rnorm_rvec(n = 1,
+                                               components$.fitted[12],
+                                               sd = sd_seas)
+  for (i in 3:6)
+    ans_expected$.fitted[12 + i] <- rvec::rnorm_rvec(n = 1,
+                                                     ans_expected$.fitted[10 + i],
+                                                     sd = sd_seas)
+  effect_forecast <- ans_expected$.fitted[13:18] + rw_forecast
+  ans_expected$.fitted[1:6] <- effect_forecast
+  ans_expected$.fitted[7:12] <- rw_forecast
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term' works with bage_prior_rw2 - n_by = 1", {
+  set.seed(0)
+  prior <- RW2()
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year",
                                  component = "effect",
                                  level = letters[6:11])
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = 2 * effect_est$.fitted[5] - effect_est$.fitted[4],
+                                              mean = 2 * components$.fitted[6] - components$.fitted[5],
                                               sd = sd)
   ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
                                               mean = 2 * ans_expected$.fitted[1] -
-                                                effect_est$.fitted[5],
+                                                components$.fitted[6],
                                               sd = sd)
   for (i in 3:6)
     ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
@@ -1141,41 +1127,39 @@ test_that("'forecast_effect' works with bage_prior_rw2 - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_effect' works with bage_prior_rw2 - n_by = 2", {
+test_that("'forecast_term' works with bage_prior_rw2 - n_by = 2", {
   set.seed(0)
   prior <- RW2()
-  hyper_est <- tibble::tibble(term = "year:reg",
-                              component = "hyper",
-                              level = "sd",
-                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
-  effect_est <- tibble::tibble(term = "year:reg",
-                               component = "effect",
-                               level = letters[1:10],
-                               .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = letters[1:10],
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
   matrix_along_by_est <- matrix(0:9, nr = 5)
   matrix_along_by_forecast <- matrix(0:11, nr = 6)
   levels_forecast <- letters[11:22]
   set.seed(1)
-  ans_obtained <- forecast_effect(prior = prior,
-                                  nm_prior = "year:reg",
-                                  hyper_est =  hyper_est,
-                                  hyper_forecast = NULL,
-                                  effect_est = effect_est,
-                                  matrix_along_by_est = matrix_along_by_est,
-                                  matrix_along_by_forecast = matrix_along_by_forecast,
-                                  levels_forecast = levels_forecast)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year:reg",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
   ans_expected <- tibble::tibble(term = "year:reg",
                                  component = "effect",
                                  level = letters[11:22])
   ans_expected$.fitted <- rvec::rnorm_rvec(n = 12, n_draw = 10)
-  sd <- hyper_est$.fitted[hyper_est$level == "sd"]
+  sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = 2 * effect_est$.fitted[5] - effect_est$.fitted[4],
+                                              mean = 2 * components$.fitted[6] - components$.fitted[5],
                                               sd = sd)
   ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
                                               mean = 2 * ans_expected$.fitted[1] -
-                                                effect_est$.fitted[5],
+                                                components$.fitted[6],
                                               sd = sd)
   for (i in 3:6)
     ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
@@ -1183,12 +1167,12 @@ test_that("'forecast_effect' works with bage_prior_rw2 - n_by = 2", {
                                                   ans_expected$.fitted[i-2],
                                                 sd = sd)
   ans_expected$.fitted[7] <- rvec::rnorm_rvec(n = 1,
-                                              mean = 2 * effect_est$.fitted[10] -
-                                                effect_est$.fitted[9],
+                                              mean = 2 * components$.fitted[11] -
+                                                components$.fitted[10],
                                               sd = sd)
   ans_expected$.fitted[8] <- rvec::rnorm_rvec(n = 1,
                                               mean = 2 * ans_expected$.fitted[7] -
-                                                effect_est$.fitted[10],
+                                                components$.fitted[11],
                                               sd = sd)
   for (i in 9:12)
     ans_expected$.fitted[i] <- rvec::rnorm_rvec(n = 1,
@@ -1196,24 +1180,6 @@ test_that("'forecast_effect' works with bage_prior_rw2 - n_by = 2", {
                                                   ans_expected$.fitted[i-2],
                                                 sd = sd)
   expect_equal(ans_obtained, ans_expected)
-})
-
-
-## forecast_hyper -------------------------------------------------------------
-
-test_that("'forecast_hyper' returns NULL with prior where hyper-parameters not forecast", {
-  set.seed(0)
-  prior <- N()
-  hyper_est <- tibble::tibble(term = "year",
-                              component = "hyper",
-                              level = "sd",
-                              .fitted = rvec::runif_rvec(n = 1, n_draw = 10))
-  levels_forecast = letters[1:5]
-  ans_obtained <- forecast_hyper(prior = prior,
-                                 hyper_est = hyper_est,
-                                 levels_forecast = levels_forecast)
-  ans_expected <- NULL
-  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -1919,7 +1885,7 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age-sex i
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_offset_effectfree_effect' works with bage_prior_esvd - age x reg interaction", {
+test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age x reg interaction", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n = 3)
   levels_effect = c("0-4.a", "0-4.b", "5-9.a", "5-9.b")
@@ -2032,6 +1998,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ RWSeas(n = 3, s_seas = 0)) |>
+                  set_n_draw(n = 10) |>
                   fit(mod)
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
@@ -2050,8 +2017,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas[1:3] <- seas[1:3] - mean(seas[1:3])
-  seas[4:6] <- seas[4:6] - mean(seas[4:6])
+  seas <- center_within_across_by(seas, matrix(0:5, nr = 3))
   seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
   level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
@@ -2066,6 +2032,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
                          .fitted = trend)
   ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
   ans_expected <- vctrs::vec_rbind(ans_expected, seasonal, trend)
+  ## ans_expected <- sort_components(ans_expected, mod = mod)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2098,7 +2065,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- center_within_by(seas, matrix_along_by = matrix_along_by)
+  seas <- center_within_across_by(seas, matrix_along_by = matrix_along_by)
   ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
   ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
   effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
@@ -2140,7 +2107,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- center_within_by(seas, matrix_along_by = matrix_along_by)
+  seas <- center_within_across_by(seas, matrix_along_by = matrix_along_by)
   ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
   ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
   effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
@@ -2160,7 +2127,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
 test_that("'str_call_prior' works with bage_prior_ar - AR1", {
     expect_identical(str_call_prior(AR1()), "AR1()")
     expect_identical(str_call_prior(AR1(min = 0.5)), "AR1(min=0.5)")
-    expect_identical(str_call_prior(AR1(max = 0.95)), "AR1(max=0.95)")
+    expect_identical(str_call_prior(AR1(max = 0.95)),"AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
     expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, along = "age", s = 0.3)),
                      "AR1(min=0.5,max=0.95,s=0.3,along=\"age\")")
@@ -2169,8 +2136,8 @@ test_that("'str_call_prior' works with bage_prior_ar - AR1", {
 test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n = 1)), "AR(n=1)")
     expect_identical(str_call_prior(AR(n = 3, s = 0.3)), "AR(n=3,s=0.3)")
-    expect_identical(str_call_prior(AR(s = 0.3, n = 2)),
-                     "AR(n=2,s=0.3)")
+    expect_identical(str_call_prior(AR(s = 0.3, along = "cohort", n = 2)),
+                     "AR(n=2,s=0.3,along=\"cohort\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -2191,8 +2158,8 @@ test_that("'str_call_prior' works with bage_prior_linar - AR format", {
     expect_identical(str_call_prior(LinAR()), "LinAR()")
     expect_identical(str_call_prior(LinAR(sd = 0.5)), "LinAR(sd=0.5)")
     expect_identical(str_call_prior(LinAR(sd=2L,s = 0.95)), "LinAR(s=0.95,sd=2)")
-    expect_identical(str_call_prior(LinAR(sd = 0.1, s = 0.95,n=3)),
-                     "LinAR(n=3,s=0.95,sd=0.1)")
+    expect_identical(str_call_prior(LinAR(sd = 0.1, along = "cohort", s = 0.95,n=3)),
+                     "LinAR(n=3,s=0.95,sd=0.1,along=\"cohort\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
@@ -2241,7 +2208,8 @@ test_that("'str_call_prior' works with bage_prior_spline", {
     expect_identical(str_call_prior(Sp()), "Sp()")
     expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n=5)")
     expect_identical(str_call_prior(Sp(s = 0.1)), "Sp(s=0.1)")
-    expect_identical(str_call_prior(Sp(s = 3,n = 5L)), "Sp(n=5,s=3)")
+    expect_identical(str_call_prior(Sp(s = 3,along = "cohort", n = 5L)),
+                     "Sp(n=5,s=3,along=\"cohort\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
@@ -2249,7 +2217,8 @@ test_that("'str_call_prior' works with bage_prior_svd", {
     expect_identical(str_call_prior(SVD(s)), "SVD(s)")
     expect_identical(str_call_prior(SVDS(s,joint = TRUE)), "SVDS(s,joint=TRUE)")
     expect_identical(str_call_prior(SVD(s,n = 6L)), "SVD(s,n=6)")
-    expect_identical(str_call_prior(SVDS(s,joint=F,n = 3L)), "SVDS(s,n=3)")
+    expect_identical(str_call_prior(SVDS(s,joint=F,n = 3L)),
+                     "SVDS(s,n=3)")
 })
 
 
@@ -2419,36 +2388,6 @@ test_that("'transform_hyper' works with 'bage_prior_spline'", {
 test_that("'transform_hyper' works with 'bage_prior_svd'", {
   l <- transform_hyper(prior = SVD(HMD))
   expect_identical(l, list())
-})
-
-
-## 'transform_hyperrand' ------------------------------------------------------
-
-test_that("'transform_hyperrand' works with 'bage_prior_ar1'", {
-  matrix_along_by <- matrix(0:9, nc = 1)
-  prior <- AR1()
-  ans_obtained <- transform_hyperrand(prior = prior, matrix_along_by = matrix_along_by)
-  ans_expected <- list()
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'transform_hyperrand' works with 'bage_prior_lin'", {
-  matrix_along_by <- matrix(0:9, nc = 2)
-  l <- transform_hyperrand(prior = Lin(),
-                           matrix_along_by = matrix_along_by)
-  expect_equal(0.35, l[[1]](0.35))
-  expect_equal(0.35, l[[2]](0.35))
-  expect_identical(length(l), 2L)
-})
-
-test_that("'transform_hyperrand' works with 'bage_prior_linar'", {
-  matrix_along_by <- matrix(0:11, nc = 3)
-  l <- transform_hyperrand(prior = LinAR1(),
-                           matrix_along_by = matrix_along_by)
-  expect_equal(0.35, l[[1]](0.35))
-  expect_equal(0.35, l[[2]](0.35))
-  expect_equal(0.35, l[[3]](0.35))
-  expect_identical(length(l), 3L)
 })
 
 

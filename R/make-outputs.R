@@ -1,5 +1,5 @@
 
-#' Center Values Within Each Combination of By Variables
+#' Center Values Within and Across Each Combination of By Variables
 #'
 #' @param x A numeric vector or rvec
 #' @param matrix_along_by Mapping matrix for 'x'
@@ -7,12 +7,16 @@
 #' @returns A modifed version of 'x'
 #'
 #' @noRd
-center_within_by <- function(x, matrix_along_by) {
+center_within_across_by <- function(x, matrix_along_by) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   for (i_by in seq_len(n_by)) {
     i_along <- matrix_along_by[, i_by] + 1L
     x[i_along] <- x[i_along] - mean(x[i_along])
+  }
+  for (i_along in seq_len(n_along)) {
+    i_by <- matrix_along_by[i_along, ] + 1L
+    x[i_by] <- x[i_by] - mean(x[i_by])
   }
   x
 }
@@ -43,6 +47,52 @@ draw_vals_components_fitted <- function(mod) {
 }
 
 
+## HAS_TESTS
+#' Extract Estimates for Non-Time-Varying Effects
+#'
+#' @param components Output from 'components' function
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A tibble
+#'
+#' @noRd
+get_comp_nontime_effects <- function(components, mod) {
+  priors <- mod$priors
+  var_time <- mod$var_time
+  nms <- names(priors)
+  is_time_varying_one <- function(nm) var_time %in% strsplit(nm, split = ":")[[1L]]
+  is_time_varying <- vapply(nms, is_time_varying_one, TRUE)
+  nms_time_varying <- nms[is_time_varying]
+  is_non_time_varying <- !(components$term %in% nms_time_varying)
+  is_effect <- components$component == "effect"
+  components[is_non_time_varying & is_effect, , drop = FALSE]
+}
+
+
+## HAS_TESTS
+#' Extract Values for Dispersion
+#'
+#' Works with fitted or unfitted models
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A tibble
+#'
+#' @noRd
+get_disp <- function(mod) {
+  if (is_fitted(mod)) {
+    ans <- mod$draws_disp
+    ans <- matrix(ans, nrow = 1L)
+    ans <- rvec::rvec_dbl(ans)
+  }
+  else {
+    n_draw <- mod$n_draw
+    ans <- draw_vals_disp(mod, n_sim = n_draw)
+  }
+  ans
+}
+
+  
 ## HAS_TESTS
 #' Insert values for fixed parameters into
 #' random draws for non-fixed parameters
@@ -77,8 +127,7 @@ insert_draws_known <- function(draws, est, is_fixed) {
 #'
 #' @noRd
 is_same_class <- function(x, y)
-    identical(class(x)[[1L]], class(y)[[1L]])
-    
+  identical(class(x)[[1L]], class(y)[[1L]])
 
 
 ## HAS_TESTS
@@ -301,7 +350,9 @@ make_draws_linpred <- function(mod, draws_post) {
   is_effectfree <- seq_len(n_val) <= n_effectfree
   effectfree <- draws_post[is_effectfree, , drop = FALSE]
   effect <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-  matrix_effect_outcome %*% effect
+  ans <- matrix_effect_outcome %*% effect
+  ans <- Matrix::as.matrix(ans)
+  ans
 }
 
 
@@ -526,6 +577,7 @@ make_standardized_effects <- function(mod, linpred) {
   eps <- 0.0001
   max_iter <- 100L
   matrices_effect_outcome <- mod$matrices_effect_outcome
+  matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
   n_effect <- length(matrices_effect_outcome)
   n_outcome <- nrow(linpred)
   n_draw <- ncol(linpred)
@@ -720,7 +772,7 @@ rvec_to_mean <- function(data) {
 
 
 ## HAS_TESTS
-#' Order 'components' by 'term' and Then By 'term'
+#' Order 'components' Data Frame by 'term' and 'component'
 #'
 #' @param components A tibble - typically the output
 #' from function 'components'
@@ -752,6 +804,4 @@ sort_components <- function(components, mod) {
 }
   
 
-
-  
 

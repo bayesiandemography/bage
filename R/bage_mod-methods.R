@@ -723,13 +723,7 @@ forecast.bage_mod <- function(object,
   else if (output == "components") {
     ans <- components_forecast
     if (include_estimates) {
-      term_est <- components_est$term
-      level_est <- components_est$level
-      is_time_varying <- make_is_time_varying(term = term_est,
-                                              level = level_est,
-                                              var_time = var_time)
-      time_varying_est <- components_est[is_time_varying, ]
-      ans <- vctrs::vec_rbind(time_varying_est, ans)
+      ans <- vctrs::vec_rbind(components_est, ans)
       ans <- sort_components(components = ans, mod = object)
     }
   }
@@ -772,17 +766,21 @@ forecast_augment.bage_mod <- function(mod,
   inv_transform <- get_fun_inv_transform(mod)
   data_forecast <- make_data_forecast(mod = mod,
                                       labels_forecast = labels_forecast)
-  is_effect <- components_forecast$component == "effect"
-  effects <- components_forecast[is_effect, ]
   matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
                                                           data = data_forecast)
   matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
   matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
-  linpred <- matrix_effect_outcome %*% effects$.fitted
+  comp_nontime_effects <- get_comp_nontime_effects(components = components_est,
+                                                   mod = mod)
+  is_effect <- components_forecast$component == "effect"
+  comp_forecast_effects <- components_forecast[is_effect, , drop = FALSE]
+  effects <- vctrs::vec_rbind(comp_nontime_effects, comp_forecast_effects)
+  effects <- sort_components(components = effects, mod = mod)
+  effects <- effects$.fitted
+  linpred <- matrix_effect_outcome %*% effects
   if (has_disp) {
     expected <- inv_transform(linpred)
-    is_disp <- components_est$component == "disp"
-    disp <- components_est$.fitted[is_disp]
+    disp <- get_disp(mod)
     fitted <- draw_vals_fitted(mod = mod,
                                vals_expected = expected,
                                vals_disp = disp)
@@ -807,13 +805,16 @@ forecast_augment.bage_mod_norm <- function(mod,
   scale_outcome <- get_fun_scale_outcome(mod)
   data_forecast <- make_data_forecast(mod = mod,
                                       labels_forecast = labels_forecast)
-  is_effect <- components_forecast$component == "effect"
-  effects <- components_forecast[is_effect, ]
   matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
                                                           data = data_forecast)
   matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
   matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
-  linpred <- matrix_effect_outcome %*% effects$.fitted
+  comp_nontime_effects <- get_comp_nontime_effects(components = components_est,
+                                                   mod = mod)
+  effects <- vctrs::vec_rbind(comp_nontime_effects, components_forecast)
+  effects <- sort_components(components = effects, mod = mod)
+  effects <- effects$.fitted
+  linpred <- matrix_effect_outcome %*% effects
   fitted <- scale_outcome(linpred)
   ans <- data_forecast
   ans$.fitted <- fitted
@@ -1001,22 +1002,6 @@ make_par_disp.bage_mod_binom <- function(x,
                    shape1 = outcome + meanpar / disp,
                    shape2 = offset - outcome + (1 - meanpar) / disp)
 }
-
-
-
-## 'make_subseries' -----------------------------------------------------------
-
-
-
-make_subseries.bage_prior_rwseasfix <- function(prior,
-                                                hyperrand,
-                                                effect,
-                                                matrix_along_by) {
-  NULL
-}
-  
-  
-
 
 
 ## 'make_observed' ------------------------------------------------------------

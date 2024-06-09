@@ -4,7 +4,7 @@
 \alias{RWSeas}
 \title{Random Walk with Seasonal Effect}
 \usage{
-RWSeas(n, s = 1, seas = 1, along = NULL)
+RWSeas(n, s = 1, s_seas = 1, along = NULL)
 }
 \arguments{
 \item{n}{Number of seasons}
@@ -12,18 +12,22 @@ RWSeas(n, s = 1, seas = 1, along = NULL)
 \item{s}{Scale for prior for innovations in
 the random walk. Default is \code{1}.}
 
-\item{seas}{Scale for prior for innovations
+\item{s_seas}{Scale for prior for innovations
 in the seasonal effect. Default is \code{1}.
 Can be \code{0}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 Object of class \code{"bage_prior_rwseasvary"}
 or \code{"bage_prior_rwseasfix"}.
 }
 \description{
-Random Walk with Seasonal Effect
+TODO - NEED TO FINISH THIS
 }
 \examples{
-RWSeas(n = 4)           ## seasonal effects evolve
-RWSeas(n = 4, a = 0) ## seasonal effects fixed
+RWSeas(n = 4)             ## seasonal effects evolve
+RWSeas(n = 4, s_seas = 0) ## seasonal effects fixed
 }

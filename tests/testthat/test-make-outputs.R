@@ -1,21 +1,29 @@
 
-## 'center_within_by' ---------------------------------------------------------
+## 'center_within_across_by' ---------------------------------------------------------
 
-test_that("'center_within_by' works with numeric vector", {
-  x <- matrix(11:22, nr = 4)
+test_that("'center_within_across_by' works with numeric vector", {
+  x <- matrix(rnorm(12), nr = 4)
   matrix_along_by <- t(matrix(0:11, nrow = 4))
-  ans_obtained <- center_within_by(as.numeric(x), matrix_along_by)
-  ans_expected <- as.numeric(x - apply(x, 1, mean))
+  ans_obtained <- center_within_across_by(as.numeric(x), matrix_along_by)
+  ans_expected <- x - rowMeans(x)
+  ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 4)
+  ans_expected <- as.numeric(ans_expected)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'center_within_by' works with numeric vector", {
+test_that("'center_within_across_by' works with numeric vector", {
   x <- rvec::rvec(matrix(rnorm(120), nr = 12))
   matrix_along_by <- matrix(0:11, nrow = 4)
-  ans_obtained <- center_within_by(x, matrix_along_by)
+  ans_obtained <- center_within_across_by(x, matrix_along_by)
   ans_expected <- c(x[1:4] - mean(x[1:4]),
                     x[5:8] - mean(x[5:8]),
                     x[9:12] - mean(x[9:12]))
+  ans_expected <- c(ans_expected[c(1, 5, 9)] - mean(ans_expected[c(1, 5, 9)]),
+                    ans_expected[c(2, 6, 10)] - mean(ans_expected[c(2, 6, 10)]),
+                    ans_expected[c(3, 7, 11)] - mean(ans_expected[c(3, 7, 11)]),
+                    ans_expected[c(4, 8, 12)] - mean(ans_expected[c(4, 8, 12)]))[c(1,4,7,10,
+                                                                                   2,5,8,11,
+                                                                                   3,6,9,12)]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -36,6 +44,64 @@ test_that("'draw_vals_components_fitted' works", {
   set.seed(0)
   ans <- draw_vals_components_fitted(mod)
   expect_identical(names(ans), c("term", "component", "level", ".fitted"))
+})
+
+
+## 'get_disp' -----------------------------------------------------------------
+
+test_that("'get_disp' works - unfitted", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 5)
+  set.seed(1)
+  ans_obtained <- get_disp(mod)
+  set.seed(1)
+  ans_expected <- draw_vals_disp(mod, n_sim = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_disp' works - fitted", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 5)
+  mod <- fit(mod)
+  set.seed(1)
+  ans_obtained <- get_disp(mod)
+  set.seed(1)
+  ans_expected <- rvec::rvec(matrix(mod$draws_disp, nr = 1))
+  expect_identical(ans_obtained, ans_expected)
+})  
+
+
+## 'get_comp_nontime_effects' -------------------------------------------------
+
+test_that("'get_comp_nontime_effects' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  comp <- components(mod)
+  ans_obtained <- get_comp_nontime_effects(components = comp, mod = mod)
+  ans_expected <- comp[c(1:11, 13:14, 22:41),]
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -222,6 +288,7 @@ test_that("'make_draws_linpred' works", {
   ans_expected <- matrix_effect_outcome %*% (matrix_effectfree_effect %*%
                                                draws[seq_len(ncol(matrix_effectfree_effect)), ] +
                                                offset_effectfree_effect)
+  ans_expected <- Matrix::as.matrix(ans_expected)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -286,7 +353,7 @@ test_that("'make_draws_hyperrand' works - no hyperrand", {
 
 ## 'make_draws_post' ------------------------------------------------------
 
-test_that("'make_draws_post' works with valid inputs", {
+test_that("'make_draws_post' works with valid inputs - has R_prec", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -304,6 +371,103 @@ test_that("'make_draws_post' works with valid inputs", {
     expect_equal(rowMeans(ans), unlist(mod$est, use.names = FALSE), tolerance = 0.02)
     expect_equal(solve(cov(t(ans[!mod$is_fixed,]))), unname(prec), tolerance = 0.02)
 })
+
+test_that("'make_draws_post' works with valid inputs - no R_prec", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- unfit(mod)
+  ## data
+  nm_distn <- nm_distn(mod)
+  outcome <- mod$outcome
+  offset <- mod$offset
+  terms_effect <- mod$terms_effect
+  is_in_lik <- make_is_in_lik(mod)
+  terms_effectfree <- make_terms_effectfree(mod)
+  uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
+  matrices_effectfree_effect <- make_matrices_effectfree_effect(mod)
+  uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(mod)
+  offsets_effectfree_effect <- make_offsets_effectfree_effect(mod)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  i_prior <- make_i_prior(mod)
+  uses_hyper <- make_uses_hyper(mod)
+  terms_hyper <- make_terms_hyper(mod)
+  uses_hyperrand <- make_uses_hyperrand(mod)
+  terms_hyperrand <- make_terms_hyperrand(mod)
+  const <- make_const(mod)
+  terms_const <- make_terms_const(mod)
+  matrices_along_by <- choose_matrices_along_by(mod)
+  mean_disp <- mod$mean_disp
+  has_disp <- mean_disp > 0
+  data <- list(nm_distn = nm_distn,
+               outcome = outcome,
+               offset = offset,
+               is_in_lik = is_in_lik,
+               terms_effect = terms_effect,
+               terms_effectfree = terms_effectfree,
+               uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
+               matrices_effectfree_effect = matrices_effectfree_effect,
+               uses_offset_effectfree_effect = uses_offset_effectfree_effect,
+               offsets_effectfree_effect = offsets_effectfree_effect,
+               matrices_effect_outcome = matrices_effect_outcome,
+               i_prior = i_prior,
+               uses_hyper = uses_hyper,
+               terms_hyper = terms_hyper,
+               uses_hyperrand = uses_hyperrand,
+               terms_hyperrand = terms_hyperrand,
+               consts = const, ## 'const' is reserved word in C
+               terms_consts = terms_const,
+               matrices_along_by = matrices_along_by,
+               mean_disp = mean_disp)
+  ## parameters
+  effectfree <- make_effectfree(mod)
+  hyper <- make_hyper(mod)
+  hyperrand <- make_hyperrand(mod)
+  log_disp <- 0
+  parameters <- list(effectfree = effectfree,   
+                     hyper = hyper,
+                     hyperrand = hyperrand,
+                     log_disp = log_disp)
+  ## MakeADFun
+  map <- make_map(mod)
+  random <- make_random(mod)
+  has_random_effects <- !is.null(random)
+  f <- TMB::MakeADFun(data = data,
+                      parameters = parameters,
+                      map = map,
+                      DLL = "bage",
+                      random = random,
+                      silent = TRUE)
+  ## optimise
+  stats::nlminb(start = f$par,
+                objective = f$fn,
+                gradient = f$gr,
+                silent = TRUE)
+  ## extract results
+  sdreport <- TMB::sdreport(f,
+                            bias.correct = TRUE,
+                            getJointPrecision = TRUE)
+  est <- as.list(sdreport, what = "Est")
+  attr(est, "what") <- NULL
+  mod$is_fixed <- make_is_fixed(est = est, map = map)
+  mod$est <- est
+  prec <- sdreport$jointPrecision
+  mod$R_prec <- NULL
+  mod$scaled_eigen <- make_scaled_eigen(prec)
+  mod <- set_n_draw(mod, n = 100000)
+  ans <- make_draws_post(mod)
+  mean <- unlist(mod$est, use.names = FALSE)[!mod$is_fixed]
+  expect_equal(rowMeans(ans), unlist(mod$est, use.names = FALSE), tolerance = 0.02)
+  expect_equal(solve(cov(t(ans[!mod$is_fixed,]))),
+               unname(Matrix::as.matrix(prec)),
+               tolerance = 0.02)
+})
+
 
 
 ## 'make_stored_draws' --------------------------------------------------------
@@ -617,6 +781,7 @@ test_that("'make_standardized_effects' works", {
                                           y = ans),
                              MoreArgs = list())
   linpred_implied <- Reduce(`+`, linpred_implied)
+  linpred_implied <- Matrix::as.matrix(linpred_implied)
   expect_equal(linpred, linpred_implied)
 })
 
