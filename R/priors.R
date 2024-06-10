@@ -24,6 +24,8 @@
 #' | [NFix()]  | As for `N()`, but standard deviation supplied (fixed) by user. | Like `N()`, but where there are too few elements to estimate the standard deviation, or where there is strong prior information about its value. Intercept and sex/gender effects. | Yes |
 #' | [RW()]    | Random walk. Elements have a natural ordering, and neighbouring elements more strongly correlated than distant elements. | Modelling age, time, cohort, or other smoothly-varying dimensions. | Yes |
 #' | [RW2()]   | Second-order random walk. Similar to `RW()`, but with persistent trends. | As for `RW()`, but where greater smoothness expected. | Yes |
+#' | [RWSeas()] | Random walk, with seasonal effect. | Main effects or interactions involving time. | Yes |
+#' | [RW2Seas()] | Random walk with drift, with seasonal effect. | Main effects or interactions involving time. | Yes |
 #' | [AR()]    | Auto-regressive prior of order *k*. | Modelling variables that revert towards the mean, which often includes time. | Yes |
 #' | [AR1()]   | Auto-regressive prior of order 1. Special case of `AR()`, though has more options for controlling damping. | As for `AR()`. | Yes |
 #' | [Known()] | Values supplied by treated and treated as known. | Simulations and experiments. | No |

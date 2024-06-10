@@ -1,5 +1,4 @@
 
-
 ## User-visible constructors --------------------------------------------------
 
 test_that("'AR' works with valid inputs", {
@@ -119,7 +118,6 @@ test_that("'RWSeas' works with valid inputs", {
                                              along = "reg"))
 })
 
-
 test_that("'RW2' works with valid inputs", {
   expect_identical(RW2(),
                    new_bage_prior_rw2(scale = 1,
@@ -127,6 +125,16 @@ test_that("'RW2' works with valid inputs", {
   expect_identical(RW2(s = 0.3, along = "reg"),
                    new_bage_prior_rw2(scale = 0.3,
                                       along = "reg"))
+})
+
+test_that("'RW2Seas' works with valid inputs", {
+  expect_identical(RW2Seas(n = 2, s_seas = 0),
+                   new_bage_prior_rw2seasfix(n = 2L, scale = 1, along = NULL))
+  expect_identical(RW2Seas(s = 0.3, n = 12, s_seas = 0.1, along = "reg"),
+                   new_bage_prior_rw2seasvary(n = 12L,
+                                              scale_seas = 0.1,
+                                              scale = 0.3,
+                                              along = "reg"))
 })
 
 test_that("'Sp' works with valid inputs", {
@@ -342,6 +350,29 @@ test_that("'new_bage_prior_rw2' works", {
   expect_identical(obj$i_prior, 7L)
   expect_identical(obj$const, c(scale = 1))
   expect_identical(obj$specific, list(scale = 1,
+                                      along = NULL))
+})
+
+test_that("'new_bage_prior_rw2seasfix' works", {
+  obj <- new_bage_prior_rw2seasfix(n = 4, scale = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_rw2seasfix")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 12L)
+  expect_identical(obj$const, c(n = 4, scale = 1))
+  expect_identical(obj$specific, list(n = 4,
+                                      scale = 1,
+                                      along = NULL))
+})
+
+test_that("'new_bage_prior_rw2seasvary' works", {
+  obj <- new_bage_prior_rw2seasvary(n = 4, scale = 1, scale_seas = 1, along = NULL)
+  expect_s3_class(obj, "bage_prior_rw2seasvary")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 13L)
+  expect_identical(obj$const, c(n = 4, scale_seas = 1, scale = 1))
+  expect_identical(obj$specific, list(n = 4,
+                                      scale_seas = 1,
+                                      scale = 1,
                                       along = NULL))
 })
 

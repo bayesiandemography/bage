@@ -26,6 +26,8 @@ Priors without links are next in the queue for implementation.\tabular{llll}{
    \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation supplied (fixed) by user. \tab Like \code{N()}, but where there are too few elements to estimate the standard deviation, or where there is strong prior information about its value. Intercept and sex/gender effects. \tab Yes \cr
    \code{\link[=RW]{RW()}} \tab Random walk. Elements have a natural ordering, and neighbouring elements more strongly correlated than distant elements. \tab Modelling age, time, cohort, or other smoothly-varying dimensions. \tab Yes \cr
    \code{\link[=RW2]{RW2()}} \tab Second-order random walk. Similar to \code{RW()}, but with persistent trends. \tab As for \code{RW()}, but where greater smoothness expected. \tab Yes \cr
+   \code{\link[=RWSeas]{RWSeas()}} \tab Random walk, with seasonal effect. \tab Main effects or interactions involving time. \tab Yes \cr
+   \code{\link[=RW2Seas]{RW2Seas()}} \tab Random walk with drift, with seasonal effect. \tab Main effects or interactions involving time. \tab Yes \cr
    \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k}. \tab Modelling variables that revert towards the mean, which often includes time. \tab Yes \cr
    \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1. Special case of \code{AR()}, though has more options for controlling damping. \tab As for \code{AR()}. \tab Yes \cr
    \code{\link[=Known]{Known()}} \tab Values supplied by treated and treated as known. \tab Simulations and experiments. \tab No \cr
