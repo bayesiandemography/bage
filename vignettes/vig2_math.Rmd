@@ -346,9 +346,9 @@ implying that seasonal effects are constant across years.
 ### Forecasting
 
 \begin{align}
-  \beta_{J_m+h}^{(m)} & = \alpha_{J_m+h}^{(m)} + \lambda_{J_m+h}^{(m)} \\
-  \alpha_{J_m+h}^{(m)} & \sim \text{N}(\lambda_{J_m+h-1}^{(m)}, \tau_m^2) \\
-  \lambda_{J_m+h}^{(m)} & \sim \text{N}(\lambda_{J_m+h-S_m}^{(m)}, \omega_m^2)
+  \alpha_{J_m+h}^{(m)} & \sim \text{N}(\alpha_{J_m+h-1}^{(m)}, \tau_m^2) \\
+  \lambda_{J_m+h}^{(m)} & \sim \text{N}(\lambda_{J_m+h-S_m}^{(m)}, \omega_m^2) \\
+  \beta_{J_m+h}^{(m)} & = \alpha_{J_m+h}^{(m)} + \lambda_{J_m+h}^{(m)}
 \end{align}
 
 ### Code
@@ -363,6 +363,54 @@ RWSeas(n, s = 1, s_seas = 1, along = NULL)
 - `along` used to identify "along" and "by" dimensions
 
 
+
+## Random walk with drift, with seasonal effect {#sec:rw2seas}
+
+### Model
+
+\begin{align}
+  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
+  \alpha_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad \quad v = 1,2,  \\
+  \alpha_{u,v}^{(m)} & \sim \text{N}(2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m (\#eq:lambda-rwseas) \\ \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
+  \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
+\end{align}
+
+We allow $A_{\omega}^{(m)2}$ to be set to zero, in which case \@ref(eq:lambda-rwseas) reduces to
+\begin{equation}
+  \lambda_{u,v}^{(m)} = \lambda_{u,v-S_m}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m,
+\end{equation}
+implying that seasonal effects are constant across years.
+
+### Contribution to posterior density
+
+\begin{equation}
+\begin{split}
+  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
+  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, 1 ) \prod_{v=2}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m} \text{N}(\lambda_{u,v}^{(m)} \mid 0, 1) \prod_{v=S_m+1}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+\end{split}
+\end{equation}
+
+### Forecasting
+
+\begin{align}
+  \alpha_{J_m+h}^{(m)} & \sim \text{N}(2 \alpha_{J_m+h-1}^{(m)} - \alpha_{J_m+h-2}^{(m)}, \tau_m^2) \\
+  \lambda_{J_m+h}^{(m)} & \sim \text{N}(\lambda_{J_m+h-S_m}^{(m)}, \omega_m^2) \\
+  \beta_{J_m+h}^{(m)} & = \alpha_{J_m+h}^{(m)} + \lambda_{J_m+h}^{(m)}
+\end{align}
+
+### Code
+
+```
+RW2Seas(n, s = 1, s_seas = 1, along = NULL)
+```
+
+- `n` is $S_m$
+- `s` is $A_{\tau}^{(m)}$
+- `s_seas` is $A_{\omega}^{(m)}$
+- `along` used to identify "along" and "by" dimensions
 
 
 ## Autoregressive {#sec:pr-ar}

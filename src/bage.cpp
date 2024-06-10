@@ -228,34 +228,6 @@ Type logpost_rw(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_rw2(vector<Type> effectfree,
-		  vector<Type> hyper,
-		  vector<Type> consts,
-		  matrix<int> matrix_along_by) {
-  Type scale = consts[0];
-  Type log_sd = hyper[0];
-  Type sd = exp(log_sd);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i_0 = matrix_along_by(0, i_by);
-    int i_1 = matrix_along_by(1, i_by);
-    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
-    ans += dnorm(effectfree[i_1], Type(0), Type(1), true);
-    for (int i_along = 2; i_along < n_along; i_along++) {
-      int i_2 = matrix_along_by(i_along, i_by);
-      int i_1 = matrix_along_by(i_along - 1, i_by);
-      int i_0 = matrix_along_by(i_along - 2, i_by);
-      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
-      ans += dnorm(diff, Type(0), sd, true);
-    }
-  }
-  return ans;
-}
-
-template <class Type>
 Type logpost_rwseasfix(vector<Type> effectfree,
 		       vector<Type> hyper,
 		       vector<Type> hyperrand, // seasonal effect
@@ -288,6 +260,70 @@ Type logpost_rwseasvary(vector<Type> effectfree,
   Type ans = 0;
   ans += logpost_seasvary(hyperrand, n_season, scale_seas, log_sd_seas, matrix_along_by);
   ans += logpost_rw(alpha, hyper_alpha, consts_alpha, matrix_along_by);
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2(vector<Type> effectfree,
+		  vector<Type> hyper,
+		  vector<Type> consts,
+		  matrix<int> matrix_along_by) {
+  Type scale = consts[0];
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
+    ans += dnorm(effectfree[i_1], Type(0), Type(1), true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      ans += dnorm(diff, Type(0), sd, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2seasfix(vector<Type> effectfree,
+			vector<Type> hyper,
+			vector<Type> hyperrand, // seasonal effect
+			vector<Type> consts,
+			matrix<int> matrix_along_by) {
+  int n_season = CppAD::Integer(consts[0]);
+  int n_consts = consts.size();
+  vector<Type> consts_alpha = consts.segment(1, n_consts - 1);
+  vector<Type> alpha = alpha_seasfix(effectfree, hyperrand, n_season, matrix_along_by);
+  Type ans = 0;
+  ans += dnorm(hyperrand, Type(0), Type(1), true).sum();
+  ans += logpost_rw2(alpha, hyper, consts_alpha, matrix_along_by);
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2seasvary(vector<Type> effectfree,
+			 vector<Type> hyper,
+			 vector<Type> hyperrand, // seasonal effect
+			 vector<Type> consts,
+			 matrix<int> matrix_along_by) {
+  vector<Type> alpha = effectfree - hyperrand;
+  int n_season = CppAD::Integer(consts[0]);
+  Type scale_seas = consts[1];
+  Type log_sd_seas = hyper[0];
+  int n_hyper = hyper.size();
+  int n_consts = consts.size();
+  vector<Type> hyper_alpha = hyper.segment(1, n_hyper - 1);
+  vector<Type> consts_alpha = consts.segment(2, n_consts - 2);
+  Type ans = 0;
+  ans += logpost_seasvary(hyperrand, n_season, scale_seas, log_sd_seas, matrix_along_by);
+  ans += logpost_rw2(alpha, hyper_alpha, consts_alpha, matrix_along_by);
   return ans;
 }
 
@@ -386,6 +422,12 @@ Type logpost_uses_hyperrand(vector<Type> effectfree,
     break;
   case 11:
     ans = logpost_rwseasvary(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    break;
+  case 12:
+    ans = logpost_rw2seasfix(effectfree, hyper, hyperrand, consts, matrix_along_by);
+    break;
+  case 13:
+    ans = logpost_rw2seasvary(effectfree, hyper, hyperrand, consts, matrix_along_by);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_uses_hyperrand' cannot handle i_prior = %d", i_prior); // # nocov
