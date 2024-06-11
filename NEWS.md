@@ -1,4 +1,16 @@
 
+
+# bage 0.5.0
+
+## Changes to interface
+
+* Combined interaction (eg ELin) and main effect (eg Lin) versions of
+  priors
+* Removed function `compose_time()`
+* Added priors RWSeas and RW2Seas
+* Improved `report_sim()`
+
+
 # bage 0.4.2
 
 ## Changes to interface
