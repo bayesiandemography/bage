@@ -874,6 +874,103 @@ test_that("'reformat_hyperrand' works", {
 })
 
 
+## 'reformat_hyperrand_seasfix' -----------------------------------------------
+
+test_that("'reformat_hyperrand_seasfix' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RWSeas(n = 3, s_seas = 0)) |>
+                  set_n_draw(n = 10) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_seasfix(prior = mod$priors[["sex:time"]],
+                                             nm_prior = "sex:time",
+                                             matrix_along_by = matrix_along_by,
+                                             components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas <- center_within_across_by(seas, matrix(0:5, nr = 3))
+  seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  seasonal <- tibble::tibble(term = "sex:time",
+                             component = "seasonal",
+                             level = level,
+                             .fitted = seas)
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  trend <- tibble::tibble(term = "sex:time",
+                          component = "trend",
+                          level = level,
+                          .fitted = trend)
+  ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
+  ans_expected <- vctrs::vec_rbind(ans_expected, seasonal, trend)
+  ## ans_expected <- sort_components(ans_expected, mod = mod)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'reformat_hyperrand_seasvary' ----------------------------------------------
+
+test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RWSeas(n = 3)) |>
+                  set_n_draw(n_draw = 10) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_seasvary(prior = mod$priors[["sex:time"]],
+                                              nm_prior = "sex:time",
+                                              matrix_along_by = matrix_along_by,
+                                              components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas <- center_within_across_by(seas, matrix_along_by = matrix_along_by)
+  ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
+  ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- tibble::tibble(term = "sex:time",
+                          component = "trend",
+                          level = level,
+                          .fitted = trend)
+  ans_expected <- vctrs::vec_rbind(ans_expected, trend)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'rvec_to_mean' -------------------------------------------------------------
 
 test_that("'rvec_to_mean' works with valid inputs", {

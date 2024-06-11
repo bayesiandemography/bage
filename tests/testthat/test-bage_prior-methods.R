@@ -298,6 +298,52 @@ test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 4", {
                    list(letters[1:12], as.character(1:10)))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_rw2seasfix", {
+  prior <- RW2Seas(n = 2, s = 0.01, s_seas = 0)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_rw2seasvary", {
+  prior <- RW2Seas(n = 2, s = 0.01, s_seas = 0.5)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        matrix_along_by = matrix_along_by,
+                                        n_sim = n_sim)
+  levels_effect <- letters[1:12]
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          levels_effect = levels_effect,
+                          agesex = "other",
+                          matrix_along_by = matrix_along_by,
+                          matrix_agesex = NULL,
+                          n_sim = n_sim)
+  expect_identical(dimnames(ans),
+                   list(letters[1:12], as.character(1:10)))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 1", {
   prior <- Sp()
   n_sim <- 10
@@ -572,6 +618,23 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2", {
   expect_identical(length(ans$sd), 10L)
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_rw2seasfix", {
+  prior <- RW2Seas(n = 2, s_seas = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2seasvary", {
+  prior <- RW2Seas(n = 2, s_seas = 0.1)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("sd_seas", "sd"))
+  expect_identical(length(ans$sd_seas), 10L)
+  expect_identical(length(ans$sd), 10L)
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_spline", {
   prior <- Sp()
   ans <- draw_vals_hyper(prior = prior,
@@ -645,6 +708,44 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
 test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary", {
   set.seed(0)
   prior <- RWSeas(n = 2, s = 0.01, s_seas = 0.4)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans_obtained <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      matrix_along_by = matrix_along_by,
+                                      n_sim = n_sim)
+  set.seed(1)
+  ans_expected <- list(seas = draw_vals_seasvary(n = 2,
+                                                 sd_seas = vals_hyper$sd_seas,
+                                                 matrix_along_by = matrix_along_by))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix", {
+  set.seed(0)
+  prior <- RW2Seas(n = 2, s = 0.01, s_seas = 0)
+  matrix_along_by <- matrix(0:11, nr = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans_obtained <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      matrix_along_by = matrix_along_by,
+                                      n_sim = n_sim)
+  set.seed(1)
+  ans_expected <- list(seas = draw_vals_seasfix(n = 2,
+                                                matrix_along_by = matrix_along_by,
+                                                n_sim = n_sim))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasvary", {
+  set.seed(0)
+  prior <- RW2Seas(n = 2, s = 0.01, s_seas = 0.4)
   matrix_along_by <- matrix(0:11, nr = 3)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -1182,6 +1283,127 @@ test_that("'forecast_term' works with bage_prior_rw2 - n_by = 2", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'forecast_term' works with bage_prior_rw2seasfix", {
+  set.seed(0)
+  prior <- RW2Seas(n = 2, s_seas = 0)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "seasonal",
+                                                level = letters[1:5],
+                                                .fitted = rep(rvec::rnorm_rvec(n = 2, n_draw = 10),
+                                                              length.out = 5)))
+  trend <- components$.fitted[2:6] - components$.fitted[7:11]
+  components <- vctrs::vec_rbind(components,
+                                 tibble::tibble(term = "year",
+                                                component = "trend",
+                                                level = letters[1:5],
+                                                .fitted = trend))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "seasonal"), each = 6),
+                                 level = rep(letters[6:11], 3))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 18, n_draw = 10)
+  rw2_est <- components$.fitted[12:16]
+  rw2_forecast <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd <- components$.fitted[[1]]
+  set.seed(1)
+  rw2_forecast[1] <- rvec::rnorm_rvec(n = 1, mean = 2 * rw2_est[5] - rw2_est[4], sd = sd)
+  rw2_forecast[2] <- rvec::rnorm_rvec(n = 1, mean = 2 * rw2_forecast[1] - rw2_est[5], sd = sd)
+  for (i in 3:6)
+    rw2_forecast[i] <- rvec::rnorm_rvec(n = 1,
+                                        mean = 2 * rw2_forecast[i-1] - rw2_forecast[i-2],
+                                        sd = sd)
+  ans_expected$.fitted[13] <- components$.fitted[8]
+  ans_expected$.fitted[14] <- components$.fitted[7]
+  ans_expected$.fitted[15] <- components$.fitted[8]
+  ans_expected$.fitted[16] <- components$.fitted[7]
+  ans_expected$.fitted[17] <- components$.fitted[8]
+  ans_expected$.fitted[18] <- components$.fitted[7]
+  effect_forecast <- ans_expected$.fitted[13:18] + rw2_forecast
+  ans_expected$.fitted[1:6] <- effect_forecast
+  ans_expected$.fitted[7:12] <- rw2_forecast
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term' works with bage_prior_rw2seasvary", {
+  set.seed(0)
+  prior <- RW2Seas(n = 2)
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year",
+                                                component = "hyper",
+                                                level = c("sd_seas", "sd"),
+                                                .fitted = rvec::runif_rvec(n = 2, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "effect",
+                                                level = letters[1:5],
+                                                .fitted = rvec::rnorm_rvec(n = 5, n_draw = 10)),
+                                 tibble::tibble(term = "year",
+                                                component = "seasonal",
+                                                level = letters[1:5],
+                                                .fitted = rep(rvec::rnorm_rvec(n = 2, n_draw = 10),
+                                                              length.out = 5)))
+  trend <- components$.fitted[3:7] - components$.fitted[8:12]
+  components <- vctrs::vec_rbind(components,
+                                 tibble::tibble(term = "year",
+                                                component = "trend",
+                                                level = letters[1:5],
+                                                .fitted = trend))
+  matrix_along_by_est <- matrix(0:4, nr = 5)
+  matrix_along_by_forecast <- matrix(0:5, nr = 6)
+  levels_forecast <- letters[6:11]
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                nm_prior = "year",
+                                components = components,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast,
+                                levels_forecast = levels_forecast)
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "seasonal"), each = 6),
+                                 level = rep(letters[6:11], 3))
+  ans_expected$.fitted <- rvec::rnorm_rvec(n = 18, n_draw = 10)
+  rw2_est <- components$.fitted[13:17]
+  rw2_forecast <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  sd_seas <- components$.fitted[[1]]
+  sd <- components$.fitted[[2]]
+  set.seed(1)
+  rw2_forecast[1] <- rvec::rnorm_rvec(n = 1, mean = 2 * rw2_est[5] - rw2_est[4], sd = sd)
+  rw2_forecast[2] <- rvec::rnorm_rvec(n = 1, mean = 2 * rw2_forecast[1] - rw2_est[5], sd = sd)
+  for (i in 3:6)
+    rw2_forecast[i] <- rvec::rnorm_rvec(n = 1,
+                                        mean = 2 * rw2_forecast[i-1] - rw2_forecast[i-2],
+                                        sd = sd)
+  ans_expected$.fitted[13] <- rvec::rnorm_rvec(n = 1,
+                                               components$.fitted[11],
+                                               sd = sd_seas)
+  ans_expected$.fitted[14] <- rvec::rnorm_rvec(n = 1,
+                                               components$.fitted[12],
+                                               sd = sd_seas)
+  for (i in 3:6)
+    ans_expected$.fitted[12 + i] <- rvec::rnorm_rvec(n = 1,
+                                                     ans_expected$.fitted[10 + i],
+                                                     sd = sd_seas)
+  effect_forecast <- ans_expected$.fitted[13:18] + rw2_forecast
+  ans_expected$.fitted[1:6] <- effect_forecast
+  ans_expected$.fitted[7:12] <- rw2_forecast
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 ## 'has_hyperrand' ------------------------------------------------------------
 
@@ -1195,6 +1417,8 @@ test_that("'has_hyperrand' returns TRUE with prior with hyperrand", {
   expect_true(has_hyperrand(LinAR()))
   expect_true(has_hyperrand(RWSeas(n=2, s_seas = 0)))
   expect_true(has_hyperrand(RWSeas(n=2, s_seas = 0.1)))
+  expect_true(has_hyperrand(RW2Seas(n=2, s_seas = 0)))
+  expect_true(has_hyperrand(RW2Seas(n=2, s_seas = 0.1)))
 })
 
 
@@ -1345,6 +1569,26 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2 - n_by = 1", {
                                      matrix_along_by = matrix(0:2, nc = 1),
                                      var_time = "time",
                                      var_age = "age",
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasfix", {
+    expect_true(is_prior_ok_for_term(prior = RW2Seas(n = 2, s_seas = 0),
+                                     nm = "time",
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex",
+                                     agesex = "other"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasvary", {
+    expect_true(is_prior_ok_for_term(prior = RW2Seas(n = 2),
+                                     nm = "time",
+                                     matrix_along_by = matrix(0:1, nc = 1),
+                                     var_time = "time",
+                                     var_age = "age",
+                                     var_sexgender = "sex",
                                      agesex = "other"))
 })
 
@@ -1585,6 +1829,18 @@ test_that("'levels_hyper' works with 'bage_prior_rw2'", {
                    "sd")
 })
 
+test_that("'levels_hyper' works with 'bage_prior_rw2seasfix'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = RW2Seas(n = 3, s_seas = 0)),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_rw2seasvary'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = RW2Seas(n = 3)),
+                   c("sd_seas", "sd"))
+})
+
 test_that("'levels_hyper' works with 'bage_prior_spline'", {
   expect_identical(levels_hyper(prior = Sp()), 
                    "sd")
@@ -1680,7 +1936,29 @@ test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix'", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
+test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
+  levels_effect <- letters[1:13]
+  matrix_along_by <- matrix(0:12,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = NULL))
+  ans_obtained <- levels_hyperrand(prior = RW2Seas(n = 3, s_seas = 0),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- c("1", "2", "3")
+  expect_identical(ans_obtained, ans_expected)                   
+})
 
+test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
+  levels_effect <- letters[1:13]
+  matrix_along_by <- matrix(0:12,
+                            nr = 13,
+                            dimnames = list(x = letters[1:13], y = NULL))
+  ans_obtained <- levels_hyperrand(prior = RW2Seas(n = 3),
+                                   matrix_along_by = matrix_along_by,
+                                   levels_effect = levels_effect)
+  ans_expected <- levels_effect
+  expect_identical(ans_obtained, ans_expected)                   
+})
 
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
@@ -2036,7 +2314,6 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
 test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
@@ -2089,6 +2366,99 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ RWSeas(n = 3)) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior = "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas <- center_within_across_by(seas, matrix_along_by = matrix_along_by)
+  ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
+  ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- tibble::tibble(term = "sex:time",
+                         component = "trend",
+                         level = level,
+                         .fitted = trend)
+  ans_expected <- vctrs::vec_rbind(ans_expected, trend)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+
+
+test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasfix", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW2Seas(n = 3, s_seas = 0)) |>
+                  set_n_draw(n = 10) |>
+                  fit(mod)
+  term <- make_term_components(mod)
+  comp <- make_comp_components(mod)
+  level <- make_level_components(mod)
+  draws <- make_draws_components(mod)
+  draws <- as.matrix(draws)
+  .fitted <- rvec::rvec_dbl(draws)
+  components <- tibble::tibble(term = term,
+                               component = comp,
+                               level = level,
+                               .fitted = .fitted)
+  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
+                                         nm_prior = "sex:time",
+                                         matrix_along_by = matrix_along_by,
+                                         components = components)
+  ans_expected <- components
+  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
+  seas <- center_within_across_by(seas, matrix(0:5, nr = 3))
+  seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
+  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  seasonal <- tibble::tibble(term = "sex:time",
+                             component = "seasonal",
+                             level = level,
+                             .fitted = seas)
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  trend <- effect - seas
+  trend <- tibble::tibble(term = "sex:time",
+                         component = "trend",
+                         level = level,
+                         .fitted = trend)
+  ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
+  ans_expected <- vctrs::vec_rbind(ans_expected, seasonal, trend)
+  ## ans_expected <- sort_components(ans_expected, mod = mod)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasvary", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW2Seas(n = 3)) |>
                   fit(mod)
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
@@ -2204,6 +2574,18 @@ test_that("'str_call_prior' works with bage_prior_rw2", {
                      "RW2(s=2,along=\"a\")")
 })
 
+test_that("'str_call_prior' works with bage_prior_rw2seasfix", {
+    expect_identical(str_call_prior(RW2Seas(n=2, s_seas = 0)), "RW2Seas(n=2,s_seas=0)")
+    expect_identical(str_call_prior(RW2Seas(along = "a", s = 2, n = 5, s_seas=0)),
+                     "RW2Seas(n=5,s=2,s_seas=0,along=\"a\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_rw2seasvary", {
+    expect_identical(str_call_prior(RW2Seas(n=2)), "RW2Seas(n=2)")
+    expect_identical(str_call_prior(RW2Seas(along = "a", s = 2, n = 5, s_seas=0.1)),
+                     "RW2Seas(n=5,s=2,s_seas=0.1,along=\"a\")")
+})
+
 test_that("'str_call_prior' works with bage_prior_spline", {
     expect_identical(str_call_prior(Sp()), "Sp()")
     expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n=5)")
@@ -2281,6 +2663,16 @@ test_that("'str_nm_prior' works with bage_prior_rwseasvary", {
 test_that("'str_nm_prior' works with bage_prior_rw2", {
     expect_identical(str_nm_prior(RW2()), "RW2()")
     expect_identical(str_nm_prior(RW2(s = 0.95)), "RW2()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_rw2seasfix", {
+    expect_identical(str_nm_prior(RW2Seas(n = 3, s_seas = 0)), "RW2Seas()")
+    expect_identical(str_nm_prior(RW2Seas(n = 3, s = 0.95, s_seas = 0)), "RW2Seas()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_rw2seasvary", {
+    expect_identical(str_nm_prior(RW2Seas(n = 3, s_seas = 4)), "RW2Seas()")
+    expect_identical(str_nm_prior(RW2Seas(n = 3, s = 0.95)), "RW2Seas()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_spline", {
@@ -2380,6 +2772,17 @@ test_that("'transform_hyper' works with 'bage_prior_rw2'", {
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_rw2seasfix'", {
+  l <- transform_hyper(prior = RW2Seas(n = 3, s_seas=0))
+  expect_equal(0.35, l[[1]](log(0.35)))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_rw2seasvary'", {
+  l <- transform_hyper(prior = RW2Seas(n = 3))
+  expect_equal(0.35, l[[1]](log(0.35)))
+  expect_equal(0.35, l[[2]](log(0.35)))
+})
+
 test_that("'transform_hyper' works with 'bage_prior_spline'", {
   l <- transform_hyper(prior = Sp())
   expect_equal(0.35, l[[1]](log(0.35)))
@@ -2404,6 +2807,8 @@ test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(RWSeas(n = 3, s_seas = 0)))
   expect_true(uses_along(RWSeas(n = 3)))
   expect_true(uses_along(RW2()))
+  expect_true(uses_along(RW2Seas(n = 3, s_seas = 0)))
+  expect_true(uses_along(RW2Seas(n = 3)))
   expect_true(uses_along(Sp()))
   expect_false(uses_along(SVD(HMD)))
 })
@@ -2420,6 +2825,8 @@ test_that("'uses_hyperrand' returns FALSE with priors that do not use hyperrand 
   expect_true(uses_hyperrand(RWSeas(n = 3, s_seas = 0)))
   expect_true(uses_hyperrand(RWSeas(n = 3)))
   expect_false(uses_hyperrand(RW2()))
+  expect_true(uses_hyperrand(RW2Seas(n = 3, s_seas = 0)))
+  expect_true(uses_hyperrand(RW2Seas(n = 3)))
   expect_false(uses_hyperrand(Sp()))
   expect_false(uses_hyperrand(SVD(HMD)))
 })

@@ -714,6 +714,97 @@ reformat_hyperrand <- function(components, mod) {
   }
   components
 }
+
+
+## HAS_TESTS
+#' Reformat 'Components' Output for Terms with Fixed Seasonal Effect
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param nm_prior Name of the prior (ie name of the term).
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+reformat_hyperrand_seasfix <- function(prior,
+                                         nm_prior,
+                                         matrix_along_by,
+                                         components) {
+  n_season <- prior$specific$n
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  is_seas <- with(components,
+                  term == nm_prior & component == "hyperrand")
+  is_effect <- with(components,
+                    term == nm_prior & component == "effect")  
+  seas <- components$.fitted[is_seas]
+  effect <- components$.fitted[is_effect]
+  level <- components$level[is_effect]
+  matrix_along_by_seas <- matrix(seq_along(seas) - 1L, nrow = n_season, ncol = n_by)
+  seas <- center_within_across_by(x = seas,
+                                  matrix_along_by = matrix_along_by_seas)
+  seas_extend <- rep(seas[[1L]], times = n_along * n_by)
+  for (i_by in seq_len(n_by)) {
+    for (i_along in seq_len(n_along)) {
+      i_seas <- ((i_along - 1L) %% n_season) + (i_by - 1L) * n_season + 1L
+      i_seas_extend <- matrix_along_by[i_along, i_by] + 1L
+      seas_extend[i_seas_extend] <- seas[i_seas]
+    }
+  }
+  seasonal <- tibble::tibble(term = nm_prior,
+                             component = "seasonal",
+                             level = level,
+                             .fitted = seas_extend)
+  trend <- effect - seas_extend
+  trend <- tibble::tibble(term = nm_prior,
+                          component = "trend",
+                          level = level,
+                          .fitted = trend)
+  ## combine
+  components <- components[!is_seas, , drop = FALSE]
+  vctrs::vec_rbind(components, seasonal, trend)
+}
+
+
+## HAS_TESTS
+#' Reformat 'Components' Output for Terms with Fixed Seasonal Effect
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param nm_prior Name of the prior (ie name of the term).
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+reformat_hyperrand_seasvary <- function(prior,
+                                        nm_prior,
+                                        matrix_along_by,
+                                        components) {
+  ## seasonal
+  is_seas <- with(components,
+                  term == nm_prior & component == "hyperrand")
+  seas <- components$.fitted[is_seas]
+  seas <- center_within_across_by(x = seas,
+                                  matrix_along_by = matrix_along_by)
+  components$.fitted[is_seas] <- seas
+  components$component[is_seas] <- "seasonal"
+  ## trend
+  is_effect <- with(components,
+                    term == nm_prior & component == "effect")  
+  effect <- components$.fitted[is_effect]
+  trend <- effect - seas
+  level <- components$level[is_effect]
+  trend <- tibble::tibble(term = nm_prior,
+                          component = "trend",
+                          level = level,
+                          .fitted = trend)
+  ## combine
+  vctrs::vec_rbind(components, trend)
+}
+
+
                      
 
 ## HAS_TESTS
