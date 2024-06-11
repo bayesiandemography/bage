@@ -46,30 +46,6 @@
     <loc>https://bayesiandemography.github.io/bage/reference/AR1.html</loc>
   </url>
   <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/EAR.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/EAR1.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/ELin.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/ERW.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/ERW2.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/ESVD.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/ESVDS.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/ESeas.html</loc>
-  </url>
-  <url>
     <loc>https://bayesiandemography.github.io/bage/reference/HMD.html</loc>
   </url>
   <url>
@@ -80,6 +56,12 @@
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/Lin.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/LinAR.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/LinAR1.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/N.html</loc>
@@ -94,13 +76,16 @@
     <loc>https://bayesiandemography.github.io/bage/reference/RW2.html</loc>
   </url>
   <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/RW2Seas.html</loc>
+  </url>
+  <url>
+    <loc>https://bayesiandemography.github.io/bage/reference/RWSeas.html</loc>
+  </url>
+  <url>
     <loc>https://bayesiandemography.github.io/bage/reference/SVD.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/SVDS.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/Seas.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/Sp.html</loc>
@@ -116,9 +101,6 @@
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/components.bage_ssvd.html</loc>
-  </url>
-  <url>
-    <loc>https://bayesiandemography.github.io/bage/reference/compose_time.html</loc>
   </url>
   <url>
     <loc>https://bayesiandemography.github.io/bage/reference/deaths.html</loc>

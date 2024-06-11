@@ -16,7 +16,7 @@ from variable names, but do not always get it right."><!-- mathjax --><script sr
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -93,15 +93,13 @@ from a 'term'. For instance,</p>
 <p><code>~ age + region + age:region</code></p>
 <p>contains variables <code>age</code> and <code>region</code>,
 and terms <code>age</code>, <code>region</code>, and <code>age:region</code>.</p>
-<p>By default, an age main effect has a random walk
-(<code><a href="RW.html">RW()</a></code>) prior, and an interaction involving
-age has an exchangeable random walk (<code><a href="ERW.html">ERW()</a></code>)
-prior. Changing the age variable
+<p>By default, <strong>bage</strong> gives a term involving age a
+(<code><a href="RW.html">RW()</a></code>) prior. Changing the age variable
 via <code>set_var_age()</code> can change priors:
 see below for an example.</p>
 <p>If the <code>mod</code> argument to <code>set_var_age</code> is
 a fitted model, then <code>set_var_age</code> 'unfits'
-the model, by deleting existing estimates.</p>
+the model by deleting existing estimates.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

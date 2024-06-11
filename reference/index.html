@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,46 +71,6 @@
         <dd>AR1 Prior</dd>
       </dl><dl><dt>
           
-          <code><a href="EAR.html">EAR()</a></code> 
-        </dt>
-        <dd>Exchangeable Autoregressive Prior</dd>
-      </dl><dl><dt>
-          
-          <code><a href="EAR1.html">EAR1()</a></code> 
-        </dt>
-        <dd>Exchangeable AR1 Prior</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ELin.html">ELin()</a></code> 
-        </dt>
-        <dd>Exchangeable Linear Prior</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ERW.html">ERW()</a></code> 
-        </dt>
-        <dd>Exchangeable Random Walk Prior</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ERW2.html">ERW2()</a></code> 
-        </dt>
-        <dd>Exchangeable Random Walk with Drift Prior</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ESVD.html">ESVD()</a></code> 
-        </dt>
-        <dd>Exchangeable SVD Prior for Interactions Involving Age</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ESVDS.html">ESVDS()</a></code> 
-        </dt>
-        <dd>Exchangeable SVD Prior for Interactions Involving Age and Sex/Gender</dd>
-      </dl><dl><dt>
-          
-          <code><a href="ESeas.html">ESeas()</a></code> 
-        </dt>
-        <dd>Exchangeable Seasonal Prior</dd>
-      </dl><dl><dt>
-          
           <code><a href="HMD.html">HMD</a></code> 
         </dt>
         <dd>Components from Human Mortality Database</dd>
@@ -118,7 +78,7 @@
           
           <code><a href="Known.html">Known()</a></code> 
         </dt>
-        <dd>Treat an Intercept, Main Effect, or Interaction as Known</dd>
+        <dd>Known Prior</dd>
       </dl><dl><dt>
           
           <code><a href="LFP.html">LFP</a></code> 
@@ -131,6 +91,16 @@
         <dd>Linear Prior</dd>
       </dl><dl><dt>
           
+          <code><a href="LinAR.html">LinAR()</a></code> 
+        </dt>
+        <dd>Linear Prior with Autoregressive Errors</dd>
+      </dl><dl><dt>
+          
+          <code><a href="LinAR1.html">LinAR1()</a></code> 
+        </dt>
+        <dd>Linear Prior with AR1 Errors</dd>
+      </dl><dl><dt>
+          
           <code><a href="N.html">N()</a></code> 
         </dt>
         <dd>Normal Prior</dd>
@@ -138,12 +108,12 @@
           
           <code><a href="NFix.html">NFix()</a></code> 
         </dt>
-        <dd>Normal Prior with Fixed Standard Deviation</dd>
+        <dd>Normal Prior with Fixed Variance</dd>
       </dl><dl><dt>
           
           <code><a href="RW.html">RW()</a></code> 
         </dt>
-        <dd>Random walk prior</dd>
+        <dd>Random Walk Prior</dd>
       </dl><dl><dt>
           
           <code><a href="RW2.html">RW2()</a></code> 
@@ -151,24 +121,29 @@
         <dd>Random Walk with Drift Prior</dd>
       </dl><dl><dt>
           
+          <code><a href="RW2Seas.html">RW2Seas()</a></code> 
+        </dt>
+        <dd>Random Walk with Drift Prior, with Seasonal Effect</dd>
+      </dl><dl><dt>
+          
+          <code><a href="RWSeas.html">RWSeas()</a></code> 
+        </dt>
+        <dd>Random Walk Prior, with Seasonal Effect</dd>
+      </dl><dl><dt>
+          
           <code><a href="SVD.html">SVD()</a></code> 
         </dt>
-        <dd>SVD Prior for Age Main Effect</dd>
+        <dd>SVD Prior for Age</dd>
       </dl><dl><dt>
           
           <code><a href="SVDS.html">SVDS()</a></code> 
         </dt>
-        <dd>SVD Prior for Interaction Between Age and Sex/Gender</dd>
-      </dl><dl><dt>
-          
-          <code><a href="Seas.html">Seas()</a></code> 
-        </dt>
-        <dd>Prior for Seasonal Effect</dd>
+        <dd>SVD Prior for Age-Sex or Age-Gender</dd>
       </dl><dl><dt>
           
           <code><a href="Sp.html">Sp()</a></code> 
         </dt>
-        <dd>P-spline prior</dd>
+        <dd>P-Spline Prior</dd>
       </dl><dl><dt>
           
           <code><a href="augment.bage_mod.html">augment(<i>&lt;bage_mod&gt;</i>)</a></code> 
@@ -184,11 +159,6 @@
           <code><a href="components.bage_ssvd.html">components(<i>&lt;bage_ssvd&gt;</i>)</a></code> 
         </dt>
         <dd>Extract Components used by SVD Summary</dd>
-      </dl><dl><dt>
-          
-          <code><a href="compose_time.html">compose_time()</a></code> 
-        </dt>
-        <dd>Compose a Prior for a Time Main Effect or Interaction</dd>
       </dl><dl><dt>
           
           <code><a href="deaths.html">deaths</a></code> 
