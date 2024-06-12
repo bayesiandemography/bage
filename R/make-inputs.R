@@ -109,6 +109,22 @@ default_prior <- function(nm_term, var_age, var_time, length_effect) {
 
 
 ## HAS_TESTS
+#' Evaluate Formula to Create Offset
+#'
+#' @param vname_offset Formula passed by user, turned into a string
+#' @param data Data frame
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+eval_offset_formula <- function(vname_offset, data) {
+  vname_offset <- sub("^~", "", vname_offset)
+  vname_offset <- parse(text = vname_offset)
+  eval(vname_offset, envir = data)
+}  
+
+
+## HAS_TESTS
 #' Infer the name of the age variable
 #'
 #' Given a formula, guess which term, if
@@ -986,7 +1002,6 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 }
 
 
-
 ## HAS_TESTS
 #' Make vector holding offset variable
 #'
@@ -997,9 +1012,13 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 #'
 #' @noRd
 make_offset <- function(vname_offset, data) {
+  is_offset_formula <- startsWith(vname_offset, "~")
+  if (is_offset_formula)
+    ans <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  else
     ans <- data[[vname_offset]]
-    ans <- as.double(ans)
-    ans
+  ans <- as.double(ans)
+  ans
 }
 
 

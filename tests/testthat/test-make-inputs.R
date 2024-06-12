@@ -306,6 +306,34 @@ test_that("'default_prior' works with time interaction", {
 })
 
 
+## 'eval_offset_formula' ------------------------------------------------------
+
+test_that("'eval_offset_formula' works with valid inputs - simple formula", {
+  vname_offset <- "~popn + other"
+  data <- data.frame(popn = 1, other = 2)
+  ans_obtained <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  ans_expected <- 3
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'eval_offset_formula' works with valid inputs - complicated formula", {
+  vname_offset <- "~popn^2 + log(other) + 6"
+  data <- data.frame(popn = 1:2, other = 2:3)
+  ans_obtained <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  ans_expected <- (1:2)^2 + log(2:3) + 6
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+test_that("'eval_offset_formula' works with valid inputs - ifelse", {
+  vname_offset <- "~ifelse(popn <= 0, 0.1, popn)"
+  data <- data.frame(popn = 0:2)
+  ans_obtained <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  ans_expected <- c(0.1, 1, 2)
+  expect_identical(ans_obtained, ans_expected)
+})  
+  
+
 ## 'infer_var_age' ------------------------------------------------------------
 
 test_that("'infer_var_age' returns name when single valid answer", {

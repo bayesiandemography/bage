@@ -14,7 +14,7 @@ specifying the outcome and predictors.}
 and predictor variables, and the number of trials.}
 
 \item{size}{Name of the variable giving
-the number of trials.}
+the number of trials, or a formula.}
 }
 \value{
 An object of class \code{bage_mod}.
@@ -77,10 +77,27 @@ The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
 The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
 }
 
+\section{Specifying size}{
+
+
+The \code{size} argument can take two forms:
+\itemize{
+\item the name of a variable in \code{data}, with or without
+quote marks, eg \code{"population"} or \code{population}; or
+\item a formula, which is evaluated with \code{data} as its
+environment (see below for example).
+}
+}
+
 \examples{
 mod <- mod_binom(oneperson ~ age:region + age:year,
                  data = households,
                  size = total)
+
+## use formula to specify size
+mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
+                 data = esoph,
+                 size = ~ ncases + ncontrols)
 }
 \seealso{
 \itemize{
@@ -90,5 +107,7 @@ mod <- mod_binom(oneperson ~ age:region + age:year,
 formed from classifying dimensions
 \item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for dispersion,
 \item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=forecast]{forecast()}} Forecast a model
+\item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model
 }
 }
