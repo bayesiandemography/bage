@@ -511,7 +511,7 @@ check_numeric <- function(x, nm_x) {
 #' Check offset occurs in 'data'
 #'
 #' @param vname_offset The name of the variable being
-#' used as an offset
+#' used as an offset, or a formula
 #' @param nm_offset The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
@@ -520,22 +520,31 @@ check_numeric <- function(x, nm_x) {
 #'
 #' @noRd
 check_offset_in_data <- function(vname_offset, nm_offset, data) {
+  is_formula <- startsWith(vname_offset, "~")
+  if (is_formula) {
+    ans <- tryCatch(eval_offset_formula(vname_offset = vname_offset, data = data),
+                    error = function(e) e)
+    if (inherits(ans, "error"))
+      cli::cli_abort(c("Problem with formula used for {.arg {nm_offset}}.",
+                       i = "Formula: {.val {vname_offset}}.",
+                       i = ans$message))
+  }
+  else {
     nms_data <- names(data)
     if (!(vname_offset %in% nms_data)) {
-      Nm_offset <- gsub("\\b(\\w)", "\\U\\1", nm_offset, perl=TRUE)
-      cli::cli_abort(c("{Nm_offset} variable not found in {.arg data}.",
-                       i = "{Nm_offset} variable: {.val {vname_offset}}."))
+      cli::cli_abort(c("{.arg {nm_offset}} not found in {.arg data}.",
+                       i = "{.arg {nm_offset}}: {.val {vname_offset}}."))
     }
-    invisible(TRUE)
+  }
+  invisible(TRUE)
 }
 
 
 ## HAS_TESTS
-#' Check that offset variable has no
-#' negative values
+#' Check that Offset Has No Negative Values
 #'
 #' @param vname_offset The name of the variable being
-#' used as an offset
+#' used as an offset, or a formula
 #' @param nm_offset The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
@@ -544,21 +553,28 @@ check_offset_in_data <- function(vname_offset, nm_offset, data) {
 #'
 #' @noRd
 check_offset_nonneg <- function(vname_offset, nm_offset, data) {
-  offset <- data[[vname_offset]]
-  if (any(offset < 0, na.rm = TRUE)) {
-    Nm_offset <- gsub("\\b(\\w)", "\\U\\1", nm_offset, perl = TRUE)
-    cli::cli_abort(c("{Nm_offset} variable has negative values.",
-                     i = "{Nm_offset} variable: {.val {vname_offset}}."))
+  is_formula <- startsWith(vname_offset, "~")
+  if (is_formula) {
+    offset <- eval_offset_formula(vname_offset = vname_offset, data = data)
   }
+  else {
+    offset <- data[[vname_offset]]
+  }
+  n_neg <- sum(offset < 0, na.rm = TRUE)
+  if (n_neg > 0L)
+    cli::cli_abort(c("{.arg {nm_offset}} has negative {cli::qty(n_neg)} value{?s}.",
+                     i = "{nm_offset}: {.val {vname_offset}}."))
   invisible(TRUE)
 }
 
 
 ## HAS_TESTS
-#' Check offset not in formula
+#' Check Offset not Used in 'formula' Agument
+#'
+#' Applied only when offset is the name of a variable.
 #'
 #' @param vname_offset The name of the variable being
-#' used as an offset
+#' used as an offset, or a formula
 #' @param nm_offset The name used to refer to the
 #' offset in user-visible functions
 #' @param formula Formula specifying model
@@ -567,12 +583,14 @@ check_offset_nonneg <- function(vname_offset, nm_offset, data) {
 #'
 #' @noRd
 check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
+  is_offset_formula <- startsWith(vname_offset, "~")
   nms_formula <- rownames(attr(stats::terms(formula), "factors"))
-  if (vname_offset %in% nms_formula) {
-    Nm_offset <- gsub("\\b(\\w)", "\\U\\1", nm_offset, perl = TRUE)
-    cli::cli_abort(c("{Nm_offset} variable included in formula.",
-                     i = "{Nm_offset} variable: {.val {vname_offset}}.",
-                     i = "Formula: {.val {deparse1(formula)}}."))
+  if (!is_offset_formula) {
+    if (vname_offset %in% nms_formula) {
+      cli::cli_abort(c("{.arg {nm_offset}} included in {.arg formula}.",
+                       i = "{.arg {nm_offset}}: {.val {vname_offset}}.",
+                       i = "{.arg formula}: {.val {deparse1(formula)}}."))
+    }
   }
   invisible(TRUE)
 }
@@ -584,7 +602,9 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
 #'
 #' @param formula A formula
 #' @param vname_offset The name of the variable being
-#' used as an offset
+#' used as an offset, or a formula
+#' @param nm_offset The name used to refer to the
+#' offset in user-visible functions
 #' @param data A data frame
 #'
 #' @return TRUE, invisibly
@@ -592,18 +612,25 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
 #' @noRd
 check_resp_le_offset <- function(formula,
                                  vname_offset,
+                                 nm_offset,
                                  data) {
-    nm_response <- deparse1(formula[[2L]])
-    response <- data[[nm_response]]
+  nm_response <- deparse1(formula[[2L]])
+  response <- data[[nm_response]]
+  is_offset_formula <- startsWith(vname_offset, "~")
+  if (is_offset_formula)
+    offset <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  else
     offset <- data[[vname_offset]]
-    is_gt_offset <- !is.na(response) & !is.na(offset) & (response > offset)
-    i_gt_offset <- match(TRUE, is_gt_offset, nomatch = 0L)
-    if (i_gt_offset > 0L) {
-      cli::cli_abort(c("{.var {nm_response}} greater than {.var {vname_offset}}.",
-                       i = "{.var {nm_response}}: {.val {response[[i_gt_offset]]}}.",
-                       i = "{.var {vname_offset}}: {.val {offset[[i_gt_offset]]}}."))
-    }
-    invisible(TRUE)
+  is_gt_offset <- !is.na(response) & !is.na(offset) & (response > offset)
+  i_gt_offset <- match(TRUE, is_gt_offset, nomatch = 0L)
+  if (i_gt_offset > 0L) {
+    cli::cli_abort(c("Response greater than {.var {nm_offset}}.",
+                     i = "Response: {.var {nm_response}}.",
+                     i = "{.var {nm_offset}}: {.val {vname_offset}}.",
+                     i = "Value for response: {.val {response[[i_gt_offset]]}}",
+                     i = "Value for {.var {nm_offset}}: {.val {offset[[i_gt_offset]]}}"))
+  }
+  invisible(TRUE)
 }
 
 
@@ -614,6 +641,8 @@ check_resp_le_offset <- function(formula,
 #' @param formula A formula
 #' @param vname_offset The name of the variable being
 #' used as an offset
+#' @param nm_offset The name used to refer to the
+#' offset in user-visible functions
 #' @param data A data frame
 #'
 #' @return TRUE, invisibly
@@ -621,17 +650,24 @@ check_resp_le_offset <- function(formula,
 #' @noRd
 check_resp_zero_if_offset_zero <- function(formula,
                                            vname_offset,
+                                           nm_offset,
                                            data) {
   nm_response <- deparse1(formula[[2L]])
   response <- data[[nm_response]]
-  offset <- data[[vname_offset]]
+  is_offset_formula <- startsWith(vname_offset, "~")
+  if (is_offset_formula)
+    offset <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  else
+    offset <- data[[vname_offset]]
   response_pos <- response > 0
   offset_pos <- offset > 0
   is_pos_nonpos <- !is.na(response) & !is.na(offset) & response_pos & !offset_pos
   i_pos_nonpos <- match(TRUE, is_pos_nonpos, nomatch = 0L)
   if (i_pos_nonpos > 0L)
-    cli::cli_abort(c("{.var {nm_response}} is non-zero but {.var {vname_offset}} is zero.",
-                     i = "{.var {nm_response}}: {.val {response[[i_pos_nonpos]]}}."))
+    cli::cli_abort(c("Response is non-zero but {.var {nm_offset}} is zero.",
+                     i = "Response: {.var {nm_response}}.",
+                     i = "{.var {nm_offset}}: {.var {vname_offset}}.",
+                     i = "Value for {.var {nm_response}}: {.val {response[[i_pos_nonpos]]}}."))
   invisible(TRUE)
 }
 

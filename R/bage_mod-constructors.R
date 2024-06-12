@@ -56,12 +56,23 @@
 #'
 #' The prior for \eqn{\xi} is described in [set_disp()].
 #'
+#' @section Specifying exposure:
+#'
+#' The `exposure` argument can take three forms:
+#'
+#' - the name of a variable in `data`, with or without
+#'   quote marks, eg `"population"` or `population`;
+#' - the number `1`, in which case a pure "counts" model
+#'   with no exposure, is produced; or
+#' - a formula, which is evaluated with `data` as its
+#'   environment (see below for example).
+#'
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
 #' @param data A data frame containing outcome,
 #' predictor, and, optionally, exposure variables.
 #' @param exposure Name of the exposure variable,
-#' or a `1`.
+#' or a `1`, or a formula. See below for details.
 #'
 #' @returns An object of class `bage_mod_pois`.
 #'
@@ -72,6 +83,8 @@
 #'   formed from classifying dimensions
 #' - [set_disp()] Specify a non-default prior for dispersion
 #' - [fit()] Fit a model
+#' - [forecast()] Forecast a model
+#' - [report_sim()] Do a simulation study on a model
 #'
 #' @examples
 #' ## specify a model with exposure
@@ -83,6 +96,11 @@
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = injuries,
 #'                 exposure = 1)
+#'
+#' ## use a formula to specify exposure
+#' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+#'                 data = injuries,
+#'                 exposure = ~ pmax(popn, 1))
 #' @export
 mod_pois <- function(formula, data, exposure) {
   ## processing common to all models
@@ -107,6 +125,7 @@ mod_pois <- function(formula, data, exposure) {
                         data = data)
     check_resp_zero_if_offset_zero(formula = formula,
                                    vname_offset = vname_offset,
+                                   nm_offset = "exposure",
                                    data = data)
     check_offset_not_in_formula(vname_offset = vname_offset,
                                 nm_offset = "exposure",
@@ -178,13 +197,22 @@ mod_pois <- function(formula, data, exposure) {
 #' The \eqn{\beta^{(m)}} are given priors, as described in [priors].
 #'
 #' The prior for \eqn{\xi} is described in [set_disp()].
+#'
+#' @section Specifying size:
+#'
+#' The `size` argument can take two forms:
+#'
+#' - the name of a variable in `data`, with or without
+#'   quote marks, eg `"population"` or `population`; or
+#' - a formula, which is evaluated with `data` as its
+#'   environment (see below for example).
 #' 
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
 #' @param data A data frame containing the outcome
 #' and predictor variables, and the number of trials.
 #' @param size Name of the variable giving
-#' the number of trials.
+#' the number of trials, or a formula.
 #'
 #' @returns An object of class `bage_mod`.
 #'
@@ -195,11 +223,18 @@ mod_pois <- function(formula, data, exposure) {
 #'   formed from classifying dimensions
 #' - [set_disp()] Specify a non-default prior for dispersion,
 #' - [fit()] Fit a model
+#' - [forecast()] Forecast a model
+#' - [report_sim()] Do a simulation study on a model
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
 #'                  data = households,
 #'                  size = total)
+#'
+#' ## use formula to specify size
+#' mod <- mod_binom(ncases ~ agegp + tobgp + alcgp,
+#'                  data = esoph,
+#'                  size = ~ ncases + ncontrols)
 #' @export
 mod_binom <- function(formula, data, size) {
   ## processing common to all models
@@ -225,9 +260,11 @@ mod_binom <- function(formula, data, size) {
                               formula = formula)
   check_resp_zero_if_offset_zero(formula = formula,
                                  vname_offset = vname_offset,
+                                 nm_offset = "size",
                                  data = data)
   check_resp_le_offset(formula = formula,
                        vname_offset = vname_offset,
+                       nm_offset = "size",
                        data = data)
   offset <- make_offset(vname_offset = vname_offset,
                         data = data)
@@ -295,12 +332,22 @@ mod_binom <- function(formula, data, size) {
 #'
 #' The prior for \eqn{\xi} is described in [set_disp()].
 #'
+#' @section Specifying weights:
+#'
+#' The `weights` argument can take three forms:
+#'
+#' - the name of a variable in `data`, with or without
+#'   quote marks, eg `"wt"` or `wt`;
+#' - the number `1`, in which no weights are used; or
+#' - a formula, which is evaluated with `data` as its
+#'   environment (see below for example).
+#' 
 #' @param formula An R [formula][stats::formula()],
 #' specifying the outcome and predictors.
 #' @param data A data frame containing outcome,
 #' predictor, and, optionally, weights variables.
 #' @param weights Name of the weights variable,
-#' or a `1`.
+#' a `1`, or a formula. See below for details.
 #'
 #' @returns An object of class `bage_mod_norm`.
 #'
@@ -311,11 +358,18 @@ mod_binom <- function(formula, data, size) {
 #'   formed from classifying dimensions
 #' - [set_disp()] Specify a non-default prior for the standard deviation
 #' - [fit()] Fit a model
+#' - [forecast()] Forecast a model
+#' - [report_sim()] Do a simulation study on a model
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,
 #'                 data = expenditure,
 #'                 weights = 1)
+#'
+#' ## use formula to specify weights
+#' mod <- mod_norm(value ~ diag:age + year,
+#'                 data = expenditure,
+#'                 weights = ~sqrt(value))
 #' @export
 mod_norm <- function(formula, data, weights) {
   ## processing common to all models

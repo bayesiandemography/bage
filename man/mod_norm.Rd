@@ -14,7 +14,7 @@ specifying the outcome and predictors.}
 predictor, and, optionally, weights variables.}
 
 \item{weights}{Name of the weights variable,
-or a \code{1}.}
+a \code{1}, or a formula. See below for details.}
 }
 \value{
 An object of class \code{bage_mod_norm}.
@@ -74,10 +74,28 @@ The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
 The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
 }
 
+\section{Specifying weights}{
+
+
+The \code{weights} argument can take three forms:
+\itemize{
+\item the name of a variable in \code{data}, with or without
+quote marks, eg \code{"wt"} or \code{wt};
+\item the number \code{1}, in which no weights are used; or
+\item a formula, which is evaluated with \code{data} as its
+environment (see below for example).
+}
+}
+
 \examples{
 mod <- mod_norm(value ~ diag:age + year,
                 data = expenditure,
                 weights = 1)
+
+## use formula to specify weights
+mod <- mod_norm(value ~ diag:age + year,
+                data = expenditure,
+                weights = ~sqrt(value))
 }
 \seealso{
 \itemize{
@@ -87,5 +105,7 @@ mod <- mod_norm(value ~ diag:age + year,
 formed from classifying dimensions
 \item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for the standard deviation
 \item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=forecast]{forecast()}} Forecast a model
+\item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model
 }
 }

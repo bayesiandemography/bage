@@ -14,7 +14,7 @@ specifying the outcome and predictors.}
 predictor, and, optionally, exposure variables.}
 
 \item{exposure}{Name of the exposure variable,
-or a \code{1}.}
+or a \code{1}, or a formula. See below for details.}
 }
 \value{
 An object of class \code{bage_mod_pois}.
@@ -80,6 +80,20 @@ The \eqn{\beta^{(m)}} are given priors, as described in \link{priors}.
 The prior for \eqn{\xi} is described in \code{\link[=set_disp]{set_disp()}}.
 }
 
+\section{Specifying exposure}{
+
+
+The \code{exposure} argument can take three forms:
+\itemize{
+\item the name of a variable in \code{data}, with or without
+quote marks, eg \code{"population"} or \code{population};
+\item the number \code{1}, in which case a pure "counts" model
+with no exposure, is produced; or
+\item a formula, which is evaluated with \code{data} as its
+environment (see below for example).
+}
+}
+
 \examples{
 ## specify a model with exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -90,6 +104,11 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = injuries,
                 exposure = 1)
+
+## use a formula to specify exposure
+mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+                data = injuries,
+                exposure = ~ pmax(popn, 1))
 }
 \seealso{
 \itemize{
@@ -99,5 +118,7 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 formed from classifying dimensions
 \item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for dispersion
 \item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=forecast]{forecast()}} Forecast a model
+\item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model
 }
 }
