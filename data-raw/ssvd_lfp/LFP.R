@@ -1,10 +1,10 @@
 
 library(command)
-library(bage)
 library(bssvd)
 library(rsdmx)
+library(bage)
 
-cmd_assign(.out = "../data/LFS.rda")
+cmd_assign(.out = "../data/LFP.rda")
 
 url <- paste("https://sdmx.oecd.org/public/rest/data",
              "OECD.ELS.SAE,DSD_LFS@DF_LFS_INDIC,1.1",
@@ -12,7 +12,8 @@ url <- paste("https://sdmx.oecd.org/public/rest/data",
              sep = "/")
 lfp_sdmx <- rsdmx::readSDMX(url)
 lfp_df <- as.data.frame(lfp_sdmx)
-LFP <- ssvd_lfp(lfp_df)
+data <- data_ssvd_lfp(lfp_df)
+LFP <- ssvd(data)
 
 save(LFP, file = .out, compress = "bzip2")
 
