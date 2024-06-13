@@ -85,7 +85,7 @@ AR <- function(n = 2, s = 1, along = NULL) {
           max = NULL,
           null_ok = FALSE)
   check_scale(s,
-              x_arg = "s",
+              nm_x = "s",
               zero_ok = FALSE)
   n <- as.integer(n)
   scale <- as.double(s)
@@ -178,7 +178,7 @@ AR <- function(n = 2, s = 1, along = NULL) {
 #' @export
 AR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   min <- as.double(min)
   max <- as.double(max)
@@ -286,8 +286,8 @@ Known <- function(values) {
 #' Lin(along = "cohort")
 #' @export
 Lin <- function(s = 1, sd = 1, along = NULL) {
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   scale <- as.double(s)
@@ -387,9 +387,9 @@ LinAR <- function(n = 2, s = 1, sd = 1, along = NULL) {
           max = NULL,
           null_ok = FALSE)
   check_scale(s,
-              x_arg = "s",
+              nm_x = "s",
               zero_ok = FALSE)
-  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   n <- as.integer(n)
@@ -486,9 +486,9 @@ LinAR <- function(n = 2, s = 1, sd = 1, along = NULL) {
 LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
   check_scale(s,
-              x_arg = "s",
+              nm_x = "s",
               zero_ok = FALSE)
-  check_scale(sd, x_arg = "sd", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   scale <- as.double(s)
@@ -546,7 +546,7 @@ LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
 #' N(s = 0.5)
 #' @export
 N <- function(s = 1) {
-    check_scale(s, x_arg = "s", zero_ok = FALSE) 
+    check_scale(s, nm_x = "s", zero_ok = FALSE) 
     scale <- as.double(s)
     new_bage_prior_norm(scale = scale)
 }
@@ -584,7 +584,7 @@ N <- function(s = 1) {
 #' NFix(sd = 10)
 #' @export
 NFix <- function(sd = 1) {
-    check_scale(sd, x_arg = "sd", zero_ok = FALSE) 
+    check_scale(sd, nm_x = "sd", zero_ok = FALSE) 
     sd <- as.double(sd)
     new_bage_prior_normfixed(sd = sd)
 }
@@ -648,7 +648,7 @@ NFix <- function(sd = 1) {
 #' RW(along = "cohort")
 #' @export
 RW <- function(s = 1, along = NULL) {
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   if (!is.null(along))
     check_string(along, nm_x = "along")
@@ -745,8 +745,8 @@ RWSeas <- function(n, s = 1, s_seas = 1, along = NULL) {
           min = 2L,
           max = NULL,
           null_ok = FALSE)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  check_scale(s_seas, x_arg = "s_seas", zero_ok = TRUE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
   n <- as.integer(n)
   scale <- as.double(s)
   scale_seas = as.double(s_seas)
@@ -825,7 +825,7 @@ RWSeas <- function(n, s = 1, s_seas = 1, along = NULL) {
 #' RW2(s = 0.5)
 #' @export
 RW2 <- function(s = 1, along = NULL) {
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   scale <- as.double(s)
@@ -923,8 +923,8 @@ RW2Seas <- function(n, s = 1, s_seas = 1, along = NULL) {
           min = 2L,
           max = NULL,
           null_ok = FALSE)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
-  check_scale(s_seas, x_arg = "s_seas", zero_ok = TRUE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
   n <- as.integer(n)
   scale <- as.double(s)
   scale_seas = as.double(s_seas)
@@ -1010,7 +1010,7 @@ Sp <- function(n = NULL, s = 1, along = NULL) {
           null_ok = TRUE)
   if (!is.null(n))
     n <- as.integer(n)
-  check_scale(s, x_arg = "s", zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
