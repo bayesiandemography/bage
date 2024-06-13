@@ -1,4 +1,9 @@
 
+# bage 0.5.1
+
+## Changes to interface
+
+* Moved HMD code to package **bssvd**.
 
 # bage 0.5.0
 

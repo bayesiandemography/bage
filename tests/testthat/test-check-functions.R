@@ -260,6 +260,7 @@ test_that("'check_is_matrix' throws correct error with non-matrix", {
                "`val` is not a matrix.")
 })
 
+
 ## 'check_is_ssvd' ------------------------------------------------------
 
 test_that("'check_is_ssvd' works with valid inputs", {

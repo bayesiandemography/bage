@@ -18,20 +18,33 @@
 #'    of vectors within `offset`, or `NULL`.
 #'    `NULL` when `sexgender` is `"total"`, since in
 #'    this case results average across sexes/genders.
-#' - `matrix` List column of sparse matrices created by
-#'   [ssvd_comp()]. Must have rownames.
+#' - `matrix` List column of sparse matrices.
+#'   Must have rownames.
 #'   Must not have NAs. When `type` is `"total"` or `"joint"`,
 #'   each matrix has `n_comp` columns. When `"type"` is `"indep"`,
 #'   each matrix has `2 * n_comp` columns.
-#' - `offset` List column of vectors created by
-#'   [ssvd_comp()]. Must have names, which
+#' - `offset` List column of vectors.
+#'   Must have names, which
 #'   are identical to the rownames of the corresponding
 #'   element of `matrix`.
+#'
+#' `data` would normally be constructed using a function
+#' in package [bssvd](https://bayesiandemography.github.io/bssvd/).
 #'   
 #' @param data A data frame. See Details for description.
 #' 
 #' @returns An object of class `"bage_ssvd"`.
 #'
+#' @seealso
+#' - `bssvd::data_ssvd_hfd()` Prepare data from Human Fertility Database
+#' - `bssvd::data_ssvd_hmd()` Prepare data from Human Mortality Database
+#' - `bssvd::data_ssvd_lfp()` Prepare OECD data on labour force participation
+#'
+#' @examples
+#' \dontrun{
+#' data <- data_ssvd_hmd("hmd_statistics_20240226.zip")
+#' HMD <- ssvd(data)
+#' }
 #' @export
 ssvd <- function(data) {
     nms_valid <- c("type",

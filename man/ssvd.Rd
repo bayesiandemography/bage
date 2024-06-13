@@ -30,14 +30,30 @@ matrices within \code{matrix} and individual elements
 of vectors within \code{offset}, or \code{NULL}.
 \code{NULL} when \code{sexgender} is \code{"total"}, since in
 this case results average across sexes/genders.
-\item \code{matrix} List column of sparse matrices created by
-\code{\link[=ssvd_comp]{ssvd_comp()}}. Must have rownames.
+\item \code{matrix} List column of sparse matrices.
+Must have rownames.
 Must not have NAs. When \code{type} is \code{"total"} or \code{"joint"},
 each matrix has \code{n_comp} columns. When \code{"type"} is \code{"indep"},
 each matrix has \code{2 * n_comp} columns.
-\item \code{offset} List column of vectors created by
-\code{\link[=ssvd_comp]{ssvd_comp()}}. Must have names, which
+\item \code{offset} List column of vectors.
+Must have names, which
 are identical to the rownames of the corresponding
 element of \code{matrix}.
+}
+
+\code{data} would normally be constructed using a function
+in package \href{https://bayesiandemography.github.io/bssvd/}{bssvd}.
+}
+\examples{
+\dontrun{
+data <- data_ssvd_hmd("hmd_statistics_20240226.zip")
+HMD <- ssvd(data)
+}
+}
+\seealso{
+\itemize{
+\item \code{bssvd::data_ssvd_hfd()} Prepare data from Human Fertility Database
+\item \code{bssvd::data_ssvd_hmd()} Prepare data from Human Mortality Database
+\item \code{bssvd::data_ssvd_lfp()} Prepare OECD data on labour force participation
 }
 }
