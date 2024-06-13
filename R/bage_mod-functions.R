@@ -47,7 +47,7 @@ set_disp <- function(mod, mean) {
     check_bage_mod(x = mod, nm_x = "mod")
     nm_distn <- nm_distn(mod)
     zero_ok <- nm_distn %in% c("pois", "binom")
-    check_scale(mean, x_arg = "mean", zero_ok = zero_ok)
+    check_scale(mean, nm_x = "mean", zero_ok = zero_ok)
     mean_disp <- as.double(mean)
     mod$mean_disp <- mean_disp
     mod <- unfit(mod)

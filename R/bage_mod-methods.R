@@ -1305,7 +1305,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
             min = 1L,
             max = NULL,
             null_ok = FALSE)
-    check_is_fitted(x = x, x_arg = "x")
+    check_is_fitted(x = x, nm_x = "x")
     data <- x$data
     outcome <- x$outcome
     offset <- x$offset
@@ -1350,7 +1350,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
             min = 1L,
             max = NULL,
             null_ok = FALSE)
-    check_is_fitted(x = x, x_arg = "x")
+    check_is_fitted(x = x, nm_x = "x")
     data <- x$data
     formula <- x$formula
     outcome <- x$outcome
@@ -1399,7 +1399,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
             min = 1L,
             max = NULL,
             null_ok = FALSE)
-    check_is_fitted(x = x, x_arg = "x")
+    check_is_fitted(x = x, nm_x = "x")
     data <- x$data
     formula <- x$formula
     outcome <- x$outcome

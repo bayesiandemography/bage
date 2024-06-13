@@ -229,10 +229,10 @@ test_that("'check_is_fitted' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_error(check_is_fitted(x = mod, x_arg = "Y"),
+    expect_error(check_is_fitted(x = mod, nm_x = "Y"),
                  "`Y` has not been fitted.")
     mod <- fit(mod)
-    expect_true(check_is_fitted(x = mod, x_arg = "Y"))
+    expect_true(check_is_fitted(x = mod, nm_x = "Y"))
 })
 
 
@@ -706,45 +706,45 @@ test_that("'check_response_nonneg' returns correct error with invalid inputs", {
 ## 'check_scale' --------------------------------------------------------------
 
 test_that("'check_scale' returns TRUE with valid inputs", {
-    expect_true(check_scale(1L, x_arg = "x", zero_ok = FALSE))
-    expect_true(check_scale(0.001, x_arg = "x", zero_ok = FALSE))
+    expect_true(check_scale(1L, nm_x = "x", zero_ok = FALSE))
+    expect_true(check_scale(0.001, nm_x = "x", zero_ok = FALSE))
 })
 
 test_that("'check_scale' returns correct error with non-numeric", {
-    expect_error(check_scale("1", x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale("1", nm_x = "x", zero_ok = FALSE),
                  "`x` is non-numeric.")
 })
 
 test_that("'check_scale' returns correct error with non-numeric", {
-    expect_error(check_scale("1", x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale("1", nm_x = "x", zero_ok = FALSE),
                  "`x` is non-numeric.")
 })
 
 test_that("'check_scale' returns correct error with wrong length", {
-    expect_error(check_scale(1:2, x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale(1:2, nm_x = "x", zero_ok = FALSE),
                  "`x` does not have length 1.")
 })
 
 test_that("'check_scale' returns correct error with NA", {
-    expect_error(check_scale(NA_real_, x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale(NA_real_, nm_x = "x", zero_ok = FALSE),
                  "`x` is NA.")
 })
 
 test_that("'check_scale' returns correct error with Inf", {
-    expect_error(check_scale(Inf, x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale(Inf, nm_x = "x", zero_ok = FALSE),
                  "`x` is infinite.")
 })
 
 test_that("'check_scale' returns correct error with negative", {
-    expect_true(check_scale(0, x_arg = "x", zero_ok = TRUE))
-    expect_error(check_scale(-1, x_arg = "x", zero_ok = TRUE),
+    expect_true(check_scale(0, nm_x = "x", zero_ok = TRUE))
+    expect_error(check_scale(-1, nm_x = "x", zero_ok = TRUE),
                  "`x` is negative.")
 })
 
 test_that("'check_scale' returns correct error with non-positive", {
-    expect_error(check_scale(0, x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale(0, nm_x = "x", zero_ok = FALSE),
                  "`x` is non-positive.")
-    expect_error(check_scale(-1, x_arg = "x", zero_ok = FALSE),
+    expect_error(check_scale(-1, nm_x = "x", zero_ok = FALSE),
                  "`x` is non-positive.")
 })
 

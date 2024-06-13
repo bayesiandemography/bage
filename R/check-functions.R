@@ -251,15 +251,15 @@ check_is_dataframe <- function(x, nm_x) {
 #' Check that a model has been fitted
 #'
 #' @param x Object of class 'bage_mod'
-#' @param x_arg Name for 'x' to be used in error messages
+#' @param nm_x Name for 'x' to be used in error messages
 #'
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_is_fitted <- function(x, x_arg) {
+check_is_fitted <- function(x, nm_x) {
     if (!is_fitted(x))
-        cli::cli_abort(c("{.arg {x_arg}} has not been fitted.",
-                         i = "Call function {.fun bage::fit} on {.arg {x_arg}}?"))
+        cli::cli_abort(c("{.arg {nm_x}} has not been fitted.",
+                         i = "Call function {.fun bage::fit} on {.arg {nm_x}}?"))
     invisible(TRUE)
 }
 
@@ -702,33 +702,33 @@ check_response_nonneg <- function(formula, data, nm_distn) {
 #' finite scalar.
 #'
 #' @param x A positive or non-negative number.
-#' @param x_arg Name for `x` to be
+#' @param nm_x Name for `x` to be
 #' used in error messages.
 #' @param zero_ok Whether 'x' can be zero.
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
-check_scale <- function(x, x_arg, zero_ok) {
+check_scale <- function(x, nm_x, zero_ok) {
     if (!is.numeric(x))
-        cli::cli_abort(c("{.arg {x_arg}} is non-numeric.",
-                         i = "{.arg {x_arg}} has class {.cls {class(x)}}."))
+        cli::cli_abort(c("{.arg {nm_x}} is non-numeric.",
+                         i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
     if (length(x) != 1L)
-        cli::cli_abort(c("{.arg {x_arg}} does not have length 1.",
-                         i = "{.arg {x_arg}} has length {.val {length(x)}}."))
+        cli::cli_abort(c("{.arg {nm_x}} does not have length 1.",
+                         i = "{.arg {nm_x}} has length {.val {length(x)}}."))
     if (is.na(x))
-        cli::cli_abort("{.arg {x_arg}} is {.val {NA}}.")
+        cli::cli_abort("{.arg {nm_x}} is {.val {NA}}.")
     if (is.infinite(x))
-        cli::cli_abort("{.arg {x_arg}} is infinite.")
+        cli::cli_abort("{.arg {nm_x}} is infinite.")
     if (zero_ok) {
         if (x < 0)
-            cli::cli_abort(c("{.arg {x_arg}} is negative.",
-                             i = "{.arg {x_arg}} equals {.val {x}}."))
+            cli::cli_abort(c("{.arg {nm_x}} is negative.",
+                             i = "{.arg {nm_x}} equals {.val {x}}."))
     }
     else {
         if (x <= 0)
-            cli::cli_abort(c("{.arg {x_arg}} is non-positive.",
-                             i = "{.arg {x_arg}} equals {.val {x}}."))
+            cli::cli_abort(c("{.arg {nm_x}} is non-positive.",
+                             i = "{.arg {nm_x}} equals {.val {x}}."))
     }
     invisible(TRUE)
 }
