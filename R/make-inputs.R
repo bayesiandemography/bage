@@ -1170,26 +1170,26 @@ make_seed <- function()
 #' Statistical Science, 11(2), 89-121.
 #'
 #' @param n_along Number of elements of dimension being modelled
-#' @param n_spline Number of columns in spline matrix
+#' @param n_comp Number of columns in spline matrix
 #'
-#' @returns Matrix with 'n_along' rows and 'n_spline' columns
+#' @returns Matrix with 'n_along' rows and 'n_comp' columns
 #'
 #' @noRd
-make_spline_matrix <- function(n_along, n_spline) {
-    n_interval <- n_spline - 3L
-    interval_length <- (n_along - 1L) / n_interval
-    start <- 1 - 3 * interval_length
-    end <- n_along + 3 * interval_length
-    x <- seq(from = start, to = end, by = 0.001)
-    base <- splines::bs(x = x, df = n_spline + 5L)
-    i_keep <- findInterval(seq_len(n_along), x)
-    j_keep <- seq.int(from = 3L, length.out = n_spline)
-    ans <- base[i_keep, j_keep]
-    colmeans <- colMeans(ans)
-    ans <- ans - rep(colmeans, each = nrow(ans))
-    Matrix::sparseMatrix(i = row(ans),
-                         j = col(ans),
-                         x = as.double(ans))
+make_spline_matrix <- function(n_along, n_comp) {
+  n_interval <- n_comp - 3L
+  interval_length <- (n_along - 1L) / n_interval
+  start <- 1 - 3 * interval_length
+  end <- n_along + 3 * interval_length
+  x <- seq(from = start, to = end, by = 0.001)
+  base <- splines::bs(x = x, df = n_comp + 5L)
+  i_keep <- findInterval(seq_len(n_along), x)
+  j_keep <- seq.int(from = 3L, length.out = n_comp)
+  ans <- base[i_keep, j_keep]
+  colmeans <- colMeans(ans)
+  ans <- ans - rep(colmeans, each = nrow(ans))
+  Matrix::sparseMatrix(i = row(ans),
+                       j = col(ans),
+                       x = as.double(ans))
 }
 
 
@@ -1403,6 +1403,35 @@ make_uses_offset_effectfree_effect <- function(mod) {
     ans <- as.integer(ans)
     names(ans) <- names(priors)
     ans    
+}
+
+
+## HAS_TESTS
+#' Prepare Number of Components Argument for SVD Prior
+#'
+#' @param n_comp Value for number provided by user
+#' @param nm_n_comp Name for 'n_comp' to be used in error messages
+#' @param ssvd Object of class "bage_ssvd"
+#'
+#' @returns Number of components - an integer scalar
+#'
+#' @noRd
+n_comp_svd <- function(n_comp, nm_n_comp, ssvd) {
+  n_comp_ssvd <- get_n_comp(ssvd)
+  if (is.null(n_comp))
+    n_comp <- ceiling(n_comp_ssvd / 2)
+  else {
+    check_n(n = n_comp,
+            nm_n = nm_n_comp,
+            min = 1L,
+            max = NULL,
+            null_ok = FALSE)
+    if (n_comp > n_comp_ssvd)
+      cli::cli_abort(c("{.arg {nm_n_comp}} larger than number of components of {.arg ssvd}.",
+                       i = "{.arg {nm_n_comp}}: {.val {n_comp}}.",
+                       i = "Number of components: {.val {n_comp_ssvd}}."))
+  }
+  as.integer(n_comp)
 }
 
 

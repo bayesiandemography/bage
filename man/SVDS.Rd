@@ -2,16 +2,16 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{SVDS}
 \alias{SVDS}
-\title{SVD Prior for Age-Sex or Age-Gender}
+\title{SVD Prior for Age-Sex or Age-Gender Interaction}
 \usage{
-SVDS(ssvd, n = 5, joint = FALSE)
+SVDS(ssvd, n_comp = NULL, joint = FALSE)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
 holding a scaled SVD. See below for scaled SVDs
 of databases currently available in \strong{bage}.}
 
-\item{n}{Number of components from scaled SVD
+\item{n_comp}{Number of components from scaled SVD
 to use in modelling. The default is half
 the number of components of \code{ssvd}.}
 
@@ -42,11 +42,10 @@ they were obtained from the
 \href{https://www.mortality.org}{Human Mortality Database}.
 
 If \code{SVDS()} is used with an interaction
-between age, sex or gender, and one or more
-"by" variables, then separate age-sex or
+between age, sex/gender, and one or more
+other variables, then separate age-sex or
 age-gender profiles are constructed within
-each combination of the
-"by" variables.
+each combination of the other variables.
 
 Age profiles with no sex or gender dimension
 should be modelled using \code{\link[=SVD]{SVD()}} rather than
@@ -87,16 +86,18 @@ and when \code{SVDS()} is used with \code{joint = TRUE},
 
 where
 \itemize{
-\item \eqn{\pmb{\beta}} is an interaction;
+\item \eqn{\pmb{\beta}} is an interaction involving age and sex/gender;
 \item \eqn{\pmb{\beta}_{s}} is a subvector of \eqn{\pmb{\beta}},
-holding values for sex/gender \eqn{s}, with \eqn{s = 1, \dots, S};
+holding values for sex/gender \eqn{s};
 \item \eqn{J} is the number of elements in \eqn{\pmb{\beta}};
+\item \eqn{S} is the number of sexes/genders;
+\item \eqn{n} is \code{n_comp};
 \item \eqn{\pmb{F}_s} is a known \eqn{(J/S) \times n} matrix, specific
 to sex/gender \eqn{s};
 \item \eqn{\pmb{g}_s} is a known vector with \eqn{J/S} elements,
 specific to sex/gender \eqn{s};
 \item \eqn{\pmb{F}} is a known \eqn{J \times n} matrix, with values
-for all sexes/genders.
+for all sexes/genders; and
 \item \eqn{\pmb{g}} is a known vector with \eqn{J} elements, with values
 for all sexes/genders.
 }
@@ -104,7 +105,7 @@ for all sexes/genders.
 The elements of \eqn{\pmb{\alpha}_s} and \eqn{\pmb{\alpha}} have prior
 \deqn{\alpha_k \sim \text{N}(0, 1).}
 
-\strong{Case 2: Interaction involving age and sex or gender, and one or more other variables}
+\strong{Case 2: Interaction involving age and sex/gender, and one or more other variables}
 
 When \code{SVDS()} is used with \code{joint = FALSE},
 
@@ -116,17 +117,19 @@ and when \code{SVDS()} is used with \code{joint = TRUE},
 
 where
 \itemize{
-\item \eqn{\pmb{\beta}} is an interaction;
+\item \eqn{\pmb{\beta}} is an interaction involving sex/gender;
 \item \eqn{\pmb{\beta}_{u,s}} is a subvector of \eqn{\pmb{\beta}},
 holding values for sex/gender \eqn{s} for the \eqn{u}th
-combination of "by" variables, with \eqn{s = 1, \dots, S};
+combination of the other variables;
 \item \eqn{V} is the number of elements in \eqn{\pmb{\beta}_u};
+\item \eqn{S} is the number of sexes/genders;
+\item \eqn{n} is \code{n_comp};
 \item \eqn{\pmb{F}_s} is a known \eqn{(V/S) \times n} matrix, specific
 to sex/gender \eqn{s};
 \item \eqn{\pmb{g}_s} is a known vector with \eqn{V/S} elements,
 specific to sex/gender \eqn{s};
 \item \eqn{\pmb{F}} is a known \eqn{V \times n} matrix, with values
-for all sexes/genders.
+for all sexes/genders; and
 \item \eqn{\pmb{g}} is a known vector with \eqn{V} elements, with values
 for all sexes/genders.
 }
@@ -159,6 +162,7 @@ scaled SVDS see the vignette
 \seealso{
 \itemize{
 \item \code{\link[=SVD]{SVD()}} SVD prior for age, with no sex or gender
+\item \code{\link[=SVDS_RW]{SVDS_RW()}} SVD prior for age and sex/gender with time-varying coeffients
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines

@@ -42,21 +42,21 @@ forecast_ar <- function(ar_est,
                         sd,
                         matrix_along_by_est,
                         matrix_along_by_forecast) {
-  n_ar <- length(coef)
+  n_coef <- length(coef)
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   ans <- rep(ar_est[[1L]], times = n_along_forecast * n_by)
-  tmp <- rep(ar_est[[1L]], times = n_along_forecast + n_ar)
-  s_head <- seq_len(n_ar)
-  s_tail <- seq(to = n_along_est, length.out = n_ar)
+  tmp <- rep(ar_est[[1L]], times = n_along_forecast + n_coef)
+  s_head <- seq_len(n_coef)
+  s_tail <- seq(to = n_along_est, length.out = n_coef)
   for (i_by in seq_len(n_by)) {
     i_tail <- matrix_along_by_est[s_tail, i_by] + 1L ## matrix uses 0-based index
     tmp[s_head] <- ar_est[i_tail]
     for (j in seq_len(n_along_forecast)) {
-      s_ar <- seq(from = j, to = j + n_ar - 1L)
+      s_ar <- seq(from = j, to = j + n_coef - 1L)
       mean <- sum(coef * tmp[s_ar])
-      tmp[[j + n_ar]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
+      tmp[[j + n_coef]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
     }
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
     ans[i_ans] <- tmp[-s_head]
@@ -225,10 +225,10 @@ forecast_rw2 <- function(rw2_est,
 ## HAS_TESTS
 #' Forecast Fixed Seasonal Effects
 #'
-#' Use first 'n_season' entries from historical
+#' Use first 'n_seas' entries from historical
 #' estimates, within each combination of 'by' variables
 #'
-#' @param n Number of seasons.
+#' @param n_seas Number of seasons.
 #' @param seas_est Historical estimates. An rvec.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estiamtes
@@ -238,7 +238,7 @@ forecast_rw2 <- function(rw2_est,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_seasfix <- function(n,
+forecast_seasfix <- function(n_seas,
                              seas_est,
                              matrix_along_by_est,
                              matrix_along_by_forecast) {
@@ -246,14 +246,14 @@ forecast_seasfix <- function(n,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   ans <- rep(seas_est[[1L]], times = n_along_forecast * n_by)
-  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n)
-  s_head <- seq_len(n)
-  s_tail <- seq.int(to = n_along_est, length.out = n)
+  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n_seas)
+  s_head <- seq_len(n_seas)
+  s_tail <- seq.int(to = n_along_est, length.out = n_seas)
   for (i_by in seq_len(n_by)) {
     i_tail <- matrix_along_by_est[s_tail, i_by] + 1L
     tmp[s_head] <- seas_est[i_tail]
     for (j in seq_len(n_along_forecast))
-      tmp[[j + n]] <- tmp[[j]]
+      tmp[[j + n_seas]] <- tmp[[j]]
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
     ans[i_ans] <- tmp[-s_head]
   }
@@ -264,7 +264,7 @@ forecast_seasfix <- function(n,
 ## HAS_TESTS
 #' Forecast Time-Varying Seasonal Effects
 #'
-#' @param n Number of seasons.
+#' @param n_seas Number of seasons.
 #' @param seas_est Historical estimates. An rvec.
 #' @param sd Standard deviation for seasonal effects. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
@@ -275,7 +275,7 @@ forecast_seasfix <- function(n,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_seasvary <- function(n,
+forecast_seasvary <- function(n_seas,
                               seas_est,
                               sd,
                               matrix_along_by_est,
@@ -284,14 +284,14 @@ forecast_seasvary <- function(n,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   ans <- rep(seas_est[[1L]], times = n_along_forecast * n_by)
-  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n)
-  s_head <- seq_len(n)
-  s_tail <- seq.int(to = n_along_est, length.out = n)
+  tmp <- rep(seas_est[[1L]], times = n_along_forecast + n_seas)
+  s_head <- seq_len(n_seas)
+  s_tail <- seq.int(to = n_along_est, length.out = n_seas)
   for (i_by in seq_len(n_by)) {
     i_tail <- matrix_along_by_est[s_tail, i_by] + 1L
     tmp[s_head] <- seas_est[i_tail]
     for (j in seq_len(n_along_forecast))
-      tmp[[j + n]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
+      tmp[[j + n_seas]] <- rvec::rnorm_rvec(n = 1L, mean = tmp[[j]], sd = sd)
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
     ans[i_ans] <- tmp[-s_head]
   }

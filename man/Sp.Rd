@@ -4,10 +4,11 @@
 \alias{Sp}
 \title{P-Spline Prior}
 \usage{
-Sp(n = NULL, s = 1, along = NULL)
+Sp(n_comp = NULL, s = 1, along = NULL)
 }
 \arguments{
-\item{n}{Number of spline basis functions to use.}
+\item{n_comp}{Number of spline basis functions (components)
+to use.}
 
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
@@ -49,9 +50,10 @@ where
 \item \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
 values for the  \eqn{u}th combination of the "by" variables;
 \item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
-\item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u}; and
+\item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
 \item \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
-spline basis functions.
+spline basis functions; and
+\item \eqn{n} is \code{n_comp}.
 }
 
 The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
@@ -60,7 +62,7 @@ to follow a \link[=RW2]{random walk with drift}.
 
 \examples{
 Sp()
-Sp(n = 10)
+Sp(n_comp = 10)
 }
 \references{
 \itemize{
