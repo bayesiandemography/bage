@@ -91,7 +91,7 @@ defaults for \code{forecast::ets()}.
 \seealso{
 \itemize{
 \item \code{\link[=AR]{AR()}} Generalisation of \code{AR1()}
-\item \code{\link[=LinAR1]{LinAR1()}} AR1 process combined with straight line
+\item \code{\link[=Lin_AR1]{Lin_AR1()}} AR1 process combined with straight line
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

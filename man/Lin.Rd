@@ -74,8 +74,8 @@ Lin(along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=LinAR]{LinAR()}} Linear with AR errors
-\item \code{\link[=LinAR1]{LinAR1()}} Linear with AR1 errors
+\item \code{\link[=Lin_AR]{Lin_AR()}} Linear with AR errors
+\item \code{\link[=Lin_AR1]{Lin_AR1()}} Linear with AR1 errors
 \item \code{\link[=RW2]{RW2()}} Random walk with drift
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,

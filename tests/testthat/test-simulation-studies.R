@@ -11,7 +11,7 @@ if (FALSE) {
                       data = data,
                       exposure = population)
   mod_est <- set_prior(mod_est, age:sex ~ SVDS(HMD))
-  mod_est <- set_prior(mod_est, time ~ LinAR1(s = 0.1))
+  mod_est <- set_prior(mod_est, time ~ Lin_AR1(s = 0.1))
   mod_est <- set_prior(mod_est, sex:time ~ RW(s = 0.1))
   mod_est <- set_prior(mod_est, sex ~ NFix(sd = 0.1))
   rep <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10)

@@ -65,7 +65,7 @@
 #'
 #' @seealso
 #' - [AR1()] Special case of `AR()`
-#' - [LinAR()] AR process combined with straight line
+#' - [Lin_AR()] AR process combined with straight line
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -161,7 +161,7 @@ AR <- function(n_coef = 2, s = 1, along = NULL) {
 #'
 #' @seealso
 #' - [AR()] Generalisation of `AR1()`
-#' - [LinAR1()] AR1 process combined with straight line
+#' - [Lin_AR1()] AR1 process combined with straight line
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -274,8 +274,8 @@ Known <- function(values) {
 #' @returns An object of class `"bage_prior_lin"`.
 #'
 #' @seealso
-#' - [LinAR()] Linear with AR errors
-#' - [LinAR1()] Linear with AR1 errors
+#' - [Lin_AR()] Linear with AR errors
+#' - [Lin_AR1()] Linear with AR1 errors
 #' - [RW2()] Random walk with drift
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -306,7 +306,7 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' A straight line or lines, combined with
 #' autoregressive errors. Typically used with time.
 #'
-#' If `LinAR()` is used with an interaction,
+#' If `Lin_AR()` is used with an interaction,
 #' then, within each combination of the "by" variables,
 #' the "along" variable is modelled as a straight line
 #' with autoregressive errors.
@@ -315,7 +315,7 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' 
 #' @section Mathematical details:
 #'
-#' When `LinAR()` is used with a main effect,
+#' When `Lin_AR()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \eta q_j + \epsilon_j}
 #' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j,}
@@ -342,7 +342,7 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
 #' Larger values for `sd` permit steeper slopes.
 #'
-#' Internally, `LinAR()` derives a value for \eqn{\omega} that
+#' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
@@ -371,17 +371,17 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' @returns An object of class `"bage_prior_linar"`.
 #'
 #' @seealso
-#' - [LinAR1()] Special case of `LinAR()`
+#' - [Lin_AR1()] Special case of `Lin_AR()`
 #' - [AR()] AR process with no line
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #'
 #' @examples
-#' LinAR()
-#' LinAR(n_coef = 3, s = 0.5, sd = 2)
+#' Lin_AR()
+#' Lin_AR(n_coef = 3, s = 0.5, sd = 2)
 #' @export
-LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
+Lin_AR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
   check_n(n = n_coef,
           nm_n = "n_coef",
           min = 1L,
@@ -402,7 +402,7 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
                        min = -1,
                        max = 1,
                        along = along,
-                       nm = "LinAR")
+                       nm = "Lin_AR")
 }
 
 
@@ -413,7 +413,7 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #' Combines a straight line or lines with
 #' AR1 errors. Typically used with time.
 #'
-#' If `LinAR1()` is used with an interaction,
+#' If `Lin_AR1()` is used with an interaction,
 #' then, within each combination of the "by" variables,
 #' the "along" variable is modelled as a straight line
 #' with autoregressive errors.
@@ -422,7 +422,7 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #'
 #' @section Mathematical details:
 #'
-#' When `LinAR1()` is being used with a main effect,
+#' When `Lin_AR1()` is being used with a main effect,
 #'
 #' \deqn{\beta_j = \eta q_j + \epsilon_j}
 #' \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j,}
@@ -448,7 +448,7 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
 #' Larger values for `sd` permit steeper slopes.
 #'
-#' Internally, `LinAR1()` derives a value for \eqn{\omega} that
+#' Internally, `Lin_AR1()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
@@ -462,7 +462,7 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #' where
 #' \deqn{\phi' \sim \text{Beta}(2, 2).}
 #' 
-#' @inheritParams LinAR
+#' @inheritParams Lin_AR
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient.
 #' Defaults are `0.8` and `0.98`.
@@ -470,7 +470,7 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #' @returns An object of class `"bage_prior_linar"`.
 #'
 #' @seealso
-#' - [LinAR()] Generalisation of `LinAR1()`
+#' - [Lin_AR()] Generalisation of `Lin_AR1()`
 #' - [AR1()] AR1 process with no line
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -481,10 +481,10 @@ LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #'   defaults for `forecast::ets()`.
 #'
 #' @examples
-#' LinAR1()
-#' LinAR1(min = 0, s = 0.5, sd = 2)
+#' Lin_AR1()
+#' Lin_AR1(min = 0, s = 0.5, sd = 2)
 #' @export
-LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
+Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
   check_scale(s,
               nm_x = "s",
@@ -502,7 +502,7 @@ LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
                        min = min,
                        max = max,
                        along = along,
-                       nm = "LinAR1")
+                       nm = "Lin_AR1")
 }
 
 
@@ -665,7 +665,7 @@ RW <- function(s = 1, along = NULL) {
 #' typically involving time. Combines
 #' a random walk with a seasonal effect.
 #'
-#' If `RWSeas()` is used with an interaction,
+#' If `RW_Seas()` is used with an interaction,
 #' then separate series are used for
 #' the "along" variable within
 #' each combination of the
@@ -686,7 +686,7 @@ RW <- function(s = 1, along = NULL) {
 #'
 #' @section Mathematical details:
 #'
-#' When `RWSeas()` is used with a main effect,
+#' When `RW_Seas()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \alpha_j + \lambda_j}
 #' \deqn{\alpha_j \sim \text{N}(\alpha_{j-1}, \tau^2)}
@@ -731,16 +731,16 @@ RW <- function(s = 1, along = NULL) {
 #'
 #' @seealso
 #' - [RW()] Random walk without seasonal effect
-#' - [RW2Seas()] Random walk with drift, with seasonal effect
+#' - [RW2_Seas()] Random walk with drift, with seasonal effect
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #'
 #' @examples
-#' RWSeas(n_seas = 4)             ## seasonal effects evolve
-#' RWSeas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
+#' RW_Seas(n_seas = 4)             ## seasonal effects evolve
+#' RW_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
-RWSeas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
+RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
   check_n(n = n_seas,
           nm_n = "n_seas",
           min = 2L,
@@ -843,7 +843,7 @@ RW2 <- function(s = 1, along = NULL) {
 #' a random walk with drift (ie a second-order random walk)
 #' and a seasonal effect.
 #'
-#' If `RW2Seas()` is used with an interaction,
+#' If `RW2_Seas()` is used with an interaction,
 #' then separate series are used for
 #' the "along" variable within
 #' each combination of the
@@ -864,7 +864,7 @@ RW2 <- function(s = 1, along = NULL) {
 #'
 #' @section Mathematical details:
 #'
-#' When `RW2Seas()` is used with a main effect,
+#' When `RW2_Seas()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \alpha_j + \lambda_j}
 #' \deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2)}
@@ -909,16 +909,16 @@ RW2 <- function(s = 1, along = NULL) {
 #'
 #' @seealso
 #' - [RW2()] Random walk with drift, without seasonal effect
-#' - [RWSeas()] Random walk, with seasonal effect
+#' - [RW_Seas()] Random walk, with seasonal effect
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
 #'
 #' @examples
-#' RW2Seas(n_seas = 4)             ## seasonal effects evolve
-#' RW2Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
+#' RW2_Seas(n_seas = 4)             ## seasonal effects evolve
+#' RW2_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
-RW2Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
+RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
   check_n(n = n_seas,
           nm_n = "n_seas",
           min = 2L,
@@ -1032,11 +1032,11 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 #' A `SVD()` prior assumes that the age profile for the quantity
 #' being modelled looks like it was drawn at random
 #' from an external demographic database. For instance,
-#' the `SVD()` prior obtained via
+#' the prior obtained via
 #' ```
 #' SVD(HMD)
 #' ```
-#' favours age profiles that look like
+#' assumes that age profiles look like
 #' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
@@ -1139,7 +1139,7 @@ SVD <- function(ssvd, n_comp = NULL) {
 #' ```
 #' SVDS(HMD)
 #' ```
-#' favours age-sex profiles that look like
+#' assumes that age-sex profiles look like
 #' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
@@ -1289,14 +1289,15 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #' other variables, where the coefficients evolve over time.
 #'
 #' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
-#' priors assume that the age profile for the quantity
-#' being modelled looks like it was drawn at random
+#' priors assume that, in any given period,
+#' the age profiles for the quantity
+#' being modelled looks like they were drawn at random
 #' from an external demographic database. For instance,
 #' the `SVD_AR()` prior obtained via
 #' ```
 #' SVD_AR(HMD)
 #' ```
-#' favours age profiles that look like
+#' assumes that profiles look like
 #' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
@@ -1405,15 +1406,292 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #' SVD_AR1(HMD)
 #' SVD_RW(HMD, n_comp = 3)
 #' @export
+SVD_AR <- function(ssvd, n_comp = NULL, n_coef = 2, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_n(n = n_coef,
+          nm_n = "n_coef",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_scale(x = s,
+              nm_x = "s",
+              zero_ok = FALSE)
+  n_coef <- as.integer(n_coef)
+  scale <- as.double(s)
+  new_bage_prior_svd_ar(ssvd = ssvd,
+                        nm_ssvd = nm_ssvd,
+                        n_comp = n_comp,
+                        n_coef = n_coef,
+                        scale = scale)
+}
+
+#' @rdname SVD_AR
+#' @export
+SVD_AR1 <- function(ssvd, n_comp = NULL, min = 0.8, max = 0.98, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_min_max_ar(min = min, max = max)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  min <- as.double(min)
+  max <- as.double(max)
+  scale <- as.double(s)
+  new_bage_prior_svd_ar1(ssvd = ssvd,
+                         nm_ssvd = nm_ssvd,
+                         n_comp = n_comp,
+                         min = min,
+                         max = max,
+                         scale = scale)
+}
+
+#' @rdname SVD_AR
+#' @export
 SVD_RW <- function(ssvd, n_comp = NULL, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp_svd(n_comp = n, nm_n_comp = "n", ssvd = ssvd)
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  scale <- as.double(s)
   new_bage_prior_svd_rw(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
-                        joint = NULL)
+                        scale = scale)
 }
+
+#' @rdname SVD_AR
+#' @export
+SVD_RW2 <- function(ssvd, n_comp = NULL, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  new_bage_prior_svd_rw2(ssvd = ssvd,
+                         nm_ssvd = nm_ssvd,
+                         n_comp = n_comp,
+                         scale = scale)
+}
+
+
+
+
+
+
+## NO_TESTS
+#' SVD Priors for Age-Sex or Age-Gender Interactions,
+#' With Time-Varying Coefficients
+#'
+#' Singular Value Decomposition (SVD) priors
+#' for interactions involving age, sex or gender,
+#' time, and possibly other variables.
+#'
+#' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
+#' priors assume that, in any given period,
+#' the age-sex profile or age-gender
+#' profiles for the quantity being modelled look
+#' they were drawn at random
+#' from an external demographic database. For instance,
+#' the prior obtained via
+#' ```
+#' SVDSAR(HMD)
+#' ```
+#' favours age-sex profiles that look like
+#' they were obtained from the
+#' [Human Mortality Database](https://www.mortality.org).
+#'
+#' AgeInteractions that involve sex or gender
+#' as well age and time should be
+#' modelled using [SVDS_AR()], [SVDS_AR1()], [SVDS_RW()],
+#' or [SVDS_RW2()] priors, rather than `SVD_AR()`,
+#' `SVDS_AR1()`, `SVDS_RW()`, or `SVDS_RW2()` priors.
+#'
+#' @section Mathematical details:
+#' 
+#' When the interaction being modelled only involves
+#' age and time,
+#' 
+#' \deqn{\pmb{\beta}_t = \pmb{F} \pmb{\alpha}_t + \pmb{g},}
+#'
+#' and when it involives other variables besides age and time,
+#'
+#' \deqn{\pmb{\beta}_{u,t} = \pmb{F} \pmb{\alpha}_{u,t} + \pmb{g},}
+#'
+#' where
+#' - \eqn{\pmb{\beta}} is an interaction involving age and time;
+#' - \eqn{\pmb{\beta}_t} is a subvector of \eqn{\pmb{\beta}} holding
+#'   values for the period \eqn{t};
+#' - \eqn{\pmb{\beta}_{u,t}} is a subvector of \eqn{\pmb{\beta}_t} holding
+#'   values for the  \eqn{u}th combination of the "by" variables;
+#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+#' - \eqn{n} is `n_coef`;
+#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
+#'   if \eqn{\pmb{\beta}} is a main effect and dimension \eqn{V \times n}
+#'   if \eqn{\pmb{\beta}} is an interaction; and
+#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
+#'   if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
+#'   elements if \eqn{\pmb{\beta}} is an interaction.
+#' 
+#' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
+#' a large database of age-specific demographic estimates
+#' by performing an SVD and standardizing.
+#'
+#' With `SVD_AR()`, the prior for the elements of \eqn{\pmb{\alpha}_t} or \eqn{\pmb{\alpha}_{u,t}} is
+#'
+#' \deqn{\alpha_{kt} = \phi_1 \alpha_{k,t-1} + \cdots + \phi_n \beta_{k,t-n} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \phi_1 \alpha_{k,u,t-1} + \cdots + \phi_n \beta_{k,u,t-n} + \epsilon_{k,u,t}};
+#'
+#' with `SVD_AR1()`, it is
+#'
+#' \deqn{\alpha_{kt} = \phi \alpha_{k,t-1} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+#'
+#' with `SVD_RW()`, it is
+#'
+#' \deqn{\alpha_{kt} = \alpha_{k,t-1} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+#' 
+#' and with `SVD_RW2()`, it is
+#'
+#' \deqn{\alpha_{kt} = 2 \alpha_{k,t-1} - \alpha_{k,t-2} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}}.
+#'
+#' For more on the \eqn{\phi} and \eqn{\epsilon}, see [AR()], [AR1()],
+#' [RW()], and [RW2()].
+#' 
+#' @inheritSection SVD Scaled SVDs of demographic databases in bage
+#'
+#' @inheritParams SVD
+#' @param n_comp Number of components from scaled SVD
+#' to use in modelling. The default is half
+#' the number of components of `ssvd`.
+#' @param n_coef Number of AR coefficients in `SVD_RW()`.
+#' @param s Scale for standard deviations terms.
+#' @param min,max Minimum and maximum values
+#' for autocorrelation coefficient in `SVD_AR()`.
+#' Defaults are `0.8` and `0.98`.
+#'
+#' @returns An object of class `"bage_prior_svd_ar"`,
+#' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.
+#'
+#' @seealso
+#' - [SVDS()] SVD prior for non-time-varying age-sex or age-gender profile
+#' - [RW()] Smoothing via random walk
+#' - [RW2()] Smoothing via random walk with drift
+#' - [Sp()] Smoothing via splines
+#' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#'
+#' @references
+#' - For details of the construction of
+#'   scaled SVDS see the vignette
+#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
+#'
+#' @examples
+#' SVD_AR1(HMD)
+#' SVD_RW(HMD, n_comp = 3)
+#' @export
+SVD_AR <- function(ssvd, n_comp = NULL, n_coef = 2, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_n(n = n_coef,
+          nm_n = "n_coef",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_scale(x = s,
+              nm_x = "s",
+              zero_ok = FALSE)
+  n_coef <- as.integer(n_coef)
+  scale <- as.double(s)
+  new_bage_prior_svd_ar(ssvd = ssvd,
+                        nm_ssvd = nm_ssvd,
+                        n_comp = n_comp,
+                        n_coef = n_coef,
+                        scale = scale)
+}
+
+#' @rdname SVD_AR
+#' @export
+SVD_AR1 <- function(ssvd, n_comp = NULL, min = 0.8, max = 0.98, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_min_max_ar(min = min, max = max)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  min <- as.double(min)
+  max <- as.double(max)
+  scale <- as.double(s)
+  new_bage_prior_svd_ar1(ssvd = ssvd,
+                         nm_ssvd = nm_ssvd,
+                         n_comp = n_comp,
+                         min = min,
+                         max = max,
+                         scale = scale)
+}
+
+#' @rdname SVD_AR
+#' @export
+SVD_RW <- function(ssvd, n_comp = NULL, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  new_bage_prior_svd_rw(ssvd = ssvd,
+                        nm_ssvd = nm_ssvd,
+                        n_comp = n_comp,
+                        scale = scale)
+}
+
+#' @rdname SVD_AR
+#' @export
+SVD_RW2 <- function(ssvd, n_comp = NULL, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n_comp,
+                       nm_n_comp = "n_comp",
+                       ssvd = ssvd)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  scale <- as.double(s)
+  new_bage_prior_svd_rw2(ssvd = ssvd,
+                         nm_ssvd = nm_ssvd,
+                         n_comp = n_comp,
+                         scale = scale)
+}
+
+
+
 
 
 

@@ -89,7 +89,7 @@ AR(along = "cohort")
 \seealso{
 \itemize{
 \item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}
-\item \code{\link[=LinAR]{LinAR()}} AR process combined with straight line
+\item \code{\link[=Lin_AR]{Lin_AR()}} AR process combined with straight line
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

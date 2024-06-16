@@ -928,7 +928,7 @@ test_that("'fit' works with SVDS, n_by > 1", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
-test_that("'fit' works with LinAR", {
+test_that("'fit' works with Lin_AR", {
     set.seed(0)
     data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -937,7 +937,7 @@ test_that("'fit' works with LinAR", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, time ~ LinAR())
+    mod <- set_prior(mod, time ~ Lin_AR())
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })

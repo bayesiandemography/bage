@@ -51,42 +51,42 @@ test_that("'Lin' works with valid inputs", {
                                       along = "reg"))
 })
 
-test_that("'LinAR' works with valid inputs", {
-  expect_identical(LinAR(),
+test_that("'Lin_AR' works with valid inputs", {
+  expect_identical(Lin_AR(),
                    new_bage_prior_linar(n_coef = 2L,
                                         scale = 1,
                                         sd_slope = 1,
                                         min = -1,
                                         max = 1,
                                         along = NULL,
-                                        nm = "LinAR"))
-  expect_identical(LinAR(s = 0.3, sd = 0.1),
+                                        nm = "Lin_AR"))
+  expect_identical(Lin_AR(s = 0.3, sd = 0.1),
                    new_bage_prior_linar(n_coef = 2L,
                                         scale = 0.3,
                                         sd_slope = 0.1,
                                         min = -1,
                                         max = 1,
                                         along = NULL,
-                                        nm = "LinAR"))
+                                        nm = "Lin_AR"))
 })
 
-test_that("'LinAR1' works with valid inputs", {
-  expect_identical(LinAR1(),
+test_that("'Lin_AR1' works with valid inputs", {
+  expect_identical(Lin_AR1(),
                    new_bage_prior_linar(n_coef = 1L,
                                         scale = 1,
                                         sd_slope = 1,
                                         min = 0.8,
                                         max = 0.98,
                                         along = NULL,
-                                        nm = "LinAR1"))
-  expect_identical(LinAR1(s = 0.3, sd = 0.1),
+                                        nm = "Lin_AR1"))
+  expect_identical(Lin_AR1(s = 0.3, sd = 0.1),
                    new_bage_prior_linar(n_coef = 1L,
                                         scale = 0.3,
                                         sd_slope = 0.1,
                                         min = 0.8,
                                         max = 0.98,
                                         along = NULL,
-                                        nm = "LinAR1"))
+                                        nm = "Lin_AR1"))
 })
 
 test_that("'N' works with valid inputs", {
@@ -108,10 +108,10 @@ test_that("'RW' works with valid inputs", {
 })
 
 
-test_that("'RWSeas' works with valid inputs", {
-  expect_identical(RWSeas(n_seas = 2, s_seas = 0),
+test_that("'RW_Seas' works with valid inputs", {
+  expect_identical(RW_Seas(n_seas = 2, s_seas = 0),
                    new_bage_prior_rwseasfix(n_seas = 2L, scale = 1, along = NULL))
-  expect_identical(RWSeas(s = 0.3, n_seas = 12, s_seas = 0.1, along = "reg"),
+  expect_identical(RW_Seas(s = 0.3, n_seas = 12, s_seas = 0.1, along = "reg"),
                    new_bage_prior_rwseasvary(n_seas = 12L,
                                              scale_seas = 0.1,
                                              scale = 0.3,
@@ -127,10 +127,10 @@ test_that("'RW2' works with valid inputs", {
                                       along = "reg"))
 })
 
-test_that("'RW2Seas' works with valid inputs", {
-  expect_identical(RW2Seas(n_seas = 2, s_seas = 0),
+test_that("'RW2_Seas' works with valid inputs", {
+  expect_identical(RW2_Seas(n_seas = 2, s_seas = 0),
                    new_bage_prior_rw2seasfix(n_seas = 2L, scale = 1, along = NULL))
-  expect_identical(RW2Seas(s = 0.3, n_seas = 12, s_seas = 0.1, along = "reg"),
+  expect_identical(RW2_Seas(s = 0.3, n_seas = 12, s_seas = 0.1, along = "reg"),
                    new_bage_prior_rw2seasvary(n_seas = 12L,
                                               scale_seas = 0.1,
                                               scale = 0.3,
@@ -266,7 +266,7 @@ test_that("'new_bage_prior_linar' works - AR interface", {
                               min = -1,
                               max = 1,
                               along = NULL,
-                              nm = "LinAR")
+                              nm = "Lin_AR")
   expect_s3_class(obj, "bage_prior_linar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 3L)
@@ -286,7 +286,7 @@ test_that("'new_bage_prior_linar' works - AR interface", {
                         min = -1,
                         max = 1,
                         along = NULL,
-                        nm = "LinAR"))
+                        nm = "Lin_AR"))
 })
 
 test_that("'new_bage_prior_linar' works - AR1 interface", {
@@ -296,7 +296,7 @@ test_that("'new_bage_prior_linar' works - AR1 interface", {
                               min = 0.8,
                               max = 0.98,
                               along = NULL,
-                              nm = "LinAR1")
+                              nm = "Lin_AR1")
   expect_s3_class(obj, "bage_prior_linar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 3L)
@@ -315,7 +315,7 @@ test_that("'new_bage_prior_linar' works - AR1 interface", {
                         min = 0.8,
                         max = 0.98,
                         along = NULL,
-                        nm = "LinAR1"))
+                        nm = "Lin_AR1"))
 })
 
 test_that("'new_bage_prior_norm' works", {
