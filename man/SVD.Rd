@@ -26,12 +26,12 @@ for a main effect or interaction involving age.
 A \code{SVD()} prior assumes that the age profile for the quantity
 being modelled looks like it was drawn at random
 from an external demographic database. For instance,
-the \code{SVD()} prior obtained via
+the prior obtained via
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{SVD(HMD)
 }\if{html}{\out{</div>}}
 
-favours age profiles that look like
+assumes that age profiles look like
 they were obtained from the
 \href{https://www.mortality.org}{Human Mortality Database}.
 

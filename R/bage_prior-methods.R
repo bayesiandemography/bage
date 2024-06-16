@@ -2006,7 +2006,7 @@ str_call_prior.bage_prior_linar <- function(prior) {
   sd_slope <- specific$sd_slope
   along <- specific$along
   nm <- specific$nm
-  if (nm == "LinAR") {
+  if (nm == "Lin_AR") {
     args <- character(4L)
     if (n_coef != 2L)
       args[[1L]] <- sprintf("n_coef=%d", n_coef)
@@ -2017,7 +2017,7 @@ str_call_prior.bage_prior_linar <- function(prior) {
     if (!is.null(along))
       args[[4L]] <- sprintf('along="%s"', along)
   }
-  else if (nm == "LinAR1") {
+  else if (nm == "Lin_AR1") {
     args <- character(5L)
     if (min != 0.8)
       args[[1L]] <- sprintf("min=%s", min)
@@ -2087,7 +2087,7 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("RWSeas(%s)", args)
+  sprintf("RW_Seas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -2107,7 +2107,7 @@ str_call_prior.bage_prior_rwseasvary <- function(prior) {
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("RWSeas(%s)", args)
+  sprintf("RW_Seas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -2140,7 +2140,7 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("RW2Seas(%s)", args)
+  sprintf("RW2_Seas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -2160,7 +2160,7 @@ str_call_prior.bage_prior_rw2seasvary <- function(prior) {
     args[[4L]] <- sprintf('along="%s"', along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("RW2Seas(%s)", args)
+  sprintf("RW2_Seas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -2266,13 +2266,13 @@ str_nm_prior.bage_prior_rw <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_rwseasfix <- function(prior) {
-  "RWSeas()"
+  "RW_Seas()"
 }
 
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_rwseasvary <- function(prior) {
-  "RWSeas()"
+  "RW_Seas()"
 }
 
 ## HAS_TESTS
@@ -2284,13 +2284,13 @@ str_nm_prior.bage_prior_rw2 <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_rw2seasfix <- function(prior) {
-  "RW2Seas()"
+  "RW2_Seas()"
 }
 
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_rw2seasvary <- function(prior) {
-  "RW2Seas()"
+  "RW2_Seas()"
 }
 
 ## HAS_TESTS

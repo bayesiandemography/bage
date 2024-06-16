@@ -37,7 +37,7 @@ the prior obtained via
 \if{html}{\out{<div class="sourceCode">}}\preformatted{SVDS(HMD)
 }\if{html}{\out{</div>}}
 
-favours age-sex profiles that look like
+assumes that age-sex profiles look like
 they were obtained from the
 \href{https://www.mortality.org}{Human Mortality Database}.
 

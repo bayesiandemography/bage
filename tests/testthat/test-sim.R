@@ -249,7 +249,7 @@ test_that("'draw_vals_lin' works - along dimension is second", {
 
 test_that("'draw_vals_linar' works - along dimension is first", {
   set.seed(0)
-  prior <- LinAR()
+  prior <- Lin_AR()
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 11:14
@@ -442,7 +442,7 @@ test_that("'draw_vals_sd' works", {
 ## draw_vals_sd_seas ---------------------------------------------------------------
 
 test_that("'draw_vals_sd_seas' works", {
-  prior <- RWSeas(n = 2, s_seas = 0.5)
+  prior <- RW_Seas(n = 2, s_seas = 0.5)
   n_sim <- 10
   set.seed(0)
   ans_obtained <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)

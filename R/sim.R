@@ -297,7 +297,7 @@ draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
 }
 
 ## HAS_TESTS
-#' Generate Draws from LinAR
+#' Generate Draws from Lin_AR
 #'
 #' Each column is one draw.
 #'

@@ -885,7 +885,7 @@ test_that("'reformat_hyperrand_seasfix' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RWSeas(n = 3, s_seas = 0)) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3, s_seas = 0)) |>
                   set_n_draw(n = 10) |>
                   fit(mod)
   term <- make_term_components(mod)
@@ -936,7 +936,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RWSeas(n = 3)) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
                   set_n_draw(n_draw = 10) |>
                   fit(mod)
   term <- make_term_components(mod)
