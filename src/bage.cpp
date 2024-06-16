@@ -350,6 +350,14 @@ Type logpost_svd(vector<Type> effectfree,
   return dnorm(effectfree, Type(0), Type(1), true).sum();
 }
 
+template <class Type>
+Type logpost_svd_rw(vector<Type> effectfree,
+		    vector<Type> hyper,
+		    vector<Type> consts,
+		    matrix<int> matrix_along_by) {
+  return logpost_rw(effectfree, hyper, consts, matrix_along_by);
+}
+
 
 
 // Equivalent of method dispatch ----------------------------------------------
@@ -395,6 +403,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 8:
     ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 14:
+    ans = logpost_svd_rw(effectfree, hyper, consts, matrix_along_by);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov

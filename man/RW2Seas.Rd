@@ -4,10 +4,10 @@
 \alias{RW2Seas}
 \title{Random Walk with Drift Prior, with Seasonal Effect}
 \usage{
-RW2Seas(n, s = 1, s_seas = 1, along = NULL)
+RW2Seas(n_seas, s = 1, s_seas = 1, along = NULL)
 }
 \arguments{
-\item{n}{Number of seasons}
+\item{n_seas}{Number of seasons}
 
 \item{s}{Scale for prior for innovations in
 the random walk. Default is \code{1}.}
@@ -40,10 +40,10 @@ each combination of the
 Argument \code{s} controls the size of innovations in the random walk.
 Smaller values for \code{s} tend to give smoother series.
 
-Argument \code{n} controls the number of \code{seasons}.
+Argument \code{n_seas} controls the number of \code{seasons}.
 When using quarterly data, for instance,
-\code{n} should be \code{4}, and when using
-monthly data, \code{n} should be \code{12}.
+\code{n_seas} should be \code{4}, and when using
+monthly data, \code{n_seas} should be \code{12}.
 
 By default, the magnitude of seasonal effects
 can change over time. However, setting \code{s_seas}
@@ -73,7 +73,7 @@ where
 \item \eqn{j} denotes position within the main effect;
 \item \eqn{v} denotes position within the "along" variable of the interaction;
 \item \eqn{u} denotes position within the "by" variable(s) of the interaction; and
-\item \eqn{n} is the number of seasons.
+\item \eqn{n} is \code{n_seas}.
 }
 
 Parameter \eqn{\omega} has a half-normal prior
@@ -88,8 +88,8 @@ where \code{s} is provided by the user.
 }
 
 \examples{
-RW2Seas(n = 4)             ## seasonal effects evolve
-RW2Seas(n = 4, s_seas = 0) ## seasonal effects fixed
+RW2Seas(n_seas = 4)             ## seasonal effects evolve
+RW2Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 }
 \seealso{
 \itemize{

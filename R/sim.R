@@ -106,9 +106,8 @@ draw_vals_ar_one <- function(n, coef, sd) {
 #' that can be used as coefficients for AR-k model.
 #' Rejected if lead to non-stationary series.
 #'
-#' @param n Number of terms
-#' @param shape1,shape2 Parameters for beta distribution
-#' @param min,max Limits on parameter values
+#' @param prior Object of class "bage_prior"
+#' @param n_sim Number of draws
 #'
 #' @returns A vector of length 'n'
 #'
@@ -116,16 +115,16 @@ draw_vals_ar_one <- function(n, coef, sd) {
 draw_vals_coef <- function(prior, n_sim) {
   max_attempt <- 1000L
   specific <- prior$specific
-  n <- specific$n
+  n_coef <- specific$n_coef
   shape1 <- specific$shape1
   shape2 <- specific$shape2
   min <- specific$min
   max <- specific$max
-  ans <- matrix(nrow = n, ncol = n_sim)
+  ans <- matrix(nrow = n_coef, ncol = n_sim)
   for (i_sim in seq_len(n_sim)) {
     found_val <- FALSE
     for (i_attempt in seq_len(max_attempt)) {
-      val_raw <- stats::rbeta(n = n,
+      val_raw <- stats::rbeta(n = n_coef,
                               shape1 = shape1,
                               shape2 = shape2)
       val <- min + (max - min) * val_raw
@@ -138,7 +137,7 @@ draw_vals_coef <- function(prior, n_sim) {
       cli::cli_abort("Internal error: coud not generate stationary distribution.")  ## nocov
     ans[, i_sim] <- val
   }
-  rn <- if (n == 1L) "coef" else paste0("coef", seq_len(n))
+  rn <- if (n_coef == 1L) "coef" else paste0("coef", seq_len(n_coef))
   rownames(ans) <- rn
   ans
 }
@@ -316,13 +315,13 @@ draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
   n_sim <- ncol(slope)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  n_ar <- nrow(coef)
+  n_coef <- nrow(coef)
   q <- seq(from = -1, to = 1, length.out = n_along)
   slope <- as.numeric(slope)
   mean <- outer(q, slope)
-  coef <- array(coef, dim = c(n_ar, n_sim, n_by))
+  coef <- array(coef, dim = c(n_coef, n_sim, n_by))
   coef <- aperm(coef, perm = c(1L, 3L, 2L))
-  coef <- matrix(coef, nrow = n_ar, ncol = n_by * n_sim)
+  coef <- matrix(coef, nrow = n_coef, ncol = n_by * n_sim)
   sd <- rep(sd, each = n_by)
   error <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
   ans <- mean + error
@@ -440,20 +439,20 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 #'
 #' Each column is one draw.
 #'
-#' @param n Number of seasons
+#' @param n_seas Number of seasons
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_seasfix <- function(n, matrix_along_by, n_sim) {
+draw_vals_seasfix <- function(n_seas, matrix_along_by, n_sim) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
-  for (i_along in seq.int(from = n + 1L, to = n_along))
-    ans[i_along, ] <- ans[i_along - n, ]
+  ans[seq_len(n_seas), ] <- stats::rnorm(n = n_seas * n_by * n_sim)
+  for (i_along in seq.int(from = n_seas + 1L, to = n_along))
+    ans[i_along, ] <- ans[i_along - n_seas, ]
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -465,23 +464,23 @@ draw_vals_seasfix <- function(n, matrix_along_by, n_sim) {
 #'
 #' Each column is one draw.
 #'
-#' @param n Number of seasons
+#' @param n_seas Number of seasons
 #' @param sd_seas Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_seasvary <- function(n, sd_seas, matrix_along_by) {
+draw_vals_seasvary <- function(n_seas, sd_seas, matrix_along_by) {
   n_sim <- length(sd_seas)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[seq_len(n), ] <- stats::rnorm(n = n * n_by * n_sim)
+  ans[seq_len(n_seas), ] <- stats::rnorm(n = n_seas * n_by * n_sim)
   sd_seas <- rep(sd_seas, each = n_by)
-  for (i_along in seq.int(from = n + 1L, to = n_along))
+  for (i_along in seq.int(from = n_seas + 1L, to = n_along))
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
-                                   mean = ans[i_along - n, ],
+                                   mean = ans[i_along - n_seas, ],
                                    sd = sd_seas)
   ans <- ans - rep(colMeans(ans), each = n_along)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)

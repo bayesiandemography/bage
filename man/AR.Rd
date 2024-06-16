@@ -4,11 +4,11 @@
 \alias{AR}
 \title{Autoregressive Prior}
 \usage{
-AR(n = 2, s = 1, along = NULL)
+AR(n_coef = 2, s = 1, along = NULL)
 }
 \arguments{
-\item{n}{The order of the model, i.e. the number of lagged
-terms that are included. Default is \code{2}.}
+\item{n_coef}{Thehe number of lagged terms in the
+model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
@@ -52,8 +52,9 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the "along" variable of the interaction; and
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+\item \eqn{v} denotes position within the "along" variable of the interaction;
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+\item \eqn{n} is \text{n_coef}.
 }
 
 Internally, \code{AR()} derives a value for \eqn{\omega} that
@@ -75,8 +76,8 @@ boundary-avoiding prior
 }
 
 \examples{
-AR(n = 3)
-AR(n = 3, s = 2.4)
+AR(n_coef = 3)
+AR(n_coef = 3, s = 2.4)
 AR(along = "cohort")
 }
 \references{

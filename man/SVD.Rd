@@ -4,14 +4,14 @@
 \alias{SVD}
 \title{SVD Prior for Age}
 \usage{
-SVD(ssvd, n = NULL)
+SVD(ssvd, n_comp = NULL)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
 holding a scaled SVD. See below for scaled SVDs
 of databases currently available in \strong{bage}.}
 
-\item{n}{Number of components from scaled SVD
+\item{n_comp}{Number of components from scaled SVD
 to use in modelling. The default is half
 the number of components of \code{ssvd}.}
 }
@@ -37,7 +37,7 @@ they were obtained from the
 
 If \code{SVD()} is used with an interaction,
 then separate profiles are constructed along
-within each combination of the "by" variables.
+within each combination of the non-age variables.
 
 Age-sex or age-gender profiles should be
 modelled using \code{\link[=SVDS]{SVDS()}} rather than \code{SVD()}.
@@ -55,13 +55,14 @@ and when it is used with an interaction,
 
 where
 \itemize{
-\item \eqn{\pmb{\beta}} is a main effect or interaction with \eqn{J} elements;
+\item \eqn{\pmb{\beta}} is a main effect or interaction involving age;
 \item \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
-values for the  \eqn{u}th combination of the "by" variables;
+values for the  \eqn{u}th combination of the non-age variables;
 \item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
 \item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+\item \eqn{n} is \code{n_comp};
 \item \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
-if \eqn{\pmb{\beta}} is a main effect and dimension \eqn{V \times n}
+if \eqn{\pmb{\beta}} is a main effect, and dimension \eqn{V \times n}
 if \eqn{\pmb{\beta}} is an interaction; and
 \item \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
 if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
@@ -88,7 +89,7 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 
 \examples{
 SVD(HMD)
-SVD(HMD, n = 3)
+SVD(HMD, n_comp = 3)
 }
 \references{
 \itemize{
@@ -99,7 +100,8 @@ scaled SVDS see the vignette
 }
 \seealso{
 \itemize{
-\item \code{\link[=SVDS]{SVDS()}} SVD prior for age-sex or age-gender profile.
+\item \code{\link[=SVDS]{SVDS()}} SVD prior for age-sex or age-gender profile
+\item \code{\link[=SVDS_RW]{SVDS_RW()}} SVD prior for age with time-varying coeffients
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines

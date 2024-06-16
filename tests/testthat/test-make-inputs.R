@@ -1450,7 +1450,7 @@ test_that("'make_seed' returns a single unique integer", {
 
 test_that("'make_spline_matrix' works", {
     set.seed(0)
-    m <- make_spline_matrix(n_along = 10, n_spline = 5)
+    m <- make_spline_matrix(n_along = 10, n_comp = 5)
     expect_equal(dim(m), c(10L, 5L))
     expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
 })        
@@ -1652,6 +1652,26 @@ test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
                       region = 0L,
                       "agegp:SEX" = 0L)
     expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'n_comp_svd' ---------------------------------------------------------------
+
+test_that("'n_comp_svd' works when no 'n' supplied", {
+  ans_obtained <- n_comp_svd(n_comp = NULL, nm_n_comp = "n", ssvd = HMD)
+  ans_expected <- 5L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'n_comp_svd' works when valid 'n' supplied", {
+  ans_obtained <- n_comp_svd(n_comp = 3, nm_n_comp = "n", ssvd = HMD)
+  ans_expected <- 3L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'n_comp_svd' throws correct error when n is too high", {
+  expect_error(n_comp_svd(n_comp = 11, nm_n_comp = "n_component", ssvd = HMD),
+               "`n_component` larger than number of components of `ssvd`.")
 })
 
 

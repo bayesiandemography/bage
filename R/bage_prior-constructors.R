@@ -32,8 +32,9 @@
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction; and
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
+#' - \eqn{v} denotes position within the "along" variable of the interaction;
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{n} is \text{n_coef}.
 #'
 #' Internally, `AR()` derives a value for \eqn{\omega} that
 #' gives every element of \eqn{\beta} a marginal
@@ -52,8 +53,8 @@
 #'
 #' \deqn{r \sim \text{Beta}(2, 2).}
 #' 
-#' @param n The order of the model, i.e. the number of lagged
-#' terms that are included. Default is `2`.
+#' @param n_coef Thehe number of lagged terms in the
+#' model, ie the order of the model. Default is `2`.
 #' @param s Scale for the prior for the innovations.
 #' Default is `1`.
 #' @param along Name of the variable to be used
@@ -74,24 +75,24 @@
 #' [ARk](http://kaskr.github.io/adcomp/classdensity_1_1ARk__t.html#details)
 #'
 #' @examples
-#' AR(n = 3)
-#' AR(n = 3, s = 2.4)
+#' AR(n_coef = 3)
+#' AR(n_coef = 3, s = 2.4)
 #' AR(along = "cohort")
 #' @export
-AR <- function(n = 2, s = 1, along = NULL) {
-  check_n(n = n,
-          nm_n = "n",
+AR <- function(n_coef = 2, s = 1, along = NULL) {
+  check_n(n = n_coef,
+          nm_n = "n_coef",
           min = 1L,
           max = NULL,
           null_ok = FALSE)
   check_scale(s,
               nm_x = "s",
               zero_ok = FALSE)
-  n <- as.integer(n)
+  n_coef <- as.integer(n_coef)
   scale <- as.double(s)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
-  new_bage_prior_ar(n = n,
+  new_bage_prior_ar(n_coef = n_coef,
                     min = -1,
                     max = 1,
                     scale = scale,
@@ -184,7 +185,7 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
   max <- as.double(max)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
-  new_bage_prior_ar(n = 1L,
+  new_bage_prior_ar(n_coef = 1L,
                     min = min,
                     max = max,
                     scale = scale,
@@ -314,13 +315,13 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' 
 #' @section Mathematical details:
 #'
-#' When `LinAR()` is being used with a main effect,
+#' When `LinAR()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \eta q_j + \epsilon_j}
 #' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j,}
 #' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
 #'
-#' and when it is being used with an interaction,
+#' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
@@ -331,6 +332,7 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{u} denotes position within the "along" variable of the interaction;
 #' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
+#' - \eqn{n} is \text{n_coef};
 #' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
 #' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 #'
@@ -358,9 +360,8 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
 #' 
 #' @inheritParams AR
-#' @param n The order of the model for the
-#' errors, i.e. the number of lagged
-#' terms that are included. Default is `2`.
+#' @param n_coef The number of lagged terms in the
+#' model, ie the order of the model. Default is `2`.
 #' @param s Scale for the innovations in the
 #' AR process. Default is `1`.
 #' @param sd Standard deviation in the prior for
@@ -378,11 +379,11 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #'
 #' @examples
 #' LinAR()
-#' LinAR(n = 3, s = 0.5, sd = 2)
+#' LinAR(n_coef = 3, s = 0.5, sd = 2)
 #' @export
-LinAR <- function(n = 2, s = 1, sd = 1, along = NULL) {
-  check_n(n = n,
-          nm_n = "n",
+LinAR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
+  check_n(n = n_coef,
+          nm_n = "n_coef",
           min = 1L,
           max = NULL,
           null_ok = FALSE)
@@ -392,10 +393,10 @@ LinAR <- function(n = 2, s = 1, sd = 1, along = NULL) {
   check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
-  n <- as.integer(n)
+  n_coef <- as.integer(n_coef)
   scale <- as.double(s)
   sd_slope <- as.double(sd)
-  new_bage_prior_linar(n = n,
+  new_bage_prior_linar(n_coef = n_coef,
                        scale = scale,
                        sd_slope = sd_slope,
                        min = -1,
@@ -495,7 +496,7 @@ LinAR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
   sd_slope <- as.double(sd)
   min <- as.double(min)
   max <- as.double(max)
-  new_bage_prior_linar(n = 1L,
+  new_bage_prior_linar(n_coef = 1L,
                        scale = scale,
                        sd_slope = sd_slope,
                        min = min,
@@ -673,10 +674,10 @@ RW <- function(s = 1, along = NULL) {
 #' Argument `s` controls the size of innovations in the random walk.
 #' Smaller values for `s` tend to give smoother series.
 #'
-#' Argument `n` controls the number of `seasons`. 
+#' Argument `n_seas` controls the number of `seasons`. 
 #' When using quarterly data, for instance,
-#' `n` should be `4`, and when using
-#' monthly data, `n` should be `12`.
+#' `n_seas` should be `4`, and when using
+#' monthly data, `n_seas` should be `12`.
 #'
 #' By default, the magnitude of seasonal effects
 #' can change over time. However, setting `s_seas`
@@ -704,7 +705,7 @@ RW <- function(s = 1, along = NULL) {
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{v} denotes position within the "along" variable of the interaction;
 #' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
-#' - \eqn{n} is the number of seasons.
+#' - \eqn{n} is `n_seas`.
 #'
 #' Parameter \eqn{\omega} has a half-normal prior
 #' \deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2),}
@@ -718,7 +719,7 @@ RW <- function(s = 1, along = NULL) {
 #' 
 #' @inheritParams AR
 #' 
-#' @param n Number of seasons
+#' @param n_seas Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
 #' @param s_seas Scale for prior for innovations
@@ -736,29 +737,29 @@ RW <- function(s = 1, along = NULL) {
 #'   main effect, or interaction
 #'
 #' @examples
-#' RWSeas(n = 4)             ## seasonal effects evolve
-#' RWSeas(n = 4, s_seas = 0) ## seasonal effects fixed
+#' RWSeas(n_seas = 4)             ## seasonal effects evolve
+#' RWSeas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
-RWSeas <- function(n, s = 1, s_seas = 1, along = NULL) {
-  check_n(n = n,
-          nm_n = "n",
+RWSeas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
+  check_n(n = n_seas,
+          nm_n = "n_seas",
           min = 2L,
           max = NULL,
           null_ok = FALSE)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
-  n <- as.integer(n)
+  n_seas <- as.integer(n_seas)
   scale <- as.double(s)
   scale_seas = as.double(s_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   if (scale_seas > 0)
-    new_bage_prior_rwseasvary(n = n,
+    new_bage_prior_rwseasvary(n_seas = n_seas,
                               scale = scale,
                               scale_seas = scale_seas,
                               along = along)
   else
-    new_bage_prior_rwseasfix(n = n,
+    new_bage_prior_rwseasfix(n_seas = n_seas,
                              scale = scale,
                              along = along)
 }
@@ -851,10 +852,10 @@ RW2 <- function(s = 1, along = NULL) {
 #' Argument `s` controls the size of innovations in the random walk.
 #' Smaller values for `s` tend to give smoother series.
 #'
-#' Argument `n` controls the number of `seasons`. 
+#' Argument `n_seas` controls the number of `seasons`. 
 #' When using quarterly data, for instance,
-#' `n` should be `4`, and when using
-#' monthly data, `n` should be `12`.
+#' `n_seas` should be `4`, and when using
+#' monthly data, `n_seas` should be `12`.
 #'
 #' By default, the magnitude of seasonal effects
 #' can change over time. However, setting `s_seas`
@@ -882,7 +883,7 @@ RW2 <- function(s = 1, along = NULL) {
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{v} denotes position within the "along" variable of the interaction;
 #' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
-#' - \eqn{n} is the number of seasons.
+#' - \eqn{n} is `n_seas`.
 #'
 #' Parameter \eqn{\omega} has a half-normal prior
 #' \deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2),}
@@ -896,7 +897,7 @@ RW2 <- function(s = 1, along = NULL) {
 #' 
 #' @inheritParams AR
 #' 
-#' @param n Number of seasons
+#' @param n_seas Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
 #' @param s_seas Scale for prior for innovations
@@ -914,29 +915,29 @@ RW2 <- function(s = 1, along = NULL) {
 #'   main effect, or interaction
 #'
 #' @examples
-#' RW2Seas(n = 4)             ## seasonal effects evolve
-#' RW2Seas(n = 4, s_seas = 0) ## seasonal effects fixed
+#' RW2Seas(n_seas = 4)             ## seasonal effects evolve
+#' RW2Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
-RW2Seas <- function(n, s = 1, s_seas = 1, along = NULL) {
-  check_n(n = n,
-          nm_n = "n",
+RW2Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
+  check_n(n = n_seas,
+          nm_n = "n_seas",
           min = 2L,
           max = NULL,
           null_ok = FALSE)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
-  n <- as.integer(n)
+  n_seas <- as.integer(n_seas)
   scale <- as.double(s)
   scale_seas = as.double(s_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   if (scale_seas > 0)
-    new_bage_prior_rw2seasvary(n = n,
+    new_bage_prior_rw2seasvary(n_seas = n_seas,
                                scale = scale,
                                scale_seas = scale_seas,
                                along = along)
   else
-    new_bage_prior_rw2seasfix(n = n,
+    new_bage_prior_rw2seasfix(n_seas = n_seas,
                               scale = scale,
                               along = along)
 }
@@ -971,15 +972,17 @@ RW2Seas <- function(n, s = 1, s_seas = 1, along = NULL) {
 #' - \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
 #'   values for the  \eqn{u}th combination of the "by" variables;
 #' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
-#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u}; and
+#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
 #' - \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
-#'   spline basis functions.
+#'   spline basis functions; and
+#' - \eqn{n} is `n_comp`.
 #'
 #' The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
 #' to follow a [random walk with drift][RW2()].
 #'
 #' @inheritParams AR
-#' @param n Number of spline basis functions to use.
+#' @param n_comp Number of spline basis functions (components)
+#' to use.
 #'
 #' @returns An object of class `"bage_prior_spline"`.
 #'
@@ -1000,21 +1003,21 @@ RW2Seas <- function(n, s = 1, s_seas = 1, along = NULL) {
 #'
 #' @examples
 #' Sp()
-#' Sp(n = 10)
+#' Sp(n_comp = 10)
 #' @export
-Sp <- function(n = NULL, s = 1, along = NULL) {
-  check_n(n,
-          nm_n = "n",
+Sp <- function(n_comp = NULL, s = 1, along = NULL) {
+  check_n(n = n_comp,
+          nm_n = "n_comp",
           min = 4L,
           max = NULL,
           null_ok = TRUE)
-  if (!is.null(n))
-    n <- as.integer(n)
+  if (!is.null(n_comp))
+    n_comp <- as.integer(n_comp)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
-  new_bage_prior_spline(n = n,
+  new_bage_prior_spline(n_comp = n_comp,
                         scale = scale,
                         along = along)
 }
@@ -1039,7 +1042,7 @@ Sp <- function(n = NULL, s = 1, along = NULL) {
 #'
 #' If `SVD()` is used with an interaction,
 #' then separate profiles are constructed along
-#' within each combination of the "by" variables.
+#' within each combination of the non-age variables.
 #'
 #' Age-sex or age-gender profiles should be
 #' modelled using [SVDS()] rather than `SVD()`.
@@ -1055,13 +1058,14 @@ Sp <- function(n = NULL, s = 1, along = NULL) {
 #' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
 #'
 #' where
-#' - \eqn{\pmb{\beta}} is a main effect or interaction with \eqn{J} elements;
+#' - \eqn{\pmb{\beta}} is a main effect or interaction involving age;
 #' - \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
-#'   values for the  \eqn{u}th combination of the "by" variables;
+#'   values for the  \eqn{u}th combination of the non-age variables;
 #' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
 #' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+#' - \eqn{n} is `n_comp`;
 #' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
-#'   if \eqn{\pmb{\beta}} is a main effect and dimension \eqn{V \times n}
+#'   if \eqn{\pmb{\beta}} is a main effect, and dimension \eqn{V \times n}
 #'   if \eqn{\pmb{\beta}} is an interaction; and
 #' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
 #'   if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
@@ -1084,14 +1088,15 @@ Sp <- function(n = NULL, s = 1, along = NULL) {
 #' @param ssvd Object of class `"bage_ssvd"`
 #' holding a scaled SVD. See below for scaled SVDs
 #' of databases currently available in **bage**.
-#' @param n Number of components from scaled SVD
+#' @param n_comp Number of components from scaled SVD
 #' to use in modelling. The default is half
 #' the number of components of `ssvd`.
 #'
 #' @returns An object of class `"bage_prior_svd"`.
 #'
 #' @seealso
-#' - [SVDS()] SVD prior for age-sex or age-gender profile.
+#' - [SVDS()] SVD prior for age-sex or age-gender profile
+#' - [SVDS_RW()] SVD prior for age with time-varying coeffients
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via random walk with drift
 #' - [Sp()] Smoothing via splines
@@ -1106,35 +1111,21 @@ Sp <- function(n = NULL, s = 1, along = NULL) {
 #'
 #' @examples
 #' SVD(HMD)
-#' SVD(HMD, n = 3)
+#' SVD(HMD, n_comp = 3)
 #' @export
-SVD <- function(ssvd, n = NULL) {
+SVD <- function(ssvd, n_comp = NULL) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  n_comp <- get_n_comp(ssvd)
-  if (is.null(n))
-    n <- ceiling(n_comp / 2)
-  else {
-    check_n(n,
-            nm_n = "n",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
-    if (n > n_comp)
-      cli::cli_abort(c("{.arg n} larger than number of components of {.arg ssvd}.",
-                       i = "{.arg n}: {.val {n}}.",
-                       i = "Number of components: {.val {n_comp}}."))
-  }
-  n <- as.integer(n)
+  n_comp <- n_comp_svd(n_comp = n_comp, nm_n_comp = "n_comp", ssvd = ssvd)
   new_bage_prior_svd(ssvd = ssvd,
                      nm_ssvd = nm_ssvd,
-                     n = n,
+                     n_comp = n_comp,
                      joint = NULL)
 }
 
 
 ## HAS_TESTS
-#' SVD Prior for Age-Sex or Age-Gender
+#' SVD Prior for Age-Sex or Age-Gender Interaction
 #'
 #' A Singular Value Decomposition (SVD) prior
 #' for an interaction involving age-sex
@@ -1153,11 +1144,10 @@ SVD <- function(ssvd, n = NULL) {
 #' [Human Mortality Database](https://www.mortality.org).
 #'
 #' If `SVDS()` is used with an interaction
-#' between age, sex or gender, and one or more
-#' "by" variables, then separate age-sex or
+#' between age, sex/gender, and one or more
+#' other variables, then separate age-sex or
 #' age-gender profiles are constructed within
-#' each combination of the
-#' "by" variables.
+#' each combination of the other variables.
 #'
 #' Age profiles with no sex or gender dimension
 #' should be modelled using [SVD()] rather than
@@ -1194,16 +1184,18 @@ SVD <- function(ssvd, n = NULL) {
 #' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
 #'
 #' where
-#' - \eqn{\pmb{\beta}} is an interaction;
+#' - \eqn{\pmb{\beta}} is an interaction involving age and sex/gender;
 #' - \eqn{\pmb{\beta}_{s}} is a subvector of \eqn{\pmb{\beta}},
-#'   holding values for sex/gender \eqn{s}, with \eqn{s = 1, \dots, S};
+#'   holding values for sex/gender \eqn{s};
 #' - \eqn{J} is the number of elements in \eqn{\pmb{\beta}};
+#' - \eqn{S} is the number of sexes/genders;
+#' - \eqn{n} is `n_comp`;
 #' - \eqn{\pmb{F}_s} is a known \eqn{(J/S) \times n} matrix, specific
 #'   to sex/gender \eqn{s};
 #' - \eqn{\pmb{g}_s} is a known vector with \eqn{J/S} elements,
 #'   specific to sex/gender \eqn{s};
 #' - \eqn{\pmb{F}} is a known \eqn{J \times n} matrix, with values
-#'   for all sexes/genders.
+#'   for all sexes/genders; and
 #' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements, with values
 #'   for all sexes/genders.
 #'
@@ -1212,7 +1204,7 @@ SVD <- function(ssvd, n = NULL) {
 #'
 #' 
 #' 
-#' **Case 2: Interaction involving age and sex or gender, and one or more other variables**
+#' **Case 2: Interaction involving age and sex/gender, and one or more other variables**
 #'
 #' When `SVDS()` is used with `joint = FALSE`,
 #' 
@@ -1223,17 +1215,19 @@ SVD <- function(ssvd, n = NULL) {
 #' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
 #'
 #' where
-#' - \eqn{\pmb{\beta}} is an interaction;
+#' - \eqn{\pmb{\beta}} is an interaction involving sex/gender;
 #' - \eqn{\pmb{\beta}_{u,s}} is a subvector of \eqn{\pmb{\beta}},
 #'   holding values for sex/gender \eqn{s} for the \eqn{u}th
-#'   combination of "by" variables, with \eqn{s = 1, \dots, S};
+#'   combination of the other variables;
 #' - \eqn{V} is the number of elements in \eqn{\pmb{\beta}_u};
+#' - \eqn{S} is the number of sexes/genders;
+#' - \eqn{n} is `n_comp`;
 #' - \eqn{\pmb{F}_s} is a known \eqn{(V/S) \times n} matrix, specific
 #'   to sex/gender \eqn{s};
 #' - \eqn{\pmb{g}_s} is a known vector with \eqn{V/S} elements,
 #'   specific to sex/gender \eqn{s};
 #' - \eqn{\pmb{F}} is a known \eqn{V \times n} matrix, with values
-#'   for all sexes/genders.
+#'   for all sexes/genders; and
 #' - \eqn{\pmb{g}} is a known vector with \eqn{V} elements, with values
 #'   for all sexes/genders.
 #'
@@ -1252,6 +1246,7 @@ SVD <- function(ssvd, n = NULL) {
 #'
 #' @seealso
 #' - [SVD()] SVD prior for age, with no sex or gender
+#' - [SVDS_RW()] SVD prior for age and sex/gender with time-varying coeffients
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via random walk with drift
 #' - [Sp()] Smoothing via splines
@@ -1268,7 +1263,7 @@ SVD <- function(ssvd, n = NULL) {
 #' SVDS(HMD)
 #' SVDS(HMD, joint = TRUE)
 #' @export
-SVDS <- function(ssvd, n = 5, joint = FALSE) {
+SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   if (!has_sexgender(ssvd)) {
@@ -1276,18 +1271,150 @@ SVDS <- function(ssvd, n = 5, joint = FALSE) {
                      i = "Try prior {.val SVD()} instead?",
                      i = "For a list of priors, see {.topic bage::priors}."))
   }
-  check_n(n,
-          nm_n = "n",
-          min = 1L,
-          max = 10L,
-          null_ok = FALSE)
-  n <- as.integer(n)
+  n_comp <- n_comp_svd(n_comp = n_comp, nm_n_comp = "n_comp", ssvd = ssvd)
   check_flag(x = joint, nm_x = "joint")
   new_bage_prior_svd(ssvd = ssvd,
                      nm_ssvd = nm_ssvd,
-                     n = n,
+                     n_comp = n_comp,
                      joint = joint)
 }
+
+
+
+## NO_TESTS
+#' SVD Priors for Age, With Time-Varying Coefficients
+#'
+#' Singular Value Decomposition (SVD) priors
+#' for interactions involving age and time, and possibly
+#' other variables, where the coefficients evolve over time.
+#'
+#' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
+#' priors assume that the age profile for the quantity
+#' being modelled looks like it was drawn at random
+#' from an external demographic database. For instance,
+#' the `SVD_AR()` prior obtained via
+#' ```
+#' SVD_AR(HMD)
+#' ```
+#' favours age profiles that look like
+#' they were obtained from the
+#' [Human Mortality Database](https://www.mortality.org).
+#'
+#' Interactions that involve sex or gender
+#' as well age and time should be
+#' modelled using [SVDS_AR()], [SVDS_AR1()], [SVDS_RW()],
+#' or [SVDS_RW2()] priors, rather than `SVD_AR()`,
+#' `SVDS_AR1()`, `SVDS_RW()`, or `SVDS_RW2()` priors.
+#'
+#' @section Mathematical details:
+#' 
+#' When the interaction being modelled only involves
+#' age and time,
+#' 
+#' \deqn{\pmb{\beta}_t = \pmb{F} \pmb{\alpha}_t + \pmb{g},}
+#'
+#' and when it involives other variables besides age and time,
+#'
+#' \deqn{\pmb{\beta}_{u,t} = \pmb{F} \pmb{\alpha}_{u,t} + \pmb{g},}
+#'
+#' where
+#' - \eqn{\pmb{\beta}} is an interaction involving age and time;
+#' - \eqn{\pmb{\beta}_t} is a subvector of \eqn{\pmb{\beta}} holding
+#'   values for the period \eqn{t};
+#' - \eqn{\pmb{\beta}_{u,t}} is a subvector of \eqn{\pmb{\beta}_t} holding
+#'   values for the  \eqn{u}th combination of the "by" variables;
+#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+#' - \eqn{n} is `n_coef`;
+#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
+#'   if \eqn{\pmb{\beta}} is a main effect and dimension \eqn{V \times n}
+#'   if \eqn{\pmb{\beta}} is an interaction; and
+#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
+#'   if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
+#'   elements if \eqn{\pmb{\beta}} is an interaction.
+#' 
+#' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
+#' a large database of age-specific demographic estimates
+#' by performing an SVD and standardizing.
+#'
+#' With `SVD_AR()`, the prior for the elements of \eqn{\pmb{\alpha}_t} or \eqn{\pmb{\alpha}_{u,t}} is
+#'
+#' \deqn{\alpha_{kt} = \phi_1 \alpha_{k,t-1} + \cdots + \phi_n \beta_{k,t-n} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \phi_1 \alpha_{k,u,t-1} + \cdots + \phi_n \beta_{k,u,t-n} + \epsilon_{k,u,t}};
+#'
+#' with `SVD_AR1()`, it is
+#'
+#' \deqn{\alpha_{kt} = \phi \alpha_{k,t-1} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+#'
+#' with `SVD_RW()`, it is
+#'
+#' \deqn{\alpha_{kt} = \alpha_{k,t-1} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+#' 
+#' and with `SVD_RW2()`, it is
+#'
+#' \deqn{\alpha_{kt} = 2 \alpha_{k,t-1} - \alpha_{k,t-2} + \epsilon_{k,t}}
+#'
+#' or
+#'
+#' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}}.
+#'
+#' For more on the \eqn{\phi} and \eqn{\epsilon}, see [AR()], [AR1()],
+#' [RW()], and [RW2()].
+#' 
+#' @inheritSection SVD Scaled SVDs of demographic databases in bage
+#'
+#' @inheritParams SVD
+#' @param n_comp Number of components from scaled SVD
+#' to use in modelling. The default is half
+#' the number of components of `ssvd`.
+#' @param n_coef Number of AR coefficients in `SVD_RW()`.
+#' @param s Scale for standard deviations terms.
+#' @param min,max Minimum and maximum values
+#' for autocorrelation coefficient in `SVD_AR()`.
+#' Defaults are `0.8` and `0.98`.
+#'
+#' @returns An object of class `"bage_prior_svd_ar"`,
+#' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.
+#'
+#' @seealso
+#' - [SVDS()] SVD prior for non-time-varying age-sex or age-gender profile
+#' - [RW()] Smoothing via random walk
+#' - [RW2()] Smoothing via random walk with drift
+#' - [Sp()] Smoothing via splines
+#' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#'
+#' @references
+#' - For details of the construction of
+#'   scaled SVDS see the vignette
+#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
+#'
+#' @examples
+#' SVD_AR1(HMD)
+#' SVD_RW(HMD, n_comp = 3)
+#' @export
+SVD_RW <- function(ssvd, n_comp = NULL, s = 1) {
+  nm_ssvd <- deparse1(substitute(ssvd))
+  check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  n_comp <- n_comp_svd(n_comp = n, nm_n_comp = "n", ssvd = ssvd)
+  new_bage_prior_svd_rw(ssvd = ssvd,
+                        nm_ssvd = nm_ssvd,
+                        n_comp = n_comp,
+                        joint = NULL)
+}
+
 
 
 ## Internal constructors ------------------------------------------------------
@@ -1310,7 +1437,7 @@ SVDS <- function(ssvd, n = 5, joint = FALSE) {
 
 
 ## HAS_TESTS
-new_bage_prior_ar <- function(n, scale, min, max, nm, along) {
+new_bage_prior_ar <- function(n_coef, scale, min, max, nm, along) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 1L,
@@ -1319,7 +1446,7 @@ new_bage_prior_ar <- function(n, scale, min, max, nm, along) {
                         min = min,
                         max = max,
                         scale = scale),
-              specific = list(n = n,
+              specific = list(n_coef = n_coef,
                               shape1 = shape1,
                               shape2 = shape2,
                               min = min,
@@ -1353,7 +1480,7 @@ new_bage_prior_lin <- function(scale, sd_slope, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_linar <- function(n, scale, sd_slope, min, max, along, nm) {
+new_bage_prior_linar <- function(n_coef, scale, sd_slope, min, max, along, nm) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 3L,
@@ -1363,7 +1490,7 @@ new_bage_prior_linar <- function(n, scale, sd_slope, min, max, along, nm) {
                         shape2 = shape2,
                         min = min,
                         max = max),
-              specific = list(n = n,
+              specific = list(n_coef = n_coef,
                               scale = scale,
                               sd_slope = sd_slope,
                               shape1 = shape1,
@@ -1405,11 +1532,11 @@ new_bage_prior_rw <- function(scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasfix <- function(n, scale, along) {
+new_bage_prior_rwseasfix <- function(n_seas, scale, along) {
     ans <- list(i_prior = 10L,
-                const = c(n = n,            ## put season-related quantities at beginning
+                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           scale = scale),
-                specific = list(n = n,      ## put season-related quantities at beginning
+                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 scale = scale,
                                 along = along))
     class(ans) <- c("bage_prior_rwseasfix", "bage_prior")
@@ -1417,12 +1544,12 @@ new_bage_prior_rwseasfix <- function(n, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasvary <- function(n, scale_seas, scale, along) {
+new_bage_prior_rwseasvary <- function(n_seas, scale_seas, scale, along) {
     ans <- list(i_prior = 11L,
-                const = c(n = n,       ## put season-related quantities at beginning
+                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           scale_seas = scale_seas,  
                           scale = scale),
-                specific = list(n = n, ## put season-related quantities at beginning
+                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 scale_seas = scale_seas,
                                 scale = scale,
                                 along = along))
@@ -1441,11 +1568,11 @@ new_bage_prior_rw2 <- function(scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasfix <- function(n, scale, along) {
+new_bage_prior_rw2seasfix <- function(n_seas, scale, along) {
     ans <- list(i_prior = 12L,
-                const = c(n = n,            ## put season-related quantities at beginning
+                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           scale = scale),
-                specific = list(n = n,      ## put season-related quantities at beginning
+                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 scale = scale,
                                 along = along))
     class(ans) <- c("bage_prior_rw2seasfix", "bage_prior")
@@ -1453,12 +1580,12 @@ new_bage_prior_rw2seasfix <- function(n, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasvary <- function(n, scale_seas, scale, along) {
+new_bage_prior_rw2seasvary <- function(n_seas, scale_seas, scale, along) {
     ans <- list(i_prior = 13L,
-                const = c(n = n,       ## put season-related quantities at beginning
+                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           scale_seas = scale_seas,  
                           scale = scale),
-                specific = list(n = n, ## put season-related quantities at beginning
+                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 scale_seas = scale_seas,
                                 scale = scale,
                                 along = along))
@@ -1467,10 +1594,10 @@ new_bage_prior_rw2seasvary <- function(n, scale_seas, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_spline <- function(n, scale, along) {
+new_bage_prior_spline <- function(n_comp, scale, along) {
     ans <- list(i_prior = 8L,
                 const = c(scale = scale),
-                specific = list(n = n,
+                specific = list(n_comp = n_comp,
                                 scale = scale,
                                 along = along))
     class(ans) <- c("bage_prior_spline", "bage_prior")
@@ -1478,12 +1605,12 @@ new_bage_prior_spline <- function(n, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_svd <- function(ssvd, nm_ssvd, n, joint) {
+new_bage_prior_svd <- function(ssvd, nm_ssvd, n_comp, joint) {
     ans <- list(i_prior = 9L,
                 const = 0, ## not used
                 specific = list(ssvd = ssvd,
                                 nm_ssvd = nm_ssvd,
-                                n = n,
+                                n_comp = n_comp,
                                 joint = joint))
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans

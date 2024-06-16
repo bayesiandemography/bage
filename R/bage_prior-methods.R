@@ -229,7 +229,6 @@ draw_vals_effect.bage_prior_rwseasfix <- function(prior,
                                                   matrix_along_by,
                                                   matrix_agesex,
                                                   n_sim) {
-  n <- prior$specific$n
   sd <- vals_hyper$sd
   seas <- vals_hyperrand$seas
   alpha <- draw_vals_rw(sd = sd,
@@ -288,7 +287,6 @@ draw_vals_effect.bage_prior_rw2seasfix <- function(prior,
                                                    matrix_along_by,
                                                    matrix_agesex,
                                                    n_sim) {
-  n <- prior$specific$n
   sd <- vals_hyper$sd
   seas <- vals_hyperrand$seas
   alpha <- draw_vals_rw2(sd = sd,
@@ -369,7 +367,7 @@ draw_vals_effect.bage_prior_svd <- function(prior,
                                             n_sim) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
-  n_comp <- prior$specific$n
+  n_comp <- prior$specific$n_comp
   n_by <- ncol(matrix_agesex) ## n_by excludes sex
   m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age = levels_age,
@@ -577,8 +575,8 @@ draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
                                                      vals_hyper,
                                                      matrix_along_by,
                                                      n_sim) {
-  n <- prior$specific$n
-  seas <- draw_vals_seasfix(n = n,
+  n_seas <- prior$specific$n_seas
+  seas <- draw_vals_seasfix(n_seas = n_seas,
                             matrix_along_by = matrix_along_by,
                             n_sim = n_sim)
   list(seas = seas)
@@ -590,9 +588,9 @@ draw_vals_hyperrand.bage_prior_rwseasvary <- function(prior,
                                                       vals_hyper,
                                                       matrix_along_by,
                                                       n_sim) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   sd_seas <- vals_hyper$sd_seas
-  seas <- draw_vals_seasvary(n = n,
+  seas <- draw_vals_seasvary(n_seas = n_seas,
                              sd_seas = sd_seas,
                              matrix_along_by = matrix_along_by)
   list(seas = seas)
@@ -604,8 +602,8 @@ draw_vals_hyperrand.bage_prior_rw2seasfix <- function(prior,
                                                       vals_hyper,
                                                       matrix_along_by,
                                                       n_sim) {
-  n <- prior$specific$n
-  seas <- draw_vals_seasfix(n = n,
+  n_seas <- prior$specific$n_seas
+  seas <- draw_vals_seasfix(n_seas = n_seas,
                             matrix_along_by = matrix_along_by,
                             n_sim = n_sim)
   list(seas = seas)
@@ -617,9 +615,9 @@ draw_vals_hyperrand.bage_prior_rw2seasvary <- function(prior,
                                                        vals_hyper,
                                                        matrix_along_by,
                                                        n_sim) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   sd_seas <- vals_hyper$sd_seas
-  seas <- draw_vals_seasvary(n = n,
+  seas <- draw_vals_seasvary(n_seas = n_seas,
                              sd_seas = sd_seas,
                              matrix_along_by = matrix_along_by)
   list(seas = seas)
@@ -838,7 +836,7 @@ forecast_term.bage_prior_rwseasfix <- function(prior,
                                                matrix_along_by_est,
                                                matrix_along_by_forecast,
                                                levels_forecast) {
-  n_season <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   is_trend <- with(components,
                    term == nm_prior & component == "trend")
   is_seasonal <- with(components,
@@ -852,7 +850,7 @@ forecast_term.bage_prior_rwseasfix <- function(prior,
                              sd = sd,
                              matrix_along_by_est = matrix_along_by_est,
                              matrix_along_by_forecast = matrix_along_by_forecast)
-  seas_forecast <- forecast_seasfix(n = n_season,
+  seas_forecast <- forecast_seasfix(n_seas = n_seas,
                                     seas_est = seas_est,
                                     matrix_along_by_est = matrix_along_by_est,
                                     matrix_along_by_forecast = matrix_along_by_forecast)
@@ -872,7 +870,7 @@ forecast_term.bage_prior_rwseasvary <- function(prior,
                                                 matrix_along_by_est,
                                                 matrix_along_by_forecast,
                                                 levels_forecast) {
-  n_season <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   is_trend <- with(components,
                    term == nm_prior & component == "trend")
   is_seasonal <- with(components,
@@ -889,7 +887,7 @@ forecast_term.bage_prior_rwseasvary <- function(prior,
                              sd = sd,
                              matrix_along_by_est = matrix_along_by_est,
                              matrix_along_by_forecast = matrix_along_by_forecast)
-  seas_forecast <- forecast_seasvary(n = n_season,
+  seas_forecast <- forecast_seasvary(n = n_seas,
                                      seas_est = seas_est,
                                      sd = sd_seas,
                                      matrix_along_by_est = matrix_along_by_est,
@@ -934,7 +932,7 @@ forecast_term.bage_prior_rw2seasfix <- function(prior,
                                                 matrix_along_by_est,
                                                 matrix_along_by_forecast,
                                                 levels_forecast) {
-  n_season <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   is_trend <- with(components,
                    term == nm_prior & component == "trend")
   is_seasonal <- with(components,
@@ -948,7 +946,7 @@ forecast_term.bage_prior_rw2seasfix <- function(prior,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
-  seas_forecast <- forecast_seasfix(n = n_season,
+  seas_forecast <- forecast_seasfix(n = n_seas,
                                     seas_est = seas_est,
                                     matrix_along_by_est = matrix_along_by_est,
                                     matrix_along_by_forecast = matrix_along_by_forecast)
@@ -968,7 +966,7 @@ forecast_term.bage_prior_rw2seasvary <- function(prior,
                                                  matrix_along_by_est,
                                                  matrix_along_by_forecast,
                                                  levels_forecast) {
-  n_season <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   is_trend <- with(components,
                    term == nm_prior & component == "trend")
   is_seasonal <- with(components,
@@ -985,7 +983,7 @@ forecast_term.bage_prior_rw2seasvary <- function(prior,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
-  seas_forecast <- forecast_seasvary(n = n_season,
+  seas_forecast <- forecast_seasvary(n = n_seas,
                                      seas_est = seas_est,
                                      sd = sd_seas,
                                      matrix_along_by_est = matrix_along_by_est,
@@ -1102,9 +1100,9 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
                                                var_sexgender,
                                                agesex) {
   length_along <- nrow(matrix_along_by)
-  n <- prior$specific$n
+  n_coef <- prior$specific$n_coef
   check_length_along_ge(length_along = length_along,
-                        min = n + 1L,
+                        min = n_coef + 1L,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1158,9 +1156,9 @@ is_prior_ok_for_term.bage_prior_linar <- function(prior,
                                                 var_sexgender,
                                                 agesex) {
   length_along <- nrow(matrix_along_by)
-  n <- prior$specific$n
+  n_coef <- prior$specific$n_coef
   check_length_along_ge(length_along = length_along,
-                        min = n + 1L,
+                        min = n_coef + 1L,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1226,10 +1224,10 @@ is_prior_ok_for_term.bage_prior_rwseasfix <- function(prior,
                                                       var_age,
                                                       var_sexgender,
                                                       agesex) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   length_along <- nrow(matrix_along_by)
   check_length_along_ge(length_along = length_along,
-                        min = n,
+                        min = n_seas,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1244,10 +1242,10 @@ is_prior_ok_for_term.bage_prior_rwseasvary <- function(prior,
                                                        var_age,
                                                        var_sexgender,
                                                        agesex) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   length_along <- nrow(matrix_along_by)
   check_length_along_ge(length_along = length_along,
-                        min = n,
+                        min = n_seas,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1279,10 +1277,10 @@ is_prior_ok_for_term.bage_prior_rw2seasfix <- function(prior,
                                                        var_age,
                                                        var_sexgender,
                                                        agesex) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   length_along <- nrow(matrix_along_by)
   check_length_along_ge(length_along = length_along,
-                        min = n,
+                        min = n_seas,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1297,10 +1295,10 @@ is_prior_ok_for_term.bage_prior_rw2seasvary <- function(prior,
                                                         var_age,
                                                         var_sexgender,
                                                         agesex) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   length_along <- nrow(matrix_along_by)
   check_length_along_ge(length_along = length_along,
-                        min = n,
+                        min = n_seas,
                         nm = nm,
                         prior = prior)
   invisible(TRUE)
@@ -1443,11 +1441,11 @@ levels_hyper <- function(prior) {
 ## HAS_TESTS
 #' @export
 levels_hyper.bage_prior_ar <- function(prior) {
-  n <- prior$specific$n
-  if (n == 1L)
+  n_coef <- prior$specific$n_coef
+  if (n_coef == 1L)
     coef <- "coef"
   else
-    coef <- paste0("coef", seq_len(n))
+    coef <- paste0("coef", seq_len(n_coef))
   c(coef, "sd")
 }
 
@@ -1465,11 +1463,11 @@ levels_hyper.bage_prior_lin <- function(prior) {
 ## HAS_TESTS
 #' @export
 levels_hyper.bage_prior_linar <- function(prior) {
-  n <- prior$specific$n
-  if (n == 1L)
+  n_coef <- prior$specific$n_coef
+  if (n_coef == 1L)
     coef <- "coef"
   else
-    coef <- paste0("coef", seq_len(n))
+    coef <- paste0("coef", seq_len(n_coef))
   c("sd", coef)
 }
 
@@ -1576,13 +1574,13 @@ levels_hyperrand.bage_prior_linar <- function(prior, matrix_along_by, levels_eff
 ## HAS_TESTS
 #' @export
 levels_hyperrand.bage_prior_rwseasfix <- function(prior, matrix_along_by, levels_effect) {
-  n_season <- prior$specific$n
-  s <- seq_len(n_season)
+  n_seas <- prior$specific$n_seas
+  s <- seq_len(n_seas)
   n_by <- ncol(matrix_along_by)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by)
     paste(s,
-          rep(nms_by, each = n_season),
+          rep(nms_by, each = n_seas),
           sep = ".")
   }
   else
@@ -1598,13 +1596,13 @@ levels_hyperrand.bage_prior_rwseasvary <- function(prior, matrix_along_by, level
 ## HAS_TESTS
 #' @export
 levels_hyperrand.bage_prior_rw2seasfix <- function(prior, matrix_along_by, levels_effect) {
-  n_season <- prior$specific$n
-  s <- seq_len(n_season)
+  n_seas <- prior$specific$n_seas
+  s <- seq_len(n_seas)
   n_by <- ncol(matrix_along_by)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by)
     paste(s,
-          rep(nms_by, each = n_season),
+          rep(nms_by, each = n_seas),
           sep = ".")
   }
   else
@@ -1673,15 +1671,15 @@ make_matrix_effectfree_effect.bage_prior_spline <- function(prior,
                                                             levels_sexgender,
                                                             matrix_along_by,
                                                             matrix_agesex) {
-  n_spline <- prior$specific$n
+  n_comp <- prior$specific$n_comp
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  if (is.null(n_spline)) {
-    n_spline <- 0.7 * n_along
-    n_spline <- ceiling(n_spline)
-    n_spline <- max(n_spline, 4L)
+  if (is.null(n_comp)) {
+    n_comp <- 0.7 * n_along
+    n_comp <- ceiling(n_comp)
+    n_comp <- max(n_comp, 4L)
   }
-  X <- make_spline_matrix(n_spline = n_spline,
+  X <- make_spline_matrix(n_comp = n_comp,
                           n_along = n_along)
   I <- Matrix::.sparseDiagonal(n_by)
   m_inner <- Matrix::kronecker(I, X)
@@ -1700,7 +1698,7 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
                                                          matrix_agesex) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
-  n_comp <- prior$specific$n
+  n_comp <- prior$specific$n_comp
   n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
   F <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
@@ -1770,7 +1768,7 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior,
                                                          matrix_agesex) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
-  n_comp <- prior$specific$n
+  n_comp <- prior$specific$n_comp
   n_by <- ncol(matrix_agesex)  ## special meaning of 'n_by': excludes age and sex
   g <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
@@ -1933,7 +1931,7 @@ str_call_prior <- function(prior) {
 #' @export
 str_call_prior.bage_prior_ar <- function(prior) {
   specific <- prior$specific
-  n <- specific$n
+  n_coef <- specific$n_coef
   min <- specific$min
   max <- specific$max
   scale <- specific$scale
@@ -1941,7 +1939,7 @@ str_call_prior.bage_prior_ar <- function(prior) {
   nm <- specific$nm
   if (nm == "AR") {
     args <- character(3L)
-    args[[1L]] <- sprintf("n=%d", n)
+    args[[1L]] <- sprintf("n_coef=%d", n_coef)
     if (scale != 1)
       args[[2L]] <- sprintf("s=%s", scale)
   if (!is.null(along))
@@ -2001,7 +1999,7 @@ str_call_prior.bage_prior_lin <- function(prior) {
 #' @export
 str_call_prior.bage_prior_linar <- function(prior) {
   specific <- prior$specific
-  n <- specific$n
+  n_coef <- specific$n_coef
   min <- specific$min
   max <- specific$max
   scale <- specific$scale
@@ -2010,8 +2008,8 @@ str_call_prior.bage_prior_linar <- function(prior) {
   nm <- specific$nm
   if (nm == "LinAR") {
     args <- character(4L)
-    if (n != 2L)
-      args[[1L]] <- sprintf("n=%d", n)
+    if (n_coef != 2L)
+      args[[1L]] <- sprintf("n_coef=%d", n_coef)
     if (scale != 1)
       args[[2L]] <- sprintf("s=%s", scale)
     if (sd_slope != 1)
@@ -2077,11 +2075,11 @@ str_call_prior.bage_prior_rw <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rwseasfix <- function(prior) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   scale <- prior$specific$scale
   along <- prior$specific$along
   args <- character(4L)
-  args[[1L]] <- sprintf("n=%s", n)
+  args[[1L]] <- sprintf("n_seas=%s", n_seas)
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
   args[[3L]] <- "s_seas=0"
@@ -2095,12 +2093,12 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rwseasvary <- function(prior) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   scale <- prior$specific$scale
   scale_seas <- prior$specific$scale_seas
   along <- prior$specific$along
   args <- character(4L)
-  args[[1L]] <- sprintf("n=%s", n)
+  args[[1L]] <- sprintf("n_seas=%s", n_seas)
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
   if (scale_seas != 1)
@@ -2130,11 +2128,11 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2seasfix <- function(prior) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   scale <- prior$specific$scale
   along <- prior$specific$along
   args <- character(4L)
-  args[[1L]] <- sprintf("n=%s", n)
+  args[[1L]] <- sprintf("n_seas=%s", n_seas)
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
   args[[3L]] <- "s_seas=0"
@@ -2148,12 +2146,12 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2seasvary <- function(prior) {
-  n <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   scale <- prior$specific$scale
   scale_seas <- prior$specific$scale_seas
   along <- prior$specific$along
   args <- character(4L)
-  args[[1L]] <- sprintf("n=%s", n)
+  args[[1L]] <- sprintf("n_seas=%s", n_seas)
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
   if (scale_seas != 1)
@@ -2168,12 +2166,12 @@ str_call_prior.bage_prior_rw2seasvary <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_spline <- function(prior) {
-  n <- prior$specific$n
+  n_comp <- prior$specific$n_comp
   scale <- prior$specific$scale
   along <- prior$specific$along
   args <- character(3L)
-  if (!is.null(n))
-    args[[1L]] <- sprintf("n=%s", n)
+  if (!is.null(n_comp))
+    args[[1L]] <- sprintf("n_comp=%s", n_comp)
   if (scale != 1)
     args[[2L]] <- sprintf("s=%s", scale)
   if (!is.null(along))
@@ -2188,15 +2186,15 @@ str_call_prior.bage_prior_spline <- function(prior) {
 str_call_prior.bage_prior_svd <- function(prior) {
   ssvd <- prior$specific$ssvd
   nm_ssvd <- prior$specific$nm_ssvd
-  n <- prior$specific$n
+  n_comp <- prior$specific$n_comp
   joint <- prior$specific$joint
   args <- character(3L)
   fun <- if (is.null(joint)) "SVD" else "SVDS"
   args[[1L]] <- nm_ssvd
-  n_comp <- get_n_comp(ssvd)
-  n_default <- ceiling(n_comp / 2)
-  if (n != n_default)
-    args[[2L]] <- sprintf("n=%s", n)
+  n_comp_ssvd <- get_n_comp(ssvd)
+  n_default <- ceiling(n_comp_ssvd / 2)
+  if (n_comp != n_default)
+    args[[2L]] <- sprintf("n_comp=%s", n_comp)
   if (!is.null(joint) && joint)
     args[[3L]] <- "joint=TRUE"
   args <- args[nzchar(args)]
@@ -2328,7 +2326,7 @@ transform_hyper <- function(prior) {
 #' @export
 transform_hyper.bage_prior_ar <- function(prior) {
   specific <- prior$specific
-  n <- specific$n
+  n_coef <- specific$n_coef
   min <- specific$min
   max <- specific$max
   shifted_inv_logit <- function(x) {
@@ -2337,7 +2335,7 @@ transform_hyper.bage_prior_ar <- function(prior) {
     ans
   }
   rep(list(coef = shifted_inv_logit, sd = exp),
-      times = c(n, 1L))
+      times = c(n_coef, 1L))
 }
 
 ## HAS_TESTS
@@ -2354,7 +2352,7 @@ transform_hyper.bage_prior_lin <- function(prior)
 #' @export
 transform_hyper.bage_prior_linar <- function(prior) {
   specific <- prior$specific
-  n <- specific$n
+  n_coef <- specific$n_coef
   min <- specific$min
   max <- specific$max
   shifted_inv_logit <- function(x) {
@@ -2364,7 +2362,7 @@ transform_hyper.bage_prior_linar <- function(prior) {
   }
   rep(list(sd = exp,
            coef = shifted_inv_logit),
-      times = c(1L, n))
+      times = c(1L, n_coef))
 }
 
 ## HAS_TESTS

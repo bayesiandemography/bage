@@ -4,12 +4,11 @@
 \alias{LinAR}
 \title{Linear Prior with Autoregressive Errors}
 \usage{
-LinAR(n = 2, s = 1, sd = 1, along = NULL)
+LinAR(n_coef = 2, s = 1, sd = 1, along = NULL)
 }
 \arguments{
-\item{n}{The order of the model for the
-errors, i.e. the number of lagged
-terms that are included. Default is \code{2}.}
+\item{n_coef}{The number of lagged terms in the
+model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the innovations in the
 AR process. Default is \code{1}.}
@@ -41,13 +40,13 @@ Argument \code{s} controls the size of the errors.
 \section{Mathematical details}{
 
 
-When \code{LinAR()} is being used with a main effect,
+When \code{LinAR()} is used with a main effect,
 
 \deqn{\beta_j = \eta q_j + \epsilon_j}
 \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j,}
 \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
 
-and when it is being used with an interaction,
+and when it is used with an interaction,
 
 \deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
@@ -59,6 +58,7 @@ where
 \item \eqn{j} denotes position within the main effect;
 \item \eqn{u} denotes position within the "along" variable of the interaction;
 \item \eqn{u} denotes position within the "by" variable(s) of the interaction;
+\item \eqn{n} is \text{n_coef};
 \item \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
 \item \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 }
@@ -89,7 +89,7 @@ Slope \eqn{\eta} is drawn from a normal distribution,
 
 \examples{
 LinAR()
-LinAR(n = 3, s = 0.5, sd = 2)
+LinAR(n_coef = 3, s = 0.5, sd = 2)
 }
 \seealso{
 \itemize{

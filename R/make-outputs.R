@@ -731,7 +731,7 @@ reformat_hyperrand_seasfix <- function(prior,
                                          nm_prior,
                                          matrix_along_by,
                                          components) {
-  n_season <- prior$specific$n
+  n_seas <- prior$specific$n_seas
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   is_seas <- with(components,
@@ -741,13 +741,13 @@ reformat_hyperrand_seasfix <- function(prior,
   seas <- components$.fitted[is_seas]
   effect <- components$.fitted[is_effect]
   level <- components$level[is_effect]
-  matrix_along_by_seas <- matrix(seq_along(seas) - 1L, nrow = n_season, ncol = n_by)
+  matrix_along_by_seas <- matrix(seq_along(seas) - 1L, nrow = n_seas, ncol = n_by)
   seas <- center_within_across_by(x = seas,
                                   matrix_along_by = matrix_along_by_seas)
   seas_extend <- rep(seas[[1L]], times = n_along * n_by)
   for (i_by in seq_len(n_by)) {
     for (i_along in seq_len(n_along)) {
-      i_seas <- ((i_along - 1L) %% n_season) + (i_by - 1L) * n_season + 1L
+      i_seas <- ((i_along - 1L) %% n_seas) + (i_by - 1L) * n_seas + 1L
       i_seas_extend <- matrix_along_by[i_along, i_by] + 1L
       seas_extend[i_seas_extend] <- seas[i_seas]
     }
