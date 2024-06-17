@@ -62,11 +62,9 @@ values for the  \eqn{u}th combination of the non-age variables;
 \item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
 \item \eqn{n} is \code{n_comp};
 \item \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
-if \eqn{\pmb{\beta}} is a main effect, and dimension \eqn{V \times n}
-if \eqn{\pmb{\beta}} is an interaction; and
-\item \eqn{\pmb{g}} is a known vector with \eqn{J} elements if
-if \eqn{\pmb{\beta}} is a main effect and \eqn{V}
-elements if \eqn{\pmb{\beta}} is an interaction.
+or \eqn{V \times n}; and
+\item \eqn{\pmb{g}} is a known vector with \eqn{J} or \eqn{V}
+elements.
 }
 
 \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
@@ -101,7 +99,8 @@ scaled SVDS see the vignette
 \seealso{
 \itemize{
 \item \code{\link[=SVDS]{SVDS()}} SVD prior for age-sex or age-gender profile
-\item \code{\link[=SVDS_RW]{SVDS_RW()}} SVD prior for age with time-varying coeffients
+\item \code{\link[=SVD_AR]{SVD_AR()}}, \code{\link[=SVD_AR1]{SVD_AR1()}}, \code{\link[=SVD_RW]{SVD_RW()}}, \code{\link[=SVD_RW2]{SVD_RW2()}} SVD priors for
+for time-varying age profiles;
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines

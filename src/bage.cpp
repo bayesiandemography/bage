@@ -351,11 +351,27 @@ Type logpost_svd(vector<Type> effectfree,
 }
 
 template <class Type>
+Type logpost_svd_ar(vector<Type> effectfree,
+		    vector<Type> hyper,
+		    vector<Type> consts,
+		    matrix<int> matrix_along_by) {
+  return logpost_ar(effectfree, hyper, consts, matrix_along_by);
+}
+
+template <class Type>
 Type logpost_svd_rw(vector<Type> effectfree,
 		    vector<Type> hyper,
 		    vector<Type> consts,
 		    matrix<int> matrix_along_by) {
   return logpost_rw(effectfree, hyper, consts, matrix_along_by);
+}
+
+template <class Type>
+Type logpost_svd_rw2(vector<Type> effectfree,
+		     vector<Type> hyper,
+		     vector<Type> consts,
+		     matrix<int> matrix_along_by) {
+  return logpost_rw2(effectfree, hyper, consts, matrix_along_by);
 }
 
 
@@ -405,7 +421,13 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_spline(effectfree, hyper, consts, matrix_along_by);
     break;
   case 14:
+    ans = logpost_svd_ar(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 15:
     ans = logpost_svd_rw(effectfree, hyper, consts, matrix_along_by);
+    break;
+  case 16:
+    ans = logpost_svd_rw2(effectfree, hyper, consts, matrix_along_by);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov

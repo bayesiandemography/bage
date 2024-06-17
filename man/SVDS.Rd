@@ -76,11 +76,11 @@ The default is \code{FALSE}.
 
 \strong{Case 1: Interaction involving age and sex or gender, but no other variables}
 
-When \code{SVDS()} is used with \code{joint = FALSE},
+When \code{joint} is \code{FALSE},
 
 \deqn{\pmb{\beta}_{s} = \pmb{F}_s \pmb{\alpha}_{s} + \pmb{g}_s,}
 
-and when \code{SVDS()} is used with \code{joint = TRUE},
+and when \code{joint} is \code{TRUE},
 
 \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
 
@@ -107,11 +107,11 @@ The elements of \eqn{\pmb{\alpha}_s} and \eqn{\pmb{\alpha}} have prior
 
 \strong{Case 2: Interaction involving age and sex/gender, and one or more other variables}
 
-When \code{SVDS()} is used with \code{joint = FALSE},
+When \code{joint} is \code{FALSE},
 
 \deqn{\pmb{\beta}_{u,s} = \pmb{F}_s \pmb{\alpha}_{u,s} + \pmb{g}_s,}
 
-and when \code{SVDS()} is used with \code{joint = TRUE},
+and when \code{joint} is \code{TRUE},
 
 \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
 
@@ -162,7 +162,8 @@ scaled SVDS see the vignette
 \seealso{
 \itemize{
 \item \code{\link[=SVD]{SVD()}} SVD prior for age, with no sex or gender
-\item \code{\link[=SVDS_RW]{SVDS_RW()}} SVD prior for age and sex/gender with time-varying coeffients
+\item \code{\link[=SVDS_AR]{SVDS_AR()}}, \code{\link[=SVDS_AR1]{SVDS_AR1()}}, \code{\link[=SVDS_RW]{SVDS_RW()}}, \code{\link[=SVDS_RW2]{SVDS_RW2()}} SVD priors for
+for time-varying age-sex or age-gender profiles;
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
