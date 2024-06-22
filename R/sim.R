@@ -42,18 +42,39 @@ aggregate_report_comp <- function(report_comp) {
 
 
 ## HAS_TESTS
+#' @export
+draw_vals_ar <- function(coef,
+                         sd,
+                         matrix_along_by,
+                         n_sim,
+                         levels_effect) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  s <- rep(seq_len(n_sim), each = n_by)
+  coef <- coef[, s, drop = FALSE]
+  sd <- sd[s]
+  ans <- draw_vals_ar_inner(n = n_along, coef = coef, sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
 #' Generate Values for Multiple AR-k Series of Length 'n'
 #'
 #' @param n Length of series (not order of series)
 #' @param coef Matrix, each column of which is a vector
-#' of autocorellation coefficients
+#' of autocorrelation coefficients
 #' @param sd Vector, each element of which is a
 #' marginal standard deviation
 #'
 #' @returns A matrix with 'n' rows and 'length(sd)' columns
 #'
 #' @noRd
-draw_vals_ar <- function(n, coef, sd) {
+draw_vals_ar_inner <- function(n, coef, sd) {
   n_sim <- length(sd)
   ans <- matrix(nrow = n, ncol = n_sim)
   for (i_sim in seq_len(n_sim))
@@ -262,139 +283,6 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
   ans
 }
 
-
-## HAS_TESTS
-#' Generate Draws from Lin
-#'
-#' Each column is one draw.
-#'
-#' Results are standardized
-#'
-#' @param slope Matrix of values
-#' @param sd Vector of values
-#' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
-  n_sim <- ncol(slope)
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  q <- seq(from = -1, to = 1, length.out = n_along)
-  q <- rep(q, times = n_by * n_sim)
-  slope <- rep(slope, each = n_along)
-  sd <- rep(sd, each = n_along * n_by)
-  ans <- stats::rnorm(n = n_along * n_by * n_sim,
-                      mean = q * slope,
-                      sd = sd)
-  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
-  i <- match(sort(matrix_along_by), matrix_along_by)
-  ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
-  ans
-}
-
-## HAS_TESTS
-#' Generate Draws from Lin_AR
-#'
-#' Each column is one draw.
-#'
-#' Results are standardized
-#'
-#' @param slope Matrix of values
-#' @param sd Vector of values
-#' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
-  n_sim <- ncol(slope)
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  n_coef <- nrow(coef)
-  q <- seq(from = -1, to = 1, length.out = n_along)
-  slope <- as.numeric(slope)
-  mean <- outer(q, slope)
-  coef <- array(coef, dim = c(n_coef, n_sim, n_by))
-  coef <- aperm(coef, perm = c(1L, 3L, 2L))
-  coef <- matrix(coef, nrow = n_coef, ncol = n_by * n_sim)
-  sd <- rep(sd, each = n_by)
-  error <- draw_vals_ar(n = n_along, coef = coef, sd = sd)
-  ans <- mean + error
-  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
-  i <- match(sort(matrix_along_by), matrix_along_by)
-  ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
-  ans
-}
-
-
-## HAS_TESTS
-#' Generate Draws from RW
-#'
-#' Each column is one draw.
-#'
-#' @param sd Vector of values
-#' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_rw <- function(sd, matrix_along_by, labels) {
-  n_sim <- length(sd)
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
-  sd <- rep(sd, each = n_by)
-  for (i_along in seq.int(from = 2L, to = n_along))
-    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
-                                   mean = ans[i_along - 1L, ],
-                                   sd = sd)
-  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
-  i <- match(sort(matrix_along_by), matrix_along_by)
-  ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
-  ans
-}
-
-## HAS_TESTS
-#' Generate Draws from RW2
-#'
-#' Each column is one draw.
-#'
-#' @param sd Vector of values
-#' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
-#'
-#' @returns A matrix, with dimnames.
-#'
-#' @noRd
-draw_vals_rw2 <- function(sd, matrix_along_by, labels) {
-  n_sim <- length(sd)
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  sd <- rep(sd, each = n_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
-  ans[2L, ] <- stats::rnorm(n = n_by * n_sim)
-  for (i_along in seq.int(from = 3L, to = n_along))
-    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
-                                   mean = 2 * ans[i_along - 1L, ] - ans[i_along - 2L, ],
-                                   sd = sd)
-  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
-  i <- match(sort(matrix_along_by), matrix_along_by)
-  ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
-  ans
-}
-
-
 ## HAS_TESTS
 #' Draw Values for Ordinary Hyper-Parameters
 #'
@@ -435,6 +323,140 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 
 
 ## HAS_TESTS
+#' Generate Draws from Lin
+#'
+#' Each column is one draw.
+#'
+#' Results are standardized
+#'
+#' @param slope Matrix of values
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
+  n_sim <- ncol(slope)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  q <- seq(from = -1, to = 1, length.out = n_along)
+  q <- rep(q, times = n_by * n_sim)
+  slope <- rep(slope, each = n_along)
+  sd <- rep(sd, each = n_along * n_by)
+  ans <- stats::rnorm(n = n_along * n_by * n_sim,
+                      mean = q * slope,
+                      sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from Lin_AR
+#'
+#' Each column is one draw.
+#'
+#' Results are standardized
+#'
+#' @param slope Matrix of values
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
+  n_sim <- ncol(slope)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  n_coef <- nrow(coef)
+  q <- seq(from = -1, to = 1, length.out = n_along)
+  slope <- as.numeric(slope)
+  mean <- outer(q, slope)
+  coef <- array(coef, dim = c(n_coef, n_sim, n_by))
+  coef <- aperm(coef, perm = c(1L, 3L, 2L))
+  coef <- matrix(coef, nrow = n_coef, ncol = n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  error <- draw_vals_ar_inner(n = n_along, coef = coef, sd = sd)
+  ans <- mean + error
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from RW
+#'
+#' Each column is one draw.
+#'
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_rw <- function(sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
+  sd <- rep(sd, each = n_by)
+  for (i_along in seq.int(from = 2L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = ans[i_along - 1L, ],
+                                   sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from RW2
+#'
+#' Each column is one draw.
+#'
+#' @param sd Vector of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_rw2 <- function(sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  sd <- rep(sd, each = n_by)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
+  ans[2L, ] <- stats::rnorm(n = n_by * n_sim)
+  for (i_along in seq.int(from = 3L, to = n_along))
+    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                   mean = 2 * ans[i_along - 1L, ] - ans[i_along - 2L, ],
+                                   sd = sd)
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, seq_len(n_sim))
+  ans
+}
+
+
+## HAS_TESTS
 #' Generate Draws for Fixed Seasonal Effects
 #'
 #' Each column is one draw.
@@ -458,6 +480,7 @@ draw_vals_seasfix <- function(n_seas, matrix_along_by, n_sim) {
   ans <- ans[i, , drop = FALSE]
   ans
 }
+
 
 ## HAS_TESTS
 #' Generate Draws for Time-Varying Seasonal Effects
@@ -488,7 +511,6 @@ draw_vals_seasvary <- function(n_seas, sd_seas, matrix_along_by) {
   ans <- ans[i, , drop = FALSE]
   ans
 }
-  
 
 
 ## HAS_TESTS
@@ -542,6 +564,46 @@ draw_vals_sd_seas <- function(prior, n_sim) {
     ans <- abs(ans)
     ans
 }
+
+
+## HAS_TESTS
+#' Given Value for SVD and Alpha, Draw Values for Effect
+#'
+#' Do main calculations for SVD_AR, SVD_AR1, SVD_RW, SVD_RW2,
+#' SVDS_AR, SVDS_AR1, SVDS_RW, SVDS_RW2 priors.
+#' Uses the fact that age and sex variables are
+#' always 'by' variables in these priors, implying that
+#' time series are exchangeable across ages and sexes.
+#'
+#' @param svd_mb Matrix and offset from scaled SVD.
+#' Output from function 'get_svd_mb'.
+#' @param alpha_agesex Values for time series, calculated
+#' for all values of age and sex.
+#' @param matrix_agesex Mapping between age sex and each element
+#' of term. A matrix.
+#' @param n_sim Number of simulation draws.
+#' @param levels_effect Labels for term. A character vector.
+#'
+#' @returns A matrix
+#'
+#' @noRd
+draw_vals_svd_time <- function(svd_mb, alpha_agesex, matrix_agesex, n_sim, levels_effect) {
+  m <- svd_mb$m
+  b <- svd_mb$b
+  ncol_m <- ncol(m)
+  n_by <- ncol(matrix_agesex) ## excludes sex, if present
+  ans <- matrix(nrow = nrow(alpha_agesex),
+                ncol = ncol(alpha_agesex),
+                dimnames = list(levels_effect, seq_len(n_sim)))
+  for (i_by in seq_len(n_by)) {
+    i_agesex <- matrix_agesex[, i_by] + 1L
+    i_svd <- head(i_agesex, n = ncol_m)
+    alpha_svd <- alpha_agesex[i_svd, , drop = FALSE] ## only use first 'ncol_m' age-sex groups
+    ans[i_agesex, ] <- Matrix::as.matrix(m %*% alpha_svd + b)
+  }
+  ans
+}
+  
 
 ## HAS_TESTS
 #' Calculate Errors from Using Point Estimates from Posterior Distribution

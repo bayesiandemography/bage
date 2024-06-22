@@ -69,11 +69,45 @@ test_that("'aggregate_report_comp' works with valid inputs", {
 
 ## 'draw_vals_ar' -------------------------------------------------------------
 
-test_that("'draw_vals_ar' works", {
+test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 1", {
+  prior <- AR(n_coef = 3)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_effect <- letters
+  matrix_along_by <- matrix(0:25, nr = 26)
+  ans <- draw_vals_ar(coef = vals_hyper$coef,
+                      sd = vals_hyper$sd,
+                      matrix_along_by = matrix_along_by,
+                      n_sim = n_sim,
+                      levels_effect = levels_effect)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 2", {
+  prior <- AR(n_coef = 3)
+  matrix_along_by <- matrix(0:25, nr = 13)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  levels_effect <- letters
+  ans <- draw_vals_ar(coef = vals_hyper$coef,
+                      sd = vals_hyper$sd,
+                      matrix_along_by = matrix_along_by,
+                      n_sim = n_sim,
+                      levels_effect = levels_effect)
+  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+})
+
+
+## 'draw_vals_ar_inner' -------------------------------------------------------
+
+test_that("'draw_vals_ar_inner' works", {
     set.seed(0)
     prior <- AR(n = 2)
     coef <- draw_vals_coef(prior, n_sim = 5L)
-    ans <- draw_vals_ar(n = 10000, coef = coef, sd = seq(0.6, 1, 0.1))
+    ans <- draw_vals_ar_inner(n = 10000, coef = coef, sd = seq(0.6, 1, 0.1))
     expect_identical(nrow(ans), 10000L)
     expect_identical(ncol(ans), 5L)
     expect_equal(apply(ans, 2, sd), seq(0.6, 1, 0.1), tolerance = 0.02)
@@ -186,6 +220,44 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
 })
 
 
+## draw_vals_hyper_mod --------------------------------------------------------
+
+test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans <- draw_vals_hyper_mod(mod, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(length(ans$age$sd), 10L)
+})
+
+
+## draw_vals_hyperrand_mod --------------------------------------------------------
+
+test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:time ~ Lin())
+    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+    ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(nrow(ans[["age:time"]]$slope), 10L)
+    expect_identical(sapply(ans, length),
+                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 1L))
+})
+
+
 ## 'draw_vals_lin' -----------------------------------------------------------
 
 test_that("'draw_vals_lin' works - along dimension is first", {
@@ -272,49 +344,11 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   sd <- rep(sd, each = 4)
   coef <- matrix(apply(coef, 2, rep, times = 4), nr = 2)
   set.seed(0)
-  error <- draw_vals_ar(n = 3, coef = coef, sd = sd)
+  error <- draw_vals_ar_inner(n = 3, coef = coef, sd = sd)
   ans_expected <- mean + error
   ans_expected <- matrix(ans_expected, ncol = n_sim)
   dimnames(ans_expected) <- list(1:12, 1:n_sim)
   expect_equal(ans_obtained, ans_expected)  
-})
-
-
-## draw_vals_hyper_mod --------------------------------------------------------
-
-test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans <- draw_vals_hyper_mod(mod, n_sim = 10)
-    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
-    expect_identical(length(ans$age$sd), 10L)
-})
-
-
-## draw_vals_hyperrand_mod --------------------------------------------------------
-
-test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age:time ~ Lin())
-    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
-    ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
-    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
-    expect_identical(nrow(ans[["age:time"]]$slope), 10L)
-    expect_identical(sapply(ans, length),
-                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 1L))
 })
 
 
@@ -538,6 +572,33 @@ test_that("'draw_vals_slope' works", {
                          nr = 2)
   rownames(ans_expected) <- paste("slope", c("a", "b"), sep = ".")
   expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'draw_vals_svd_time' -------------------------------------------------
+
+test_that("'draw_vals_svd_time' works with valid inputs", {
+  prior <- SVD(HMD)
+  levels_age <- poputils::age_labels(type = "lt", max = 60)
+  levels_sexgender <- NULL
+  agesex <- "age"
+  svd_mb <- get_svd_mb(prior = prior,
+                       levels_age = levels_age,
+                       levels_sexgender = levels_sexgender,
+                       agesex = agesex)
+  matrix_along_by <- matrix(0:69, nc = 5)
+  alpha_agesex <- draw_vals_rw(sd = runif(10),
+                               matrix_along_by = matrix_along_by,
+                               labels = 1:70)
+  matrix_agesex <- matrix_along_by
+  n_sim <- 10
+  levels_effect <- 1:70
+  ans <- draw_vals_svd_time(svd_mb = svd_mb,
+                            alpha_agesex = alpha_agesex,
+                            matrix_agesex = matrix_agesex,
+                            n_sim = n_sim,
+                            levels_effect = levels_effect)
+  expect_identical(dim(ans), c(70L, 10L))
 })
 
 

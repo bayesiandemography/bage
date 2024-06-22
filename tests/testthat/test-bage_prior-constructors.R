@@ -312,25 +312,20 @@ test_that("'SVDS_AR1' works with valid inputs", {
 
 test_that("'SVDS_RW' works with valid inputs", {
   expect_identical(SVDS_RW(HMD, n_comp = 3),
-                   new_bage_prior_svd_ar(HMD,
+                   new_bage_prior_svd_rw(HMD,
                                          nm_ssvd = "HMD",
                                          n_comp = 3L,
                                          joint = FALSE,
-                                         n_coef = 1L,
-                                         scale = 1,
-                                         min = 0.8,
-                                         max = 0.98,
-                                         nm = "SVDS_AR1"))
-  expect_identical(SVDS_AR1(HMD, n_comp = 2, s = 0.01, max = 0.85, joint = TRUE),
-                   new_bage_prior_svd_ar(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 2L,
-                                         joint = TRUE,
-                                         n_coef = 1L,
-                                         min = 0.8,
-                                         max = 0.85,
-                                         scale = 0.01,
-                                         nm = "SVDS_AR1"))
+                                         scale = 1))
+})
+
+test_that("'SVDS_RW2' works with valid inputs", {
+  expect_identical(SVDS_RW2(HMD, n_comp = 3),
+                   new_bage_prior_svd_rw2(HMD,
+                                          nm_ssvd = "HMD",
+                                          n_comp = 3L,
+                                          joint = FALSE,
+                                          scale = 1))
 })
 
 
