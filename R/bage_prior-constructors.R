@@ -972,7 +972,7 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' - \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
 #'   values for the  \eqn{u}th combination of the "by" variables;
 #' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
-#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+#' - \eqn{U} is the number of elements of \eqn{\pmb{\beta}_u};
 #' - \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
 #'   spline basis functions; and
 #' - \eqn{n} is `n_comp`.

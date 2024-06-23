@@ -124,6 +124,30 @@ eval_offset_formula <- function(vname_offset, data) {
 }
 
 
+## NO_TESTS
+#' Get Number of Components of Spline Prior
+#'
+#' If user did not supply number, derive one
+#' from length of 'along' dimension.
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param n_along Length of 'along' dimension
+#'
+#' @returns An integer
+#'
+#' @noRd
+get_n_comp_spline <- function(prior, n_along) {
+  n_comp <- prior$specific$n_comp
+  if (is.null(n_comp)) {
+    n_comp <- 0.7 * n_along
+    n_comp <- ceiling(n_comp)
+    n_comp <- as.integer(n_comp)
+    n_comp <- max(n_comp, 4L)
+  }
+  n_comp
+}
+
+
 ## HAS_TESTS
 #' Obtain Matrix and Offset for SVD Prior
 #'
@@ -577,91 +601,6 @@ make_levels_age <- function(mod) {
 }
 
 
-make_levels_coef_svd <- function(mod) {
-  data <- mod$data
-  formula <- mod$formula
-  priors <- mod$priors
-  var_age <- mod$var_age
-  ans <- list(NULL)
-  factors <- attr(stats::terms(formula), "factors")
-  if (length(factors) > 0L) {
-    factors <- factors[-1L, , drop = FALSE]
-    factors <- factors > 0L
-    nms_vars <- rownames(factors)
-    nms_terms <- colnames(factors)
-    ans_terms <- vector(mode = "list", length = length(nms_terms))
-    for (i_term in seq_along(nms_terms)) {
-      nms_vars_term <- nms_vars[factors[, i_term]]
-      data_term <- data[nms_vars_term]
-      data_term[] <- lapply(data_term, to_factor)
-      contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-      nm_term <- nms_terms[[i_term]]
-      formula_term <- paste0("~", nm_term, "-1")
-      formula_term <- stats::as.formula(formula_term)
-      m_term <- Matrix::sparse.model.matrix(formula_term,
-                                            data = data_term,
-                                            contrasts.arg = contrasts_term,
-                                            row.names = FALSE)
-      colnames(m_term) <- levels(interaction(data_term))
-      ans_terms[[i_term]] <- m_term
-    }
-    names(ans_terms) <- nms_terms
-    ans <- c(ans, ans_terms)
-  }
-  ans        
-}
-
-
-
-  
-  n_prior <- length(priors)
-  ans <- vector(mode = "list", length = n)
-  for (i_prior in seq_len(n_prior)) {
-    
-    ans[[i_prior]] <- level_coef_svd(prior = prior,
-                                     
-  ## make intercept
-  n_data <- nrow(data)
-  i <- seq_len(n_data)
-  j <- rep.int(1L, times = n_data)
-  x <- rep.int(1L, times = n_data)
-  m <- Matrix::sparseMatrix(i = i,
-                            j = j,
-                            x = x)
-  colnames(m) <- "(Intercept)"
-  ans <- list("(Intercept)" = m)
-  ## make other terms
-  factors <- attr(stats::terms(formula), "factors")
-  if (length(factors) > 0L) {
-    factors <- factors[-1L, , drop = FALSE]
-    factors <- factors > 0L
-    nms_vars <- rownames(factors)
-    nms_terms <- colnames(factors)
-    ans_terms <- vector(mode = "list", length = length(nms_terms))
-    for (i_term in seq_along(nms_terms)) {
-      nms_vars_term <- nms_vars[factors[, i_term]]
-      data_term <- data[nms_vars_term]
-      data_term[] <- lapply(data_term, to_factor)
-      contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-      nm_term <- nms_terms[[i_term]]
-      formula_term <- paste0("~", nm_term, "-1")
-      formula_term <- stats::as.formula(formula_term)
-      m_term <- Matrix::sparse.model.matrix(formula_term,
-                                            data = data_term,
-                                            contrasts.arg = contrasts_term,
-                                            row.names = FALSE)
-      colnames(m_term) <- levels(interaction(data_term))
-      ans_terms[[i_term]] <- m_term
-    }
-    names(ans_terms) <- nms_terms
-    ans <- c(ans, ans_terms)
-  }
-  ans        
-}
-
-
-
-
 ## HAS_TESTS
 #' Make levels associated with each element of 'effect'
 #'
@@ -922,7 +861,8 @@ make_matrices_along_by <- function(formula, data) {
     for (i_term in seq_along(nms_terms)) {
       nms_vars_term <- nms_vars[factors[, i_term]]
       data_term <- data[nms_vars_term]
-      dimnames <- lapply(data_term, unique)
+      data_term <- lapply(data_term, to_factor)
+      dimnames <- lapply(data_term, levels)
       dim <- lengths(dimnames)
       i_along <- seq_along(dim)
       val <- lapply(i_along,
@@ -979,7 +919,8 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
       has_time <- i_time > 0L
       if (has_time) {
         data_term <- data[nms_vars_term]
-        dimnames <- lapply(data_term, unique)
+        data_term <- lapply(data_term, to_factor)
+        dimnames <- lapply(data_term, levels)
         dimnames[[i_time]] <- labels_forecast
         dim <- lengths(dimnames)
         ans_terms[[i_term]] <- make_matrix_along_by(i_along = i_time,
@@ -994,6 +935,41 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
 }
 
 
+#' @noRd
+make_matrices_along_by_free <- function(mod, labels_forecast) {
+  formula <- mod$formula
+  data <- mod$data
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  var_time <- mod$var_time
+  ans <- list("(Intercept)" = matrix(0L, nrow = 1L))
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 1L) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
+    for (i_term in seq_along(nms_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      data_term <- data[nms_vars_term]
+      data_term <- lapply(data_term, to_factor)
+      dimnames <- lapply(data_term, levels)
+      ans_terms[[i_term]] <- make_matrix_along_by_free(prior = prior,
+                                                       matrix_along_by = matrix_along_by,
+                                                       dim = dim,
+                                                       dimnames = dimnames,
+                                                       var_time = var_time,
+                                                       var_age = var_age,
+                                                       var_sexgender = var_sexgender)
+    }
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
+  }
+  ans
+}
+
+  
 ## HAS_TESTS
 #' Make list of matrices mapping terms to outcome vector
 #'

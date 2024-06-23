@@ -1750,6 +1750,82 @@ levels_hyperrand.bage_prior_rw2seasvary <- function(prior, matrix_along_by, leve
 }
 
 
+## 'make_matrix_along_by_free' ------------------------------------------------
+
+#' Make an 'along_by' Matrix for Free Parameters
+#'
+#' Make a matrix mapping position within 'effectfree'
+#' to in 'along' and 'by' variables
+#' 
+#' @param prior Object of class 'bage_prior'
+#' @param levels_sexgender Values taken by sex/gender
+#' variable (or NULL if no sex/gender variable in data)
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param matrix_agesex Matrix mapping term
+#' to age and sex dimensions.
+#'
+#' @returns A matrix.
+#'
+#' @noRd
+make_matrix_along_by_free <- function(prior,
+                                      levels_effect,
+                                      matrix_along_by,
+                                      matrix_agesex) {
+  UseMethod("make_matrix_along_by_free")
+}
+
+#' @export
+make_matrix_along_by_free.bage_prior <- function(prior,
+                                      levels_effect,
+                                      matrix_along_by,
+                                      matrix_agesex) {
+  matrix_along_by
+}
+
+#' @export
+make_matrix_along_by_free.bage_prior_spline <- function(prior,
+                                                        levels_effect,
+                                                        matrix_along_by,
+                                                        matrix_agesex) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
+  rownames <- paste0("coef", seq_len(n_comp))
+  colnames <- colnames(matrix_along_by)
+  matrix(seq.int(from = 0L, length.out = n_comp * n_by),
+         nrow = n_comp,
+         ncol = n_by,
+         dimnnames = list(rownames, colnames))
+}
+
+#' @export
+make_matrix_along_by_free.bage_prior_svd <- function(prior,
+                                                     levels_effect,
+                                                     matrix_along_by,
+                                                     matrix_agesex) {
+  joint <- prior$specific$joint
+  is_indep <- !is.null(joint) && !joint
+  n_comp <- prior$specific$n_comp
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  n_sexgender <- length(levels_sexgender)
+  if (indep) {
+    n_along_free <- n_sexgender * n_comp
+    rownames <- paste0(rep(levels_sexgender, each = n_comp),
+                       ".coef",
+                       seq_len(n_comp))
+  }
+  else {
+    n_along_free <- n_comp
+    rownames <- paste0("coef", seq_len(n_comp))
+  }
+  colnames <- colnames(matrix_agesex)
+  matrix(seq.int(from = 0L, length.out = n_along_free * n_by),
+         nrow = n_along_free,
+         ncol = n_by,
+         dimnnames = list(rownames, colnames))
+}
+
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
 #' Make matrix mapping effectfree to effect
@@ -1805,14 +1881,9 @@ make_matrix_effectfree_effect.bage_prior_spline <- function(prior,
                                                             levels_sexgender,
                                                             matrix_along_by,
                                                             matrix_agesex) {
-  n_comp <- prior$specific$n_comp
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  if (is.null(n_comp)) {
-    n_comp <- 0.7 * n_along
-    n_comp <- ceiling(n_comp)
-    n_comp <- max(n_comp, 4L)
-  }
+  n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
   X <- make_spline_matrix(n_comp = n_comp,
                           n_along = n_along)
   I <- Matrix::.sparseDiagonal(n_by)

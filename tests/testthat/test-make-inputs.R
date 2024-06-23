@@ -334,6 +334,17 @@ test_that("'eval_offset_formula' works with valid inputs - ifelse", {
 })
 
 
+## 'get_n_comp_spline' --------------------------------------------------------
+
+test_that("'get_n_comp_spline' works with n_comp supplied", {
+  expect_identical(get_n_comp_spline(Sp(n_comp = 4), n_along = 10), 4L)
+})
+
+test_that("'get_n_comp_spline' works with n_comp supplied", {
+  expect_identical(get_n_comp_spline(Sp(), n_along = 10), 7L)
+})
+
+
 ## 'get_svd_mb' -------------------------------------------------
 
 test_that("'get_svd_mb' works with valid inputs", {

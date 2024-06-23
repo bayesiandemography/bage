@@ -50,7 +50,7 @@ where
 \item \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
 values for the  \eqn{u}th combination of the "by" variables;
 \item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
-\item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+\item \eqn{U} is the number of elements of \eqn{\pmb{\beta}_u};
 \item \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
 spline basis functions; and
 \item \eqn{n} is \code{n_comp}.
