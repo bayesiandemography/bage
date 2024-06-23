@@ -252,6 +252,7 @@ generate.bage_ssvd <- function(x,
   levels_sexgender <- data$labels_sexgender[[i_matched]]
   levels_age <- unique(levels_age)
   levels_sexgender <- unique(levels_sexgender)
+  n_sexgender <- length(levels_sexgender)
   agesex <- if (has_joint) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = x,
                                      levels_age = levels_age,
@@ -267,7 +268,7 @@ generate.bage_ssvd <- function(x,
                                      agesex = agesex,
                                      get_matrix = FALSE,
                                      n_comp = n_comp)
-  n_Z <- if (type == "indep") 2L * n_comp else n_comp
+  n_Z <- if (type == "indep") n_sexgender * n_comp else n_comp
   Z <- stats::rnorm(n = n_Z * n_draw)
   Z <- matrix(Z, nrow = n_Z, ncol = n_draw)
   value <- matrix %*% Z + offset
