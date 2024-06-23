@@ -1116,7 +1116,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 
 #' @export
 print.bage_mod <- function(x, ...) {
-    nchar_offset <- 15
+    nchar_offset <- 15L
     ## calculations
     formula <- x$formula
     priors <- x$priors

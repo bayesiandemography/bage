@@ -2185,6 +2185,28 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd - age x reg
 })
 
 
+## 'print' --------------------------------------------------------------------
+
+test_that("'print' works", {
+  expect_snapshot(print(AR()))
+  expect_snapshot(print(AR1(min = 0.2)))
+  expect_snapshot(print(Known(c(0.2, -0.2))))
+  expect_snapshot(print(Lin()))
+  expect_snapshot(print(LinAR()))
+  expect_snapshot(print(N()))
+  expect_snapshot(print(NFix()))
+  expect_snapshot(print(RW()))
+  expect_snapshot(print(RWSeas(n = 2, s_seas = 0)))
+  expect_snapshot(print(RWSeas(n = 2)))
+  expect_snapshot(print(RW2()))
+  expect_snapshot(print(RW2Seas(n = 2, s_seas = 0)))
+  expect_snapshot(print(RW2Seas(n = 2)))
+  expect_snapshot(print(Sp()))
+  expect_snapshot(print(SVD(HMD)))
+  expect_snapshot(print(SVDS(HMD)))
+})
+
+
 ## 'reformat_hyperrand_one' ---------------------------------------------------
 
 test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
