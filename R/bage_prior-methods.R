@@ -1791,6 +1791,156 @@ make_offset_effectfree_effect.bage_prior_svd <- function(prior,
 }
 
 
+## 'print' --------------------------------------------------------------------
+
+print_prior <- function(prior, nms, slots) {
+  print_prior_header(prior)
+  for (i in seq_along(nms)) {
+    nm <- nms[[i]]
+    slot <- slots[[i]]
+    print_prior_slot(prior = prior, nm = nm, slot = slot)
+  }
+  invisible(prior)
+}
+
+get_print_prior_n_offset <- function() 8L
+
+print_prior_header <- function(prior)
+  cat(" ", str_call_prior(prior), "\n")
+
+print_prior_slot <- function(prior, nm, slot) {
+  n_offset <- get_print_prior_n_offset()
+  val_slot <- prior[["specific"]][[slot]]
+  if (is.null(val_slot))
+    val_slot <- "NULL"
+  cat(sprintf("% *s: %s\n", n_offset, nm, val_slot))
+}  
+
+## HAS_TESTS
+#' @export
+print.bage_prior_ar <- function(x, ...) {
+  print_prior(x,
+              nms = c("min", "max", "s", "along"),
+              slots = c("min", "max", "scale", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_known <- function(x, ...) {
+  cat(str_call_prior(x), "\n")
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_lin <- function(x, ...) {
+  print_prior(x,
+              nms = c("s", "sd", "along"),
+              slots = c("scale", "sd_slope", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_linar <- function(x, ...) {
+  print_prior(x,
+              nms = c("s", "sd", "min", "max", "along"),
+              slots = c("scale", "sd_slope", "min", "max", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_norm <- function(x, ...) {
+  print_prior(x,
+              nms = "s",
+              slots = "scale")
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_normfixed <- function(x, ...) {
+  print_prior(x,
+              nms = "sd",
+              slots = "sd")
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw <- function(x, ...) {
+  print_prior(x,
+              nms = c("s", "along"),
+              slots = c("scale", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rwseasfix <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "n", slot = "n")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rwseasvary <- function(x, ...) {
+  print_prior(x,
+              nms = c("n", "s", "s_seas", "along"),
+              slots = c("n", "scale", "scale_seas", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2 <- function(x, ...) {
+  print_prior(x,
+              nms = c("s", "along"),
+              slots = c("scale", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2seasfix <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "n", slot = "n")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2seasvary <- function(x, ...) {
+  print_prior(x,
+              nms = c("n", "s", "s_seas", "along"),
+              slots = c("n", "scale", "scale_seas", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_spline <- function(x, ...) {
+  print_prior(x,
+              nms = c("n", "s", "along"),
+              slots = c("n", "scale", "along"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n", slot = "n")
+  joint <- x$specific$joint
+  if (!is.null(joint))
+    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  invisible(x)
+}
+
+
+
 ## 'reformat_hyperrand_one' ---------------------------------------------------
 
 #' Reformat Parts of 'Components' Output Dealing with a
