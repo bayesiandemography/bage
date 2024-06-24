@@ -54,7 +54,7 @@ where
 \item \eqn{j} denotes position within the main effect;
 \item \eqn{v} denotes position within the "along" variable of the interaction;
 \item \eqn{u} denotes position within the "by" variable(s) of the interaction; and
-\item \eqn{n} is \text{n_coef}.
+\item \eqn{n} is \code{n_coef}.
 }
 
 Internally, \code{AR()} derives a value for \eqn{\omega} that

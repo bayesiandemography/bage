@@ -58,7 +58,7 @@ where
 \item \eqn{j} denotes position within the main effect;
 \item \eqn{u} denotes position within the "along" variable of the interaction;
 \item \eqn{u} denotes position within the "by" variable(s) of the interaction;
-\item \eqn{n} is \text{n_coef};
+\item \eqn{n} is \code{n_coef};
 \item \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
 \item \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 }

@@ -505,7 +505,7 @@ fit.bage_mod <- function(object, ...) {
   terms_hyperrand <- make_terms_hyperrand(object)
   const <- make_const(object)
   terms_const <- make_terms_const(object)
-  matrices_along_by <- choose_matrices_along_by(object)
+  matrices_along_by_free <- make_matrices_along_by_free(object)
   mean_disp <- object$mean_disp
   has_disp <- mean_disp > 0
   data <- list(nm_distn = nm_distn,
@@ -526,7 +526,7 @@ fit.bage_mod <- function(object, ...) {
                terms_hyperrand = terms_hyperrand,
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
-               matrices_along_by = matrices_along_by,
+               matrices_along_by_free = matrices_along_by_free,
                mean_disp = mean_disp)
   ## parameters
   effectfree <- make_effectfree(object)

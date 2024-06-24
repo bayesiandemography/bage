@@ -141,6 +141,7 @@ get_n_comp <- function(ssvd) {
   matrix <- data$matrix
   i_total <- match("total", type)
   matrix_total <- matrix[[i_total]]
+  matrix_total <- Matrix::as.matrix(matrix_total)
   ncol(matrix_total)
 }
 

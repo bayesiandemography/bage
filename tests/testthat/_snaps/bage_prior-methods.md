@@ -3,7 +3,8 @@
     Code
       print(AR())
     Output
-        AR(n=2) 
+        AR() 
+        n_coef: 2
            min: -1
            max: 1
              s: 1
@@ -40,9 +41,10 @@
 ---
 
     Code
-      print(LinAR())
+      print(Lin_AR())
     Output
-        LinAR() 
+        Lin_AR() 
+        n_coef: 2
              s: 1
             sd: 1
            min: -1
@@ -77,10 +79,10 @@
 ---
 
     Code
-      print(RWSeas(n = 2, s_seas = 0))
+      print(RW_Seas(n_seas = 2, s_seas = 0))
     Output
-        RWSeas(n=2,s_seas=0) 
-             n: 2
+        RW_Seas(n_seas=2,s_seas=0) 
+        n_seas: 2
              s: 1
         s_seas: 0
          along: NULL
@@ -88,10 +90,10 @@
 ---
 
     Code
-      print(RWSeas(n = 2))
+      print(RW_Seas(n_seas = 2))
     Output
-        RWSeas(n=2) 
-             n: 2
+        RW_Seas(n_seas=2) 
+             n: NULL
              s: 1
         s_seas: 1
          along: NULL
@@ -108,10 +110,10 @@
 ---
 
     Code
-      print(RW2Seas(n = 2, s_seas = 0))
+      print(RW2_Seas(n_seas = 2, s_seas = 0))
     Output
-        RW2Seas(n=2,s_seas=0) 
-             n: 2
+        RW2_Seas(n_seas=2,s_seas=0) 
+        n_seas: 2
              s: 1
         s_seas: 0
          along: NULL
@@ -119,10 +121,10 @@
 ---
 
     Code
-      print(RW2Seas(n = 2))
+      print(RW2_Seas(n_seas = 2))
     Output
-        RW2Seas(n=2) 
-             n: 2
+        RW2_Seas(n_seas=2) 
+        n_seas: 2
              s: 1
         s_seas: 1
          along: NULL
@@ -133,7 +135,7 @@
       print(Sp())
     Output
         Sp() 
-             n: NULL
+        n_comp: NULL
              s: 1
          along: NULL
 
@@ -144,7 +146,7 @@
     Output
         SVD(HMD) 
           ssvd: HMD
-             n: 5
+        n_comp: 5
 
 ---
 
@@ -153,6 +155,55 @@
     Output
         SVDS(HMD) 
           ssvd: HMD
-             n: 5
+        n_comp: 5
          joint: FALSE
+
+---
+
+    Code
+      print(SVDS_AR(HMD))
+    Output
+        SVDS_AR(HMD) 
+          ssvd: HMD
+        n_comp: 5
+         joint: FALSE
+        n_coef: 2
+           min: -1
+           max: 1
+             s: 1
+         along: NULL
+
+---
+
+    Code
+      print(SVD_AR1(HMD))
+    Output
+        SVD_AR1(HMD) 
+          ssvd: HMD
+        n_comp: 5
+           min: 0.8
+           max: 0.98
+             s: 1
+         along: NULL
+
+---
+
+    Code
+      print(SVDS_RW(HMD))
+    Output
+        SVDS_RW(HMD) 
+          ssvd: HMD
+        n_comp: 5
+         joint: FALSE
+             s: 1
+
+---
+
+    Code
+      print(SVD_RW2(HMD))
+    Output
+        SVD_RW2(HMD) 
+          ssvd: HMD
+        n_comp: 5
+             s: 1
 

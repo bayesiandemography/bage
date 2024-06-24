@@ -1949,6 +1949,128 @@ test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
 })
 
 
+## 'make_matrix_along_by_free' ------------------------------------------------
+
+test_that("default for 'make_matrix_along_by_free' works", {
+  prior <- AR1()
+  levels_sexgender <- NULL
+  matrix_along_by <- matrix(0:4, nr = 5)
+  matrix_agesex <- NULL
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix_along_by
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free' works with 'bage_prior_spline'", {
+  prior <- Sp()
+  levels_sexgender <- NULL
+  matrix_along_by <- matrix(0:19, nr = 10, dimnames = list(0:9, c("a", "b")))
+  matrix_agesex <- matrix_along_by
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:13,
+                         nr = 7,
+                         dimnames = list(paste0("comp", 1:7),
+                                         c("a", "b")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free' works with 'bage_prior_svd' - total", {
+  prior <- SVD(HMD)
+  levels_sexgender <- NULL
+  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c("a", "b")))
+  matrix_agesex <- matrix_along_by
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:9,
+                         nr = 5,
+                         dimnames = list(paste0("comp", 1:5),
+                                         c("a", "b")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free' works with 'bage_prior_svd' - indep", {
+  prior <- SVDS(HMD, joint = FALSE)
+  levels_sexgender <- c("F", "M")
+  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c("F", "M")))
+  matrix_agesex <- matrix(0:161,
+                          nr = 162,
+                          dimnames = list(paste(c(0:79, "80+"),
+                                                rep(c("F", "M"), each = 81),
+                                                sep = "."),
+                                          NULL))
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:9,
+                         nr = 10,
+                         dimnames = list(paste(rep(c("F", "M"), each = 5),
+                                               paste0("comp", 1:5),
+                                               sep = "."),
+                                         NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_ar'", {
+  prior <- SVD_AR(HMD)
+  levels_sexgender <- NULL
+  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c(2001, 2002)))
+  matrix_agesex <- matrix_along_by
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:9,
+                         nr = 5,
+                         dimnames = list(paste0("comp", 1:5),
+                                         c(2001, 2002)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_rw'", {
+  prior <- SVD_RW(HMD)
+  levels_sexgender <- NULL
+  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c(2001, 2002)))
+  matrix_agesex <- matrix_along_by
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:9,
+                         nr = 5,
+                         dimnames = list(paste0("comp", 1:5),
+                                         c(2001, 2002)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_rw'", {
+  prior <- SVD_RW2(HMD)
+  levels_sexgender <- NULL
+  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c(2001, 2002)))
+  matrix_agesex <- matrix_along_by
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:9,
+                         nr = 5,
+                         dimnames = list(paste0("comp", 1:5),
+                                         c(2001, 2002)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+
+
+
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1", {
@@ -2249,18 +2371,22 @@ test_that("'print' works", {
   expect_snapshot(print(AR1(min = 0.2)))
   expect_snapshot(print(Known(c(0.2, -0.2))))
   expect_snapshot(print(Lin()))
-  expect_snapshot(print(LinAR()))
+  expect_snapshot(print(Lin_AR()))
   expect_snapshot(print(N()))
   expect_snapshot(print(NFix()))
   expect_snapshot(print(RW()))
-  expect_snapshot(print(RWSeas(n = 2, s_seas = 0)))
-  expect_snapshot(print(RWSeas(n = 2)))
+  expect_snapshot(print(RW_Seas(n_seas = 2, s_seas = 0)))
+  expect_snapshot(print(RW_Seas(n_seas = 2)))
   expect_snapshot(print(RW2()))
-  expect_snapshot(print(RW2Seas(n = 2, s_seas = 0)))
-  expect_snapshot(print(RW2Seas(n = 2)))
+  expect_snapshot(print(RW2_Seas(n_seas = 2, s_seas = 0)))
+  expect_snapshot(print(RW2_Seas(n_seas = 2)))
   expect_snapshot(print(Sp()))
   expect_snapshot(print(SVD(HMD)))
   expect_snapshot(print(SVDS(HMD)))
+  expect_snapshot(print(SVDS_AR(HMD)))
+  expect_snapshot(print(SVD_AR1(HMD)))
+  expect_snapshot(print(SVDS_RW(HMD)))
+  expect_snapshot(print(SVD_RW2(HMD)))
 })
 
 
@@ -2586,7 +2712,7 @@ test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n_coef = 1)), "AR(n_coef=1)")
     expect_identical(str_call_prior(AR(n_coef = 3, s = 0.3)), "AR(n_coef=3,s=0.3)")
     expect_identical(str_call_prior(AR(s = 0.3, along = "cohort", n = 2)),
-                     "AR(n_coef=2,s=0.3,along=\"cohort\")")
+                     "AR(s=0.3,along=\"cohort\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -2680,6 +2806,31 @@ test_that("'str_call_prior' works with bage_prior_svd", {
     expect_identical(str_call_prior(SVD(s,n = 6L)), "SVD(s,n_comp=6)")
     expect_identical(str_call_prior(SVDS(s,joint=F,n_comp = 3L)),
                      "SVDS(s,n_comp=3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_ar", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_AR1(s)), "SVD_AR1(s)")
+    expect_identical(str_call_prior(SVDS_AR1(s,joint = TRUE)), "SVDS_AR1(s,joint=TRUE)")
+    expect_identical(str_call_prior(SVD_AR1(s,min = 0.2, n = 6L)), "SVD_AR1(s,n_comp=6,min=0.2)")
+    expect_identical(str_call_prior(SVDS_AR(s,joint=F,n_comp = 3L,n_coef=3)),
+                     "SVDS_AR(s,n_comp=3,n_coef=3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_rw", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_RW(s)), "SVD_RW(s)")
+    expect_identical(str_call_prior(SVDS_RW(s,joint = TRUE)), "SVDS_RW(s,joint=TRUE)")
+    expect_identical(str_call_prior(SVDS_RW(s,joint=F,n_comp = 3L,s=0.3)),
+                     "SVDS_RW(s,n_comp=3,s=0.3)")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_rw", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_RW2(s)), "SVD_RW2(s)")
+    expect_identical(str_call_prior(SVDS_RW2(s,joint = TRUE)), "SVDS_RW2(s,joint=TRUE)")
+    expect_identical(str_call_prior(SVDS_RW2(s,joint=F,n_comp = 3L,s=0.3)),
+                     "SVDS_RW2(s,n_comp=3,s=0.3)")
 })
 
 

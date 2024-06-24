@@ -25,6 +25,10 @@ of databases currently available in \strong{bage}.}
 to use in modelling. The default is half
 the number of components of \code{ssvd}.}
 
+\item{joint}{Whether to use combined or
+separate SVDs. Default is \code{FALSE}.
+See below for details.}
+
 \item{n_coef}{Number of AR coefficients in \code{SVD_RW()}.}
 
 \item{s}{Scale for standard deviations terms.}

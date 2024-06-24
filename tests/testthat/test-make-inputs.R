@@ -345,6 +345,13 @@ test_that("'get_n_comp_spline' works with n_comp supplied", {
 })
 
 
+## 'get_print_prior_n_offset' -------------------------------------------------
+
+test_that("'get_print_prior_n_offset' works", {
+  expect_identical(get_print_prior_n_offset(), 8L)
+})
+
+
 ## 'get_svd_mb' -------------------------------------------------
 
 test_that("'get_svd_mb' works with valid inputs", {
@@ -1171,6 +1178,26 @@ test_that("'make_matrices_along_by_forecast' works with valid inputs", {
 })
 
 
+## 'make_matrices_along_by_free' ------------------------------------------------
+
+test_that("'make_matrices_along_by_free' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:9,
+                        region = 1:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp * SEX + SEX * region
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, agegp ~ Sp(n_comp = 4))
+    ans <- make_matrices_along_by_free(mod)
+    expect_true(all(sapply(ans, is.matrix)))
+    expect_identical(names(ans), names(mod$priors))
+})
+
+
 ## 'make_matrices_effect_outcome' --------------------------------------------
 
 test_that("'make_matrices_effect_outcome' works with valid inputs", {
@@ -1353,6 +1380,46 @@ test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
                                          b = 1:3))
   expect_identical(ans_obtained, ans_expected)
 })
+
+
+## 'make_matrix_along_by_free_svd' --------------------------------------------
+
+test_that("'make_matrix_along_by_free_svd' works - total", {
+  prior <- SVD(HMD)
+  levels_sexgender <- NULL
+  matrix_agesex <- matrix(0:242, nr = 81, dimnames = list(c(0:79, "80+"), c("a", "b", "c")))
+  ans_obtained <- make_matrix_along_by_free(prior = prior,
+                                            levels_sexgender = levels_sexgender,
+                                            matrix_along_by = matrix_along_by,
+                                            matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:14,
+                         nr = 5,
+                         dimnames = list(paste0("comp", 1:5),
+                                         c("a", "b", "c")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free_svd' works - indep", {
+  prior <- SVDS(HMD, joint = FALSE)
+  levels_sexgender <- c("F", "M")
+  matrix_agesex <- matrix(0:485,
+                          nr = 162, 
+                          dimnames = list(paste(c(0:79, "80+"),
+                                                rep(c("F", "M"), each = 81),
+                                                sep = "."),
+                                          c("a", "b", "c")))
+  ans_obtained <- make_matrix_along_by_free_svd(prior = prior,
+                                                levels_sexgender = levels_sexgender,
+                                                matrix_agesex = matrix_agesex)
+  ans_expected <- matrix(0:29,
+                         nr = 10,
+                         dimnames = list(paste(rep(c("F", "M"), each = 5),
+                                               paste0("comp", 1:5),
+                                               sep = "."),
+                                         c("a", "b", "c")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 
 ## 'make_matrix_effectfree_effect_svd' ----------------------------------------
@@ -1861,6 +1928,165 @@ test_that("'n_comp_svd' works when valid 'n' supplied", {
 test_that("'n_comp_svd' throws correct error when n is too high", {
   expect_error(n_comp_svd(n_comp = 11, nm_n_comp = "n_component", ssvd = HMD),
                "`n_component` larger than number of components of `ssvd`.")
+})
+
+
+## 'print_prior' -------------------------------------------------------
+
+test_that("'print_prior' works", {
+  expect_snapshot(print_prior(RW(),
+                              nms = c("s", "along"),
+                              slots = c("scale", "along")))
+})
+
+
+## 'print_prior_header' -------------------------------------------------------
+
+test_that("'print_prior_header' works", {
+  expect_snapshot(print_prior_header(AR()))
+})
+
+
+## 'print_prior_slot' ---------------------------------------------------------
+
+test_that("'print_prior_slot' works", {
+  expect_snapshot(print_prior_slot(AR(), nm = "n_coef", slot = "n_coef"))
+})
+
+
+## 'str_call_args_along' ---------------------------------------------------------
+
+test_that("'str_call_args_along' works - no along", {
+  prior <- RW()
+  ans_obtained <- str_call_args_along(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_along' works - has along", {
+  prior <- RW(along = "cohort")
+  ans_obtained <- str_call_args_along(prior)
+  ans_expected <- "along=\"cohort\""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_ar' ---------------------------------------------------------
+
+test_that("'str_call_args_ar' works - AR1", {
+  prior <- AR1(s = 0.5)
+  ans_obtained <- str_call_args_ar(prior)
+  ans_expected <- c("", "", "s=0.5")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_svd' works - AR", {
+  prior <- AR(n_coef = 3)
+  ans_obtained <- str_call_args_ar(prior)
+  ans_expected <- c("n_coef=3", "")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_lin' --------------------------------------------------------
+
+test_that("'str_call_args_lin' works - sd_slope = 1", {
+  prior <- Lin()
+  ans_obtained <- str_call_args_lin(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_lin' works - sd_slope not 1", {
+  prior <- Lin(sd = 0.3)
+  ans_obtained <- str_call_args_lin(prior)
+  ans_expected <- "sd=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_n_comp' --------------------------------------------------------
+
+test_that("'str_call_args_n_comp' works - no n_comp", {
+  prior <- Sp()
+  ans_obtained <- str_call_args_n_comp(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_n_comp' works - n_comp provided", {
+  prior <- Sp(n_comp=5)
+  ans_obtained <- str_call_args_n_comp(prior)
+  ans_expected <- "n_comp=5"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_n_seas' --------------------------------------------------------
+
+test_that("'str_call_args_n_seas' works", {
+  prior <- RW_Seas(n_seas=3)
+  ans_obtained <- str_call_args_n_seas(prior)
+  ans_expected <- "n_seas=3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_s_seas' ------------------------------------------------------
+
+test_that("'str_call_args_s_seas' works - s_seas = 1", {
+  prior <- RW_Seas(n=3)
+  ans_obtained <- str_call_args_s_seas(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_s_seas' works - s_seas not 1", {
+  prior <- RW_Seas(n=2,s_seas = 0.3)
+  ans_obtained <- str_call_args_s_seas(prior)
+  ans_expected <- "s_seas=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_scale' ------------------------------------------------------
+
+test_that("'str_call_args_scale' works - scale = 1", {
+  prior <- N()
+  ans_obtained <- str_call_args_scale(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_scale' works - scale not 1", {
+  prior <- N(s = 0.3)
+  ans_obtained <- str_call_args_scale(prior)
+  ans_expected <- "s=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_svd' --------------------------------------------------------
+
+test_that("'str_call_args_svd' works - total", {
+  prior <- SVD(HMD)
+  ans_obtained <- str_call_args_svd(prior)
+  ans_expected <- c("HMD", "", "")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_svd' works - indep", {
+  prior <- SVDS(HMD, n_comp = 3)
+  ans_obtained <- str_call_args_svd(prior)
+  ans_expected <- c("HMD", "n_comp=3", "")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_svd' works - joint", {
+  prior <- SVDS(HMD, joint = TRUE)
+  ans_obtained <- str_call_args_svd(prior)
+  ans_expected <- c("HMD", "", "joint=TRUE")
+  expect_identical(ans_obtained, ans_expected)
 })
 
 

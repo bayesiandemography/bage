@@ -1755,7 +1755,7 @@ levels_hyperrand.bage_prior_rw2seasvary <- function(prior, matrix_along_by, leve
 #' Make an 'along_by' Matrix for Free Parameters
 #'
 #' Make a matrix mapping position within 'effectfree'
-#' to in 'along' and 'by' variables
+#' to position in 'along' and 'by' variables
 #' 
 #' @param prior Object of class 'bage_prior'
 #' @param levels_sexgender Values taken by sex/gender
@@ -1768,63 +1768,83 @@ levels_hyperrand.bage_prior_rw2seasvary <- function(prior, matrix_along_by, leve
 #'
 #' @noRd
 make_matrix_along_by_free <- function(prior,
-                                      levels_effect,
+                                      levels_sexgender,
                                       matrix_along_by,
                                       matrix_agesex) {
   UseMethod("make_matrix_along_by_free")
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_along_by_free.bage_prior <- function(prior,
-                                      levels_effect,
-                                      matrix_along_by,
-                                      matrix_agesex) {
+                                                 levels_sexgender,
+                                                 matrix_along_by,
+                                                 matrix_agesex) {
   matrix_along_by
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_along_by_free.bage_prior_spline <- function(prior,
-                                                        levels_effect,
+                                                        levels_sexgender,
                                                         matrix_along_by,
                                                         matrix_agesex) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
-  rownames <- paste0("coef", seq_len(n_comp))
+  rownames <- paste0("comp", seq_len(n_comp))
   colnames <- colnames(matrix_along_by)
   matrix(seq.int(from = 0L, length.out = n_comp * n_by),
          nrow = n_comp,
          ncol = n_by,
-         dimnnames = list(rownames, colnames))
+         dimnames = list(rownames, colnames))
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_along_by_free.bage_prior_svd <- function(prior,
-                                                     levels_effect,
+                                                     levels_sexgender,
                                                      matrix_along_by,
                                                      matrix_agesex) {
-  joint <- prior$specific$joint
-  is_indep <- !is.null(joint) && !joint
-  n_comp <- prior$specific$n_comp
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  n_sexgender <- length(levels_sexgender)
-  if (indep) {
-    n_along_free <- n_sexgender * n_comp
-    rownames <- paste0(rep(levels_sexgender, each = n_comp),
-                       ".coef",
-                       seq_len(n_comp))
-  }
-  else {
-    n_along_free <- n_comp
-    rownames <- paste0("coef", seq_len(n_comp))
-  }
-  colnames <- colnames(matrix_agesex)
-  matrix(seq.int(from = 0L, length.out = n_along_free * n_by),
-         nrow = n_along_free,
-         ncol = n_by,
-         dimnnames = list(rownames, colnames))
+  make_matrix_along_by_free_svd(prior = prior,
+                                levels_sexgender = levels_sexgender,
+                                matrix_agesex = matrix_agesex)
 }
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_free.bage_prior_svd_ar <- function(prior,
+                                                        levels_sexgender,
+                                                        matrix_along_by,
+                                                        matrix_agesex) {
+  make_matrix_along_by_free_svd(prior = prior,
+                                levels_sexgender = levels_sexgender,
+                                matrix_agesex = matrix_agesex)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_free.bage_prior_svd_rw <- function(prior,
+                                                        levels_sexgender,
+                                                        matrix_along_by,
+                                                        matrix_agesex) {
+  make_matrix_along_by_free_svd(prior = prior,
+                                levels_sexgender = levels_sexgender,
+                                matrix_agesex = matrix_agesex)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_free.bage_prior_svd_rw2 <- function(prior,
+                                                        levels_sexgender,
+                                                        matrix_along_by,
+                                                        matrix_agesex) {
+  make_matrix_along_by_free_svd(prior = prior,
+                                levels_sexgender = levels_sexgender,
+                                matrix_agesex = matrix_agesex)
+}
+
+
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
@@ -2062,35 +2082,18 @@ make_offset_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
 
 ## 'print' --------------------------------------------------------------------
 
-print_prior <- function(prior, nms, slots) {
-  print_prior_header(prior)
-  for (i in seq_along(nms)) {
-    nm <- nms[[i]]
-    slot <- slots[[i]]
-    print_prior_slot(prior = prior, nm = nm, slot = slot)
-  }
-  invisible(prior)
-}
-
-get_print_prior_n_offset <- function() 8L
-
-print_prior_header <- function(prior)
-  cat(" ", str_call_prior(prior), "\n")
-
-print_prior_slot <- function(prior, nm, slot) {
-  n_offset <- get_print_prior_n_offset()
-  val_slot <- prior[["specific"]][[slot]]
-  if (is.null(val_slot))
-    val_slot <- "NULL"
-  cat(sprintf("% *s: %s\n", n_offset, nm, val_slot))
-}  
 
 ## HAS_TESTS
 #' @export
 print.bage_prior_ar <- function(x, ...) {
-  print_prior(x,
-              nms = c("min", "max", "s", "along"),
-              slots = c("min", "max", "scale", "along"))
+  nms <- c("min", "max", "s", "along")
+  slots <- c("min", "max", "scale", "along")
+  nm <- x$specific$nm
+  if (identical(nm, "AR")) {
+    nms <- c("n_coef", nms)
+    slots <- c("n_coef", slots)
+  }
+  print_prior(x, nms = nms, slots = slots)
 }
 
 ## HAS_TESTS
@@ -2110,9 +2113,14 @@ print.bage_prior_lin <- function(x, ...) {
 ## HAS_TESTS
 #' @export
 print.bage_prior_linar <- function(x, ...) {
-  print_prior(x,
-              nms = c("s", "sd", "min", "max", "along"),
-              slots = c("scale", "sd_slope", "min", "max", "along"))
+  nms <- c("s", "sd", "min", "max", "along")
+  slots <- c("scale", "sd_slope", "min", "max", "along")
+  nm <- x$specific$nm
+  if (identical(nm, "Lin_AR")) {
+    nms <- c("n_coef", nms)
+    slots <- c("n_coef", slots)
+  }
+  print_prior(x, nms = nms, slots = slots)
 }
 
 ## HAS_TESTS
@@ -2144,7 +2152,7 @@ print.bage_prior_rw <- function(x, ...) {
 print.bage_prior_rwseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
-  print_prior_slot(prior = x, nm = "n", slot = "n")
+  print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "along", slot = "along")
@@ -2172,7 +2180,7 @@ print.bage_prior_rw2 <- function(x, ...) {
 print.bage_prior_rw2seasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
-  print_prior_slot(prior = x, nm = "n", slot = "n")
+  print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "along", slot = "along")
@@ -2183,16 +2191,16 @@ print.bage_prior_rw2seasfix <- function(x, ...) {
 #' @export
 print.bage_prior_rw2seasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n", "s", "s_seas", "along"),
-              slots = c("n", "scale", "scale_seas", "along"))
+              nms = c("n_seas", "s", "s_seas", "along"),
+              slots = c("n_seas", "scale", "scale_seas", "along"))
 }
 
 ## HAS_TESTS
 #' @export
 print.bage_prior_spline <- function(x, ...) {
   print_prior(x,
-              nms = c("n", "s", "along"),
-              slots = c("n", "scale", "along"))
+              nms = c("n_comp", "s", "along"),
+              slots = c("n_comp", "scale", "along"))
 }
 
 ## HAS_TESTS
@@ -2201,10 +2209,59 @@ print.bage_prior_svd <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
-  print_prior_slot(prior = x, nm = "n", slot = "n")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
   joint <- x$specific$joint
   if (!is.null(joint))
     print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_ar <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  joint <- x$specific$joint
+  if (!is.null(joint))
+    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  nm <- x$specific$nm
+  is_ar <- identical(sub("^(.*)_(.*)$", "\\2", nm), "AR")
+  if (is_ar)
+    print_prior_slot(prior = x, nm = "n_coef", slot = "n_coef")
+  print_prior_slot(prior = x, nm = "min", slot = "min")
+  print_prior_slot(prior = x, nm = "max", slot = "max")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_rw <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  joint <- x$specific$joint
+  if (!is.null(joint))
+    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_svd_rw2 <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
+  print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
+  joint <- x$specific$joint
+  if (!is.null(joint))
+    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
   invisible(x)
 }
 
@@ -2351,34 +2408,10 @@ str_call_prior <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_ar <- function(prior) {
-  specific <- prior$specific
-  n_coef <- specific$n_coef
-  min <- specific$min
-  max <- specific$max
-  scale <- specific$scale
-  along <- prior$specific$along
-  nm <- specific$nm
-  if (nm == "AR") {
-    args <- character(3L)
-    args[[1L]] <- sprintf("n_coef=%d", n_coef)
-    if (scale != 1)
-      args[[2L]] <- sprintf("s=%s", scale)
-  if (!is.null(along))
-    args[[3L]] <- sprintf('along="%s"', along)
-  }
-  else if (nm == "AR1") {
-    args <- character(4L)
-    if (min != 0.8)
-      args[[1L]] <- sprintf("min=%s", min)
-    if (max != 0.98)
-      args[[2L]] <- sprintf("max=%s", max)
-    if (scale != 1)
-      args[[3L]] <- sprintf("s=%s", scale)
-  if (!is.null(along))
-    args[[4L]] <- sprintf('along="%s"', along)
-  }
-  else
-    cli::cli_abort("Internal error: Invalid value for 'nm'.") ## nocov
+  nm <- prior$specific$nm
+  args_ar <- str_call_args_ar(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_ar, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -2387,30 +2420,24 @@ str_call_prior.bage_prior_ar <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_known <- function(prior) {
-    values <- values_known(prior)
-    n <- length(values)
-    if (n == 1L)
-        inner <- sprintf("%s", values)
-    else if (n <= 5)
-        inner <- sprintf("c(%s)", paste(values, collapse = ","))
-    else
-        inner <- sprintf("c(%s,...,%s)", values[[1L]], values[[n]])
-    sprintf("Known(%s)", inner)
+  values <- values_known(prior)
+  n <- length(values)
+  if (n == 1L)
+    inner <- sprintf("%s", values)
+  else if (n <= 5)
+    inner <- sprintf("c(%s)", paste(values, collapse = ","))
+  else
+    inner <- sprintf("c(%s,...,%s)", values[[1L]], values[[n]])
+  sprintf("Known(%s)", inner)
 }
 
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_lin <- function(prior) {
-  scale <- prior$specific$scale
-  sd_slope <- prior$specific$sd_slope
-  along <- prior$specific$along
-  args <- character(3L)
-  if (scale != 1)
-    args[[1L]] <- sprintf("s=%s", scale)
-  if (sd_slope != 1)
-    args[[2L]] <- sprintf("sd=%s", sd_slope)
-  if (!is.null(along))
-    args[[3L]] <- sprintf('along="%s"', along)
+  args_scale <- str_call_args_scale(prior)
+  args_lin <- str_call_args_lin(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_scale, args_lin, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("Lin(%s)", args)
@@ -2419,40 +2446,11 @@ str_call_prior.bage_prior_lin <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_linar <- function(prior) {
-  specific <- prior$specific
-  n_coef <- specific$n_coef
-  min <- specific$min
-  max <- specific$max
-  scale <- specific$scale
-  sd_slope <- specific$sd_slope
-  along <- specific$along
-  nm <- specific$nm
-  if (nm == "Lin_AR") {
-    args <- character(4L)
-    if (n_coef != 2L)
-      args[[1L]] <- sprintf("n_coef=%d", n_coef)
-    if (scale != 1)
-      args[[2L]] <- sprintf("s=%s", scale)
-    if (sd_slope != 1)
-      args[[3L]] <- sprintf("sd=%s", sd_slope)
-    if (!is.null(along))
-      args[[4L]] <- sprintf('along="%s"', along)
-  }
-  else if (nm == "Lin_AR1") {
-    args <- character(5L)
-    if (min != 0.8)
-      args[[1L]] <- sprintf("min=%s", min)
-    if (max != 0.98)
-      args[[2L]] <- sprintf("max=%s", max)
-    if (scale != 1)
-      args[[3L]] <- sprintf("s=%s", scale)
-    if (sd_slope != 1)
-      args[[4L]] <- sprintf("sd=%s", sd_slope)
-    if (!is.null(along))
-      args[[5L]] <- sprintf('along="%s"', along)
-  }
-  else
-    cli::cli_abort("Internal error: Invalid value for 'nm'.") ## nocov
+  nm <- prior$specific$nm
+  args_ar <- str_call_args_ar(prior)
+  args_lin <- str_call_args_lin(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_ar, args_lin, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -2461,33 +2459,28 @@ str_call_prior.bage_prior_linar <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_norm <- function(prior) {
-    scale <- prior$specific$scale
-    if (isTRUE(all.equal(scale, 1)))
-        "N()"
-    else
-        sprintf("N(s=%s)", scale)
+  args <- str_call_args_scale(prior)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("N(%s)", args)
 }
 
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_normfixed <- function(prior) {
-    sd <- prior$specific$sd
-    if (isTRUE(all.equal(sd, 1)))
-        "NFix()"
-    else
-        sprintf("NFix(sd=%s)", sd)
+  sd <- prior$specific$sd
+  if (isTRUE(all.equal(sd, 1)))
+    "NFix()"
+  else
+    sprintf("NFix(sd=%s)", sd)
 }
 
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw <- function(prior) {
-  scale <- prior$specific$scale
-  along <- prior$specific$along
-  args <- character(2L)
-  if (scale != 1)
-    args[[1L]] <- sprintf("s=%s", scale)
-  if (!is.null(along))
-    args[[2L]] <- sprintf('along="%s"', along)
+  args_scale <- str_call_args_scale(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_scale, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW(%s)", args)
@@ -2496,16 +2489,11 @@ str_call_prior.bage_prior_rw <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rwseasfix <- function(prior) {
-  n_seas <- prior$specific$n_seas
-  scale <- prior$specific$scale
-  along <- prior$specific$along
-  args <- character(4L)
-  args[[1L]] <- sprintf("n_seas=%s", n_seas)
-  if (scale != 1)
-    args[[2L]] <- sprintf("s=%s", scale)
-  args[[3L]] <- "s_seas=0"
-  if (!is.null(along))
-    args[[4L]] <- sprintf('along="%s"', along)
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_s_seas <- "s_seas=0"
+  args_along <- str_call_args_along(prior)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -2514,18 +2502,11 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rwseasvary <- function(prior) {
-  n_seas <- prior$specific$n_seas
-  scale <- prior$specific$scale
-  scale_seas <- prior$specific$scale_seas
-  along <- prior$specific$along
-  args <- character(4L)
-  args[[1L]] <- sprintf("n_seas=%s", n_seas)
-  if (scale != 1)
-    args[[2L]] <- sprintf("s=%s", scale)
-  if (scale_seas != 1)
-    args[[3L]] <- sprintf("s_seas=%s", scale_seas)
-  if (!is.null(along))
-    args[[4L]] <- sprintf('along="%s"', along)
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -2534,13 +2515,9 @@ str_call_prior.bage_prior_rwseasvary <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2 <- function(prior) {
-  scale <- prior$specific$scale
-  along <- prior$specific$along
-  args <- character(2L)
-  if (scale != 1)
-    args[[1L]] <- sprintf("s=%s", scale)
-  if (!is.null(along))
-    args[[2L]] <- sprintf('along="%s"', along)
+  args_scale <- str_call_args_scale(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_scale, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2(%s)", args)
@@ -2549,16 +2526,11 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2seasfix <- function(prior) {
-  n_seas <- prior$specific$n_seas
-  scale <- prior$specific$scale
-  along <- prior$specific$along
-  args <- character(4L)
-  args[[1L]] <- sprintf("n_seas=%s", n_seas)
-  if (scale != 1)
-    args[[2L]] <- sprintf("s=%s", scale)
-  args[[3L]] <- "s_seas=0"
-  if (!is.null(along))
-    args[[4L]] <- sprintf('along="%s"', along)
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_s_seas <- "s_seas=0"
+  args_along <- str_call_args_along(prior)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2_Seas(%s)", args)
@@ -2567,18 +2539,11 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_rw2seasvary <- function(prior) {
-  n_seas <- prior$specific$n_seas
-  scale <- prior$specific$scale
-  scale_seas <- prior$specific$scale_seas
-  along <- prior$specific$along
-  args <- character(4L)
-  args[[1L]] <- sprintf("n_seas=%s", n_seas)
-  if (scale != 1)
-    args[[2L]] <- sprintf("s=%s", scale)
-  if (scale_seas != 1)
-    args[[3L]] <- sprintf("s_seas=%s", scale_seas)
-  if (!is.null(along))
-    args[[4L]] <- sprintf('along="%s"', along)
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2_Seas(%s)", args)
@@ -2587,16 +2552,10 @@ str_call_prior.bage_prior_rw2seasvary <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_spline <- function(prior) {
-  n_comp <- prior$specific$n_comp
-  scale <- prior$specific$scale
-  along <- prior$specific$along
-  args <- character(3L)
-  if (!is.null(n_comp))
-    args[[1L]] <- sprintf("n_comp=%s", n_comp)
-  if (scale != 1)
-    args[[2L]] <- sprintf("s=%s", scale)
-  if (!is.null(along))
-    args[[3L]] <- sprintf('along="%s"', along)
+  args_n_comp <- str_call_args_n_comp(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_n_comp, args_scale, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("Sp(%s)", args)
@@ -2605,23 +2564,56 @@ str_call_prior.bage_prior_spline <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_svd <- function(prior) {
-  ssvd <- prior$specific$ssvd
-  nm_ssvd <- prior$specific$nm_ssvd
-  n_comp <- prior$specific$n_comp
   joint <- prior$specific$joint
-  args <- character(3L)
-  fun <- if (is.null(joint)) "SVD" else "SVDS"
-  args[[1L]] <- nm_ssvd
-  n_comp_ssvd <- get_n_comp(ssvd)
-  n_default <- ceiling(n_comp_ssvd / 2)
-  if (n_comp != n_default)
-    args[[2L]] <- sprintf("n_comp=%s", n_comp)
-  if (!is.null(joint) && joint)
-    args[[3L]] <- "joint=TRUE"
+  nm <- if (is.null(joint)) "SVD" else "SVDS"
+  args <- str_call_args_svd(prior)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("%s(%s)", fun, args)
+  sprintf("%s(%s)", nm, args)
 }
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd_ar <- function(prior) {
+  nm <- prior$specific$nm
+  args_svd <- str_call_args_svd(prior)
+  args_ar <- str_call_args_ar(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_svd, args_ar, args_along)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("%s(%s)", nm, args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd_rw <- function(prior) {
+  joint <- prior$specific$joint
+  args_svd <- str_call_args_svd(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_svd, args_scale, args_along)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  nm <- if (is.null(joint)) "SVD_RW" else "SVDS_RW"
+  sprintf("%s(%s)", nm, args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_svd_rw2 <- function(prior) {
+  joint <- prior$specific$joint
+  args_svd <- str_call_args_svd(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_along <- str_call_args_along(prior)
+  args <- c(args_svd, args_scale, args_along)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  nm <- if (is.null(joint)) "SVD_RW2" else "SVDS_RW2"
+  sprintf("%s(%s)", nm, args)
+}
+
+
 
 
 ## 'str_nm_prior' -----------------------------------------------------------

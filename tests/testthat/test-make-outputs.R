@@ -264,6 +264,7 @@ test_that("'make_draws_disp' works", {
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
+
 ## 'make_draws_linpred' ---------------------------------------------------
 
 test_that("'make_draws_linpred' works", {
@@ -401,7 +402,7 @@ test_that("'make_draws_post' works with valid inputs - no R_prec", {
   terms_hyperrand <- make_terms_hyperrand(mod)
   const <- make_const(mod)
   terms_const <- make_terms_const(mod)
-  matrices_along_by <- choose_matrices_along_by(mod)
+  matrices_along_by_free <- make_matrices_along_by_free(mod)
   mean_disp <- mod$mean_disp
   has_disp <- mean_disp > 0
   data <- list(nm_distn = nm_distn,
@@ -422,7 +423,7 @@ test_that("'make_draws_post' works with valid inputs - no R_prec", {
                terms_hyperrand = terms_hyperrand,
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
-               matrices_along_by = matrices_along_by,
+               matrices_along_by_free = matrices_along_by_free,
                mean_disp = mean_disp)
   ## parameters
   effectfree <- make_effectfree(mod)
@@ -469,6 +470,31 @@ test_that("'make_draws_post' works with valid inputs - no R_prec", {
 })
 
 
+## 'make_draws_svd' ---------------------------------------------------
+
+test_that("'make_draws_svd' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  est <- mod$est
+  is_fixed <- mod$is_fixed
+  draws <- make_draws_post(mod)
+  ans_obtained <- make_draws_svd(mod = mod, draws_post = draws)
+  ans_expected <- draws[24:33,]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 
 ## 'make_stored_draws' --------------------------------------------------------
 
@@ -487,6 +513,7 @@ test_that("'make_stored_draws' works with valid inputs", {
     ans <- make_stored_draws(mod)
     expect_identical(ncol(ans$draws_linpred), 10L)
     expect_identical(ncol(ans$draws_hyper), 10L)
+    expect_identical(nrow(ans$draws_svd), 0L)
     expect_identical(length(ans$draws_disp), 10L)
 })
 
