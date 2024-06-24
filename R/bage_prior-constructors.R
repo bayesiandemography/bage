@@ -34,7 +34,7 @@
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{v} denotes position within the "along" variable of the interaction;
 #' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
-#' - \eqn{n} is \text{n_coef}.
+#' - \eqn{n} is `n_coef`.
 #'
 #' Internally, `AR()` derives a value for \eqn{\omega} that
 #' gives every element of \eqn{\beta} a marginal
@@ -332,7 +332,7 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{u} denotes position within the "along" variable of the interaction;
 #' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
-#' - \eqn{n} is \text{n_coef};
+#' - \eqn{n} is `n_coef`;
 #' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
 #' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 #'
@@ -1631,6 +1631,9 @@ SVD_RW2 <- function(ssvd, n_comp = NULL, s = 1) {
 #' @param n_comp Number of components from scaled SVD
 #' to use in modelling. The default is half
 #' the number of components of `ssvd`.
+#' @param joint Whether to use combined or
+#' separate SVDs. Default is `FALSE`.
+#' See below for details.
 #' @param n_coef Number of AR coefficients in `SVD_RW()`.
 #' @param s Scale for standard deviations terms.
 #' @param min,max Minimum and maximum values

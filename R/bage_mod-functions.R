@@ -107,6 +107,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
       mod$draws_linpred <- mod$draws_linpred[, s, drop = FALSE] 
       mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
       mod$draws_hyperrand <- mod$draws_hyperrand[, s, drop = FALSE]
+      mod$draws_svd <- mod$draws_svd[, s, drop = FALSE]
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
     }
@@ -472,6 +473,7 @@ unfit <- function(mod) {
     mod["draws_linpred"] <- list(NULL)
     mod["draws_hyper"] <- list(NULL)
     mod["draws_hyperrand"] <- list(NULL)
+    mod["draws_svd"] <- list(NULL)
     mod["draws_disp"] <- list(NULL)
     mod
 }

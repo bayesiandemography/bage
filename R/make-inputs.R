@@ -124,7 +124,7 @@ eval_offset_formula <- function(vname_offset, data) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Get Number of Components of Spline Prior
 #'
 #' If user did not supply number, derive one
@@ -146,6 +146,15 @@ get_n_comp_spline <- function(prior, n_along) {
   }
   n_comp
 }
+
+
+## HAS_TESTS
+#' Get Offset Used When Printing Priors
+#'
+#' @returns An integer
+#'
+#' @noRd
+get_print_prior_n_offset <- function() 8L
 
 
 ## HAS_TESTS
@@ -934,42 +943,35 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
   ans
 }
 
-
+## HAS_TESTS
+#' Make Matrices Mapping Free Parameters to Along and By Dimensions
+#'
+#' Similar to 'matrix_along_by', but only to free parameters
+#' (not to whole effect.) Differs in case of spline and SVD priors.
+#' 
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list of matrices
+#'
 #' @noRd
-make_matrices_along_by_free <- function(mod, labels_forecast) {
-  formula <- mod$formula
-  data <- mod$data
-  var_age <- mod$var_age
+make_matrices_along_by_free <- function(mod) {
+  priors <- mod$priors
+  matrices_along_by <- choose_matrices_along_by(mod)
+  matrices_agesex <- make_matrices_agesex(mod)
   var_sexgender <- mod$var_sexgender
-  var_time <- mod$var_time
-  ans <- list("(Intercept)" = matrix(0L, nrow = 1L))
-  factors <- attr(stats::terms(formula), "factors")
-  if (length(factors) > 1L) {
-    factors <- factors[-1L, , drop = FALSE]
-    factors <- factors > 0L
-    nms_vars <- rownames(factors)
-    nms_terms <- colnames(factors)
-    ans_terms <- vector(mode = "list", length = length(nms_terms))
-    for (i_term in seq_along(nms_terms)) {
-      nms_vars_term <- nms_vars[factors[, i_term]]
-      data_term <- data[nms_vars_term]
-      data_term <- lapply(data_term, to_factor)
-      dimnames <- lapply(data_term, levels)
-      ans_terms[[i_term]] <- make_matrix_along_by_free(prior = prior,
-                                                       matrix_along_by = matrix_along_by,
-                                                       dim = dim,
-                                                       dimnames = dimnames,
-                                                       var_time = var_time,
-                                                       var_age = var_age,
-                                                       var_sexgender = var_sexgender)
-    }
-    names(ans_terms) <- nms_terms
-    ans <- c(ans, ans_terms)
-  }
+  if (is.null(var_sexgender))
+    levels_sexgender <- NULL
+  else
+    levels_sexgender <- levels(to_factor(mod$data[[var_sexgender]]))
+  ans <- .mapply(make_matrix_along_by_free,
+                 dots = list(prior = priors,
+                             matrix_along_by = matrices_along_by,
+                             matrix_agesex = matrices_agesex),
+                 MoreArgs = list(levels_sexgender = levels_sexgender))
+  names(ans) <- names(priors)
   ans
 }
 
-  
 ## HAS_TESTS
 #' Make list of matrices mapping terms to outcome vector
 #'
@@ -1097,6 +1099,43 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
   ans
 }
 
+## HAS_TESTS
+#' Make an 'along_by' Matrix for Free Parameters
+#' for a Prior with an SVD Component
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param levels_sexgender Values taken by sex/gender
+#' variable (or NULL if no sex/gender variable in data)
+#' @param matrix_agesex Matrix mapping term
+#' to age and sex dimensions.
+#'
+#' @returns A matrix.
+#'
+#' @noRd
+make_matrix_along_by_free_svd <- function(prior,
+                                          levels_sexgender,
+                                          matrix_agesex) {
+  joint <- prior$specific$joint
+  is_indep <- !is.null(joint) && !joint
+  n_comp <- prior$specific$n_comp
+  n_by <- ncol(matrix_agesex) ## excludes sex, if present
+  n_sexgender <- length(levels_sexgender)
+  if (is_indep) {
+    n_along_free <- n_sexgender * n_comp
+    rownames <- paste0(rep(levels_sexgender, each = n_comp),
+                       ".comp",
+                       seq_len(n_comp))
+  }
+  else {
+    n_along_free <- n_comp
+    rownames <- paste0("comp", seq_len(n_comp))
+  }
+  colnames <- colnames(matrix_agesex)
+  matrix(seq.int(from = 0L, length.out = n_along_free * n_by),
+         nrow = n_along_free,
+         ncol = n_by,
+         dimnames = list(rownames, colnames))
+}
 
 ## HAS_TESTS
 #' Make Matrix Mapping Effectfree to Effect for Priors with SVD
@@ -1621,6 +1660,219 @@ n_comp_svd <- function(n_comp, nm_n_comp, ssvd) {
                        i = "Number of components: {.val {n_comp_ssvd}}."))
   }
   as.integer(n_comp)
+}
+
+
+## HAS_TESTS
+#' Standard Printing of Prior
+#'
+#' @param prior Object of class 'bage_mod'
+#' @param nms User-visible names of attributes printed
+#' @param slots Internal names of attributes printed
+#'
+#' @returns 'prior', invisibly
+#'
+#' @noRd
+print_prior <- function(prior, nms, slots) {
+  print_prior_header(prior)
+  for (i in seq_along(nms)) {
+    nm <- nms[[i]]
+    slot <- slots[[i]]
+    print_prior_slot(prior = prior, nm = nm, slot = slot)
+  }
+  invisible(prior)
+}
+
+## HAS_TESTS
+#' Print the First Line of a Description of a Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns NULL
+#'
+#' @noRd
+print_prior_header <- function(prior)
+  cat(" ", str_call_prior(prior), "\n")
+
+## HAS_TESTS
+#' Print Single Slot from Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm User-visible name for slot
+#' @param slot Internal name for slot
+#'
+#' @returns NULL
+#'
+#' @noRd
+print_prior_slot <- function(prior, nm, slot) {
+  n_offset <- get_print_prior_n_offset()
+  val_slot <- prior[["specific"]][[slot]]
+  if (is.null(val_slot))
+    val_slot <- "NULL"
+  cat(sprintf("% *s: %s\n", n_offset, nm, val_slot))
+}  
+
+## HAS_TESTS
+#' Compile Args for 'along' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'along' components
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_along <- function(prior) {
+  along <- prior$specific$along
+  if  (is.null(along))
+    ""
+  else
+    sprintf('along="%s"', along)
+}
+
+## HAS_TESTS
+#' Compile Args for AR Part of Prior for 'str_call_prior'
+#'
+#' Does not include 'along'.
+#'
+#' @param prior Prior with AR components
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_ar <- function(prior) {
+  specific <- prior$specific
+  n_coef <- specific$n_coef
+  min <- specific$min
+  max <- specific$max
+  scale <- specific$scale
+  along <- prior$specific$along
+  nm <- specific$nm
+  is_ar1 <- grepl("AR1", nm)
+  if (is_ar1) {
+    ans <- character(3L)
+    if (min != 0.8)
+      ans[[1L]] <- sprintf("min=%s", min)
+    if (max != 0.98)
+      ans[[2L]] <- sprintf("max=%s", max)
+    if (scale != 1)
+      ans[[3L]] <- sprintf("s=%s", scale)
+  }
+  else {
+    ans <- character(2L)
+    if (n_coef != 2L)
+      ans[[1L]] <- sprintf("n_coef=%d", n_coef)
+    if (scale != 1)
+      ans[[2L]] <- sprintf("s=%s", scale)
+  }
+  ans
+}
+
+## HAS_TESTS
+#' Compile Args for Lin Part of Prior for 'str_call_prior'
+#'
+#' Does not include 'along'.
+#'
+#' @param prior Prior with AR components
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_lin <- function(prior) {
+  sd_slope <- prior$specific$sd_slope
+  if (identical(sd_slope, 1))
+    ""
+  else
+    sprintf("sd=%s", sd_slope)
+}
+
+## HAS_TESTS
+#' Compile Args for 'n_comp' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'n_comp' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_n_comp <- function(prior) {
+  n_comp <- prior$specific$n_comp
+  if (is.null(n_comp))
+    ""
+  else
+    sprintf("n_comp=%s", n_comp)
+}
+
+
+## HAS_TESTS
+#' Compile Args for 'n_seas' Part of Prior for 'str_call_prior'
+#'
+#' Does not include 'along'.
+#'
+#' @param prior Prior with seasonal component
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_n_seas <- function(prior) {
+  n_seas <- prior$specific$n_seas
+  sprintf("n_seas=%s", n_seas)
+}
+
+## HAS_TESTS
+#' Compile Args for 's_seas' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 's_seas' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_s_seas <- function(prior) {
+  scale_seas <- prior$specific$scale_seas
+  if (identical(scale_seas, 1))
+    ""
+  else
+    sprintf("s_seas=%s", scale_seas)
+}
+
+## HAS_TESTS
+#' Compile Args for 'scale' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'scale' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_scale <- function(prior) {
+  scale <- prior$specific$scale
+  if (identical(scale, 1))
+    ""
+  else
+    sprintf("s=%s", scale)
+}
+
+## HAS_TESTS
+#' Compile Args for SVD Part of Prior for 'str_call_prior'
+#'
+#' Does not include 'along'.
+#'
+#' @param prior Prior with SVD components
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_svd <- function(prior) {
+  specific <- prior$specific
+  ssvd <- specific$ssvd
+  nm_ssvd <- specific$nm_ssvd
+  n_comp <- specific$n_comp
+  joint <- specific$joint
+  ans <- character(3L)
+  ans[[1L]] <- nm_ssvd
+  n_comp_ssvd <- get_n_comp(ssvd)
+  n_default <- ceiling(n_comp_ssvd / 2)
+  if (n_comp != n_default)
+    ans[[2L]] <- sprintf("n_comp=%s", n_comp)
+  if (!is.null(joint) && joint)
+    ans[[3L]] <- "joint=TRUE"
+  ans
 }
 
 

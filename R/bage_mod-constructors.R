@@ -479,6 +479,7 @@ mod_helper <- function(formula, data, n_draw) {
        n_draw = n_draw,
        draws_linpred = NULL,
        draws_hyper = NULL,
+       draws_svd = NULL,
        draws_disp = NULL,
        store_draws = TRUE,
        seed_stored_draws = seed_stored_draws,

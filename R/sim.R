@@ -42,7 +42,20 @@ aggregate_report_comp <- function(report_comp) {
 
 
 ## HAS_TESTS
-#' @export
+#' Generate AR Values to Use in a Prior with an AR Component
+#'
+#' @param coef Matrix, each column of which is a vector
+#' of autocorrelation coefficients
+#' @param sd Vector, each element of which is a
+#' marginal standard deviation
+#' @param matrix_along_by Matrix mapping position in along and
+#' by dimensions to effect
+#' @param n_sim Number of simulation draws
+#' @param levels_effect Labels for effect
+#'
+#' @returns A matrix
+#'
+#' @noRd
 draw_vals_ar <- function(coef,
                          sd,
                          matrix_along_by,
@@ -597,7 +610,7 @@ draw_vals_svd_time <- function(svd_mb, alpha_agesex, matrix_agesex, n_sim, level
                 dimnames = list(levels_effect, seq_len(n_sim)))
   for (i_by in seq_len(n_by)) {
     i_agesex <- matrix_agesex[, i_by] + 1L
-    i_svd <- head(i_agesex, n = ncol_m)
+    i_svd <- utils::head(i_agesex, n = ncol_m)
     alpha_svd <- alpha_agesex[i_svd, , drop = FALSE] ## only use first 'ncol_m' age-sex groups
     ans[i_agesex, ] <- Matrix::as.matrix(m %*% alpha_svd + b)
   }

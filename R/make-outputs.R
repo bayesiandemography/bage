@@ -397,6 +397,25 @@ make_draws_post <- function(mod) {
 
 
 ## HAS_TESTS
+#' Extract Posterior Draws for Free Parameters used in SVD Priors
+#'
+#' @param mod Fitted object of class 'bage_mod'
+#' @param mod draws_post Matrix with posterior draws
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_draws_svd <- function(mod, draws_post) {
+  priors <- mod$priors
+  is_svd <- vapply(priors, is_svd, FALSE)
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  is_effectfree_svd <- rep(is_svd, times = lengths_effectfree)
+  i_effectfree_svd <- which(is_effectfree_svd)
+  draws_post[i_effectfree_svd, , drop = FALSE]
+}
+
+
+## HAS_TESTS
 #' Make logical vector indicating whether
 #' an element of 'est' is fixed
 #'
@@ -625,16 +644,12 @@ make_stored_draws <- function(mod) {
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_stored_draws) ## set pre-determined seed
   draws_post <- make_draws_post(mod)
-  mod$draws_linpred <- make_draws_linpred(mod = mod,
-                                          draws_post = draws_post)
-  mod$draws_hyper <- make_draws_hyper(mod = mod,
-                                      draws_post = draws_post)
-  mod$draws_hyperrand <- make_draws_hyperrand(mod = mod,
-                                              draws_post = draws_post)
-  if (has_disp(mod)) {
-    mod$draws_disp <- make_draws_disp(mod = mod,
-                                      draws_post = draws_post)
-  }
+  mod$draws_linpred <- make_draws_linpred(mod = mod, draws_post = draws_post)
+  mod$draws_hyper <- make_draws_hyper(mod = mod, draws_post = draws_post)
+  mod$draws_hyperrand <- make_draws_hyperrand(mod = mod, draws_post = draws_post)
+  mod$draws_svd <- make_draws_svd(mod = mod, draws_post = draws_post)
+  if (has_disp(mod))
+    mod$draws_disp <- make_draws_disp(mod = mod, draws_post = draws_post)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   mod
 }
