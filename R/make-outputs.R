@@ -622,7 +622,7 @@ make_levels_replicate <- function(n, n_row_data) {
 make_levels_spline <- function(mod, unlist) {
   priors <- mod$priors
   matrices_along_by_free <- make_matrices_along_by_free(mod)
-  ans <- vector(mod = "list", length = length(priors))
+  ans <- vector(mode = "list", length = length(priors))
   for (i in seq_along(priors)) {
     prior <- priors[[i]]
     if (is_spline(prior)) {
@@ -1034,6 +1034,8 @@ make_term_components <- function(mod) {
   effect <- as.character(effect)
   hyper <- as.character(hyper)
   hyperrand <- as.character(hyperrand)
+  spline <- as.character(spline)
+  svd <- as.character(svd)
   ans <- c(effect, hyper, hyperrand, spline, svd)
   if (has_disp(mod))
     ans <- c(ans, "disp")
