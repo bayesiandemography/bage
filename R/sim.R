@@ -50,7 +50,6 @@ aggregate_report_comp <- function(report_comp) {
 #' marginal standard deviation
 #' @param matrix_along_by Matrix mapping position in along and
 #' by dimensions to effect
-#' @param n_sim Number of simulation draws
 #' @param levels_effect Labels for effect
 #'
 #' @returns A matrix
@@ -59,10 +58,10 @@ aggregate_report_comp <- function(report_comp) {
 draw_vals_ar <- function(coef,
                          sd,
                          matrix_along_by,
-                         n_sim,
                          levels_effect) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
+  n_sim <- ncol(coef)
   s <- rep(seq_len(n_sim), each = n_by)
   coef <- coef[, s, drop = FALSE]
   sd <- sd[s]
@@ -70,7 +69,7 @@ draw_vals_ar <- function(coef,
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(levels_effect, seq_len(n_sim))
+  dimnames(ans) <- list(levels_effect, NULL)
   ans
 }
 
@@ -182,13 +181,13 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws
-#' @param center Whether to center effects (other than
-#' the first effect with a SVD prior)
+#' @param standardize Whether to standardize
+#' estimates
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_components_unfitted <- function(mod, n_sim, center) {
+draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
   priors <- mod$priors
   nms_priors <- names(priors)
   has_disp <- has_disp(mod)
@@ -200,27 +199,37 @@ draw_vals_components_unfitted <- function(mod, n_sim, center) {
   vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,
                                             vals_hyper = vals_hyper,
                                             n_sim = n_sim)
+  vals_spline <- draw_vals_spline_mod(mod = mod,
+                                      vals_hyper = vals_hyper,
+                                      n_sim = n_sim)
+  vals_svd <- draw_vals_svd_mod(mod = mod,
+                                vals_hyper = vals_hyper,
+                                n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod = mod,
                                       vals_hyper = vals_hyper,
                                       vals_hyperrand = vals_hyperrand,
+                                      vals_spline = vals_spline,
+                                      vals_svd = vals_svd,
                                       n_sim = n_sim)
-  vals_effect <- standardize_draws_effect(mod = mod,
-                                          vals_effect = vals_effect,
-                                          center = center)  
-  vals_hyper <- .mapply(vals_hyper_to_dataframe,
-                        dots = list(prior = priors,
-                                    nm_prior = nms_priors,
-                                    vals_hyper = vals_hyper),
-                        MoreArgs = list(n_sim = n_sim))
-  vals_hyper <- vctrs::vec_rbind(!!!vals_hyper)
-  vals_hyperrand <- .mapply(vals_hyperrand_to_dataframe,
-                            dots = list(prior = priors,
-                                        nm_prior = nms_priors,
-                                        vals_hyperrand = vals_hyperrand),
-                            MoreArgs = list(n_sim = n_sim))
-  vals_hyperrand <- vctrs::vec_rbind(!!!vals_hyperrand)
+  vals_hyper <- vals_hyper_to_dataframe(vals_hyper = vals_hyper,
+                                        n_sim = n_sim)
+  vals_hyperrand <- vals_hyperrand_to_dataframe(vals_hyperrand = vals_hyperrand,
+                                                n_sim = n_sim)
+  vals_spline <- vals_spline_to_dataframe(vals_spline = vals_spline,
+                                          n_sim = n_sim)
+  vals_svd <- vals_svd_to_dataframe(vals_svd = vals_svd,
+                                    n_sim = n_sim)
   vals_effect <- vals_effect_to_dataframe(vals_effect)
-  ans <- vctrs::vec_rbind(vals_hyper, vals_hyperrand, vals_effect)
+  if (standardize) {
+    vals_spline$.fitted <- standardize_spline(mod = mod, spline = vals_spline$.fitted)
+    vals_svd$.fitted <- standardize_svd(mod = mod, svd = vals_svd$.fitted)
+    vals_effect$.fitted <- standardize_effects(mod = mod, effects = vals_effect$.fitted)
+  }
+  ans <- vctrs::vec_rbind(vals_hyper,
+                          vals_hyperrand,
+                          vals_effect,
+                          vals_spline,
+                          vals_svd)
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,
                                 n_sim = n_sim)
@@ -263,12 +272,19 @@ draw_vals_disp <- function(mod, n_sim) {
 #' @param mod Object of class "bage_mod"
 #' @param vals_hyper List of lists.
 #' @param vals_hyperrand List of lists.
+#' @param vals_spline List of lists.
+#' @param vals_svd List of lists.
 #' @param n_sim Number of draws
 #'
 #' @returns A named list of matrices.
 #'
 #' @noRd
-draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
+draw_vals_effect_mod <- function(mod,
+                                 vals_hyper,
+                                 vals_hyperrand,
+                                 vals_spline,
+                                 vals_svd,
+                                 n_sim) {
   priors <- mod$priors
   levels_effect <- mod$levels_effect
   terms_effect <- mod$terms_effect
@@ -282,6 +298,8 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
                              vals_hyperrand = vals_hyperrand,
+                             vals_spline = vals_spline,
+                             vals_svd = vals_svd,
                              levels_effect = levels_effect,
                              agesex = agesex,
                              matrix_along_by = matrices_along_by,
@@ -289,12 +307,66 @@ draw_vals_effect_mod <- function(mod, vals_hyper, vals_hyperrand, n_sim) {
                  MoreArgs = list(levels_age = levels_age,
                                  levels_sexgender = levels_sexgender,
                                  n_sim = n_sim))
-  ## has_intercept <- identical(nrow(ans[[1L]]), 1L)
-  ## if (has_intercept)
-  ##   ans[[1L]][] <- 0
   names(ans) <- names(priors)
   ans
 }
+
+## HAS_TESTS
+#' Draw Values for Main Effect or Interaction with
+#' a SVD-Time Series Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param vals_svd Matrix with posterior draws
+#' for SVD coefficients
+#' @param levels_age Character vector of age labels
+#' @param levels_sexgender Character vector of sex/gender
+#' labels, or NULL
+#' @param agesex String. Type of term.
+#' @param matrix_agesex Matrix mapping effect in
+#' original format to one with age-sex dimension(s) first
+#'
+#' @returns A matrix
+#'
+#' @noRd
+draw_vals_effect_svd <- function(prior,
+                                 vals_svd,
+                                 levels_age,
+                                 levels_sexgender,
+                                 agesex,
+                                 matrix_agesex,
+                                 levels_effect) {
+  ssvd <- prior$specific$ssvd
+  joint <- prior$specific$joint
+  n_comp <- prior$specific$n_comp
+  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = TRUE,
+                                n_comp = n_comp)
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = FALSE,
+                                n_comp = n_comp)
+  I <- Matrix::.sparseDiagonal(n_by)
+  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
+                               j = rep.int(1L, times = n_by),
+                               x = rep.int(1L, times = n_by))
+  agesex_to_standard <- make_index_matrix(matrix_agesex)
+  m_all_by <- Matrix::kronecker(I, m)
+  b_all_by <- Matrix::kronecker(ones, b)
+  b_all_by <- Matrix::drop(b_all_by)
+  ans <- m_all_by %*% vals_svd + b_all_by
+  ans <- agesex_to_standard %*% ans
+  ans <- Matrix::as.matrix(ans)
+  dimnames(ans) <- list(levels_effect, NULL)
+  ans
+}  
 
 ## HAS_TESTS
 #' Draw Values for Ordinary Hyper-Parameters
@@ -364,7 +436,7 @@ draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
+  dimnames(ans) <- list(labels, NULL)
   ans
 }
 
@@ -401,7 +473,7 @@ draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
+  dimnames(ans) <- list(labels, NULL)
   ans
 }
 
@@ -413,12 +485,12 @@ draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
 #'
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
+#' @param levels_effect Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw <- function(sd, matrix_along_by, labels) {
+draw_vals_rw <- function(sd, matrix_along_by, levels_effect) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
@@ -432,7 +504,7 @@ draw_vals_rw <- function(sd, matrix_along_by, labels) {
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
+  dimnames(ans) <- list(levels_effect, NULL)
   ans
 }
 
@@ -444,12 +516,12 @@ draw_vals_rw <- function(sd, matrix_along_by, labels) {
 #'
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
-#' @param labels Names of elements
+#' @param levels_effect Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw2 <- function(sd, matrix_along_by, labels) {
+draw_vals_rw2 <- function(sd, matrix_along_by, levels_effect) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
@@ -464,7 +536,7 @@ draw_vals_rw2 <- function(sd, matrix_along_by, labels) {
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
-  dimnames(ans) <- list(labels, seq_len(n_sim))
+  dimnames(ans) <- list(levels_effect, NULL)
   ans
 }
 
@@ -580,43 +652,54 @@ draw_vals_sd_seas <- function(prior, n_sim) {
 
 
 ## HAS_TESTS
-#' Given Value for SVD and Alpha, Draw Values for Effect
+#' Draw Values for Spline Coefficients
 #'
-#' Do main calculations for SVD_AR, SVD_AR1, SVD_RW, SVD_RW2,
-#' SVDS_AR, SVDS_AR1, SVDS_RW, SVDS_RW2 priors.
-#' Uses the fact that age and sex variables are
-#' always 'by' variables in these priors, implying that
-#' time series are exchangeable across ages and sexes.
+#' @param mod Object of class "bage_mod"
+#' @param vals_hyper List of lists.
+#' @param n_sim Number of draws
 #'
-#' @param svd_mb Matrix and offset from scaled SVD.
-#' Output from function 'get_svd_mb'.
-#' @param alpha_agesex Values for time series, calculated
-#' for all values of age and sex.
-#' @param matrix_agesex Mapping between age sex and each element
-#' of term. A matrix.
-#' @param n_sim Number of simulation draws.
-#' @param levels_effect Labels for term. A character vector.
-#'
-#' @returns A matrix
+#' @returns A named list
 #'
 #' @noRd
-draw_vals_svd_time <- function(svd_mb, alpha_agesex, matrix_agesex, n_sim, levels_effect) {
-  m <- svd_mb$m
-  b <- svd_mb$b
-  ncol_m <- ncol(m)
-  n_by <- ncol(matrix_agesex) ## excludes sex, if present
-  ans <- matrix(nrow = nrow(alpha_agesex),
-                ncol = ncol(alpha_agesex),
-                dimnames = list(levels_effect, seq_len(n_sim)))
-  for (i_by in seq_len(n_by)) {
-    i_agesex <- matrix_agesex[, i_by] + 1L
-    i_svd <- utils::head(i_agesex, n = ncol_m)
-    alpha_svd <- alpha_agesex[i_svd, , drop = FALSE] ## only use first 'ncol_m' age-sex groups
-    ans[i_agesex, ] <- Matrix::as.matrix(m %*% alpha_svd + b)
-  }
+draw_vals_spline_mod <- function(mod, vals_hyper, n_sim) {
+  priors <- mod$priors
+  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  levels_effectfree <- make_levels_spline(mod, unlist = FALSE)
+  ans <- .mapply(draw_vals_spline,
+                 dots = list(prior = priors,
+                             vals_hyper = vals_hyper,
+                             matrix_along_by_free = matrices_along_by_free,
+                             levels_effectfree = levels_effectfree),
+                 MoreArgs = list(n_sim = n_sim))
+  names(ans) <- names(priors)
   ans
 }
-  
+
+
+## HAS_TESTS
+#' Draw Values for SVD Coefficients
+#'
+#' @param mod Object of class "bage_mod"
+#' @param vals_hyper List of lists.
+#' @param n_sim Number of draws
+#'
+#' @returns A named list
+#'
+#' @noRd
+draw_vals_svd_mod <- function(mod, vals_hyper, n_sim) {
+  priors <- mod$priors
+  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  levels_effectfree <- make_levels_svd(mod, unlist = FALSE)
+  ans <- .mapply(draw_vals_svd,
+                 dots = list(prior = priors,
+                             vals_hyper = vals_hyper,
+                             matrix_along_by_free = matrices_along_by_free,
+                             levels_effectfree = levels_effectfree),
+                 MoreArgs = list(n_sim = n_sim))
+  names(ans) <- names(priors)
+  ans
+}
+
 
 ## HAS_TESTS
 #' Calculate Errors from Using Point Estimates from Posterior Distribution
@@ -979,19 +1062,12 @@ perform_comp <- function(est,
 #' since, for most model specifications,
 #' these terms are not comparable across models.
 #'
-#' @section Centering:
-#'
-#' TODO - COMPLETE THIS
-#'
 #' @param mod_est The model whose performance is being
 #' assessed. An object of class `bage_mod`.
 #' @param mod_sim The model used to generate the simulated
 #' data. If no value is supplied, `mod_est` is used.
 #' @param n_sim Number of sets of simulated data to use.
 #' Default is 100.
-#' @param center Whether to centre effects (apart from
-#' an effect with an SVD-type prior) at 0.
-#' See below for details. Default is `TRUE`.
 #' @param point_est_fun Name of the function to use
 #' to calculate point estimates. The options are `"mean"`
 #' and `"median"`. The default is `"mean"`.
@@ -1067,7 +1143,6 @@ perform_comp <- function(est,
 report_sim <- function(mod_est,
                        mod_sim = NULL,
                        n_sim = 100,
-                       center = TRUE,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95),
                        report_type = c("short", "long", "full"),
@@ -1084,7 +1159,6 @@ report_sim <- function(mod_est,
           min = 1L,
           max = NULL,
           null_ok = FALSE)
-  check_flag(x = center, nm_x = "center")
   point_est_fun <- match.arg(point_est_fun)
   check_widths(widths)
   report_type <- match.arg(report_type)
@@ -1163,66 +1237,6 @@ report_sim <- function(mod_est,
 
 
 ## HAS_TESTS
-#' Apply Standardization Algorithm to Simulated Effects
-#'
-#' @param mod Object of class `"bage_mod"`
-#' @param vals_effect List of matrices, each holding 'n_sim'
-#' draws of an effect
-#'
-#' @returns A list of standardized values
-#'
-#' @noRd
-standardize_draws_effect <- function(mod, vals_effect, center) {
-  eps <- 0.0001
-  max_iter <- 100L
-  matrices_effect_outcome <- mod$matrices_effect_outcome
-  priors <- mod$priors
-  n_effect <- length(priors)
-  linpred <- .mapply(`%*%`,
-                     dots = list(x = matrices_effect_outcome,
-                                 y = vals_effect),
-                     MoreArgs = list())
-  linpred <- Reduce(`+`, linpred)
-  set_matrix_to_zero <- function(x) {
-    x[] <- 0
-    x
-  }
-  ans <- lapply(vals_effect, set_matrix_to_zero)
-  n_outcome <- nrow(linpred)
-  n_draw <- ncol(linpred)
-  n_element <- vapply(matrices_effect_outcome, ncol, 1L)
-  mult <- n_element / n_outcome
-  found_svd <- FALSE
-  for (i_iter in seq_len(max_iter)) {
-    for (i_effect in seq_len(n_effect)) {
-      M <- matrices_effect_outcome[[i_effect]]
-      effect <- mult[[i_effect]] * Matrix::crossprod(M, linpred)
-      contrib_to_linpred <- M %*% effect
-      linpred <- linpred - contrib_to_linpred
-      is_intercept <- i_effect == 1L
-      if (center) {
-        if (!is_intercept)
-          ans[[i_effect]] <- ans[[i_effect]] + effect
-        if (!found_svd && is_svd(priors[[i_effect]])) {
-          ans[[1L]][] <- Matrix::colMeans(vals_effect[[i_effect]])
-          found_svd <- TRUE
-        }
-      }
-      else
-        ans[[i_effect]] <- ans[[i_effect]] + effect
-    }
-    max_remainder <- max(abs(linpred))
-    if (max_remainder < eps) {
-      ans <- lapply(ans, Matrix::as.matrix)
-      return(ans)
-    }
-  }
-  cli::cli(c("Internal error: Unable to standardize effects.",   ## nocov
-             i = "Maximum remainder: {.val {max_remainder}}."))  ## nocov
-}
-
-
-## HAS_TESTS
 #' Convert Simulated Values for 'disp' to a Data Frame
 #'
 #' @param vals_disp An rvec
@@ -1263,3 +1277,235 @@ vals_effect_to_dataframe <- function(vals_effect) {
                  .fitted = .fitted)
 }
  
+
+
+## 'vals_hyper_to_dataframe' --------------------------------------------------
+
+## HAS_TESTS
+#' Convert List of 'vals_hyper' into a Data Frame
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_hyper Named list
+#' @param n_sim Number of draws
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_hyper_to_dataframe <- function(mod, vals_hyper, n_sim) {
+  nms <- names(vals_hyper)
+  ans <- .mapply(vals_hyper_to_dataframe_one,
+                 dots = list(nm = nms,
+                             vals_hyper = vals_hyper),
+                 MoreArgs = list(n_sim = n_sim))
+  ans <- vctrs::vec_rbind(!!!ans)
+  ans
+}
+
+
+## 'vals_hyper_to_dataframe_one' ----------------------------------------------
+
+## HAS_TESTS
+#' Convert One 'vals_hyper' into a Data Frame
+#'
+#' @param nm String
+#' @param vals_hyper Named list
+#' @param n_sim Integer
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_hyper_to_dataframe_one <- function(nm, vals_hyper, n_sim) {
+  vals <- vctrs::vec_rbind(!!!vals_hyper, .name_repair = "universal_quiet")
+  if (nrow(vals) > 0L) {
+    vals <- as.matrix(vals)
+    dimnames(vals) <- NULL
+  }
+  else
+    vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
+  term <- rep(nm, times = nrow(vals))
+  component <- rep.int("hyper", times = nrow(vals))
+  if (nrow(vals) > 0L) {
+    level <- lapply(vals_hyper, rownames)
+    no_rownames <- vapply(level, is.null, FALSE)
+    level[no_rownames] <- names(vals_hyper[no_rownames])
+    level <- unlist(level, use.names = FALSE)
+  }
+  else
+    level <- character()
+  .fitted <- rvec::rvec(vals)
+  tibble::tibble(term = term,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+
+## 'vals_hyperrand_to_dataframe' ----------------------------------------------
+
+## HAS_TESTS
+#' Convert List of 'vals_hyperrand' into a Data Frame
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_hyperrand Named list
+#' @param n_sim Number of draws
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_hyperrand_to_dataframe <- function(mod, vals_hyperrand, n_sim) {
+  nms <- names(vals_hyperrand)
+  ans <- .mapply(vals_hyperrand_to_dataframe_one,
+                 dots = list(nm = nms,
+                             vals_hyperrand = vals_hyperrand),
+                 MoreArgs = list(n_sim = n_sim))
+  ans <- vctrs::vec_rbind(!!!ans)
+  ans
+}
+
+
+## 'vals_hyperrand_to_dataframe_one' ------------------------------------------
+
+## HAS_TESTS
+#' Convert One 'vals_hyperrand' into a Data Frame
+#'
+#' @param nm String
+#' @param vals_hyperrand Named list
+#' @param n_sim Integer
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_hyperrand_to_dataframe_one <- function(nm, vals_hyperrand, n_sim) {
+  vals <- vctrs::vec_rbind(!!!vals_hyperrand, .name_repair = "universal_quiet")
+  if (nrow(vals) > 0L) {
+    vals <- as.matrix(vals)
+    dimnames(vals) <- NULL
+  }
+  else
+    vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
+  term <- rep(nm, times = nrow(vals))
+  component <- rep.int("hyperrand", times = nrow(vals))
+  if (nrow(vals) > 0L) {
+    level <- lapply(vals_hyperrand, rownames)
+    no_rownames <- vapply(level, is.null, FALSE)
+    level[no_rownames] <- names(vals_hyperrand[no_rownames])
+    level <- unlist(level, use.names = FALSE)
+  }
+  else
+    level <- character()
+  .fitted <- rvec::rvec(vals)
+  tibble::tibble(term = term,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+
+## 'vals_spline_to_dataframe' -------------------------------------------------
+
+## HAS_TESTS
+#' Convert List of 'vals_spline' into a Data Frame
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_spline Named list
+#' @param n_sim Number of draws
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_spline_to_dataframe <- function(mod, vals_spline, n_sim) {
+  nms <- names(vals_spline)
+  ans <- .mapply(vals_spline_to_dataframe_one,
+                 dots = list(nm = nms,
+                             vals_spline = vals_spline),
+                 MoreArgs = list(n_sim = n_sim))
+  ans <- vctrs::vec_rbind(!!!ans)
+  ans
+}
+
+
+## 'vals_spline_to_dataframe_one' ---------------------------------------------
+
+## HAS_TESTS
+#' Convert One 'vals_spline' into a Data Frame
+#'
+#' @param vals_hyper Matrix
+#' @param nm String
+#' @param n_sim Integer
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_spline_to_dataframe_one <- function(vals_spline, nm, n_sim) {
+  if (!is.null(vals_spline) && nrow(vals_spline) > 0L) {
+    vals <- vals_spline
+    dimnames(vals) <- NULL
+    level <- rownames(vals_spline)
+  }
+  else {
+    vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
+    level <- character()
+  }
+  term <- rep(nm, times = nrow(vals))
+  component <- rep.int("spline", times = nrow(vals))
+  .fitted <- rvec::rvec(vals)
+  tibble::tibble(term = term,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+
+## 'vals_svd_to_dataframe' ----------------------------------------------------
+
+## HAS_TESTS
+#' Convert List of 'vals_svd' into a Data Frame
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vals_svd Named list
+#' @param n_sim Number of draws
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_svd_to_dataframe <- function(mod, vals_svd, n_sim) {
+  nms <- names(vals_svd)
+  ans <- .mapply(vals_svd_to_dataframe_one,
+                 dots = list(nm = nms,
+                             vals_svd = vals_svd),
+                 MoreArgs = list(n_sim = n_sim))
+  ans <- vctrs::vec_rbind(!!!ans)
+  ans
+}
+
+
+## 'vals_svd_to_dataframe_one' ------------------------------------------------
+
+## HAS_TESTS
+#' Convert One 'vals_svd' into a Data Frame
+#'
+#' @param vals_hyper Matrix
+#' @param nm String
+#' @param n_sim Integer
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+vals_svd_to_dataframe_one <- function(vals_svd, nm, n_sim) {
+  if (!is.null(vals_svd) && nrow(vals_svd) > 0L) {
+    vals <- vals_svd
+    dimnames(vals) <- NULL
+    level <- rownames(vals_svd)
+  }
+  else {
+    vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
+    level <- character()
+  }
+  term <- rep(nm, times = nrow(vals))
+  component <- rep.int("svd", times = nrow(vals))
+  .fitted <- rvec::rvec(vals)
+  tibble::tibble(term = term,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}

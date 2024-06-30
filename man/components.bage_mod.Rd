@@ -4,13 +4,12 @@
 \alias{components.bage_mod}
 \title{Extract Values for Hyper-Parameters}
 \usage{
-\method{components}{bage_mod}(object, center = FALSE, quiet = FALSE, ...)
+\method{components}{bage_mod}(object, standardize = TRUE, quiet = FALSE, ...)
 }
 \arguments{
-\item{object}{An object of class \code{"bage_mod"}.}
-
-\item{center}{Whether to center simulation draws.
-Used only with unfitted models. See below for details.}
+\item{standardize}{Whether to standardize
+parameter estimates. See below for details.
+Default is \code{TRUE}.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -52,10 +51,41 @@ model priors, and by any \code{exposure}, \code{size}, or \code{weights}
 argument in the model, but not by the observed outcomes.
 }
 
-\section{The 'center' argument}{
+\section{Standardizing estimates}{
 
 
-TODO - WRITE THIS
+In many models, the sum of the intercept, main effects,
+and interactions is well-identified by the data, but
+the values of the intercept, main effects,
+and interactions are not. For instance, consider a model
+containing the lines
+
+\deqn{y_i \sim \text{N}(\mu_i, \sigma^2)}
+\deqn{\mu_i = \beta^{(0)} + \beta_i^{(1)}.}
+
+If we add 1 to \eqn{\beta^{(0)}} and subtract 1
+from each of the \eqn{\beta_i^{(1)}}, then the \eqn{\mu_i}
+are unchanged, and the model's fit to the
+\eqn{y_i} is unchanged. This indeterminacy does not
+affect our ability to estimate the \eqn{\mu_i},
+but does complicate the interpretation of \eqn{\beta^{(0)}}
+and the \eqn{\beta_i^{(1)}}.
+
+A common strategy for dealing with poorly-
+identified intercepts, main effects, and interactions
+is to post-process the estimates, so that all terms
+other than the intercept, are constrained to sum to zero.
+By default, this is what \strong{bage} does. For a
+description of the algorithm used by \strong{bage},
+see \code{vignette("vig2_math")}.
+
+For unstandardized
+estimates, set \code{standardize} to \code{FALSE}.
+
+Batches of parameters, such as seasonal effects,
+that have the same structure as main effects and
+interactions have the same problems of indeterminacy.
+By default, these paramters are also standardized.
 }
 
 \examples{
@@ -64,15 +94,19 @@ mod <- mod_pois(injuries ~ age + sex + year,
                 data = injuries,
                 exposure = popn)
 
-## look at prior distribution
-mod |> components()
+## extract prior distribution
+## of hyper-parameters
+mod |>
+  components()
 
 ## fit model
 mod <- mod |>
   fit()
 
-## look at posterior distribution
-mod |> components() ## posterior distribution
+## extract posterior distribution
+## of hyper-parameters
+mod |>
+  components()
 }
 \seealso{
 \itemize{

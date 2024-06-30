@@ -1,4 +1,6 @@
 
+
+## HAS_TESTS
 #' Center Values Within and Across Each Combination of By Variables
 #'
 #' @param x A numeric vector or rvec
@@ -14,11 +16,41 @@ center_within_across_by <- function(x, matrix_along_by) {
     i_along <- matrix_along_by[, i_by] + 1L
     x[i_along] <- x[i_along] - mean(x[i_along])
   }
-  for (i_along in seq_len(n_along)) {
-    i_by <- matrix_along_by[i_along, ] + 1L
-    x[i_by] <- x[i_by] - mean(x[i_by])
+  if (n_by > 1L) {
+    for (i_along in seq_len(n_along)) {
+      i_by <- matrix_along_by[i_along, ] + 1L
+      x[i_by] <- x[i_by] - mean(x[i_by])
+    }
   }
   x
+}
+
+
+## HAS_TESTS
+#' Version of 'center_within_across_by' for Matrix of Draws
+#'
+#' @param draws A matrix, each column of which is a draw
+#' @param matrix_along_by Mapping matrix for a column of 'draws'
+#'
+#' @returns A modified version of 'draws'
+#'
+#' @noRd
+center_within_across_by_draws <- function(draws, matrix_along_by) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  for (i_by in seq_len(n_by)) {
+    indices_along <- matrix_along_by[, i_by] + 1L
+    means <- colMeans(draws[indices_along, , drop = FALSE])
+    draws[indices_along, ] <- draws[indices_along, ] - rep(means, each = n_along)
+  }
+  if (n_by > 1L) {
+    for (i_along in seq_len(n_along)) {
+      indices_by <- matrix_along_by[i_along, ] + 1L
+      means <- colMeans(draws[indices_by, , drop = FALSE])
+      draws[indices_by, ] <- draws[indices_by, ] - rep(means, each = n_by)
+    }
+  }
+  draws
 }
 
 
@@ -26,23 +58,22 @@ center_within_across_by <- function(x, matrix_along_by) {
 #' Return Values for Higher-Level Parameters from Fitted Model
 #'
 #' @param mod A fitted object of class 'bage_mod'
+#' @param standardize Whether to standardize
+#' estimates
 #'
 #' @returns A tibble
 #'
 #' @noRd
-draw_vals_components_fitted <- function(mod) {
+draw_vals_components_fitted <- function(mod, standardize) {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
-  draws <- as.matrix(draws)
-  .fitted <- rvec::rvec_dbl(draws)
+  draws <- make_draws_components(mod, standardize = standardize)
   ans <- tibble::tibble(term = term,
                         component = comp,
                         level = level,
-                        .fitted = .fitted)
-  ans <- reformat_hyperrand(components = ans,
-                            mod = mod)
+                        .fitted = draws)
+  ans <- reformat_hyperrand(components = ans, mod = mod)
   ans
 }
 
@@ -197,13 +228,17 @@ make_combined_offset_effectfree_effect <- function(mod) {
 make_comp_components <- function(mod) {
   est <- mod$est
   terms_effect <- mod$terms_effect
+  terms_spline <- make_term_spline(mod)
+  terms_svd <- make_term_svd(mod)
   has_disp <- has_disp(mod)
-  vals <- c("effect", "hyper", "hyperrand", "disp")
+  vals <- c("effect", "hyper", "hyperrand", "spline", "svd", "disp")
   n_effect <- length(terms_effect)
   n_hyper <- length(est$hyper)
   n_hyperrand <- length(est$hyperrand)
+  n_spline <- length(terms_spline)
+  n_svd <- length(terms_svd)
   n_disp <- as.integer(has_disp)
-  times <- c(n_effect, n_hyper, n_hyperrand, n_disp)
+  times <- c(n_effect, n_hyper, n_hyperrand, n_spline, n_svd, n_disp)
   rep(vals, times = times)
 }
 
@@ -234,32 +269,48 @@ make_copies_repdata <- function(data, n) {
 #' rates/probs/means
 #'
 #' @param mod Object of class 'bage_mod'
+#' @param standardize Whether to standardize
+#' estimates
 #'
 #' @returns A matrix
 #'
 #' @noRd
-make_draws_components <- function(mod) {
-  linpred <- mod$draws_linpred
-  hyper <- mod$draws_hyper
-  hyperrand <- mod$draws_hyperrand
-  ans_effects <- make_standardized_effects(mod = mod,
-                                           linpred = linpred)
-  ans_effects <- lapply(ans_effects, unname)
-  ans_effects <- lapply(ans_effects, Matrix::as.matrix)
-  ans_effects <- Reduce(rbind, ans_effects)
+make_draws_components <- function(mod, standardize) {
+  ## effects
+  effectfree <- mod$draws_effectfree
+  ans_effects <- make_effects(mod = mod, effectfree = effectfree)
+  if (standardize)
+    ans_effects <- standardize_effects(mod = mod, effects = ans_effects)
   ans_effects <- rvec::rvec_dbl(ans_effects)
+  ## hyper
+  hyper <- mod$draws_hyper
   ans_hyper <- rvec::rvec_dbl(hyper)
+  ## hyperrand
+  hyperrand <- mod$draws_hyperrand
   ans_hyperrand <- rvec::rvec_dbl(hyperrand)
-  ans <- c(ans_effects, ans_hyper, ans_hyperrand)
+  ## spline
+  ans_spline <- make_spline(mod = mod, effectfree = effectfree)
+  if (standardize)
+    ans_spline <- standardize_spline(mod = mod, spline = ans_spline)
+  ans_spline <- rvec::rvec_dbl(ans_spline)
+  ## svd
+  ans_svd <- make_svd(mod = mod, effectfree = effectfree)
+  if (standardize)
+    ans_svd <- standardize_svd(mod = mod, svd = ans_svd)
+  ans_svd <- rvec::rvec_dbl(ans_svd)
+  ## combine
+  ans <- c(ans_effects, ans_hyper, ans_hyperrand, ans_spline, ans_svd)
+  ## disp
   if (has_disp(mod)) {
     disp <- mod$draws_disp
     disp <- matrix(disp, nrow = 1L)
     ans_disp <- rvec::rvec_dbl(disp)
     ans <- c(ans, ans_disp)
   }
+  ## return
+  ans <- unname(ans)
   ans
 }
-
 
 
 ## HAS_TESTS
@@ -283,6 +334,26 @@ make_draws_disp <- function(mod, draws_post) {
  
 
 ## HAS_TESTS
+#' Make Draws from Free Effect Parameters
+#'
+#' Make draws from 'effectfree' (as opposed
+#' to 'effect', the values that users see.)
+#
+#' @param mod A fitted object of class "bage_mod"
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_draws_effectfree <- function(mod, draws_post) {
+  n_effectfree <- length(mod$est$effectfree)
+  i_effectfree <- seq_len(n_effectfree)
+  draws_post[i_effectfree, , drop = FALSE]
+}
+
+
+## HAS_TESTS
 #' Make Draws from Hyper-Parameters
 #'
 #' Does not include hyperrand or disp.
@@ -298,8 +369,8 @@ make_draws_disp <- function(mod, draws_post) {
 make_draws_hyper <- function(mod, draws_post) {
   n_effectfree <- length(mod$est$effectfree)
   n_hyper <- length(mod$est$hyper)
-  is_hyper <- seq.int(from = n_effectfree + 1L, length.out = n_hyper)
-  ans <- draws_post[is_hyper, , drop = FALSE]
+  i_hyper <- seq.int(from = n_effectfree + 1L, length.out = n_hyper)
+  ans <- draws_post[i_hyper, , drop = FALSE]
   transforms <- make_transforms_hyper(mod)
   for (i in seq_along(transforms)) {
     transform <- transforms[[i]]
@@ -325,32 +396,50 @@ make_draws_hyperrand <- function(mod, draws_post) {
   n_effectfree <- length(mod$est$effectfree)
   n_hyper <- length(mod$est$hyper)
   n_hyperrand <- length(mod$est$hyperrand)
-  is_hyperrand <- seq.int(from = n_effectfree + n_hyper + 1L,
-                          length.out = n_hyperrand)
-  draws_post[is_hyperrand, , drop = FALSE]
+  i_hyperrand <- seq.int(from = n_effectfree + n_hyper + 1L,
+                         length.out = n_hyperrand)
+  draws_post[i_hyperrand, , drop = FALSE]
 }
 
 
-## HAS_TESTS
-#' Make Draws from the Linear Predictor Formed from 'effectfree'
+## ## HAS_TESTS
+## #' Make Draws from the Linear Predictor Formed from 'effectfree'
+## #'
+## #' @param mod A fitted object of class "bage_mod"
+## #' @param draws_post Posterior draws for all parameters
+## #' estimated in TMB. Output from 'make_draws_post'.
+## #'
+## #' @returns A matrix
+## #' 
+## #' @noRd
+## make_linpred <- function(mod, effectfree) {
+##   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+##   offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
+##   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+##   n_effectfree <- ncol(matrix_effectfree_effect)
+##   n_val <- nrow(draws_post)
+##   is_effectfree <- seq_len(n_val) <= n_effectfree
+##   effectfree <- draws_post[is_effectfree, , drop = FALSE]
+##   effect <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
+##   ans <- matrix_effect_outcome %*% effect
+##   ans <- Matrix::as.matrix(ans)
+##   ans
+## }
+
+
+## NO_TESTS
+#' Construct Estimates of Effects from Estimates of Free Parameters
 #'
 #' @param mod A fitted object of class "bage_mod"
-#' @param draws_post Posterior draws for all parameters
-#' estimated in TMB. Output from 'make_draws_post'.
+#' @param effectfree Posterior draws for free parameters
 #'
 #' @returns A matrix
 #' 
 #' @noRd
-make_draws_linpred <- function(mod, draws_post) {
+make_effects <- function(mod, effectfree) {
   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
   offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-  n_effectfree <- ncol(matrix_effectfree_effect)
-  n_val <- nrow(draws_post)
-  is_effectfree <- seq_len(n_val) <= n_effectfree
-  effectfree <- draws_post[is_effectfree, , drop = FALSE]
-  effect <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-  ans <- matrix_effect_outcome %*% effect
+  ans <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
   ans <- Matrix::as.matrix(ans)
   ans
 }
@@ -393,25 +482,6 @@ make_draws_post <- function(mod) {
   ans[!is_fixed, ] <- draws_nonfixed
   ans[is_fixed, ] <- est[is_fixed]
   ans
-}
-
-
-## HAS_TESTS
-#' Extract Posterior Draws for Free Parameters used in SVD Priors
-#'
-#' @param mod Fitted object of class 'bage_mod'
-#' @param mod draws_post Matrix with posterior draws
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_draws_svd <- function(mod, draws_post) {
-  priors <- mod$priors
-  is_svd <- vapply(priors, is_svd, FALSE)
-  lengths_effectfree <- make_lengths_effectfree(mod)
-  is_effectfree_svd <- rep(is_svd, times = lengths_effectfree)
-  i_effectfree_svd <- which(is_effectfree_svd)
-  draws_post[i_effectfree_svd, , drop = FALSE]
 }
 
 
@@ -463,10 +533,14 @@ make_level_components <- function(mod) {
   effect <- mod$levels_effect
   hyper <- make_levels_hyper(mod)
   hyperrand <- make_levels_hyperrand(mod)
+  spline <- make_levels_spline(mod, unlist = TRUE)
+  svd <- make_levels_svd(mod, unlist = TRUE)
   effect <- as.character(effect)
   hyper <- as.character(hyper)
   hyperrand <- as.character(hyperrand)
-  ans <- c(effect, hyper, hyperrand)
+  spline <- as.character(spline)
+  svd <- as.character(svd)
+  ans <- c(effect, hyper, hyperrand, spline, svd)
   if (has_disp(mod))
     ans <- c(ans, "disp")
   ans
@@ -537,7 +611,112 @@ make_levels_replicate <- function(n, n_row_data) {
 
 
 ## HAS_TESTS
-#' Make linear predictor from effect.
+#' Make Levels for 'spline' Coefficients
+#'
+#' @param mod An object of class 'bage_mod'.
+#' @param unlist Whether to return a charcter vector
+#'
+#' @returns A named list or a character vector
+#'
+#' @noRd
+make_levels_spline <- function(mod, unlist) {
+  priors <- mod$priors
+  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  ans <- vector(mod = "list", length = length(priors))
+  for (i in seq_along(priors)) {
+    prior <- priors[[i]]
+    if (is_spline(prior)) {
+      m <- matrices_along_by_free[[i]]
+      labels_spline <- rownames(m)
+      if (ncol(m) > 1L)
+        labels_spline <- paste(labels_spline,
+                               rep(colnames(m), each = nrow(m)),
+                               sep = ".")
+      ans[[i]] <- labels_spline
+    }
+  }
+  if (unlist)
+    ans <- unlist(ans, use.names = FALSE)
+  else
+    names(ans) <- names(priors)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Levels for 'svd' Coefficients
+#'
+#' @param mod An object of class 'bage_mod'.
+#'
+#' @returns A named list.
+#'
+#' @noRd
+make_levels_svd <- function(mod, unlist) {
+  priors <- mod$priors
+  nms_priors <- names(priors)
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  dimnames <- make_dimnames_terms(mod)
+  ans <- vector(mode = "list", length = length(priors))
+  paste_dot <- function(x, y) paste(x, y, sep = ".")
+  for (i in seq_along(priors)) {
+    prior <- priors[[i]]
+    if (is_svd(prior)) {
+      n_comp <- prior$specific$n_comp
+      joint <- prior$specific$joint
+      is_indep <- !is.null(joint) && !joint
+      labels_svd <- paste0("comp", seq_len(n_comp))
+      if (is_indep) {
+        levels_sexgender <- dimnames[[i]][[var_sexgender]]
+        n_sexgender <- length(levels_sexgender)
+        labels_svd <- paste(rep(levels_sexgender, each = n_comp),
+                            labels_svd,
+                            sep = ".")
+      }
+      nm_split <- strsplit(nms_priors[[i]], split = ":")[[1L]]
+      nm_split_noagesex <- setdiff(nm_split, c(var_age, var_sexgender))
+      dn <- dimnames[[i]][nm_split_noagesex]
+      dn <- c(list(labels_svd), dn)
+      levels <- expand.grid(dn, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+      levels <- Reduce(paste_dot, levels)
+      ans[[i]] <- levels
+    }
+  }
+  if (unlist)
+    ans <- unlist(ans, use.names = FALSE)
+  else
+    names(ans) <- names(priors)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Linear Predictor from 'draws_effectfree'
+#'
+#' Can only be used with fitted models.
+#'
+#' Return value aligned to outcome, not data.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_linpred_fitted <- function(mod) {
+  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  effectfree <- mod$draws_effectfree
+  effect <- make_effects(mod = mod, effectfree = effectfree)
+  ans <- matrix_effect_outcome %*% effect
+  ans <- Matrix::as.matrix(ans)
+  ans <- rvec::rvec(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Linear Predictor from 'components'
+#'
+#' Only used with unfitted models.
 #'
 #' Return value aligned to outcome, not data.
 #'
@@ -548,7 +727,7 @@ make_levels_replicate <- function(n, n_row_data) {
 #' @returns An rvec
 #'
 #' @noRd
-make_linpred_effect <- function(mod, components) {
+make_linpred_unfitted <- function(mod, components) {
     matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
     matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
     is_effect <- components$component == "effect"
@@ -584,19 +763,115 @@ make_scaled_eigen <- function(prec) {
 
 
 ## HAS_TESTS
-#' Produce Standardized Effects from the Linear Predictor
+#' Extract Posterior Draws for Free Parameters used in Spline Priors
+#'
+#' @param mod Fitted object of class 'bage_mod'
+#' @param mod effectfree Matrix with posterior draws of free parameters
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_spline <- function(mod, effectfree) {
+  priors <- mod$priors
+  is_spline <- vapply(priors, is_spline, FALSE)
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  is_spline <- rep(is_spline, times = lengths_effectfree)
+  effectfree[is_spline, , drop = FALSE]
+}
+
+
+## HAS_TESTS
+#' Extract Posterior Draws for Free Parameters used in SVD Priors
+#'
+#' @param mod Fitted object of class 'bage_mod'
+#' @param mod effectfree Matrix with posterior draws of free parameters
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_svd <- function(mod, effectfree) {
+  priors <- mod$priors
+  is_svd <- vapply(priors, is_svd, FALSE)
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  is_svd <- rep(is_svd, times = lengths_effectfree)
+  effectfree[is_svd, , drop = FALSE]
+}
+
+
+## HAS_TESTS
+#' Make Factor Identifying Components
+#' of Spline Parameter Vector
+#'
+#' Make factor the same length as
+#' the estimates of spline coefficients,
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A factor.
+#'
+#' @noRd
+make_term_spline <- function(mod) {
+  priors <- mod$priors
+  nms_terms <- names(priors)
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  is_spline <- vapply(priors, is_spline, FALSE)
+  nms_terms_spline <- nms_terms[is_spline]
+  lengths_spline <- lengths_effectfree[is_spline]
+  ans <- rep(nms_terms_spline, times = lengths_spline)
+  ans <- factor(ans, levels = nms_terms_spline)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Factor Identifying Components
+#' of SVD Parameter Vector
+#'
+#' Make factor the same length as
+#' the estimates of SVD coefficients,
+#' giving the name of the term
+#' that the each element belongs to.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A factor.
+#'
+#' @noRd
+make_term_svd <- function(mod) {
+  priors <- mod$priors
+  nms_terms <- names(priors)
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  is_svd <- vapply(priors, is_svd, FALSE)
+  nms_terms_svd <- nms_terms[is_svd]
+  lengths_svd <- lengths_effectfree[is_svd]
+  ans <- rep(nms_terms_svd, times = lengths_svd)
+  ans <- factor(ans, levels = nms_terms_svd)
+  ans
+}
+
+
+## HAS_TESTS
+#' Standardize Posterior Draws for Intercept, Main Effects, and Interactions
 #'
 #' @param mod Object of class 'bage_mod'.
-#' @param linpred A matrix holding the linear predictor.
+#' @param effects A matrix of unstandardized effects,
+#' where each column is a draw.
 #' 
 #' @returns A matrix
 #'
 #' @noRd
-make_standardized_effects <- function(mod, linpred) {
+standardize_effects <- function(mod, effects) {
   eps <- 0.0001
   max_iter <- 100L
   matrices_effect_outcome <- mod$matrices_effect_outcome
   matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
+  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  is_rvec <- rvec::is_rvec(effects)
+  if (is_rvec)
+    effects <- as.matrix(effects)
+  linpred <- matrix_effect_outcome %*% effects
   n_effect <- length(matrices_effect_outcome)
   n_outcome <- nrow(linpred)
   n_draw <- ncol(linpred)
@@ -608,6 +883,7 @@ make_standardized_effects <- function(mod, linpred) {
   names(ans) <- names(mod$priors)
   for (i_effect in seq_len(n_effect))
     rownames(ans[[i_effect]]) <- colnames(matrices_effect_outcome[[i_effect]])
+  found_ans <- FALSE
   for (i_iter in seq_len(max_iter)) {
     for (i_effect in seq_len(n_effect)) {
       M <- matrices_effect_outcome[[i_effect]]
@@ -616,21 +892,105 @@ make_standardized_effects <- function(mod, linpred) {
       ans[[i_effect]] <- ans[[i_effect]] + effect
     }
     max_remainder <- max(abs(linpred))
-    if (max_remainder < eps)
-      return(ans)
+    if (max_remainder < eps) {
+      found_ans <- TRUE
+      break
+    }
   }
-  cli::cli(c("Internal error: Unable to standardize effects.",   ## nocov
-             i = "Maximum remainder: {.val {max_remainder}}."))  ## nocov
+  if (!found_ans)
+    cli::cli(c("Internal error: Unable to standardize effects.",   ## nocov
+               i = "Maximum remainder: {.val {max_remainder}}."))  ## nocov
+  ans <- lapply(ans, Matrix::as.matrix)
+  ans <- Reduce(rbind, ans)
+  if (is_rvec)
+    ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Standardize Spline Coefficients
+#'
+#' @param mod Object of class 'bage_mod'.
+#' @param svd Matrix of Unstandardized coefficients
+#' 
+#' @returns A matrix
+#'
+#' @noRd
+standardize_spline <- function(mod, spline) {
+  if (length(spline) == 0L)
+    return(spline)
+  is_rvec <- rvec::is_rvec(spline)
+  if (is_rvec)
+    spline <- as.matrix(spline)
+  priors <- mod$priors
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  is_spline <- vapply(priors, is_spline, FALSE)
+  lengths_spline <- lengths_effectfree[is_spline]
+  matrices_along_by_spline <- matrices_along_by_free[is_spline]
+  start <- 1L
+  for (i in seq_along(lengths_spline)) {
+    length <- lengths_spline[[i]]
+    stop <- start + length - 1L
+    s <- seq.int(from = start, to = stop)
+    matrix_along_by <- matrices_along_by_spline[[i]]
+    spline[s, ] <- center_within_across_by_draws(spline[s, ],
+                                                 matrix_along_by = matrix_along_by)
+    start <- start + length
+  }
+  if (is_rvec)
+    spline <- rvec::rvec_dbl(spline)
+  spline
+}
+
+
+## HAS_TESTS
+#' Standardize SVD Coefficients
+#'
+#' @param mod Object of class 'bage_mod'.
+#' @param svd Matrix of Unstandardized coefficients
+#' 
+#' @returns A matrix
+#'
+#' @noRd
+standardize_svd <- function(mod, svd) {
+  if (length(svd) == 0L)
+    return(svd)
+  is_rvec <- rvec::is_rvec(svd)
+  if (is_rvec)
+    svd <- as.matrix(svd)
+  priors <- mod$priors
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  is_svd <- vapply(priors, is_svd, FALSE)
+  lengths_svd <- lengths_effectfree[is_svd]
+  matrices_along_by_svd <- matrices_along_by_free[is_svd]
+  start <- 1L
+  for (i in seq_along(lengths_svd)) {
+    length <- lengths_svd[[i]]
+    stop <- start + length - 1L
+    s <- seq.int(from = start, to = stop)
+    matrix_along_by <- matrices_along_by_svd[[i]]
+    svd[s, ] <- center_within_across_by_draws(svd[s, ], matrix_along_by = matrix_along_by)
+    start <- start + length
+  }
+  if (is_rvec)
+    svd <- rvec::rvec_dbl(svd)
+  svd
 }
 
 
 ## HAS_TESTS
 #' Make Draws Stored as Part of Model Object
 #'
-#' Draws created are 'draws_linpred', 'draws_hyper',
-#' and, optionally, 'draws_disp'.
+#' Draws created are
+#' - 'draws_effectfree',
+#' - 'draws_hyper',
+#' - 'draws_hyperrand', and, optionally,
+#' - 'draws_disp'.
 #'
-#' Repeatability is achieved via 'seed_stored_draws'.
+#' Reproducibility is achieved via 'seed_stored_draws'.
 #'
 #' @param mod A fitted 'bage_mod' object
 #'
@@ -644,10 +1004,9 @@ make_stored_draws <- function(mod) {
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_stored_draws) ## set pre-determined seed
   draws_post <- make_draws_post(mod)
-  mod$draws_linpred <- make_draws_linpred(mod = mod, draws_post = draws_post)
+  mod$draws_effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
   mod$draws_hyper <- make_draws_hyper(mod = mod, draws_post = draws_post)
   mod$draws_hyperrand <- make_draws_hyperrand(mod = mod, draws_post = draws_post)
-  mod$draws_svd <- make_draws_svd(mod = mod, draws_post = draws_post)
   if (has_disp(mod))
     mod$draws_disp <- make_draws_disp(mod = mod, draws_post = draws_post)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
@@ -670,10 +1029,12 @@ make_term_components <- function(mod) {
   effect <- mod$terms_effect
   hyper <- make_terms_hyper(mod)
   hyperrand <- make_terms_hyperrand(mod)
+  spline <- make_term_spline(mod)
+  svd <- make_term_svd(mod)
   effect <- as.character(effect)
   hyper <- as.character(hyper)
   hyperrand <- as.character(hyperrand)
-  ans <- c(effect, hyper, hyperrand)
+  ans <- c(effect, hyper, hyperrand, spline, svd)
   if (has_disp(mod))
     ans <- c(ans, "disp")
   ans
@@ -889,6 +1250,7 @@ rvec_to_mean <- function(data) {
 sort_components <- function(components, mod) {
   levels_component <- c("effect",
                         "trend", "cyclical", "seasonal", "error",
+                        "spline", "svd",
                         "disp",
                         "hyper")
   formula <- mod$formula

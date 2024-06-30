@@ -31,13 +31,7 @@ generics::augment
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' arguments in the model, but not by the observed outcomes.
 #'
-#' @section The 'center' argument:
-#'
-#' TODO - WRITE THIS
-#'
 #' @param x An object of class `"bage_mod"`.
-#' @param center Whether to center simulation draws.
-#' Used only with unfitted models. See below for details.
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
@@ -47,7 +41,7 @@ generics::augment
 #' data plus the following columns:
 #'
 #' - `.observed` 'Direct' estimates of rates or
-#' probabilities, ie counts divided by exposure orsize
+#' probabilities, ie counts divided by exposure or size
 #' (in Poisson and binomial models.)
 #' - `.fitted` Draws of rates, probabilities,
 #' or means.
@@ -84,20 +78,16 @@ generics::augment
 #' mod |> augment()
 #' @export
 augment.bage_mod <- function(x,
-                             center = FALSE,
                              quiet = FALSE,
                              ...) {
-  check_flag(x = center, nm_x = "center")
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(x)
-  if (is_fitted) {
-    check_center_is_default(center = center, default = FALSE)
+  if (is_fitted)
     ans <- draw_vals_augment_fitted(x)
-  }
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
-    ans <- draw_vals_augment_unfitted(x, center = center)
+    ans <- draw_vals_augment_unfitted(x)
   }
   ans
 }
@@ -131,13 +121,45 @@ generics::components
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' argument in the model, but not by the observed outcomes.
 #'
-#' @inheritSection augment.bage_mod The 'center' argument
+#' @section Standardizing estimates:
+#'
+#' In many models, the sum of the intercept, main effects,
+#' and interactions is well-identified by the data, but
+#' the values of the intercept, main effects,
+#' and interactions are not. For instance, consider a model
+#' containing the lines
+#'
+#' \deqn{y_i \sim \text{N}(\mu_i, \sigma^2)}
+#' \deqn{\mu_i = \beta^{(0)} + \beta_i^{(1)}.}
+#'
+#' If we add 1 to \eqn{\beta^{(0)}} and subtract 1
+#' from each of the \eqn{\beta_i^{(1)}}, then the \eqn{\mu_i}
+#' are unchanged, and the model's fit to the
+#' \eqn{y_i} is unchanged. This indeterminacy does not
+#' affect our ability to estimate the \eqn{\mu_i},
+#' but does complicate the interpretation of \eqn{\beta^{(0)}}
+#' and the \eqn{\beta_i^{(1)}}.
+#'
+#' A common strategy for dealing with poorly-
+#' identified intercepts, main effects, and interactions
+#' is to post-process the estimates, so that all terms
+#' other than the intercept, are constrained to sum to zero.
+#' By default, this is what **bage** does. For a
+#' description of the algorithm used by **bage**,
+#' see `vignette("vig2_math")`.
+#'
+#' For unstandardized
+#' estimates, set `standardize` to `FALSE`.
+#'
+#' Batches of parameters, such as seasonal effects,
+#' that have the same structure as main effects and
+#' interactions have the same problems of indeterminacy.
+#' By default, these paramters are also standardized.
 #'
 #' @inheritParams augment.bage_mod
-#' @param object An object of class `"bage_mod"`.
-#' @param quiet Whether to suppress messages.
-#' Default is `FALSE`.
-#' @param ... Unused. Included for generic consistency only.
+#' @param standardize Whether to standardize
+#' parameter estimates. See below for details.
+#' Default is `TRUE`.
 #'
 #' @returns
 #' A [tibble][tibble::tibble-package]
@@ -167,37 +189,39 @@ generics::components
 #'                 data = injuries,
 #'                 exposure = popn)
 #'
-#' ## look at prior distribution
-#' mod |> components()
+#' ## extract prior distribution
+#' ## of hyper-parameters
+#' mod |>
+#'   components()
 #'
 #' ## fit model
 #' mod <- mod |>
 #'   fit()
 #'
-#' ## look at posterior distribution
-#' mod |> components() ## posterior distribution
+#' ## extract posterior distribution
+#' ## of hyper-parameters
+#' mod |>
+#'   components()
 #' @export
 components.bage_mod <- function(object,
-                                center = FALSE,
+                                standardize = TRUE,
                                 quiet = FALSE,
                                 ...) {
-  check_flag(x = center, nm_x = "center")
+  check_flag(x = standardize, nm_x = "standardize")
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
-  if (is_fitted) {
-    check_center_is_default(center = center, default = FALSE)
-    ans <- draw_vals_components_fitted(object)
-  }
+  if (is_fitted)
+    ans <- draw_vals_components_fitted(mod = object,
+                                       standardize = standardize)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
     ans <- draw_vals_components_unfitted(mod = object,
                                          n_sim = n_draw,
-                                         center = center)
+                                         standardize = standardize)
   }
-  ans <- sort_components(components = ans,
-                         mod = object)
+  ans <- sort_components(components = ans, mod = object)
   ans
 }
 
@@ -220,15 +244,13 @@ draw_vals_augment_fitted <- function(mod) {
 draw_vals_augment_fitted.bage_mod <- function(mod) {
   ans <- mod$data
   ans$.observed <- make_observed(mod)
-  linpred <- mod$draws_linpred
-  linpred <- Matrix::as.matrix(linpred)
+  linpred <- make_linpred_fitted(mod)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   if (has_disp) {
     expected <- inv_transform(linpred)
     disp <- mod$draws_disp
     disp <- matrix(disp, nrow = 1L)
-    expected <- rvec::rvec_dbl(expected)
     disp <- rvec::rvec_dbl(disp)
     seed_augment <- mod$seed_augment
     seed_restore <- make_seed() ## create randomly-generated seed
@@ -248,11 +270,9 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
 #' @export
 draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   ans <- mod$data
-  linpred <- mod$draws_linpred
-  linpred <- Matrix::as.matrix(linpred)
+  linpred <- make_linpred_fitted(mod)
   scale_outcome <- get_fun_scale_outcome(mod)
   .fitted <- scale_outcome(linpred)
-  .fitted <- rvec::rvec_dbl(.fitted)
   ans$.fitted <- .fitted
   ans
 }
@@ -263,27 +283,26 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
 #' Draw '.fitted' and Possibly '.expected' from Unfitted Model
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param center Whether to center simulation draws
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_augment_unfitted <- function(mod, center) {
+draw_vals_augment_unfitted <- function(mod) {
   UseMethod("draw_vals_augment_unfitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
+draw_vals_augment_unfitted.bage_mod <- function(mod) {
   n_draw <- mod$n_draw
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
-                                                   center = center)
+                                                   standardize = FALSE)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   nm_outcome <- get_nm_outcome(mod)
   offset <- mod$offset
-  vals_linpred <- make_linpred_effect(mod = mod,
+  vals_linpred <- make_linpred_unfitted(mod = mod,
                                       components = vals_components)
   seed_augment <- mod$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
@@ -313,15 +332,15 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod_norm <- function(mod, center) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   n_draw <- mod$n_draw
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
-                                                   center = center)
+                                                   standardize = FALSE)
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
-  vals_linpred <- make_linpred_effect(mod = mod,
-                                      components = vals_components)
+  vals_linpred <- make_linpred_unfitted(mod = mod,
+                                        components = vals_components)
   vals_fitted <- scale_outcome(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]

@@ -11,7 +11,7 @@ test_that("'center_within_across_by' works with numeric vector", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'center_within_across_by' works with numeric vector", {
+test_that("'center_within_across_by' works with rvec", {
   x <- rvec::rvec(matrix(rnorm(120), nr = 12))
   matrix_along_by <- matrix(0:11, nrow = 4)
   ans_obtained <- center_within_across_by(x, matrix_along_by)
@@ -28,11 +28,30 @@ test_that("'center_within_across_by' works with numeric vector", {
 })
 
 
+## 'center_within_across_by_draws' --------------------------------------------
+
+test_that("'center_within_across_by_draws' works", {
+  draws <- matrix(rnorm(120), nr = 12)
+  matrix_along_by <- matrix(0:11, nrow = 4)
+  ans_obtained <- center_within_across_by_draws(draws, matrix_along_by)
+  ans_expected <- rbind(draws[1:4,] - rep(colMeans(draws[1:4,]), each = 4),
+                        draws[5:8,] - rep(colMeans(draws[5:8,]), each = 4),
+                        draws[9:12,] - rep(colMeans(draws[9:12,]), each = 4))
+  ans_expected <- rbind(ans_expected[c(1, 5, 9),] - rep(colMeans(ans_expected[c(1, 5, 9), ]), each = 3),
+                    ans_expected[c(2, 6, 10),] - rep(colMeans(ans_expected[c(2, 6, 10),]), each = 3),
+                    ans_expected[c(3, 7, 11),] - rep(colMeans(ans_expected[c(3, 7, 11),]), each = 3),
+                    ans_expected[c(4, 8, 12),] - rep(colMeans(ans_expected[c(4, 8, 12),]), each = 3))[c(1,4,7,10,2,5,8,11,3,6,9,12),]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'draw_vals_components_fitted' ----------------------------------------------
 
 test_that("'draw_vals_components_fitted' works", {
   set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ age * sex + time
@@ -40,9 +59,11 @@ test_that("'draw_vals_components_fitted' works", {
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
   mod <- fit(mod)
   set.seed(0)
-  ans <- draw_vals_components_fitted(mod)
+  ans <- draw_vals_components_fitted(mod, standardize = TRUE)
   expect_identical(names(ans), c("term", "component", "level", ".fitted"))
 })
 
@@ -119,6 +140,19 @@ test_that("'insert_draws_known' works", {
 })
 
 
+## 'is_same_class' ------------------------------------------------------------
+
+test_that("'is_same_class' returns TRUE when classes same", {
+    expect_true(is_same_class(AR1(), AR1()))
+    expect_true(is_same_class(1L, 2L))
+})
+
+test_that("'is_same_class' returns FALSE when classes different", {
+    expect_false(is_same_class(AR1(), N()))
+    expect_false(is_same_class(1L, FALSE))
+})
+
+
 ## 'make_combined_matrix_effect_outcome' -----------------------------------------
 
 test_that("'make_combined_matrix_effect_outcome' works with valid inputs", {
@@ -183,7 +217,7 @@ test_that("'make_comp_components' works - no hyperrand", {
                     exposure = popn)
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
-    draws <- make_draws_components(mod)
+    draws <- make_draws_components(mod, standardize = TRUE)
     ans <- make_comp_components(mod)
     expect_identical(length(draws), length(ans))
     expect_setequal(ans, c("effect", "hyper", "disp"))
@@ -201,10 +235,32 @@ test_that("'make_comp_components' works - has hyperrand", {
                     set_prior(sex:time ~ Lin())
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
-    draws <- make_draws_components(mod)
+    draws <- make_draws_components(mod, standardize = FALSE)
     ans <- make_comp_components(mod)
     expect_identical(length(draws), length(ans))
     expect_setequal(ans, c("effect", "hyper", "hyperrand", "disp"))
+})
+
+test_that("'make_comp_components' works - has svd", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- set_prior(mod, age:sex ~ Sp())
+  set.seed(0)
+  mod <- fit(mod)
+  term <- make_term_components(mod)
+  ans <- make_comp_components(mod)
+  expect_identical(length(term), length(ans))
+  expect_setequal(ans, c("effect", "hyper", "svd", "spline", "disp"))
 })
 
 
@@ -227,9 +283,11 @@ test_that("'make_copies_repdata' works with valid inputs", {
 
 ## 'make_draws_components' -----------------------------------------------
 
-test_that("'make_draws_components' works", {
+test_that("'make_draws_components' works - no svd, spline", {
   set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ age * sex + time
@@ -239,9 +297,51 @@ test_that("'make_draws_components' works", {
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   set.seed(0)
-  ans_obtained <- make_draws_components(mod)
+  ans_obtained <- make_draws_components(mod, standardize = TRUE)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained), length(unlist(mod$est)))
+})
+
+test_that("'make_draws_components' works - has spline", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- fit(mod)
+  set.seed(0)
+  ans_obtained <- make_draws_components(mod, standardize = TRUE)
+  expect_true(rvec::is_rvec(ans_obtained))
+  expect_identical(length(ans_obtained), length(unlist(mod$est)) +
+                                           length(unique(data$age)))
+})
+
+test_that("'make_draws_components' works - has svd", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- fit(mod)
+  set.seed(0)
+  ans_obtained <- make_draws_components(mod, standardize = TRUE)
+  expect_true(rvec::is_rvec(ans_obtained))
+  expect_identical(length(ans_obtained), length(unlist(mod$est)) +
+                                           length(unique(data$age)))
 })
 
 
@@ -265,9 +365,9 @@ test_that("'make_draws_disp' works", {
 })
 
 
-## 'make_draws_linpred' ---------------------------------------------------
+## 'make_draws_effectfree' ----------------------------------------------------
 
-test_that("'make_draws_linpred' works", {
+test_that("'make_draws_effectfree' works", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -280,18 +380,40 @@ test_that("'make_draws_linpred' works", {
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   est <- mod$est
-  is_fixed <- mod$is_fixed
   draws <- make_draws_post(mod)
-  ans_obtained <- make_draws_linpred(mod = mod, draws_post = draws)
-  matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-  offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-  ans_expected <- matrix_effect_outcome %*% (matrix_effectfree_effect %*%
-                                               draws[seq_len(ncol(matrix_effectfree_effect)), ] +
-                                               offset_effectfree_effect)
-  ans_expected <- Matrix::as.matrix(ans_expected)
+  ans_obtained <- make_draws_effectfree(mod = mod, draws_post = draws)
+  ans_expected <- draws[seq_along(est$effectfree), ]
   expect_equal(ans_obtained, ans_expected)
 })
+
+
+## ## 'make_draws_linpred' ---------------------------------------------------
+
+## test_that("'make_draws_linpred' works", {
+##   set.seed(0)
+##   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+##   data$popn <- rpois(n = nrow(data), lambda = 100)
+##   data$deaths <- rpois(n = nrow(data), lambda = 10)
+##   formula <- deaths ~ age * sex + time
+##   mod <- mod_pois(formula = formula,
+##                   data = data,
+##                   exposure = popn)
+##   mod <- set_prior(mod, age ~ Sp())
+##   mod <- set_n_draw(mod, n = 5)
+##   mod <- fit(mod)
+##   est <- mod$est
+##   is_fixed <- mod$is_fixed
+##   draws <- make_draws_post(mod)
+##   ans_obtained <- make_draws_linpred(mod = mod, draws_post = draws)
+##   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
+##   offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
+##   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+##   ans_expected <- matrix_effect_outcome %*% (matrix_effectfree_effect %*%
+##                                                draws[seq_len(ncol(matrix_effectfree_effect)), ] +
+##                                                offset_effectfree_effect)
+##   ans_expected <- Matrix::as.matrix(ans_expected)
+##   expect_equal(ans_obtained, ans_expected)
+## })
 
 
 ## 'make_draws_hyper' ----------------------------------------------------
@@ -470,30 +592,108 @@ test_that("'make_draws_post' works with valid inputs - no R_prec", {
 })
 
 
-## 'make_draws_svd' ---------------------------------------------------
+## 'make_levels_spline' ----------------------------------------------------------
 
-test_that("'make_draws_svd' works", {
+test_that("'make_levels_spline' works - unlist is FALSE", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
+  formula <- deaths ~ sex * age + age*time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
   mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  est <- mod$est
-  is_fixed <- mod$is_fixed
-  draws <- make_draws_post(mod)
-  ans_obtained <- make_draws_svd(mod = mod, draws_post = draws)
-  ans_expected <- draws[24:33,]
-  expect_equal(ans_obtained, ans_expected)
+  mod <- set_prior(mod, age ~ Sp(n_comp = 5))
+  mod <- set_prior(mod, age:sex ~ Sp(n_comp = 5))
+  mod <- set_prior(mod, age:time ~ Sp(n_comp = 5, along = "age"))
+  set.seed(0)
+  ans_obtained <- make_levels_spline(mod, unlist = FALSE)
+  ans_expected <- list("(Intercept)" = NULL,
+                       sex = NULL,
+                       age = paste0("comp", 1:5),
+                       time = NULL,
+                       "sex:age" = paste(paste0("comp", 1:5), rep(c("F", "M"), each = 5), sep = "."),
+                       "age:time" = paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+  expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_levels_spline' works - unlist is TRUE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * age + age*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ Sp(n_comp = 5))
+  mod <- set_prior(mod, age:sex ~ Sp(n_comp = 5))
+  mod <- set_prior(mod, age:time ~ Sp(n_comp = 5, along = "age"))
+  set.seed(0)
+  ans_obtained <- make_levels_spline(mod, unlist = TRUE)
+  ans_expected <- c(paste0("comp", 1:5),
+                    paste(paste0("comp", 1:5), rep(c("F", "M"), each = 5), sep = "."),
+                    paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_levels_svd' ----------------------------------------------------------
+
+test_that("'make_levels_svd' works - unlist is FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * age + age*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  set.seed(0)
+  ans_obtained <- make_levels_svd(mod, unlist = FALSE)
+  ans_expected <- list("(Intercept)" = NULL,
+                       sex = NULL,
+                       age = paste0("comp", 1:5),
+                       time = NULL,
+                       "sex:age" = paste0(rep(c("F", "M"), each = 5), ".comp", 1:5),
+                       "age:time" = paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd' works - unlist is TRUE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * age + age*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  set.seed(0)
+  ans_obtained <- make_levels_svd(mod, unlist = TRUE)
+  ans_expected <- c(paste0("comp", 1:5),
+                    paste0(rep(c("F", "M"), each = 5), ".comp", 1:5),
+                    paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## 'make_stored_draws' --------------------------------------------------------
@@ -511,9 +711,8 @@ test_that("'make_stored_draws' works with valid inputs", {
     mod <- set_n_draw(mod, n = 10)
     mod <- fit(mod)
     ans <- make_stored_draws(mod)
-    expect_identical(ncol(ans$draws_linpred), 10L)
+    expect_identical(ncol(ans$draws_effectfree), 10L)
     expect_identical(ncol(ans$draws_hyper), 10L)
-    expect_identical(nrow(ans$draws_svd), 0L)
     expect_identical(length(ans$draws_disp), 10L)
 })
 
@@ -531,19 +730,6 @@ test_that("'make_stored_draws' throws error if model not fitted", {
 })
 
 
-## 'is_same_class' ------------------------------------------------------------
-
-test_that("'is_same_class' returns TRUE when classes same", {
-    expect_true(is_same_class(AR1(), AR1()))
-    expect_true(is_same_class(1L, 2L))
-})
-
-test_that("'is_same_class' returns FALSE when classes different", {
-    expect_false(is_same_class(AR1(), N()))
-    expect_false(is_same_class(1L, FALSE))
-})
-
-
 ## 'make_par_disp' ------------------------------------------------------------
 
 test_that("'make_par_disp' works with bage_mod_pois", {
@@ -558,7 +744,7 @@ test_that("'make_par_disp' works with bage_mod_pois", {
     mod <- set_n_draw(mod, n = 10)
     mod <- fit(mod)
     components <- components(mod)
-    meanpar <- exp(make_linpred_effect(mod, components = components))
+    meanpar <- exp(make_linpred_unfitted(mod, components = components))
     disp <- components$.fitted[components$component == "disp"]
     set.seed(1)
     ans_obtained <- make_par_disp(mod,
@@ -584,7 +770,7 @@ test_that("'make_par_disp' works with bage_mod_binom", {
     mod <- set_n_draw(mod, n = 10)
     components <- components(mod)
     invlogit <- function(x) 1 / (1 + exp(-x))
-    meanpar <- invlogit(make_linpred_effect(mod, components = components))
+    meanpar <- invlogit(make_linpred_unfitted(mod, components = components))
     disp <- components$.fitted[components$component == "disp"]
     set.seed(1)
     ans_obtained <- make_par_disp(mod,
@@ -745,9 +931,30 @@ test_that("'make_levels_replicate' works", {
 })
 
 
-## 'make_linpred_effect' ---------------------------------------------------------
+## 'make_linpred_fitted' ---------------------------------------------------------
 
-test_that("'make_linpred_effect' works with valid inputs", {
+test_that("'make_linpred_fitted' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_fitted(mod)
+  comp <- components(mod)
+  ans_expected <- make_linpred_unfitted(mod = mod,
+                                        components = comp)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_linpred_unfitted' ---------------------------------------------------------
+
+test_that("'make_linpred_unfitted' works with valid inputs", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -760,8 +967,8 @@ test_that("'make_linpred_effect' works with valid inputs", {
   mod <- fit(mod)
   comp <- components(mod)
   set.seed(1)
-  ans <- make_linpred_effect(mod = mod,
-                             components = comp)
+  ans <- make_linpred_unfitted(mod = mod,
+                               components = comp)
   expect_identical(length(ans), length(mod$outcome))
   expect_s3_class(ans, "rvec")
 })
@@ -788,34 +995,59 @@ test_that("'make_scaled_eigen' works with non-negative definite matrix", {
 })
 
 
-## 'make_standardized_effects' ------------------------------------------------
+## 'make_spline' ---------------------------------------------------
 
-test_that("'make_standardized_effects' works", {
+test_that("'make_spline' works", {
   set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
+  formula <- deaths ~ age * sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_n_draw(mod, 5)
+  mod <- set_prior(mod, age:sex ~ Sp(n = 5))
+  mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
-  linpred <- mod$draws_linpred
-  ans <- make_standardized_effects(mod = mod, linpred = linpred)
-  linpred_implied <- .mapply(`%*%`,
-                             dots = list(x = mod$matrices_effect_outcome,
-                                          y = ans),
-                             MoreArgs = list())
-  linpred_implied <- Reduce(`+`, linpred_implied)
-  linpred_implied <- Matrix::as.matrix(linpred_implied)
-  expect_equal(linpred, linpred_implied)
+  est <- mod$est
+  draws_post <- make_draws_post(mod)
+  effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
+  ans_obtained <- make_spline(mod = mod, effectfree = effectfree)
+  ans_expected <- effectfree[24:33,]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_svd' ---------------------------------------------------
+
+test_that("'make_svd' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  est <- mod$est
+  draws_post <- make_draws_post(mod)
+  effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
+  ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
+  ans_expected <- effectfree[24:33,]
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
 ## 'make_term_components' -----------------------------------------------------
 
-test_that("'make_term_components' works - no hyperrand", {
+test_that("'make_term_components' works - no disp", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -833,23 +1065,118 @@ test_that("'make_term_components' works - no hyperrand", {
     expect_identical(length(ans), length(comp))
 })
 
-test_that("'make_term_components' works - no hyperrand", {
+test_that("'make_term_components' works - has hyperrand", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex + time
+    formula <- deaths ~ age + sex * time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_disp(mod, mean = 0)
-    mod <- set_prior(mod, age ~ Sp())
+    mod <- set_prior(mod, sex:time ~ Lin())
     mod <- set_n_draw(mod, n = 1)       
     mod <- fit(mod)
     comp <- make_comp_components(mod)
     ans <- make_term_components(mod)
     expect_identical(length(ans), length(comp))
 })
+
+test_that("'make_term_components' works - has svd", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 1)       
+  mod <- fit(mod)
+  comp <- make_comp_components(mod)
+  ans <- make_term_components(mod)
+  expect_identical(length(ans), length(comp))
+})
+
+
+## 'make_term_spline' ------------------------------------------------------------
+
+test_that("'make_term_spline' works - no spline", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  ans_obtained <- make_term_spline(mod)
+  ans_expected <- factor()
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_term_spline' works - has spline", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ Sp(n_comp = 5))
+  ans_obtained <- make_term_spline(mod)
+  ans_expected <- factor(rep("age", times = 5))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_term_svd' ------------------------------------------------------------
+
+test_that("'make_term_svd' works - no svd", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  ans_obtained <- make_term_svd(mod)
+  ans_expected <- factor()
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_term_svd' works - has svd", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  ans_obtained <- make_term_svd(mod)
+  ans_expected <- factor(rep("age", times = 5))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 
 
 ## 'make_transforms_hyper' ---------------------------------------------------------
@@ -889,7 +1216,7 @@ test_that("'reformat_hyperrand' works", {
   comp <- make_comp_components(mod)
   term <- make_term_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(component = comp,
@@ -918,7 +1245,7 @@ test_that("'reformat_hyperrand_seasfix' works", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -969,7 +1296,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -1062,3 +1389,78 @@ test_that("'sort_components' raises correct effor with invalid component", {
                "Internal error: \"wrong\" not a valid value for `component`.")
 })
 
+
+## 'standardize_effects' ------------------------------------------------------
+
+test_that("'standardize_effects' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, 5)
+  mod <- fit(mod)
+  effectfree <- mod$draws_effectfree
+  effect <- make_effects(mod, effectfree)
+  ans <- standardize_effects(mod = mod, effect = effect)
+  m <- make_combined_matrix_effect_outcome(mod)
+  expect_equal(m %*% ans, m %*% effect)
+  expect_false(isTRUE(all.equal(as.numeric(ans), as.numeric(effect))))
+})
+
+
+## 'standardize_spline' -------------------------------------------------------
+
+test_that("'standardize_svd' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ Sp(n = 5))
+  mod <- set_prior(mod, age ~ Sp(n = 5))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  est <- mod$est
+  draws_post <- make_draws_post(mod)
+  effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
+  spline <- make_spline(mod = mod, effectfree = effectfree)
+  ans <- standardize_spline(mod = mod, spline = spline)
+  expect_true(all(colMeans(ans[1:5,]) < 0.00001))
+  expect_true(all(colMeans(ans[6:15,]) < 0.00001))
+})
+
+
+## 'standardize_svd' ----------------------------------------------------------
+
+test_that("'standardize_svd' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  est <- mod$est
+  draws_post <- make_draws_post(mod)
+  effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
+  svd <- make_svd(mod = mod, effectfree = effectfree)
+  ans <- standardize_svd(mod = mod, svd = svd)
+  expect_true(all(colMeans(ans[1:5,]) < 0.00001))
+  expect_true(all(colMeans(ans[6:15,]) < 0.00001))
+})

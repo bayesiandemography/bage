@@ -37,5 +37,13 @@ Priors without links are next in the queue for implementation.\tabular{llll}{
    \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline). \tab Modelling varies that smoothly, eg age. \tab No \cr
    \code{\link[=SVD]{SVD()}} \tab Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Main effects or interactions involving age, but not sex/gender. \tab No \cr
    \code{\link[=SVDS]{SVDS()}} \tab Age-sex or age-gender profile, similar to \code{SVD()} \tab Interactions involving age, sex/gender, and possibly other dimensions. \tab No \cr
+   \code{\link[=SVD_AR]{SVD_AR()}} \tab Like \code{SVD()}, but coefficients evolve over time, following AR models. \tab Interactions between age, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVDS_AR]{SVDS_AR()}} \tab Like \code{SVDS()}, but coefficients evolve over time, following AR models. \tab Interactions between age, sex/gender, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVD_AR1]{SVD_AR1()}} \tab Like \code{SVD()}, but coefficients evolve over time, following AR1 models. \tab Interactions between age, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVDS_AR1]{SVDS_AR1()}} \tab Like \code{SVDS()}, but coefficients evolve over time, following AR1 models. \tab Interactions between age, sex/gender, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVD_RW]{SVD_RW()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk models. \tab Interactions between age, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVDS_RW]{SVDS_RW()}} \tab Like \code{SVDS()}, but coefficients evolve over time, following random walk models. \tab Interactions between age, sex/gender, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVD_RW2]{SVD_RW2()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk with drift models. \tab Interactions between age, time, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVDS_RW2]{SVDS_RW2()}} \tab Like \code{SVDS()}, but coefficients evolve over time, following random walk with drift models. \tab Interactions between age, sex/gender, time, and possibly other variables. \tab Yes \cr
 }
 }
