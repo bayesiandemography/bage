@@ -4,7 +4,7 @@
 #'
 #' @param slope Slope(s) of line(s). An rvec.
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #'
 #' @returns An rvec
 #'
@@ -30,7 +30,7 @@ estimate_lin <- function(slope,
 #' @param coef AR coefficients. An rvec.
 #' @param sd Standard deviation for AR model. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
 #' along and by dimensions to position in forecasts
 #'
@@ -108,7 +108,7 @@ forecast_components <- function(mod,
 #'
 #' @param slope Slope of line(s).
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
 #' along and by dimensions to position in forecasts
 #'
@@ -156,7 +156,7 @@ forecast_norm <- function(sd,
 #' @param rw_est Historical estimates. An rvec.
 #' @param sd Standard deviation for RW model. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
 #' along and by dimensions to position in forecasts
 #'
@@ -190,7 +190,7 @@ forecast_rw <- function(rw_est,
 #' @param rw2_est Historical estimates. An rvec.
 #' @param sd Standard deviation for RW model. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
 #' along and by dimensions to position in forecasts
 #'
@@ -231,7 +231,7 @@ forecast_rw2 <- function(rw2_est,
 #' @param n_seas Number of seasons.
 #' @param seas_est Historical estimates. An rvec.
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
 #' along and by dimensions to position in forecasts
 #'
@@ -268,7 +268,7 @@ forecast_seasfix <- function(n_seas,
 #' @param seas_est Historical estimates. An rvec.
 #' @param sd Standard deviation for seasonal effects. An rvec of length 1.
 #' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
+#' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
 #' along and by dimensions to position in forecasts
 #'

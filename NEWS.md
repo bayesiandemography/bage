@@ -1,4 +1,17 @@
 
+# bage 0.6.0
+
+## Changes to interface
+
+* Added priors `SVD_AR()`, `SVDS_AR()`, `SVD_AR1()`, `SVDS_AR1()`,
+  `SVD_RW()`, `SVDS_RW()`, `SVD_RW2()`, `SVDS_RW2()`
+
+## Internal calculations
+
+* Changed values that are stored in object: removed `draws_linpred`, added
+ `draws_effectfree`, `draws_spline`, and `draws_svd`. Modified/added
+ downstream functions.
+
 # bage 0.5.1
 
 ## Changes to interface
