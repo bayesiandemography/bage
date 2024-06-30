@@ -16,17 +16,21 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 1", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters
   matrix_along_by <- matrix(0:25, nr = 26)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2", {
@@ -36,33 +40,41 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_known", {
   prior <- Known(c(-0.1, 0, 0.1))
   n_sim <- 10
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- c("a", "b", "c")
   matrix_along_by = matrix(0:2, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = NULL,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans), list(c("a", "b", "c"), as.character(1:10)))
+  expect_identical(dimnames(ans), list(c("a", "b", "c"), NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2", {
@@ -74,17 +86,20 @@ test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2", {
                                         n_sim = n_sim)
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 4", {
@@ -97,17 +112,20 @@ test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 4", {
   vals_hyperrand <- draw_vals_hyperrand(prior = prior,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_linar", {
@@ -119,17 +137,20 @@ test_that("'draw_vals_effect' works with bage_prior_linar", {
                                         n_sim = n_sim)
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_norm", {
@@ -138,18 +159,21 @@ test_that("'draw_vals_effect' works with bage_prior_norm", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- seq_len(1000)
   matrix_along_by = matrix(0:999, nc = 10)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyperrand = vals_hyperrand,
                           vals_hyper = vals_hyper,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(as.character(1:1000), as.character(1:10)))
+  expect_identical(dimnames(ans), list(as.character(1:1000), NULL))
   expect_equal(unname(apply(ans, 2, sd)), vals_hyper$sd, tolerance = 0.05)
 })
 
@@ -157,18 +181,21 @@ test_that("'draw_vals_effect' works with bage_prior_normfixed", {
   prior <- NFix(sd = 0.3)
   n_sim <- 10
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   matrix_along_by = matrix(0:999, nc = 10)
   levels_effect <- seq_len(1000)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = NULL,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(as.character(1:1000), as.character(1:10)))
+  expect_identical(dimnames(ans), list(as.character(1:1000), NULL))
   expect_equal(unname(apply(ans, 2, sd)), rep(0.3, 10), tolerance = 0.05)
 })
 
@@ -178,18 +205,21 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 1", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters
   matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4", {
@@ -199,17 +229,20 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rwseasfix", {
@@ -222,17 +255,20 @@ test_that("'draw_vals_effect' works with bage_prior_rwseasfix", {
                                         vals_hyper = vals_hyper,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rwseasvary", {
@@ -245,17 +281,20 @@ test_that("'draw_vals_effect' works with bage_prior_rwseasvary", {
                                         vals_hyper = vals_hyper,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 1", {
@@ -264,18 +303,21 @@ test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 1", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters
   matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 4", {
@@ -285,17 +327,20 @@ test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 4", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2seasfix", {
@@ -308,17 +353,20 @@ test_that("'draw_vals_effect' works with bage_prior_rw2seasfix", {
                                         vals_hyper = vals_hyper,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2seasvary", {
@@ -331,57 +379,72 @@ test_that("'draw_vals_effect' works with bage_prior_rw2seasvary", {
                                         vals_hyper = vals_hyper,
                                         matrix_along_by = matrix_along_by,
                                         n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
   levels_effect <- letters[1:12]
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 1", {
-  prior <- Sp()
+  prior <- Sp(n_comp = 9)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- draw_vals_spline(prior = prior,
+                                  vals_hyper = vals_hyper,
+                                  matrix_along_by_free = matrix(0:8, nc = 1),
+                                  levels_effectfree = paste0("comp", 1:9))
+  vals_svd <- NULL
   levels_effect <- letters
   matrix_along_by = matrix(0:25, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 2", {
-  prior <- Sp()
+  prior <- Sp(n_comp = 4)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_svd <- NULL
+  vals_spline <- draw_vals_spline(prior = prior,
+                                  vals_hyper = vals_hyper,
+                                  matrix_along_by_free = t(matrix(0:7, nc = 4)),
+                                  levels_effectfree = 1:8)
   levels_effect <- letters[1:12]
   matrix_along_by  <- t(matrix(0:11, nc = 6))
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           agesex = "other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = NULL,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(letters[1:12], as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters[1:12], NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
@@ -390,6 +453,12 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            matrix_along_by_free = matrix(0:4, nr = 5),
+                            levels_effectfree = paste0("comp", 1:5),
+                            n_sim = n_sim)
   levels_age <- c(0:79, "80+")
   levels_sex <- c("F", "M")
   matrix_along_by <- matrix(0:80, nc = 1)
@@ -399,6 +468,8 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_age,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
@@ -406,8 +477,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age main effect", {
                           matrix_agesex = matrix_agesex,
                           matrix_along_by = matrix_along_by,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(levels_age, as.character(1:10)))
+  expect_identical(dimnames(ans), list(levels_age, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd, with region", {
@@ -416,11 +486,19 @@ test_that("'draw_vals_effect' works with bage_prior_svd, with region", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:9, nr = 2)
+  levels_effectfree <- paste(paste0("comp", 1:5), rep(c("A", "B"), each = 5), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                              vals_hyper = vals_hyper,
+                              matrix_along_by_free = matrix_along_by_free,
+                              levels_effectfree = levels_effectfree,
+                              n_sim = 10)
   levels_age <- c(0:79, "80+")
   levels_region <- c("A", "B")
   levels_sex <- NULL
-  levels_effect <- paste(levels_age, rep(levels_region, each = 81), sep = ".")
-  matrix_along_by <- make_matrix_along_by(i_along = 2L,
+  levels_effect <- paste(levels_region, rep(levels_age, each = 2), sep = ".")
+  matrix_along_by <- make_matrix_along_by(i_along = 1L,
                                           dim = c(2L, 81L),
                                           dimnames = list(levels_region, levels_age))
   matrix_agesex <- make_matrix_along_by(i_along = 2L,
@@ -430,6 +508,8 @@ test_that("'draw_vals_effect' works with bage_prior_svd, with region", {
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
@@ -437,8 +517,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd, with region", {
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = matrix_agesex,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(levels_effect, as.character(1:10)))
+  expect_identical(dimnames(ans), list(levels_effect, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - indep", {
@@ -447,16 +526,31 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - 
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:19, nr = 2)
+  levels_effectfree <- paste(rep(c("F", "M"), each = 5),
+                             paste0("comp", 1:5),
+                             rep(c("A", "B"), each = 10), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                              vals_hyper = vals_hyper,
+                              matrix_along_by_free = matrix_along_by_free,
+                              levels_effectfree = levels_effectfree,
+                              n_sim = 10)
   levels_age <- c(0:79, "80+")
   levels_sex <- c("F", "M")
-  levels_effect <- paste(rep(levels_sex, each = 81), levels_age, sep = ".")
+  levels_effect <- paste(rep(levels_sex, each = 81),
+                         levels_age,
+                         rep(c("A", "B"), each = 162),
+                         sep = ".")
   matrix_along_by <- NULL
   matrix_agesex <- make_matrix_along_by(i_along = 1:2,
-                                        dim = c(81L, 2L),
-                                        dimnames = list(levels_age, levels_sex))
+                                        dim = c(81L, 2L, 2L),
+                                        dimnames = list(levels_age, levels_sex, c("A", "B")))
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
@@ -464,7 +558,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - 
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = matrix_agesex,
                           n_sim = n_sim)
-  expect_identical(dim(ans), c(162L, 10L))
+  expect_identical(dim(ans), c(324L, 10L))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - joint", {
@@ -473,17 +567,27 @@ test_that("'draw_vals_effect' works with bage_prior_svd - age:sex interaction - 
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:4, nr = 5)
+  levels_effectfree <- paste0("comp", 1:5)
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                              vals_hyper = vals_hyper,
+                              matrix_along_by_free = matrix_along_by_free,
+                              levels_effectfree = levels_effectfree,
+                              n_sim = 10)
   levels_age <- c(0:79, "80+")
   levels_sex <- c("F", "M")
-  levels_effect <- paste(rep(levels_sex, each = 81), levels_age, sep = ".")
+  levels_effect <- paste(levels_age, rep(levels_sex, each = 81), sep = ".")
   matrix_agesex <- matrix(0:161, nc = 1)
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
-                          agesex = "sex:age",
+                          agesex = "age:sex",
                           matrix_along_by = NULL,
                           matrix_agesex = matrix_agesex, 
                           n_sim = n_sim)
@@ -496,6 +600,14 @@ test_that("'draw_vals_effect' works with bage_prior_svd_ar - age only", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:24, nr = 5)
+  levels_effectfree <- paste(paste0("comp", 1:5), rep(2000:2004, each = 5), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                              vals_hyper = vals_hyper,
+                              matrix_along_by_free = matrix_along_by_free,
+                              levels_effectfree = levels_effectfree,
+                              n_sim = 10)
   levels_age <- c(0:79, "80+")
   levels_time <- 2000:2004
   levels_sex <- NULL
@@ -509,6 +621,8 @@ test_that("'draw_vals_effect' works with bage_prior_svd_ar - age only", {
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
@@ -516,8 +630,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_ar - age only", {
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = matrix_agesex,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(levels_effect, as.character(1:10)))
+  expect_identical(dimnames(ans), list(levels_effect, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_rw - age only", {
@@ -526,6 +639,14 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw - age only", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:24, nr = 5)
+  levels_effectfree <- paste(paste0("comp", 1:5), rep(2000:2004, each = 5), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            matrix_along_by_free = matrix_along_by_free,
+                            levels_effectfree = levels_effectfree,
+                            n_sim = 10)
   levels_age <- c(0:79, "80+")
   levels_time <- 2000:2004
   levels_sex <- NULL
@@ -539,6 +660,8 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw - age only", {
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
@@ -546,8 +669,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw - age only", {
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = matrix_agesex,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(levels_effect, as.character(1:10)))
+  expect_identical(dimnames(ans), list(levels_effect, NULL))
 })
 
 test_that("'draw_vals_effect' works with bage_prior_svd_rw2 - age and sex", {
@@ -556,6 +678,17 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw2 - age and sex", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:49, nr = 5)
+  levels_effectfree <- paste(rep(c("F", "M"), each = 5),
+                             paste0("comp", 1:5),
+                             rep(2000:2004, each = 10),
+                             sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            matrix_along_by_free = matrix_along_by_free,
+                            levels_effectfree = levels_effectfree,
+                            n_sim = 10)
   levels_age <- c(0:79, "80+")
   levels_time <- 2000:2004
   levels_sex <- c("F", "M")
@@ -576,18 +709,17 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw2 - age and sex", {
   ans <- draw_vals_effect(prior = prior,
                           vals_hyper = vals_hyper,
                           vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
                           levels_effect = levels_effect,
                           levels_age = levels_age,
                           levels_sex = levels_sex,
-                          agesex = "age:other",
+                          agesex = "age:sex:other",
                           matrix_along_by = matrix_along_by,
                           matrix_agesex = matrix_agesex,
                           n_sim = n_sim)
-  expect_identical(dimnames(ans),
-                   list(levels_effect, as.character(1:10)))
+  expect_identical(dimnames(ans), list(levels_effect, NULL))
 })
-
-
 
 
 ## draw_vals_hyper ------------------------------------------------------------
@@ -740,8 +872,6 @@ test_that("'draw_vals_hyper' works with bage_prior_svd_ar", {
 })
 
 
-
-
 ## 'draw_vals_hyperrand' ------------------------------------------------------
 
 test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
@@ -850,6 +980,153 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasvary", {
   ans_expected <- list(seas = draw_vals_seasvary(n_seas = 2,
                                                  sd_seas = vals_hyper$sd_seas,
                                                  matrix_along_by = matrix_along_by))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'draw_vals_spline' ---------------------------------------------------------
+
+test_that("'draw_vals_spline' returns NULL with non-spline prior main effect", {
+  prior <- AR()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- matrix(0:80, nc = 1)
+  levels_effectfree <- 1:81
+  ans <- draw_vals_spline(prior = prior,
+                      vals_hyper = vals_hyper,
+                      matrix_along_by_free = matrix_along_by_free,
+                      levels_effectfree = levels_effectfree,
+                      n_sim = n_sim)
+  expect_identical(ans, NULL)
+})
+
+test_that("'draw_vals_spline' works with 'bage_prior_spline'", {
+  set.seed(0)
+  prior <- Sp()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- matrix(0:6, nc = 1)
+  levels_effectfree <- paste0("comp", 1:7)
+  set.seed(0)
+  ans_obtained <- draw_vals_spline(prior = prior,
+                               vals_hyper = vals_hyper,
+                               matrix_along_by_free = matrix_along_by_free,
+                               levels_effectfree = levels_effectfree,
+                               n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                matrix_along_by = matrix_along_by_free,
+                                levels_effect = levels_effectfree)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'draw_vals_svd' ------------------------------------------------------------
+
+test_that("'draw_vals_svd' returns NULL with non-SVD prior main effect", {
+  prior <- AR()
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- matrix(0:80, nc = 1)
+  levels_effectfree <- 1:81
+  ans <- draw_vals_svd(prior = prior,
+                         vals_hyper = vals_hyper,
+                         matrix_along_by_free = matrix_along_by_free,
+                         levels_effectfree = levels_effectfree,
+                         n_sim = n_sim)
+  expect_identical(ans, NULL)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd'", {
+  set.seed(0)
+  prior <- SVD(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- matrix()
+  levels_effectfree <- paste0("comp", 1:5)
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                matrix_along_by_free = matrix_along_by_free,
+                                levels_effectfree = levels_effectfree,
+                                n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(50), nr = 5, nc = 10,
+                         dimnames = list(levels_effectfree, NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_ar'", {
+  set.seed(0)
+  prior <- SVD_AR1(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
+  levels_effectfree <- paste(paste0("comp", 1:5),
+                             rep(2001:2003, each = 5),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                matrix_along_by_free = matrix_along_by_free,
+                                levels_effectfree = levels_effectfree,
+                                n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- draw_vals_ar(coef = vals_hyper$coef,
+                               sd = vals_hyper$sd,
+                               matrix_along_by = matrix_along_by_free,
+                               levels_effect = levels_effectfree)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw'", {
+  set.seed(0)
+  prior <- SVD_RW(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
+  levels_effectfree <- paste(paste0("comp", 1:5),
+                             rep(2001:2003, each = 5),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                matrix_along_by_free = matrix_along_by_free,
+                                levels_effectfree = levels_effectfree,
+                                n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
+                               matrix_along_by = matrix_along_by_free,
+                               levels_effect = levels_effectfree)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
+  levels_effectfree <- paste(paste0("comp", 1:5),
+                             rep(2001:2003, each = 5),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                matrix_along_by_free = matrix_along_by_free,
+                                levels_effectfree = levels_effectfree,
+                                n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                matrix_along_by = matrix_along_by_free,
+                                levels_effect = levels_effectfree)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1727,11 +2004,22 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd_ar, correct inputs",
 })
 
 
-## is_svd -------------------------------------------------------------------
+## is_spline ------------------------------------------------------------------
+
+test_that("'is_spline' works with valid inputs", {
+    expect_false(is_spline(N()))
+    expect_true(is_spline(Sp()))
+})
+
+
+## is_svd ---------------------------------------------------------------------
 
 test_that("'is_svd' works with valid inputs", {
     expect_false(is_svd(N()))
     expect_true(is_svd(SVDS(HMD)))
+    expect_true(is_svd(SVD_AR(HMD)))
+    expect_true(is_svd(SVD_RW(HMD)))
+    expect_true(is_svd(SVDS_RW2(HMD)))
 })
 
 
@@ -1953,13 +2241,13 @@ test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
 
 test_that("default for 'make_matrix_along_by_free' works", {
   prior <- AR1()
-  levels_sexgender <- NULL
   matrix_along_by <- matrix(0:4, nr = 5)
-  matrix_agesex <- NULL
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = NULL,
+                                            dimnames = list(age = 0:4),
+                                            matrix_along_by = matrix_along_by)
   ans_expected <- matrix_along_by
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1968,11 +2256,12 @@ test_that("'make_matrix_along_by_free' works with 'bage_prior_spline'", {
   prior <- Sp()
   levels_sexgender <- NULL
   matrix_along_by <- matrix(0:19, nr = 10, dimnames = list(0:9, c("a", "b")))
-  matrix_agesex <- matrix_along_by
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = NULL,
+                                            dimnames = list(age = 0:9, region = c("a", "b")),
+                                            matrix_along_by = matrix_along_by)
   ans_expected <- matrix(0:13,
                          nr = 7,
                          dimnames = list(paste0("comp", 1:7),
@@ -1983,12 +2272,17 @@ test_that("'make_matrix_along_by_free' works with 'bage_prior_spline'", {
 test_that("'make_matrix_along_by_free' works with 'bage_prior_svd' - total", {
   prior <- SVD(HMD)
   levels_sexgender <- NULL
-  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c("a", "b")))
-  matrix_agesex <- matrix_along_by
+  matrix_along_by <- matrix(0:161,
+                            nr = 81,
+                            dimnames = list(age = c(0:79, "80+"),
+                                            region = c("a", "b")))
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = NULL,
+                                            dimnames = list(age = c(0:79, "80+"),
+                                                            region = c("a", "b")),
+                                            matrix_along_by = matrix_along_by)
   ans_expected <- matrix(0:9,
                          nr = 5,
                          dimnames = list(paste0("comp", 1:5),
@@ -1996,42 +2290,42 @@ test_that("'make_matrix_along_by_free' works with 'bage_prior_svd' - total", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_free' works with 'bage_prior_svd' - indep", {
-  prior <- SVDS(HMD, joint = FALSE)
-  levels_sexgender <- c("F", "M")
-  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c("F", "M")))
-  matrix_agesex <- matrix(0:161,
-                          nr = 162,
-                          dimnames = list(paste(c(0:79, "80+"),
-                                                rep(c("F", "M"), each = 81),
-                                                sep = "."),
-                                          NULL))
+test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_ar' - indep", {
+  prior <- SVDS_AR(HMD, joint = FALSE)
+  levels_sexgender <- c("f", "m")
+  matrix_along_by <- matrix(0:485, nr = 81)
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
-  ans_expected <- matrix(0:9,
-                         nr = 10,
-                         dimnames = list(paste(rep(c("F", "M"), each = 5),
-                                               paste0("comp", 1:5),
-                                               sep = "."),
-                                         NULL))
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = "sex",
+                                            dimnames = list(age = c(0:79, "80+"),
+                                                            sex = c("f", "m"),
+                                                            time = 2001:2003),
+                                            matrix_along_by = matrix_along_by)
+  ans_expected <- t(matrix(0:29,
+                           nr = 10,
+                           dimnames = list(paste(rep(c("f", "m"), each = 5),
+                                                 paste0("comp", 1:5),
+                                                 sep = "."),
+                                           2001:2003)))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_ar'", {
-  prior <- SVD_AR(HMD)
+  prior <- SVD_AR1(HMD)
   levels_sexgender <- NULL
   matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c(2001, 2002)))
-  matrix_agesex <- matrix_along_by
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
-  ans_expected <- matrix(0:9,
-                         nr = 5,
-                         dimnames = list(paste0("comp", 1:5),
-                                         c(2001, 2002)))
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = NULL,
+                                            dimnames = list(age = c(0:79, "80+"),
+                                                            time = 2001:2002),
+                                            matrix_along_by = matrix_along_by)
+  ans_expected <- t(matrix(0:9,
+                           nr = 5,
+                           dimnames = list(paste0("comp", 1:5),
+                                           c(2001, 2002))))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -2041,33 +2335,37 @@ test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_rw'", {
   matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c(2001, 2002)))
   matrix_agesex <- matrix_along_by
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
-  ans_expected <- matrix(0:9,
-                         nr = 5,
-                         dimnames = list(paste0("comp", 1:5),
-                                         c(2001, 2002)))
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = NULL,
+                                            dimnames = list(age = c(0:79, "80+"),
+                                                            time = 2001:2002),
+                                            matrix_along_by = matrix_along_by)
+  ans_expected <- t(matrix(0:9,
+                           nr = 5,
+                           dimnames = list(paste0("comp", 1:5),
+                                           c(2001, 2002))))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_free' works with 'bage_prior_svd_rw'", {
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW(HMD)
   levels_sexgender <- NULL
-  matrix_along_by <- matrix(0:161, nr = 81, dimnames = list(c(0:79, "80+"), c(2001, 2002)))
+  matrix_along_by <- matrix(0:404, nr = 81, dimnames = list(c(0:79, "80+"), 2001:2005))
   matrix_agesex <- matrix_along_by
   ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
-  ans_expected <- matrix(0:9,
-                         nr = 5,
-                         dimnames = list(paste0("comp", 1:5),
-                                         c(2001, 2002)))
+                                            var_time = "time",
+                                            var_age = "age",
+                                            var_sexgender = NULL,
+                                            dimnames = list(age = c(0:79, "80+"),
+                                                            time = 2001:2005),
+                                            matrix_along_by = matrix_along_by)
+  ans_expected <- t(matrix(0:24,
+                           nr = 5,
+                           dimnames = list(paste0("comp", 1:5),
+                                           2001:2005)))
   expect_identical(ans_obtained, ans_expected)
 })
-
-
 
 
 
@@ -2449,7 +2747,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_linar", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -2486,7 +2784,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -2533,7 +2831,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -2575,7 +2873,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -2603,9 +2901,6 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
-
-
 test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasfix", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
@@ -2621,7 +2916,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasfix", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -2668,7 +2963,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
+  draws <- make_draws_components(mod, standardize = TRUE)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -3059,6 +3354,9 @@ test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(RW2_Seas(n_seas = 3)))
   expect_true(uses_along(Sp()))
   expect_false(uses_along(SVD(HMD)))
+  expect_false(uses_along(SVD_AR(HMD)))
+  expect_false(uses_along(SVD_RW(HMD)))
+  expect_false(uses_along(SVD_RW2(HMD)))
 })
 
 
@@ -3077,6 +3375,9 @@ test_that("'uses_hyperrand' returns FALSE with priors that do not use hyperrand 
   expect_true(uses_hyperrand(RW2_Seas(n_seas = 3)))
   expect_false(uses_hyperrand(Sp()))
   expect_false(uses_hyperrand(SVD(HMD)))
+  expect_false(uses_hyperrand(SVD_AR(HMD)))
+  expect_false(uses_hyperrand(SVD_RW(HMD)))
+  expect_false(uses_hyperrand(SVD_RW2(HMD)))
 })
 
 test_that("'uses_hyperrand' returns TRUE with priors do use hyperrand parameters", {
@@ -3088,84 +3389,28 @@ test_that("'uses_hyperrand' returns TRUE with priors do use hyperrand parameters
 ## uses_matrix_effectfree_effect ----------------------------------------------
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
-    expect_false(uses_matrix_effectfree_effect(N()))
-    expect_true(uses_matrix_effectfree_effect(Sp()))
-    expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
+  expect_false(uses_matrix_effectfree_effect(N()))
+  expect_true(uses_matrix_effectfree_effect(Sp()))
+  expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_AR(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_RW(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_RW2(HMD)))
 })
 
 
 ## uses_offset_effectfree_effect ----------------------------------------------
 
 test_that("'uses_offset_effectfree_effect' works with valid inputs", {
-    expect_false(uses_offset_effectfree_effect(N()))
-    expect_false(uses_offset_effectfree_effect(Sp()))
-    expect_true(uses_offset_effectfree_effect(SVD(HMD)))
+  expect_false(uses_offset_effectfree_effect(N()))
+  expect_false(uses_offset_effectfree_effect(Sp()))
+  expect_true(uses_offset_effectfree_effect(SVD(HMD)))
+  expect_true(uses_offset_effectfree_effect(SVD_AR(HMD)))
+  expect_true(uses_offset_effectfree_effect(SVD_RW(HMD)))
+  expect_true(uses_offset_effectfree_effect(SVD_RW2(HMD)))
 })
 
 
-## vals_hyper_to_dataframe ----------------------------------------------------
 
-test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
-  prior <- AR(n_coef = 3)
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = 10)
-  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
-                                          nm_prior = "time",
-                                          vals_hyper = vals_hyper,
-                                          n_sim = 10)
-  ans_expected <- tibble::tibble(term = "time",
-                                 component = "hyper",
-                                 level = c("coef1", "coef2", "coef3", "sd"),
-                                 .fitted = rvec::rvec(unname(rbind(vals_hyper[[1]], vals_hyper[[2]]))))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'vals_hyper_to_dataframe' works with bage_prior_fixed", {
-  prior <- NFix()
-  vals_hyper <- draw_vals_hyper(prior = prior,
-                                n_sim = 10)
-  ans_obtained <- vals_hyper_to_dataframe(prior = prior,
-                                          nm_prior = "time",
-                                          vals_hyper = vals_hyper,
-                                          n_sim = 10)
-  ans_expected <- tibble::tibble(term = character(),
-                                 component = character(),
-                                 level = character(),
-                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
-## vals_hyperrand_to_dataframe ----------------------------------------------------
-
-test_that("'vals_hyper_to_dataframe' works with bage_prior_ar", {
-  prior <- AR(n_coef = 3)
-  vals_hyperrand <- list()
-  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
-                                              nm_prior = "time",
-                                              vals_hyperrand = vals_hyperrand,
-                                              n_sim = 10)
-  ans_expected <- tibble::tibble(term = character(),
-                                 component = character(),
-                                 level = character(),
-                                 .fitted = rvec::rvec(matrix(0, nrow = 1, ncol = 10)))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'vals_hyper_to_dataframe' works with bage_prior_lin", {
-  set.seed(0)
-  prior <- Lin()
-  vals_hyperrand <- list(slope = matrix(rnorm(30), nr = 3))
-  ans_obtained <- vals_hyperrand_to_dataframe(prior = prior,
-                                              nm_prior = "time",
-                                              vals_hyperrand = vals_hyperrand,
-                                              n_sim = 10)
-  ans_expected <- tibble::tibble(term = "time",
-                                 component = "hyperrand",
-                                 level = c("slope", "slope", "slope"),
-                                 .fitted = rvec::rvec(vals_hyperrand$slope))
-  expect_equal(ans_obtained, ans_expected)
-})
 
 
 ## values_known ---------------------------------------------------------------

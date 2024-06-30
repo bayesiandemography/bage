@@ -307,13 +307,12 @@ test_that("'draw_vals_augment_unfitted' works with normal", {
     mod <- mod_norm(formula = formula,
                     data = data,
                     weights = 1)
-    ans <- draw_vals_augment_unfitted(mod, center = FALSE)
+    ans <- draw_vals_augment_unfitted(mod)
     expect_true(is.data.frame(ans))
-    expect_identical(names(ans),
-                     c(names(data), ".fitted"))
+    expect_identical(names(ans), c(names(data), ".fitted"))
 })
 
-test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp, center is TRUE", {
+test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 20)
@@ -322,10 +321,10 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp, c
                   data = data,
                   exposure = 1)
   mod <- set_n_draw(mod, 10)
-  ans_obtained <- draw_vals_augment_unfitted(mod, center = TRUE)
-  vals_components <- draw_vals_components_unfitted(mod, n_sim = 10, center = TRUE)
+  ans_obtained <- draw_vals_augment_unfitted(mod)
+  vals_components <- draw_vals_components_unfitted(mod, n_sim = 10, standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_effect(mod, components = vals_components))
+  vals_expected <- exp(make_linpred_unfitted(mod, components = vals_components))
   set.seed(mod$seed_augment)
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
@@ -353,9 +352,11 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
                   exposure = popn)
   mod <- set_disp(mod, mean = 0)
   mod <- set_n_draw(mod, 10)
-  ans_obtained <- draw_vals_augment_unfitted(mod, center = FALSE)
-  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, center = FALSE)
-  vals_fitted <- exp(make_linpred_effect(mod, components = vals_components))
+  ans_obtained <- draw_vals_augment_unfitted(mod)
+  vals_components <- draw_vals_components_unfitted(mod = mod,
+                                                   n_sim = n_sim,
+                                                   standardize = TRUE)
+  vals_fitted <- exp(make_linpred_unfitted(mod, components = vals_components))
   set.seed(mod$seed_augment)
   vals_outcome <- draw_vals_outcome(mod,
                                     vals_fitted = vals_fitted)
@@ -379,13 +380,13 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
                   weights = wt)
   mod <- set_n_draw(mod, 10)
   set.seed(1)
-  ans_obtained <- draw_vals_augment_unfitted(mod, center = TRUE)
+  ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = TRUE)
+                                                   standardize = FALSE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_effect(mod = mod,
+  vals_fitted <- scale_outcome(make_linpred_unfitted(mod = mod,
                                                    components = vals_components))
   set.seed(mod$seed_augment)
   vals_outcome <- draw_vals_outcome(mod,
@@ -412,8 +413,10 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
                   data = data,
                   exposure = popn)
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
-  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, center = FALSE)
-  vals_expected <- exp(make_linpred_effect(mod = mod, components = vals_components))
+  vals_components <- draw_vals_components_unfitted(mod = mod,
+                                                   n_sim = n_sim,
+                                                   standardize = FALSE)
+  vals_expected <- exp(make_linpred_unfitted(mod = mod, components = vals_components))
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
@@ -438,9 +441,9 @@ test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE)
+                                                   standardize = TRUE)
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_effect(mod = mod, components = vals_components))
+  vals_expected <- invlogit(make_linpred_unfitted(mod = mod, components = vals_components))
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
@@ -464,9 +467,11 @@ test_that("'draw_vals_outcome' works with 'bage_mod_pois' - no na", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = 1)
-  vals_components <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, center = FALSE)
+  vals_components <- draw_vals_components_unfitted(mod = mod,
+                                                   n_sim = n_sim,
+                                                   standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_effect(mod, components = vals_components))
+  vals_expected <- exp(make_linpred_unfitted(mod, components = vals_components))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -492,9 +497,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_pois' - offset has NA", {
                   exposure = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE)
+                                                   standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_effect(mod, components = vals_components))
+  vals_expected <- exp(make_linpred_unfitted(mod, components = vals_components))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -523,10 +528,10 @@ test_that("'draw_vals_outcome' works with 'bage_mod_binom' - no na", {
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE)
+                                                   standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_effect(mod, components = vals_components))
+  vals_expected <- invlogit(make_linpred_unfitted(mod, components = vals_components))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -553,10 +558,10 @@ test_that("'draw_vals_outcome' works with 'bage_mod_binom' - has na", {
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE)
+                                                   standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_effect(mod, components = vals_components))
+  vals_expected <- invlogit(make_linpred_unfitted(mod, components = vals_components))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -583,10 +588,10 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - no na", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE)
+                                                   standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_effect(mod = mod,
+  vals_fitted <- scale_outcome(make_linpred_unfitted(mod = mod,
                                                    components = vals_components))
   set.seed(1)
   ans_obtained <- draw_vals_outcome(mod,
@@ -612,10 +617,10 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - offset has NA na", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE)
+                                                   standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_effect(mod = mod,
+  vals_fitted <- scale_outcome(make_linpred_unfitted(mod = mod,
                                                    components = vals_components))
   set.seed(1)
   ans_obtained <- draw_vals_outcome(mod,
@@ -632,7 +637,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - offset has NA na", {
 
 
 ## 'fit' -----------------------------------------------------------------
-
+ 
 test_that("'fit' works with valid inputs - pois has exposure", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))

@@ -351,21 +351,6 @@ test_that("'get_print_prior_n_offset' works", {
   expect_identical(get_print_prior_n_offset(), 8L)
 })
 
-
-## 'get_svd_mb' -------------------------------------------------
-
-test_that("'get_svd_mb' works with valid inputs", {
-  prior <- SVD(HMD)
-  levels_age <- poputils::age_labels(type = "lt", max = 60)
-  levels_sexgender <- NULL
-  agesex <- "age"
-  ans <- get_svd_mb(prior = prior,
-                             levels_age = levels_age,
-                             levels_sexgender = levels_sexgender,
-                    agesex = agesex)
-  expect_identical(names(ans), c("m", "b"))
-})
-
   
 ## 'infer_var_age' ------------------------------------------------------------
 
@@ -549,6 +534,29 @@ test_that("'make_const' works with valid inputs", {
     ans_expected <- c("(Intercept)" = 0,
                       agegp.scale = 1,
                       SEX.sd = 1)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_dimnames_terms' ------------------------------------------------------
+
+test_that("'make_dimnames_terms' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 2000:2005,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_dimnames_terms(mod)
+    ans_expected <- list("(Intercept)" = list(),
+                         age = list(age = as.character(0:9)),
+                         sex = list(sex = c("F", "M")),
+                         time = list(time = as.character(2000:2005)),
+                         "age:sex" = list(age = as.character(0:9), sex = c("F", "M")))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1180,21 +1188,38 @@ test_that("'make_matrices_along_by_forecast' works with valid inputs", {
 
 ## 'make_matrices_along_by_free' ------------------------------------------------
 
-test_that("'make_matrices_along_by_free' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(agegp = 0:9,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ agegp * SEX + SEX * region
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, agegp ~ Sp(n_comp = 4))
-    ans <- make_matrices_along_by_free(mod)
-    expect_true(all(sapply(ans, is.matrix)))
-    expect_identical(names(ans), names(mod$priors))
+test_that("'make_matrices_along_by_free' works", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:9,
+                      region = 1:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX + SEX * region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, agegp ~ Sp(n_comp = 4))
+  ans <- make_matrices_along_by_free(mod)
+  expect_true(all(sapply(ans, is.matrix)))
+  expect_identical(names(ans), names(mod$priors))
+})
+
+test_that("'make_matrices_along_by_free' works - with SVD", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  ans <- make_matrices_along_by_free(mod)
+  expect_true(all(sapply(ans, is.matrix)))
+  expect_identical(names(ans), names(mod$priors))
 })
 
 
@@ -1382,44 +1407,90 @@ test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
 })
 
 
-## 'make_matrix_along_by_free_svd' --------------------------------------------
+## 'make_matrix_along_by_free_svdtime' ----------------------------------------
 
-test_that("'make_matrix_along_by_free_svd' works - total", {
-  prior <- SVD(HMD)
-  levels_sexgender <- NULL
-  matrix_agesex <- matrix(0:242, nr = 81, dimnames = list(c(0:79, "80+"), c("a", "b", "c")))
-  ans_obtained <- make_matrix_along_by_free(prior = prior,
-                                            levels_sexgender = levels_sexgender,
-                                            matrix_along_by = matrix_along_by,
-                                            matrix_agesex = matrix_agesex)
+test_that("'make_matrix_along_by_free_svd' works - age x time interaction", {
+  prior <- SVD_RW(HMD)
+  dimnames <- list(age = c(0:79, "80+"),
+                   time = 2001:2003)
+  var_age <- "age"
+  var_time <- "time"
+  var_sexgender <- NULL
+  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    dimnames = dimnames)
+  ans_expected <- t(matrix(0:14,
+                           nr = 5,
+                           dimnames = list(paste0("comp", 1:5),
+                                           2001:2003)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_free_svd' works -  time x age interaction", {
+  prior <- SVD_AR(HMD)
+  dimnames <- list(time = 2001:2003,
+                   age = c(0:79, "80+"))
+  var_age <- "age"
+  var_time <- "time"
+  var_sexgender <- NULL
+  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    dimnames = dimnames)
   ans_expected <- matrix(0:14,
-                         nr = 5,
-                         dimnames = list(paste0("comp", 1:5),
-                                         c("a", "b", "c")))
+                         nr = 3,
+                         byrow = TRUE,
+                         dimnames = list(2001:2003,
+                                         paste0("comp", 1:5)))
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_free_svd' works - indep", {
-  prior <- SVDS(HMD, joint = FALSE)
-  levels_sexgender <- c("F", "M")
-  matrix_agesex <- matrix(0:485,
-                          nr = 162, 
-                          dimnames = list(paste(c(0:79, "80+"),
-                                                rep(c("F", "M"), each = 81),
-                                                sep = "."),
-                                          c("a", "b", "c")))
-  ans_obtained <- make_matrix_along_by_free_svd(prior = prior,
-                                                levels_sexgender = levels_sexgender,
-                                                matrix_agesex = matrix_agesex)
-  ans_expected <- matrix(0:29,
-                         nr = 10,
-                         dimnames = list(paste(rep(c("F", "M"), each = 5),
+test_that("'make_matrix_along_by_free_svd' works -  time x sex x age interaction - indep", {
+  prior <- SVDS_AR(HMD)
+  dimnames <- list(time = 2001:2003,
+                   sex = c("F", "M", "D"),
+                   age = c(0:79, "80+"))
+  var_age <- "age"
+  var_time <- "time"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    dimnames = dimnames)
+  ans_expected <- matrix(0:44,
+                         nr = 3,
+                         byrow = TRUE,
+                         dimnames = list(2001:2003,
+                                         paste(rep(c("F","M","D"), each = 5),
                                                paste0("comp", 1:5),
-                                               sep = "."),
-                                         c("a", "b", "c")))
+                                               sep = ".")))
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_along_by_free_svd' works -  time x sex x age interaction - joint", {
+  prior <- SVDS_AR(HMD, joint = TRUE)
+  dimnames <- list(time = 2001:2003,
+                   sex = c("F", "M"),
+                   age = c(0:79, "80+"))
+  var_age <- "age"
+  var_time <- "time"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    dimnames = dimnames)
+  ans_expected <- matrix(0:14,
+                         nr = 3,
+                         byrow = TRUE,
+                         dimnames = list(2001:2003,
+                                         paste0("comp", 1:5)))
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## 'make_matrix_effectfree_effect_svd' ----------------------------------------

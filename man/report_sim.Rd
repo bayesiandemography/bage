@@ -8,7 +8,6 @@ report_sim(
   mod_est,
   mod_sim = NULL,
   n_sim = 100,
-  center = TRUE,
   point_est_fun = c("median", "mean"),
   widths = c(0.5, 0.95),
   report_type = c("short", "long", "full"),
@@ -24,10 +23,6 @@ data. If no value is supplied, \code{mod_est} is used.}
 
 \item{n_sim}{Number of sets of simulated data to use.
 Default is 100.}
-
-\item{center}{Whether to centre effects (apart from
-an effect with an SVD-type prior) at 0.
-See below for details. Default is \code{TRUE}.}
 
 \item{point_est_fun}{Name of the function to use
 to calculate point estimates. The options are \code{"mean"}
@@ -101,12 +96,6 @@ When \code{mod_est} and \code{mod_sim} differ, the
 report omits \code{"hyper"}, and \code{"effect"},
 since, for most model specifications,
 these terms are not comparable across models.
-}
-
-\section{Centering}{
-
-
-TODO - COMPLETE THIS
 }
 
 \examples{

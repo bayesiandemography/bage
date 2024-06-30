@@ -157,38 +157,6 @@ get_n_comp_spline <- function(prior, n_along) {
 get_print_prior_n_offset <- function() 8L
 
 
-## HAS_TESTS
-#' Obtain Matrix and Offset for SVD Prior
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param levels_age Character vector with age levels
-#' @param levels_sexgender Character vector with sex/gender levels
-#' @param agesex Type of term. Output from function 'make_agesex'
-#'
-#' @returns A named list
-#'
-#' @noRd
-get_svd_mb <- function(prior, levels_age, levels_sexgender, agesex) {
-  ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
-  n_comp <- prior$specific$n_comp
-  m <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = TRUE,
-                                n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = FALSE,
-                                n_comp = n_comp)
-  list(m = m, b = b)
-}
-
 
 ## HAS_TESTS
 #' Infer the name of the age variable
@@ -367,6 +335,38 @@ make_const <- function(mod) {
     ans <- lapply(priors, const)
     ans <- unlist(ans)
     ans
+}
+
+
+#' Make Dimnames for Terms in Model
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list of lists
+#'
+#' @noRd
+make_dimnames_terms <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  ans <- list("(Intercept)" = list())
+  factors <- attr(stats::terms(formula), "factors")
+  if (length(factors) > 0L) {
+    factors <- factors[-1L, , drop = FALSE]
+    factors <- factors > 0L
+    nms_vars <- rownames(factors)
+    nms_terms <- colnames(factors)
+    ans_terms <- vector(mode = "list", length = length(nms_terms))
+    for (i_term in seq_along(nms_terms)) {
+      nms_vars_term <- nms_vars[factors[, i_term]]
+      data_term <- data[nms_vars_term]
+      data_term <- lapply(data_term, to_factor)
+      dimnames <- lapply(data_term, levels)
+      ans_terms[[i_term]] <- dimnames
+    }
+    names(ans_terms) <- nms_terms
+    ans <- c(ans, ans_terms)
+  }
+  ans
 }
 
 
@@ -956,18 +956,18 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
 #' @noRd
 make_matrices_along_by_free <- function(mod) {
   priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
-  matrices_agesex <- make_matrices_agesex(mod)
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  if (is.null(var_sexgender))
-    levels_sexgender <- NULL
-  else
-    levels_sexgender <- levels(to_factor(mod$data[[var_sexgender]]))
+  dimnames_terms <- make_dimnames_terms(mod)
+  matrices_along_by <- choose_matrices_along_by(mod)
   ans <- .mapply(make_matrix_along_by_free,
                  dots = list(prior = priors,
-                             matrix_along_by = matrices_along_by,
-                             matrix_agesex = matrices_agesex),
-                 MoreArgs = list(levels_sexgender = levels_sexgender))
+                             dimnames = dimnames_terms,
+                             matrix_along_by = matrices_along_by),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
   names(ans) <- names(priors)
   ans
 }
@@ -1101,7 +1101,7 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 
 ## HAS_TESTS
 #' Make an 'along_by' Matrix for Free Parameters
-#' for a Prior with an SVD Component
+#' for a Term with an SVD-Time Series Prior
 #'
 #' @param prior Object of class 'bage_prior'
 #' @param levels_sexgender Values taken by sex/gender
@@ -1112,30 +1112,37 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 #' @returns A matrix.
 #'
 #' @noRd
-make_matrix_along_by_free_svd <- function(prior,
-                                          levels_sexgender,
-                                          matrix_agesex) {
+make_matrix_along_by_free_svdtime <- function(prior,
+                                              var_time,
+                                              var_age,
+                                              var_sexgender,
+                                              dimnames) {
+  n_comp <- prior$specific$n_comp
   joint <- prior$specific$joint
   is_indep <- !is.null(joint) && !joint
-  n_comp <- prior$specific$n_comp
-  n_by <- ncol(matrix_agesex) ## excludes sex, if present
-  n_sexgender <- length(levels_sexgender)
+  labels_svd <- paste0("comp", seq_len(n_comp))
   if (is_indep) {
-    n_along_free <- n_sexgender * n_comp
-    rownames <- paste0(rep(levels_sexgender, each = n_comp),
-                       ".comp",
-                       seq_len(n_comp))
+    levels_sex <- dimnames[[var_sexgender]]
+    n_sex <- length(levels_sex)
+    n_svd <- n_sex * n_comp
+    labels_svd <- paste(rep(levels_sex, each = n_comp),
+                        labels_svd,
+                        sep = ".")
   }
-  else {
-    n_along_free <- n_comp
-    rownames <- paste0("comp", seq_len(n_comp))
-  }
-  colnames <- colnames(matrix_agesex)
-  matrix(seq.int(from = 0L, length.out = n_along_free * n_by),
-         nrow = n_along_free,
-         ncol = n_by,
-         dimnames = list(rownames, colnames))
+  else
+    n_svd <- n_comp
+  non_agesex <- setdiff(names(dimnames), c(var_age, var_sexgender))
+  dimnames <- dimnames[non_agesex]
+  dimnames <- c(list(labels_svd), dimnames)
+  dim <- lengths(dimnames, use.names = FALSE)
+  i_along <- match(var_time, names(dimnames)[-1L]) + 1L ## can't match first dim
+  ans <- make_matrix_along_by(i_along = i_along,
+                              dim = dim,
+                              dimnames = dimnames)
+  names(dimnames(ans)) <- NULL
+  ans
 }
+
 
 ## HAS_TESTS
 #' Make Matrix Mapping Effectfree to Effect for Priors with SVD
@@ -1166,7 +1173,7 @@ make_matrix_effectfree_effect_svd <- function(prior,
   joint <- prior$specific$joint
   n_comp <- prior$specific$n_comp
   n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  F <- get_matrix_or_offset_svd(ssvd = ssvd,
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
                                 joint = joint,
@@ -1174,9 +1181,9 @@ make_matrix_effectfree_effect_svd <- function(prior,
                                 get_matrix = TRUE,
                                 n_comp = n_comp)
   I <- Matrix::.sparseDiagonal(n_by)
-  m_inner <- Matrix::kronecker(I, F)
-  m_outer <- make_index_matrix(matrix_agesex)
-  m_outer %*% m_inner
+  m_all_by <- Matrix::kronecker(I, m)
+  agesex_to_standard <- make_index_matrix(matrix_agesex)
+  agesex_to_standard %*% m_all_by
 }
 
 
@@ -1208,7 +1215,7 @@ make_offset_effectfree_effect_svd <- function(prior,
   joint <- prior$specific$joint
   n_comp <- prior$specific$n_comp
   n_by <- ncol(matrix_agesex)  ## special meaning of 'n_by': excludes age and sex
-  g <- get_matrix_or_offset_svd(ssvd = ssvd,
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
                                 joint = joint,
@@ -1218,9 +1225,9 @@ make_offset_effectfree_effect_svd <- function(prior,
   ones <- Matrix::sparseMatrix(i = seq_len(n_by),
                                j = rep.int(1L, times = n_by),
                                x = rep.int(1L, times = n_by))
-  m_inner <- Matrix::kronecker(ones, g)
-  m_outer <- make_index_matrix(matrix_agesex)
-  ans <- m_outer %*% m_inner
+  b_all_by <- Matrix::kronecker(ones, b)
+  agesex_to_standard <- make_index_matrix(matrix_agesex)
+  ans <- agesex_to_standard %*% b_all_by
   ans <- Matrix::drop(ans)
   names(ans) <- levels_effect
   ans

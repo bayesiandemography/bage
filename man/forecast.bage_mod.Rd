@@ -13,8 +13,6 @@
 )
 }
 \arguments{
-\item{object}{An object of class \code{"bage_mod"}.}
-
 \item{output}{Type of output returned}
 
 \item{include_estimates}{Whether to

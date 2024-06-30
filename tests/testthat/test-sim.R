@@ -80,9 +80,8 @@ test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 1", {
   ans <- draw_vals_ar(coef = vals_hyper$coef,
                       sd = vals_hyper$sd,
                       matrix_along_by = matrix_along_by,
-                      n_sim = n_sim,
                       levels_effect = levels_effect)
-  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 2", {
@@ -95,9 +94,8 @@ test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 2", {
   ans <- draw_vals_ar(coef = vals_hyper$coef,
                       sd = vals_hyper$sd,
                       matrix_along_by = matrix_along_by,
-                      n_sim = n_sim,
                       levels_effect = levels_effect)
-  expect_identical(dimnames(ans), list(letters, as.character(1:10)))
+  expect_identical(dimnames(ans), list(letters, NULL))
 })
 
 
@@ -168,8 +166,10 @@ test_that("'draw_vals_components_unfitted' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_prior(mod, age:time ~ Sp())
   n_sim <- 2
-  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, center = FALSE)
+  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, standardize = TRUE)
   ans_est <- components(fit(mod))
   comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
                 all.y = TRUE)
@@ -210,13 +210,49 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
                                             vals_hyper = vals_hyper,
                                             n_sim = n_sim)
+  vals_spline <- draw_vals_spline_mod(mod = mod,
+                                      vals_hyper = vals_hyper,
+                                      n_sim = n_sim)
+  vals_svd <- draw_vals_svd_mod(mod = mod,
+                                      vals_hyper = vals_hyper,
+                                      n_sim = n_sim)
   ans <- draw_vals_effect_mod(mod,
                               vals_hyper = vals_hyper,
                               vals_hyperrand = vals_hyperrand,
+                              vals_spline = vals_spline,
+                              vals_svd = vals_svd,
                               n_sim = n_sim)
   expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
   expect_true(all(sapply(ans, ncol) == n_sim))
   expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
+})
+
+
+## 'draw_vals_effect_svd' -----------------------------------------------------
+
+test_that("'draw_vals_effect_svd' works with valid inputs", {
+  prior <- SVD(HMD)
+  vals_svd <- draw_vals_svd(prior = prior,
+                              vals_hyper = list(),
+                              matrix_along_by_free = matrix(0:24, nr = 5),
+                              levels_effectfree = paste(paste0("comp", 1:5),
+                                                        rep(c("a", "b", "c", "d", "e"),
+                                                            each = 5),
+                                                        sep = "."),
+                              n_sim = 10)
+  levels_age <- poputils::age_labels(type = "lt", max = 60)
+  levels_sexgender <- NULL
+  agesex <- "age:other"
+  matrix_agesex <- matrix(0:69, nc = 5)
+  levels_effect <- paste(levels_age, rep(c("a", "b", "c", "d", "e"), each = 14), sep = ".")
+  ans <- draw_vals_effect_svd(prior = prior,
+                              vals_svd = vals_svd,
+                              levels_age = levels_age,
+                              levels_sexgender = levels_sexgender,
+                              agesex = agesex,
+                              matrix_agesex = matrix_agesex,
+                              levels_effect = levels_effect)
+  expect_identical(dim(ans), c(70L, 10L))
 })
 
 
@@ -284,7 +320,7 @@ test_that("'draw_vals_lin' works - along dimension is first", {
   set.seed(0)
   ans_expected <- rnorm(n = 12 * n_sim, mean = mean, sd = sd)
   ans_expected <- matrix(ans_expected, ncol = n_sim)
-  dimnames(ans_expected) <- list(1:12, 1:n_sim)
+  dimnames(ans_expected) <- list(1:12, NULL)
   expect_equal(ans_obtained, ans_expected)  
 })
 
@@ -313,7 +349,7 @@ test_that("'draw_vals_lin' works - along dimension is second", {
   ans_expected <- matrix(rnorm(n = 12 * n_sim, mean = mean, sd = sd),
                          ncol = n_sim)
   ans_expected <- ans_expected[c(1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12),]
-  dimnames(ans_expected) <- list(1:12, 1:n_sim)
+  dimnames(ans_expected) <- list(1:12, NULL)
   expect_equal(ans_obtained, ans_expected)  
 })
 
@@ -347,7 +383,7 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   error <- draw_vals_ar_inner(n = 3, coef = coef, sd = sd)
   ans_expected <- mean + error
   ans_expected <- matrix(ans_expected, ncol = n_sim)
-  dimnames(ans_expected) <- list(1:12, 1:n_sim)
+  dimnames(ans_expected) <- list(1:12, NULL)
   expect_equal(ans_obtained, ans_expected)  
 })
 
@@ -359,19 +395,18 @@ test_that("'draw_vals_rw' works - n_by = 1", {
     prior <- RW()
     n_sim <- 1000
     sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-    labels <- 1:200
+    levels_effect <- 1:200
     matrix_along_by <- matrix(0:199, 200)
     set.seed(0)
     ans <- draw_vals_rw(sd = sd,
                         matrix_along_by = matrix_along_by,
-                        labels = labels)
+                        levels_effect = levels_effect)
     expect_equal(unname(apply(ans, 2, function(x) sd(diff(x)))),
                  sd,
                  tolerance = 0.05)
     expect_identical(dim(ans), c(200L, 1000L))
     expect_identical(dimnames(ans),
-                     list(as.character(seq_len(200)),
-                          as.character(seq_len(1000))))
+                     list(as.character(seq_len(200)), NULL))
 })
 
 test_that("'draw_vals_rw' works - along dimension is first", {
@@ -381,13 +416,13 @@ test_that("'draw_vals_rw' works - along dimension is first", {
   matrix_along_by <- matrix(0:2999, nc = 3)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  labels <- 1:3000
+  levels_effect <- 1:3000
   set.seed(0)
   ans <- draw_vals_rw(sd = sd,
                       matrix_along_by = matrix_along_by,
-                      labels = labels)
+                      levels_effect = levels_effect)
   expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  expect_identical(dimnames(ans), list(as.character(1:3000), NULL))
   ans <- matrix(ans, nrow = 1000)
   expect_equal(unname(apply(ans[2:1000,], 2, function(x) sd(diff(x)))),
                rep(sd, each = 3),
@@ -401,13 +436,13 @@ test_that("'draw_vals_rw' works - along dimension is second", {
   matrix_along_by <- t(matrix(0:2999, nc = 1000))
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  labels <- 1:3000
+  levels_effect <- 1:3000
   set.seed(0)
   ans <- draw_vals_rw(sd = sd,
                       matrix_along_by = matrix_along_by,
-                      labels = labels)
+                      levels_effect = levels_effect)
   expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  expect_identical(dimnames(ans), list(as.character(1:3000), NULL))
   ans <- array(ans, dim = c(3, 1000, 10))
   ans <- aperm(ans, perm = c(2, 1, 3))
   ans <- matrix(ans, nrow = 1000)
@@ -425,18 +460,16 @@ test_that("'draw_vals_rw2' works", {
   n_sim <- 1000
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   sd_slope <- 0.5
-  labels <- 1:100
+  levels_effect <- 1:100
   set.seed(0)
   ans <- draw_vals_rw2(sd = sd,
                        matrix_along_by = matrix(0:99, nr = 100),
-                       labels = labels)
+                       levels_effect = levels_effect)
   expect_equal(unname(apply(ans, 2, function(x) sd(diff(x, diff = 2)))),
                sd,
                tolerance = 0.1)
   expect_identical(dim(ans), c(100L, 1000L))
-  expect_identical(dimnames(ans),
-                   list(as.character(seq_len(100)),
-                        as.character(seq_len(1000))))
+  expect_identical(dimnames(ans), list(as.character(seq_len(100)), NULL))
 })
 
 test_that("'draw_vals_rw2' works - along dimension is first", {
@@ -446,13 +479,13 @@ test_that("'draw_vals_rw2' works - along dimension is first", {
   matrix_along_by <- matrix(0:2999, nc = 3)
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  labels <- 1:3000
+  levels_effect <- 1:3000
   set.seed(0)
   ans <- draw_vals_rw2(sd = sd,
                        matrix_along_by = matrix_along_by,
-                       labels = labels)
+                       levels_effect = levels_effect)
   expect_identical(dim(ans), c(3000L, 10L))
-  expect_identical(dimnames(ans), list(as.character(1:3000), as.character(1:10)))
+  expect_identical(dimnames(ans), list(as.character(1:3000), NULL))
   ans <- matrix(ans, nrow = 1000)
   expect_equal(unname(apply(ans[3:1000,], 2, function(x) sd(diff(x, diff = 2)))),
                rep(sd, each = 3),
@@ -575,30 +608,44 @@ test_that("'draw_vals_slope' works", {
 })
 
 
-## 'draw_vals_svd_time' -------------------------------------------------
+## draw_vals_spline_mod -------------------------------------------------------
 
-test_that("'draw_vals_svd_time' works with valid inputs", {
-  prior <- SVD(HMD)
-  levels_age <- poputils::age_labels(type = "lt", max = 60)
-  levels_sexgender <- NULL
-  agesex <- "age"
-  svd_mb <- get_svd_mb(prior = prior,
-                       levels_age = levels_age,
-                       levels_sexgender = levels_sexgender,
-                       agesex = agesex)
-  matrix_along_by <- matrix(0:69, nc = 5)
-  alpha_agesex <- draw_vals_rw(sd = runif(10),
-                               matrix_along_by = matrix_along_by,
-                               labels = 1:70)
-  matrix_agesex <- matrix_along_by
-  n_sim <- 10
-  levels_effect <- 1:70
-  ans <- draw_vals_svd_time(svd_mb = svd_mb,
-                            alpha_agesex = alpha_agesex,
-                            matrix_agesex = matrix_agesex,
-                            n_sim = n_sim,
-                            levels_effect = levels_effect)
-  expect_identical(dim(ans), c(70L, 10L))
+test_that("'draw_vals_spline_mod' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age ~ Sp(n_comp = 4))
+    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+    ans <- draw_vals_spline_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(dim(ans[["age"]]), c(4L, 10L))
+})
+
+
+## draw_vals_svd_mod -------------------------------------------------------
+
+test_that("'draw_vals_svd_mod' works", {
+    set.seed(0)
+    data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2000:2005,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age ~ SVD(HMD))
+    mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+    ans <- draw_vals_svd_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+    expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
+    expect_identical(dim(ans[["age"]]), c(5L, 10L))
 })
 
 
@@ -1083,97 +1130,6 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - parallel pr
 })
 
 
-## 'standardize_draws_effect' -------------------------------------------------
-
-test_that("'standardize_draws_effect' works with valid input - center = FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + age:sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
-  n_sim <- 2
-  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
-                                            vals_hyper = vals_hyper,
-                                            n_sim = n_sim)
-  vals_effect <- draw_vals_effect_mod(mod,
-                                      vals_hyper = vals_hyper,
-                                      vals_hyperrand = vals_hyperrand,
-                                      n_sim = n_sim)
-  ans <- standardize_draws_effect(mod = mod,
-                                  vals_effect = vals_effect,
-                                  center = FALSE)
-  m <- Matrix::as.matrix(make_combined_matrix_effect_outcome(mod))
-  x0 <- do.call(rbind, vals_effect)
-  x1 <- do.call(rbind, ans)
-  expect_equal(m %*% x0, m %*% x1, ignore_attr = "dimnames")
-})
-
-test_that("'standardize_draws_effect' works with valid input - center = TRUE, no SVD priors", {
-  set.seed(0)
-  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + age:sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  n_sim <- 2
-  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
-                                            vals_hyper = vals_hyper,
-                                            n_sim = n_sim)
-  vals_effect <- draw_vals_effect_mod(mod,
-                                      vals_hyper = vals_hyper,
-                                      vals_hyperrand = vals_hyperrand,
-                                      n_sim = n_sim)
-  ans <- standardize_draws_effect(mod = mod,
-                                  vals_effect = vals_effect,
-                                  center = TRUE)
-  m <- Matrix::as.matrix(make_combined_matrix_effect_outcome(mod))
-  x0 <- do.call(rbind, vals_effect)
-  x1 <- do.call(rbind, ans)
-  expect_equal(scale(m %*% x0, center = TRUE, scale = FALSE), m %*% x1,
-               ignore_attr = c("dimnames", "scaled:center"))
-})
-
-test_that("'standardize_draws_effect' works with valid input - center = TRUE, has SVD priors", {
-  set.seed(0)
-  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2002, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + age:sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age ~ SVD(HMD))
-  n_sim <- 2
-  vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
-  vals_hyperrand <- draw_vals_hyperrand_mod(mod,
-                                            vals_hyper = vals_hyper,
-                                            n_sim = n_sim)
-  vals_effect <- draw_vals_effect_mod(mod,
-                                      vals_hyper = vals_hyper,
-                                      vals_hyperrand = vals_hyperrand,
-                                      n_sim = n_sim)
-  ans <- standardize_draws_effect(mod = mod,
-                                  vals_effect = vals_effect,
-                                  center = TRUE)
-  m <- Matrix::as.matrix(make_combined_matrix_effect_outcome(mod))
-  x0 <- do.call(rbind, vals_effect)
-  mean_age <- apply(vals_effect[[2]], 2, mean)
-  x1 <- do.call(rbind, ans)
-  expect_equal(scale(m %*% x0, center = TRUE, scale = FALSE) +
-                 rep(mean_age, each = nrow(m)),
-               m %*% x1,
-               ignore_attr = c("dimnames", "scaled:center"))
-})
-
-
 ## 'vals_disp_to_dataframe' ---------------------------------------------------
 
 test_that("'draw_vals_disp' works with 'bage_mod_pois'", {
@@ -1211,9 +1167,17 @@ test_that("'vals_effect_to_dataframe' works", {
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
                                             vals_hyper = vals_hyper,
                                             n_sim = n_sim)
+  vals_spline <- draw_vals_spline_mod(mod,
+                                      vals_hyper = vals_hyper,
+                                      n_sim = n_sim)
+  vals_svd <- draw_vals_svd_mod(mod,
+                                vals_hyper = vals_hyper,
+                                n_sim = n_sim)
   vals_effect <- draw_vals_effect_mod(mod,
                                       vals_hyper = vals_hyper,
                                       vals_hyperrand = vals_hyperrand,
+                                      vals_spline = vals_spline,
+                                      vals_svd = vals_svd,
                                       n_sim = n_sim)
   ans_obtained <- vals_effect_to_dataframe(vals_effect)
   ans_expected <- tibble::tibble(term = rep(c("(Intercept)", "age", "time", "sex", "age:time"),
@@ -1226,4 +1190,207 @@ test_that("'vals_effect_to_dataframe' works", {
                                            paste(0:9, rep(2000:2005, each = 10), sep = ".")),
                                  .fitted = rvec::rvec(unname(do.call(rbind, vals_effect))))
   expect_equal(ans_obtained, ans_expected)
+})
+
+
+## vals_hyper_to_dataframe ----------------------------------------------------
+
+test_that("'vals_hyper_to_dataframe' works", {
+  set.seed(0)
+  n_sim <- 5
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2009,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age ~ AR())
+  vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = n_sim)
+  ans <- vals_hyper_to_dataframe(mod, vals_hyper = vals_hyper, n_sim = n_sim)
+  expect_setequal(names(ans), c("term", "component", "level", ".fitted"))
+})
+
+## vals_hyper_to_dataframe_one ------------------------------------------------
+
+test_that("'vals_hyper_to_dataframe_one' works", {
+  prior <- AR(n_coef = 3)
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe_one(nm = "time",
+                                              vals_hyper = vals_hyper,
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyper",
+                                 level = c("coef1", "coef2", "coef3", "sd"),
+                                 .fitted = rvec::rvec(unname(rbind(vals_hyper[[1]], vals_hyper[[2]]))))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyper_to_dataframe_one' works", {
+  prior <- NFix()
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = 10)
+  ans_obtained <- vals_hyper_to_dataframe_one(vals_hyper = vals_hyper,
+                                              nm = "time",
+                                              n_sim = 10)
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec_dbl(matrix(0, nr = 0, nc = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## vals_hyperrand_to_dataframe ------------------------------------------------
+
+test_that("'vals_hyper_to_dataframe' works", {
+  set.seed(0)
+  n_sim <- 5
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2009,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age ~ AR())
+  vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,
+                                            vals_hyper = vals_hyper,
+                                            n_sim = n_sim)
+  ans <- vals_hyper_to_dataframe(mod, vals_hyper = vals_hyper, n_sim = n_sim)
+  expect_setequal(names(ans), c("term", "component", "level", ".fitted"))
+})
+
+
+## vals_hyperrand_to_dataframe_one --------------------------------------------
+
+test_that("'vals_hyperrand_to_dataframe_one' works with 'bage_prior_ar'", {
+  prior <- AR(n_coef = 3)
+  vals_hyperrand <- list()
+  ans_obtained <- vals_hyperrand_to_dataframe_one(nm = "time",
+                                                  vals_hyperrand = vals_hyperrand,
+                                                  n_sim = 10)
+  ans_expected <- tibble::tibble(term = character(),
+                                 component = character(),
+                                 level = character(),
+                                 .fitted = rvec::rvec(matrix(0, nrow = 1, ncol = 10)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'vals_hyperrand_to_dataframe_one' works with bage_prior_lin", {
+  set.seed(0)
+  prior <- Lin()
+  vals_hyperrand <- list(slope = matrix(rnorm(30), nr = 3))
+  ans_obtained <- vals_hyperrand_to_dataframe_one(vals_hyperrand = vals_hyperrand,
+                                                  nm = "time",
+                                                  n_sim = 10)
+  ans_expected <- tibble::tibble(term = "time",
+                                 component = "hyperrand",
+                                 level = c("slope", "slope", "slope"),
+                                 .fitted = rvec::rvec(vals_hyperrand$slope))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'vals_spline_to_dataframe' -------------------------------------------------
+
+test_that("'vals_spline_to_dataframe' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp(n_comp = 4))
+  mod <- set_prior(mod, time ~ Sp(n_comp = 4))
+  vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+  vals_spline <- draw_vals_spline_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+  ans <- vals_spline_to_dataframe(mod = mod,
+                                  vals_spline = vals_spline,
+                                  n_sim = 10)
+  expect_setequal(names(ans), c("term", "component", "level", ".fitted"))
+})
+
+
+## 'vals_spline_to_dataframe_one' ---------------------------------------------
+
+test_that("'vals_spline_to_dataframe_one' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * time + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age ~ Sp(n_comp = 4))
+    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+    vals_spline <- draw_vals_spline_mod(mod, vals_hyper = vals_hyper, n_sim = 10)$age
+    ans_obtained <- vals_spline_to_dataframe_one(vals_spline = vals_spline,
+                                                 nm = "age",
+                                                 n_sim = 10)
+    ans_expected <- tibble::tibble(term = "age",
+                                 component = "spline",
+                                 level = paste0("comp", 1:4),
+                                 .fitted = rvec::rvec(unname(vals_spline)))
+    expect_identical(ans_obtained, ans_expected)                                                 
+})
+
+
+## 'vals_svd_to_dataframe' ----------------------------------------------------
+
+test_that("'vals_svd_to_dataframe' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp(n_comp = 4))
+  mod <- set_prior(mod, time ~ Sp(n_comp = 4))
+  vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+  vals_svd <- draw_vals_svd_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
+  ans <- vals_svd_to_dataframe(mod = mod,
+                               vals_svd = vals_svd,
+                               n_sim = 10)
+  expect_setequal(names(ans), c("term", "component", "level", ".fitted"))
+})
+
+
+## 'vals_svd_to_dataframe_one' ------------------------------------------------
+
+test_that("'vals_svd_to_dataframe_one' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ SVD(HMD, n_comp = 4))
+  vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+  vals_svd <- draw_vals_svd_mod(mod, vals_hyper = vals_hyper, n_sim = 10)$age
+  ans_obtained <- vals_svd_to_dataframe_one(vals_svd = vals_svd,
+                                            nm = "age",
+                                            n_sim = 10)
+  ans_expected <- tibble::tibble(term = "age",
+                                 component = "svd",
+                                 level = paste0("comp", 1:4),
+                                 .fitted = rvec::rvec(unname(vals_svd)))
+  expect_identical(ans_obtained, ans_expected)                                                 
 })

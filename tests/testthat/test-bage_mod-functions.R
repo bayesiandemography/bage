@@ -45,7 +45,7 @@ test_that("'set_n_draw' works with valid inputs", {
     ans_obtained <- mod$n_draw
     ans_expected <- 10L
     expect_identical(ans_obtained, ans_expected)
-    expect_identical(ncol(mod$draws_linpred), 10L)
+    expect_identical(ncol(mod$draws_effectfree), 10L)
     expect_identical(ncol(mod$draws_hyper), 10L)
     expect_identical(ncol(mod$draws_hyperrand), 10L)
     expect_identical(length(mod$draws_disp), 10L)
@@ -279,7 +279,7 @@ test_that("'set_n_draw' works with valid inputs", {
     expect_identical(mod$is_fixed, mod_fit_unfit$is_fixed)
     expect_identical(mod$R_prec, mod_fit_unfit$R_prec)
     expect_identical(mod$scaled_eigen, mod_fit_unfit$scaled_eigen)
-    expect_identical(mod$draws_linpred, mod_fit_unfit$draws_linpred)
+    expect_identical(mod$draws_effectfree, mod_fit_unfit$draws_effectfree)
     expect_identical(mod$draws_hyper, mod_fit_unfit$draws_hyper)
     expect_identical(mod$draws_hyperrand, mod_fit_unfit$draws_hyperrand)
     expect_identical(mod$draws_disp, mod_fit_unfit$draws_disp)

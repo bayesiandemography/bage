@@ -67,24 +67,6 @@ check_bage_mod <- function(x, nm_x) {
 
 
 ## HAS_TESTS
-#' Check that 'center' has Default Value when Model is Fitted
-#'
-#' Throw a message (not an error) if it is
-#'
-#' @param center Supplied for 'center' argument
-#' @param default Default value for 'center' argument
-#'
-#' @returns TRUE invisibly
-#'
-#' @noRd
-check_center_is_default <- function(center, default) {
-  if (!identical(center, default))
-    cli::cli_alert_info("Non-default value for {.arg center} ignored when model has been fitted.")
-  invisible(TRUE)
-}
-
-
-## HAS_TESTS
 #' Check a Logical Flag
 #'
 #' @param x TRUE or FALSE

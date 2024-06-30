@@ -104,10 +104,9 @@ set_n_draw <- function(mod, n_draw = 1000L) {
       mod <- make_stored_draws(mod)
     if (n_draw < n_draw_old) {
       s <- seq_len(n_draw)
-      mod$draws_linpred <- mod$draws_linpred[, s, drop = FALSE] 
+      mod$draws_effectfree <- mod$draws_effectfree[, s, drop = FALSE] 
       mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
       mod$draws_hyperrand <- mod$draws_hyperrand[, s, drop = FALSE]
-      mod$draws_svd <- mod$draws_svd[, s, drop = FALSE]
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
     }
@@ -193,6 +192,7 @@ set_prior <- function(mod, formula) {
                        matrix_along_by = matrix_along_by,
                        var_time = var_time,
                        var_age = var_age,
+                       var_sexgender = var_sexgender,
                        agesex = agesex)
   mod$priors[[i]] <- prior
   mod <- unfit(mod)
@@ -470,10 +470,9 @@ unfit <- function(mod) {
     mod["is_fixed"] <- list(NULL)
     mod["R_prec"] <- list(NULL)
     mod["scaled_eigen"] <- list(NULL)
-    mod["draws_linpred"] <- list(NULL)
+    mod["draws_effectfree"] <- list(NULL)
     mod["draws_hyper"] <- list(NULL)
     mod["draws_hyperrand"] <- list(NULL)
-    mod["draws_svd"] <- list(NULL)
     mod["draws_disp"] <- list(NULL)
     mod
 }

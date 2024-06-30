@@ -4,13 +4,10 @@
 \alias{augment.bage_mod}
 \title{Extract Data and Modelled Values}
 \usage{
-\method{augment}{bage_mod}(x, center = FALSE, quiet = FALSE, ...)
+\method{augment}{bage_mod}(x, quiet = FALSE, ...)
 }
 \arguments{
 \item{x}{An object of class \code{"bage_mod"}.}
-
-\item{center}{Whether to center simulation draws.
-Used only with unfitted models. See below for details.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -22,7 +19,7 @@ A \link[tibble:tibble-package]{tibble}, with the original
 data plus the following columns:
 \itemize{
 \item \code{.observed} 'Direct' estimates of rates or
-probabilities, ie counts divided by exposure orsize
+probabilities, ie counts divided by exposure or size
 (in Poisson and binomial models.)
 \item \code{.fitted} Draws of rates, probabilities,
 or means.
@@ -53,12 +50,6 @@ are draws from the joint prior distribution.
 In other words, the modelled values are informed by
 model priors, and by any \code{exposure}, \code{size}, or \code{weights}
 arguments in the model, but not by the observed outcomes.
-}
-
-\section{The 'center' argument}{
-
-
-TODO - WRITE THIS
 }
 
 \examples{

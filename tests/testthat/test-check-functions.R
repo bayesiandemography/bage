@@ -64,16 +64,6 @@ test_that("'check_bage_mod' returns expected error message with invalid model ob
 })
 
 
-## 'check_center_is_default' ------------------------------------------------------------
-
-test_that("'check_center_is_default' works", {
-  expect_true(check_center_is_default(center = FALSE, default = FALSE))
-  expect_true(check_center_is_default(center = TRUE, default = TRUE))
-  expect_message(check_center_is_default(center = TRUE, default = FALSE),
-                 "Non-default value for `center` ignored when model has been fitted.")
-})              
-
-
 ## 'check_flag' ---------------------------------------------------------------
 
 test_that("'check_flag' returns TRUE with valid inputs", {
