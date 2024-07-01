@@ -7,6 +7,10 @@
 \method{components}{bage_mod}(object, standardize = TRUE, quiet = FALSE, ...)
 }
 \arguments{
+\item{object}{A \code{bage_mod} object,
+typically created with \code{\link[=mod_pois]{mod_pois()}},
+\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
 \item{standardize}{Whether to standardize
 parameter estimates. See below for details.
 Default is \code{TRUE}.}

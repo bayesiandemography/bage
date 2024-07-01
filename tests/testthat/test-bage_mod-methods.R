@@ -1058,6 +1058,7 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1065,7 +1066,7 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   ans <- forecast_augment(mod = mod,
                           components_est = components_est,
                           components_forecast = components_forecast,
-                          labels_forecast = labels_forecast)
+                          data_forecast = data_forecast)
   aug_est <- augment(mod)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1087,6 +1088,7 @@ test_that("'forecast_augment' works - binomial, no disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1094,7 +1096,7 @@ test_that("'forecast_augment' works - binomial, no disp", {
   ans <- forecast_augment(mod = mod,
                           components_est = components_est,
                           components_forecast = components_forecast,
-                          labels_forecast = labels_forecast)
+                          data_forecast = data_forecast)
   aug_est <- augment(mod)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1115,6 +1117,7 @@ test_that("'forecast_augment' works - normal", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1122,7 +1125,7 @@ test_that("'forecast_augment' works - normal", {
   ans <- forecast_augment(mod = mod,
                           components_est = components_est,
                           components_forecast = components_forecast,
-                          labels_forecast = labels_forecast)
+                          data_forecast = data_forecast)
   aug_est <- augment(mod)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)

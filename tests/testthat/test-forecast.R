@@ -394,3 +394,52 @@ test_that("'forecast_components' works", {
   expect_setequal(ans$sex, data$sex)
   expect_setequal(ans$time, 2006:2008)
 })
+
+
+## 'standardize_component' ----------------------------------------------------
+
+test_that("'standardize_component' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- set_prior(mod, time ~ RW_Seas(n_seas = 2))
+  mod <- fit(mod)
+  components <- components(mod)
+  component <- split(components(mod), f = components$component)$trend
+  ans_obtained <- standardize_component(mod, component = component)
+  matrices_along_by <- choose_matrices_along_by(mod)
+  ans_expected <- component
+  ans_expected$.fitted <- center_within_across_by(ans_expected$.fitted,
+                                                  matrix_along_by = matrices_along_by$time)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'standardize_components_forecasts' -----------------------------------------
+
+test_that("'standardize_components_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  data_forecast <- components[FALSE, ]
+  ans_obtained <- standardize_components_forecast(mod,
+                                                  components = components,
+                                                  data_forecast = data_forecast)
+  ans_expected <- components(mod, standardize = TRUE)
+  expect_equal(ans_obtained, ans_expected)
+})
+

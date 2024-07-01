@@ -157,6 +157,9 @@ generics::components
 #' By default, these paramters are also standardized.
 #'
 #' @inheritParams augment.bage_mod
+#' @param object A `bage_mod` object,
+#' typically created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
 #' Default is `TRUE`.
@@ -660,7 +663,9 @@ generics::forecast
 #' The interface for `forecast()` has not been finalised
 #' and is likely to change in the near future.
 #'
-#' @inheritParams components.bage_mod
+#' @param object A `bage_mod` object,
+#' typically created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
 #' @param labels Labels for future values. WARNING
 #' this argument is only temporary.
 #' @param output Type of output returned
@@ -717,7 +722,9 @@ forecast.bage_mod <- function(object,
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
-  components_est <- components(object)
+  components_est <- components(object, standardize = FALSE)
+  data_forecast <- make_data_forecast(mod = object,
+                                      labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
@@ -732,7 +739,7 @@ forecast.bage_mod <- function(object,
     ans <- forecast_augment(mod = object,
                             components_est = components_est,
                             components_forecast = components_forecast,
-                            labels_forecast = labels)
+                            data_forecast = data_forecast)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
       augment_est <- augment(object)
@@ -740,16 +747,22 @@ forecast.bage_mod <- function(object,
     }
   }
   else if (output == "components") {
-    ans <- components_forecast
-    if (include_estimates) {
-      ans <- vctrs::vec_rbind(components_est, ans)
-      ans <- sort_components(components = ans, mod = object)
-    }
+    components_est$is_forecast <- FALSE
+    components_forecast$is_forecast <- TRUE
+    components <- vctrs::vec_rbind(components_est, components_forecast)
+    components <- sort_components(components = components, mod = object)
+    components <- standardize_components_forecast(mod = object,
+                                                  components = components,
+                                                  data_forecast = data_forecast)
+    if (!include_estimates)
+      components <- components[components$is_forecast, , drop = FALSE]
+    ans <- components[-match("is_forecast", names(components))]
   }
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg output}.") ## nocov
   ans
 }
+
 
 
 ## 'forecast_augment' ---------------------------------------------------------
@@ -761,8 +774,9 @@ forecast.bage_mod <- function(object,
 #' of call to 'components'.
 #' @param components_forecast Tibble with results
 #' of call to 'forecast_components'.
-#' @param labels_forecast Vector
-#' with labels for future time periods
+#' @param data_forecast Data frame with
+#' values of classifying variables for
+#' future time periods
 #'
 #' @returns A tibble.
 #'
@@ -770,7 +784,7 @@ forecast.bage_mod <- function(object,
 forecast_augment <- function(mod,
                              components_est,
                              components_forecast,
-                             labels_forecast) {
+                             data_forecast) {
   UseMethod("forecast_augment")
 }
 
@@ -779,12 +793,10 @@ forecast_augment <- function(mod,
 forecast_augment.bage_mod <- function(mod,
                                       components_est,
                                       components_forecast,
-                                      labels_forecast) {
+                                      data_forecast) {
   formula <- mod$formula
   has_disp <- has_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
-  data_forecast <- make_data_forecast(mod = mod,
-                                      labels_forecast = labels_forecast)
   matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
                                                           data = data_forecast)
   matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
@@ -819,11 +831,9 @@ forecast_augment.bage_mod <- function(mod,
 forecast_augment.bage_mod_norm <- function(mod,
                                            components_est,
                                            components_forecast,
-                                           labels_forecast) {
+                                           data_forecast) {
   formula <- mod$formula
   scale_outcome <- get_fun_scale_outcome(mod)
-  data_forecast <- make_data_forecast(mod = mod,
-                                      labels_forecast = labels_forecast)
   matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
                                                           data = data_forecast)
   matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
