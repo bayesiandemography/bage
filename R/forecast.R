@@ -323,3 +323,76 @@ make_data_forecast <- function(mod, labels_forecast) {
   ans <- ans[-i_original, ]
   ans
 }
+
+
+## HAS_TESTS
+#' Standardize trend, cyclical, seasonal, error Terms
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param component Rows from 'components'
+#' for a type of component
+#'
+#' @return A modified version of 'component'
+#'
+#' @noRd
+standardize_component <- function(mod, component) {
+  matrices_along_by <- choose_matrices_along_by(mod)
+  terms <- split(x = component, f = component$term)
+  nms_terms <- names(terms)
+  for (i in seq_along(terms)) {
+    nm_term <- nms_terms[[i]]
+    matrix_along_by <- matrices_along_by[[nm_term]]
+    terms[[i]]$.fitted <- center_within_across_by(x = terms[[i]]$.fitted,
+                                                  matrix_along_by = matrix_along_by)
+  }
+  vctrs::vec_rbind(!!!terms)
+}
+
+
+## HAS_TESTS
+#' Standardize 'effect', 'spline' and 'svd' Values in
+#' Forecasted Components
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param components Data frame with combined results for
+#' estimates and forecasts
+#' @param data_forecasts Data frame with data for forecasts
+#'
+#' @return Modified version of 'components'
+#'
+#' @noRd
+standardize_components_forecast <- function(mod,
+                                            components,
+                                            data_forecast) {
+  mod <- add_newdata_to_model(mod = mod, newdata = data_forecast)
+  ## effect
+  is_effects <- components$component == "effect"
+  effects <- components$.fitted[is_effects]
+  effects <- standardize_effects(mod = mod, effects = effects)
+  components$.fitted[is_effects] <- effects
+  ## trend, cyclical, seasonal, error
+  for (nm in c("trend", "cyclical", "seasonal", "error")) {
+    is_component <- components$component == nm
+    if (any(is_component)) {
+      component <- components[is_component, , drop = FALSE]
+      component <- standardize_component(mod = mod, component = component)
+      components[is_component, ] <- component
+    }
+  }
+  ## spline
+  is_spline <- components$component == "spline"
+  spline <- components$.fitted[is_spline]
+  spline <- standardize_spline(mod = mod, spline = spline)
+  components$.fitted[is_spline] <- spline
+  ## svd
+  is_svd <- components$component == "svd"
+  svd <- components$.fitted[is_svd]
+  svd <- standardize_svd(mod = mod, svd = svd)
+  components$.fitted[is_svd] <- svd
+  ## returns
+  components
+}
+
+
+  
+  

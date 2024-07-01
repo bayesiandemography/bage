@@ -1,5 +1,37 @@
 
-
+#' Revise Model to Include New Data
+#'
+#' Includes unfitting model
+#'
+#' Does not include updating of
+#' 'outcome_mean', 'outcome_sd',
+#' or 'offset'.
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param newdata Data frame with new rows of data
+#'
+#' @returns Revised version of 'mod'
+#'
+#' @noRd
+add_newdata_to_model <- function(mod, newdata) {
+  mod <- unfit(mod)
+  formula <- mod$formula
+  data <- vctrs::vec_rbind(mod$data, newdata)
+  mod$data <- data
+  mod$outcome <- make_outcome(formula = formula,
+                              data = data)
+  mod$matrices_along_by <- make_matrices_along_by(formula = formula,
+                                                  data = data)
+  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
+                                                          data = data)
+  mod$matrices_effect_outcome <- matrices_effect_outcome
+  mod$levels_effect <- make_levels_effect(matrices_effect_outcome)
+  mod$terms_effect <- make_terms_effect(matrices_effect_outcome)
+  mod$lengths_effect <- make_lengths_effect(matrices_effect_outcome)
+  mod
+}
+                      
+                      
 ## HAS_TESTS
 #' Center Values Within and Across Each Combination of By Variables
 #'
@@ -309,6 +341,7 @@ make_draws_components <- function(mod, standardize) {
   }
   ## return
   ans <- unname(ans)
+  dimnames(vctrs::field(ans, "data")) <- NULL ## TODO - remove this when rvec updated
   ans
 }
 

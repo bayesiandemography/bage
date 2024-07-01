@@ -13,6 +13,10 @@
 )
 }
 \arguments{
+\item{object}{A \code{bage_mod} object,
+typically created with \code{\link[=mod_pois]{mod_pois()}},
+\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
 \item{output}{Type of output returned}
 
 \item{include_estimates}{Whether to
