@@ -1022,7 +1022,7 @@ test_that("'forecast' gives same answer when run twice - output is 'components'"
                    output = "comp")
   ans2 <- forecast(mod,
                    labels = 2005:2006,
-                   output = "comp")
+                   output = "components")
   expect_identical(ans1, ans2)
 })
 
