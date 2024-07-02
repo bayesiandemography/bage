@@ -326,6 +326,79 @@ make_data_forecast <- function(mod, labels_forecast) {
 
 
 ## HAS_TESTS
+#' Make Mapping Between 'level' Value from Final Year of Estimates
+#' and 'level' Value from Forecasts
+#'
+#' Helper function for 'standardize_forecast'
+#'
+#' @param mod Objec of class 'bage_mod'
+#' @param labels_forecast Vector
+#'
+#' @returns Tibble
+#'
+#' @noRd
+make_mapping_final_time <- function(mod, labels_forecast) {
+  var_time <- mod$var_time
+  dimnames_terms <- make_dimnames_terms(mod)
+  nms_terms <- names(dimnames_terms)
+  ans <- vector(mode = "list", length = length(nms_terms))
+  final_time <- utils::tail(dimnames_terms[[var_time]][[var_time]], n = 1L)
+  final_time <- as.character(final_time)
+  for (i in seq_along(dimnames_terms)) {
+    nm_term <- nms_terms[[i]]
+    nm_term_split <- strsplit(nm_term, split = ":")[[1L]]
+    has_time <- var_time %in% nm_term_split
+    if (has_time) {
+      dn <- dimnames_terms[[i]]
+      dn[[var_time]] <- as.character(labels_forecast)
+      level <- vctrs::vec_expand_grid(!!!dn)
+      level_final <- replace(level, var_time, final_time)
+      level <- Reduce(paste_dot, level)
+      level_final <- Reduce(paste_dot, level_final)
+      val <- tibble::tibble(level = level,
+                            level_final = level_final)
+      ans[[i]] <- val
+    }
+  }
+  vctrs::vec_rbind(!!!ans)
+}
+
+
+## HAS_TESTS
+#' Extract the 'term' and 'level' Values for the Last Period
+#' of 'components'
+#'
+#' Helper function for 'standardize_forecast'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A tibble
+#'
+#' @noRd
+make_term_level_final_time <- function(mod) {
+  var_time <- mod$var_time
+  dimnames_terms <- make_dimnames_terms(mod)
+  nms_terms <- names(dimnames_terms)
+  ans <- vector(mode = "list", length = length(nms_terms))
+  for (i in seq_along(dimnames_terms)) {
+    nm_term <- nms_terms[[i]]
+    nm_term_split <- strsplit(nm_term, split = ":")[[1L]]
+    has_time <- var_time %in% nm_term_split
+    if (has_time) {
+      dn <- dimnames_terms[[i]]
+      dn[[var_time]] <- utils::tail(dn[[var_time]], 1L)
+      level <- vctrs::vec_expand_grid(!!!dn)
+      level <- Reduce(paste_dot, level)
+      val <- tibble::tibble(term = nm_term,
+                            level = level)
+      ans[[i]] <- val
+    }
+  }
+  vctrs::vec_rbind(!!!ans)
+}
+
+
+## HAS_TESTS
 #' Standardize trend, cyclical, seasonal, error Terms
 #'
 #' @param mod Object of class 'bage_mod'
@@ -350,48 +423,51 @@ standardize_component <- function(mod, component) {
 
 
 ## HAS_TESTS
-#' Standardize 'effect', 'spline' and 'svd' Values in
-#' Forecasted Components
+#' Standardize Forecasted 'components' Values
+#'
+#' Standardization consists of adding the quantity
+#' (standardized_val_final_est_period - unstandardized_valu_final_est_period)
+#' to all forecasted values - within each combination of the 'by' variables.
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param components Data frame with combined results for
-#' estimates and forecasts
-#' @param data_forecasts Data frame with data for forecasts
+#' @param comp_forecast Unstandardized forecast of 'components'
+#' @param comp_est_st Standardized estimates of 'components'
+#' @param comp_est_unst Unstandardized estimates of 'components'
+#' @param labels_forecast Time labels for forecasted periods
 #'
-#' @return Modified version of 'components'
-#'
+#' @returns A tibble
+#' 
 #' @noRd
-standardize_components_forecast <- function(mod,
-                                            components,
-                                            data_forecast) {
-  mod <- add_newdata_to_model(mod = mod, newdata = data_forecast)
-  ## effect
-  is_effects <- components$component == "effect"
-  effects <- components$.fitted[is_effects]
-  effects <- standardize_effects(mod = mod, effects = effects)
-  components$.fitted[is_effects] <- effects
-  ## trend, cyclical, seasonal, error
-  for (nm in c("trend", "cyclical", "seasonal", "error")) {
-    is_component <- components$component == nm
-    if (any(is_component)) {
-      component <- components[is_component, , drop = FALSE]
-      component <- standardize_component(mod = mod, component = component)
-      components[is_component, ] <- component
-    }
-  }
-  ## spline
-  is_spline <- components$component == "spline"
-  spline <- components$.fitted[is_spline]
-  spline <- standardize_spline(mod = mod, spline = spline)
-  components$.fitted[is_spline] <- spline
-  ## svd
-  is_svd <- components$component == "svd"
-  svd <- components$.fitted[is_svd]
-  svd <- standardize_svd(mod = mod, svd = svd)
-  components$.fitted[is_svd] <- svd
-  ## returns
-  components
+standardize_forecast <- function(mod,
+                                 comp_forecast,
+                                 comp_est_st,
+                                 comp_est_unst,
+                                 labels_forecast) {
+  ## obtain values for 'term' and 'level' for final period of estimates
+  term_level <- make_term_level_final_time(mod)
+  ## create mapping between levels for final period of estimates and levels for forecasts
+  mapping <- make_mapping_final_time(mod = mod, labels_forecast = labels_forecast)
+  ## obtain values of .fitted for time-varying quantities for final period of estimates
+  tail_unst <- merge(comp_est_unst, term_level, by = c("term", "level"))
+  tail_st <- merge(comp_est_st, term_level, by = c("term", "level"))
+  names(tail_unst)[match(".fitted", names(tail_unst))] <- "nonstandardized"
+  names(tail_st)[match(".fitted", names(tail_st))] <- "standardized"
+  ## calculate difference between standardized and non-standardized .fitted in final period
+  diff <- merge(tail_unst, tail_st, by = c("term", "level", "component"))
+  diff$diff <- diff$standardized - diff$nonstandardized
+  names(diff)[match("level", names(diff))] <- "level_final"
+  ## attach differences to forecasts
+  ans <- merge(comp_forecast, mapping, by = "level")
+  ans <- merge(ans, diff, by = c("term", "component", "level_final"))
+  ## revise forecasts
+  ans$.fitted <- ans$.fitted + ans$diff
+  ans <- ans[c("term", "component", "level", ".fitted")]
+  ## return
+  ans
 }
+    
+    
+
 
 
   

@@ -396,6 +396,40 @@ test_that("'forecast_components' works", {
 })
 
 
+## 'make_mapping_final_time' -----------------------------------------------
+
+test_that("'make_mapping_time' works", {
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  ans_obtained <- make_mapping_final_time(mod, labels_forecast = 2006)
+  ans_expected <- tibble::tibble(level = c("2006", "F.2006", "M.2006"),
+                                 level_final = c("2005", "F.2005", "M.2005"))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_term_level_final_time' -----------------------------------------------
+
+test_that("'make_term_level_final_time' works", {
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  ans_obtained <- make_term_level_final_time(mod)
+  ans_expected <- tibble::tibble(term = c("time", "sex:time", "sex:time"),
+                                 level = c("2005", "F.2005", "M.2005"))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'standardize_component' ----------------------------------------------------
 
 test_that("'standardize_component' works", {
@@ -421,9 +455,9 @@ test_that("'standardize_component' works", {
 })
 
 
-## 'standardize_components_forecasts' -----------------------------------------
+## 'standardize_forecast' -----------------------------------------------------
 
-test_that("'standardize_components_forecast' works", {
+test_that("'standardize_forecast' works", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
@@ -434,12 +468,16 @@ test_that("'standardize_components_forecast' works", {
                   exposure = exposure)
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
-  components <- components(mod, standardize = FALSE)
-  data_forecast <- components[FALSE, ]
-  ans_obtained <- standardize_components_forecast(mod,
-                                                  components = components,
-                                                  data_forecast = data_forecast)
-  ans_expected <- components(mod, standardize = TRUE)
-  expect_equal(ans_obtained, ans_expected)
+  components_est_unst <- components(mod, standardize = FALSE)
+  components_est_st <- components(mod, standardize = TRUE)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est_unst,
+                                             labels_forecast = 2006:2007)
+  ans_obtained <- standardize_forecast(mod = mod,
+                                       comp_forecast = components_forecast,
+                                       comp_est_st = components_est_st,
+                                       comp_est_unst = components_est_unst,
+                                       labels_forecast = 2006:2007)
 })
+
 

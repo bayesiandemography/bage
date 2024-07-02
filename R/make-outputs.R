@@ -435,31 +435,6 @@ make_draws_hyperrand <- function(mod, draws_post) {
 }
 
 
-## ## HAS_TESTS
-## #' Make Draws from the Linear Predictor Formed from 'effectfree'
-## #'
-## #' @param mod A fitted object of class "bage_mod"
-## #' @param draws_post Posterior draws for all parameters
-## #' estimated in TMB. Output from 'make_draws_post'.
-## #'
-## #' @returns A matrix
-## #' 
-## #' @noRd
-## make_linpred <- function(mod, effectfree) {
-##   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-##   offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-##   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-##   n_effectfree <- ncol(matrix_effectfree_effect)
-##   n_val <- nrow(draws_post)
-##   is_effectfree <- seq_len(n_val) <= n_effectfree
-##   effectfree <- draws_post[is_effectfree, , drop = FALSE]
-##   effect <- matrix_effectfree_effect %*% effectfree + offset_effectfree_effect
-##   ans <- matrix_effect_outcome %*% effect
-##   ans <- Matrix::as.matrix(ans)
-##   ans
-## }
-
-
 ## NO_TESTS
 #' Construct Estimates of Effects from Estimates of Free Parameters
 #'
@@ -691,7 +666,6 @@ make_levels_svd <- function(mod, unlist) {
   var_sexgender <- mod$var_sexgender
   dimnames <- make_dimnames_terms(mod)
   ans <- vector(mode = "list", length = length(priors))
-  paste_dot <- function(x, y) paste(x, y, sep = ".")
   for (i in seq_along(priors)) {
     prior <- priors[[i]]
     if (is_svd(prior)) {
@@ -883,6 +857,18 @@ make_term_svd <- function(mod) {
   ans <- factor(ans, levels = nms_terms_svd)
   ans
 }
+
+
+#' Paste Two Vectors Separated by a Dot
+#'
+#' @param x A vector
+#' @param y A vector
+#'
+#' @returns A character vector
+#'
+#' @noRd
+paste_dot <- function(x, y) paste(x, y, sep = ".")
+
 
 
 ## HAS_TESTS

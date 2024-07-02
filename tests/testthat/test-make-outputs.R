@@ -1214,9 +1214,14 @@ test_that("'make_term_svd' works - has svd", {
 })
 
 
+## 'paste_dot' ----------------------------------------------------------------
+
+test_that("'paste_dot' works with valid inputs", {
+  expect_identical(paste_dot(1:3, 3:1), c("1.3", "2.2", "3.1"))
+})
 
 
-## 'make_transforms_hyper' ---------------------------------------------------------
+## 'make_transforms_hyper' ----------------------------------------------------
 
 test_that("'make_transforms_hyper' works", {
     set.seed(0)

@@ -643,6 +643,10 @@ generics::forecast
 #' Setting `include_estimates` to `TRUE` can be helpful
 #' when creating graphs that combine estimates and forecasts.
 #'
+#' @section Standardization:
+#'
+#' TODO - Write this
+#'
 #' @section Using data in forecasts:
 #'
 #' `forecast()` is typically used with a
@@ -666,12 +670,15 @@ generics::forecast
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param labels Labels for future values. WARNING
-#' this argument is only temporary.
 #' @param output Type of output returned
 #' @param include_estimates Whether to
 #' include historical estimates along
 #' with the forecasts. Default is `FALSE`.
+#' @param standardize Whether to standardize
+#' parameter estimates. See below for details.
+#' Default is `TRUE`.
+#' @param labels Labels for future values. WARNING
+#' this argument is only temporary.
 #' @param ... Not currently used.
 #'
 #' @returns
@@ -713,32 +720,34 @@ generics::forecast
 forecast.bage_mod <- function(object,
                               output = c("augment", "components"),
                               include_estimates = FALSE,
+                              standardize = TRUE,
                               labels,
                               ...) {
-  check_flag(x = include_estimates, nm_x = "include_estimates")
   output <- match.arg(output)
+  check_flag(x = include_estimates, nm_x = "include_estimates")
+  check_flag(x = standardize, nm_x = "standardize")
   var_time <- object$var_time
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
-  components_est <- components(object, standardize = FALSE)
+  components_est_unst <- components(object, standardize = FALSE)
   data_forecast <- make_data_forecast(mod = object,
                                       labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
-  components_forecast <- forecast_components(mod = object,
-                                             components_est = components_est,
-                                             labels_forecast = labels)
+  components_forecast_unst <- forecast_components(mod = object,
+                                                  components_est = components_est_unst,
+                                                  labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   if (output == "augment") {
     seed_forecast_augment <- object$seed_forecast_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_forecast_augment) ## set pre-determined seed
     ans <- forecast_augment(mod = object,
-                            components_est = components_est,
-                            components_forecast = components_forecast,
+                            components_est = components_est_unst,
+                            components_forecast = components_forecast_unst,
                             data_forecast = data_forecast)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
@@ -747,22 +756,30 @@ forecast.bage_mod <- function(object,
     }
   }
   else if (output == "components") {
-    components_est$is_forecast <- FALSE
-    components_forecast$is_forecast <- TRUE
-    components <- vctrs::vec_rbind(components_est, components_forecast)
-    components <- sort_components(components = components, mod = object)
-    components <- standardize_components_forecast(mod = object,
-                                                  components = components,
-                                                  data_forecast = data_forecast)
-    if (!include_estimates)
-      components <- components[components$is_forecast, , drop = FALSE]
-    ans <- components[-match("is_forecast", names(components))]
+    if (standardize) {
+      components_est_st <- components(object = object, standardize = TRUE)
+      components_forecast_st <- standardize_forecast(mod = object,
+                                                     comp_forecast = components_forecast_unst,
+                                                     comp_est_st = components_est_st,
+                                                     comp_est_unst = components_est_unst,
+                                                     labels_forecast = labels)
+      if (include_estimates)
+        ans <- vctrs::vec_rbind(components_est_st, components_forecast_st)
+      else
+        ans <- components_forecast_st
+    }
+    else {
+      if (include_estimates)
+        ans <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
+      else
+        ans <- components_forecast_st
+    }
+    ans <- sort_components(components = ans, mod = object)
   }
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg output}.") ## nocov
   ans
 }
-
 
 
 ## 'forecast_augment' ---------------------------------------------------------

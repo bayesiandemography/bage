@@ -981,15 +981,18 @@ forecast_term.bage_prior_linar <- function(prior,
                                matrix_along_by_forecast = matrix_along_by_forecast)
   error_est <- effect_est - lin_est
   error_forecast <- forecast_ar(ar_est = error_est,
-                                coef = coef,
-                                sd = sd,
-                                matrix_along_by_est = matrix_along_by_est,
-                                matrix_along_by_forecast = matrix_along_by_forecast)
+                                   coef = coef,
+                                   sd = sd,
+                                   matrix_along_by_est = matrix_along_by_est,
+                                   matrix_along_by_forecast = matrix_along_by_forecast)
   effect_forecast <- lin_forecast + error_forecast
+  component <- rep(c("effect", "trend", "cyclical"), each = length(effect_forecast))
+  level <- rep(levels_forecast, times = 3L)
+  .fitted <- c(effect_forecast, lin_forecast, error_forecast)
   tibble::tibble(term = nm_prior,
-                 component = "effect",
-                 level = levels_forecast,
-                 .fitted = effect_forecast)
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
 }
 
 ## HAS_TESTS

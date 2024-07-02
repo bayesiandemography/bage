@@ -669,7 +669,6 @@ make_levels_forecast_all <- function(mod, labels_forecast) {
         dimnames <- lapply(data_term, unique)
         dimnames[[i_time]] <- labels_forecast
         levels <- expand.grid(dimnames, KEEP.OUT.ATTRS = FALSE)
-        paste_dot <- function(x, y) paste(x, y, sep = ".")
         levels <- Reduce(paste_dot, levels)
         levels <- as.character(levels)
         ans_terms[[i_term]] <- levels
@@ -1078,7 +1077,6 @@ make_matrices_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_matrix_along_by <- function(i_along, dim, dimnames) {
-  paste_dot <- function(x, y) paste(x, y, sep = ".")
   n_dim <- length(dim)
   i <- seq.int(from = 0L, length.out = prod(dim))
   a <- array(i, dim = dim)

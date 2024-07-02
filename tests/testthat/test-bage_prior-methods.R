@@ -1259,47 +1259,39 @@ test_that("'forecast_term' works with bage_prior_linar - n__by = 1", {
                                 matrix_along_by_est = matrix_along_by_est,
                                 matrix_along_by_forecast = matrix_along_by_forecast,
                                 levels_forecast = levels_forecast)
-  ans_expected <- tibble::tibble(term = "year",
-                                 component = "effect",
-                                 level = letters[6:11])
-  ans_expected$.fitted <- rvec::rnorm_rvec(n = 6, n_draw = 10)
   slope <- components$.fitted[components$level == "slope"]
   sd <- components$.fitted[components$level == "sd"]
   coef <- components$.fitted[components$level %in% c("coef1", "coef2")]
   q_est <- seq(from = -1, by = 0.5, to = 1)
   q_forecast <- seq(from = 1.5, by = 0.5, length.out = 6)
+  error <- rvec::rnorm_rvec(n = 6, n_draw = 10)
   set.seed(1)
-  ans_expected$.fitted[1] <-
-    rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * (components$.fitted[4 + 4:5] - slope * q_est[4:5])) +
-                       slope * q_forecast[1],
-                     sd = sd)
-  ans_expected$.fitted[2] <-
-    rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * c(components$.fitted[4 + 5] - slope * q_est[5],
-                                         ans_expected$.fitted[1] - slope * q_forecast[1]))+
-                       slope * q_forecast[2],
-                     sd = sd)
-  ans_expected$.fitted[3] <-
-    rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * (ans_expected$.fitted[1:2] - slope * q_forecast[1:2]))+
-                       slope * q_forecast[3],
-                     sd = sd)
-  ans_expected$.fitted[4] <-
-    rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * (ans_expected$.fitted[2:3] - slope * q_forecast[2:3])) +
-                       slope * q_forecast[4],
-                     sd = sd)
-  ans_expected$.fitted[5] <-
-    rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * (ans_expected$.fitted[3:4] - slope * q_forecast[3:4]))+
-                       slope * q_forecast[5],
-                     sd = sd)
-  ans_expected$.fitted[6] <-
-    rvec::rnorm_rvec(n = 1,
-                     mean = sum(coef * (ans_expected$.fitted[4:5] - slope * q_forecast[4:5]))+
-                       slope * q_forecast[6],
-                     sd = sd)
+  trend <- slope * q_forecast
+  error[1] <- rvec::rnorm_rvec(n = 1,
+                               mean = sum(coef * (components$.fitted[4 + 4:5] -
+                                                    slope * q_est[4:5])),
+                               sd = sd)
+  error[2] <- rvec::rnorm_rvec(n = 1,
+                               mean = sum(coef * c(components$.fitted[4 + 5] - slope * q_est[5],
+                                                   error[1])),
+                               sd = sd)
+  error[3] <- rvec::rnorm_rvec(n = 1,
+                               mean = sum(coef * (error[1:2])),
+                               sd = sd)
+  error[4] <- rvec::rnorm_rvec(n = 1,
+                               mean = sum(coef * (error[2:3])),
+                               sd = sd)
+  error[5] <- rvec::rnorm_rvec(n = 1,
+                               mean = sum(coef * (error[3:4])),
+                               sd = sd)
+  error[6] <- rvec::rnorm_rvec(n = 1,
+                               mean = sum(coef * (error[4:5])),
+                               sd = sd)
+  effect <- trend + error
+  ans_expected <- tibble::tibble(term = "year",
+                                 component = rep(c("effect", "trend", "cyclical"), each = 6),
+                                 level = rep(letters[6:11], times = 3),
+                                 .fitted = c(effect, trend, error))
   expect_equal(ans_obtained, ans_expected)
 })
 

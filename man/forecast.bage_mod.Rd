@@ -8,6 +8,7 @@
   object,
   output = c("augment", "components"),
   include_estimates = FALSE,
+  standardize = TRUE,
   labels,
   ...
 )
@@ -22,6 +23,10 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 \item{include_estimates}{Whether to
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
+
+\item{standardize}{Whether to standardize
+parameter estimates. See below for details.
+Default is \code{TRUE}.}
 
 \item{labels}{Labels for future values. WARNING
 this argument is only temporary.}
@@ -68,6 +73,12 @@ When \code{include_estimates} is \code{TRUE}, the output
 includes these values.
 Setting \code{include_estimates} to \code{TRUE} can be helpful
 when creating graphs that combine estimates and forecasts.
+}
+
+\section{Standardization}{
+
+
+TODO - Write this
 }
 
 \section{Using data in forecasts}{
