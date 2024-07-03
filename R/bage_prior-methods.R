@@ -1226,6 +1226,59 @@ forecast_term.bage_prior_rw2seasvary <- function(prior,
                  .fitted = c(effect_forecast, rw2_forecast, seas_forecast))
 }
 
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_ar <- function(prior, 
+                                            nm_prior,
+                                            components,
+                                            matrix_along_by_est,
+                                            matrix_along_by_forecast,
+                                            levels_forecast) {
+  is_svd <- with(components,
+                 term == nm_prior & component == "svd")
+  is_coef <- with(components,
+                  term == nm_prior & component == "hyper" & startsWith(level, "coef"))
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  ar_est <- components$.fitted[is_ar]
+  coef <- components$.fitted[is_coef]
+  sd <- components$.fitted[is_sd]
+  ar_forecast <- forecast_ar(ar_est = ar_est,
+                             coef = coef,
+                             sd = sd,
+                             matrix_along_by_est = matrix_along_by_est,
+                             matrix_along_by_forecast = matrix_along_by_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = ar_forecast)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_rw <- function(prior, 
+                                            nm_prior,
+                                            components,
+                                            matrix_along_by_est,
+                                            matrix_along_by_forecast,
+                                            levels_forecast) {
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+forecast_term.bage_prior_svd_rw2 <- function(prior, 
+                                             nm_prior,
+                                             components,
+                                             matrix_along_by_est,
+                                             matrix_along_by_forecast,
+                                             levels_forecast) {
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd)
+}
+
+
 
 ## 'has_hyperrand' ------------------------------------------------------------
 
@@ -2964,19 +3017,8 @@ transform_hyper <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_ar <- function(prior) {
-  specific <- prior$specific
-  n_coef <- specific$n_coef
-  min <- specific$min
-  max <- specific$max
-  shifted_inv_logit <- function(x) {
-    ans_raw <- exp(x) / (1 + exp(x))
-    ans <- (max - min) * ans_raw + min
-    ans
-  }
-  rep(list(coef = shifted_inv_logit, sd = exp),
-      times = c(n_coef, 1L))
-}
+transform_hyper.bage_prior_ar <- function(prior)
+  transform_hyper_ar(prior)
 
 ## HAS_TESTS
 #' @export
@@ -3056,6 +3098,12 @@ transform_hyper.bage_prior_spline <- function(prior)
 #' @export
 transform_hyper.bage_prior_svd <- function(prior)
     list()
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd_ar <- function(prior)
+  transform_hyper_ar(prior)
+
 
 
 ## 'uses_along' ---------------------------------------------------------------

@@ -954,7 +954,7 @@ standardize_spline <- function(mod, spline) {
     stop <- start + length - 1L
     s <- seq.int(from = start, to = stop)
     matrix_along_by <- matrices_along_by_spline[[i]]
-    spline[s, ] <- center_within_across_by_draws(spline[s, ],
+    spline[s, ] <- center_within_across_by_draws(spline[s, , drop = FALSE],
                                                  matrix_along_by = matrix_along_by)
     start <- start + length
   }
@@ -991,7 +991,8 @@ standardize_svd <- function(mod, svd) {
     stop <- start + length - 1L
     s <- seq.int(from = start, to = stop)
     matrix_along_by <- matrices_along_by_svd[[i]]
-    svd[s, ] <- center_within_across_by_draws(svd[s, ], matrix_along_by = matrix_along_by)
+    svd[s, ] <- center_within_across_by_draws(svd[s, , drop = FALSE],
+                                              matrix_along_by = matrix_along_by)
     start <- start + length
   }
   if (is_rvec)
@@ -1293,4 +1294,27 @@ sort_components <- function(components, mod) {
 }
   
 
+## HAS_TESTS
+#' Create Functions Needed to Transform Hyper-Parameters
+#' from AR-Based Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns A named list
+#'
+#' @noRd
+transform_hyper_ar <- function(prior) {
+  specific <- prior$specific
+  n_coef <- specific$n_coef
+  min <- specific$min
+  max <- specific$max
+  shifted_inv_logit <- function(x) {
+    ans_raw <- exp(x) / (1 + exp(x))
+    ans <- (max - min) * ans_raw + min
+    ans
+  }
+  rep(list(coef = shifted_inv_logit, sd = exp),
+      times = c(n_coef, 1L))
+}
 
+  

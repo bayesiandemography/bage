@@ -1506,3 +1506,28 @@ test_that("'standardize_svd' works", {
   expect_true(all(colMeans(ans[1:5,]) < 0.00001))
   expect_true(all(colMeans(ans[6:15,]) < 0.00001))
 })
+
+
+## 'transform_hyper_ar' -------------------------------------------------------
+
+test_that("'transform_hyper_ar' works with 'bage_prior_ar - AR1'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.18 * ans + 0.8
+  }
+  l <- transform_hyper_ar(prior = AR1())
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper_ar' works with 'bage_prior_svd_ar - AR'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    2 * ans - 1
+  }
+  l <- transform_hyper_ar(prior = SVD_AR(HMD))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
+})
+

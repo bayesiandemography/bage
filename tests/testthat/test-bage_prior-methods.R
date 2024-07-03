@@ -3328,6 +3328,16 @@ test_that("'transform_hyper' works with 'bage_prior_svd'", {
   expect_identical(l, list())
 })
 
+test_that("'transform_hyper' works with 'bage_prior_svd_ar - AR1'", {
+  shifted_invlogit <- function(x) {
+    ans <- exp(x) / (1 + exp(x))
+    0.8 + ans * 0.18
+  }
+  l <- transform_hyper_ar(prior = SVD_AR1(HMD))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
 
 ## uses_along -----------------------------------------------------------------
 
