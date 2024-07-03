@@ -448,20 +448,21 @@ standardize_forecast <- function(mod,
   ## create mapping between levels for final period of estimates and levels for forecasts
   mapping <- make_mapping_final_time(mod = mod, labels_forecast = labels_forecast)
   ## obtain values of .fitted for time-varying quantities for final period of estimates
-  tail_unst <- merge(comp_est_unst, term_level, by = c("term", "level"))
-  tail_st <- merge(comp_est_st, term_level, by = c("term", "level"))
+  tail_unst <- merge(comp_est_unst, term_level, by = c("term", "level"), sort = FALSE)
+  tail_st <- merge(comp_est_st, term_level, by = c("term", "level"), sort = FALSE)
   names(tail_unst)[match(".fitted", names(tail_unst))] <- "nonstandardized"
   names(tail_st)[match(".fitted", names(tail_st))] <- "standardized"
   ## calculate difference between standardized and non-standardized .fitted in final period
-  diff <- merge(tail_unst, tail_st, by = c("term", "level", "component"))
+  diff <- merge(tail_unst, tail_st, by = c("term", "level", "component"), sort = FALSE)
   diff$diff <- diff$standardized - diff$nonstandardized
   names(diff)[match("level", names(diff))] <- "level_final"
   ## attach differences to forecasts
-  ans <- merge(comp_forecast, mapping, by = "level")
-  ans <- merge(ans, diff, by = c("term", "component", "level_final"))
+  ans <- merge(comp_forecast, mapping, by = "level", sort = FALSE)
+  ans <- merge(ans, diff, by = c("term", "component", "level_final"), sort = FALSE)
   ## revise forecasts
   ans$.fitted <- ans$.fitted + ans$diff
   ans <- ans[c("term", "component", "level", ".fitted")]
+  ans <- tibble::tibble(ans)
   ## return
   ans
 }

@@ -478,6 +478,14 @@ test_that("'standardize_forecast' works", {
                                        comp_est_st = components_est_st,
                                        comp_est_unst = components_est_unst,
                                        labels_forecast = 2006:2007)
+  ans_expected <- components_forecast[c(1,2,3,5,4,6),]
+  ans_expected$.fitted[1:2] <- ans_expected$.fitted[1:2] +
+    (components_est_st$.fitted[20] - components_est_unst$.fitted[20])
+  ans_expected$.fitted[3:4] <- ans_expected$.fitted[3:4] +
+    (components_est_st$.fitted[53] - components_est_unst$.fitted[53])
+  ans_expected$.fitted[5:6] <- ans_expected$.fitted[5:6] +
+    (components_est_st$.fitted[54] - components_est_unst$.fitted[54])
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
