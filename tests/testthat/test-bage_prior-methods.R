@@ -3338,6 +3338,16 @@ test_that("'transform_hyper' works with 'bage_prior_svd_ar - AR1'", {
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_svd_rw'", {
+  l <- transform_hyper_ar(prior = SVD_RW(LFP))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_svd_rw2'", {
+  l <- transform_hyper_ar(prior = SVD_RW2(LFP))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
 
 ## uses_along -----------------------------------------------------------------
 

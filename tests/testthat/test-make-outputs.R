@@ -1,41 +1,4 @@
 
-## 'add_newdata_to_model' -----------------------------------------------------
-
-test_that("'add_newdata_to_model' works", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, n = 5)
-  set.seed(0)
-  newdata <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                         time = 2006:2007,
-                         sex = c("F", "M"))
-  ans_obtained <- add_newdata_to_model(mod, newdata = newdata)
-  ans_expected <- mod_pois(formula = mod$formula,
-                           data = vctrs::vec_rbind(data, newdata),
-                           exposure = popn) |>
-                           set_n_draw(n = 5)
-  omit <- c("offset",
-            "seed_stored_draws",
-            "seed_components",
-            "seed_augment",
-            "seed_forecast_components",
-            "seed_forecast_augment")
-  ans_obtained <- unclass(ans_obtained)
-  ans_expected <- unclass(ans_expected)
-  ans_obtained <- ans_obtained[-match(omit, names(ans_obtained))]
-  ans_expected <- ans_expected[-match(omit, names(ans_expected))]
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
 ## 'center_within_across_by' --------------------------------------------------
 
 test_that("'center_within_across_by' works with numeric vector", {

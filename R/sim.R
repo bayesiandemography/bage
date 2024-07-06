@@ -366,7 +366,7 @@ draw_vals_effect_svd <- function(prior,
   ans <- Matrix::as.matrix(ans)
   dimnames(ans) <- list(levels_effect, NULL)
   ans
-}  
+}
 
 ## HAS_TESTS
 #' Draw Values for Ordinary Hyper-Parameters
