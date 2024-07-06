@@ -104,6 +104,72 @@ forecast_components <- function(mod,
 
 
 ## HAS_TESTS
+#' Draw Values for Main Effect or Interaction with
+#' a SVD-Time Series Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param forecast_svd Forecasts
+#' for SVD coefficients. An rvec.
+#' @param levels_age Character vector of age labels
+#' @param levels_sexgender Character vector of sex/gender
+#' labels, or NULL
+#' @param agesex String. Type of term.
+#' @param matrix_agesex Matrix mapping effect in
+#' original format to one with age-sex dimension(s) first
+#'
+#' @returns A matrix
+#'
+#' @noRd
+forecast_term_svd <- function(prior,
+                              nm_prior,
+                              svd_forecast,
+                              levels_age,
+                              levels_sexgender,
+                              agesex,
+                              matrix_agesex,
+                              levels_forecast,
+                              levels_forecast_svd) {
+  ssvd <- prior$specific$ssvd
+  joint <- prior$specific$joint
+  n_comp <- prior$specific$n_comp
+  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = TRUE,
+                                n_comp = n_comp)
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = FALSE,
+                                n_comp = n_comp)
+  I <- Matrix::.sparseDiagonal(n_by)
+  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
+                               j = rep.int(1L, times = n_by),
+                               x = rep.int(1L, times = n_by))
+  agesex_to_standard <- make_index_matrix(matrix_agesex)
+  m_all_by <- Matrix::kronecker(I, m)
+  b_all_by <- Matrix::kronecker(ones, b)
+  b_all_by <- Matrix::drop(b_all_by)
+  effect_forecast <- m_all_by %*% svd_forecast + b_all_by
+  effect_forecast <- agesex_to_standard %*% effect_forecast
+  n_svd <- length(svd_forecast)
+  n_effect <- length(effect_forecast)
+  component <- rep(c("effect", "svd"), times = c(n_effect, n_svd))
+  level <- c(levels_forecast, levels_forecast_svd)
+  .fitted <- c(effect_forecast, svd_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+
+## HAS_TESTS
 #' Forecast Line or Lines
 #'
 #' @param slope Slope of line(s).
@@ -339,7 +405,7 @@ make_data_forecast <- function(mod, labels_forecast) {
 #' @noRd
 make_mapping_final_time <- function(mod, labels_forecast) {
   var_time <- mod$var_time
-  dimnames_terms <- make_dimnames_terms(mod)
+  dimnames_terms <- mod$dimnames_terms
   nms_terms <- names(dimnames_terms)
   ans <- vector(mode = "list", length = length(nms_terms))
   final_time <- utils::tail(dimnames_terms[[var_time]][[var_time]], n = 1L)
@@ -377,7 +443,7 @@ make_mapping_final_time <- function(mod, labels_forecast) {
 #' @noRd
 make_term_level_final_time <- function(mod) {
   var_time <- mod$var_time
-  dimnames_terms <- make_dimnames_terms(mod)
+  dimnames_terms <- mod$dimnames_terms
   nms_terms <- names(dimnames_terms)
   ans <- vector(mode = "list", length = length(nms_terms))
   for (i in seq_along(dimnames_terms)) {

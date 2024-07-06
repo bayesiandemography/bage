@@ -437,6 +437,8 @@ mod_helper <- function(formula, data, n_draw) {
                                data = data)
   ## process inputs
   data <- tibble(data)
+  dimnames_terms <- make_dimnames_terms(formula = formula,
+                                        data = data)
   outcome <- make_outcome(formula = formula,
                           data = data)
   var_age <- infer_var_age(formula)
@@ -463,6 +465,7 @@ mod_helper <- function(formula, data, n_draw) {
        data = data,
        outcome = outcome,
        priors = priors,
+       dimnames_terms = dimnames_terms,
        var_age = var_age,
        var_sexgender = var_sexgender,
        var_time = var_time,

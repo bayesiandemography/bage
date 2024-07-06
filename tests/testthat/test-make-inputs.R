@@ -548,10 +548,7 @@ test_that("'make_dimnames_terms' works", {
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age * sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_dimnames_terms(mod)
+    ans_obtained <- make_dimnames_terms(data = data, formula = formula)
     ans_expected <- list("(Intercept)" = list(),
                          age = list(age = as.character(0:9)),
                          sex = list(sex = c("F", "M")),

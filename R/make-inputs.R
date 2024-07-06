@@ -338,6 +338,7 @@ make_const <- function(mod) {
 }
 
 
+## HAS_TESTS
 #' Make Dimnames for Terms in Model
 #'
 #' @param mod Object of class 'bage_mod'
@@ -345,9 +346,7 @@ make_const <- function(mod) {
 #' @returns A named list of lists
 #'
 #' @noRd
-make_dimnames_terms <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
+make_dimnames_terms <- function(formula, data) {
   ans <- list("(Intercept)" = list())
   factors <- attr(stats::terms(formula), "factors")
   if (length(factors) > 0L) {
@@ -942,6 +941,7 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
   ans
 }
 
+
 ## HAS_TESTS
 #' Make Matrices Mapping Free Parameters to Along and By Dimensions
 #'
@@ -958,7 +958,7 @@ make_matrices_along_by_free <- function(mod) {
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  dimnames_terms <- make_dimnames_terms(mod)
+  dimnames_terms <- mod$dimnames_terms
   matrices_along_by <- choose_matrices_along_by(mod)
   ans <- .mapply(make_matrix_along_by_free,
                  dots = list(prior = priors,

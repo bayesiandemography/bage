@@ -1232,26 +1232,34 @@ forecast_term.bage_prior_svd_ar <- function(prior,
                                             nm_prior,
                                             components,
                                             matrix_along_by_est,
+                                            matrix_along_by_est_free,
                                             matrix_along_by_forecast,
-                                            levels_forecast) {
+                                            matrix_along_by_forecast_free,
+                                            levels_forecast,
+                                            levels_forecast_svd) {
   is_svd <- with(components,
                  term == nm_prior & component == "svd")
   is_coef <- with(components,
                   term == nm_prior & component == "hyper" & startsWith(level, "coef"))
   is_sd <- with(components,
                 term == nm_prior & component == "hyper" & level == "sd")
-  ar_est <- components$.fitted[is_ar]
+  svd_est <- components$.fitted[is_svd]
   coef <- components$.fitted[is_coef]
   sd <- components$.fitted[is_sd]
-  ar_forecast <- forecast_ar(ar_est = ar_est,
-                             coef = coef,
-                             sd = sd,
-                             matrix_along_by_est = matrix_along_by_est,
-                             matrix_along_by_forecast = matrix_along_by_forecast)
-  tibble::tibble(term = nm_prior,
-                 component = "effect",
-                 level = levels_forecast,
-                 .fitted = ar_forecast)
+  svd_forecast <- forecast_ar(ar_est = svd_est,
+                              coef = coef,
+                              sd = sd,
+                              matrix_along_by_est = matrix_along_by_est_free,
+                              matrix_along_by_forecast = matrix_along_by_forecast_free)
+  forecast_term_svd(prior = prior,
+                    nm_prior = nm_prior,
+                    svd_forecast = svd_forecast,
+                    levels_age = levels_age,
+                    levels_sexgender = levels_sexgender,
+                    agesex = agesex,
+                    matrix_agesex = matrix_agesex,
+                    levels_forecast = levels_forecast,
+                    levels_forecast_svd = levels_forecast_svd)
 }
 
 ## HAS_TESTS
@@ -1262,8 +1270,22 @@ forecast_term.bage_prior_svd_rw <- function(prior,
                                             matrix_along_by_est,
                                             matrix_along_by_forecast,
                                             levels_forecast) {
-  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-  list(sd = sd)
+  is_svd <- with(components,
+                 term == nm_prior & component == "svd")
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  svd_est <- components$.fitted[is_svd]
+  sd <- components$.fitted[is_sd]
+  svd_forecast <- forecast_rw(rw_est = svd_est,
+                              sd = sd,
+                              matrix_along_by_est = matrix_along_by_est_free,
+                              matrix_along_by_forecast = matrix_along_by_forecast_free)
+  forecast_effect_svd(prior = prior,
+                      svd_forecast = svd_forecast,
+                      levels_age = levels_age,
+                      levels_sexgender = levels_sexgender,
+                      agesex = agesex,
+                      matrix_agesex = matrix_agesex)
 }
 
 ## HAS_TESTS
@@ -1274,8 +1296,22 @@ forecast_term.bage_prior_svd_rw2 <- function(prior,
                                              matrix_along_by_est,
                                              matrix_along_by_forecast,
                                              levels_forecast) {
-  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
-  list(sd = sd)
+  is_svd <- with(components,
+                 term == nm_prior & component == "svd")
+  is_sd <- with(components,
+                term == nm_prior & component == "hyper" & level == "sd")
+  svd_est <- components$.fitted[is_svd]
+  sd <- components$.fitted[is_sd]
+  svd_forecast <- forecast_rw2(rw_est = svd_est,
+                               sd = sd,
+                               matrix_along_by_est = matrix_along_by_est_free,
+                               matrix_along_by_forecast = matrix_along_by_forecast_free)
+  forecast_effect_svd(prior = prior,
+                      svd_forecast = svd_forecast,
+                      levels_age = levels_age,
+                      levels_sexgender = levels_sexgender,
+                      agesex = agesex,
+                      matrix_agesex = matrix_agesex)
 }
 
 
@@ -3104,6 +3140,15 @@ transform_hyper.bage_prior_svd <- function(prior)
 transform_hyper.bage_prior_svd_ar <- function(prior)
   transform_hyper_ar(prior)
 
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd_rw <- function(prior)
+  list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_svd_rw2 <- function(prior)
+  list(sd = exp)
 
 
 ## 'uses_along' ---------------------------------------------------------------
