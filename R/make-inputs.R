@@ -887,6 +887,34 @@ make_matrices_along_by <- function(formula, data) {
 
 
 ## HAS_TESTS
+#' Make Matrices Mapping Free Parameters to Along and By Dimensions
+#'
+#' Similar to 'matrix_along_by', but only to free parameters
+#' (not to whole effect.) Differs in case of spline and SVD priors.
+#' 
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list of matrices
+#'
+#' @noRd
+make_matrices_along_by_effectfree <- function(mod) {
+  priors <- mod$priors
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  dimnames_terms <- mod$dimnames_terms
+  ans <- .mapply(make_matrix_along_by_effectfree,
+                 dots = list(prior = priors,
+                             dimnames_term = dimnames_terms),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
+  names(ans) <- names(priors)
+  ans
+}
+
+
+## HAS_TESTS
 #' Make List of Matrices Mapping Values
 #' of 'along' and 'by' to Positions
 #' in Main Effects and Interactions for Forecasts
@@ -941,35 +969,6 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
   ans
 }
 
-
-## HAS_TESTS
-#' Make Matrices Mapping Free Parameters to Along and By Dimensions
-#'
-#' Similar to 'matrix_along_by', but only to free parameters
-#' (not to whole effect.) Differs in case of spline and SVD priors.
-#' 
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list of matrices
-#'
-#' @noRd
-make_matrices_along_by_free <- function(mod) {
-  priors <- mod$priors
-  var_time <- mod$var_time
-  var_age <- mod$var_age
-  var_sexgender <- mod$var_sexgender
-  dimnames_terms <- mod$dimnames_terms
-  matrices_along_by <- choose_matrices_along_by(mod)
-  ans <- .mapply(make_matrix_along_by_free,
-                 dots = list(prior = priors,
-                             dimnames = dimnames_terms,
-                             matrix_along_by = matrices_along_by),
-                 MoreArgs = list(var_time = var_time,
-                                 var_age = var_age,
-                                 var_sexgender = var_sexgender))
-  names(ans) <- names(priors)
-  ans
-}
 
 ## HAS_TESTS
 #' Make list of matrices mapping terms to outcome vector

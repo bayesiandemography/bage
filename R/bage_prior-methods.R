@@ -2003,6 +2003,131 @@ levels_hyperrand.bage_prior_rw2seasvary <- function(prior, matrix_along_by, leve
 }
 
 
+#' Make a 'matrix_along_by' Matrix for Free Parameters for One Term
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sexgender variable, or NULL
+#'
+#' @returns A matrix.
+#'
+#' @noRd
+make_matrix_along_by_effectfree <- function(prior,
+                                            dimnames_term,
+                                            var_time,
+                                            var_age,
+                                            var_sexgender) {
+  UseMethod("make_matrix_along_by_effectfree")
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior <- function(prior,
+                                                       dimnames_term,
+                                                       var_time,
+                                                       var_age,
+                                                       var_sexgender) {
+  n_dim <- length(dimnames_term)
+  uses_along <- uses_along(prior)
+  if (n_dim == 0L) {
+    ans <- matrix(0L, nrow = 1L)
+  }
+  else {
+    if (uses_along) {
+      along <- prior$specific$along
+      i_along <- make_i_along(along = along,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age)
+    }
+    else
+      i_along <- 1L
+    ans <- make_matrix_along_by_inner(i_along = i_along,
+                                      dimnames_term = dimnames_term)
+  }
+  ans
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_spline <- function(prior,
+                                                              dimnames_term,
+                                                              var_time,
+                                                              var_age,
+                                                              var_sexgender) {
+  along <- prior$specific$along
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- length(dimnames_term[[i_along]])
+  n_comp <- get_n_comp_spline(prior = prior,
+                              n_along = n_along)
+  labels_along <- paste0("comp", seq_len(n_comp))
+  dimnames_term[[i_along]] <- labels_along
+  make_matrix_along_by_inner(i_along = i_along,
+                             dimnames_term = dimnames_term)
+}
+
+
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd <- function(prior,
+                                                           dimnames_term,
+                                                           var_time,
+                                                           var_age,
+                                                           var_sexgender) {
+  make_matrix_along_by_effectfree_svd(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+}
+
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd_ar <- function(prior,
+                                                              dimnames_term,
+                                                              var_time,
+                                                              var_age,
+                                                              var_sexgender) {
+  make_matrix_along_by_effectfree_svd(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+}
+
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd_rw <- function(prior,
+                                                              dimnames_term,
+                                                              var_time,
+                                                              var_age,
+                                                              var_sexgender) {
+  make_matrix_along_by_effectfree_svd(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+}
+
+#' @export
+make_matrix_along_by_effectfree.bage_prior_svd_rw2 <- function(prior,
+                                                               dimnames_term,
+                                                               var_time,
+                                                               var_age,
+                                                               var_sexgender) {
+  make_matrix_along_by_effectfree_svd(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+}
+
+
+
+
 ## 'make_matrix_along_by_free' ------------------------------------------------
 
 #' Make an 'along_by' Matrix for Free Parameters

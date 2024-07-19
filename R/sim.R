@@ -663,7 +663,7 @@ draw_vals_sd_seas <- function(prior, n_sim) {
 #' @noRd
 draw_vals_spline_mod <- function(mod, vals_hyper, n_sim) {
   priors <- mod$priors
-  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
   levels_effectfree <- make_levels_spline(mod, unlist = FALSE)
   ans <- .mapply(draw_vals_spline,
                  dots = list(prior = priors,
@@ -688,7 +688,7 @@ draw_vals_spline_mod <- function(mod, vals_hyper, n_sim) {
 #' @noRd
 draw_vals_svd_mod <- function(mod, vals_hyper, n_sim) {
   priors <- mod$priors
-  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
   levels_effectfree <- make_levels_svd(mod, unlist = FALSE)
   ans <- .mapply(draw_vals_svd,
                  dots = list(prior = priors,

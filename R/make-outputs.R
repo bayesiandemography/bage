@@ -596,7 +596,7 @@ make_levels_replicate <- function(n, n_row_data) {
 #' @noRd
 make_levels_spline <- function(mod, unlist) {
   priors <- mod$priors
-  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
   ans <- vector(mode = "list", length = length(priors))
   for (i in seq_along(priors)) {
     prior <- priors[[i]]
@@ -911,7 +911,7 @@ standardize_spline <- function(mod, spline) {
     spline <- as.matrix(spline)
   priors <- mod$priors
   lengths_effectfree <- make_lengths_effectfree(mod)
-  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
   is_spline <- vapply(priors, is_spline, FALSE)
   lengths_spline <- lengths_effectfree[is_spline]
   matrices_along_by_spline <- matrices_along_by_free[is_spline]
@@ -948,7 +948,7 @@ standardize_svd <- function(mod, svd) {
     svd <- as.matrix(svd)
   priors <- mod$priors
   lengths_effectfree <- make_lengths_effectfree(mod)
-  matrices_along_by_free <- make_matrices_along_by_free(mod)
+  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
   is_svd <- vapply(priors, is_svd, FALSE)
   lengths_svd <- lengths_effectfree[is_svd]
   matrices_along_by_svd <- matrices_along_by_free[is_svd]
