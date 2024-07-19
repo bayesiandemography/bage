@@ -194,118 +194,66 @@ make_matrix_along_by_effect <- function(along, dimnames_term, var_time, var_age)
   make_matrix_along_by_inner(i_along = i_along,
                              dimnames_term = dimnames_term)
 }
-
-
-
-#' Make a 'matrix_along_by' Matrix for Free Parameters for One Term
+  
+## HAS_TESTS
+#' Make 'matrix_along_by' for all Forecasted Parameters in One Term
 #'
-#' @param prior Object of class 'bage_prior'
+#' Assumes that the term contains a time variable.
+#' 
+#' @param along Name of 'along' dimension, or NULL
+#' @param labels_forecast Labels for future periods
 #' @param dimnames_term Dimnames for array
 #' representing term
-#' @param var_time Name of time variable, or NULL
-#' @param var_age Name of age variable, or NULL
-#' @param var_sexgender Name of sexgender variable, or NULL
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
 #'
-#' @returns A matrix.
+#' @returns A matrix
 #'
 #' @noRd
-make_matrix_along_by_effectfree <- function(prior,
-                                      dimnames_term,
-                                      var_time,
-                                      var_age,
-                                      var_sexgender) {
-  UseMethod("make_matrix_along_by_effectfree")
+make_matrix_along_by_effect_forecast <- function(along,
+                                                 labels_forecast,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age) {
+  i_time <- make_i_time(var_time = var_time,
+                        dimnames_term = dimnames_term)
+  dimnames_term[[i_time]] <- labels_forecast
+  make_matrix_along_by_effect(along = along,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age)
 }
 
 ## HAS_TESTS
-#' @export
-make_matrix_along_by_effectfree.bage_prior <- function(prior,
-                                                       dimnames_term,
-                                                       var_time,
-                                                       var_age,
-                                                       var_sexgender) {
-  along <- prior$specific$along
-  i_along <- make_i_along(along = along,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
-}
-
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_effectfree.bage_prior_spline <- function(prior,
-                                                              dimnames_term,
-                                                              var_time,
-                                                              var_age,
-                                                              var_sexgender) {
-  along <- prior$specific$along
-  i_along <- make_i_along(along = along,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  n_along <- length(dimnames_term[[i_along]])
-  n_comp <- get_n_comp_spline(prior = prior,
-                              n_along = n_along)
-  labels_along <- paste0("comp", seq_len(n_comp))
-  dimnames_term[[i_along]] <- labels_along
-  make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
-}
-
-
-#' @export
-make_matrix_along_by_effectfree.bage_prior_svd <- function(prior,
-                                                           dimnames_term,
-                                                           var_time,
-                                                           var_age,
-                                                           var_sexgender) {
-  make_matrix_along_by_effectfree_svd(prior = prior,
-                                      dimnames_term = dimnames_term,
-                                      var_time = var_time,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-}
-
-#' @export
-make_matrix_along_by_effectfree.bage_prior_svd_ar <- function(prior,
-                                                              dimnames_term,
-                                                              var_time,
-                                                              var_age,
-                                                              var_sexgender) {
-  make_matrix_along_by_effectfree_svd(prior = prior,
-                                      dimnames_term = dimnames_term,
-                                      var_time = var_time,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-}
-
-#' @export
-make_matrix_along_by_effectfree.bage_prior_svd_rw <- function(prior,
-                                                              dimnames_term,
-                                                              var_time,
-                                                              var_age,
-                                                              var_sexgender) {
-  make_matrix_along_by_effectfree_svd(prior = prior,
-                                      dimnames_term = dimnames_term,
-                                      var_time = var_time,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-}
-
-#' @export
-make_matrix_along_by_effectfree.bage_prior_svd_rw2 <- function(prior,
-                                                               dimnames_term,
-                                                               var_time,
-                                                               var_age,
-                                                               var_sexgender) {
-  make_matrix_along_by_effectfree_svd(prior = prior,
-                                      dimnames_term = dimnames_term,
-                                      var_time = var_time,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
+#' Make 'matrix_along_by' for all Forecasted Free Parameters in One Term
+#'
+#' Assumes that the term contains a time variable.
+#' 
+#' @param prior Object of class 'bage_prior'
+#' @param labels_forecast Labels for future periods
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#' @param var_sexgender Name of sex/gender dimension, or NULL
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_matrix_along_by_effectfree_forecast <- function(prior,
+                                                     labels_forecast,
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender) {
+  i_time <- make_i_time(var_time = var_time,
+                        dimnames_term = dimnames_term)
+  dimnames_term[[i_time]] <- labels_forecast
+  make_matrix_along_by_effectfree(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender)
 }
 
 
@@ -340,79 +288,18 @@ make_matrix_along_by_effectfree_svd <- function(prior,
                                dimnames_term = dimnames_term,
                                var_sexgender = var_sexgender)
   non_agesex <- setdiff(names(dimnames_term), c(var_age, var_sexgender))
-  dimnames_term <- dimnames_term[non_agesex]
-  dimnames_term <- c(list(.svd = labels_svd), dimnames_term)
-  has_time <- !is.null(var_time)
-  if (has_time)
-    i_along <- match(var_time, names(dimnames_term)[-1L]) + 1L ## can't match first dim
-  else
-    i_along <- 1L
+  dimnames_nonagesex <- dimnames_term[non_agesex]
+  nms_nonagesex <- names(dimnames_nonagesex)
+  dimnames_new <- c(list(.svd = labels_svd), dimnames_nonagesex)
+  i_along <- 1L
+  has_var_time <- !is.null(var_time)
+  if (has_var_time) {
+    i_time <- match(var_time, nms_nonagesex, nomatch = 0L)
+    i_along <- i_along + i_time
+  }
   make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
+                             dimnames_term = dimnames_new)
 }
-  
-## HAS_TESTS
-#' Make 'matrix_along_by' for all Forecasted Parameters in One Term
-#'
-#' Assumes that the term contains a time variable.
-#' 
-#' @param along Name of 'along' dimension, or NULL
-#' @param labels_forecast Labels for future periods
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_along_by_effect_forecast <- function(along,
-                                                 labels_forecast,
-                                                 dimnames_term,
-                                                 var_time,
-                                                 var_age) {
-  i_time <- make_i_time(var_time = var_time,
-                        dimnames_term = dimnames_term)
-  dimnames_term[[i_time]] <- labels_forecast
-  make_matrix_along_by_effect(along = along,
-                              dimnames_term = dimnames_term,
-                              var_time = var_time,
-                              var_age = var_age)
-}
-
-
-#' Make 'matrix_along_by' for all Forecasted Free Parameters in One Term
-#'
-#' Assumes that the term contains a time variable.
-#' 
-#' @param prior Object of class 'bage_prior'
-#' @param labels_forecast Labels for future periods
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
-#' @param var_sexgender Name of sex/gender dimension, or NULL
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_along_by_effectfree_forecast <- function(prior,
-                                                     labels_forecast,
-                                                     dimnames_term,
-                                                     var_time,
-                                                     var_age,
-                                                     var_sexgender) {
-  i_time <- make_i_time(var_time = var_time,
-                        dimnames_term = dimnames_term)
-  dimnames_term[[i_time]] <- labels_forecast
-  make_matrix_along_by_effectfree(prior = prior,
-                                  dimnames_term = dimnames_term,
-                                  var_time = var_time,
-                                  var_age = var_age,
-                                  var_sexgender = var_sexgender)
-}
-
-
 
 ## HAS_TESTS
 #' Basic Function for Making 'matrix_along_by'

@@ -1153,6 +1153,43 @@ test_that("'make_matrices_along_by' works with valid inputs", {
 })
 
 
+## 'make_matrices_along_by_effectfree' ------------------------------------------------
+
+test_that("'make_matrices_along_by_effectfree' works", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:9,
+                      region = 1:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX + SEX * region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, agegp ~ Sp(n_comp = 4))
+  ans <- make_matrices_along_by_effectfree(mod)
+  expect_true(all(sapply(ans, is.matrix)))
+  expect_identical(names(ans), names(mod$priors))
+})
+
+test_that("'make_matrices_along_by_effectfree' works - with SVD", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  ans <- make_matrices_along_by_effectfree(mod)
+  expect_true(all(sapply(ans, is.matrix)))
+  expect_identical(names(ans), names(mod$priors))
+})
+
+
 ## 'make_matrices_along_by_forecast' ------------------------------------------
 
 test_that("'make_matrices_along_by_forecast' works with valid inputs", {
@@ -1180,43 +1217,6 @@ test_that("'make_matrices_along_by_forecast' works with valid inputs", {
                          "age:sex" = NULL,
                          "age:time" = agetime)
     expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrices_along_by_free' ------------------------------------------------
-
-test_that("'make_matrices_along_by_free' works", {
-  set.seed(0)
-  data <- expand.grid(agegp = 0:9,
-                      region = 1:2,
-                      SEX = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ agegp * SEX + SEX * region
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, agegp ~ Sp(n_comp = 4))
-  ans <- make_matrices_along_by_free(mod)
-  expect_true(all(sapply(ans, is.matrix)))
-  expect_identical(names(ans), names(mod$priors))
-})
-
-test_that("'make_matrices_along_by_free' works - with SVD", {
-  set.seed(0)
-  data <- expand.grid(age = c(0:59, "60+"),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
-  ans <- make_matrices_along_by_free(mod)
-  expect_true(all(sapply(ans, is.matrix)))
-  expect_identical(names(ans), names(mod$priors))
 })
 
 

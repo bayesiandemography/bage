@@ -2229,6 +2229,137 @@ test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
 })
 
 
+## 'make_matrix_along_by_effectfree' ------------------------------------------------
+
+test_that("default for 'make_matrix_along_by_effectfree' works - intercept", {
+  prior <- NFix()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0L, nrow = 1L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("default for 'make_matrix_along_by_effectfree' works - not uses along", {
+  prior <- N()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(reg = 1:3),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:2, nrow = 3L, dimnames = list(reg = 1:3, NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("default for 'make_matrix_along_by_effectfree' works - uses along", {
+  prior <- AR1()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:4, nr = 5, dimnames = list(age = 0:4, NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_spline'", {
+  prior <- Sp()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:13,
+                         nr = 7,
+                         dimnames = list(age = paste0("comp", 1:7),
+                                         region = c("a", "b")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd' - total", {
+  prior <- SVD(HMD)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                       region = c("a", "b")),
+                                                  var_time = NULL,
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:9,
+                         nr = 5,
+                         dimnames = list(.svd = paste0("comp", 1:5),
+                                         region = c("a", "b")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar' - indep", {
+  prior <- SVDS_AR(HMD, joint = FALSE)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                  sex = c("f", "m"),
+                                                                  time = 2001:2003),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = "sex")
+  ans_expected <- t(matrix(0:29,
+                           nr = 10,
+                           dimnames = list(.svd = paste(rep(c("f", "m"), each = 5),
+                                                        paste0("comp", 1:5),
+                                                        sep = "."),
+                                           time = 2001:2003)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar'", {
+  prior <- SVD_AR1(HMD)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                  time = 2001:2002),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:9,
+                           nr = 5,
+                           dimnames = list(.svd = paste0("comp", 1:5),
+                                           time = c(2001, 2002))))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw'", {
+  prior <- SVD_RW(HMD)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                  time = 2001:2002),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:9,
+                           nr = 5,
+                           dimnames = list(.svd = paste0("comp", 1:5),
+                                           time = c(2001, 2002))))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw'", {
+  prior <- SVD_RW(HMD)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                  time = 2001:2005),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:24,
+                           nr = 5,
+                           dimnames = list(.svd = paste0("comp", 1:5),
+                                           time = 2001:2005)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+
+
+
 ## 'make_matrix_along_by_free' ------------------------------------------------
 
 test_that("default for 'make_matrix_along_by_free' works", {
