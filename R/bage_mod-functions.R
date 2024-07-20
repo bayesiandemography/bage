@@ -151,10 +151,10 @@ set_prior <- function(mod, formula) {
   check_format_prior_formula(formula)
   nms_terms <- names(mod$priors)
   matrices_effect_outcome <- mod$matrices_effect_outcome
+  dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  matrices_along_by <- mod$matrices_along_by
   nm_response_split <- strsplit(nm_response, split = ":")[[1L]]
   nms_terms_split <- lapply(nms_terms, strsplit, split = ":")
   nms_terms_split <- lapply(nms_terms_split, `[[`, 1L)
@@ -173,23 +173,13 @@ set_prior <- function(mod, formula) {
   if (inherits(prior, "error"))
     cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
                      i = prior$message))
-  if (uses_along(prior)) {
-    matrix_along_by <- choose_matrix_along_by(prior = prior,
-                                              matrices = matrices_along_by[[i]],
-                                              var_time = var_time,
-                                              var_age = var_age)
-  }
-  else {
-    length_effect <- ncol(matrices_effect_outcome[[i]])
-    matrix_along_by <- matrix(seq.int(from = 0L, to = length_effect - 1L),
-                              ncol = 1L)
-  }
+  dimnames_term <- dimnames_terms[[i]]
   agesex <- make_agesex_inner(nm = nms_terms[[i]],
                               var_age = var_age,
                               var_sexgender = var_sexgender)
   is_prior_ok_for_term(prior = prior,
                        nm = nm_response,
-                       matrix_along_by = matrix_along_by,
+                       dimnames_term = dimnames_term,
                        var_time = var_time,
                        var_age = var_age,
                        var_sexgender = var_sexgender,

@@ -103,70 +103,33 @@ forecast_components <- function(mod,
 }
 
 
-## HAS_TESTS
-#' Draw Values for Main Effect or Interaction with
-#' a SVD-Time Series Prior
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param forecast_svd Forecasts
-#' for SVD coefficients. An rvec.
-#' @param levels_age Character vector of age labels
-#' @param levels_sexgender Character vector of sex/gender
-#' labels, or NULL
-#' @param agesex String. Type of term.
-#' @param matrix_agesex Matrix mapping effect in
-#' original format to one with age-sex dimension(s) first
-#'
-#' @returns A matrix
-#'
-#' @noRd
-forecast_term_svd <- function(prior,
-                              nm_prior,
-                              svd_forecast,
-                              levels_age,
-                              levels_sexgender,
-                              agesex,
-                              matrix_agesex,
-                              levels_forecast,
-                              levels_forecast_svd) {
-  ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
-  n_comp <- prior$specific$n_comp
-  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  m <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = TRUE,
-                                n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = FALSE,
-                                n_comp = n_comp)
-  I <- Matrix::.sparseDiagonal(n_by)
-  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
-                               j = rep.int(1L, times = n_by),
-                               x = rep.int(1L, times = n_by))
-  agesex_to_standard <- make_index_matrix(matrix_agesex)
-  m_all_by <- Matrix::kronecker(I, m)
-  b_all_by <- Matrix::kronecker(ones, b)
-  b_all_by <- Matrix::drop(b_all_by)
-  effect_forecast <- m_all_by %*% svd_forecast + b_all_by
-  effect_forecast <- agesex_to_standard %*% effect_forecast
-  n_svd <- length(svd_forecast)
-  n_effect <- length(effect_forecast)
-  component <- rep(c("effect", "svd"), times = c(n_effect, n_svd))
-  level <- c(levels_forecast, levels_forecast_svd)
-  .fitted <- c(effect_forecast, svd_forecast)
-  tibble::tibble(term = nm_prior,
-                 component = component,
-                 level = level,
-                 .fitted = .fitted)
-}
+
+## forecast_components_REVISED <- function(mod,
+##                                         components_est,
+##                                         labels_forecast) {
+##   priors <- mod$priors
+##   var_time <- mod$var_time
+##   nms_priors <- names(priors)
+##   levels_forecast_all <- make_levels_forecast_all(mod = mod,
+##                                                   labels_forecast = labels_forecast)
+##   is_time_varying_one <- function(nm) var_time %in% strsplit(nm, split = ":")[[1L]]
+##   is_time_varying <- vapply(nms_priors, is_time_varying_one, TRUE)
+##   ans_svd <- mapply(forecast_svd,
+##                     dots = list(prior = priors[is_time_varying],
+##                                 nm_prior = nms_priors[is_time_varying],                                
+##   ans <- .mapply(forecast_term,
+##                  dots = list(prior = priors[is_time_varying],
+##                              nm_prior = nms_priors[is_time_varying],
+##                              matrix_along_by_est = matrices_along_by_est[is_time_varying],
+##                              matrix_along_by_forecast = matrices_along_by_forecast[is_time_varying],
+##                              levels_forecast = levels_forecast_all[is_time_varying]),
+##                  MoreArgs = list(components = components_est))
+##   ans <- vctrs::vec_rbind(!!!ans)
+##   ans <- sort_components(ans, mod = mod)
+##   ans
+## }
+
+
 
 
 ## HAS_TESTS
@@ -362,6 +325,73 @@ forecast_seasvary <- function(n_seas,
     ans[i_ans] <- tmp[-s_head]
   }
   ans
+}
+
+
+
+## HAS_TESTS
+#' Draw Values for Main Effect or Interaction with
+#' a SVD-Time Series Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param forecast_svd Forecasts
+#' for SVD coefficients. An rvec.
+#' @param levels_age Character vector of age labels
+#' @param levels_sexgender Character vector of sex/gender
+#' labels, or NULL
+#' @param agesex String. Type of term.
+#' @param matrix_agesex Matrix mapping effect in
+#' original format to one with age-sex dimension(s) first
+#'
+#' @returns A matrix
+#'
+#' @noRd
+forecast_term_svd <- function(prior,
+                              nm_prior,
+                              svd_forecast,
+                              levels_age,
+                              levels_sexgender,
+                              agesex,
+                              matrix_agesex,
+                              levels_forecast,
+                              levels_forecast_svd) {
+  ssvd <- prior$specific$ssvd
+  joint <- prior$specific$joint
+  n_comp <- prior$specific$n_comp
+  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = TRUE,
+                                n_comp = n_comp)
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = FALSE,
+                                n_comp = n_comp)
+  I <- Matrix::.sparseDiagonal(n_by)
+  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
+                               j = rep.int(1L, times = n_by),
+                               x = rep.int(1L, times = n_by))
+  agesex_to_standard <- make_index_matrix(matrix_agesex)
+  m_all_by <- Matrix::kronecker(I, m)
+  b_all_by <- Matrix::kronecker(ones, b)
+  b_all_by <- Matrix::drop(b_all_by)
+  effect_forecast <- m_all_by %*% svd_forecast + b_all_by
+  effect_forecast <- agesex_to_standard %*% effect_forecast
+  n_svd <- length(svd_forecast)
+  n_effect <- length(effect_forecast)
+  component <- rep(c("effect", "svd"), times = c(n_effect, n_svd))
+  level <- c(levels_forecast, levels_forecast_svd)
+  .fitted <- c(effect_forecast, svd_forecast)
+  tibble::tibble(term = nm_prior,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
 }
 
 
