@@ -2854,8 +2854,9 @@ test_that("'reformat_hyperrand_one' works with prior with no hyperrand", {
   matrix_along_by <- choose_matrices_along_by(mod)[[2]]
   comp <- components(mod)
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[[2]],
-                                         nm_prior <- names(mod$priors)[[2]],
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[[2]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = comp)
   ans_expected <- comp
   expect_identical(ans_obtained, ans_expected)
@@ -2875,8 +2876,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_lin", {
   comp <- components(mod)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior <- "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = comp)
   ans_expected <- comp
   ans_expected$component[ans_expected$component == "hyperrand" &
@@ -2907,8 +2909,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_linar", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = components)
   trend <- ans_obtained$.fitted[ans_obtained$component == "trend"]
   cyclical <- ans_obtained$.fitted[ans_obtained$component == "cyclical"]
@@ -2944,8 +2947,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
@@ -2991,8 +2995,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
@@ -3033,8 +3038,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
@@ -3076,8 +3082,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasfix", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
@@ -3123,8 +3130,9 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasvary", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_one(prior = mod$priors[["sex:time"]],
-                                         nm_prior = "sex:time",
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                         var_time = mod$var_time,
+                                         var_age = mod$var_age,
                                          components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]

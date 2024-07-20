@@ -1257,10 +1257,10 @@ test_that("'reformat_hyperrand_seasfix' works", {
                                component = comp,
                                level = level,
                                .fitted = .fitted)
-  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_seasfix(prior = mod$priors[["sex:time"]],
-                                             nm_prior = "sex:time",
-                                             matrix_along_by = matrix_along_by,
+                                             dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                             var_time = mod$var_time,
+                                             var_age = mod$var_age,
                                              components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
@@ -1310,9 +1310,10 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                .fitted = .fitted)
   matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
   ans_obtained <- reformat_hyperrand_seasvary(prior = mod$priors[["sex:time"]],
-                                              nm_prior = "sex:time",
-                                              matrix_along_by = matrix_along_by,
-                                              components = components)
+                                             dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                             var_time = mod$var_time,
+                                             var_age = mod$var_age,
+                                             components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
   seas <- center_within_across_by(seas, matrix_along_by = matrix_along_by)
