@@ -552,15 +552,18 @@ make_levels_hyper <- function(mod) {
 #' @noRd
 make_levels_hyperrand <- function(mod) {
   priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   levels_effect <- mod$levels_effect
   terms_effect <- mod$terms_effect
-  matrices_along_by <- choose_matrices_along_by(mod)
   levels_effect <- split(levels_effect, terms_effect)
   ans <- .mapply(levels_hyperrand,
                  dots = list(prior = priors,
-                             matrix_along_by = matrices_along_by,
+                             dimnames_term = dimnames_terms,
                              levels_effect = levels_effect),
-                 MoreArgs = list())
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age))
   ans <- unlist(ans)
   ans
 }
@@ -1044,10 +1047,7 @@ make_term_components <- function(mod) {
 #'
 #' @noRd
 make_transforms_hyper <- function(mod) {
-  est <- mod$est
   priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
-  has_disp <- has_disp(mod)
   ans <- lapply(priors, transform_hyper)
   ans <- unlist(ans, recursive = FALSE)
   ans

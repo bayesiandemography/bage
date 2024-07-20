@@ -306,6 +306,30 @@ test_that("'default_prior' works with time interaction", {
 })
 
 
+## 'dimnames_to_levels' -------------------------------------------------------
+
+test_that("'dimnames_to_levels' works with 0D dimnames", {
+  dimnames <- list()
+  ans_obtained <- dimnames_to_levels(dimnames)
+  ans_expected <- "(Intercept)"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'dimnames_to_levels' works with 1D dimnames", {
+  dimnames <- list(age = 0:4)
+  ans_obtained <- dimnames_to_levels(dimnames)
+  ans_expected <- as.character(0:4)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'dimnames_to_levels' works with 2D dimnames", {
+  dimnames <- list(age = 0:4, reg = c("a", "b"))
+  ans_obtained <- dimnames_to_levels(dimnames)
+  ans_expected <- paste(0:4, rep(c("a", "b"), each = 5), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'eval_offset_formula' ------------------------------------------------------
 
 test_that("'eval_offset_formula' works with valid inputs - simple formula", {
@@ -1495,14 +1519,17 @@ test_that("'make_matrix_along_by_free_svd' works -  time x sex x age interaction
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age main effect", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 3)
-  levels_effect <- c("0-4", "5-9")
+  dimnames_term <- list(age = c("0-4", "5-9"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   agesex <- "age"
-  matrix_agesex <- matrix(0:1, nr = 2, dimnames = list(levels_effect, NULL))
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                    levels_age = levels_effect,
-                                                    levels_sexgender = NULL,
-                                                    agesex = agesex,
-                                                    matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    agesex = agesex)
   ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
@@ -1514,36 +1541,46 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age m
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age-sex interaction, joint", {
   s <- sim_ssvd()
   prior <- SVDS(ssvd = s, n_comp = 3, joint = TRUE)
-  levels_age <- c("0-4", "5-9")
-  levels_sex <- c("Female", "Male")
+  dimnames_term <- list(sex = c("Female", "Male"),
+                        age = c("0-4", "5-9"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   agesex <- "sex:age"
-  matrix_agesex <- matrix(c(0L, 2L, 1L, 3L), nr = 4)
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                levels_age = levels_age,
-                                                levels_sex = levels_sex,
-                                                agesex = agesex,
-                                                matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    agesex = agesex)
   ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][c(1,3,2,4),1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
                                        x = as.double(ans_expected))
+  rownames(ans_expected) <- c("Female.0-4", "Male.0-4", "Female.5-9", "Male.5-9")
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x reg interaction", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 3)
-  levels_age <- c("0-4", "5-9")
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        x = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   agesex <- "age:other"
-  matrix_agesex <- matrix(c(0L, 2L, 1L, 3L), nr = 2,
-                          dimnames = list(c("0-4", "5-9"), c("a", "b")))
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                levels_age = levels_age,
-                                                levels_sexgender = NULL,
-                                                agesex = agesex,
-                                                matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    agesex = agesex)
   m2 <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
   m1 <- make_index_matrix(matrix_agesex)
   ans_expected <- m1 %*% m2
   expect_identical(ans_obtained, ans_expected)
@@ -1551,20 +1588,24 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x
 
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x reg x age interaction", {
   prior <- SVDS(HMD)
-  levels_age <- c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+")
-  levels_sex <- c("F", "M")
-  levels_reg <- c("A", "B")
+  dimnames_term = list(sex = c("F", "M"),
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"),
+                       reg <- c("A", "B"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   agesex <- "sex:age:other"
-  matrix_agesex <- make_matrix_along_by(i_along = c(1, 3),
-                                        dim = c(2, 2, 14),
-                                        dimnames = list(levels_sex, levels_reg, levels_age))
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                levels_age = levels_age,
-                                                levels_sexgender = levels_sex,
-                                                agesex = agesex,
-                                                matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    agesex = agesex)
   m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
   m1 <- make_index_matrix(matrix_agesex)
   ans_expected <- m1 %*% m2
   expect_identical(ans_obtained, ans_expected)

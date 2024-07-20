@@ -109,6 +109,28 @@ default_prior <- function(nm_term, var_age, var_time, length_effect) {
 
 
 ## HAS_TESTS
+#' Convert Dimnames for a Term to Labels
+#'
+#' @param dimnames Named list of labels
+#'
+#' @returns A character vector
+#'
+#' @noRd
+dimnames_to_levels <- function(dimnames) {
+  if (length(dimnames) > 0L) {
+    dimnames <- lapply(dimnames, as.character)
+    ans <- expand.grid(dimnames,
+                       KEEP.OUT.ATTRS = FALSE,
+                       stringsAsFactors = FALSE)
+    ans <- Reduce(paste_dot, ans)
+  }
+  else
+    ans <- "(Intercept)"
+  ans
+}
+  
+
+## HAS_TESTS
 #' Evaluate Formula to Create Offset
 #'
 #' @param vname_offset Formula passed by user, turned into a string
@@ -576,15 +598,18 @@ make_lengths_hyper <- function(mod) {
 #' @noRd
 make_lengths_hyperrand <- function(mod) {
   priors <- mod$priors
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  dimnames_terms <- mod$dimnames_terms
   levels_effect <- mod$levels_effect
   terms_effect <- mod$terms_effect
-  matrices_along_by <- choose_matrices_along_by(mod)
   levels_effect <- split(levels_effect, terms_effect)
   levels <- .mapply(levels_hyperrand,
                     dots = list(prior = priors,
-                                matrix_along_by = matrices_along_by,
+                                dimnames_term = dimnames_terms,
                                 levels_effect = levels_effect),
-                    MoreArgs = list())
+                    MoreArgs = list(var_time = var_time,
+                                    var_age = var_age))
   ans <- lengths(levels)
   names(ans) <- names(priors)
   ans
@@ -1024,7 +1049,6 @@ make_matrices_effect_outcome <- function(formula, data) {
 }
 
 
-
 ## HAS_TESTS
 #' Make list of matrices mapping effectfree to effect
 #'
@@ -1038,25 +1062,21 @@ make_matrices_effect_outcome <- function(formula, data) {
 #'
 #' @noRd
 make_matrices_effectfree_effect <- function(mod) {
-    priors <- mod$priors
-    levels_effect <- mod$levels_effect
-    terms_effect <- mod$terms_effect
-    agesex <- make_agesex(mod)
-    matrices_along_by <- choose_matrices_along_by(mod)
-    matrices_agesex <- make_matrices_agesex(mod)
-    levels_age <- make_levels_age(mod)
-    levels_sexgender <- make_levels_sexgender(mod)
-    levels_effect <- split(levels_effect, terms_effect)
-    ans <- .mapply(make_matrix_effectfree_effect,
-                   dots = list(prior = priors,
-                               levels_effect = levels_effect,
-                               agesex = agesex,
-                               matrix_along_by = matrices_along_by,
-                               matrix_agesex = matrices_agesex),
-                   MoreArgs = list(levels_age = levels_age,
-                                   levels_sexgender = levels_sexgender))
-    names(ans) <- names(priors)
-    ans    
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  agesex <- make_agesex(mod)
+  ans <- .mapply(make_matrix_effectfree_effect,
+                 dots = list(prior = priors,
+                             dimnames_term = dimnames_terms,
+                             agesex = agesex),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
+  names(ans) <- names(priors)
+  ans    
 }
 
 
@@ -1149,27 +1169,31 @@ make_matrix_along_by_free_svdtime <- function(prior,
 #' full parameter vectors for priors with SVDs
 #' 
 #' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames of array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #' @param agesex String. One of "age", "age:sex",
 #' "age:other", "age:sex:other", or "other"
-#' @param levels_age Values taken by age
-#' variable (or NULL if no age variable in data)
-#' @param levels_sexgender Values taken by sex/gender
-#' variable (or NULL if no sex/gender variable in data)
-#' @param matrix_agesex Matrix mapping term
-#' to age and sex dimensions.
 #'
 #' @returns A sparse matrix.
 #'
 #' @noRd
 make_matrix_effectfree_effect_svd <- function(prior,
-                                              agesex,
-                                              levels_age,
-                                              levels_sexgender,
-                                              matrix_agesex) {
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              var_sexgender,
+                                              agesex) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n_comp
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
   n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
+  levels_age <- if (is.null(var_age)) NULL else dimnames_term[[var_age]]
+  levels_sexgender <- if (is.null(var_sexgender)) NULL else dimnames_term[[var_sexgender]]
   m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
@@ -1184,8 +1208,7 @@ make_matrix_effectfree_effect_svd <- function(prior,
 }
 
 
-
-## 
+## HAS_TESTS
 #' Make Offset used in converting effectfree to effect for SVD Priors
 #'
 #' @param prior Object of class 'bage_prior'

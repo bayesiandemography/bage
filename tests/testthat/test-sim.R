@@ -76,7 +76,7 @@ test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 1", {
                                 n_sim = n_sim)
   vals_hyperrand <- list()
   levels_effect <- letters
-  matrix_along_by <- matrix(0:25, nr = 26)
+  matrix_along_by <- matrix(0:25, nr = 26, dimnames = list(letters, NULL))
   ans <- draw_vals_ar(coef = vals_hyper$coef,
                       sd = vals_hyper$sd,
                       matrix_along_by = matrix_along_by,
@@ -86,15 +86,14 @@ test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 1", {
 
 test_that("'draw_vals_ar' works with bage_prior_ar - n_by = 2", {
   prior <- AR(n_coef = 3)
-  matrix_along_by <- matrix(0:25, nr = 13)
+  matrix_along_by <- matrix(0:25, nr = 13, dimnames = list(letters[1:13], NULL))
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
-  levels_effect <- letters
   ans <- draw_vals_ar(coef = vals_hyper$coef,
                       sd = vals_hyper$sd,
                       matrix_along_by = matrix_along_by,
-                      levels_effect = levels_effect)
+                      levels_effect = letters)
   expect_identical(dimnames(ans), list(letters, NULL))
 })
 
@@ -214,8 +213,8 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
                                       vals_hyper = vals_hyper,
                                       n_sim = n_sim)
   vals_svd <- draw_vals_svd_mod(mod = mod,
-                                      vals_hyper = vals_hyper,
-                                      n_sim = n_sim)
+                                vals_hyper = vals_hyper,
+                                n_sim = n_sim)
   ans <- draw_vals_effect_mod(mod,
                               vals_hyper = vals_hyper,
                               vals_hyperrand = vals_hyperrand,
@@ -232,27 +231,29 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
 
 test_that("'draw_vals_effect_svd' works with valid inputs", {
   prior <- SVD(HMD)
+  dimnames_term <- list(age = c(0:59, "60+"),
+                        reg = c("a", "b", "c", "d", "e"))
+  var_age <- "age"
+  var_sexgender <- "sex"
   vals_svd <- draw_vals_svd(prior = prior,
-                              vals_hyper = list(),
-                              matrix_along_by_free = matrix(0:24, nr = 5),
-                              levels_effectfree = paste(paste0("comp", 1:5),
-                                                        rep(c("a", "b", "c", "d", "e"),
-                                                            each = 5),
-                                                        sep = "."),
-                              n_sim = 10)
-  levels_age <- poputils::age_labels(type = "lt", max = 60)
-  levels_sexgender <- NULL
+                            vals_hyper = list(),
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_effectfree = paste(paste0("comp", 1:5),
+                                                      rep(c("a", "b", "c", "d", "e"),
+                                                          each = 5),
+                                                      sep = "."),
+                            n_sim = 10)
   agesex <- "age:other"
-  matrix_agesex <- matrix(0:69, nc = 5)
-  levels_effect <- paste(levels_age, rep(c("a", "b", "c", "d", "e"), each = 14), sep = ".")
   ans <- draw_vals_effect_svd(prior = prior,
                               vals_svd = vals_svd,
-                              levels_age = levels_age,
-                              levels_sexgender = levels_sexgender,
-                              agesex = agesex,
-                              matrix_agesex = matrix_agesex,
-                              levels_effect = levels_effect)
-  expect_identical(dim(ans), c(70L, 10L))
+                              dimnames_term = dimnames_term,
+                              var_age = var_age,
+                              var_sexgender = var_sexgender,
+                              agesex = agesex)
+  expect_identical(dim(ans), c(61L * 5L, 10L))
 })
 
 

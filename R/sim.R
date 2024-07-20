@@ -50,7 +50,7 @@ aggregate_report_comp <- function(report_comp) {
 #' marginal standard deviation
 #' @param matrix_along_by Matrix mapping position in along and
 #' by dimensions to effect
-#' @param levels_effect Labels for effect
+#' @param levels_effect Names of elements of effect
 #'
 #' @returns A matrix
 #'
@@ -286,26 +286,22 @@ draw_vals_effect_mod <- function(mod,
                                  vals_svd,
                                  n_sim) {
   priors <- mod$priors
-  levels_effect <- mod$levels_effect
-  terms_effect <- mod$terms_effect
-  levels_effect <- split(levels_effect, terms_effect)
-  levels_age <- make_levels_age(mod)
-  levels_sexgender <- make_levels_sexgender(mod)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   agesex <- make_agesex(mod)
-  matrices_along_by <- choose_matrices_along_by(mod)
-  matrices_agesex <- make_matrices_agesex(mod)
   ans <- .mapply(draw_vals_effect,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
                              vals_hyperrand = vals_hyperrand,
                              vals_spline = vals_spline,
                              vals_svd = vals_svd,
-                             levels_effect = levels_effect,
-                             agesex = agesex,
-                             matrix_along_by = matrices_along_by,
-                             matrix_agesex = matrices_agesex),
-                 MoreArgs = list(levels_age = levels_age,
-                                 levels_sexgender = levels_sexgender,
+                             dimnames_term = dimnames_terms,
+                             agesex = agesex),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender,
                                  n_sim = n_sim))
   names(ans) <- names(priors)
   ans
@@ -318,26 +314,33 @@ draw_vals_effect_mod <- function(mod,
 #' @param prior Object of class 'bage_prior'
 #' @param vals_svd Matrix with posterior draws
 #' for SVD coefficients
-#' @param levels_age Character vector of age labels
-#' @param levels_sexgender Character vector of sex/gender
-#' labels, or NULL
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #' @param agesex String. Type of term.
-#' @param matrix_agesex Matrix mapping effect in
-#' original format to one with age-sex dimension(s) first
 #'
 #' @returns A matrix
 #'
 #' @noRd
 draw_vals_effect_svd <- function(prior,
                                  vals_svd,
-                                 levels_age,
-                                 levels_sexgender,
-                                 agesex,
-                                 matrix_agesex,
-                                 levels_effect) {
+                                 dimnames_term,
+                                 var_age,
+                                 var_sexgender,
+                                 agesex) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n_comp
+  levels_age <- dimnames_term[[var_age]]
+  has_sexgender <- !is.null(var_sexgender)
+  if (has_sexgender)
+    levels_sexgender <- dimnames_term[[var_sexgender]]
+  else
+    levels_sexgender <- NULL
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  levels_effect <- dimnames_to_levels(dimnames_term)
   n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
   m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age = levels_age,
@@ -396,12 +399,16 @@ draw_vals_hyper_mod <- function(mod, n_sim) {
 #' @noRd
 draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
   priors <- mod$priors
-  matrices_along_by <- choose_matrices_along_by(mod)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   ans <- .mapply(draw_vals_hyperrand,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
-                             matrix_along_by = matrices_along_by),
-                 MoreArgs = list(n_sim = n_sim))
+                             dimnames_term = dimnames_terms),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 n_sim = n_sim))
   names(ans) <- names(priors)
   ans
 }
@@ -663,14 +670,18 @@ draw_vals_sd_seas <- function(prior, n_sim) {
 #' @noRd
 draw_vals_spline_mod <- function(mod, vals_hyper, n_sim) {
   priors <- mod$priors
-  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   levels_effectfree <- make_levels_spline(mod, unlist = FALSE)
   ans <- .mapply(draw_vals_spline,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
-                             matrix_along_by_free = matrices_along_by_free,
+                             dimnames_term = dimnames_terms,
                              levels_effectfree = levels_effectfree),
-                 MoreArgs = list(n_sim = n_sim))
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 n_sim = n_sim))
   names(ans) <- names(priors)
   ans
 }
@@ -688,14 +699,20 @@ draw_vals_spline_mod <- function(mod, vals_hyper, n_sim) {
 #' @noRd
 draw_vals_svd_mod <- function(mod, vals_hyper, n_sim) {
   priors <- mod$priors
-  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   levels_effectfree <- make_levels_svd(mod, unlist = FALSE)
   ans <- .mapply(draw_vals_svd,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
-                             matrix_along_by_free = matrices_along_by_free,
+                             dimnames_term = dimnames_terms,
                              levels_effectfree = levels_effectfree),
-                 MoreArgs = list(n_sim = n_sim))
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender,
+                                 n_sim = n_sim))
   names(ans) <- names(priors)
   ans
 }
