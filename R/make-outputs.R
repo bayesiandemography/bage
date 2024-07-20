@@ -1066,15 +1066,16 @@ make_transforms_hyper <- function(mod) {
 #' @noRd
 reformat_hyperrand <- function(components, mod) {
   priors <- mod$priors
-  nms_priors <- names(priors)
-  matrices_along_by <- choose_matrices_along_by(mod)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   for (i_prior in seq_along(priors)) {
     prior <- priors[[i_prior]]
-    nm_prior <- nms_priors[[i_prior]]
-    matrix_along_by <- matrices_along_by[[i_prior]]
+    dimnames_term <- dimnames_terms[[i_prior]]
     components <- reformat_hyperrand_one(prior = prior,
-                                         nm_prior = nm_prior,
-                                         matrix_along_by = matrix_along_by,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
                                          components = components)
   }
   components
@@ -1085,24 +1086,32 @@ reformat_hyperrand <- function(components, mod) {
 #' Reformat 'Components' Output for Terms with Fixed Seasonal Effect
 #'
 #' @param prior Object of class 'bage_prior'.
-#' @param nm_prior Name of the prior (ie name of the term).
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
 #' @param components A data frame.
 #'
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
 reformat_hyperrand_seasfix <- function(prior,
-                                         nm_prior,
-                                         matrix_along_by,
-                                         components) {
+                                       dimnames_term,
+                                       var_time,
+                                       var_age,
+                                       components) {
   n_seas <- prior$specific$n_seas
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
+  along <- prior$specific$along
+  nm <- paste(names(dimnames_term), collapse = ":")
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
   is_seas <- with(components,
-                  term == nm_prior & component == "hyperrand")
+                  term == nm & component == "hyperrand")
   is_effect <- with(components,
-                    term == nm_prior & component == "effect")  
+                    term == nm & component == "effect")  
   seas <- components$.fitted[is_seas]
   effect <- components$.fitted[is_effect]
   level <- components$level[is_effect]
@@ -1113,16 +1122,16 @@ reformat_hyperrand_seasfix <- function(prior,
   for (i_by in seq_len(n_by)) {
     for (i_along in seq_len(n_along)) {
       i_seas <- ((i_along - 1L) %% n_seas) + (i_by - 1L) * n_seas + 1L
-      i_seas_extend <- matrix_along_by[i_along, i_by] + 1L
+      i_seas_extend <- matrix_along_by_effect[i_along, i_by] + 1L
       seas_extend[i_seas_extend] <- seas[i_seas]
     }
   }
-  seasonal <- tibble::tibble(term = nm_prior,
+  seasonal <- tibble::tibble(term = nm,
                              component = "seasonal",
                              level = level,
                              .fitted = seas_extend)
   trend <- effect - seas_extend
-  trend <- tibble::tibble(term = nm_prior,
+  trend <- tibble::tibble(term = nm,
                           component = "trend",
                           level = level,
                           .fitted = trend)
@@ -1136,32 +1145,40 @@ reformat_hyperrand_seasfix <- function(prior,
 #' Reformat 'Components' Output for Terms with Fixed Seasonal Effect
 #'
 #' @param prior Object of class 'bage_prior'.
-#' @param nm_prior Name of the prior (ie name of the term).
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
 #' @param components A data frame.
 #'
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
 reformat_hyperrand_seasvary <- function(prior,
-                                        nm_prior,
-                                        matrix_along_by,
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
                                         components) {
+  along <- prior$specific$along
+  nm <- paste(names(dimnames_term), collapse = ":")
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
   ## seasonal
   is_seas <- with(components,
-                  term == nm_prior & component == "hyperrand")
+                  term == nm & component == "hyperrand")
   seas <- components$.fitted[is_seas]
   seas <- center_within_across_by(x = seas,
-                                  matrix_along_by = matrix_along_by)
+                                  matrix_along_by = matrix_along_by_effect)
   components$.fitted[is_seas] <- seas
   components$component[is_seas] <- "seasonal"
   ## trend
   is_effect <- with(components,
-                    term == nm_prior & component == "effect")  
+                    term == nm & component == "effect")  
   effect <- components$.fitted[is_effect]
   trend <- effect - seas
   level <- components$level[is_effect]
-  trend <- tibble::tibble(term = nm_prior,
+  trend <- tibble::tibble(term = nm,
                           component = "trend",
                           level = level,
                           .fitted = trend)
@@ -1169,8 +1186,6 @@ reformat_hyperrand_seasvary <- function(prior,
   vctrs::vec_rbind(components, trend)
 }
 
-
-                     
 
 ## HAS_TESTS
 #' Draw from multivariate normal, using results

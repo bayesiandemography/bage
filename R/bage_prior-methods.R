@@ -2938,7 +2938,9 @@ print.bage_prior_svd_rw2 <- function(x, ...) {
 #' renaming columns. 
 #'
 #' @param prior Object of class 'bage_prior'.
-#' @param nm_prior Name of the prior (ie name of the term).
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
 #' @param matrix_along_by Matrix with mapping for along, by dimensions
 #' @param components A data frame.
 #'
@@ -2946,8 +2948,9 @@ print.bage_prior_svd_rw2 <- function(x, ...) {
 #'
 #' @noRd
 reformat_hyperrand_one <- function(prior,
-                                   nm_prior,
-                                   matrix_along_by,
+                                   dimnames_term,
+                                   var_time,
+                                   var_age,
                                    components) {
   UseMethod("reformat_hyperrand_one")
 }
@@ -2955,18 +2958,21 @@ reformat_hyperrand_one <- function(prior,
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior <- function(prior,
-                                              nm_prior,
-                                              matrix_along_by,
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
                                               components)
   components
 
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior_lin <- function(prior,
-                                                  nm_prior,
-                                                  matrix_along_by,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
                                                   components) {
-  is_change <- with(components, component == "hyperrand" & term == nm_prior)
+  nm <- paste(names(dimnames_term), collapse = ":")
+  is_change <- with(components, component == "hyperrand" & term == nm)
   components$component[is_change] <- "hyper"
   components
 }
@@ -2974,29 +2980,36 @@ reformat_hyperrand_one.bage_prior_lin <- function(prior,
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior_linar <- function(prior,
-                                                    nm_prior,
-                                                    matrix_along_by,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
                                                     components) {
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
+  along <- prior$specific$along
+  nm <- paste(names(dimnames_term), collapse = ":")
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
   is_effect <- with(components,
-                    term == nm_prior & component == "effect")
+                    term == nm & component == "effect")
   is_slope <- with(components,
-                   term == nm_prior & component == "hyperrand" & startsWith(level, "slope"))
+                   term == nm & component == "hyperrand" & startsWith(level, "slope"))
   effect <- components$.fitted[is_effect]
   slope <- components$.fitted[is_slope]
   level <- components$level[is_effect]
   q <- seq(from = -1, to = 1, length.out = n_along)
   trend <- rep(slope, each = n_along) * rep(q, times = n_by)
-  i <- match(sort(matrix_along_by), matrix_along_by)
+  i <- match(sort(matrix_along_by_effect), matrix_along_by_effect)
   trend <- trend[i]
   cyclical <- effect - trend
   components$component[is_slope] <- "hyper"
-  trend <- tibble::tibble(term = nm_prior,
+  trend <- tibble::tibble(term = nm,
                           component = "trend",
                           level = level,
                           .fitted = trend)
-  cyclical <- tibble::tibble(term = nm_prior,
+  cyclical <- tibble::tibble(term = nm,
                              component = "cyclical",
                              level = level,
                              .fitted = cyclical)
@@ -3007,45 +3020,53 @@ reformat_hyperrand_one.bage_prior_linar <- function(prior,
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior_rwseasfix <- function(prior,
-                                                        nm_prior,
-                                                        matrix_along_by,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
                                                         components)
   reformat_hyperrand_seasfix(prior = prior,
-                             nm_prior = nm_prior,
-                             matrix_along_by = matrix_along_by,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
                              components = components)
 
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior_rwseasvary <- function(prior,
-                                                         nm_prior,
-                                                         matrix_along_by,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
                                                          components)
   reformat_hyperrand_seasvary(prior = prior,
-                              nm_prior = nm_prior,
-                              matrix_along_by = matrix_along_by,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age,
                               components = components)
 
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior_rw2seasfix <- function(prior,
-                                                        nm_prior,
-                                                        matrix_along_by,
-                                                        components)
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         components)
   reformat_hyperrand_seasfix(prior = prior,
-                             nm_prior = nm_prior,
-                             matrix_along_by = matrix_along_by,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
                              components = components)
 
 ## HAS_TESTS
 #' @export
 reformat_hyperrand_one.bage_prior_rw2seasvary <- function(prior,
-                                                         nm_prior,
-                                                         matrix_along_by,
-                                                         components)
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          components)
   reformat_hyperrand_seasvary(prior = prior,
-                              nm_prior = nm_prior,
-                              matrix_along_by = matrix_along_by,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age,
                               components = components)
 
 
