@@ -290,15 +290,13 @@ draw_vals_effect_mod <- function(mod,
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  agesex <- make_agesex(mod)
   ans <- .mapply(draw_vals_effect,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
                              vals_hyperrand = vals_hyperrand,
                              vals_spline = vals_spline,
                              vals_svd = vals_svd,
-                             dimnames_term = dimnames_terms,
-                             agesex = agesex),
+                             dimnames_term = dimnames_terms),
                  MoreArgs = list(var_time = var_time,
                                  var_age = var_age,
                                  var_sexgender = var_sexgender,
@@ -307,69 +305,6 @@ draw_vals_effect_mod <- function(mod,
   ans
 }
 
-## HAS_TESTS
-#' Draw Values for Main Effect or Interaction with
-#' a SVD-Time Series Prior
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param vals_svd Matrix with posterior draws
-#' for SVD coefficients
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#' @param agesex String. Type of term.
-#'
-#' @returns A matrix
-#'
-#' @noRd
-draw_vals_effect_svd <- function(prior,
-                                 vals_svd,
-                                 dimnames_term,
-                                 var_age,
-                                 var_sexgender,
-                                 agesex) {
-  ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
-  n_comp <- prior$specific$n_comp
-  levels_age <- dimnames_term[[var_age]]
-  has_sexgender <- !is.null(var_sexgender)
-  if (has_sexgender)
-    levels_sexgender <- dimnames_term[[var_sexgender]]
-  else
-    levels_sexgender <- NULL
-  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-  levels_effect <- dimnames_to_levels(dimnames_term)
-  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  m <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = TRUE,
-                                n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = FALSE,
-                                n_comp = n_comp)
-  I <- Matrix::.sparseDiagonal(n_by)
-  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
-                               j = rep.int(1L, times = n_by),
-                               x = rep.int(1L, times = n_by))
-  agesex_to_standard <- make_index_matrix(matrix_agesex)
-  m_all_by <- Matrix::kronecker(I, m)
-  b_all_by <- Matrix::kronecker(ones, b)
-  b_all_by <- Matrix::drop(b_all_by)
-  ans <- m_all_by %*% vals_svd + b_all_by
-  ans <- agesex_to_standard %*% ans
-  ans <- Matrix::as.matrix(ans)
-  dimnames(ans) <- list(levels_effect, NULL)
-  ans
-}
 
 ## HAS_TESTS
 #' Draw Values for Ordinary Hyper-Parameters

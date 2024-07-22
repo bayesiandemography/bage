@@ -330,6 +330,30 @@ test_that("'dimnames_to_levels' works with 2D dimnames", {
 })
 
 
+## 'dimnames_to_nm' -------------------------------------------------------
+
+test_that("'dimnames_to_nm' works with 0D dimnames", {
+  dimnames <- list()
+  ans_obtained <- dimnames_to_nm(dimnames)
+  ans_expected <- "(Intercept)"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'dimnames_to_nm' works with 1D dimnames", {
+  dimnames <- list(age = 0:4)
+  ans_obtained <- dimnames_to_nm(dimnames)
+  ans_expected <- "age"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'dimnames_to_nm' works with 2D dimnames", {
+  dimnames <- list(age = 0:4, reg = c("a", "b"))
+  ans_obtained <- dimnames_to_nm(dimnames)
+  ans_expected <- "age:reg"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'eval_offset_formula' ------------------------------------------------------
 
 test_that("'eval_offset_formula' works with valid inputs - simple formula", {
@@ -466,78 +490,54 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
 ## 'make_agesex' --------------------------------------------------------------
 
 test_that("'make_agesex' works with valid inputs", {
-  set.seed(0)
-  data <- expand.grid(agegp = 0:9,
-                      time = 2000:2005,
-                      region = 1:2,
-                      SEX = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ agegp * SEX + region
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_agesex(mod)
-  ans_expected <- list("(Intercept)" = "other",
-                       agegp = "age",
-                       SEX = "other",
-                       region = "other",
-                       "agegp:SEX" = "age:sex")
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_agesex_inner' --------------------------------------------------------
-
-test_that("'make_agesex_inner' works with valid inputs", {
-    expect_identical(make_agesex_inner("agegroup",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "age")
-    expect_identical(make_agesex_inner("agegroup",
-                                       var_age = NULL,
-                                       var_sexgender = "gender"),
-                     "other")
-    expect_identical(make_agesex_inner("(Intercept)",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "other")
-    expect_identical(make_agesex_inner("agegroup:gender",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "age:sex")
-    expect_identical(make_agesex_inner("gender:agegroup",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "sex:age")
-    expect_identical(make_agesex_inner("agegroup:gender",
-                                       var_age = "agegroup",
-                                       var_sexgender = NULL),
-                     "age:other")
-    expect_identical(make_agesex_inner("gender:agegroup:reg",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "sex:age:other")
-    expect_identical(make_agesex_inner("region:agegroup",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "age:other")
-    expect_identical(make_agesex_inner("gender:agegroup:region",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "sex:age:other")
-    expect_identical(make_agesex_inner("agegroup:gender:region",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "age:sex:other")
-    expect_identical(make_agesex_inner("agegroup:bla:region",
-                                       var_age = "agegroup",
-                                       var_sexgender = "gender"),
-                     "age:other")
-    expect_identical(make_agesex_inner("gender:agegroup:region",
-                                       var_age = NULL,
-                                       var_sexgender = NULL),
-                     "other")
+  expect_identical(make_agesex("agegroup",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "age")
+  expect_identical(make_agesex("agegroup",
+                               var_age = NULL,
+                               var_sexgender = "gender"),
+                   "other")
+  expect_identical(make_agesex("(Intercept)",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "other")
+  expect_identical(make_agesex("agegroup:gender",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "age:sex")
+  expect_identical(make_agesex("gender:agegroup",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "sex:age")
+  expect_identical(make_agesex("agegroup:gender",
+                               var_age = "agegroup",
+                               var_sexgender = NULL),
+                   "age:other")
+  expect_identical(make_agesex("gender:agegroup:reg",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "sex:age:other")
+  expect_identical(make_agesex("region:agegroup",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "age:other")
+  expect_identical(make_agesex("gender:agegroup:region",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "sex:age:other")
+  expect_identical(make_agesex("agegroup:gender:region",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "age:sex:other")
+  expect_identical(make_agesex("agegroup:bla:region",
+                               var_age = "agegroup",
+                               var_sexgender = "gender"),
+                   "age:other")
+  expect_identical(make_agesex("gender:agegroup:region",
+                               var_age = NULL,
+                               var_sexgender = NULL),
+                   "other")
 })
 
 
@@ -1523,13 +1523,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age m
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  agesex <- "age"
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
                                                     dimnames_term = dimnames_term,
                                                     var_time = var_time,
                                                     var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    agesex = agesex)
+                                                    var_sexgender = var_sexgender)
   ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
@@ -1546,13 +1544,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age-s
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  agesex <- "sex:age"
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
                                                     dimnames_term = dimnames_term,
                                                     var_time = var_time,
                                                     var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    agesex = agesex)
+                                                    var_sexgender = var_sexgender)
   ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][c(1,3,2,4),1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
@@ -1569,13 +1565,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  agesex <- "age:other"
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
                                                     dimnames_term = dimnames_term,
                                                     var_time = var_time,
                                                     var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    agesex = agesex)
+                                                    var_sexgender = var_sexgender)
   m2 <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
@@ -1594,13 +1588,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  agesex <- "sex:age:other"
   ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
                                                     dimnames_term = dimnames_term,
                                                     var_time = var_time,
                                                     var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    agesex = agesex)
+                                                    var_sexgender = var_sexgender)
   m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
@@ -1617,18 +1609,19 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x
 test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x time interaction", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 2)
-  levels_effect = c("0-4.2001", "5-9.2001", "0-4.2002", "5-9.2002", "0-4.2003", "5-9.2003")
-  levels_age <- c("0-4", "5-9")
-  agesex <- "age:other"
-  matrix_agesex <- matrix(0:5, nr = 2, dimnames = list(c("0-4", "5-9"), 2001:2003))
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        time = 2001:2003)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   ans_obtained <- make_offset_effectfree_effect_svd(prior = prior,
-                                                    levels_effect = levels_effect,
-                                                    levels_age = levels_age,
-                                                    levels_sexgender = NULL,
-                                                    agesex = agesex,
-                                                    matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- rep(ans_expected, 3)
+  levels_effect = c("0-4.2001", "5-9.2001", "0-4.2002", "5-9.2002", "0-4.2003", "5-9.2003")
   names(ans_expected) <- levels_effect
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1636,16 +1629,17 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x
 test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x time interaction", {
   s <- sim_ssvd()
   prior <- SVD_AR1(ssvd = s, n_comp = 2)
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        time = 2001:2003)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   levels_effect = c("0-4.2001", "5-9.2001", "0-4.2002", "5-9.2002", "0-4.2003", "5-9.2003")
-  levels_age <- c("0-4", "5-9")
-  agesex <- "age:other"
-  matrix_agesex <- matrix(0:5, nr = 2, dimnames = list(c("0-4", "5-9"), 2001:2003))
   ans_obtained <- make_offset_effectfree_effect_svd(prior = prior,
-                                                    levels_effect = levels_effect,
-                                                    levels_age = levels_age,
-                                                    levels_sexgender = NULL,
-                                                    agesex = agesex,
-                                                    matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- rep(ans_expected, 3)
   names(ans_expected) <- levels_effect
@@ -1655,16 +1649,17 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x
 test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x time interaction", {
   s <- sim_ssvd()
   prior <- SVD_RW(ssvd = s, n_comp = 2)
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        time = 2001:2003)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   levels_effect = c("0-4.2001", "5-9.2001", "0-4.2002", "5-9.2002", "0-4.2003", "5-9.2003")
-  levels_age <- c("0-4", "5-9")
-  agesex <- "age:other"
-  matrix_agesex <- matrix(0:5, nr = 2, dimnames = list(c("0-4", "5-9"), 2001:2003))
   ans_obtained <- make_offset_effectfree_effect_svd(prior = prior,
-                                                    levels_effect = levels_effect,
-                                                    levels_age = levels_age,
-                                                    levels_sexgender = NULL,
-                                                    agesex = agesex,
-                                                    matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- rep(ans_expected, 3)
   names(ans_expected) <- levels_effect
@@ -1675,23 +1670,21 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x
   s <- sim_ssvd()
   prior <- SVD_RW2(ssvd = s, n_comp = 2)
   levels_effect = c("0-4.2001", "5-9.2001", "0-4.2002", "5-9.2002", "0-4.2003", "5-9.2003")
-  levels_age <- c("0-4", "5-9")
-  agesex <- "age:other"
-  matrix_agesex <- matrix(0:5, nr = 2, dimnames = list(c("0-4", "5-9"), 2001:2003))
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        time = 2001:2003)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
   ans_obtained <- make_offset_effectfree_effect_svd(prior = prior,
-                                                    levels_effect = levels_effect,
-                                                    levels_age = levels_age,
-                                                    levels_sexgender = NULL,
-                                                    agesex = agesex,
-                                                    matrix_agesex = matrix_agesex)
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- rep(ans_expected, 3)
   names(ans_expected) <- levels_effect
   expect_identical(ans_obtained, ans_expected)
 })
-
-
-
 
 
 ## 'make_offset' --------------------------------------------------------------

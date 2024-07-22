@@ -128,6 +128,22 @@ dimnames_to_levels <- function(dimnames) {
     ans <- "(Intercept)"
   ans
 }
+
+
+## HAS_TESTS
+#' Convert Dimnames for a Term to the Name of the Term
+#'
+#' @param dimnames Named list of labels
+#'
+#' @returns A string
+#'
+#' @noRd
+dimnames_to_nm <- function(dimnames) {
+  if (length(dimnames) > 0L)
+    paste(names(dimnames), collapse = ":")
+  else
+    "(Intercept)"
+}
   
 
 ## HAS_TESTS
@@ -247,30 +263,6 @@ infer_var_time <- function(formula) {
 
 
 ## HAS_TESTS
-#' Identify Age Main effects and Age-Sex/Gender Interactions
-#'
-#' Classify terms as "age", "age:sex", "sex:age", and "other".
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list.
-#'
-#' @noRd
-make_agesex <- function(mod) {
-  priors <- mod$priors
-  var_age <- mod$var_age
-  var_sexgender <- mod$var_sexgender
-  nms <- names(priors)
-  ans <- lapply(nms,
-                make_agesex_inner,
-                var_age = var_age,
-                var_sexgender = var_sexgender)
-  names(ans) <- nms
-  ans
-}
-
-
-## HAS_TESTS
 #' Classify a Term, Based on the Name
 #'
 #' Decide whether an intercept, main effect,
@@ -301,7 +293,7 @@ make_agesex <- function(mod) {
 #' "sex:age:other", "other"
 #'
 #' @noRd
-make_agesex_inner <- function(nm, var_age, var_sexgender) {
+make_agesex <- function(nm, var_age, var_sexgender) {
   nm_split <- strsplit(nm, split = ":")[[1L]]
   has_var_age <- !is.null(var_age)
   has_var_sex <- !is.null(var_sexgender)
@@ -1067,11 +1059,9 @@ make_matrices_effectfree_effect <- function(mod) {
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  agesex <- make_agesex(mod)
   ans <- .mapply(make_matrix_effectfree_effect,
                  dots = list(prior = priors,
-                             dimnames_term = dimnames_terms,
-                             agesex = agesex),
+                             dimnames_term = dimnames_terms),
                  MoreArgs = list(var_time = var_time,
                                  var_age = var_age,
                                  var_sexgender = var_sexgender))
@@ -1173,8 +1163,6 @@ make_matrix_along_by_free_svdtime <- function(prior,
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
-#' @param agesex String. One of "age", "age:sex",
-#' "age:other", "age:sex:other", or "other"
 #'
 #' @returns A sparse matrix.
 #'
@@ -1183,11 +1171,14 @@ make_matrix_effectfree_effect_svd <- function(prior,
                                               dimnames_term,
                                               var_time,
                                               var_age,
-                                              var_sexgender,
-                                              agesex) {
+                                              var_sexgender) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n_comp
+  nm <- paste(names(dimnames_term), collapse = ":")
+  agesex <- make_agesex(nm = nm,
+                              var_age = var_age,
+                              var_sexgender = var_sexgender)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender)
@@ -1212,29 +1203,33 @@ make_matrix_effectfree_effect_svd <- function(prior,
 #' Make Offset used in converting effectfree to effect for SVD Priors
 #'
 #' @param prior Object of class 'bage_prior'
-#' @param levels_effect Vector of labels for term
-#' @param agesex String. One of "age", "age:sex",
-#' "age:other", "age:sex:other", or "other"
-#' @param levels_age Values taken by age
-#' variable (or NULL if no age variable in data)
-#' @param levels_sexgender Values taken by sex/gender
-#' variable (or NULL if no sex/gender variable in data)
-#' @param matrix_agesex Matrix mapping term to age
-#' and sex dimensions.
+#' @param dimnames_term Dimnames of array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #'
 #' @returns A vector.
 #'
 #' @noRd
 make_offset_effectfree_effect_svd <- function(prior,
-                                              levels_effect,
-                                              agesex,
-                                              levels_age,
-                                              levels_sexgender,
-                                              matrix_agesex) {
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              var_sexgender) {
   ssvd <- prior$specific$ssvd
   joint <- prior$specific$joint
   n_comp <- prior$specific$n_comp
+  nm <- paste(names(dimnames_term), collapse = ":")
+  agesex <- make_agesex(nm = nm,
+                              var_age = var_age,
+                              var_sexgender = var_sexgender)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
   n_by <- ncol(matrix_agesex)  ## special meaning of 'n_by': excludes age and sex
+  levels_age <- if (is.null(var_age)) NULL else dimnames_term[[var_age]]
+  levels_sexgender <- if (is.null(var_sexgender)) NULL else dimnames_term[[var_sexgender]]
+  levels_effect <- dimnames_to_levels(dimnames_term)
   b <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
@@ -1252,9 +1247,6 @@ make_offset_effectfree_effect_svd <- function(prior,
   names(ans) <- levels_effect
   ans
 }
-
-
-
 
 
 ## HAS_TESTS
@@ -1307,23 +1299,19 @@ make_offset_ones <- function(data) {
 #'
 #' @noRd
 make_offsets_effectfree_effect <- function(mod) {
-    priors <- mod$priors
-    levels_effect <- mod$levels_effect
-    terms_effect <- mod$terms_effect
-    levels_effect <- split(levels_effect, terms_effect)
-    agesex <- make_agesex(mod)
-    matrices_agesex <- make_matrices_agesex(mod)
-    levels_age <- make_levels_age(mod)
-    levels_sexgender <- make_levels_sexgender(mod)
-    ans <- .mapply(make_offset_effectfree_effect,
-                   dots = list(prior = priors,
-                               levels_effect = levels_effect,
-                               agesex = agesex,
-                               matrix_agesex = matrices_agesex),
-                   MoreArgs = list(levels_age = levels_age,
-                                   levels_sexgender = levels_sexgender))
-    names(ans) <- names(priors)
-    ans    
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  ans <- .mapply(make_offset_effectfree_effect,
+                 dots = list(prior = priors,
+                             dimnames_term = dimnames_terms),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
+  names(ans) <- names(priors)
+  ans    
 }
 
 

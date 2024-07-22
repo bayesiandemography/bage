@@ -174,16 +174,12 @@ set_prior <- function(mod, formula) {
     cli::cli_abort(c("Problem with prior formula {.code {deparse1(formula)}}.",
                      i = prior$message))
   dimnames_term <- dimnames_terms[[i]]
-  agesex <- make_agesex_inner(nm = nms_terms[[i]],
-                              var_age = var_age,
-                              var_sexgender = var_sexgender)
   is_prior_ok_for_term(prior = prior,
                        nm = nm_response,
                        dimnames_term = dimnames_term,
                        var_time = var_time,
                        var_age = var_age,
-                       var_sexgender = var_sexgender,
-                       agesex = agesex)
+                       var_sexgender = var_sexgender)
   mod$priors[[i]] <- prior
   mod <- unfit(mod)
   mod

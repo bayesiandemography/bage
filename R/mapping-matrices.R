@@ -341,5 +341,75 @@ make_matrix_along_by_inner <- function(i_along, dimnames_term) {
   ans
 }
 
-  
-
+## HAS_TESTS
+#' Transform SVD Values Back to Original Scale
+#'
+#' @param svd Draws for SVD Coefficients. A matrix
+#' or an rvec.
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns A matrix or an rvec
+#'
+#' @noRd
+svd_to_effect <- function(svd,
+                          prior,
+                          dimnames_term,
+                          var_age,
+                          var_sexgender) {
+  is_svd_rvec <- rvec::is_rvec(svd)
+  if (is_svd_rvec)
+    svd <- as.matrix(svd)
+  ssvd <- prior$specific$ssvd
+  joint <- prior$specific$joint
+  n_comp <- prior$specific$n_comp
+  levels_age <- dimnames_term[[var_age]]
+  nm <- paste(names(dimnames_term), collapse = ":")
+  agesex <- make_agesex(nm = nm,
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
+  has_sexgender <- !is.null(var_sexgender)
+  if (has_sexgender)
+    levels_sexgender <- dimnames_term[[var_sexgender]]
+  else
+    levels_sexgender <- NULL
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
+  m <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = TRUE,
+                                n_comp = n_comp)
+  b <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                levels_age = levels_age,
+                                levels_sexgender = levels_sexgender,
+                                joint = joint,
+                                agesex = agesex,
+                                get_matrix = FALSE,
+                                n_comp = n_comp)
+  I <- Matrix::.sparseDiagonal(n_by)
+  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
+                               j = rep.int(1L, times = n_by),
+                               x = rep.int(1L, times = n_by))
+  agesex_to_standard <- make_index_matrix(matrix_agesex)
+  m_all_by <- Matrix::kronecker(I, m)
+  b_all_by <- Matrix::kronecker(ones, b)
+  b_all_by <- Matrix::drop(b_all_by)
+  ans <- m_all_by %*% svd + b_all_by
+  ans <- agesex_to_standard %*% ans
+  ans <- Matrix::as.matrix(ans)
+  if (is_svd_rvec)
+    ans <- rvec::rvec_dbl(ans)
+  else {
+    levels_effect <- dimnames_to_levels(dimnames_term)
+    dimnames(ans) <- list(levels_effect, NULL)
+  }
+  ans
+}

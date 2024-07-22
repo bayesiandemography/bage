@@ -634,29 +634,16 @@ make_levels_svd <- function(mod, unlist) {
   nms_priors <- names(priors)
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  dimnames <- mod$dimnames_terms
+  dimnames_terms <- mod$dimnames_terms
   ans <- vector(mode = "list", length = length(priors))
   for (i in seq_along(priors)) {
     prior <- priors[[i]]
     if (is_svd(prior)) {
-      n_comp <- prior$specific$n_comp
-      joint <- prior$specific$joint
-      is_indep <- !is.null(joint) && !joint
-      labels_svd <- paste0("comp", seq_len(n_comp))
-      if (is_indep) {
-        levels_sexgender <- dimnames[[i]][[var_sexgender]]
-        n_sexgender <- length(levels_sexgender)
-        labels_svd <- paste(rep(levels_sexgender, each = n_comp),
-                            labels_svd,
-                            sep = ".")
-      }
-      nm_split <- strsplit(nms_priors[[i]], split = ":")[[1L]]
-      nm_split_noagesex <- setdiff(nm_split, c(var_age, var_sexgender))
-      dn <- dimnames[[i]][nm_split_noagesex]
-      dn <- c(list(labels_svd), dn)
-      levels <- expand.grid(dn, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-      levels <- Reduce(paste_dot, levels)
-      ans[[i]] <- levels
+      dimnames_term <- dimnames_terms[[i]]
+      ans[[i]] <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
     }
   }
   if (unlist)
@@ -665,6 +652,44 @@ make_levels_svd <- function(mod, unlist) {
     names(ans) <- names(priors)
   ans
 }
+
+
+## HAS_TESTS
+#' Make Levels for 'svd' Coefficients for a Single Term
+#'
+#' Term is assumed to have a SVD-based prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_levels_svd_term <- function(prior,
+                                 dimnames_term,
+                                 var_age,
+                                 var_sexgender) {
+  n_comp <- prior$specific$n_comp
+  joint <- prior$specific$joint
+  is_indep <- !is.null(joint) && !joint
+  labels_svd <- paste0("comp", seq_len(n_comp))
+  if (is_indep) {
+    levels_sexgender <- dimnames_term[[var_sexgender]]
+    labels_svd <- paste(rep(levels_sexgender, each = n_comp),
+                        labels_svd,
+                        sep = ".")
+  }
+  nms <- names(dimnames_term)
+  nms_noagesex <- setdiff(nms, c(var_age, var_sexgender))
+  dimnames_noagesex <- dimnames_term[nms_noagesex]
+  ans <- c(list(labels_svd), dimnames_noagesex)
+  ans <- expand.grid(ans, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  ans <- Reduce(paste_dot, ans)
+  ans
+}
+
 
 
 ## HAS_TESTS

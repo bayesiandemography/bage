@@ -696,6 +696,53 @@ test_that("'make_levels_svd' works - unlist is TRUE", {
 })
 
 
+
+## 'make_levels_svd_term' ----------------------------------------------------------
+
+test_that("'make_levels_svd_term' works - total, main effect", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(age = c(0:59, "60+"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  ans_expected <- paste0("comp", 1:5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd_term' works - joint, age:sex", {
+  prior <- SVDS(HMD)
+  dimnames_term <- list(age = c(0:59, "60+"), sex = c("M", "F"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  ans_expected <- paste(rep(c("M", "F"), each = 5), paste0("comp", 1:5), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
+  prior <- SVDS(HMD, joint = TRUE)
+  dimnames_term <- list(reg = 1:2, age = c(0:59, "60+"), sex = c("M", "F"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  ans_expected <- paste(paste0("comp", 1:5),
+                        rep(1:2, each = 5),
+                        sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+
+
 ## 'make_stored_draws' --------------------------------------------------------
 
 test_that("'make_stored_draws' works with valid inputs", {
