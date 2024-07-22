@@ -1043,22 +1043,33 @@ forecast_term.bage_prior_ar <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_lin <- function(prior,
-                                         nm,
-                                         components,
-                                         matrix_along_by_est,
-                                         matrix_along_by_forecast,
-                                         levels_forecast) {
-  is_slope <- with(components,
-                   term == nm & component == "hyper" & startsWith(level, "slope"))
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        var_sexgender,
+                                        components,
+                                        labels_forecast) {
+  along <- prior$specific$along
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   slope <- components$.fitted[is_slope]
   sd <- components$.fitted[is_sd]
   lin_forecast <- forecast_lin(slope = slope,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
-  error_forecast <- forecast_norm(sd = sd,
-                                  matrix_along_by_forecast = matrix_along_by_forecast)
+  n_forecast <- length(levels_forecast)
+  error_forecast <- rvec::rnorm_rvec(n = n_forecast, sd = sd)
   .fitted <- lin_forecast + error_forecast
   tibble::tibble(term = nm,
                  component = "effect",
@@ -1069,25 +1080,33 @@ forecast_term.bage_prior_lin <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_linar <- function(prior,
-                                           nm_prior,
+                                           dimnames_term,
+                                           var_time,
+                                           var_age,
+                                           var_sexgender,
                                            components,
-                                           matrix_along_by_est,
-                                           matrix_along_by_forecast,
-                                           levels_forecast) {
-  is_effect <- with(components,
-                    term == nm & component == "effect")
-  is_coef <- with(components,
-                  term == nm & component == "hyper" & startsWith(level, "coef"))
-  is_slope <- with(components,
-                   term == nm & component == "hyper" & startsWith(level, "slope"))
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+                                           labels_forecast) {
+  along <- prior$specific$along
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_effect <- with(components, term == nm & component == "effect")
+  is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
+  is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   effect_est <- components$.fitted[is_effect]
   coef <- components$.fitted[is_coef]
   slope <- components$.fitted[is_slope]
   sd <- components$.fitted[is_sd]
-  lin_est <- estimate_lin(slope = slope,
-                          matrix_along_by_est = matrix_along_by_est)
+  lin_est <- estimate_lin(slope = slope, matrix_along_by_est = matrix_along_by_est)
   lin_forecast <- forecast_lin(slope = slope,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
@@ -1110,54 +1129,72 @@ forecast_term.bage_prior_linar <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_norm <- function(prior,
-                                          nm_prior,
-                                          components,
-                                          matrix_along_by_est,
-                                          matrix_along_by_forecast,
-                                          levels_forecast) {
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        var_sexgender,
+                                        components,
+                                        labels_forecast) {
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  n_forecast <- length(levels_forecast)
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   sd <- components$.fitted[is_sd]
-  norm_forecast <- forecast_norm(sd = sd,
-                                 matrix_along_by_forecast = matrix_along_by_forecast)
+  .fitted <- rvec::rnorm_rvec(n = n_forecast, sd = sd)
   tibble::tibble(term = nm,
                  component = "effect",
                  level = levels_forecast,
-                 .fitted = norm_forecast)
+                 .fitted = .fitted)
 }
 
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_normfixed <- function(prior,
-                                               nm_prior,
+                                               dimnames_term,
+                                               var_time,
+                                               var_age,
+                                               var_sexgender,
                                                components,
-                                               matrix_along_by_est,
-                                               matrix_along_by_forecast,
-                                               levels_forecast) {
-  n <- length(matrix_along_by_forecast)
+                                               labels_forecast) {
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  n_forecast <- length(levels_forecast)
   sd <- prior$specific$sd
   n_draw <- rvec::n_draw(components$.fitted[[1L]])
-  norm_forecast <- rvec::rnorm_rvec(n = n,
-                                    sd = sd,
-                                    n_draw = n_draw)
+  .fitted <- rvec::rnorm_rvec(n = n_forecast,
+                              sd = sd,
+                              n_draw = n_draw)
   tibble::tibble(term = nm,
                  component = "effect",
                  level = levels_forecast,
-                 .fitted = norm_forecast)
+                 .fitted = .fitted)
 }
 
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rw <- function(prior,
-                                        nm_prior,
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        var_sexgender,
                                         components,
-                                        matrix_along_by_est,
-                                        matrix_along_by_forecast,
-                                        levels_forecast) {
-  is_effect <- with(components,
-                    term == nm & component == "effect")
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+                                        labels_forecast) {
+  along <- prior$specific$along
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_effect <- with(components, term == nm & component == "effect")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   rw_est <- components$.fitted[is_effect]
   sd <- components$.fitted[is_sd]
   rw_forecast <- forecast_rw(rw_est = rw_est,
@@ -1173,18 +1210,28 @@ forecast_term.bage_prior_rw <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rwseasfix <- function(prior,
-                                               nm_prior,
+                                               dimnames_term,
+                                               var_time,
+                                               var_age,
+                                               var_sexgender,
                                                components,
-                                               matrix_along_by_est,
-                                               matrix_along_by_forecast,
-                                               levels_forecast) {
+                                               labels_forecast) {
+  along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  is_trend <- with(components,
-                   term == nm & component == "trend")
-  is_seasonal <- with(components,
-                      term == nm & component == "seasonal")
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_trend <- with(components, term == nm & component == "trend")
+  is_seasonal <- with(components, term == nm & component == "seasonal")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   rw_est <- components$.fitted[is_trend]
   seas_est <- components$.fitted[is_seasonal]
   sd <- components$.fitted[is_sd]
@@ -1207,20 +1254,29 @@ forecast_term.bage_prior_rwseasfix <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rwseasvary <- function(prior,
-                                                nm_prior,
-                                                components,
-                                                matrix_along_by_est,
-                                                matrix_along_by_forecast,
-                                                levels_forecast) {
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        var_sexgender,
+                                        components,
+                                        labels_forecast) {
+  along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  is_trend <- with(components,
-                   term == nm & component == "trend")
-  is_seasonal <- with(components,
-                      term == nm & component == "seasonal")
-  is_sd_seas <- with(components,
-                     term == nm & component == "hyper" & level == "sd_seas")
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_trend <- with(components, term == nm & component == "trend")
+  is_seasonal <- with(components, term == nm & component == "seasonal")
+  is_sd_seas <- with(components, term == nm & component == "hyper" & level == "sd_seas")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   rw_est <- components$.fitted[is_trend]
   seas_est <- components$.fitted[is_seasonal]
   sd_seas <- components$.fitted[is_sd_seas]
@@ -1245,15 +1301,26 @@ forecast_term.bage_prior_rwseasvary <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rw2 <- function(prior,
-                                         nm_prior,
-                                         components,
-                                         matrix_along_by_est,
-                                         matrix_along_by_forecast,
-                                         levels_forecast) {
-  is_effect <- with(components,
-                    term == nm & component == "effect")
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        var_sexgender,
+                                        components,
+                                        labels_forecast) {
+  along <- prior$specific$along
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_effect <- with(components, term == nm & component == "effect")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   rw2_est <- components$.fitted[is_effect]
   sd <- components$.fitted[is_sd]
   rw2_forecast <- forecast_rw2(rw2_est = rw2_est,
@@ -1269,18 +1336,28 @@ forecast_term.bage_prior_rw2 <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rw2seasfix <- function(prior,
-                                                nm_prior,
+                                                dimnames_term,
+                                                var_time,
+                                                var_age,
+                                                var_sexgender,
                                                 components,
-                                                matrix_along_by_est,
-                                                matrix_along_by_forecast,
-                                                levels_forecast) {
+                                                labels_forecast) {
+  along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  is_trend <- with(components,
-                   term == nm & component == "trend")
-  is_seasonal <- with(components,
-                      term == nm & component == "seasonal")
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_trend <- with(components, term == nm & component == "trend")
+  is_seasonal <- with(components, term == nm & component == "seasonal")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   rw2_est <- components$.fitted[is_trend]
   seas_est <- components$.fitted[is_seasonal]
   sd <- components$.fitted[is_sd]
@@ -1303,20 +1380,29 @@ forecast_term.bage_prior_rw2seasfix <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rw2seasvary <- function(prior,
-                                                 nm_prior,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender,
                                                  components,
-                                                 matrix_along_by_est,
-                                                 matrix_along_by_forecast,
-                                                 levels_forecast) {
+                                                 labels_forecast) {
+  along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  is_trend <- with(components,
-                   term == nm & component == "trend")
-  is_seasonal <- with(components,
-                      term == nm & component == "seasonal")
-  is_sd_seas <- with(components,
-                     term == nm & component == "hyper" & level == "sd_seas")
-  is_sd <- with(components,
-                term == nm & component == "hyper" & level == "sd")
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_trend <- with(components, term == nm & component == "trend")
+  is_seasonal <- with(components, term == nm & component == "seasonal")
+  is_sd_seas <- with(components, term == nm & component == "hyper" & level == "sd_seas")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   rw2_est <- components$.fitted[is_trend]
   seas_est <- components$.fitted[is_seasonal]
   sd_seas <- components$.fitted[is_sd_seas]
