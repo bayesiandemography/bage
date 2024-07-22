@@ -117,6 +117,55 @@ test_that("'forecast_ar' works, n_by = 2", {
 })
 
 
+## 'forecast_ar_svd' ----------------------------------------------------------
+
+test_that("'forecast_ar_svd' works", {
+  set.seed(0)
+  prior <- SVD_AR1(HMD)
+  dimnames_term <- list(year = letters[1:5],
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- letters[6:11]
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:age",
+                                                component = "hyper",
+                                                level = c("coef", "sd"),
+                                                .fitted = rvec::runif_rvec(n = 2, n_draw = 10)),
+                                 tibble::tibble(term = "year:age",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:5),
+                                                              rep(letters[1:5], each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 25, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_ar_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  dimnames_forecast = dimnames_forecast,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  components = components,
+                                  labels_forecast = labels_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 30, n_draw = 10)
+  coef <- components$.fitted[components$level == "coef"]
+  sd <- components$.fitted[components$level == "sd"]
+  set.seed(1)
+  for (i in 1:5) {
+    ans_expected[i] <- rvec::rnorm_rvec(n = 1,
+                                          mean = coef * components$.fitted[22 + i],
+                                          sd = sd)
+    for (j in 1:5)
+      ans_expected[i + j * 5] <- rvec::rnorm_rvec(n = 1,
+                                                  mean = coef * ans_expected[i + (j-1) * 5],
+                                                  sd = sd)
+  }
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+
 ## 'forecast_components' ------------------------------------------------------
 
 test_that("'forecast_components' works", {
@@ -243,6 +292,52 @@ test_that("'forecast_rw' works with  n_by = 2", {
   expect_equal(ans_obtained, ans_expected)
 })
 
+## 'forecast_rw_svd' ----------------------------------------------------------
+
+test_that("'forecast_rw_svd' works", {
+  set.seed(0)
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(year = letters[1:5],
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- letters[6:11]
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:age",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:age",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:5),
+                                                              rep(letters[1:5], each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 25, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_rw_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  dimnames_forecast = dimnames_forecast,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  components = components,
+                                  labels_forecast = labels_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 30, n_draw = 10)
+  sd <- components$.fitted[components$level == "sd"]
+  set.seed(1)
+  for (i in 1:5) {
+    ans_expected[i] <- rvec::rnorm_rvec(n = 1,
+                                        mean = components$.fitted[21 + i],
+                                        sd = sd)
+    for (j in 1:5)
+      ans_expected[i + j * 5] <- rvec::rnorm_rvec(n = 1,
+                                                  mean = ans_expected[i + (j-1) * 5],
+                                                  sd = sd)
+  }
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 ## 'forecast_rw2' -------------------------------------------------------------
 
@@ -272,7 +367,7 @@ test_that("'forecast_rw2' works with n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_rw' works with  n_by = 2", {
+test_that("'forecast_rw2' works with  n_by = 2", {
   set.seed(0)
   rw2_est <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   sd <- rvec::runif_rvec(n = 1, n_draw = 10)
@@ -305,6 +400,59 @@ test_that("'forecast_rw' works with  n_by = 2", {
     ans_expected[i] <- rvec::rnorm_rvec(n = 1,
                                         mean = 2 * ans_expected[i-1] - ans_expected[i-2],
                                         sd = sd)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'forecast_rw2_svd' ----------------------------------------------------------
+
+test_that("'forecast_rw2_svd' works", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD)
+  dimnames_term <- list(year = letters[1:5],
+                        age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- letters[6:11]
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:age",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "year:age",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:5),
+                                                              rep(letters[1:5], each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 25, n_draw = 10)))
+  set.seed(1)
+  ans_obtained <- forecast_rw2_svd(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   dimnames_forecast = dimnames_forecast,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender,
+                                   components = components,
+                                   labels_forecast = labels_forecast)
+  ans_expected <- rvec::rnorm_rvec(n = 30, n_draw = 10)
+  sd <- components$.fitted[components$level == "sd"]
+  set.seed(1)
+  for (i in 1:5) {
+    ans_expected[i] <- rvec::rnorm_rvec(n = 1,
+                                        mean = 2 * components$.fitted[21 + i] -
+                                          components$.fitted[16 + i],
+                                        sd = sd)
+    ans_expected[i + 5] <- rvec::rnorm_rvec(n = 1,
+                                            mean = 2 * ans_expected[i] -
+                                              components$.fitted[21 + i],
+                                            sd = sd)
+    for (j in 2:5)
+      ans_expected[i + j * 5] <- rvec::rnorm_rvec(n = 1,
+                                                  mean = 2 * ans_expected[i + (j-1) * 5] -
+                                                 ans_expected[i + (j-2) * 5],
+                                                  sd = sd)
+  }
   expect_equal(ans_obtained, ans_expected)
 })
 

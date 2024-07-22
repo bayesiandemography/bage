@@ -227,36 +227,6 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
 })
 
 
-## 'draw_vals_effect_svd' -----------------------------------------------------
-
-test_that("'draw_vals_effect_svd' works with valid inputs", {
-  prior <- SVD(HMD)
-  dimnames_term <- list(age = c(0:59, "60+"),
-                        reg = c("a", "b", "c", "d", "e"))
-  var_age <- "age"
-  var_sexgender <- "sex"
-  vals_svd <- draw_vals_svd(prior = prior,
-                            vals_hyper = list(),
-                            dimnames_term = dimnames_term,
-                            var_time = var_time,
-                            var_age = var_age,
-                            var_sexgender = var_sexgender,
-                            levels_effectfree = paste(paste0("comp", 1:5),
-                                                      rep(c("a", "b", "c", "d", "e"),
-                                                          each = 5),
-                                                      sep = "."),
-                            n_sim = 10)
-  agesex <- "age:other"
-  ans <- draw_vals_effect_svd(prior = prior,
-                              vals_svd = vals_svd,
-                              dimnames_term = dimnames_term,
-                              var_age = var_age,
-                              var_sexgender = var_sexgender,
-                              agesex = agesex)
-  expect_identical(dim(ans), c(61L * 5L, 10L))
-})
-
-
 ## draw_vals_hyper_mod --------------------------------------------------------
 
 test_that("'draw_vals_hyper_mod' works with bage_mod_pois", {

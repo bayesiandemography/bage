@@ -66,6 +66,56 @@ forecast_ar <- function(ar_est,
 
 
 ## HAS_TESTS
+#' Forecast SVD Coefficients that Follow an AR Process
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sex/gender variable, or NULL
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_ar_svd <- function(prior,
+                            dimnames_term,
+                            dimnames_forecast,
+                            var_time,
+                            var_age,
+                            var_sexgender,
+                            components,
+                            labels_forecast) {
+  matrix_along_by_est <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                             dimnames_term = dimnames_term,
+                                                             var_time = var_time,
+                                                             var_age = var_age,
+                                                             var_sexgender = var_sexgender)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                                  dimnames_term = dimnames_forecast,
+                                                                  var_time = var_time,
+                                                                  var_age = var_age,
+                                                                  var_sexgender = var_sexgender)
+  nm <- dimnames_to_nm(dimnames_term)
+  is_svd <- with(components, term == nm & component == "svd")
+  is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
+  svd <- components$.fitted[is_svd]
+  coef <- components$.fitted[is_coef]
+  sd <- components$.fitted[is_sd]
+  forecast_ar(ar_est = svd,
+              coef = coef,
+              sd = sd,
+              matrix_along_by_est = matrix_along_by_est,
+              matrix_along_by_forecast = matrix_along_by_forecast)
+}
+
+
+## HAS_TESTS
 #' Forecast Time-Varying Effects in 'components'
 #'
 #' @param mod Object of class 'bage_mod'
@@ -79,7 +129,7 @@ forecast_ar <- function(ar_est,
 #' @noRd
 forecast_components <- function(mod,
                                 components_est,
-                                labels_forecast) {
+                                labels_forecastR) {
   priors <- mod$priors
   var_time <- mod$var_time
   nms_priors <- names(priors)
@@ -101,34 +151,6 @@ forecast_components <- function(mod,
   ans <- sort_components(ans, mod = mod)
   ans
 }
-
-
-
-## forecast_components_REVISED <- function(mod,
-##                                         components_est,
-##                                         labels_forecast) {
-##   priors <- mod$priors
-##   var_time <- mod$var_time
-##   nms_priors <- names(priors)
-##   levels_forecast_all <- make_levels_forecast_all(mod = mod,
-##                                                   labels_forecast = labels_forecast)
-##   is_time_varying_one <- function(nm) var_time %in% strsplit(nm, split = ":")[[1L]]
-##   is_time_varying <- vapply(nms_priors, is_time_varying_one, TRUE)
-##   ans_svd <- mapply(forecast_svd,
-##                     dots = list(prior = priors[is_time_varying],
-##                                 nm_prior = nms_priors[is_time_varying],                                
-##   ans <- .mapply(forecast_term,
-##                  dots = list(prior = priors[is_time_varying],
-##                              nm_prior = nms_priors[is_time_varying],
-##                              matrix_along_by_est = matrices_along_by_est[is_time_varying],
-##                              matrix_along_by_forecast = matrices_along_by_forecast[is_time_varying],
-##                              levels_forecast = levels_forecast_all[is_time_varying]),
-##                  MoreArgs = list(components = components_est))
-##   ans <- vctrs::vec_rbind(!!!ans)
-##   ans <- sort_components(ans, mod = mod)
-##   ans
-## }
-
 
 
 
@@ -214,6 +236,53 @@ forecast_rw <- function(rw_est,
 
 
 ## HAS_TESTS
+#' Forecast SVD Cofficients that Follow a Random Walk
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sex/gender variable, or NULL
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_rw_svd <- function(prior,
+                            dimnames_term,
+                            dimnames_forecast,
+                            var_time,
+                            var_age,
+                            var_sexgender,
+                            components,
+                            labels_forecast) {
+  nm <- dimnames_to_nm(dimnames_term)
+  matrix_along_by_est <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                             dimnames_term = dimnames_term,
+                                                             var_time = var_time,
+                                                             var_age = var_age,
+                                                             var_sexgender = var_sexgender)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                                  dimnames_term = dimnames_forecast,
+                                                                  var_time = var_time,
+                                                                  var_age = var_age,
+                                                                  var_sexgender = var_sexgender)
+  is_svd <- with(components, term == nm & component == "svd")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
+  svd <- components$.fitted[is_svd]
+  sd <- components$.fitted[is_sd]
+  forecast_rw(rw_est = svd,
+              sd = sd,
+              matrix_along_by_est = matrix_along_by_est,
+              matrix_along_by_forecast = matrix_along_by_forecast)
+}
+
+
+## HAS_TESTS
 #' Forecast a Second Order Random Walk
 #'
 #' @param rw2_est Historical estimates. An rvec.
@@ -248,6 +317,53 @@ forecast_rw2 <- function(rw2_est,
     ans[i_ans] <- tmp[-(1:2)]
   }
   ans
+}
+
+
+## HAS_TESTS
+#' Forecast SVD Cofficients that Follow a Random Walk
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sex/gender variable, or NULL
+#' @param components Tibble with with output
+#' from function 'components'
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_rw2_svd <- function(prior,
+                             dimnames_term,
+                             dimnames_forecast,
+                             var_time,
+                             var_age,
+                             var_sexgender,
+                             components,
+                             labels_forecast) {
+  nm <- dimnames_to_nm(dimnames_term)
+  matrix_along_by_est <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                             dimnames_term = dimnames_term,
+                                                             var_time = var_time,
+                                                             var_age = var_age,
+                                                             var_sexgender = var_sexgender)
+  matrix_along_by_forecast <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                                  dimnames_term = dimnames_forecast,
+                                                                  var_time = var_time,
+                                                                  var_age = var_age,
+                                                                  var_sexgender = var_sexgender)
+  is_svd <- with(components, term == nm & component == "svd")
+  is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
+  svd <- components$.fitted[is_svd]
+  sd <- components$.fitted[is_sd]
+  forecast_rw2(rw2_est = svd,
+               sd = sd,
+               matrix_along_by_est = matrix_along_by_est,
+               matrix_along_by_forecast = matrix_along_by_forecast)
 }
 
 
@@ -325,73 +441,6 @@ forecast_seasvary <- function(n_seas,
     ans[i_ans] <- tmp[-s_head]
   }
   ans
-}
-
-
-
-## HAS_TESTS
-#' Draw Values for Main Effect or Interaction with
-#' a SVD-Time Series Prior
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param forecast_svd Forecasts
-#' for SVD coefficients. An rvec.
-#' @param levels_age Character vector of age labels
-#' @param levels_sexgender Character vector of sex/gender
-#' labels, or NULL
-#' @param agesex String. Type of term.
-#' @param matrix_agesex Matrix mapping effect in
-#' original format to one with age-sex dimension(s) first
-#'
-#' @returns A matrix
-#'
-#' @noRd
-forecast_term_svd <- function(prior,
-                              nm_prior,
-                              svd_forecast,
-                              levels_age,
-                              levels_sexgender,
-                              agesex,
-                              matrix_agesex,
-                              levels_forecast,
-                              levels_forecast_svd) {
-  ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
-  n_comp <- prior$specific$n_comp
-  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  m <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = TRUE,
-                                n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = FALSE,
-                                n_comp = n_comp)
-  I <- Matrix::.sparseDiagonal(n_by)
-  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
-                               j = rep.int(1L, times = n_by),
-                               x = rep.int(1L, times = n_by))
-  agesex_to_standard <- make_index_matrix(matrix_agesex)
-  m_all_by <- Matrix::kronecker(I, m)
-  b_all_by <- Matrix::kronecker(ones, b)
-  b_all_by <- Matrix::drop(b_all_by)
-  effect_forecast <- m_all_by %*% svd_forecast + b_all_by
-  effect_forecast <- agesex_to_standard %*% effect_forecast
-  n_svd <- length(svd_forecast)
-  n_effect <- length(effect_forecast)
-  component <- rep(c("effect", "svd"), times = c(n_effect, n_svd))
-  level <- c(levels_forecast, levels_forecast_svd)
-  .fitted <- c(effect_forecast, svd_forecast)
-  tibble::tibble(term = nm_prior,
-                 component = component,
-                 level = level,
-                 .fitted = .fitted)
 }
 
 

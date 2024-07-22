@@ -568,3 +568,59 @@ test_that("'make_matrix_along_by_inner' works when 'i_along' is 1:2", {
                                          b = 1:3))
   expect_identical(ans_obtained, ans_expected)
 })
+
+
+
+## 'svd_to_effect' ------------------------------------------------------------
+
+test_that("'draw_vals_effect_svd' works with matrix", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(age = c(0:59, "60+"),
+                        reg = c("a", "b", "c", "d", "e"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = list(),
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_effectfree = paste(paste0("comp", 1:5),
+                                                      rep(c("a", "b", "c", "d", "e"),
+                                                          each = 5),
+                                                      sep = "."),
+                            n_sim = 10)
+  ans <- svd_to_effect(svd = vals_svd,
+                       prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender)
+  expect_identical(dim(ans), c(61L * 5L, 10L))
+})
+
+test_that("'draw_vals_effect_svd' works with rvec", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(age = c(0:59, "60+"),
+                        reg = c("a", "b", "c", "d", "e"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = list(),
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_effectfree = paste(paste0("comp", 1:5),
+                                                      rep(c("a", "b", "c", "d", "e"),
+                                                          each = 5),
+                                                      sep = "."),
+                            n_sim = 10)
+  vals_svd <- rvec::rvec(vals_svd)
+  ans <- svd_to_effect(svd = vals_svd,
+                       prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender)
+  expect_identical(length(ans), 61L * 5L)
+})
+
