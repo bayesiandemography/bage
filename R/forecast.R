@@ -184,22 +184,6 @@ forecast_lin <- function(slope,
   ans
 }
 
-## HAS_TESTS
-#' Forecast Normal Distribution
-#'
-#' @param sd Standard deviation. An rvec of length 1.
-#' @param matrix_along_by_forecast Matrix mapping
-#' along and by dimensions to position in forecasts
-#'
-#' @returns An rvec
-#'
-#' @noRd
-forecast_norm <- function(sd,
-                          matrix_along_by_forecast) {
-  n <- length(matrix_along_by_forecast)
-  rvec::rnorm_rvec(n = n, sd = sd)
-}
-
 
 ## HAS_TESTS
 #' Forecast a Random Walk

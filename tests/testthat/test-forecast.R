@@ -222,21 +222,6 @@ test_that("'forecast_lin' works with  n_by = 2", {
 })
 
 
-## 'forecast_norm' -------------------------------------------------------------
-
-test_that("'forecast_lin' works with n_by = 1", {
-  set.seed(0)
-  sd <- rvec::runif_rvec(n = 1, n_draw = 10)
-  matrix_along_by_forecast <- matrix(0:5, nr = 6)
-  set.seed(1)
-  ans_obtained <- forecast_norm(sd = sd,
-                                matrix_along_by_forecast = matrix_along_by_forecast)
-  set.seed(1)
-  ans_expected <- rvec::rnorm_rvec(n = 6, sd = sd)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
 ## 'forecast_rw' --------------------------------------------------------------
 
 test_that("'forecast_rw' works with n_by = 1", {
