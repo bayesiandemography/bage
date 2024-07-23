@@ -453,7 +453,7 @@ make_data_forecast <- function(mod, labels_forecast) {
 
 ## HAS_TESTS
 #' Make Mapping Between 'level' Value from Final Year of Estimates
-#' and 'level' Value from Forecasts
+#' and 'level' Value from Forecasts - On Original Scale
 #'
 #' Helper function for 'standardize_forecast'
 #'
@@ -463,27 +463,25 @@ make_data_forecast <- function(mod, labels_forecast) {
 #' @returns Tibble
 #'
 #' @noRd
-make_mapping_final_time <- function(mod, labels_forecast) {
+make_mapping_final_time_effect <- function(mod, labels_forecast) {
   var_time <- mod$var_time
   dimnames_terms <- mod$dimnames_terms
-  nms_terms <- names(dimnames_terms)
-  ans <- vector(mode = "list", length = length(nms_terms))
+  ans <- vector(mode = "list", length = length(dimnames_terms))
   final_time <- utils::tail(dimnames_terms[[var_time]][[var_time]], n = 1L)
   final_time <- as.character(final_time)
-  for (i in seq_along(dimnames_terms)) {
-    nm_term <- nms_terms[[i]]
-    nm_term_split <- strsplit(nm_term, split = ":")[[1L]]
-    has_time <- var_time %in% nm_term_split
+  for (i_term in seq_along(dimnames_terms)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_split <- names(dimnames_term)
+    has_time <- var_time %in% nm_split
     if (has_time) {
-      dn <- dimnames_terms[[i]]
-      dn[[var_time]] <- as.character(labels_forecast)
-      level <- vctrs::vec_expand_grid(!!!dn)
+      dimnames_term[[var_time]] <- as.character(labels_forecast)
+      level <- vctrs::vec_expand_grid(!!!dimnames_term)
       level_final <- replace(level, var_time, final_time)
       level <- Reduce(paste_dot, level)
       level_final <- Reduce(paste_dot, level_final)
       val <- tibble::tibble(level = level,
                             level_final = level_final)
-      ans[[i]] <- val
+      ans[[i_term]] <- val
     }
   }
   vctrs::vec_rbind(!!!ans)
@@ -491,8 +489,57 @@ make_mapping_final_time <- function(mod, labels_forecast) {
 
 
 ## HAS_TESTS
+#' Make Mapping Between 'level' Value from Final Year of Estimates
+#' and 'level' Value from Forecasts - On SVD Scale
+#'
+#' Helper function for 'standardize_forecast'
+#'
+#' @param mod Objec of class 'bage_mod'
+#' @param labels_forecast Vector
+#'
+#' @returns Tibble
+#'
+#' @noRd
+make_mapping_final_time_svd <- function(mod, labels_forecast) {
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  ans <- vector(mode = "list", length = length(dimnames_terms))
+  final_time <- utils::tail(dimnames_terms[[var_time]][[var_time]], n = 1L)
+  final_time <- as.character(final_time)
+  for (i_term in seq_along(dimnames_terms)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    prior <- priors[[i_term]]
+    nm_split <- names(dimnames_term)
+    has_time <- var_time %in% nm_split
+    is_svd <- is_svd(prior)
+    if (has_time && is_svd) {
+      dimnames_term[[var_time]] <- as.character(labels_forecast)
+      labels_svd <- get_labels_svd(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   var_sexgender = var_sexgender)
+      non_agesex <- setdiff(nm_split, c(var_age, var_sexgender))
+      dimnames_nonagesex <- dimnames_term[non_agesex]
+      dimnames_svd <- c(list(.svd = labels_svd), dimnames_nonagesex)
+      level <- vctrs::vec_expand_grid(!!!dimnames_svd)
+      level_final <- replace(level, var_time, final_time)
+      level <- Reduce(paste_dot, level)
+      level_final <- Reduce(paste_dot, level_final)
+      val <- tibble::tibble(level = level,
+                            level_final = level_final)
+      ans[[i_term]] <- val
+    }
+  }
+  vctrs::vec_rbind(!!!ans)
+}
+
+
+
+## HAS_TESTS
 #' Extract the 'term' and 'level' Values for the Last Period
-#' of 'components'
+#' of 'components' - on Original Scale
 #'
 #' Helper function for 'standardize_forecast'
 #'
@@ -501,23 +548,65 @@ make_mapping_final_time <- function(mod, labels_forecast) {
 #' @returns A tibble
 #'
 #' @noRd
-make_term_level_final_time <- function(mod) {
+make_term_level_final_time_effect <- function(mod) {
   var_time <- mod$var_time
   dimnames_terms <- mod$dimnames_terms
-  nms_terms <- names(dimnames_terms)
-  ans <- vector(mode = "list", length = length(nms_terms))
-  for (i in seq_along(dimnames_terms)) {
-    nm_term <- nms_terms[[i]]
-    nm_term_split <- strsplit(nm_term, split = ":")[[1L]]
-    has_time <- var_time %in% nm_term_split
+  ans <- vector(mode = "list", length = length(dimnames_terms))
+  for (i_term in seq_along(ans)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_split <- names(dimnames_term)
+    nm <- paste(nm_split, collapse = ":")
+    has_time <- var_time %in% nm_split
     if (has_time) {
-      dn <- dimnames_terms[[i]]
-      dn[[var_time]] <- utils::tail(dn[[var_time]], 1L)
-      level <- vctrs::vec_expand_grid(!!!dn)
+      dimnames_term[[var_time]] <- utils::tail(dimnames_term[[var_time]], 1L)
+      level <- vctrs::vec_expand_grid(!!!dimnames_term)
       level <- Reduce(paste_dot, level)
-      val <- tibble::tibble(term = nm_term,
+      val <- tibble::tibble(term = nm,
                             level = level)
-      ans[[i]] <- val
+      ans[[i_term]] <- val
+    }
+  }
+  vctrs::vec_rbind(!!!ans)
+}
+
+## HAS_TESTS
+#' Extract the 'term' and 'level' Values for the Last Period
+#' of 'components' - On SVD Scale
+#'
+#' Helper function for 'standardize_forecast'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A tibble
+#'
+#' @noRd
+make_term_level_final_time_svd <- function(mod) {
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  ans <- vector(mode = "list", length = length(dimnames_terms))
+  for (i_term in seq_along(ans)) {
+    prior <- priors[[i_term]]
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_split <- names(dimnames_term)
+    nm <- paste(nm_split, collapse = ":")
+    has_time <- var_time %in% nm_split
+    is_svd <- is_svd(prior)
+    if (has_time && is_svd) {
+      dimnames_term[[var_time]] <- utils::tail(dimnames_term[[var_time]], 1L)
+      labels_svd <- get_labels_svd(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   var_sexgender = var_sexgender)
+      non_agesex <- setdiff(nm_split, c(var_age, var_sexgender))
+      dimnames_nonagesex <- dimnames_term[non_agesex]
+      dimnames_svd <- c(list(.svd = labels_svd), dimnames_nonagesex)
+      level <- vctrs::vec_expand_grid(!!!dimnames_svd)
+      level <- Reduce(paste_dot, level)
+      val <- tibble::tibble(term = nm,
+                            level = level)
+      ans[[i_term]] <- val
     }
   }
   vctrs::vec_rbind(!!!ans)
@@ -578,9 +667,13 @@ standardize_forecast <- function(mod,
                                  comp_est_unst,
                                  labels_forecast) {
   ## obtain values for 'term' and 'level' for final period of estimates
-  term_level <- make_term_level_final_time(mod)
+  term_level_effect <- make_term_level_final_time_effect(mod)
+  term_level_svd <- make_term_level_final_time_svd(mod)
+  term_level <- vctrs::vec_rbind(term_level_effect, term_level_svd)
   ## create mapping between levels for final period of estimates and levels for forecasts
-  mapping <- make_mapping_final_time(mod = mod, labels_forecast = labels_forecast)
+  mapping_effect <- make_mapping_final_time_effect(mod = mod, labels_forecast = labels_forecast)
+  mapping_svd <- make_mapping_final_time_svd(mod = mod, labels_forecast = labels_forecast)
+  mapping <- vctrs::vec_rbind(mapping_effect, mapping_svd)
   ## obtain values of .fitted for time-varying quantities for final period of estimates
   tail_unst <- merge(comp_est_unst, term_level, by = c("term", "level"), sort = FALSE)
   tail_st <- merge(comp_est_st, term_level, by = c("term", "level"), sort = FALSE)
@@ -596,6 +689,10 @@ standardize_forecast <- function(mod,
   ## revise forecasts
   ans$.fitted <- ans$.fitted + ans$diff
   ans <- ans[c("term", "component", "level", ".fitted")]
+  ord <- order(match(ans[[1L]], comp_forecast[[1L]]),
+               match(ans[[2L]], comp_forecast[[2L]]),
+               match(ans[[3L]], comp_forecast[[3L]]))
+  ans <- ans[ord, ]
   ans <- tibble::tibble(ans)
   ## return
   ans
