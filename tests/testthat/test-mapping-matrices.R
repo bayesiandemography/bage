@@ -41,26 +41,6 @@ test_that("'get_labels_svd' works - joint", {
 })
 
 
-## 'invert_mapping_matrix' ----------------------------------------------------
-
-test_that("'invert_index_matrix' works with valid inputs", {
-  m <- make_matrix_agesex(dimnames_term = list(reg = c("A", "B"),
-                                               age = 0:3,
-                                               sex = c("F", "M")),
-                          var_age = "age",
-                          var_sexgender = "sex")
-  ans_obtained <- invert_mapping_matrix(m)
-  cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
-  rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
-  ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
-                                             2L, 4L, 6L, 8L, 10L, 12L, 14L, 16L),
-                                       j = 1:16,
-                                       x = rep(1L, 16),
-                                       dimnames = list(rn, cn))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_i_along' -------------------------------------------------------------
 
 test_that("'make_i_along' works when 'along' is NULL but 'var_time' supplied", {
@@ -242,6 +222,29 @@ test_that("'make_matrix_agesex' works - sex and age order reversed", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_agesex' throws correct error when var_age is NULL", {
+  dimnames_term <- list(sex = c("F", "M"),
+                        reg = c("A", "B"),
+                        age = 0:3)
+  var_age <- NULL
+  var_sexgender <- "sex"
+  expect_error(make_matrix_agesex(dimnames_term = dimnames_term,
+                                     var_age = var_age,
+                                  var_sexgender = var_sexgender),
+               "Internal error: `var_age` not specified.")
+})
+
+test_that("'make_matrix_agesex' throws correct error when term does not have age dimension", {
+  dimnames_term <- list(sex = c("F", "M"),
+                        reg = c("A", "B"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  expect_error(make_matrix_agesex(dimnames_term = dimnames_term,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender),
+               "Internal error: Term `sex:reg` does not have an age dimension.")
+})
+
 
 ## 'make_matrix_along_by_effect' ----------------------------------------------
 
@@ -274,110 +277,6 @@ test_that("'make_matrix_along_by_effect' works with two dimensions", {
   ans_expected <- t(matrix(0:19, nr = 10))
   dimnames(ans_expected) <- list(time = 2001:2002,
                                  age = 0:9)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrix_along_by_effect_forecast' -------------------------------------
-
-test_that("'make_matrix_along_by_effect_forecast' work - one dimension", {
-  along <- NULL
-  labels_forecast = 3:4
-  dimnames_term <- list(time = 1:2)
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- make_matrix_along_by_effect_forecast(along = along,
-                                                       labels_forecast = 3:4,
-                                                       dimnames_term = dimnames_term,
-                                                       var_time = var_time,
-                                                       var_age = var_age)
-  ans_expected <- matrix(0:1, nr = 2, dimnames = list(time = 3:4))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_effect_forecast' work - two dimensions", {
-  along <- NULL
-  labels_forecast = 3:4
-  dimnames_term <- list(age = 1:3,
-                        time = 1:2)
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- make_matrix_along_by_effect_forecast(along = along,
-                                                       labels_forecast = 3:4,
-                                                       dimnames_term = dimnames_term,
-                                                       var_time = var_time,
-                                                       var_age = var_age)
-  ans_expected <- t(matrix(0:5, nr = 3, dimnames = list(age = 1:3, time = 3:4)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrix_along_by_effectfree_forecast' ---------------------------------
-
-test_that("'make_matrix_along_by_effectfree_forecast' works with 'bage_prior_svd_ar' - indep", {
-  prior <- SVDS_AR(HMD, joint = FALSE)
-  ans_obtained <- make_matrix_along_by_effectfree_forecast(prior = prior,
-                                                           labels_forecast = 2004:2006,
-                                                           dimnames_term = list(age = c(0:79, "80+"),
-                                                                                sex = c("f", "m"),
-                                                                                time = 2001:2003),
-                                                           var_time = "time",
-                                                           var_age = "age",
-                                                           var_sexgender = "sex")
-  ans_expected <- t(matrix(0:29,
-                           nr = 10,
-                           dimnames = list(.svd = paste(rep(c("f", "m"), each = 5),
-                                                        paste0("comp", 1:5),
-                                                        sep = "."),
-                                           time = 2004:2006)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_effectfree_forecast' works with 'bage_prior_svd_ar'", {
-  prior <- SVD_AR1(HMD)
-  ans_obtained <- make_matrix_along_by_effectfree_forecast(prior = prior,
-                                                           labels_forecast = 2003:2004,
-                                                           dimnames_term = list(age = c(0:79, "80+"),
-                                                                                time = 2001:2002),
-                                                           var_time = "time",
-                                                           var_age = "age",
-                                                           var_sexgender = NULL)
-  ans_expected <- t(matrix(0:9,
-                           nr = 5,
-                           dimnames = list(.svd = paste0("comp", 1:5),
-                                           time = c(2003, 2004))))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_effectfree_forecast' works with 'bage_prior_svd_rw'", {
-  prior <- SVD_RW(HMD)
-  ans_obtained <- make_matrix_along_by_effectfree_forecast(prior = prior,
-                                                           labels_forecast = 2003:2004,
-                                                  dimnames_term = list(age = c(0:79, "80+"),
-                                                                  time = 2001:2002),
-                                                  var_time = "time",
-                                                  var_age = "age",
-                                                  var_sexgender = NULL)
-  ans_expected <- t(matrix(0:9,
-                           nr = 5,
-                           dimnames = list(.svd = paste0("comp", 1:5),
-                                           time = 2003:2004)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_effectfree_forecast' works with 'bage_prior_svd_rw'", {
-  prior <- SVD_RW(HMD)
-  ans_obtained <- make_matrix_along_by_effectfree_forecast(prior = prior,
-                                                           labels_forecast = 2006:2010,
-                                                           dimnames_term = list(age = c(0:79, "80+"),
-                                                                                time = 2001:2005),
-                                                           var_time = "time",
-                                                           var_age = "age",
-                                                           var_sexgender = NULL)
-  ans_expected <- t(matrix(0:24,
-                           nr = 5,
-                           dimnames = list(.svd = paste0("comp", 1:5),
-                                           time = 2006:2010)))
   expect_identical(ans_obtained, ans_expected)
 })
 

@@ -580,10 +580,13 @@ test_that("'standardize_component' works", {
   components <- components(mod)
   component <- split(components(mod), f = components$component)$trend
   ans_obtained <- standardize_component(mod, component = component)
-  matrices_along_by <- choose_matrices_along_by(mod)
+  matrix_along_by <- make_matrix_along_by_effect(along = mod$priors$time$specific$along,
+                                                 dimnames_term = mod$dimnames_terms$time,
+                                                 var_time = mod$var_time,
+                                                 var_age = mod$var_age)
   ans_expected <- component
   ans_expected$.fitted <- center_within_across_by(ans_expected$.fitted,
-                                                  matrix_along_by = matrices_along_by$time)
+                                                  matrix_along_by = matrix_along_by)
   expect_equal(ans_obtained, ans_expected)
 })
 

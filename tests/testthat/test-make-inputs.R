@@ -1,226 +1,3 @@
-## 'choose_matrices_along_by' -------------------------------------------------
-
-test_that("'choose_matrices_along_by' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        time = 2000:2005,
-                        region = 1:2,
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex + time * region + sex * region
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- choose_matrices_along_by(mod)
-    matrices <- mod$matrices_along_by
-    ans_expected <- list("(Intercept)" = matrices[[1]][[1L]],
-                         age = matrices[[2]][[1L]],
-                         sex = matrices[[3]][[1L]],
-                         time = matrices[[4]][[1L]],
-                         region = matrices[[5]][[1]],
-                         "age:sex" = matrices[[6]][[1]],
-                         "time:region" = matrices[[7]][[1]],
-                         "sex:region" = matrices[[8]][[1]])
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'choose_matrix_along_by' ---------------------------------------------------
-
-test_that("'choose_matrix_along_by' works with main effect", {
-  prior <- N()
-  matrices <- list(reg = matrix(0:3, nr = 4))
-  var_time <- NULL
-  var_age <- NULL
-  ans_obtained <- choose_matrix_along_by(prior = prior,
-                                         matrices = matrices,
-                                         var_time = var_time,
-                                         var_age = var_age)
-  ans_expected <- matrices[[1L]]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'choose_matrix_along_by' works with interaction - default to time", {
-  prior <- Lin()
-  matrices <- list(age = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   time = make_matrix_along_by(i_along = 2L,
-                                               dim = 2:4,
-                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- choose_matrix_along_by(prior = prior,
-                                         matrices = matrices,
-                                         var_time = var_time,
-                                         var_age = var_age)
-  ans_expected <- matrices[[2L]]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'choose_matrix_along_by' works with interaction - default to age", {
-  prior <- Lin()
-  matrices <- list(age = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   income = make_matrix_along_by(i_along = 2L,
-                                                 dim = 2:4,
-                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- choose_matrix_along_by(prior = prior,
-                                         matrices = matrices,
-                                         var_time = var_time,
-                                         var_age = var_age)
-  ans_expected <- matrices[[1L]]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'choose_matrix_along_by' works with interaction - default to first if along not used", {
-  prior <- N()
-  matrices <- list(gender = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   income = make_matrix_along_by(i_along = 2L,
-                                                 dim = 2:4,
-                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- choose_matrix_along_by(prior = prior,
-                                         matrices = matrices,
-                                         var_time = var_time,
-                                         var_age = var_age)
-  ans_expected <- matrices[[1L]]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'choose_matrix_along_by' works with interaction - specify along", {
-  prior <- Lin(along = "reg")
-  matrices <- list(age = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   income = make_matrix_along_by(i_along = 2L,
-                                                 dim = 2:4,
-                                                 dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- choose_matrix_along_by(prior = prior,
-                                         matrices = matrices,
-                                         var_time = var_time,
-                                         var_age = var_age)
-  ans_expected <- matrices[[3L]]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'choose_matrix_along_by' works when only one matrix", {
-  prior <- Lin(along = "reg")
-  matrices <- list(age = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- "time"
-  var_age <- "age"
-  ans_obtained <- choose_matrix_along_by(prior = prior,
-                                         matrices = matrices,
-                                         var_time = var_time,
-                                         var_age = var_age)
-  ans_expected <- matrices[[1L]]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
-  prior <- Lin()
-  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   time = make_matrix_along_by(i_along = 2L,
-                                               dim = 2:4,
-                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- NULL
-  var_age <- "age"
-  expect_error(choose_matrix_along_by(prior = prior,
-                                      matrices = matrices,
-                                      var_time = var_time,
-                                      var_age = var_age),
-               "Prior for `bla:time:reg` does not have a value for `along`.")
-})
-
-test_that("'choose_matrix_along_by' throws expected error when can't find and time not specified", {
-  prior <- Lin()
-  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   time = make_matrix_along_by(i_along = 2L,
-                                               dim = 2:4,
-                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- NULL
-  var_age <- "age"
-  expect_error(choose_matrix_along_by(prior = prior,
-                                      matrices = matrices,
-                                      var_time = var_time,
-                                      var_age = var_age),
-               "Prior for `bla:time:reg` does not have a value for `along`.")
-})
-
-test_that("'choose_matrix_along_by' throws expected error when can't find and age not specified", {
-  prior <- Lin()
-  matrices <- list(bla = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   time = make_matrix_along_by(i_along = 2L,
-                                               dim = 2:4,
-                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- NULL
-  var_age <- NULL
-  expect_error(choose_matrix_along_by(prior = prior,
-                                      matrices = matrices,
-                                      var_time = var_time,
-                                      var_age = var_age),
-               "Prior for `bla:time:reg` does not have a value for `along`.")
-})
-
-test_that("'choose_matrix_along_by' throws expected error when along invalid", {
-  prior <- Lin(along = "wrong")
-  matrices <- list(age = make_matrix_along_by(i_along = 1L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   time = make_matrix_along_by(i_along = 2L,
-                                               dim = 2:4,
-                                               dimnames = list(a = 1:2, b = 1:3, c = 1:4)),
-                   reg = make_matrix_along_by(i_along = 3L,
-                                              dim = 2:4,
-                                              dimnames = list(a = 1:2, b = 1:3, c = 1:4)))
-  var_time <- "time"
-  var_age <- "age"
-  expect_error(choose_matrix_along_by(prior = prior,
-                                      matrices = matrices,
-                                      var_time = var_time,
-                                      var_age = var_age),
-               "Prior for `age:time:reg` has invalid value for `along`.")
-})  
-
-
 ## 'default_prior' ------------------------------------------------------------
 
 test_that("'default_prior' works with ordinary term", {
@@ -1071,112 +848,6 @@ test_that("'make_map_effectfree_fixed' works with valid inputs", {
 })
 
 
-## 'make_matrices_agesex' ---------------------------------------------------
-
-test_that("'make_matrices_agesex' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(sex = c("F", "M"),
-                        age = 0:3,
-                        reg = c("A", "B"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    mod <- mod_pois(deaths ~ age * sex * reg,
-                    data = data,
-                    exposure = popn)
-    ans <- make_matrices_agesex(mod)
-    expect_identical(sapply(ans, is.null),
-                     c("(Intercept)" = TRUE,
-                       age = FALSE,
-                       sex = TRUE,
-                       reg = TRUE,
-                       "age:sex" = FALSE,
-                       "age:reg" = FALSE,
-                       "sex:reg" = TRUE,
-                       "age:sex:reg" = FALSE))
-    expect_identical(ans[["age"]],
-                     make_matrix_along_by(i = 1L,
-                                          dim = 4, 
-                                          dimnames = list(age = 0:3)))
-    expect_identical(ans[["age:sex:reg"]],
-                     make_matrix_along_by(i_along = 1:2,
-                                          dim = c(4, 2, 2),
-                                          dimnames = list(age = 0:3,
-                                                          sex = c("F", "M"),
-                                                          reg = c("A", "B"))))
-})
-
-test_that("'make_matrices_agesex' works with valid inputs - sex and age order reversed", {
-    set.seed(0)
-    data <- expand.grid(sex = c("F", "M"),
-                        age = 0:3,
-                        reg = c("A", "B"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    mod <- mod_pois(deaths ~ sex * reg * age,
-                    data = data,
-                    exposure = popn)
-    ans <- make_matrices_agesex(mod)
-    expect_identical(sapply(ans, is.null),
-                     c("(Intercept)" = TRUE,
-                       sex = TRUE,
-                       reg = TRUE,
-                       age = FALSE,
-                       "sex:reg" = TRUE,
-                       "sex:age" = FALSE,
-                       "reg:age" = FALSE,
-                       "sex:reg:age" = FALSE))
-    expect_identical(ans[["age"]],
-                     make_matrix_along_by(i = 1L,
-                                          dim = 4, 
-                                          dimnames = list(age = 0:3)))
-    expect_identical(ans[["sex:reg:age"]],
-                     make_matrix_along_by(i_along = c(1L, 3L),
-                                          dim = c(2, 2, 4),
-                                          dimnames = list(sex = c("F", "M"),
-                                                          reg = c("A", "B"),
-                                                          age = 0:3)))
-})
-
-
-## 'make_matrices_along_by' ---------------------------------------------------
-
-test_that("'make_matrices_along_by' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        time = 1:2,
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * sex  + age * time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_matrices_along_by(formula = formula, data = data)
-    age <- matrix(0:9, nr = 10)
-    rownames(age) <- 0:9
-    names(dimnames(age)) <- "age"
-    sex <- matrix(0:1, nr = 2)
-    rownames(sex) <- c("F", "M")
-    names(dimnames(sex)) <- "sex"
-    time <- matrix(0:1, nr = 2)
-    rownames(time) <- 1:2
-    names(dimnames(time)) <- "time"
-    agesex <- matrix(0:19, nr = 10)
-    dimnames(agesex) <- list(age = 0:9, sex = c("F", "M"))
-    agetime <- matrix(0:19, nr = 10)
-    dimnames(agetime) <- list(age = 0:9, time = 1:2)
-    ans_expected <- list("(Intercept)" = list("(Intercept)" = matrix(0L, nr = 1L)),
-                         age = list(age = age),
-                         sex = list(sex = sex),
-                         time = list(time = time),
-                         "age:sex" = list(age = agesex,
-                                          sex = t(agesex)),
-                         "age:time" = list(age = agetime,
-                                           time = t(agetime)))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_matrices_along_by_effectfree' ------------------------------------------------
 
 test_that("'make_matrices_along_by_effectfree' works", {
@@ -1293,25 +964,27 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 ## 'make_index_matrix' -------------------------------------------------
 
 test_that("'make_index_matrix' works with valid inputs", {
-    set.seed(0)
-    data <- expand.grid(sex = c("F", "M"),
-                        age = 0:3,
-                        reg = c("A", "B"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    mod <- mod_pois(deaths ~ reg * age * sex,
-                    data = data,
-                    exposure = popn)
-    matrices <- make_matrices_agesex(mod)
-    ans_obtained <- make_index_matrix(matrices[["reg:age:sex"]])
-    cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
-    rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
-    ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
-                                               2L, 4L, 6L, 8L, 10L, 12L, 14L, 16L),
-                                         j = 1:16,
-                                         x = rep(1L, 16),
-                                         dimnames = list(rn, cn))
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(sex = c("F", "M"),
+                      age = 0:3,
+                      reg = c("A", "B"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ reg * age * sex,
+                  data = data,
+                  exposure = popn)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = mod$dimnames_terms[["reg:age:sex"]],
+                                      var_age = mod$var_age,
+                                      var_sexgender = mod$var_sexgender)
+  ans_obtained <- make_index_matrix(matrix_agesex)
+  cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
+  rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
+  ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
+                                             2L, 4L, 6L, 8L, 10L, 12L, 14L, 16L),
+                                       j = 1:16,
+                                       x = rep(1L, 16),
+                                       dimnames = list(rn, cn))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -1428,92 +1101,6 @@ test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
 })
 
 
-## 'make_matrix_along_by_free_svdtime' ----------------------------------------
-
-test_that("'make_matrix_along_by_free_svd' works - age x time interaction", {
-  prior <- SVD_RW(HMD)
-  dimnames <- list(age = c(0:79, "80+"),
-                   time = 2001:2003)
-  var_age <- "age"
-  var_time <- "time"
-  var_sexgender <- NULL
-  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    dimnames = dimnames)
-  ans_expected <- t(matrix(0:14,
-                           nr = 5,
-                           dimnames = list(paste0("comp", 1:5),
-                                           2001:2003)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_free_svd' works -  time x age interaction", {
-  prior <- SVD_AR(HMD)
-  dimnames <- list(time = 2001:2003,
-                   age = c(0:79, "80+"))
-  var_age <- "age"
-  var_time <- "time"
-  var_sexgender <- NULL
-  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    dimnames = dimnames)
-  ans_expected <- matrix(0:14,
-                         nr = 3,
-                         byrow = TRUE,
-                         dimnames = list(2001:2003,
-                                         paste0("comp", 1:5)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_free_svd' works -  time x sex x age interaction - indep", {
-  prior <- SVDS_AR(HMD)
-  dimnames <- list(time = 2001:2003,
-                   sex = c("F", "M", "D"),
-                   age = c(0:79, "80+"))
-  var_age <- "age"
-  var_time <- "time"
-  var_sexgender <- "sex"
-  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    dimnames = dimnames)
-  ans_expected <- matrix(0:44,
-                         nr = 3,
-                         byrow = TRUE,
-                         dimnames = list(2001:2003,
-                                         paste(rep(c("F","M","D"), each = 5),
-                                               paste0("comp", 1:5),
-                                               sep = ".")))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_free_svd' works -  time x sex x age interaction - joint", {
-  prior <- SVDS_AR(HMD, joint = TRUE)
-  dimnames <- list(time = 2001:2003,
-                   sex = c("F", "M"),
-                   age = c(0:79, "80+"))
-  var_age <- "age"
-  var_time <- "time"
-  var_sexgender <- "sex"
-  ans_obtained <- make_matrix_along_by_free_svdtime(prior = prior,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender,
-                                                    dimnames = dimnames)
-  ans_expected <- matrix(0:14,
-                         nr = 3,
-                         byrow = TRUE,
-                         dimnames = list(2001:2003,
-                                         paste0("comp", 1:5)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_matrix_effectfree_effect_svd' ----------------------------------------
 
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age main effect", {
@@ -1604,6 +1191,40 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x
 })
 
 
+## 'make_offset' --------------------------------------------------------------
+
+test_that("'make_offset' works with valid inputs - no NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$wt <- seq_len(nrow(data))
+    ans_obtained <- make_offset(vname_offset = "wt",
+                                data = data)
+    ans_expected <- as.double(data$wt)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset' works with valid inputs - has NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$wt <- seq_len(nrow(data))
+    data$wt[3] <- NA
+    ans_obtained <- make_offset(vname_offset = "wt",
+                                data = data)
+    ans_expected <- xtabs(wt ~ age + sex + time, data = data)
+    ans_expected[3] <- NA
+    ans_expected <- as.double(data$wt)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset' works with valid inputs - no NA", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$wt <- seq_len(nrow(data))
+    ans_obtained <- make_offset(vname_offset = "~ wt + 1",
+                                data = data)
+    ans_expected <- as.double(data$wt) + 1
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+
 ## 'make_offset_effectfree_effect_svd' ----------------------------------------
 
 test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x time interaction", {
@@ -1684,30 +1305,6 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x
   ans_expected <- rep(ans_expected, 3)
   names(ans_expected) <- levels_effect
   expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_offset' --------------------------------------------------------------
-
-test_that("'make_offset' works with valid inputs - no NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$wt <- seq_len(nrow(data))
-    ans_obtained <- make_offset(vname_offset = "wt",
-                                data = data)
-    ans_expected <- as.double(data$wt)
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_offset' works with valid inputs - has NA", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$wt <- seq_len(nrow(data))
-    data$wt[3] <- NA
-    ans_obtained <- make_offset(vname_offset = "wt",
-                                data = data)
-    ans_expected <- xtabs(wt ~ age + sex + time, data = data)
-    ans_expected[3] <- NA
-    ans_expected <- as.double(data$wt)
-    expect_identical(ans_obtained, ans_expected)
 })
 
 

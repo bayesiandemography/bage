@@ -1,84 +1,5 @@
 
 ## HAS_TESTS
-#' Choose Values for 'matrix_along_by'
-#' for All Priors to Pass to TMB
-#'
-#' @param x Object of class 'bage_mod'
-#'
-#' @returns A named list of matrices
-#'
-#' @noRd
-choose_matrices_along_by <- function(x) {
-  priors <- x$priors
-  matrices_along_by <- x$matrices_along_by
-  var_time <- x$var_time
-  var_age <- x$var_age
-  ans <- .mapply(choose_matrix_along_by,
-                 dots = list(prior = priors,
-                             matrices = matrices_along_by),
-                 MoreArgs = list(var_time = var_time,
-                                 var_age = var_age))
-  names(ans) <- names(priors)
-  ans
-}
-                      
-
-## HAS_TESTS
-#' Choose Value for 'matrix_along_by'
-#' for Single Prior to Pass to TMB
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param matrices Named list of matrices
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#'
-#' @returns A matrix
-#'
-#' @noRd
-choose_matrix_along_by <- function(prior, matrices, var_time, var_age) {
-  if (!uses_along(prior))
-    return(matrices[[1L]])
-  n <- length(matrices)
-  if (n == 1L)
-    return(matrices[[1L]])
-  nms <- names(matrices)
-  nm_prior <- paste(nms, collapse = ":")
-  along <- prior$specific$along
-  if (is.null(along)) {
-    has_time <- !is.null(var_time)
-    if (has_time) {
-      i_time <- match(var_time, nms, nomatch = 0L)
-      if (i_time > 0L)
-        return(matrices[[i_time]])
-    }
-    has_age <- !is.null(var_age)
-    if (has_age) {
-      i_age <- match(var_age, nms, nomatch = 0L)
-      if (i_age > 0L)
-        return(matrices[[i_age]])
-    }
-    msg <- c("Prior for {.var {nm_prior}} does not have a value for {.arg along}.",
-             i = "Choices for {.arg along}: {.val {nms}}.")
-    if (!has_time)
-      msg <- c(msg,
-               i = "Can't default to time variable, since {.var var_time} not specified.")
-    if (!has_age)
-      msg <- c(msg,
-               i = "Can't default to age variable, since {.var var_age} not specified.")
-    cli::cli_abort(msg)
-  }
-  else {
-    i_along <- match(along, nms, nomatch = 0L)
-    if (i_along > 0L)
-      return(matrices[[i_along]])
-    cli::cli_abort(c("Prior for {.var {nm_prior}} has invalid value for {.arg along}.",
-                     i = "Value supplied: {.val {along}}.",
-                     i = "Valid choices: {.val {nms}}."))
-  }
-}
-
-
-## HAS_TESTS
 #' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term
@@ -774,66 +695,11 @@ make_map_effectfree_fixed <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make Matrices Giving Mapping Between Term and Age-Sex
-#'
-#' Make matrices giving mapping between position in term
-#' and position on age dimension, or combination of age
-#' and sex dimension (in the order that they appear).
-#' If a term does not include age, then no matrix
-#' is created.
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list of matrices and NULLs
-#'
-#' @noRd
-make_matrices_agesex <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  var_age <- mod$var_age
-  var_sexgender <- mod$var_sexgender
-  has_var_age <- !is.null(var_age)
-  has_var_sexgender <- !is.null(var_sexgender)
-  ans <- list("(Intercept)" = NULL)
-  factors <- attr(stats::terms(formula), "factors")
-  if ((length(factors) > 0L) && has_var_age) {
-    factors <- factors[-1L, , drop = FALSE]
-    factors <- factors > 0L
-    nms_vars <- rownames(factors)
-    nms_terms <- colnames(factors)
-    ans_terms <- rep(list(NULL), times = length(nms_terms))
-    names(ans_terms) <- nms_terms
-    for (i_term in seq_along(ans_terms)) {
-      nms_vars_term <- nms_vars[factors[, i_term]]
-      i_age <- match(var_age, nms_vars_term, nomatch = 0L)
-      if (i_age > 0L) {
-        data_term <- data[nms_vars_term]
-        dimnames <- lapply(data_term, unique)
-        dim <- lengths(dimnames)
-        i_along <- i_age
-        if (has_var_sexgender) {
-          i_sex <- match(var_sexgender, nms_vars_term, nomatch = 0L)
-          if (i_sex > 0L)
-            i_along <- c(i_along, i_sex)
-          i_along <- sort(i_along)
-        }
-        ans_terms[[i_term]] <- make_matrix_along_by(i_along = i_along,
-                                                    dim = dim,
-                                                    dimnames = dimnames)
-      }
-    }
-    ans <- c(ans, ans_terms)
-  }
-  ans
-}
-
-
-## HAS_TESTS
 #' Convert 'matrix_agesex' or 'matrix_along_by'
 #' to Sparse Index Matrix
 #'
 #' @param m Matrix produced by
-#' 'make_matrices_agesex' or 'make_matrices_along_by'
+#' 'make_matrix_agesex' or 'make_matrix_along_by'
 #'
 #' @returns A sparse matrix consisting of
 #' 1s and 0s
@@ -855,50 +721,6 @@ make_index_matrix <- function(m) {
     cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
   rn_new <- cn_new[match(seq_len(n), m + 1L)]
   dimnames(ans) <- list(rn_new, cn_new)
-  ans
-}
-
-
-## HAS_TESTS
-#' Make Matrices Mapping Values of 'along' and 'by'
-#' to Positions in Intercepts, Main Effects,
-#' and Interactions
-#'
-#' @param formula An R formula
-#' @param data A data frame
-#'
-#' @returns A named list of named lists of matrices
-#' 
-#' @noRd
-make_matrices_along_by <- function(formula, data) {
-  ## matrix for intercept
-  val <- list("(Intercept)" = matrix(0L, nrow = 1L))
-  ans <- list("(Intercept)" = val)
-  ## matrices for other terms
-  factors <- attr(stats::terms(formula), "factors")
-  if (length(factors) > 0L) {
-    factors <- factors[-1L, , drop = FALSE]
-    factors <- factors > 0L
-    nms_vars <- rownames(factors)
-    nms_terms <- colnames(factors)
-    ans_terms <- vector(mode = "list", length = length(nms_terms))
-    for (i_term in seq_along(nms_terms)) {
-      nms_vars_term <- nms_vars[factors[, i_term]]
-      data_term <- data[nms_vars_term]
-      data_term <- lapply(data_term, to_factor)
-      dimnames <- lapply(data_term, levels)
-      dim <- lengths(dimnames)
-      i_along <- seq_along(dim)
-      val <- lapply(i_along,
-                    make_matrix_along_by,
-                    dim = dim,
-                    dimnames = dimnames)
-      names(val) <- nms_vars_term
-      ans_terms[[i_term]] <- val
-    }
-    names(ans_terms) <- nms_terms
-    ans <- c(ans, ans_terms)
-  }
   ans
 }
 
@@ -1103,50 +925,6 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
     colnames(ans) <- colnames
     names(dimnames(ans))[[2L]] <- paste(names(dimnames)[-i_along], collapse = ".")
   }
-  ans
-}
-
-## HAS_TESTS
-#' Make an 'along_by' Matrix for Free Parameters
-#' for a Term with an SVD-Time Series Prior
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param levels_sexgender Values taken by sex/gender
-#' variable (or NULL if no sex/gender variable in data)
-#' @param matrix_agesex Matrix mapping term
-#' to age and sex dimensions.
-#'
-#' @returns A matrix.
-#'
-#' @noRd
-make_matrix_along_by_free_svdtime <- function(prior,
-                                              var_time,
-                                              var_age,
-                                              var_sexgender,
-                                              dimnames) {
-  n_comp <- prior$specific$n_comp
-  joint <- prior$specific$joint
-  is_indep <- !is.null(joint) && !joint
-  labels_svd <- paste0("comp", seq_len(n_comp))
-  if (is_indep) {
-    levels_sex <- dimnames[[var_sexgender]]
-    n_sex <- length(levels_sex)
-    n_svd <- n_sex * n_comp
-    labels_svd <- paste(rep(levels_sex, each = n_comp),
-                        labels_svd,
-                        sep = ".")
-  }
-  else
-    n_svd <- n_comp
-  non_agesex <- setdiff(names(dimnames), c(var_age, var_sexgender))
-  dimnames <- dimnames[non_agesex]
-  dimnames <- c(list(labels_svd), dimnames)
-  dim <- lengths(dimnames, use.names = FALSE)
-  i_along <- match(var_time, names(dimnames)[-1L]) + 1L ## can't match first dim
-  ans <- make_matrix_along_by(i_along = i_along,
-                              dim = dim,
-                              dimnames = dimnames)
-  names(dimnames(ans)) <- NULL
   ans
 }
 

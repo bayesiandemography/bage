@@ -1666,11 +1666,7 @@ SVD_RW2 <- function(ssvd, n_comp = NULL, s = 1) {
 SVDS_AR <- function(ssvd, n_comp = NULL, joint = FALSE, n_coef = 2, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  if (!has_sexgender(ssvd)) {
-    cli::cli_abort(c("{.arg ssvd} does not have a sex/gender dimension.",
-                     i = "Try prior {.val SVD_AR()} instead?",
-                     i = "For a list of priors, see {.topic bage::priors}."))
-  }
+  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1701,6 +1697,7 @@ SVDS_AR <- function(ssvd, n_comp = NULL, joint = FALSE, n_coef = 2, s = 1) {
 SVDS_AR1 <- function(ssvd, n_comp = NULL, joint = FALSE, min = 0.8, max = 0.98, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1726,6 +1723,7 @@ SVDS_AR1 <- function(ssvd, n_comp = NULL, joint = FALSE, min = 0.8, max = 0.98, 
 SVDS_RW <- function(ssvd, n_comp = NULL, joint = FALSE, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
@@ -1744,6 +1742,7 @@ SVDS_RW <- function(ssvd, n_comp = NULL, joint = FALSE, s = 1) {
 SVDS_RW2 <- function(ssvd, n_comp = NULL, joint = FALSE, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
+  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)

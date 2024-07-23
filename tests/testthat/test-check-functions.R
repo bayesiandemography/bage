@@ -766,6 +766,17 @@ test_that("'check_string' returns correct error with blank", {
 })
 
 
+## 'check_ssvd_has_sexgender' -------------------------------------------------
+
+test_that("'check_svd_has_sexgender' works", {
+  expect_true(check_ssvd_has_sexgender(x = HMD, nm_x = "ssvd"))
+  HMD_nogender <- HMD
+  HMD_nogender$data <- HMD_nogender$data[sapply(HMD_nogender$data$labels_sexgender, is.null),]
+  expect_error(check_ssvd_has_sexgender(x = HMD_nogender, nm_x = "ssvd"),
+               "`ssvd` does not have a sex/gender dimension.")
+})
+
+
 ## 'check_svd_agesex' ---------------------------------------------------------
 
 test_that("'check_svd_agesex' works with bage_prior_svd, correct inputs", {

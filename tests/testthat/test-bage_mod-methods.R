@@ -947,6 +947,54 @@ test_that("'fit' works with Lin_AR", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' and 'forecast' work with SVD_AR", {
+  data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
+                      time = 2001:2010)
+  data$population <- runif(n = nrow(data), min = 100, max = 300)
+  data$deaths <- NA
+  mod <- mod_pois(deaths ~ age:time,
+                      data = data,
+                      exposure = population) |>
+                      set_prior(age:time ~ SVD_AR(LFP))
+  mod <- fit(mod)
+  expect_true(is_fitted(mod))
+  f <- forecast(mod, labels = 2011:2012)
+  expect_setequal(names(f),
+                  names(augment(mod)))
+})
+
+test_that("'fit' and 'forecast' work with SVD_RW", {
+  data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
+                      time = 2001:2010)
+  data$population <- runif(n = nrow(data), min = 100, max = 300)
+  data$deaths <- NA
+  mod <- mod_pois(deaths ~ age:time,
+                      data = data,
+                      exposure = population) |>
+                      set_prior(age:time ~ SVD_RW(LFP))
+  mod <- fit(mod)
+  expect_true(is_fitted(mod))
+  f <- forecast(mod, labels = 2011:2012)
+  expect_setequal(names(f),
+                  names(augment(mod)))
+})
+
+test_that("'fit' and 'forecast' work with SVD_RW2", {
+  data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
+                      time = 2001:2010)
+  data$population <- runif(n = nrow(data), min = 100, max = 300)
+  data$deaths <- NA
+  mod <- mod_pois(deaths ~ age:time,
+                      data = data,
+                      exposure = population) |>
+                      set_prior(age:time ~ SVD_RW2(LFP))
+  mod <- fit(mod)
+  expect_true(is_fitted(mod))
+  f <- forecast(mod, labels = 2011:2012)
+  expect_setequal(names(f),
+                  names(augment(mod)))
+})
+
 
 ## 'forecast' -----------------------------------------------------------------
 
@@ -1004,6 +1052,18 @@ test_that("'forecast' works with fitted model - output is 'components'", {
                       output = "comp",
                       include_estimates = TRUE)
   expect_identical(names(ans_est), names(ans_no_est))
+  ans_unstand_est <- forecast(mod,
+                              labels = 2005:2006,
+                              output = "comp",
+                              standardize = FALSE,
+                              include_estimates = TRUE)
+  expect_identical(names(ans_est), names(ans_unstand_est))
+  ans_unstand_no_est <- forecast(mod,
+                                 labels = 2005:2006,
+                                 output = "comp",
+                                 standardize = FALSE,
+                                 include_estimates = FALSE)
+  expect_identical(names(ans_no_est), names(ans_unstand_no_est))
 })
 
 test_that("'forecast' gives same answer when run twice - output is 'components'", {
@@ -1025,6 +1085,28 @@ test_that("'forecast' gives same answer when run twice - output is 'components'"
                    output = "components")
   expect_identical(ans1, ans2)
 })
+
+
+test_that("'forecast' gives same answer when run twice - output is 'components'", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  ans1 <- forecast(mod,
+                   labels = 2005:2006,
+                   output = "comp")
+  ans2 <- forecast(mod,
+                   labels = 2005:2006,
+                   output = "components")
+  expect_identical(ans1, ans2)
+})
+
 
 test_that("'forecast' throws correct error when time var not identified'", {
     set.seed(0)

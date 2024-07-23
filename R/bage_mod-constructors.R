@@ -453,8 +453,6 @@ mod_helper <- function(formula, data, n_draw) {
                         var_age = var_age,
                         var_time = var_time,
                         lengths_effect = lengths_effect)
-  matrices_along_by <- make_matrices_along_by(formula = formula,
-                                              data = data)
   seed_stored_draws <- make_seed()
   seed_components <- make_seed()
   seed_augment <- make_seed()
@@ -473,7 +471,6 @@ mod_helper <- function(formula, data, n_draw) {
        levels_effect = levels_effect,
        lengths_effect = lengths_effect,
        terms_effect = terms_effect,
-       matrices_along_by = matrices_along_by,
        mean_disp = 1,
        est = NULL,
        is_fixed = NULL,

@@ -27,36 +27,6 @@ get_labels_svd <- function(prior, dimnames_term, var_sexgender) {
 
 
 ## HAS_TESTS
-#' Convert Mapping Matrix Such As 'matrix_agesex'
-#' or 'matrix_along_by' to Index Matrix
-#'
-#' @param m Mapping matrix
-#'
-#' @returns A sparse matrix consisting of
-#' 1s and 0s
-#'
-#' @noRd
-invert_mapping_matrix <- function(m) {
-  n <- length(m)
-  i <- as.integer(m) + 1L
-  j <- seq_len(n)
-  x <- rep.int(1L, times = n)
-  ans <- Matrix::sparseMatrix(i = i,
-                              j = j,
-                              x = x)
-  rn_old <- rownames(m)
-  cn_old <- colnames(m)
-  if (is.null(cn_old))
-    cn_new <- rep(rn_old, times = ncol(m))
-  else
-    cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
-  rn_new <- cn_new[match(seq_len(n), m + 1L)]
-  dimnames(ans) <- list(rn_new, cn_new)
-  ans
-}
-
-
-## HAS_TESTS
 #' Find the Index of the Along Dimension,
 #' Throwing an Error If Cannot be Found
 #'
@@ -160,7 +130,7 @@ make_matrix_agesex <- function(dimnames_term, var_age, var_sexgender) {
   has_age <- !is.null(var_age)
   has_var_sexgender <- !is.null(var_sexgender)
   if (!has_age)
-    cli::cli_abort("Internal error: {.arg {var_age}} not specified.")
+    cli::cli_abort("Internal error: {.arg var_age} not specified.")
   i_along <- match(var_age, nms, nomatch = 0L)
   if (i_along == 0L)
     cli::cli_abort("Internal error: Term {.var {nm_term}} does not have an age dimension.")
@@ -195,67 +165,6 @@ make_matrix_along_by_effect <- function(along, dimnames_term, var_time, var_age)
                              dimnames_term = dimnames_term)
 }
   
-## HAS_TESTS
-#' Make 'matrix_along_by' for all Forecasted Parameters in One Term
-#'
-#' Assumes that the term contains a time variable.
-#' 
-#' @param along Name of 'along' dimension, or NULL
-#' @param labels_forecast Labels for future periods
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_along_by_effect_forecast <- function(along,
-                                                 labels_forecast,
-                                                 dimnames_term,
-                                                 var_time,
-                                                 var_age) {
-  i_time <- make_i_time(var_time = var_time,
-                        dimnames_term = dimnames_term)
-  dimnames_term[[i_time]] <- labels_forecast
-  make_matrix_along_by_effect(along = along,
-                              dimnames_term = dimnames_term,
-                              var_time = var_time,
-                              var_age = var_age)
-}
-
-## HAS_TESTS
-#' Make 'matrix_along_by' for all Forecasted Free Parameters in One Term
-#'
-#' Assumes that the term contains a time variable.
-#' 
-#' @param prior Object of class 'bage_prior'
-#' @param labels_forecast Labels for future periods
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
-#' @param var_sexgender Name of sex/gender dimension, or NULL
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_along_by_effectfree_forecast <- function(prior,
-                                                     labels_forecast,
-                                                     dimnames_term,
-                                                     var_time,
-                                                     var_age,
-                                                     var_sexgender) {
-  i_time <- make_i_time(var_time = var_time,
-                        dimnames_term = dimnames_term)
-  dimnames_term[[i_time]] <- labels_forecast
-  make_matrix_along_by_effectfree(prior = prior,
-                                  dimnames_term = dimnames_term,
-                                  var_time = var_time,
-                                  var_age = var_age,
-                                  var_sexgender = var_sexgender)
-}
-
 
 ## HAS_TESTS
 #' Make 'matrix_along_by' for Free Parameters for Term

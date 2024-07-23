@@ -1355,7 +1355,10 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                component = comp,
                                level = level,
                                .fitted = .fitted)
-  matrix_along_by <- choose_matrices_along_by(mod)[["sex:time"]]
+  matrix_along_by <- make_matrix_along_by_effect(along = mod$priors[["sex:time"]]$specific$along,
+                                                 dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                 var_time = mod$var_time,
+                                                 var_age = mod$var_age)
   ans_obtained <- reformat_hyperrand_seasvary(prior = mod$priors[["sex:time"]],
                                              dimnames_term = mod$dimnames_terms[["sex:time"]],
                                              var_time = mod$var_time,
@@ -1467,7 +1470,7 @@ test_that("'standardize_effects' works", {
 
 ## 'standardize_spline' -------------------------------------------------------
 
-test_that("'standardize_svd' works", {
+test_that("'standardize_spline' works", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
@@ -1513,9 +1516,12 @@ test_that("'standardize_svd' works", {
   draws_post <- make_draws_post(mod)
   effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
   svd <- make_svd(mod = mod, effectfree = effectfree)
-  ans <- standardize_svd(mod = mod, svd = svd)
-  expect_true(all(colMeans(ans[1:5,]) < 0.00001))
-  expect_true(all(colMeans(ans[6:15,]) < 0.00001))
+  ans_mat <- standardize_svd(mod = mod, svd = svd)
+  expect_true(all(colMeans(ans_mat[1:5,]) < 0.00001))
+  expect_true(all(colMeans(ans_mat[6:15,]) < 0.00001))
+  ans_rvec <- standardize_svd(mod = mod, svd = rvec::rvec(svd))
+  expect_true(rvec::is_rvec(ans_rvec))
+  expect_equal(as.matrix(ans_rvec), ans_mat)
 })
 
 

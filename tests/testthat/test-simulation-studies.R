@@ -1,4 +1,6 @@
 
+## Poisson, with exposure, Lin_AR1 and SVDS
+
 if (FALSE) {
 
   set.seed(0)
@@ -18,6 +20,7 @@ if (FALSE) {
   
 }
 
+## Poisson, with exposure, SVDS_AR1 and SVDS
 
 if (FALSE) {
 
@@ -33,8 +36,8 @@ if (FALSE) {
   mod_est <- set_prior(mod_est, `(Intercept)` ~ Known(-5))
   mod_est <- set_prior(mod_est, age:sex ~ SVDS(LFP))
   mod_est <- set_prior(mod_est, sex:time ~ AR1(s = 0.1))
-  mod_est <- set_prior(mod_est, age:time ~ SVD_AR1(LFP, s = 0.1))
-  rep <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10)
+  mod_est <- set_prior(mod_est, age:time ~ SVD_RW2(LFP, s = 0.1))
+  rep <- report_sim(mod_est = mod_est, n_sim = 1000, n_core = 10)
   
 }
 

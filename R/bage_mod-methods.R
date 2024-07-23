@@ -772,7 +772,7 @@ forecast.bage_mod <- function(object,
       if (include_estimates)
         ans <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
       else
-        ans <- components_forecast_st
+        ans <- components_forecast_unst
     }
     ans <- sort_components(components = ans, mod = object)
   }
