@@ -747,6 +747,22 @@ check_string <- function(x, nm_x) {
 }
 
 
+## HAS_TESTS
+#' Check bage_ssvd Object has Sex/Gender Dimension
+#'
+#' @param x Object of class 'bage_ssvd'
+#' @param nm_x Name used in error messages
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_ssvd_has_sexgender <- function(x, nm_x) {
+  if (!has_sexgender(x)) {
+    cli::cli_abort("{.arg {nm_x}} does not have a sex/gender dimension.")
+  }
+  invisible(TRUE)
+}
+
 
 #' Check that Age-Sex Details of SVD Prior Align with Term
 #'

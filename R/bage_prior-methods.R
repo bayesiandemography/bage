@@ -960,13 +960,12 @@ draw_vals_svd.bage_prior_svd_rw2 <- function(prior,
 #' 'check_along_is_time'.
 #'
 #' @param prior Object of class 'bage_prior'
-#' @param nm_prior Name of the term
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #' @param components Tibble with with output
 #' from function 'components'
-#' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estiamtes
-#' @param matrix_along_by_forecast Matrix mapping
-#' along and by dimensions to position in forecasts
 #' @param labels_forecast Vector
 #' with labels for future time periods.
 #'
@@ -2465,144 +2464,6 @@ make_matrix_along_by_effectfree.bage_prior_svd_rw2 <- function(prior,
                                       var_time = var_time,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender)
-}
-
-
-
-
-## 'make_matrix_along_by_free' ------------------------------------------------
-
-#' Make an 'along_by' Matrix for Free Parameters
-#'
-#' Make a matrix mapping position within 'effectfree'
-#' to position in 'along' and 'by' variables
-#' 
-#' @param prior Object of class 'bage_prior'
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sexgender variable
-#' @param dimnames Dimnames for array representing effect
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
-#'
-#' @returns A matrix.
-#'
-#' @noRd
-make_matrix_along_by_free <- function(prior,
-                                      var_time,
-                                      var_age,
-                                      var_sexgender,
-                                      dimnames,
-                                      matrix_along_by) {
-  UseMethod("make_matrix_along_by_free")
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_free.bage_prior <- function(prior,
-                                                 var_time,
-                                                 var_age,
-                                                 var_sexgender,
-                                                 dimnames,
-                                                 matrix_along_by) {
-  matrix_along_by
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_free.bage_prior_spline <- function(prior,
-                                                        var_time,
-                                                        var_age,
-                                                        var_sexgender,
-                                                        dimnames,
-                                                        matrix_along_by) {
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
-  rownames <- paste0("comp", seq_len(n_comp))
-  colnames <- colnames(matrix_along_by_effect)
-  matrix(seq.int(from = 0L, length.out = n_comp * n_by),
-         nrow = n_comp,
-         ncol = n_by,
-         dimnames = list(rownames, colnames))
-}
-
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_free.bage_prior_svd <- function(prior,
-                                                     var_time,
-                                                     var_age,
-                                                     var_sexgender,
-                                                     dimnames,
-                                                     matrix_along_by) {
-  n_comp <- prior$specific$n_comp
-  joint <- prior$specific$joint
-  is_indep <- !is.null(joint) && !joint
-  labels_svd <- paste0("comp", seq_len(n_comp))
-  if (is_indep) {
-    levels_sex <- dimnames[[var_sexgender]]
-    n_sex <- length(levels_sex)
-    n_svd <- n_sex * n_comp
-    labels_svd <- paste(rep(levels_sex, each = n_comp),
-                        labels_svd,
-                        sep = ".")
-  }
-  else
-    n_svd <- n_comp
-  non_agesex <- setdiff(names(dimnames), c(var_age, var_sexgender))
-  dimnames <- dimnames[non_agesex]
-  dimnames <- c(list(labels_svd), dimnames)
-  dim <- lengths(dimnames, use.names = FALSE)
-  ans <- make_matrix_along_by(i_along = 1L,
-                              dim = dim,
-                              dimnames = dimnames)
-  names(dimnames(ans)) <- NULL
-  ans
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_free.bage_prior_svd_ar <- function(prior,
-                                                        var_time,
-                                                        var_age,
-                                                        var_sexgender,
-                                                        dimnames,
-                                                        matrix_along_by) {
-  make_matrix_along_by_free_svdtime(prior = prior,
-                                    var_time = var_time,
-                                    var_age = var_age,
-                                    var_sexgender = var_sexgender,
-                                    dimnames = dimnames)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_free.bage_prior_svd_rw <- function(prior,
-                                                        var_time,
-                                                        var_age,
-                                                        var_sexgender,
-                                                        dimnames,
-                                                        matrix_along_by) {
-  make_matrix_along_by_free_svdtime(prior = prior,
-                                    var_time = var_time,
-                                    var_age = var_age,
-                                    var_sexgender = var_sexgender,
-                                    dimnames = dimnames)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_free.bage_prior_svd_rw2 <- function(prior,
-                                                         var_time,
-                                                         var_age,
-                                                         var_sexgender,
-                                                         dimnames,
-                                                         matrix_along_by) {
-  make_matrix_along_by_free_svdtime(prior = prior,
-                                    var_time = var_time,
-                                    var_age = var_age,
-                                    var_sexgender = var_sexgender,
-                                    dimnames = dimnames)
 }
 
 

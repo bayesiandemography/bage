@@ -129,24 +129,21 @@ forecast_ar_svd <- function(prior,
 #' @noRd
 forecast_components <- function(mod,
                                 components_est,
-                                labels_forecastR) {
+                                labels_forecast) {
   priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
-  nms_priors <- names(priors)
-  matrices_along_by_est <- choose_matrices_along_by(mod)
-  matrices_along_by_forecast <- make_matrices_along_by_forecast(mod = mod,
-                                                                labels_forecast = labels_forecast)
-  levels_forecast_all <- make_levels_forecast_all(mod = mod,
-                                                  labels_forecast = labels_forecast)
-  is_time_varying_one <- function(nm) var_time %in% strsplit(nm, split = ":")[[1L]]
-  is_time_varying <- vapply(nms_priors, is_time_varying_one, TRUE)
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  is_time_varying <- vapply(dimnames_terms, function(x) var_time %in% names(x), TRUE)
   ans <- .mapply(forecast_term,
                  dots = list(prior = priors[is_time_varying],
-                             nm_prior = nms_priors[is_time_varying],
-                             matrix_along_by_est = matrices_along_by_est[is_time_varying],
-                             matrix_along_by_forecast = matrices_along_by_forecast[is_time_varying],
-                             levels_forecast = levels_forecast_all[is_time_varying]),
-                 MoreArgs = list(components = components_est))
+                             dimnames_term = dimnames_terms[is_time_varying]),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender,
+                                 components = components_est,
+                                 labels_forecast = labels_forecast))
   ans <- vctrs::vec_rbind(!!!ans)
   ans <- sort_components(ans, mod = mod)
   ans
@@ -538,14 +535,22 @@ make_term_level_final_time <- function(mod) {
 #'
 #' @noRd
 standardize_component <- function(mod, component) {
-  matrices_along_by <- choose_matrices_along_by(mod)
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   terms <- split(x = component, f = component$term)
   nms_terms <- names(terms)
-  for (i in seq_along(terms)) {
-    nm_term <- nms_terms[[i]]
-    matrix_along_by <- matrices_along_by[[nm_term]]
-    terms[[i]]$.fitted <- center_within_across_by(x = terms[[i]]$.fitted,
-                                                  matrix_along_by = matrix_along_by)
+  for (nm_term in nms_terms) {
+    prior <- priors[[nm_term]]
+    dimnames_term <- dimnames_terms[[nm_term]]
+    along <- prior$specific$along ## component must have 'along'
+    matrix_along_by <- make_matrix_along_by_effect(along = along,
+                                                   dimnames_term = dimnames_term,
+                                                   var_time = var_time,
+                                                   var_age = var_age)
+    terms[[nm_term]]$.fitted <- center_within_across_by(x = terms[[nm_term]]$.fitted,
+                                                        matrix_along_by = matrix_along_by)
   }
   vctrs::vec_rbind(!!!terms)
 }
@@ -602,3 +607,4 @@ standardize_forecast <- function(mod,
 
   
   
+

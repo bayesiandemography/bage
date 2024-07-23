@@ -207,3 +207,14 @@
         n_comp: 5
              s: 1
 
+---
+
+    Code
+      print(SVDS_RW2(HMD))
+    Output
+        SVDS_RW2(HMD) 
+          ssvd: HMD
+        n_comp: 5
+         joint: FALSE
+             s: 1
+
