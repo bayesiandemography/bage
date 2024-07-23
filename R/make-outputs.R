@@ -877,7 +877,7 @@ paste_dot <- function(x, y) paste(x, y, sep = ".")
 #'
 #' @noRd
 standardize_effects <- function(mod, effects) {
-  eps <- 0.0001
+  eps <- 0.001
   max_iter <- 100L
   matrices_effect_outcome <- mod$matrices_effect_outcome
   matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)

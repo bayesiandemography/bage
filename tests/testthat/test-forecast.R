@@ -529,9 +529,9 @@ test_that("'forecast_components' works", {
 })
 
 
-## 'make_mapping_final_time' -----------------------------------------------
+## 'make_mapping_final_time_effect' -------------------------------------------
 
-test_that("'make_mapping_time' works", {
+test_that("'make_mapping_time_effect' works", {
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
   data$exposure <- 100
@@ -539,14 +539,37 @@ test_that("'make_mapping_time' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = exposure)
-  ans_obtained <- make_mapping_final_time(mod, labels_forecast = 2006)
-  ans_expected <- tibble::tibble(level = c("2006", "F.2006", "M.2006"),
-                                 level_final = c("2005", "F.2005", "M.2005"))
+  ans_obtained <- make_mapping_final_time_effect(mod, labels_forecast = 2006:2007)
+  ans_expected <- tibble::tibble(level = c(2006:2007, "F.2006", "F.2007", "M.2006", "M.2007"),
+                                 level_final = rep(c("2005", "F.2005", "M.2005"), each = 2))
   expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_term_level_final_time' -----------------------------------------------
+## 'make_mapping_final_time_svd' ----------------------------------------------
+
+test_that("'make_mapping_final_time_svd' works", {
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure) |>
+                  set_prior(age:sex ~ SVDS(HMD)) |>
+                  set_prior(age:time ~ SVD_RW(HMD))
+  ans_obtained <- make_mapping_final_time_svd(mod, labels_forecast = 2006:2007)
+  ans_expected <- tibble::tibble(level = paste(rep(paste0("comp", 1:5), each = 2),
+                                               2006:2007,
+                                               sep = "."),
+                                 level_final = rep(paste0("comp", 1:5, ".2005"), each = 2))
+  expect_identical(ans_obtained, ans_expected)
+})
+                  
+
+## 'make_term_level_final_time_effect' ----------------------------------------
 
 test_that("'make_term_level_final_time' works", {
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -556,9 +579,30 @@ test_that("'make_term_level_final_time' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = exposure)
-  ans_obtained <- make_term_level_final_time(mod)
+  ans_obtained <- make_term_level_final_time_effect(mod)
   ans_expected <- tibble::tibble(term = c("time", "sex:time", "sex:time"),
                                  level = c("2005", "F.2005", "M.2005"))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_term_level_final_time_svd' -------------------------------------------
+
+test_that("'make_term_level_final_time_svd' works", {
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure) |>
+                  set_prior(age:sex ~ SVDS(HMD)) |>
+                  set_prior(age:time ~ SVD_RW(HMD))
+  ans_obtained <- make_term_level_final_time_svd(mod)
+  ans_expected <- tibble::tibble(term = "age:time",
+                                 level = paste0(paste0("comp", 1:5),  ".2005"))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -595,13 +639,16 @@ test_that("'standardize_component' works", {
 
 test_that("'standardize_forecast' works", {
   set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
   data$exposure <- 100
-  formula <- deaths ~ age * sex + sex * time
+  formula <- deaths ~ age * sex + age * time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = exposure)
+                  exposure = exposure) |>
+                  set_prior(age:time ~ SVD_RW(HMD))
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
   components_est_unst <- components(mod, standardize = FALSE)
@@ -614,13 +661,13 @@ test_that("'standardize_forecast' works", {
                                        comp_est_st = components_est_st,
                                        comp_est_unst = components_est_unst,
                                        labels_forecast = 2006:2007)
-  ans_expected <- components_forecast[c(1,2,3,5,4,6),]
+  ans_expected <- components_forecast
   ans_expected$.fitted[1:2] <- ans_expected$.fitted[1:2] +
-    (components_est_st$.fitted[20] - components_est_unst$.fitted[20])
-  ans_expected$.fitted[3:4] <- ans_expected$.fitted[3:4] +
-    (components_est_st$.fitted[53] - components_est_unst$.fitted[53])
-  ans_expected$.fitted[5:6] <- ans_expected$.fitted[5:6] +
-    (components_est_st$.fitted[54] - components_est_unst$.fitted[54])
+    (components_est_st$.fitted[24] - components_est_unst$.fitted[24])
+  ans_expected$.fitted[3:30] <- ans_expected$.fitted[3:30] +
+    rep(components_est_st$.fitted[125:138] - components_est_unst$.fitted[125:138], 2)
+  ans_expected$.fitted[31:40] <- ans_expected$.fitted[31:40] +
+    rep(components_est_st$.fitted[164:168] - components_est_unst$.fitted[164:168], 2)
   expect_identical(ans_obtained, ans_expected)
 })
 
