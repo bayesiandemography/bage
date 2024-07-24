@@ -676,9 +676,9 @@ generics::forecast
 #' with the forecasts. Default is `FALSE`.
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
-#' Default is `TRUE`.
-#' @param labels Labels for future values. WARNING
-#' this argument is only temporary.
+#' WARNING: This is not currently
+#' working correctly. Default is `TRUE`.
+#' @param labels Labels for future values.
 #' @param ... Not currently used.
 #'
 #' @returns
@@ -757,6 +757,7 @@ forecast.bage_mod <- function(object,
   }
   else if (output == "components") {
     if (standardize) {
+      warning("standardization is not currently working correctly")
       components_est_st <- components(object = object, standardize = TRUE)
       components_forecast_st <- standardize_forecast(mod = object,
                                                      comp_forecast = components_forecast_unst,

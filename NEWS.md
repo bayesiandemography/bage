@@ -1,5 +1,10 @@
 
+
 # bage 0.6.0
+
+## Issues
+
+* Standardization of forecasts not working correctly.
 
 ## Changes to interface
 
@@ -11,6 +16,8 @@
 * Changed values that are stored in object: removed `draws_linpred`, added
  `draws_effectfree`, `draws_spline`, and `draws_svd`. Modified/added
  downstream functions.
+* Calculation of 'along_by' and 'agesex' matrices pushed downwards
+  into lower-level functions.
 
 # bage 0.5.1
 
