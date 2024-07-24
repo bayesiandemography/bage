@@ -26,10 +26,10 @@ with the forecasts. Default is \code{FALSE}.}
 
 \item{standardize}{Whether to standardize
 parameter estimates. See below for details.
-Default is \code{TRUE}.}
+WARNING: This is not currently
+working correctly. Default is \code{TRUE}.}
 
-\item{labels}{Labels for future values. WARNING
-this argument is only temporary.}
+\item{labels}{Labels for future values.}
 
 \item{...}{Not currently used.}
 }
