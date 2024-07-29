@@ -444,8 +444,8 @@ mod_helper <- function(formula, data, n_draw) {
   var_age <- infer_var_age(formula)
   var_sexgender <- infer_var_sexgender(formula)
   var_time <- infer_var_time(formula)
-  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
-                                                          data = data)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                          dimnames_terms = dimnames_terms)
   levels_effect <- make_levels_effect(matrices_effect_outcome)
   lengths_effect <- make_lengths_effect(matrices_effect_outcome)
   terms_effect <- make_terms_effect(matrices_effect_outcome)

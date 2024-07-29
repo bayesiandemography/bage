@@ -217,7 +217,7 @@ test_that("'make_comp_components' works - no hyperrand", {
                     exposure = popn)
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
-    draws <- make_draws_components(mod, standardize = TRUE)
+    draws <- make_draws_components(mod)
     ans <- make_comp_components(mod)
     expect_identical(length(draws), length(ans))
     expect_setequal(ans, c("effect", "hyper", "disp"))
@@ -235,7 +235,7 @@ test_that("'make_comp_components' works - has hyperrand", {
                     set_prior(sex:time ~ Lin())
     mod <- set_n_draw(mod, n = 1)
     mod <- fit(mod)
-    draws <- make_draws_components(mod, standardize = FALSE)
+    draws <- make_draws_components(mod)
     ans <- make_comp_components(mod)
     expect_identical(length(draws), length(ans))
     expect_setequal(ans, c("effect", "hyper", "hyperrand", "disp"))
@@ -297,7 +297,7 @@ test_that("'make_draws_components' works - no svd, spline", {
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   set.seed(0)
-  ans_obtained <- make_draws_components(mod, standardize = TRUE)
+  ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained), length(unlist(mod$est)))
 })
@@ -317,7 +317,7 @@ test_that("'make_draws_components' works - has spline", {
   mod <- set_prior(mod, age ~ Sp())
   mod <- fit(mod)
   set.seed(0)
-  ans_obtained <- make_draws_components(mod, standardize = TRUE)
+  ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained), length(unlist(mod$est)) +
                                            length(unique(data$age)))
@@ -338,7 +338,7 @@ test_that("'make_draws_components' works - has svd", {
   mod <- set_prior(mod, age ~ SVD(HMD))
   mod <- fit(mod)
   set.seed(0)
-  ans_obtained <- make_draws_components(mod, standardize = TRUE)
+  ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained), length(unlist(mod$est)) +
                                            length(unique(data$age)))
@@ -644,6 +644,21 @@ test_that("'make_levels_spline' works - unlist is TRUE", {
 })
 
 
+## 'make_levels_spline_term' --------------------------------------------------
+
+test_that("'make_levels_spline_term' works", {
+  prior <- Sp(n = 5)
+  dimnames_term <- list(reg = 1:2,
+                        age = 1:20)
+  ans_obtained <- make_levels_spline_term(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = "time",
+                                          var_age = "age")
+  ans_expected <- paste(paste0("comp", 1:5), rep(1:2, each = 5), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_levels_svd' ----------------------------------------------------------
 
 test_that("'make_levels_svd' works - unlist is FALSE", {
@@ -791,7 +806,9 @@ test_that("'make_par_disp' works with bage_mod_pois", {
     mod <- set_n_draw(mod, n = 10)
     mod <- fit(mod)
     components <- components(mod)
-    meanpar <- exp(make_linpred_unfitted(mod, components = components))
+    meanpar <- exp(make_linpred_comp(components = components,
+                                     data = mod$data,
+                                     dimnames_terms = mod$dimnames_terms))
     disp <- components$.fitted[components$component == "disp"]
     set.seed(1)
     ans_obtained <- make_par_disp(mod,
@@ -805,29 +822,31 @@ test_that("'make_par_disp' works with bage_mod_pois", {
 })
 
 test_that("'make_par_disp' works with bage_mod_binom", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-    formula <- deaths ~ age + time + sex
-    mod <- mod_binom(formula = formula,
-                     data = data,
-                     size = popn)
-    mod <- fit(mod)
-    mod <- set_n_draw(mod, n = 10)
-    components <- components(mod)
-    invlogit <- function(x) 1 / (1 + exp(-x))
-    meanpar <- invlogit(make_linpred_unfitted(mod, components = components))
-    disp <- components$.fitted[components$component == "disp"]
-    set.seed(1)
-    ans_obtained <- make_par_disp(mod,
-                                  meanpar = meanpar,
-                                  disp = disp)
-    set.seed(1)
-    ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
-                                     data$deaths + meanpar/disp,
-                                     data$popn - data$deaths + (1 - meanpar)/disp)
-    expect_equal(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  formula <- deaths ~ age + time + sex
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  mod <- fit(mod)
+  mod <- set_n_draw(mod, n = 10)
+  components <- components(mod)
+  invlogit <- function(x) 1 / (1 + exp(-x))
+  meanpar <- invlogit(make_linpred_comp(components = components,
+                                        data = mod$data,
+                                        dimnames_terms = mod$dimnames_terms))
+  disp <- components$.fitted[components$component == "disp"]
+  set.seed(1)
+  ans_obtained <- make_par_disp(mod,
+                                meanpar = meanpar,
+                                disp = disp)
+  set.seed(1)
+  ans_expected <- rvec::rbeta_rvec(n = length(meanpar),
+                                   data$deaths + meanpar/disp,
+                                   data$popn - data$deaths + (1 - meanpar)/disp)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -978,9 +997,29 @@ test_that("'make_levels_replicate' works", {
 })
 
 
-## 'make_linpred_fitted' ---------------------------------------------------------
+## 'make_linpred_comp' --------------------------------------------------------
 
-test_that("'make_linpred_fitted' works with valid inputs", {
+test_that("'make_linpred_comp' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  comp <- components(mod, standardize = FALSE, quiet = TRUE)
+  ans <- make_linpred_comp(components = comp,
+                           data = mod$data,
+                           dimnames_terms = mod$dimnames_terms)
+  expect_identical(length(ans), length(mod$outcome))
+})
+
+
+## 'make_linpred_raw' ---------------------------------------------------------
+
+test_that("'make_linpred_raw' works with valid inputs", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -991,33 +1030,12 @@ test_that("'make_linpred_fitted' works with valid inputs", {
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_fitted(mod)
-  comp <- components(mod)
-  ans_expected <- make_linpred_unfitted(mod = mod,
-                                        components = comp)
+  ans_obtained <- make_linpred_raw(mod)
+  comp <- components(mod, standardize = FALSE, quiet = TRUE)
+  ans_expected <- make_linpred_comp(components = comp,
+                                    data = mod$data,
+                                    dimnames_terms = mod$dimnames_terms)
   expect_equal(ans_obtained, ans_expected)
-})
-
-
-## 'make_linpred_unfitted' ---------------------------------------------------------
-
-test_that("'make_linpred_unfitted' works with valid inputs", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, n_draw = 100L)
-  mod <- fit(mod)
-  comp <- components(mod)
-  set.seed(1)
-  ans <- make_linpred_unfitted(mod = mod,
-                               components = comp)
-  expect_identical(length(ans), length(mod$outcome))
-  expect_s3_class(ans, "rvec")
 })
 
 
@@ -1042,7 +1060,7 @@ test_that("'make_scaled_eigen' works with non-negative definite matrix", {
 })
 
 
-## 'make_spline' ---------------------------------------------------
+## 'make_spline' --------------------------------------------------------------
 
 test_that("'make_spline' works", {
   set.seed(0)
@@ -1067,7 +1085,29 @@ test_that("'make_spline' works", {
 })
 
 
-## 'make_svd' ---------------------------------------------------
+## 'make_standardized_effect' -------------------------------------------------
+
+test_that("'make_standardized_effect' works - Intercept", {
+  linpred <- rvec::rnorm_rvec(n = 10, n_draw = 20)
+  indices_linpred <- rep(1L, 10)
+  ans_obtained <- make_standardized_effect(linpred = linpred,
+                                           indices_linpred = indices_linpred)
+  ans_expected <- mean(linpred)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_standardized_effect' works - ordinary term", {
+  linpred <- rvec::rnorm_rvec(n = 10, n_draw = 20)
+  indices_linpred <- rep(1:2, 5)
+  ans_obtained <- make_standardized_effect(linpred = linpred,
+                                           indices_linpred = indices_linpred)
+  ans_expected <- c(mean(linpred[c(1, 3, 5, 7, 9)]),
+                    mean(linpred[c(2, 4, 6, 8, 10)]))                         
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_svd' -----------------------------------------------------------------
 
 test_that("'make_svd' works", {
   set.seed(0)
@@ -1268,7 +1308,7 @@ test_that("'reformat_hyperrand' works", {
   comp <- make_comp_components(mod)
   term <- make_term_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(component = comp,
@@ -1297,7 +1337,7 @@ test_that("'reformat_hyperrand_seasfix' works", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -1348,7 +1388,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -1459,45 +1499,25 @@ test_that("'standardize_effects' works", {
                   exposure = popn)
   mod <- set_n_draw(mod, 5)
   mod <- fit(mod)
-  effectfree <- mod$draws_effectfree
-  effect <- make_effects(mod, effectfree)
-  ans <- standardize_effects(mod = mod, effect = effect)
-  m <- make_combined_matrix_effect_outcome(mod)
-  expect_equal(m %*% ans, m %*% effect)
-  expect_false(isTRUE(all.equal(as.numeric(ans), as.numeric(effect))))
+  comp <- components(mod, standardize = FALSE, quiet = TRUE)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  linpred <- make_linpred_comp(components = comp,
+                               data = data,
+                               dimnames_terms = dimnames_terms)
+  ans <- standardize_effects(components = comp,
+                             data = data,
+                             linpred = linpred,
+                             dimnames_terms = dimnames_terms)
+  effect <- comp$.fitted[comp$component == "effect"]
+  m <- as.matrix(make_combined_matrix_effect_outcome(mod))
+  expect_equal(m %*% ans$.fitted[ans$component == "effect"], m %*% effect)
 })
 
 
-## 'standardize_spline' -------------------------------------------------------
+## 'standardize_svd_spline' ---------------------------------------------------
 
-test_that("'standardize_spline' works", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age:sex ~ Sp(n = 5))
-  mod <- set_prior(mod, age ~ Sp(n = 5))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  est <- mod$est
-  draws_post <- make_draws_post(mod)
-  effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
-  spline <- make_spline(mod = mod, effectfree = effectfree)
-  ans <- standardize_spline(mod = mod, spline = spline)
-  expect_true(all(colMeans(ans[1:5,]) < 0.00001))
-  expect_true(all(colMeans(ans[6:15,]) < 0.00001))
-})
-
-
-## 'standardize_svd' ----------------------------------------------------------
-
-test_that("'standardize_svd' works", {
+test_that("'standardize_svd_spline' works", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
@@ -1509,19 +1529,18 @@ test_that("'standardize_svd' works", {
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, age:sex ~ SVDS(HMD))
-  mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- set_prior(mod, age ~ Sp(n = 5))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
-  est <- mod$est
-  draws_post <- make_draws_post(mod)
-  effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
-  svd <- make_svd(mod = mod, effectfree = effectfree)
-  ans_mat <- standardize_svd(mod = mod, svd = svd)
-  expect_true(all(colMeans(ans_mat[1:5,]) < 0.00001))
-  expect_true(all(colMeans(ans_mat[6:15,]) < 0.00001))
-  ans_rvec <- standardize_svd(mod = mod, svd = rvec::rvec(svd))
-  expect_true(rvec::is_rvec(ans_rvec))
-  expect_equal(as.matrix(ans_rvec), ans_mat)
+  components <- components(mod, standardize = FALSE)
+  ans <- standardize_svd_spline(components = components,
+                                priors = mod$priors,
+                                dimnames_terms = mod$dimnames_terms,
+                                var_time = mod$var_time,
+                                var_age = mod$var_age,
+                                var_sexgender = mod$var_sexgender)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$component == "svd"])) < 0.000001)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$component == "spline"])) < 0.000001)
 })
 
 

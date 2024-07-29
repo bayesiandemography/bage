@@ -64,14 +64,35 @@ center_within_across_by_draws <- function(draws, matrix_along_by) {
 #'
 #' @noRd
 draw_vals_components_fitted <- function(mod, standardize) {
+  data <- mod$data
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = standardize)
+  draws <- make_draws_components(mod)
   ans <- tibble::tibble(term = term,
                         component = comp,
                         level = level,
                         .fitted = draws)
+  if (standardize) {
+    linpred <- make_linpred_comp(components = ans,
+                                 data = data,
+                                 dimnames_terms = dimnames_terms)
+    ans <- standardize_effects(components = ans,
+                               data = data,
+                               linpred = linpred,
+                               dimnames_terms = dimnames_terms)
+    ans <- standardize_svd_spline(components = ans,
+                                  priors = priors,
+                                  dimnames_terms = dimnames_terms,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender)
+  }
   ans <- reformat_hyperrand(components = ans, mod = mod)
   ans
 }
@@ -268,18 +289,14 @@ make_copies_repdata <- function(data, n) {
 #' rates/probs/means
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param standardize Whether to standardize
-#' estimates
 #'
 #' @returns A matrix
 #'
 #' @noRd
-make_draws_components <- function(mod, standardize) {
+make_draws_components <- function(mod) {
   ## effects
   effectfree <- mod$draws_effectfree
   ans_effects <- make_effects(mod = mod, effectfree = effectfree)
-  if (standardize)
-    ans_effects <- standardize_effects(mod = mod, effects = ans_effects)
   ans_effects <- rvec::rvec_dbl(ans_effects)
   ## hyper
   hyper <- mod$draws_hyper
@@ -289,13 +306,9 @@ make_draws_components <- function(mod, standardize) {
   ans_hyperrand <- rvec::rvec_dbl(hyperrand)
   ## spline
   ans_spline <- make_spline(mod = mod, effectfree = effectfree)
-  if (standardize)
-    ans_spline <- standardize_spline(mod = mod, spline = ans_spline)
   ans_spline <- rvec::rvec_dbl(ans_spline)
   ## svd
   ans_svd <- make_svd(mod = mod, effectfree = effectfree)
-  if (standardize)
-    ans_svd <- standardize_svd(mod = mod, svd = ans_svd)
   ans_svd <- rvec::rvec_dbl(ans_svd)
   ## combine
   ans <- c(ans_effects, ans_hyper, ans_hyperrand, ans_spline, ans_svd)
@@ -599,18 +612,18 @@ make_levels_replicate <- function(n, n_row_data) {
 #' @noRd
 make_levels_spline <- function(mod, unlist) {
   priors <- mod$priors
-  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
   ans <- vector(mode = "list", length = length(priors))
   for (i in seq_along(priors)) {
     prior <- priors[[i]]
     if (is_spline(prior)) {
-      m <- matrices_along_by_free[[i]]
-      labels_spline <- rownames(m)
-      if (ncol(m) > 1L)
-        labels_spline <- paste(labels_spline,
-                               rep(colnames(m), each = nrow(m)),
-                               sep = ".")
-      ans[[i]] <- labels_spline
+      dimnames_term <- dimnames_terms[[i]]
+      ans[[i]] <- make_levels_spline_term(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age)
     }
   }
   if (unlist)
@@ -618,6 +631,36 @@ make_levels_spline <- function(mod, unlist) {
   else
     names(ans) <- names(priors)
   ans
+}
+
+
+#' Make Levels for Spline
+#'
+#' @param prior Object of class 'bage_prior_spline'
+#' @param dimnames_term Dimnames for array representation
+#' of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_levels_spline_term <- function(prior,
+                                    dimnames_term,
+                                    var_time,
+                                    var_age) {
+  along <- prior$specific$along
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- length(dimnames_term[[i_along]])
+  n_comp <- get_n_comp_spline(prior = prior,
+                              n_along = n_along)
+  levels_along <- paste0("comp", seq_len(n_comp))
+  dimnames_term <- c(list(.spline = levels_along),
+                     dimnames_term[-i_along])
+  dimnames_to_levels(dimnames_term)
 }
 
 
@@ -691,6 +734,40 @@ make_levels_svd_term <- function(prior,
 }
 
 
+#' Make Linear Predictor from Components
+#'
+#' @param components Data frame with estimates for hyper-parameters
+#' @param data Data frame with raw data
+#' @param dimnames_terms Dimnames for array representation of terms
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_linpred_comp <- function(components, data, dimnames_terms) {
+  key_comp <- with(components, paste(term, component, level))
+  fitted <- components$.fitted
+  data_has_intercept <- "(Intercept)" %in% names(data)
+  if (!data_has_intercept)
+    data[["(Intercept)"]] <- "(Intercept)"
+  n_draw <- rvec::n_draw(fitted)
+  ans <- matrix(0, nrow = nrow(data), ncol = n_draw)
+  ans <- rvec::rvec_dbl(ans)
+  for (i_term in seq_along(dimnames_terms)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    nm <- dimnames_to_nm(dimnames_term)
+    levels_term <- dimnames_to_levels(dimnames_term)
+    key_term <- paste(nm, "effect", levels_term)
+    indices_comp <- match(key_term, key_comp)
+    val_term <- fitted[indices_comp]
+    levels_data <- Reduce(paste_dot, data[nm_split])
+    indices_term <- match(levels_data, levels_term)
+    val_term_linpred <- val_term[indices_term]
+    ans <- ans + val_term_linpred
+  }
+  ans
+}
+
 
 ## HAS_TESTS
 #' Make Linear Predictor from 'draws_effectfree'
@@ -704,7 +781,7 @@ make_levels_svd_term <- function(prior,
 #' @returns An rvec
 #'
 #' @noRd
-make_linpred_fitted <- function(mod) {
+make_linpred_raw <- function(mod) {
   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
   effectfree <- mod$draws_effectfree
   effect <- make_effects(mod = mod, effectfree = effectfree)
@@ -712,29 +789,6 @@ make_linpred_fitted <- function(mod) {
   ans <- Matrix::as.matrix(ans)
   ans <- rvec::rvec(ans)
   ans
-}
-
-
-## HAS_TESTS
-#' Make Linear Predictor from 'components'
-#'
-#' Only used with unfitted models.
-#'
-#' Return value aligned to outcome, not data.
-#'
-#' @param mod Object of class "bage_mod"
-#' @param components Data frame produced by
-#' call to `components()`.
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_linpred_unfitted <- function(mod, components) {
-    matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-    matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
-    is_effect <- components$component == "effect"
-    effect <- components$.fitted[is_effect]
-    matrix_effect_outcome %*% effect
 }
 
 
@@ -780,6 +834,33 @@ make_spline <- function(mod, effectfree) {
   is_spline <- rep(is_spline, times = lengths_effectfree)
   effectfree[is_spline, , drop = FALSE]
 }
+
+
+
+#' Make Standardized Version of a Single Effect
+#'
+#' @param linpred Linear predictor. An rvec
+#' @param indices_linpred Indices into linear predictor
+#' from elements of term. An integer vector.
+#'
+#' @returns An rvec.
+#'
+#' @noRd
+make_standardized_effect <- function(linpred, indices_linpred) {
+  n_element <- max(indices_linpred)
+  n_draw <- rvec::n_draw(linpred)
+  linpred <- as.matrix(linpred)
+  ans <- matrix(nrow = n_element, ncol = n_draw)
+  for (i_element in seq_len(n_element)) {
+    maps_to_element <- indices_linpred == i_element
+    ans[i_element, ] <- matrixStats::colMeans2(linpred,
+                                               rows = maps_to_element,
+                                               useNames = FALSE)
+  }
+  ans <- rvec::rvec_dbl(ans)
+  ans
+}
+
 
 
 ## HAS_TESTS
@@ -865,134 +946,103 @@ make_term_svd <- function(mod) {
 paste_dot <- function(x, y) paste(x, y, sep = ".")
 
 
-
 ## HAS_TESTS
 #' Standardize Posterior Draws for Intercept, Main Effects, and Interactions
 #'
-#' @param mod Object of class 'bage_mod'.
-#' @param effects A matrix of unstandardized effects,
-#' where each column is a draw.
-#' 
-#' @returns A matrix
+#' @param components Data frame with estimates of hyper-parameters
+#' @param data Data frame with original data
+#' @param linpred Rvec with linear predictor formed from effects
+#' @param dimnames_terms Dimnames of array representation of terms.
+#' A named list.
+#'
+#' @returns Modifed version of 'components'
 #'
 #' @noRd
-standardize_effects <- function(mod, effects) {
-  eps <- 0.001
-  max_iter <- 100L
-  matrices_effect_outcome <- mod$matrices_effect_outcome
-  matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
-  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-  is_rvec <- rvec::is_rvec(effects)
-  if (is_rvec)
-    effects <- as.matrix(effects)
-  linpred <- matrix_effect_outcome %*% effects
-  n_effect <- length(matrices_effect_outcome)
-  n_outcome <- nrow(linpred)
-  n_draw <- ncol(linpred)
-  n_element <- vapply(matrices_effect_outcome, ncol, 1L)
-  mult <- n_element / n_outcome
-  ans <- .mapply(matrix,
-                 dots = list(nrow = n_element),
-                 MoreArgs = list(data = 0, ncol = n_draw))
-  names(ans) <- names(mod$priors)
-  for (i_effect in seq_len(n_effect))
-    rownames(ans[[i_effect]]) <- colnames(matrices_effect_outcome[[i_effect]])
-  found_ans <- FALSE
-  for (i_iter in seq_len(max_iter)) {
-    for (i_effect in seq_len(n_effect)) {
-      M <- matrices_effect_outcome[[i_effect]]
-      effect <- mult[[i_effect]] * Matrix::crossprod(M, linpred)
-      linpred <- linpred - M %*% effect
-      ans[[i_effect]] <- ans[[i_effect]] + effect
-    }
-    max_remainder <- max(abs(linpred))
-    if (max_remainder < eps) {
-      found_ans <- TRUE
-      break
-    }
+standardize_effects <- function(components, data, linpred, dimnames_terms) {
+  max_resid_permitted <- 0.001
+  key_comp <- with(components, paste(term, component, level))
+  data_has_intercept <- "(Intercept)" %in% names(data)
+  if (!data_has_intercept)
+    data[["(Intercept)"]] <- "(Intercept)"
+  for (i_term in seq_along(dimnames_terms)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    nm <- dimnames_to_nm(dimnames_term)
+    levels_term <- dimnames_to_levels(dimnames_term)
+    levels_data <- Reduce(paste_dot, data[nm_split])
+    indices_linpred <- match(levels_data, levels_term)
+    standardized_effect <- make_standardized_effect(linpred = linpred,
+                                                    indices_linpred = indices_linpred)
+    standardized_effect_linpred <- standardized_effect[indices_linpred]
+    linpred <- linpred - standardized_effect_linpred
+    key_term <- paste(nm, "effect", levels_term)
+    indices_comp <- match(key_term, key_comp)
+    components$.fitted[indices_comp] <- standardized_effect
   }
-  if (!found_ans)
-    cli::cli(c("Internal error: Unable to standardize effects.",   ## nocov
-               i = "Maximum remainder: {.val {max_remainder}}."))  ## nocov
-  ans <- lapply(ans, Matrix::as.matrix)
-  ans <- Reduce(rbind, ans)
-  if (is_rvec)
-    ans <- rvec::rvec_dbl(ans)
-  ans
+  max_resid <- max(abs(as.matrix(linpred)))
+  if (max_resid > max_resid_permitted)
+    cli::cli_alert_warning(paste("Standardized values do not exactly reproduce linear predictor:",
+                                 "Maximum difference is {.val {max_resid}}."))
+  components
 }
 
 
 ## HAS_TESTS
-#' Standardize Spline Coefficients
+#' Standardize SVD and Spline Coefficients
 #'
-#' @param mod Object of class 'bage_mod'.
-#' @param svd Matrix of Unstandardized coefficients
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
 #' 
-#' @returns A matrix
+#' @returns A modifed version of 'components'
 #'
 #' @noRd
-standardize_spline <- function(mod, spline) {
-  if (length(spline) == 0L)
-    return(spline)
-  is_rvec <- rvec::is_rvec(spline)
-  if (is_rvec)
-    spline <- as.matrix(spline)
-  priors <- mod$priors
-  lengths_effectfree <- make_lengths_effectfree(mod)
-  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
-  is_spline <- vapply(priors, is_spline, FALSE)
-  lengths_spline <- lengths_effectfree[is_spline]
-  matrices_along_by_spline <- matrices_along_by_free[is_spline]
-  start <- 1L
-  for (i in seq_along(lengths_spline)) {
-    length <- lengths_spline[[i]]
-    stop <- start + length - 1L
-    s <- seq.int(from = start, to = stop)
-    matrix_along_by <- matrices_along_by_spline[[i]]
-    spline[s, ] <- center_within_across_by_draws(spline[s, , drop = FALSE],
-                                                 matrix_along_by = matrix_along_by)
-    start <- start + length
+standardize_svd_spline <- function(components,
+                                   priors,
+                                   dimnames_terms,
+                                   var_time,
+                                   var_age,
+                                   var_sexgender) {
+  key_components <- with(components, paste(term, component, level))
+  for (i_term in seq_along(priors)) {
+    prior <- priors[[i_term]]
+    is_svd <- is_svd(prior)
+    is_spline <- is_spline(prior)
+    if (is_svd || is_spline) {
+      dimnames_term <- dimnames_terms[[i_term]]
+      nm_split <- dimnames_to_nm_split(dimnames_term)
+      nm <- dimnames_to_nm(dimnames_term)
+      if (is_svd) {
+        levels <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+        key_term <- "svd"
+      }
+      else {
+        levels <- make_levels_spline_term(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age)
+        key_term <- "spline"
+      }
+      key_term <- paste(nm, key_term, levels)
+      indices_comp <- match(key_term, key_components)
+      val_term <- components$.fitted[indices_comp]
+      matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
+                                                         dimnames_term = dimnames_term,
+                                                         var_time = var_time,
+                                                         var_age = var_age,
+                                                         var_sexgender = var_sexgender)
+      val_term <- center_within_across_by(x = val_term, 
+                                          matrix_along_by = matrix_along_by)
+      components$.fitted[indices_comp] <- val_term
+    }
   }
-  if (is_rvec)
-    spline <- rvec::rvec_dbl(spline)
-  spline
-}
-
-
-## HAS_TESTS
-#' Standardize SVD Coefficients
-#'
-#' @param mod Object of class 'bage_mod'.
-#' @param svd Matrix of Unstandardized coefficients
-#' 
-#' @returns A matrix
-#'
-#' @noRd
-standardize_svd <- function(mod, svd) {
-  if (length(svd) == 0L)
-    return(svd)
-  is_rvec <- rvec::is_rvec(svd)
-  if (is_rvec)
-    svd <- as.matrix(svd)
-  priors <- mod$priors
-  lengths_effectfree <- make_lengths_effectfree(mod)
-  matrices_along_by_free <- make_matrices_along_by_effectfree(mod)
-  is_svd <- vapply(priors, is_svd, FALSE)
-  lengths_svd <- lengths_effectfree[is_svd]
-  matrices_along_by_svd <- matrices_along_by_free[is_svd]
-  start <- 1L
-  for (i in seq_along(lengths_svd)) {
-    length <- lengths_svd[[i]]
-    stop <- start + length - 1L
-    s <- seq.int(from = start, to = stop)
-    matrix_along_by <- matrices_along_by_svd[[i]]
-    svd[s, ] <- center_within_across_by_draws(svd[s, , drop = FALSE],
-                                              matrix_along_by = matrix_along_by)
-    start <- start + length
-  }
-  if (is_rvec)
-    svd <- rvec::rvec_dbl(svd)
-  svd
+  components
 }
 
 

@@ -131,6 +131,30 @@ test_that("'dimnames_to_nm' works with 2D dimnames", {
 })
 
 
+## 'dimnames_to_nm_split' -----------------------------------------------------
+
+test_that("'dimnames_to_nm_split' works with 0D dimnames", {
+  dimnames <- list()
+  ans_obtained <- dimnames_to_nm_split(dimnames)
+  ans_expected <- "(Intercept)"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'dimnames_to_nm_split' works with 1D dimnames", {
+  dimnames <- list(age = 0:4)
+  ans_obtained <- dimnames_to_nm_split(dimnames)
+  ans_expected <- "age"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'dimnames_to_nm_split' works with 2D dimnames", {
+  dimnames <- list(age = 0:4, reg = c("a", "b"))
+  ans_obtained <- dimnames_to_nm_split(dimnames)
+  ans_expected <- c("age", "reg")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'eval_offset_formula' ------------------------------------------------------
 
 test_that("'eval_offset_formula' works with valid inputs - simple formula", {
@@ -603,7 +627,9 @@ test_that("'make_levels_effect' works with valid inputs - pois, complete levels"
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age * sex + time
-    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
+    dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
+    matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                            dimnames_terms = dimnames_terms)
     ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
     ans_expected <- c("(Intercept)",
                       0:9,
@@ -622,7 +648,9 @@ test_that("'make_levels_effect' works with valid inputs - pois, incomplete level
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     data <- data[-3, ]
     formula <- deaths ~ age * sex + time
-    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
+    dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
+    matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                            dimnames_terms = dimnames_terms)
     ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
     ans_expected <- c("(Intercept)",
                       0:9,
@@ -640,7 +668,9 @@ test_that("'make_levels_effect' works with valid inputs - norm", {
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$income <- rnorm(n = nrow(data))
     formula <- income ~ age * sex + time
-    matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula, data = data)
+    dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
+    matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                            dimnames_terms = dimnames_terms)
     ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
     ans_expected <- c("(Intercept)",
                       0:9,
@@ -922,7 +952,8 @@ test_that("'make_matrices_effect_outcome' works with valid inputs", {
     data$val <- 1
     data <- data[-c(3, 5), ]
     formula <- deaths ~ age:sex + time
-    ans_obtained <- make_matrices_effect_outcome(formula = formula, data = data)
+    dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
+    ans_obtained <- make_matrices_effect_outcome(data = data, dimnames_terms = dimnames_terms)
     data_fac <- data[1:3]
     data_fac[] <- lapply(data_fac, factor)
     ans_expected <- Matrix::sparse.model.matrix(~age:sex + time,

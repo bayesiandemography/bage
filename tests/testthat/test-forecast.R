@@ -529,6 +529,48 @@ test_that("'forecast_components' works", {
 })
 
 
+## 'make_dimnames_terms_comb' -------------------------------------------------
+
+test_that("'make_mapping_time_effect' works", {
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  labels_forecast <- as.character(2006:2007)
+  ans_obtained <- make_dimnames_terms_comb(dimnames_terms = mod$dimnames_terms,
+                                           var_time = mod$var_time,
+                                           labels_forecast = labels_forecast)
+  ans_expected <- mod$dimnames_terms
+  ans_expected$time$time <- as.character(2000:2007)
+  ans_expected[["sex:time"]]$time <- as.character(2000:2007)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_dimnames_terms_forecast' ---------------------------------------------
+
+test_that("'make_mapping_time_effect' works", {
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  labels_forecast <- as.character(2006:2007)
+  ans_obtained <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                               var_time = mod$var_time,
+                                               labels_forecast = labels_forecast)
+  ans_expected <- mod$dimnames_terms
+  ans_expected$time$time <- labels_forecast
+  ans_expected[["sex:time"]]$time <- labels_forecast
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_mapping_final_time_effect' -------------------------------------------
 
 test_that("'make_mapping_time_effect' works", {

@@ -247,7 +247,7 @@ draw_vals_augment_fitted <- function(mod) {
 draw_vals_augment_fitted.bage_mod <- function(mod) {
   ans <- mod$data
   ans$.observed <- make_observed(mod)
-  linpred <- make_linpred_fitted(mod)
+  linpred <- make_linpred_raw(mod)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   if (has_disp) {
@@ -273,7 +273,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
 #' @export
 draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   ans <- mod$data
-  linpred <- make_linpred_fitted(mod)
+  linpred <- make_linpred_raw(mod)
   scale_outcome <- get_fun_scale_outcome(mod)
   .fitted <- scale_outcome(linpred)
   ans$.fitted <- .fitted
@@ -297,6 +297,8 @@ draw_vals_augment_unfitted <- function(mod) {
 ## HAS_TESTS
 #' @export
 draw_vals_augment_unfitted.bage_mod <- function(mod) {
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
@@ -305,8 +307,9 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   has_disp <- has_disp(mod)
   nm_outcome <- get_nm_outcome(mod)
   offset <- mod$offset
-  vals_linpred <- make_linpred_unfitted(mod = mod,
-                                      components = vals_components)
+  vals_linpred <- make_linpred_comp(components = vals_components,
+                                    data = data,
+                                    dimnames_terms = dimnames_terms)
   seed_augment <- mod$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
@@ -336,14 +339,17 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
 ## HAS_TESTS
 #' @export
 draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
                                                    standardize = FALSE)
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
-  vals_linpred <- make_linpred_unfitted(mod = mod,
-                                        components = vals_components)
+  vals_linpred <- make_linpred_comp(components = vals_components,
+                                    data = data,
+                                    dimnames_terms = dimnames_terms)
   vals_fitted <- scale_outcome(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
@@ -723,6 +729,12 @@ forecast.bage_mod <- function(object,
                               standardize = TRUE,
                               labels,
                               ...) {
+  data_est <- object$data
+  priors <- object$priors
+  dimnames_terms_est <- object$dimnames_terms
+  var_time <- object$var_time
+  var_age <- object$var_age
+  var_sexgender <- object$var_sexgender
   output <- match.arg(output)
   check_flag(x = include_estimates, nm_x = "include_estimates")
   check_flag(x = standardize, nm_x = "standardize")
@@ -741,14 +753,20 @@ forecast.bage_mod <- function(object,
                                                   components_est = components_est_unst,
                                                   labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dimnames_terms_est,
+                                                          var_time = var_time,
+                                                          labels_forecast = labels)
+  components_comb_unst <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
+  linpred_forecast <- make_linpred_comp(components = components_comb_unst,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_terms_forecast)
   if (output == "augment") {
     seed_forecast_augment <- object$seed_forecast_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_forecast_augment) ## set pre-determined seed
     ans <- forecast_augment(mod = object,
-                            components_est = components_est_unst,
-                            components_forecast = components_forecast_unst,
-                            data_forecast = data_forecast)
+                            data_forecast = data_forecast,
+                            linpred_forecast = linpred_forecast)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
       augment_est <- augment(object)
@@ -756,26 +774,50 @@ forecast.bage_mod <- function(object,
     }
   }
   else if (output == "components") {
-    if (standardize) {
-      warning("standardization is not currently working correctly")
-      components_est_st <- components(object = object, standardize = TRUE)
-      components_forecast_st <- standardize_forecast(mod = object,
-                                                     comp_forecast = components_forecast_unst,
-                                                     comp_est_st = components_est_st,
-                                                     comp_est_unst = components_est_unst,
-                                                     labels_forecast = labels)
-      if (include_estimates)
-        ans <- vctrs::vec_rbind(components_est_st, components_forecast_st)
+    if (include_estimates) {
+      if (standardize) {
+        data_comb <- vctrs::vec_rbind(data_est, data_forecast)
+        linpred_est <- make_linpred_raw(object)
+        linpred_comb <- vctrs::vec_c(linpred_est, linpred_forecast)
+        dimnames_terms_comb <- make_dimnames_terms_comb(dimnames_terms = dimnames_terms_est,
+                                                        var_time = var_time,
+                                                        labels_forecast = labels)
+        ans <- standardize_effects(components = components_comb_unst,
+                                   data = data_comb,
+                                   linpred = linpred_comb,
+                                   dimnames_terms = dimnames_terms_comb)
+        ans <- standardize_svd_spline(components = ans,
+                                      priors = priors,
+                                      dimnames_terms = dimnames_terms_comb,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+      }
       else
-        ans <- components_forecast_st
+        ans <- components_comb_unst
     }
     else {
-      if (include_estimates)
-        ans <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
+      if (standardize) {
+        components_nontime_unst <- get_comp_nontime_effects(components = components_est_unst,
+                                                            mod = object)
+        nrow_nontime <- nrow(components_nontime_unst)
+        ans <- vctrs::vec_rbind(components_nontime_unst, components_forecast_unst)
+        ans <- standardize_effects(components = ans,
+                                   data = data_forecast,
+                                   linpred = linpred_forecast,
+                                   dimnames_terms = dimnames_terms_forecast)
+        ans <- standardize_svd_spline(components = ans,
+                                      priors = priors,
+                                      dimnames_terms = dimnames_terms_forecast,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+        ans <- ans[-seq_len(nrow_nontime), , drop = FALSE]
+      }
       else
         ans <- components_forecast_unst
     }
-    ans <- sort_components(components = ans, mod = object)
+    ans <- reformat_hyperrand(components = ans, mod = object)
   }
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg output}.") ## nocov
@@ -788,54 +830,37 @@ forecast.bage_mod <- function(object,
 #' Forecast Contents of 'augment'
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param components_est Tibble with results
-#' of call to 'components'.
-#' @param components_forecast Tibble with results
-#' of call to 'forecast_components'.
 #' @param data_forecast Data frame with
 #' values of classifying variables for
 #' future time periods
+#' @param linpred_forecast Linear predictor for future
+#' time periods
 #'
 #' @returns A tibble.
 #'
 #' @noRd
 forecast_augment <- function(mod,
-                             components_est,
-                             components_forecast,
-                             data_forecast) {
+                             data_forecast,
+                             linpred_forecast) {
   UseMethod("forecast_augment")
-}
+} 
 
 ## HAS_TESTS
 #' @export
 forecast_augment.bage_mod <- function(mod,
-                                      components_est,
-                                      components_forecast,
-                                      data_forecast) {
-  formula <- mod$formula
+                                      data_forecast,
+                                      linpred_forecast) {
   has_disp <- has_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
-  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
-                                                          data = data_forecast)
-  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
-  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
-  comp_nontime_effects <- get_comp_nontime_effects(components = components_est,
-                                                   mod = mod)
-  is_effect <- components_forecast$component == "effect"
-  comp_forecast_effects <- components_forecast[is_effect, , drop = FALSE]
-  effects <- vctrs::vec_rbind(comp_nontime_effects, comp_forecast_effects)
-  effects <- sort_components(components = effects, mod = mod)
-  effects <- effects$.fitted
-  linpred <- matrix_effect_outcome %*% effects
   if (has_disp) {
-    expected <- inv_transform(linpred)
+    expected <- inv_transform(linpred_forecast)
     disp <- get_disp(mod)
     fitted <- draw_vals_fitted(mod = mod,
                                vals_expected = expected,
                                vals_disp = disp)
   }
   else
-    fitted <- inv_transform(linpred)
+    fitted <- inv_transform(linpred_forecast)
   ans <- data_forecast
   ans$.observed <- NA_real_
   ans$.fitted <- fitted
@@ -847,27 +872,14 @@ forecast_augment.bage_mod <- function(mod,
 ## HAS_TESTS
 #' @export
 forecast_augment.bage_mod_norm <- function(mod,
-                                           components_est,
-                                           components_forecast,
-                                           data_forecast) {
-  formula <- mod$formula
+                                           data_forecast,
+                                           linpred_forecast) {
   scale_outcome <- get_fun_scale_outcome(mod)
-  matrices_effect_outcome <- make_matrices_effect_outcome(formula = formula,
-                                                          data = data_forecast)
-  matrix_effect_outcome <- Reduce(Matrix::cbind2, matrices_effect_outcome)
-  matrix_effect_outcome <- Matrix::as.matrix(matrix_effect_outcome)
-  comp_nontime_effects <- get_comp_nontime_effects(components = components_est,
-                                                   mod = mod)
-  effects <- vctrs::vec_rbind(comp_nontime_effects, components_forecast)
-  effects <- sort_components(components = effects, mod = mod)
-  effects <- effects$.fitted
-  linpred <- matrix_effect_outcome %*% effects
-  fitted <- scale_outcome(linpred)
+  fitted <- scale_outcome(linpred_forecast)
   ans <- data_forecast
   ans$.fitted <- fitted
   ans
 }
-
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------

@@ -452,6 +452,58 @@ make_data_forecast <- function(mod, labels_forecast) {
 
 
 ## HAS_TESTS
+#' Convert Dimnames for Estimates into Dimnames for
+#' Estimates and Forecasts Combined
+#'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns Modified version of 'dimnames_terms'
+#'
+#' @noRd
+make_dimnames_terms_comb <- function(dimnames_terms, var_time, labels_forecast) {
+  labels_forecast <- as.character(labels_forecast)
+  for (i in seq_along(dimnames_terms)) {
+    dimnames_term <- dimnames_terms[[i]]
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    has_time <- var_time %in% nm_split
+    if (has_time)
+      dimnames_terms[[i]][[var_time]] <- c(dimnames_terms[[i]][[var_time]],
+                                           labels_forecast)
+  }
+  dimnames_terms
+}
+
+
+## HAS_TESTS
+#' Convert Dimnames for Estimates into Dimnames for Forecasts
+#'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param labels_forecast Vector
+#' with labels for future time periods.
+#'
+#' @returns Modified version of 'dimnames_terms'
+#'
+#' @noRd
+make_dimnames_terms_forecast <- function(dimnames_terms, var_time, labels_forecast) {
+  labels_forecast <- as.character(labels_forecast)
+  for (i in seq_along(dimnames_terms)) {
+    dimnames_term <- dimnames_terms[[i]]
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    has_time <- var_time %in% nm_split
+    if (has_time)
+      dimnames_terms[[i]][[var_time]] <- labels_forecast
+  }
+  dimnames_terms
+}
+    
+
+## HAS_TESTS
 #' Make Mapping Between 'level' Value from Final Year of Estimates
 #' and 'level' Value from Forecasts - On Original Scale
 #'
@@ -471,7 +523,7 @@ make_mapping_final_time_effect <- function(mod, labels_forecast) {
   final_time <- as.character(final_time)
   for (i_term in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i_term]]
-    nm_split <- names(dimnames_term)
+    nm_split <- dimnames_to_nm_split(dimnames_term)
     has_time <- var_time %in% nm_split
     if (has_time) {
       dimnames_term[[var_time]] <- as.character(labels_forecast)
@@ -512,7 +564,7 @@ make_mapping_final_time_svd <- function(mod, labels_forecast) {
   for (i_term in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i_term]]
     prior <- priors[[i_term]]
-    nm_split <- names(dimnames_term)
+    nm_split <- dimnames_to_nm_split(dimnames_term)
     has_time <- var_time %in% nm_split
     is_svd <- is_svd(prior)
     if (has_time && is_svd) {
@@ -554,8 +606,8 @@ make_term_level_final_time_effect <- function(mod) {
   ans <- vector(mode = "list", length = length(dimnames_terms))
   for (i_term in seq_along(ans)) {
     dimnames_term <- dimnames_terms[[i_term]]
-    nm_split <- names(dimnames_term)
-    nm <- paste(nm_split, collapse = ":")
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    nm <- dimnames_to_nm(dimnames_term)
     has_time <- var_time %in% nm_split
     if (has_time) {
       dimnames_term[[var_time]] <- utils::tail(dimnames_term[[var_time]], 1L)
@@ -590,8 +642,8 @@ make_term_level_final_time_svd <- function(mod) {
   for (i_term in seq_along(ans)) {
     prior <- priors[[i_term]]
     dimnames_term <- dimnames_terms[[i_term]]
-    nm_split <- names(dimnames_term)
-    nm <- paste(nm_split, collapse = ":")
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    nm <- dimnames_to_nm(dimnames_term)
     has_time <- var_time %in% nm_split
     is_svd <- is_svd(prior)
     if (has_time && is_svd) {
