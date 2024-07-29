@@ -509,27 +509,24 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 ### Model
 
 \begin{align}
-  \beta_{u,v}^{(m)} & \sim \text{N}(q_v^{(m)} \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m \ \\
+  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots,U_m  \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,1}^{(m)} + (v - 1) \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 2, \cdots, V_m  \\
   \eta_u^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
-where
-\begin{equation}
-   q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v
-\end{equation}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, 1) \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} | \beta_{u,1}^{(m)} + (v-1) \eta_u^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
 ### Forecasting
 
 \begin{equation}
-  \beta_{u,V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}(\beta_{u,1} + (V_m + h - 1) \eta_u^{(m)}, \tau_m^2)
 \end{equation}
 
 
@@ -542,6 +539,10 @@ Lin(s = 1, sd = 1, along = NULL)
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
 - `along` is used to indentify "along" and "by" dimensions
+
+
+
+
 
 
 
