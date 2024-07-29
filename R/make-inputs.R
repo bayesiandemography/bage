@@ -32,6 +32,8 @@ default_prior <- function(nm_term, var_age, var_time, length_effect) {
 ## HAS_TESTS
 #' Convert Dimnames for a Term to Labels
 #'
+#' Handles intercept correctly.
+#'
 #' @param dimnames Named list of labels
 #'
 #' @returns A character vector
@@ -54,14 +56,33 @@ dimnames_to_levels <- function(dimnames) {
 ## HAS_TESTS
 #' Convert Dimnames for a Term to the Name of the Term
 #'
+#' Handles intercept correctly.
+#' 
 #' @param dimnames Named list of labels
 #'
 #' @returns A string
 #'
 #' @noRd
 dimnames_to_nm <- function(dimnames) {
+  ans <- dimnames_to_nm_split(dimnames)
+  ans <- paste(ans, collapse = ":")
+  ans
+}
+
+
+## HAS_TESTS
+#' Convert Dimnames for a Term to the Names of the Dimensions
+#'
+#' Handles intercept correctly.
+#' 
+#' @param dimnames Named list of labels
+#'
+#' @returns A string
+#'
+#' @noRd
+dimnames_to_nm_split <- function(dimnames) {
   if (length(dimnames) > 0L)
-    paste(names(dimnames), collapse = ":")
+    names(dimnames)
   else
     "(Intercept)"
 }
@@ -816,51 +837,45 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
 #' interactions to vector holding outcome
 #' (or, equivalently, the linear predictor.)
 #' 
-#' @param formula Formula specifying model
 #' @param data Data frame
+#' @param dimnames_terms Dimnames for array
+#' representation of terms
 #'
 #' @returns A named list
 #'
 #' @noRd
-make_matrices_effect_outcome <- function(formula, data) {
+make_matrices_effect_outcome <- function(data, dimnames_terms) {
+  n_term <- length(dimnames_terms)
+  ans <- vector(mode = "list", length = n_term)
+  names(ans) <- names(dimnames_terms)
   ## make intercept
   n_data <- nrow(data)
   i <- seq_len(n_data)
   j <- rep.int(1L, times = n_data)
   x <- rep.int(1L, times = n_data)
-  m <- Matrix::sparseMatrix(i = i,
-                            j = j,
-                            x = x)
-  colnames(m) <- "(Intercept)"
-  ans <- list("(Intercept)" = m)
+  ans[[1L]] <- Matrix::sparseMatrix(i = i, j = j, x = x)
   ## make other terms
-  factors <- attr(stats::terms(formula), "factors")
-  if (length(factors) > 0L) {
-    factors <- factors[-1L, , drop = FALSE]
-    factors <- factors > 0L
-    nms_vars <- rownames(factors)
-    nms_terms <- colnames(factors)
-    ans_terms <- vector(mode = "list", length = length(nms_terms))
-    for (i_term in seq_along(nms_terms)) {
-      nms_vars_term <- nms_vars[factors[, i_term]]
-      data_term <- data[nms_vars_term]
+  if (n_term > 1L) {
+    for (i_term in seq.int(from = 2L, to = n_term)) {
+      dimnames_term <- dimnames_terms[[i_term]]
+      nm_split <- dimnames_to_nm_split(dimnames_term)
+      nm <- dimnames_to_nm(dimnames_term)
+      data_term <- data[nm_split]
       data_term[] <- lapply(data_term, to_factor)
       contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
-      nm_term <- nms_terms[[i_term]]
-      formula_term <- paste0("~", nm_term, "-1")
+      formula_term <- paste0("~", nm, "-1")
       formula_term <- stats::as.formula(formula_term)
       m_term <- Matrix::sparse.model.matrix(formula_term,
                                             data = data_term,
                                             contrasts.arg = contrasts_term,
                                             row.names = FALSE)
-      colnames(m_term) <- levels(interaction(data_term))
-      ans_terms[[i_term]] <- m_term
+      colnames(m_term) <- dimnames_to_levels(dimnames_term)
+      ans[[i_term]] <- m_term
     }
-    names(ans_terms) <- nms_terms
-    ans <- c(ans, ans_terms)
   }
   ans        
 }
+
 
 
 ## HAS_TESTS

@@ -324,7 +324,9 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod, n_sim = 10, standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_unfitted(mod, components = vals_components))
+  vals_expected <- exp(make_linpred_comp(components = vals_components,
+                                         data = mod$data,
+                                         dimnames_terms = mod$dimnames_terms))
   set.seed(mod$seed_augment)
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
@@ -356,7 +358,9 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
                                                    standardize = TRUE)
-  vals_fitted <- exp(make_linpred_unfitted(mod, components = vals_components))
+  vals_fitted <- exp(make_linpred_comp(components = vals_components,
+                                       data = mod$data,
+                                       dimnames_term = mod$dimnames_terms))
   set.seed(mod$seed_augment)
   vals_outcome <- draw_vals_outcome(mod,
                                     vals_fitted = vals_fitted)
@@ -386,8 +390,9 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
                                                    standardize = FALSE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_unfitted(mod = mod,
-                                                   components = vals_components))
+  vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
+                                                 data = mod$data,
+                                                 dimnames_term = mod$dimnames_terms))
   set.seed(mod$seed_augment)
   vals_outcome <- draw_vals_outcome(mod,
                                     vals_fitted = vals_fitted,
@@ -416,7 +421,9 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
                                                    standardize = FALSE)
-  vals_expected <- exp(make_linpred_unfitted(mod = mod, components = vals_components))
+  vals_expected <- exp(make_linpred_comp(components = vals_components,
+                                           data = mod$data,
+                                           dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
@@ -443,7 +450,9 @@ test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
                                                    n_sim = n_sim,
                                                    standardize = TRUE)
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_unfitted(mod = mod, components = vals_components))
+  vals_expected <- invlogit(make_linpred_comp(components = vals_components,
+                                              data = mod$data,
+                                              dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
@@ -471,7 +480,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_pois' - no na", {
                                                    n_sim = n_sim,
                                                    standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_unfitted(mod, components = vals_components))
+  vals_expected <- exp(make_linpred_comp(components = vals_components,
+                                           data = mod$data,
+                                           dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -499,7 +510,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_pois' - offset has NA", {
                                                    n_sim = n_sim,
                                                    standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_unfitted(mod, components = vals_components))
+  vals_expected <- exp(make_linpred_comp(components = vals_components,
+                                         data = mod$data,
+                                         dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -531,7 +544,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_binom' - no na", {
                                                    standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_unfitted(mod, components = vals_components))
+  vals_expected <- invlogit(make_linpred_comp(components = vals_components,
+                                              data = mod$data,
+                                              dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -561,7 +576,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_binom' - has na", {
                                                    standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_unfitted(mod, components = vals_components))
+  vals_expected <- invlogit(make_linpred_comp(components = vals_components,
+                                              data = mod$data,
+                                              dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -591,8 +608,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - no na", {
                                                    standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_unfitted(mod = mod,
-                                                   components = vals_components))
+  vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
+                                                 data = mod$data,
+                                                 dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_outcome(mod,
                                     vals_fitted = vals_fitted,
@@ -620,8 +638,9 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - offset has NA na", {
                                                    standardize = TRUE)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_unfitted(mod = mod,
-                                                   components = vals_components))
+  vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
+                                                 data = mod$data,
+                                                 dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_outcome(mod,
                                     vals_fitted = vals_fitted,
@@ -1086,7 +1105,6 @@ test_that("'forecast' gives same answer when run twice - output is 'components'"
   expect_identical(ans1, ans2)
 })
 
-
 test_that("'forecast' gives same answer when run twice - output is 'components'", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
@@ -1106,7 +1124,6 @@ test_that("'forecast' gives same answer when run twice - output is 'components'"
                    output = "components")
   expect_identical(ans1, ans2)
 })
-
 
 test_that("'forecast' throws correct error when time var not identified'", {
     set.seed(0)
@@ -1140,15 +1157,21 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast(mod = mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
                                              labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
-                          components_est = components_est,
-                          components_forecast = components_forecast,
-                          data_forecast = data_forecast)
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
   aug_est <- augment(mod)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1163,8 +1186,8 @@ test_that("'forecast_augment' works - binomial, no disp", {
   data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
   formula <- deaths ~ age + sex + time
   mod <- mod_binom(formula = formula,
-                  data = data,
-                  size = popn)
+                   data = data,
+                   size = popn)
   mod <- set_n_draw(mod, n = 10)
   mod <- set_disp(mod, mean = 0)
   mod <- fit(mod)
@@ -1175,10 +1198,16 @@ test_that("'forecast_augment' works - binomial, no disp", {
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
                                              labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
-                          components_est = components_est,
-                          components_forecast = components_forecast,
-                          data_forecast = data_forecast)
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
   aug_est <- augment(mod)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)
@@ -1204,10 +1233,16 @@ test_that("'forecast_augment' works - normal", {
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
                                              labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
-                          components_est = components_est,
-                          components_forecast = components_forecast,
-                          data_forecast = data_forecast)
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
   aug_est <- augment(mod)
   expect_setequal(ans$age, aug_est$age)
   expect_setequal(ans$sex, aug_est$sex)

@@ -188,8 +188,13 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @noRd
 draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
+  data <- mod$data
   priors <- mod$priors
   nms_priors <- names(priors)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   has_disp <- has_disp(mod)
   seed_components <- mod$seed_components
   seed_restore <- make_seed() ## create randomly-generated seed
@@ -220,16 +225,26 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
   vals_svd <- vals_svd_to_dataframe(vals_svd = vals_svd,
                                     n_sim = n_sim)
   vals_effect <- vals_effect_to_dataframe(vals_effect)
-  if (standardize) {
-    vals_spline$.fitted <- standardize_spline(mod = mod, spline = vals_spline$.fitted)
-    vals_svd$.fitted <- standardize_svd(mod = mod, svd = vals_svd$.fitted)
-    vals_effect$.fitted <- standardize_effects(mod = mod, effects = vals_effect$.fitted)
-  }
   ans <- vctrs::vec_rbind(vals_hyper,
                           vals_hyperrand,
                           vals_effect,
                           vals_spline,
                           vals_svd)
+  if (standardize) {
+    linpred <- make_linpred_comp(components = ans,
+                                 data = data,
+                                 dimnames_terms = dimnames_terms)
+    ans <- standardize_effects(components = ans,
+                               data = data,
+                               linpred = linpred,
+                               dimnames_terms = dimnames_terms)
+    ans <- standardize_svd_spline(components = ans,
+                                  priors = priors,
+                                  dimnames_terms = dimnames_terms,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender)
+  }
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,
                                 n_sim = n_sim)

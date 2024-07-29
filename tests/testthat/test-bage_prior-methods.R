@@ -2970,7 +2970,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_linar", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -3007,7 +3007,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasfix", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -3054,7 +3054,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -3100,7 +3100,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -3147,7 +3147,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasfix", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
@@ -3194,7 +3194,7 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rw2seasvary", {
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
-  draws <- make_draws_components(mod, standardize = TRUE)
+  draws <- make_draws_components(mod)
   draws <- as.matrix(draws)
   .fitted <- rvec::rvec_dbl(draws)
   components <- tibble::tibble(term = term,
