@@ -744,8 +744,7 @@ forecast.bage_mod <- function(object,
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
   components_est_unst <- components(object, standardize = FALSE)
-  data_forecast <- make_data_forecast(mod = object,
-                                      labels_forecast = labels)
+  data_forecast <- make_data_forecast(mod = object, labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
@@ -753,14 +752,14 @@ forecast.bage_mod <- function(object,
                                                   components_est = components_est_unst,
                                                   labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dimnames_terms_est,
-                                                          var_time = var_time,
-                                                          labels_forecast = labels)
-  components_comb_unst <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
-  linpred_forecast <- make_linpred_comp(components = components_comb_unst,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_terms_forecast)
   if (output == "augment") {
+    components_comb_unst <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
+    dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dimnames_terms_est,
+                                                            var_time = var_time,
+                                                            labels_forecast = labels)
+    linpred_forecast <- make_linpred_comp(components = components_comb_unst,
+                                          data = data_forecast,
+                                          dimnames_terms = dimnames_terms_forecast)
     seed_forecast_augment <- object$seed_forecast_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_forecast_augment) ## set pre-determined seed
@@ -774,55 +773,108 @@ forecast.bage_mod <- function(object,
     }
   }
   else if (output == "components") {
-    if (include_estimates) {
-      if (standardize) {
-        data_comb <- vctrs::vec_rbind(data_est, data_forecast)
-        linpred_est <- make_linpred_raw(object)
-        linpred_comb <- vctrs::vec_c(linpred_est, linpred_forecast)
-        dimnames_terms_comb <- make_dimnames_terms_comb(dimnames_terms = dimnames_terms_est,
-                                                        var_time = var_time,
-                                                        labels_forecast = labels)
-        ans <- standardize_effects(components = components_comb_unst,
-                                   data = data_comb,
-                                   linpred = linpred_comb,
-                                   dimnames_terms = dimnames_terms_comb)
-        ans <- standardize_svd_spline(components = ans,
-                                      priors = priors,
-                                      dimnames_terms = dimnames_terms_comb,
-                                      var_time = var_time,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
+    if (standardize) {
+      linpred_est <- make_linpred_raw(object)
+      components_est_st <- standardize_effects(components = components_est_unst,
+                                               data = data_est,
+                                               linpred = linpred_est,
+                                               dimnames_terms = dimnames_terms_est)
+      components_est_st <- standardize_svd_spline(components = components_est_st,
+                                                  priors = priors,
+                                                  dimnames_terms = dimnames_terms_est,
+                                                  var_time = var_time,
+                                                  var_age = var_age,
+                                                  var_sexgender = var_sexgender)
+      components_est_st <- standardize_trend_cyc_seas_err(components = components_est_st,
+                                                          priors = priors,
+                                                          dimnames_terms = dimnames_terms_est,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+      components_forecast_st <- standardize_forecast(mod = object,
+                                                     comp_forecast = components_forecast_unst,
+                                                     comp_est_st = components_est_st,
+                                                     comp_est_unst = components_est_unst,
+                                                     labels_forecast = labels)
+      if (include_estimates) {
+        ans <- vctrs::vec_rbind(components_est_st, components_forecast_st)
+        ans <- sort_components(components = ans, mod = object)
       }
       else
-        ans <- components_comb_unst
+        ans <- components_forecast_st
     }
     else {
-      if (standardize) {
-        components_nontime_unst <- get_comp_nontime_effects(components = components_est_unst,
-                                                            mod = object)
-        nrow_nontime <- nrow(components_nontime_unst)
-        ans <- vctrs::vec_rbind(components_nontime_unst, components_forecast_unst)
-        ans <- standardize_effects(components = ans,
-                                   data = data_forecast,
-                                   linpred = linpred_forecast,
-                                   dimnames_terms = dimnames_terms_forecast)
-        ans <- standardize_svd_spline(components = ans,
-                                      priors = priors,
-                                      dimnames_terms = dimnames_terms_forecast,
-                                      var_time = var_time,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-        ans <- ans[-seq_len(nrow_nontime), , drop = FALSE]
+      if (include_estimates) {
+        ans <- vctrs::vec_rbind(components_est_unst, components_forecast_unst)
+        ans <- sort_components(components = ans, mod = object)
       }
       else
         ans <- components_forecast_unst
     }
-    ans <- reformat_hyperrand(components = ans, mod = object)
   }
+  ## else if (output == "components") {
+  ##   if (include_estimates) {
+  ##     if (standardize) {
+  ##       data_comb <- vctrs::vec_rbind(data_est, data_forecast)
+  ##       linpred_est <- make_linpred_raw(object)
+  ##       linpred_comb <- vctrs::vec_c(linpred_est, linpred_forecast)
+  ##       dimnames_terms_comb <- make_dimnames_terms_comb(dimnames_terms = dimnames_terms_est,
+  ##                                                       var_time = var_time,
+  ##                                                       labels_forecast = labels)
+  ##       ans <- standardize_effects(components = components_comb_unst,
+  ##                                  data = data_comb,
+  ##                                  linpred = linpred_comb,
+  ##                                  dimnames_terms = dimnames_terms_comb)
+  ##       ans <- standardize_svd_spline(components = ans,
+  ##                                     priors = priors,
+  ##                                     dimnames_terms = dimnames_terms_comb,
+  ##                                     var_time = var_time,
+  ##                                     var_age = var_age,
+  ##                                     var_sexgender = var_sexgender)
+  ##       ans <- standardize_trend_cyc_seas_err(components = ans,
+  ##                                             priors = priors,
+  ##                                             dimnames_terms = dimnames_terms_comb,
+  ##                                             var_time = var_time,
+  ##                                             var_age = var_age)
+  ##     }
+  ##     else
+  ##       ans <- components_comb_unst
+  ##   }
+  ##   else {
+  ##     if (standardize) {
+  ##       components_nontime_unst <- get_comp_nontime_effects(components = components_est_unst,
+  ##                                                           mod = object)
+  ##       nrow_nontime <- nrow(components_nontime_unst)
+  ##       ans <- vctrs::vec_rbind(components_nontime_unst, components_forecast_unst)
+  ##       ans <- standardize_effects(components = ans,
+  ##                                  data = data_forecast,
+  ##                                  linpred = linpred_forecast,
+  ##                                  dimnames_terms = dimnames_terms_forecast)
+  ##       ans <- standardize_svd_spline(components = ans,
+  ##                                     priors = priors,
+  ##                                     dimnames_terms = dimnames_terms_forecast,
+  ##                                     var_time = var_time,
+  ##                                     var_age = var_age,
+  ##                                     var_sexgender = var_sexgender)
+  ##       ans <- standardize_trend_cyc_seas_err(components = ans,
+  ##                                             priors = priors,
+  ##                                             dimnames_terms = dimnames_terms_forecast,
+  ##                                             var_time = var_time,
+  ##                                             var_age = var_age)
+  ##       ans <- ans[-seq_len(nrow_nontime), , drop = FALSE]
+  ##     }
+  ##     else
+  ##       ans <- components_forecast_unst
+  ##   }
+  ## }
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg output}.") ## nocov
   ans
 }
+
+
+
+
+
 
 
 ## 'forecast_augment' ---------------------------------------------------------

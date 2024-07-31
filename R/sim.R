@@ -230,6 +230,8 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                           vals_effect,
                           vals_spline,
                           vals_svd)
+  ans <- infer_trend_cyc_seas_err(components = ans,
+                                  mod = mod)
   if (standardize) {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,
@@ -244,6 +246,11 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                                   var_time = var_time,
                                   var_age = var_age,
                                   var_sexgender = var_sexgender)
+    ans <- standardize_trend_cyc_seas_err(components = ans,
+                                          priors = priors,
+                                          dimnames_terms = dimnames_terms,
+                                          var_time = var_time,
+                                          var_age = var_age)
   }
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,
@@ -252,8 +259,6 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
     ans <- vctrs::vec_rbind(ans, vals_disp)
   }
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  ans <- reformat_hyperrand(components = ans,
-                            mod = mod)
   ans    
 }
 
@@ -369,8 +374,7 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 #'
 #' Each column is one draw.
 #'
-#' Results are standardized
-#'
+#' @param intercept Matrix of values
 #' @param slope Matrix of values
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
@@ -379,16 +383,16 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
-  n_sim <- ncol(slope)
+draw_vals_lin <- function(intercept, slope, sd, matrix_along_by, labels) {
+  n_sim <- ncol(intercept)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  q <- seq(from = -1, to = 1, length.out = n_along)
-  q <- rep(q, times = n_by * n_sim)
+  intercept <- rep(intercept, each = n_along)
   slope <- rep(slope, each = n_along)
   sd <- rep(sd, each = n_along * n_by)
+  s <- seq_len(n_along)
   ans <- stats::rnorm(n = n_along * n_by * n_sim,
-                      mean = q * slope,
+                      mean = intercept + slope * s,
                       sd = sd)
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
@@ -405,6 +409,7 @@ draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
 #'
 #' Results are standardized
 #'
+#' @param intercept Matrix of values
 #' @param slope Matrix of values
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
@@ -413,14 +418,15 @@ draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
+draw_vals_linar <- function(intercept, slope, sd, coef, matrix_along_by, labels) {
   n_sim <- ncol(slope)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   n_coef <- nrow(coef)
-  q <- seq(from = -1, to = 1, length.out = n_along)
+  intercept <- as.numeric(intercept)
   slope <- as.numeric(slope)
-  mean <- outer(q, slope)
+  s <- seq_len(n_along)
+  mean <- outer(s, slope) + rep(intercept, each = n_along)
   coef <- array(coef, dim = c(n_coef, n_sim, n_by))
   coef <- aperm(coef, perm = c(1L, 3L, 2L))
   coef <- matrix(coef, nrow = n_coef, ncol = n_by * n_sim)

@@ -239,21 +239,21 @@ Known <- function(values) {
 #'
 #' When `Lin()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \eta q_j + \epsilon_j}
+#' \deqn{\beta_j = \alpha + j \eta + \epsilon_j}
+#' \deqn{\alpha \sim \text{N}(0, 1)}
 #' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 #' 
 #' and when it is used with an interaction,
-#' 
-#' \deqn{\beta_{u,v} \sim \eta_u q_v + \epsilon_{u,v}}
+#'
+#' \deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}, \quad v > 1}
+#' \deqn{\alpha_u \sim \text{N}(0, 1)}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
-#' - \deqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
-#' - \deqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+#' - \eqn{v} denotes position within the "along" variable of the interaction; and
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
 #' 
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
@@ -317,13 +317,17 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #'
 #' When `Lin_AR()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \eta q_j + \epsilon_j}
-#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j,}
-#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+#' \deqn{\beta_1 = \alpha + \epsilon_1}
+#' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
+#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j}
+#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
+#' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
+#' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
+#' \deqn{\alpha_u \sim \text{N}(0, 1)}
 #' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
 #' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 #' 
@@ -331,10 +335,8 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{u} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
-#' - \eqn{n} is `n_coef`;
-#' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
-#' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{n} is `n_coef`.
 #'
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}

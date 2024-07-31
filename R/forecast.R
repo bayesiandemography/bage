@@ -1,27 +1,4 @@
 
-## HAS_TESTS
-#' Estimate Values on a Line or Lines
-#'
-#' @param slope Slope(s) of line(s). An rvec.
-#' @param matrix_along_by_est Matrix mapping
-#' along and by dimensions to position in estimates
-#'
-#' @returns An rvec
-#'
-#' @noRd
-estimate_lin <- function(slope,
-                         matrix_along_by_est) {
-  n_along <- nrow(matrix_along_by_est)
-  n_by <- ncol(matrix_along_by_est)
-  ans <- rep(slope[[1L]], times = n_along * n_by)
-  q <- seq(from = -1, to = 1, length.out = n_along)
-  for (i_by in seq_len(n_by)) {
-    i_ans <- matrix_along_by_est[, i_by] + 1L
-    ans[i_ans] <- slope[i_by] * q
-  }
-  ans
-}
-
 
 ## HAS_TESTS
 #' Forecast an AR Process
@@ -150,11 +127,12 @@ forecast_components <- function(mod,
 }
 
 
-
 ## HAS_TESTS
 #' Forecast Line or Lines
 #'
-#' @param slope Slope of line(s).
+#' @param intercept Intercepts of line(s). An rvec.
+#' @param slope Slope of line(s). An rvec.
+#' @param sd Standard devation of errors. An rvec.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estimates
 #' @param matrix_along_by_forecast Matrix mapping
@@ -163,20 +141,51 @@ forecast_components <- function(mod,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_lin <- function(slope,
+forecast_lin <- function(intercept,
+                         slope,
+                         sd,
                          matrix_along_by_est,
                          matrix_along_by_forecast) {
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
-  ans <- rep(slope[[1L]], times = n_along_forecast * n_by)
-  incr_q <- 2 / (n_along_est - 1)
-  q <- seq(from = 1 + incr_q,
-           by = incr_q,
-           length.out = n_along_forecast)
+  s <- seq.int(from = n_along_est + 1L, length.out = n_along_forecast)
+  ans <- rep(intercept[[1L]], times = n_along_forecast * n_by)
   for (i_by in seq_len(n_by)) {
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
-    ans[i_ans] <- slope[i_by] * q
+    ans[i_ans] <- rvec::rnorm_rvec(n = n_along_forecast,
+                                   mean = intercept[i_by] + s * slope[i_by],
+                                   sd = sd)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Forecast Trend Component of Line or Lines
+#'
+#' @param intercept Intercepts of line(s). An rvec.
+#' @param slope Slope of line(s). An rvec.
+#' @param matrix_along_by_est Matrix mapping
+#' along and by dimensions to position in estimates
+#' @param matrix_along_by_forecast Matrix mapping
+#' along and by dimensions to position in forecasts
+#'
+#' @returns An rvec
+#'
+#' @noRd
+forecast_lin_trend <- function(intercept,
+                               slope,
+                               matrix_along_by_est,
+                               matrix_along_by_forecast) {
+  n_along_est <- nrow(matrix_along_by_est)
+  n_along_forecast <- nrow(matrix_along_by_forecast)
+  n_by <- ncol(matrix_along_by_est)
+  s <- seq.int(from = n_along_est + 1L, length.out = n_along_forecast)
+  ans <- rep(intercept[[1L]], times = n_along_forecast * n_by)
+  for (i_by in seq_len(n_by)) {
+    i_ans <- matrix_along_by_forecast[, i_by] + 1L
+    ans[i_ans] <- intercept[i_by] + s * slope[i_by]
   }
   ans
 }

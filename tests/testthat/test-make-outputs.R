@@ -387,35 +387,6 @@ test_that("'make_draws_effectfree' works", {
 })
 
 
-## ## 'make_draws_linpred' ---------------------------------------------------
-
-## test_that("'make_draws_linpred' works", {
-##   set.seed(0)
-##   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-##   data$popn <- rpois(n = nrow(data), lambda = 100)
-##   data$deaths <- rpois(n = nrow(data), lambda = 10)
-##   formula <- deaths ~ age * sex + time
-##   mod <- mod_pois(formula = formula,
-##                   data = data,
-##                   exposure = popn)
-##   mod <- set_prior(mod, age ~ Sp())
-##   mod <- set_n_draw(mod, n = 5)
-##   mod <- fit(mod)
-##   est <- mod$est
-##   is_fixed <- mod$is_fixed
-##   draws <- make_draws_post(mod)
-##   ans_obtained <- make_draws_linpred(mod = mod, draws_post = draws)
-##   matrix_effectfree_effect <- make_combined_matrix_effectfree_effect(mod)
-##   offset_effectfree_effect <- make_combined_offset_effectfree_effect(mod)
-##   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-##   ans_expected <- matrix_effect_outcome %*% (matrix_effectfree_effect %*%
-##                                                draws[seq_len(ncol(matrix_effectfree_effect)), ] +
-##                                                offset_effectfree_effect)
-##   ans_expected <- Matrix::as.matrix(ans_expected)
-##   expect_equal(ans_obtained, ans_expected)
-## })
-
-
 ## 'make_draws_hyper' ----------------------------------------------------
 
 test_that("'make_draws_hyper' works", {
@@ -452,7 +423,7 @@ test_that("'make_draws_hyperrand' works - has hyperrand", {
     mod <- fit(mod)
     draws <- make_draws_post(mod)
     ans_obtained <- make_draws_hyperrand(mod, draws_post = draws)
-    ans_expected <- draws[65:74, ]
+    ans_expected <- draws[65:84, ]
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -756,6 +727,33 @@ test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
 })
 
 
+## 'make_lin_trend' -----------------------------------------------------------
+
+test_that("'make_lin_trend' works with valid inputs - n_by = 1", {
+  intercept <- rvec::rvec(matrix(as.numeric(2:6), nr = 1))
+  slope <- rvec::rvec(matrix(as.numeric(1:5), nr = 1))
+  matrix_along_by <- matrix(0:9, nr = 10)
+  ans_obtained <- make_lin_trend(intercept = intercept,
+                                 slope = slope,
+                                 matrix_along_by = matrix_along_by)
+  ones <- rep(1, times = 10)
+  s <- 1:10
+  ans_expected <- rvec::rvec(outer(ones, 2:6) + outer(s, 1:5))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_lin_trend' works with valid inputs - n_by = 2, transposed", {
+  intercept <- rvec::rvec(matrix(rnorm(10), nr = 2))
+  slope <- rvec::rvec(matrix(rnorm(10), nr = 2))
+  matrix_along_by <- t(matrix(0:9, nr = 2))
+  ans_obtained <- make_lin_trend(intercept = intercept,
+                                 slope = slope,
+                                 matrix_along_by = matrix_along_by)
+  s <- 1:5
+  ans_expected <- c(intercept[1] + slope[1] * s, intercept[2] + slope[2] * s)
+  ans_expected <- ans_expected[c(1, 6, 2, 7, 3, 8, 4, 9, 5, 10)]
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## 'make_stored_draws' --------------------------------------------------------
@@ -981,7 +979,7 @@ test_that("'make_levels_hyperrand' works", {
     mod <- set_prior(mod, sex:time ~ Lin())
     mod <- fit(mod)
     ans_obtained <- make_levels_hyperrand(mod)
-    ans_expected <- c("slope.F", "slope.M")
+    ans_expected <- c("intercept.F", "intercept.M", "slope.F", "slope.M")
     expect_identical(ans_obtained, ans_expected)                      
 })
 
@@ -1290,9 +1288,9 @@ test_that("'make_transforms_hyper' works", {
 })
 
 
-## 'reformat_hyperrand' -------------------------------------------------------
+## 'infer_trend_cyc_seas_err' -------------------------------------------------------
 
-test_that("'reformat_hyperrand' works", {
+test_that("'infer_trend_cyc_seas_err' works", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1315,14 +1313,14 @@ test_that("'reformat_hyperrand' works", {
                                term = term,
                                level = level,
                                .fitted = .fitted)
-  ans_obtained <- reformat_hyperrand(components = components, mod = mod)
+  ans_obtained <- infer_trend_cyc_seas_err(components = components, mod = mod)
   expect_setequal(ans_obtained$component, c("effect", "hyper", "disp"))
 })
 
 
-## 'reformat_hyperrand_seasfix' -----------------------------------------------
+## 'infer_trend_cyc_seas_err_seasfix' -----------------------------------------------
 
-test_that("'reformat_hyperrand_seasfix' works", {
+test_that("'infer_trend_cyc_seas_err_seasfix' works", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1344,14 +1342,13 @@ test_that("'reformat_hyperrand_seasfix' works", {
                                component = comp,
                                level = level,
                                .fitted = .fitted)
-  ans_obtained <- reformat_hyperrand_seasfix(prior = mod$priors[["sex:time"]],
+  ans_obtained <- infer_trend_cyc_seas_err_seasfix(prior = mod$priors[["sex:time"]],
                                              dimnames_term = mod$dimnames_terms[["sex:time"]],
                                              var_time = mod$var_time,
                                              var_age = mod$var_age,
                                              components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- center_within_across_by(seas, matrix(0:5, nr = 3))
   seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
   level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
@@ -1366,14 +1363,13 @@ test_that("'reformat_hyperrand_seasfix' works", {
                           .fitted = trend)
   ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
   ans_expected <- vctrs::vec_rbind(ans_expected, seasonal, trend)
-  ## ans_expected <- sort_components(ans_expected, mod = mod)
   expect_equal(ans_obtained, ans_expected)
 })
 
 
-## 'reformat_hyperrand_seasvary' ----------------------------------------------
+## 'infer_trend_cyc_seas_err_seasvary' ----------------------------------------------
 
-test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
+test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1399,14 +1395,13 @@ test_that("'reformat_hyperrand_one' works with bage_prior_rwseasvary", {
                                                  dimnames_term = mod$dimnames_terms[["sex:time"]],
                                                  var_time = mod$var_time,
                                                  var_age = mod$var_age)
-  ans_obtained <- reformat_hyperrand_seasvary(prior = mod$priors[["sex:time"]],
+  ans_obtained <- infer_trend_cyc_seas_err_seasvary(prior = mod$priors[["sex:time"]],
                                              dimnames_term = mod$dimnames_terms[["sex:time"]],
                                              var_time = mod$var_time,
                                              var_age = mod$var_age,
                                              components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- center_within_across_by(seas, matrix_along_by = matrix_along_by)
   ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
   ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
   effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
@@ -1541,6 +1536,40 @@ test_that("'standardize_svd_spline' works", {
                                 var_sexgender = mod$var_sexgender)
   expect_true(rvec::draws_mean(mean(ans$.fitted[ans$component == "svd"])) < 0.000001)
   expect_true(rvec::draws_mean(mean(ans$.fitted[ans$component == "spline"])) < 0.000001)
+})
+
+
+## 'standardize_trend_cyc_seas_err' -------------------------------------------
+
+test_that("'standardize_svd_spline' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2010,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin_AR())
+  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  ans <- standardize_trend_cyc_seas_err(components = components,
+                                        priors = mod$priors,
+                                        dimnames_terms = mod$dimnames_terms,
+                                        var_time = mod$var_time,
+                                        var_age = mod$var_age)
+  i <- ans$term == "time" & ans$component == "trend"
+  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  i <- ans$term == "time" & ans$component == "seasonal"
+  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  i <- ans$term == "sex:time" & ans$component == "trend"
+  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  i <- ans$term == "sex:time" & ans$component == "cyclical"
+  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
 })
 
 
