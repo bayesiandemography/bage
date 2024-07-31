@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -660,21 +660,18 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 <span class="header-section-number">4.9.1</span> Model<a class="anchor" aria-label="anchor" href="#model-8"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(q_v^{(m)} \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m \ \\
+  \beta_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
+  \alpha_u^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1,\cdots,U_m  \\
   \eta_u^{(m)} &amp; \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-\end{align}\]</span>
-where
-<span class="math display">\[\begin{equation}
-   q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v
-\end{equation}\]</span></p>
+\end{align}\]</span></p>
 </div>
 <div class="section level4" number="4.9.2">
 <h4 id="contribution-to-posterior-density-8">
 <span class="header-section-number">4.9.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid q_v^{(m)} \eta_u^{(m)}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} | \alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="4.9.3">
@@ -682,7 +679,7 @@ where
 <span class="header-section-number">4.9.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \beta_{u,V_m + h}^{(m)} \sim \text{N}(q_{V_m + h} \eta_u^{(m)}, \tau_m^2)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}(\alpha_u^{(m)} + (V_m + h) \eta_u^{(m)}, \tau_m^2)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="4.9.4">
@@ -711,14 +708,11 @@ where
 <span class="header-section-number">4.10.1</span> Model<a class="anchor" aria-label="anchor" href="#model-9"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; = q_v^{(m)} \eta_u^{(m)} + \epsilon_{u,v}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \epsilon_{u,v}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m. \\
-  \eta_u^{(m)} &amp; \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m
-\end{align}\]</span>
-where
-<span class="math display">\[\begin{equation}
-   q_v^{(m)} = -\frac{V_m + 1}{V_m - 1} + \frac{2}{V_m - 1} v.
-\end{equation}\]</span></p>
+  \beta_{u,v}^{(m)} &amp; = \alpha_u^{(m)} + \eta_u^{(m)} v + \epsilon_{u,v}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
+  \alpha_u^{(m)} &amp; \sim \text{N}\left(0, 1\right), \quad u = 1, \cdots, U_m \\
+  \eta_u^{(m)} &amp; \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
+  \epsilon_{u,v}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
+\end{align}\]</span></p>
 <p>Internally, TMB derives values for <span class="math inline">\(\epsilon_{u,v}^{(m)}, v = 1, \cdots, K_m\)</span>, and for <span class="math inline">\(\omega_m\)</span>, that provide the <span class="math inline">\(\epsilon_{u,v}^{(m)}\)</span> with a stationary distribution in which each term has the same marginal variance. We denote this marginal variance <span class="math inline">\(\tau_m^2\)</span>, and assign it a prior
 <span class="math display">\[\begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
@@ -737,7 +731,7 @@ We assign <span class="math inline">\(r^{(m)}\)</span> the prior
 <span class="header-section-number">4.10.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-9"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
+  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
@@ -746,15 +740,15 @@ where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon
 <span class="header-section-number">4.10.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-9"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
-  \beta_{u, V_m + h}^{(m)} &amp; = q_{V_m + h} \eta_u^{(m)} + \epsilon_{u,V_m+h}^{(m)} \\
-  \epsilon_{u,V_m+h}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
+  \beta_{u, V_m + h}^{(m)} &amp; = \alpha_u^{(m)} + \eta_u^{(m)} (V_m + h) + \epsilon_{u,V_m+h}^{(m)} \\
+  \epsilon_{u,V_m+h}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,V_m+h-K_m}^{(m)}, \omega_m^2\right)
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="4.10.4">
 <h4 id="code-9">
 <span class="header-section-number">4.10.4</span> Code<a class="anchor" aria-label="anchor" href="#code-9"></a>
 </h4>
-<pre><code><span><span class="fu">LinAR</span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/Lin_AR.html">Lin_AR</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
@@ -842,16 +836,16 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 <h4 id="code-11">
 <span class="header-section-number">4.12.4</span> Code<a class="anchor" aria-label="anchor" href="#code-11"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">scaled_svd</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">ssvd</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
 </div>
 </div>
 <div class="section level3" number="4.13">
 <h3 id="sec:pr-svd2">
-<span class="header-section-number">4.13</span> SVD2<a class="anchor" aria-label="anchor" href="#sec:pr-svd2"></a>
+<span class="header-section-number">4.13</span> SVDS<a class="anchor" aria-label="anchor" href="#sec:pr-svd2"></a>
 </h3>
-<p>The SVD2 is a two-sex extension of the basic SVD model. SVD2 has two versions. The first is identical to the basic SVD model, except that different, sex-specific values for <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> are used for females and males. The second treats the Cartesian product of age and sex dimensions as if it was a single dimension. Values for <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> estimated from age-sex-specific rates. Each is twice as large as the basic SVD versions of <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>.</p>
+<p>The SVDS is a two-sex extension of the basic SVD model. SVDS has two versions. The first is identical to the basic SVD model, except that different, sex-specific values for <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> are used for females and males. The second treats the Cartesian product of age and sex dimensions as if it was a single dimension. Values for <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> estimated from age-sex-specific rates. Each is twice as large as the basic SVD versions of <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>.</p>
 <p>The code is</p>
-<pre><code><span><span class="fu">SVD2</span><span class="op">(</span><span class="va">scaled_svd</span>, joint <span class="op">=</span> <span class="cn">FALSE</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/SVDS.html">SVDS</a></span><span class="op">(</span><span class="va">ssvd</span>, joint <span class="op">=</span> <span class="cn">FALSE</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
 <p>When <code>joint</code> is FALSE, the first version is used, and when <code>joint</code> is TRUE the second version is used.</p>
 </div>
 <div class="section level3" number="4.14">

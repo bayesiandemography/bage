@@ -11,7 +11,7 @@ normal errors. Typically used with time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,17 +94,17 @@ of the "by" variables.</p>
 
 
 <p>When <code>Lin()</code> is used with a main effect,</p>
-<p>$$\beta_j = \eta q_j + \epsilon_j$$
+<p>$$\beta_j = \alpha + j \eta + \epsilon_j$$
+$$\alpha \sim \text{N}(0, 1)$$
 $$\epsilon_j \sim \text{N}(0, \tau^2),$$</p>
 <p>and when it is used with an interaction,</p>
-<p>$$\beta_{u,v} \sim \eta_u q_v + \epsilon_{u,v}$$
+<p>$$\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}, \quad v &gt; 1$$
+$$\alpha_u \sim \text{N}(0, 1)$$
 $$\epsilon_{u,v} \sim \text{N}(0, \tau^2),$$</p>
 <p>where</p><ul><li><p>\(\pmb{\beta}\) is the main effect or interaction;</p></li>
 <li><p>\(j\) denotes position within the main effect;</p></li>
-<li><p>\(u\) denotes position within the "along" variable of the interaction;</p></li>
-<li><p>\(u\) denotes position within the "by" variable(s) of the interaction;</p></li>
-<li><p>$$q = - (J+1)/(J-1) + 2j/(J-1);$$ and</p></li>
-<li><p>$$q_v = - (V+1)/(V-1) + 2v/(V-1)$$.</p></li>
+<li><p>\(v\) denotes position within the "along" variable of the interaction; and</p></li>
+<li><p>\(u\) denotes position within the "by" variable(s) of the interaction.</p></li>
 </ul><p>The slopes have priors
 $$\eta \sim \text{N}(0, \text{sd}^2)$$
 and
