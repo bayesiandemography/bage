@@ -26,8 +26,7 @@ with the forecasts. Default is \code{FALSE}.}
 
 \item{standardize}{Whether to standardize
 parameter estimates. See below for details.
-WARNING: This is not currently
-working correctly. Default is \code{TRUE}.}
+Default is \code{TRUE}.}
 
 \item{labels}{Labels for future values.}
 
@@ -101,8 +100,7 @@ for details.
 \section{Warning}{
 
 
-The interface for \code{forecast()} has not been finalised
-and is likely to change in the near future.
+The interface for \code{forecast()} has not been finalised.
 }
 
 \examples{

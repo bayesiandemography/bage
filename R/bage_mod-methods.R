@@ -598,7 +598,7 @@ fit.bage_mod <- function(object, ...) {
   if (is.matrix(R_prec))
     object$R_prec <- R_prec
   else
-    object$scaled_eigen <- make_scaled_eigen(prec)
+    object$scaled_eigen <- make_scaled_eigen(prec) ## nocov - can't figure out how to test this
   object$est <- est
   object$is_fixed <- is_fixed
   if (object$store_draws)
@@ -670,8 +670,7 @@ generics::forecast
 #'
 #' @section Warning:
 #'
-#' The interface for `forecast()` has not been finalised
-#' and is likely to change in the near future.
+#' The interface for `forecast()` has not been finalised.
 #'
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
@@ -682,8 +681,7 @@ generics::forecast
 #' with the forecasts. Default is `FALSE`.
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
-#' WARNING: This is not currently
-#' working correctly. Default is `TRUE`.
+#' Default is `TRUE`.
 #' @param labels Labels for future values.
 #' @param ... Not currently used.
 #'
@@ -811,61 +809,6 @@ forecast.bage_mod <- function(object,
         ans <- components_forecast_unst
     }
   }
-  ## else if (output == "components") {
-  ##   if (include_estimates) {
-  ##     if (standardize) {
-  ##       data_comb <- vctrs::vec_rbind(data_est, data_forecast)
-  ##       linpred_est <- make_linpred_raw(object)
-  ##       linpred_comb <- vctrs::vec_c(linpred_est, linpred_forecast)
-  ##       dimnames_terms_comb <- make_dimnames_terms_comb(dimnames_terms = dimnames_terms_est,
-  ##                                                       var_time = var_time,
-  ##                                                       labels_forecast = labels)
-  ##       ans <- standardize_effects(components = components_comb_unst,
-  ##                                  data = data_comb,
-  ##                                  linpred = linpred_comb,
-  ##                                  dimnames_terms = dimnames_terms_comb)
-  ##       ans <- standardize_svd_spline(components = ans,
-  ##                                     priors = priors,
-  ##                                     dimnames_terms = dimnames_terms_comb,
-  ##                                     var_time = var_time,
-  ##                                     var_age = var_age,
-  ##                                     var_sexgender = var_sexgender)
-  ##       ans <- standardize_trend_cyc_seas_err(components = ans,
-  ##                                             priors = priors,
-  ##                                             dimnames_terms = dimnames_terms_comb,
-  ##                                             var_time = var_time,
-  ##                                             var_age = var_age)
-  ##     }
-  ##     else
-  ##       ans <- components_comb_unst
-  ##   }
-  ##   else {
-  ##     if (standardize) {
-  ##       components_nontime_unst <- get_comp_nontime_effects(components = components_est_unst,
-  ##                                                           mod = object)
-  ##       nrow_nontime <- nrow(components_nontime_unst)
-  ##       ans <- vctrs::vec_rbind(components_nontime_unst, components_forecast_unst)
-  ##       ans <- standardize_effects(components = ans,
-  ##                                  data = data_forecast,
-  ##                                  linpred = linpred_forecast,
-  ##                                  dimnames_terms = dimnames_terms_forecast)
-  ##       ans <- standardize_svd_spline(components = ans,
-  ##                                     priors = priors,
-  ##                                     dimnames_terms = dimnames_terms_forecast,
-  ##                                     var_time = var_time,
-  ##                                     var_age = var_age,
-  ##                                     var_sexgender = var_sexgender)
-  ##       ans <- standardize_trend_cyc_seas_err(components = ans,
-  ##                                             priors = priors,
-  ##                                             dimnames_terms = dimnames_terms_forecast,
-  ##                                             var_time = var_time,
-  ##                                             var_age = var_age)
-  ##       ans <- ans[-seq_len(nrow_nontime), , drop = FALSE]
-  ##     }
-  ##     else
-  ##       ans <- components_forecast_unst
-  ##   }
-  ## }
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg output}.") ## nocov
   ans
