@@ -1,7 +1,7 @@
 Package: bage
 Type: Package
 Title: Bayesian Estimation and Forecasting of Age-Specific Rates
-Version: 0.6.0
+Version: 0.6.1
 Authors@R: 
     c(person(given = "John",
              family = "Bryant",

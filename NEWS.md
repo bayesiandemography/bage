@@ -1,4 +1,10 @@
 
+# bage 0.6.1
+
+## Changes to calculations
+
+* Fixed problems with standardization of forecast
+* Added an intercept term to `Lin()` and `LinAR()` priors
 
 # bage 0.6.0
 

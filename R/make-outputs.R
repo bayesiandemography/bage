@@ -1011,8 +1011,9 @@ standardize_effects <- function(components, data, linpred, dimnames_terms) {
   }
   max_resid <- max(abs(as.matrix(linpred)))
   if (max_resid > max_resid_permitted)
-    cli::cli_alert_warning(paste("Standardized values do not exactly reproduce linear predictor:",
-                                 "Maximum difference is {.val {max_resid}}."))
+    cli::cli_alert_warning(paste("Standardized values do not exactly reproduce", ## nocov
+                                 "linear predictor:",                            ## nocov
+                                 "Maximum difference is {.val {max_resid}}."))   ## nocov
   components
 }
 
