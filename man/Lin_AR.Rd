@@ -42,13 +42,17 @@ Argument \code{s} controls the size of the errors.
 
 When \code{Lin_AR()} is used with a main effect,
 
-\deqn{\beta_j = \eta q_j + \epsilon_j}
-\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j,}
-\deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+\deqn{\beta_1 = \alpha + \epsilon_1}
+\deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
+\deqn{\alpha \sim \text{N}(0, 1)}
+\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j}
+\deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
+\deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
+\deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
+\deqn{\alpha_u \sim \text{N}(0, 1)}
 \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
 \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 
@@ -57,10 +61,8 @@ where
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
 \item \eqn{u} denotes position within the "along" variable of the interaction;
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction;
-\item \eqn{n} is \code{n_coef};
-\item \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
-\item \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+\item \eqn{n} is \code{n_coef}.
 }
 
 The slopes have priors

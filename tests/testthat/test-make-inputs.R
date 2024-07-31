@@ -453,7 +453,7 @@ test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
                   exposure = popn)
   mod <- set_prior(mod, SEX:time ~ Lin())
   ans_obtained <- make_hyperrand(mod)
-  ans_expected <- rep(c("SEX:time" = 0), 2)
+  ans_expected <- rep(c("SEX:time" = 0), 4)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -581,7 +581,7 @@ test_that("'make_lengths_hyperrand' works with valid inputs", {
                     age = 0L,
                     sex = 0L,
                     region = 0L,
-                    "age:sex" = 2L)
+                    "age:sex" = 4L)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1537,7 +1537,7 @@ test_that("'make_terms_hyperrand' works", {
                     exposure = popn)
     mod <- set_prior(mod, sex:time ~ Lin())
     ans_obtained <- make_terms_hyperrand(mod)
-    ans_expected <- factor(rep("sex:time", 2),
+    ans_expected <- factor(rep("sex:time", 4),
                            levels = c("(Intercept)",
                                       "age",
                                       "sex",

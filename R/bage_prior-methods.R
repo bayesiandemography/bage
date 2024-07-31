@@ -121,6 +121,7 @@ draw_vals_effect.bage_prior_lin <- function(prior,
                                             var_sexgender,
                                             n_sim) {
   along <- prior$specific$along
+  intercept <- vals_hyperrand$intercept
   slope <- vals_hyperrand$slope
   sd <- vals_hyper$sd
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
@@ -128,7 +129,8 @@ draw_vals_effect.bage_prior_lin <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
-  draw_vals_lin(slope = slope,
+  draw_vals_lin(intercept = intercept,
+                slope = slope,
                 sd = sd,
                 matrix_along_by = matrix_along_by_effect,
                 labels = levels_effect)
@@ -147,6 +149,7 @@ draw_vals_effect.bage_prior_linar <- function(prior,
                                               var_sexgender,
                                               n_sim) {
   along <- prior$specific$along
+  intercept <- vals_hyperrand$intercept
   slope <- vals_hyperrand$slope
   coef <- vals_hyper$coef
   sd <- vals_hyper$sd
@@ -155,7 +158,8 @@ draw_vals_effect.bage_prior_linar <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
-  draw_vals_linar(slope = slope,
+  draw_vals_linar(intercept = intercept,
+                  slope = slope,
                   sd = sd,
                   coef = coef,
                   matrix_along_by = matrix_along_by_effect,
@@ -648,10 +652,13 @@ draw_vals_hyperrand.bage_prior_lin <- function(prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
+  n_by <- ncol(matrix_along_by_effect)
+  intercept <- matrix(stats::rnorm(n = n_by * n_sim), nrow = n_by)
   slope <- draw_vals_slope(sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
-  list(slope = slope)
+  list(intercept = intercept,
+       slope = slope)
 }
 
 ## HAS_TESTS
@@ -668,10 +675,13 @@ draw_vals_hyperrand.bage_prior_linar <- function(prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
+  n_by <- ncol(matrix_along_by_effect)
+  intercept <- matrix(stats::rnorm(n = n_by * n_sim), nrow = n_by)
   slope <- draw_vals_slope(sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
-  list(slope = slope)
+  list(intercept = intercept,
+       slope = slope)
 }
 
 ## HAS_TESTS
@@ -1042,12 +1052,12 @@ forecast_term.bage_prior_ar <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_lin <- function(prior,
-                                        dimnames_term,
-                                        var_time,
-                                        var_age,
-                                        var_sexgender,
-                                        components,
-                                        labels_forecast) {
+                                         dimnames_term,
+                                         var_time,
+                                         var_age,
+                                         var_sexgender,
+                                         components,
+                                         labels_forecast) {
   along <- prior$specific$along
   nm <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
@@ -1060,20 +1070,21 @@ forecast_term.bage_prior_lin <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
+  is_intercept <- with(components, term == nm & component == "hyper" & startsWith(level, "intercept"))
   is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
   is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
+  intercept <- components$.fitted[is_intercept]
   slope <- components$.fitted[is_slope]
   sd <- components$.fitted[is_sd]
-  lin_forecast <- forecast_lin(slope = slope,
+  lin_forecast <- forecast_lin(intercept = intercept,
+                               slope = slope,
+                               sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
-  n_forecast <- length(levels_forecast)
-  error_forecast <- rvec::rnorm_rvec(n = n_forecast, sd = sd)
-  .fitted <- lin_forecast + error_forecast
   tibble::tibble(term = nm,
                  component = "effect",
                  level = levels_forecast,
-                 .fitted = .fitted)
+                 .fitted = lin_forecast)
 }
 
 ## HAS_TESTS
@@ -1099,26 +1110,31 @@ forecast_term.bage_prior_linar <- function(prior,
                                                           var_age = var_age)
   is_effect <- with(components, term == nm & component == "effect")
   is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
+  is_intercept <- with(components, term == nm & component == "hyper" & startsWith(level, "intercept"))
   is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
   is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   effect_est <- components$.fitted[is_effect]
   coef <- components$.fitted[is_coef]
+  intercept <- components$.fitted[is_intercept]
   slope <- components$.fitted[is_slope]
   sd <- components$.fitted[is_sd]
-  lin_est <- estimate_lin(slope = slope, matrix_along_by_est = matrix_along_by_est)
-  lin_forecast <- forecast_lin(slope = slope,
-                               matrix_along_by_est = matrix_along_by_est,
-                               matrix_along_by_forecast = matrix_along_by_forecast)
-  error_est <- effect_est - lin_est
-  error_forecast <- forecast_ar(ar_est = error_est,
-                                coef = coef,
-                                sd = sd,
-                                matrix_along_by_est = matrix_along_by_est,
-                                matrix_along_by_forecast = matrix_along_by_forecast)
-  effect_forecast <- lin_forecast + error_forecast
+  trend_est <- make_lin_trend(intercept = intercept,
+                              slope = slope,
+                              matrix_along_by = matrix_along_by_est)
+  trend_forecast <- forecast_lin_trend(intercept = intercept,
+                                       slope = slope,
+                                       matrix_along_by_est = matrix_along_by_est,
+                                       matrix_along_by_forecast = matrix_along_by_forecast)
+  cyclical_est <- effect_est - trend_est
+  cyclical_forecast <- forecast_ar(ar_est = cyclical_est,
+                                   coef = coef,
+                                   sd = sd,
+                                   matrix_along_by_est = matrix_along_by_est,
+                                   matrix_along_by_forecast = matrix_along_by_forecast)
+  effect_forecast <- trend_forecast + cyclical_forecast
   component <- rep(c("effect", "trend", "cyclical"), each = length(effect_forecast))
   level <- rep(levels_forecast, times = 3L)
-  .fitted <- c(effect_forecast, lin_forecast, error_forecast)
+  .fitted <- c(effect_forecast, trend_forecast, cyclical_forecast)
   tibble::tibble(term = nm,
                  component = component,
                  level = level,
@@ -1588,6 +1604,149 @@ has_hyperrand.bage_prior_rw2seasfix <- function(prior) TRUE
 #' @export
 has_hyperrand.bage_prior_rw2seasvary <- function(prior) TRUE
 
+
+## 'infer_trend_cyc_seas_err_one' ---------------------------------------------------
+
+#' Reformat Parts of 'Components' Output Dealing with a
+#' Prior that has Hyper-Parameters Treated as Random Effects
+#'
+#' In all priors with 'hyperrand' elements, the reformatting involves
+#' renaming columns. 
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+infer_trend_cyc_seas_err_one <- function(prior,
+                                   dimnames_term,
+                                   var_time,
+                                   var_age,
+                                   components) {
+  UseMethod("infer_trend_cyc_seas_err_one")
+}
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior <- function(prior,
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              components)
+  components
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior_lin <- function(prior,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_change <- with(components, component == "hyperrand" & term == nm)
+  components$component[is_change] <- "hyper"
+  components
+}
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior_linar <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          components) {
+  along <- prior$specific$along
+  nm <- dimnames_to_nm(dimnames_term)
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  is_effect <- with(components,
+                    term == nm & component == "effect")
+  is_intercept <- with(components,
+                       term == nm & startsWith(component, "hyper") & startsWith(level, "intercept"))
+  is_slope <- with(components,
+                   term == nm & startsWith(component, "hyper") & startsWith(level, "slope"))
+  effect <- components$.fitted[is_effect]
+  intercept <- components$.fitted[is_intercept]
+  slope <- components$.fitted[is_slope]
+  trend <- make_lin_trend(intercept = intercept,
+                          slope = slope,
+                          matrix_along_by = matrix_along_by_effect)
+  cyclical <- effect - trend
+  components$component[is_intercept] <- "hyper"
+  components$component[is_slope] <- "hyper"
+  level <- components$level[is_effect]
+  trend <- tibble::tibble(term = nm,
+                          component = "trend",
+                          level = level,
+                          .fitted = trend)
+  cyclical <- tibble::tibble(term = nm,
+                             component = "cyclical",
+                             level = level,
+                             .fitted = cyclical)
+  vctrs::vec_rbind(components, trend, cyclical)
+}
+
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior_rwseasfix <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        components)
+  infer_trend_cyc_seas_err_seasfix(prior = prior,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior_rwseasvary <- function(prior,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         components)
+  infer_trend_cyc_seas_err_seasvary(prior = prior,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age,
+                              components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior_rw2seasfix <- function(prior,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         components)
+  infer_trend_cyc_seas_err_seasfix(prior = prior,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_one.bage_prior_rw2seasvary <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          components)
+  infer_trend_cyc_seas_err_seasvary(prior = prior,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age,
+                              components = components)
 
 ## 'is_known' -----------------------------------------------------------------
 
@@ -2246,10 +2405,11 @@ levels_hyperrand.bage_prior_lin <- function(prior,
   n_by <- ncol(matrix_along_by_effect)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by_effect)
-    paste("slope", nms_by, sep = ".")
+    c(paste("intercept", nms_by, sep = "."),
+      paste("slope", nms_by, sep = "."))
   }
   else
-    "slope"
+    c("intercept", "slope")
 }
 
 ## HAS_TESTS
@@ -2267,10 +2427,11 @@ levels_hyperrand.bage_prior_linar <- function(prior,
   n_by <- ncol(matrix_along_by_effect)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by_effect)
-    paste("slope", nms_by, sep = ".")
+    c(paste("intercept", nms_by, sep = "."),
+      paste("slope", nms_by, sep = "."))
   }
   else
-    "slope"
+    c("intercept", "slope")
 }
 
 ## HAS_TESTS
@@ -2858,149 +3019,6 @@ print.bage_prior_svd_rw2 <- function(x, ...) {
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   invisible(x)
 }
-
-
-
-## 'reformat_hyperrand_one' ---------------------------------------------------
-
-#' Reformat Parts of 'Components' Output Dealing with a
-#' Prior that has Hyper-Parameters Treated as Random Effects
-#'
-#' In all priors with 'hyperrand' elements, the reformatting involves
-#' renaming columns. 
-#'
-#' @param prior Object of class 'bage_prior'.
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param matrix_along_by Matrix with mapping for along, by dimensions
-#' @param components A data frame.
-#'
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-reformat_hyperrand_one <- function(prior,
-                                   dimnames_term,
-                                   var_time,
-                                   var_age,
-                                   components) {
-  UseMethod("reformat_hyperrand_one")
-}
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior <- function(prior,
-                                              dimnames_term,
-                                              var_time,
-                                              var_age,
-                                              components)
-  components
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_lin <- function(prior,
-                                                  dimnames_term,
-                                                  var_time,
-                                                  var_age,
-                                                  components) {
-  nm <- dimnames_to_nm(dimnames_term)
-  is_change <- with(components, component == "hyperrand" & term == nm)
-  components$component[is_change] <- "hyper"
-  components
-}
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_linar <- function(prior,
-                                                    dimnames_term,
-                                                    var_time,
-                                                    var_age,
-                                                    components) {
-  along <- prior$specific$along
-  nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  is_effect <- with(components,
-                    term == nm & component == "effect")
-  is_slope <- with(components,
-                   term == nm & component == "hyperrand" & startsWith(level, "slope"))
-  effect <- components$.fitted[is_effect]
-  slope <- components$.fitted[is_slope]
-  level <- components$level[is_effect]
-  q <- seq(from = -1, to = 1, length.out = n_along)
-  trend <- rep(slope, each = n_along) * rep(q, times = n_by)
-  i <- match(sort(matrix_along_by_effect), matrix_along_by_effect)
-  trend <- trend[i]
-  cyclical <- effect - trend
-  components$component[is_slope] <- "hyper"
-  trend <- tibble::tibble(term = nm,
-                          component = "trend",
-                          level = level,
-                          .fitted = trend)
-  cyclical <- tibble::tibble(term = nm,
-                             component = "cyclical",
-                             level = level,
-                             .fitted = cyclical)
-  vctrs::vec_rbind(components, trend, cyclical)
-}
-
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_rwseasfix <- function(prior,
-                                                        dimnames_term,
-                                                        var_time,
-                                                        var_age,
-                                                        components)
-  reformat_hyperrand_seasfix(prior = prior,
-                             dimnames_term = dimnames_term,
-                             var_time = var_time,
-                             var_age = var_age,
-                             components = components)
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_rwseasvary <- function(prior,
-                                                         dimnames_term,
-                                                         var_time,
-                                                         var_age,
-                                                         components)
-  reformat_hyperrand_seasvary(prior = prior,
-                              dimnames_term = dimnames_term,
-                              var_time = var_time,
-                              var_age = var_age,
-                              components = components)
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_rw2seasfix <- function(prior,
-                                                         dimnames_term,
-                                                         var_time,
-                                                         var_age,
-                                                         components)
-  reformat_hyperrand_seasfix(prior = prior,
-                             dimnames_term = dimnames_term,
-                             var_time = var_time,
-                             var_age = var_age,
-                             components = components)
-
-## HAS_TESTS
-#' @export
-reformat_hyperrand_one.bage_prior_rw2seasvary <- function(prior,
-                                                          dimnames_term,
-                                                          var_time,
-                                                          var_age,
-                                                          components)
-  reformat_hyperrand_seasvary(prior = prior,
-                              dimnames_term = dimnames_term,
-                              var_time = var_time,
-                              var_age = var_age,
-                              components = components)
-
 
 
 ## 'str_call_prior' -----------------------------------------------------------

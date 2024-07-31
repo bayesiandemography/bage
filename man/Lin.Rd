@@ -38,22 +38,22 @@ Argument \code{s} controls the size of the errors.
 
 When \code{Lin()} is used with a main effect,
 
-\deqn{\beta_j = \eta q_j + \epsilon_j}
+\deqn{\beta_j = \alpha + j \eta + \epsilon_j}
+\deqn{\alpha \sim \text{N}(0, 1)}
 \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} \sim \eta_u q_v + \epsilon_{u,v}}
+\deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}, \quad v > 1}
+\deqn{\alpha_u \sim \text{N}(0, 1)}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 
 where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{u} denotes position within the "along" variable of the interaction;
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction;
-\item \deqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
-\item \deqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+\item \eqn{v} denotes position within the "along" variable of the interaction; and
+\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
 }
 
 The slopes have priors

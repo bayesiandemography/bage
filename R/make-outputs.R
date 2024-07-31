@@ -78,6 +78,7 @@ draw_vals_components_fitted <- function(mod, standardize) {
                         component = comp,
                         level = level,
                         .fitted = draws)
+  ans <- infer_trend_cyc_seas_err(components = ans, mod = mod)
   if (standardize) {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,
@@ -92,9 +93,38 @@ draw_vals_components_fitted <- function(mod, standardize) {
                                   var_time = var_time,
                                   var_age = var_age,
                                   var_sexgender = var_sexgender)
+    ans <- standardize_trend_cyc_seas_err(components = ans,
+                                          priors = priors,
+                                          dimnames_terms = dimnames_terms,
+                                          var_time = var_time,
+                                          var_age = var_age)
   }
-  ans <- reformat_hyperrand(components = ans, mod = mod)
   ans
+}
+
+
+## HAS_TESTS
+#' Calculate Trend Values for a Line or Lines
+#'
+#' @param intercept Intercept(s) of line(s). An rvec.
+#' @param slope Slope(s) of line(s). An rvec.
+#' @param matrix_along_by Matrix mapping
+#' along and by dimensions to position in estimates
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_lin_trend <- function(intercept,
+                           slope,
+                           matrix_along_by) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  intercept <- rep(intercept, each = n_along)
+  slope <- rep(slope, each = n_along)
+  s <- rep(seq_len(n_along), times = n_by)
+  ans <- intercept + slope * s
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans[i]
 }
 
 
@@ -1047,6 +1077,54 @@ standardize_svd_spline <- function(components,
 
 
 ## HAS_TESTS
+#' Standardize Trend, Cyclical, Seasonal, and Error Components of Terms
+#'
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' 
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+standardize_trend_cyc_seas_err <- function(components,
+                                           priors,
+                                           dimnames_terms,
+                                           var_time,
+                                           var_age) {
+  nms_tcse <- c("trend", "cyclical", "seasonal", "error")
+  key_comp <- with(components, paste(term, component, level))
+  for (i_term in seq_along(priors)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_term_split <- dimnames_to_nm_split(dimnames_term)
+    nm_term <- dimnames_to_nm(dimnames_term)
+    levels_term <- dimnames_to_levels(dimnames_term)
+    for (nm_tcse in nms_tcse) {
+      key_tcse <- paste(nm_term, nm_tcse, levels_term)
+      i_tcse <- match(key_tcse, key_comp, nomatch = 0L)
+      has_val <- any(i_tcse > 0L)
+      if (has_val) {
+        prior <- priors[[i_term]]
+        dimnames_term <- dimnames_terms[[i_term]]
+        tcse <- components$.fitted[i_tcse]
+        if (!uses_along(prior))
+          cli::cli_abort("Internal error: Prior for term {.val nm_term} does not use along.")
+        along <- prior$specific$along
+        matrix_along_by <- make_matrix_along_by_effect(along = along,
+                                                       dimnames_term = dimnames_term,
+                                                       var_time = var_time,
+                                                       var_age = var_age)
+        tcse <- center_within_across_by(x = tcse, matrix_along_by = matrix_along_by)
+        components$.fitted[i_tcse] <- tcse
+      }
+    }
+  }
+  components
+} 
+
+
+## HAS_TESTS
 #' Make Draws Stored as Part of Model Object
 #'
 #' Draws created are
@@ -1139,7 +1217,7 @@ make_transforms_hyper <- function(mod) {
 #' @returns A modified versino of 'components'
 #'
 #' @noRd
-reformat_hyperrand <- function(components, mod) {
+infer_trend_cyc_seas_err <- function(components, mod) {
   priors <- mod$priors
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
@@ -1147,7 +1225,7 @@ reformat_hyperrand <- function(components, mod) {
   for (i_prior in seq_along(priors)) {
     prior <- priors[[i_prior]]
     dimnames_term <- dimnames_terms[[i_prior]]
-    components <- reformat_hyperrand_one(prior = prior,
+    components <- infer_trend_cyc_seas_err_one(prior = prior,
                                          dimnames_term = dimnames_term,
                                          var_time = var_time,
                                          var_age = var_age,
@@ -1169,7 +1247,7 @@ reformat_hyperrand <- function(components, mod) {
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
-reformat_hyperrand_seasfix <- function(prior,
+infer_trend_cyc_seas_err_seasfix <- function(prior,
                                        dimnames_term,
                                        var_time,
                                        var_age,
@@ -1191,8 +1269,6 @@ reformat_hyperrand_seasfix <- function(prior,
   effect <- components$.fitted[is_effect]
   level <- components$level[is_effect]
   matrix_along_by_seas <- matrix(seq_along(seas) - 1L, nrow = n_seas, ncol = n_by)
-  seas <- center_within_across_by(x = seas,
-                                  matrix_along_by = matrix_along_by_seas)
   seas_extend <- rep(seas[[1L]], times = n_along * n_by)
   for (i_by in seq_len(n_by)) {
     for (i_along in seq_len(n_along)) {
@@ -1228,7 +1304,7 @@ reformat_hyperrand_seasfix <- function(prior,
 #' @returns A modifed version of 'components'
 #'
 #' @noRd
-reformat_hyperrand_seasvary <- function(prior,
+infer_trend_cyc_seas_err_seasvary <- function(prior,
                                         dimnames_term,
                                         var_time,
                                         var_age,
@@ -1243,8 +1319,6 @@ reformat_hyperrand_seasvary <- function(prior,
   is_seas <- with(components,
                   term == nm & component == "hyperrand")
   seas <- components$.fitted[is_seas]
-  seas <- center_within_across_by(x = seas,
-                                  matrix_along_by = matrix_along_by_effect)
   components$.fitted[is_seas] <- seas
   components$component[is_seas] <- "seasonal"
   ## trend
