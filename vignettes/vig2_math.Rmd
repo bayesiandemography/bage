@@ -633,11 +633,32 @@ Sp(n = NULL, s = 1)
 
 ### Model
 
-\begin{align}
-  \pmb{\beta}_u^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m \\
-  \alpha_{uk}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m
-\end{align}
-where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $V_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The construction involves centering and scaling, which allows us to use a simple prior for $\pmb{\alpha}^{(m)}$.
+**Age but no sex or gender**
+
+Let $\pmb{\beta}_u$ be the age effect for the $u$th combination of the 'by' variables. With an SVD prior,
+\begin{equation}
+  \pmb{\beta}_u^{(m)} = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
+\end{equation}
+where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vector with $V_m$ elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of $\pmb{F}^{(m)}$ and $\pmb{g}^{(m)}$ is described in Appendix \@ref(app:svd). The centering and scaling used in the construction allow use of the simple prior
+\begin{equation}
+  \alpha_{u,k}^{(m)} \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m.
+\end{equation}
+
+**Joint model of age and sex/gender**
+
+In the joint model, vector $\pmb{\beta}_u$ represents the interaction between age and sex/gender for the $u$th combination of the 'by' variables. Matrix $\pmb{F}^{(m)}$ and vector $\pmb{g}^{(m)}$ are calculated from data that separate sexes/genders. The model is otherwise unchanged.
+
+
+**Independent models for each sex/gender**
+
+In the independent model, vector $\pmb{\beta}_{s,u}$ represents age effects for sex/gender $s$ and the $u$th combination of the 'by' variables, and we have
+\begin{equation}
+  \pmb{\beta}_{s,u}^{(m)} = \pmb{F}_s^{(m)} \pmb{\alpha}_{s,u}^{(m)} + \pmb{g}_s^{(m)}, \quad s = 1, \cdots, S; \quad u = 1, \cdots, U_m
+\end{equation}
+Matrix $\pmb{F}_s^{(m)}$ and vector $\pmb{g}_s^{(m)}$ are calculated from data that separate sexes/genders. The prior is
+\begin{equation}
+  \alpha_{s,u,k}^{(m)} \sim \text{N}(0, 1), \quad s = 1, \cdots, S; \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m.
+\end{equation}
 
 
 ### Contribution to posterior density
@@ -645,28 +666,93 @@ where $\pmb{F}^{(m)}$ is a $V_m \times K_m$ matrix, and $\pmb{g}^{(m)}$ is a vec
 \begin{equation}
   \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right) 
 \end{equation}
+for the age-only and joint models, and
+\begin{equation}
+  \prod_{s=1}^S \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{s,u,k}^{(m)} \mid 0, 1 \right) 
+\end{equation}
+for the independent model
 
 ### Forecasting
 
-Main effects with a SVD prior cannot be forecasted.
+Terms with an SVD prior cannot be forecasted.
 
 
 ### Code
 
 ```
-SVD(ssvd, n = 5)
+SVD(ssvd, n_comp = NULL, indep = TRUE)
 ```
+where
+- `ssvd` is an object containing $\pmb{F}$ and $\pmb{g}$
+- `n_comp` is the number of components to be used (which defaults to `ceiling(n/2)`, where `n` is the number of components in `ssvd`
+- `indep` determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.
 
 
-## SVDS {#sec:pr-svd2}
+## SVD_RW {#sec:pr-svd-rw}
 
-The SVDS is a two-sex extension of the basic SVD model. SVDS has two versions. The first is identical to the basic SVD model, except that different, sex-specific values for $\pmb{F}$ and $\pmb{g}$ are used for females and males. The second treats the Cartesian product of age and sex dimensions as if it was a single dimension. Values for $\pmb{F}$ and $\pmb{g}$ estimated from age-sex-specific rates. Each is twice as large as the basic SVD versions of $\pmb{F}$ and $\pmb{g}$.
+### Model
 
-The code is
+The `SVD_RW()` prior is identical to the `SVD()` prior except that the coefficients evolve over time, following indepenent random walks. For instance, in the combined-sex/gender and joint models,
+
+\begin{align}
+  \pmb{\beta}_{u,t}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m; \quad t = 1, \cdots, T \\
+  \alpha_{u,k,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m \\
+  \alpha_{u,k,t}^{(m)} & \sim \text{N}(\alpha_{u,k,t-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m; t = 2, \cdots, T \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}
+
+### Contribution to posterior density
+
+In the combined-sex/gender and joint models,
+
+\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,k,t}^{(m)} \mid \alpha_{u,k,t-1}^{(m)}, \tau_m^2 \right),
+\end{equation}
+
+and in the independent model,
+
+\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right) 
+\end{equation}
+
+
+### Simulation
+
+TODO - write
+
+### Forecasting
+
+\begin{align}
+  \alpha_{u,k,T+h}^{(m)} & \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m \\
+  \pmb{\beta}_{u,T+h}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m 
+\end{align}
+
+
+### Code
+
 ```
-SVDS(ssvd, joint = FALSE, n = 5)
+SVD_RW(ssvd, n_comp = NULL, s = 1, indep = TRUE)
 ```
-When `joint` is FALSE, the first version is used, and when `joint` is TRUE the second version is used.
+where
+- `ssvd` is an object containing $\pmb{F}$ and $\pmb{g}$
+- `n_comp` is $K_m$ (which defaults to `ceiling(n/2)`, where `n` is the number of components in `ssvd`
+- `s` is $A_{\tau}^{(m)}$
+- `indep` determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.
+
+
+## SVD_RW2 {#sec:pr-svd-rw2}
+
+Same structure as `SVD_RW()`. TODO - write details.
+
+
+## SVD_AR {#sec:pr-svd-ar}
+
+Same structure as `SVD_RW()`. TODO - write details.
+
+## SVD_AR1 {#sec:pr-svd-ar1}
+
+Same structure as `SVD_RW()`. TODO - write details.
+
 
 
 ## Known {#sec:pr-known}

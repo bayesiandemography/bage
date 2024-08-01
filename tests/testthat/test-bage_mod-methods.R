@@ -836,7 +836,7 @@ test_that("'fit' works with SVD", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+    mod <- set_prior(mod, age:sex ~ SVD(HMD))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -938,7 +938,7 @@ test_that("'fit' works with SVD, n_by > 1", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
-test_that("'fit' works with SVDS, n_by > 1", {
+test_that("'fit' works with SVD, n_by > 1", {
     set.seed(0)
     data <- expand.grid(age = c(0:59, "60+"), time = 2000:2001, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -947,7 +947,7 @@ test_that("'fit' works with SVDS, n_by > 1", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:sex:time ~ SVDS(HMD))
+    mod <- set_prior(mod, age:sex:time ~ SVD(HMD))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })

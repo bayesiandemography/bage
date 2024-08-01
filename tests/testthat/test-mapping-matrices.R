@@ -14,7 +14,7 @@ test_that("'get_labels_svd' works - total", {
 })
 
 test_that("'get_labels_svd' works - indep", {
-  prior <- SVDS(LFP)
+  prior <- SVD(LFP)
   dimnames_term <- list(region = c("A", "B"),
                         sex = c("M", "F"),
                         age = poputils::age_labels(type = "five", min = 15, max = 60))
@@ -28,7 +28,7 @@ test_that("'get_labels_svd' works - indep", {
 })
 
 test_that("'get_labels_svd' works - joint", {
-  prior <- SVDS(LFP, joint = TRUE)
+  prior <- SVD(LFP, indep = FALSE)
   dimnames_term <- list(region = c("A", "B"),
                         sex = c("M", "F"),
                         age = poputils::age_labels(type = "five", min = 15, max = 60))
@@ -295,15 +295,15 @@ test_that("'make_matrix_along_by_effectfree_svd' works - age x time interaction"
                                                       var_age = var_age,
                                                       var_sexgender = var_sexgender,
                                                       dimnames_term = dimnames)
-  ans_expected <- t(matrix(0:14,
-                           nr = 5,
-                           dimnames = list(.svd = paste0("comp", 1:5),
+  ans_expected <- t(matrix(0:8,
+                           nr = 3,
+                           dimnames = list(.svd = paste0("comp", 1:3),
                                            time = 2001:2003)))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_effectfree_svd' works -  time x age interaction", {
-  prior <- SVD_AR(HMD)
+  prior <- SVD_AR(HMD, n_comp = 5)
   dimnames <- list(time = 2001:2003,
                    age = c(0:79, "80+"))
   var_age <- "age"
@@ -323,7 +323,7 @@ test_that("'make_matrix_along_by_effectfree_svd' works -  time x age interaction
 })
 
 test_that("'make_matrix_along_by_effectfree_svd' works -  time x sex x age interaction - indep", {
-  prior <- SVDS_AR(HMD)
+  prior <- SVD_AR(HMD, n_comp = 5)
   dimnames <- list(time = 2001:2003,
                    sex = c("F", "M", "D"),
                    age = c(0:79, "80+"))
@@ -346,7 +346,7 @@ test_that("'make_matrix_along_by_effectfree_svd' works -  time x sex x age inter
 })
 
 test_that("'make_matrix_along_by_effectfree_svd' works -  time x sex x age interaction - joint", {
-  prior <- SVDS_AR(HMD, joint = TRUE)
+  prior <- SVD_AR(HMD, indep = FALSE, n_comp = 5)
   dimnames <- list(time = 2001:2003,
                    sex = c("F", "M"),
                    age = c(0:79, "80+"))
@@ -472,8 +472,8 @@ test_that("'make_matrix_along_by_inner' works when 'i_along' is 1:2", {
 
 ## 'svd_to_effect' ------------------------------------------------------------
 
-test_that("'draw_vals_effect_svd' works with matrix", {
-  prior <- SVD(HMD)
+test_that("'svd_to_effect' works with matrix", {
+  prior <- SVD(HMD, n_comp = 5)
   dimnames_term <- list(age = c(0:59, "60+"),
                         reg = c("a", "b", "c", "d", "e"))
   var_age <- "age"
@@ -497,8 +497,58 @@ test_that("'draw_vals_effect_svd' works with matrix", {
   expect_identical(dim(ans), c(61L * 5L, 10L))
 })
 
-test_that("'draw_vals_effect_svd' works with rvec", {
-  prior <- SVD(HMD)
+
+test_that("'svd_to_effect' works with matrix", {
+  prior <- SVD(HMD, n_comp = 5)
+  dimnames_term <- list(age = c(0:59, "60+"),
+                        sex = c("F", "M"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = list(),
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_effectfree = paste(paste0("comp", 1:5),
+                                                      rep(c("F", "M"), each = 5),
+                                                      sep = "."),
+                            n_sim = 10)
+  ans <- svd_to_effect(svd = vals_svd,
+                       prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender)
+  expect_identical(dim(ans), c(61L * 2L, 10L))
+})
+
+
+test_that("'svd_to_effect' works with matrix", {
+  prior <- SVD(HMD, indep = FALSE, n_comp = 5)
+  dimnames_term <- list(age = c(0:59, "60+"),
+                        sex = c("F", "M"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = list(),
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_effectfree = paste0("comp", 1:5),
+                            n_sim = 10)
+  ans <- svd_to_effect(svd = vals_svd,
+                       prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender)
+  expect_identical(dim(ans), c(61L * 2L, 10L))
+})
+
+
+
+test_that("'svd_to_effect' works with rvec", {
+  prior <- SVD(HMD, n_comp = 5)
   dimnames_term <- list(age = c(0:59, "60+"),
                         reg = c("a", "b", "c", "d", "e"))
   var_age <- "age"

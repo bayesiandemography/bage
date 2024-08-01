@@ -1026,133 +1026,37 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' SVD Prior for Age
+#' SVD Prior for Age, or Age and Sex/Gender
 #'
 #' A Singular Value Decomposition (SVD) prior
-#' for a main effect or interaction involving age.
+#' for a main effect or interaction involving age and possibly
+#' sex or gender and other variables.
 #'
-#' A `SVD()` prior assumes that the age profile for the quantity
+#' A `SVD()` prior assumes that the age, age-sex, or age-gender
+#' profile for the quantity
 #' being modelled looks like it was drawn at random
 #' from an external demographic database. For instance,
 #' the prior obtained via
 #' ```
 #' SVD(HMD)
 #' ```
-#' assumes that age profiles look like
+#' assumes that age or age-sex profiles look like
 #' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
-#' If `SVD()` is used with an interaction,
-#' then separate profiles are constructed along
-#' within each combination of the non-age variables.
+#' If `SVD()` is used with an interaction involving
+#' variables other than age and sex/gender,
+#' then separate profiles are constructed
+#' within each combination of other variables.
 #'
-#' Age-sex or age-gender profiles should be
-#' modelled using [SVDS()] rather than `SVD()`.
-#'
-#' @section Mathematical details:
-#' 
-#' When `SVD()` is used with a main effect,
-#' 
-#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
-#'
-#' and when it is used with an interaction,
-#'
-#' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
-#'
-#' where
-#' - \eqn{\pmb{\beta}} is a main effect or interaction involving age;
-#' - \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
-#'   values for the  \eqn{u}th combination of the non-age variables;
-#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
-#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
-#' - \eqn{n} is `n_comp`;
-#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
-#'   or \eqn{V \times n}; and
-#' - \eqn{\pmb{g}} is a known vector with \eqn{J} or \eqn{V}
-#'   elements.
-#' 
-#' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
-#' a large database of age-specific demographic estimates
-#' by performing an SVD and standardizing.
-#'
-#' The elements of \eqn{\pmb{\alpha}} have prior
-#' \deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
-#' 
-#' @section Scaled SVDs of demographic databases in bage:
-#'
-#' - \code{\link{HMD}} Mortality rates from the
-#' [Human Mortality Database](https://www.mortality.org).
-#' - \code{\link{LFP}} Labour forcce participation
-#' rates from the [OECD](https://data-explorer.oecd.org).
-#'
-#' @param ssvd Object of class `"bage_ssvd"`
-#' holding a scaled SVD. See below for scaled SVDs
-#' of databases currently available in **bage**.
-#' @param n_comp Number of components from scaled SVD
-#' to use in modelling. The default is half
-#' the number of components of `ssvd`.
-#'
-#' @returns An object of class `"bage_prior_svd"`.
-#'
-#' @seealso
-#' - [SVDS()] SVD prior for age-sex or age-gender profile
-#' - [SVD_AR()], [SVD_AR1()], [SVD_RW()], [SVD_RW2()] SVD priors for
-#'   for time-varying age profiles;
-#' - [RW()] Smoothing via random walk
-#' - [RW2()] Smoothing via random walk with drift
-#' - [Sp()] Smoothing via splines
-#' - [priors] Overview of priors implemented in **bage**
-#' - [set_prior()] Specify prior for intercept,
-#'   main effect, or interaction
-#'
-#' @references
-#' - For details of the construction of
-#'   scaled SVDS see the vignette
-#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
-#'
-#' @examples
-#' SVD(HMD)
-#' SVD(HMD, n_comp = 3)
-#' @export
-SVD <- function(ssvd, n_comp = NULL) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp_svd(n_comp = n_comp, nm_n_comp = "n_comp", ssvd = ssvd)
-  new_bage_prior_svd(ssvd = ssvd,
-                     nm_ssvd = nm_ssvd,
-                     n_comp = n_comp,
-                     joint = NULL)
-}
-
-
-## HAS_TESTS
-#' SVD Prior for Age-Sex or Age-Gender Interaction
-#'
-#' A Singular Value Decomposition (SVD) prior
-#' for an interaction involving age-sex
-#' profiles or age-gender profiles.
-#'
-#' A `SVDS()` prior assumes that the age-sex profile
-#' or age-gender profile for the quantity being
-#' modelled looks like it was drawn at random
-#' from an external demographic database. For instance,
-#' the prior obtained via
-#' ```
-#' SVDS(HMD)
-#' ```
-#' assumes that age-sex profiles look like
-#' they were obtained from the
-#' [Human Mortality Database](https://www.mortality.org).
-#'
-#' If `SVDS()` is used with an interaction
-#' between age, sex/gender, and one or more
-#' other variables, then separate age-sex or
-#' age-gender profiles are constructed within
-#' each combination of the other variables.
-#'
-#' Age profiles with no sex or gender dimension
-#' should be modelled using [SVD()] rather than
-#' `SVDS()`.
+#' **bage** chooses the appropriate age-specific
+#' or age-sex-specific SVD values internally.
+#' The choice depends on the model term that the
+#' `SVD()` prior is applied to, and on the
+#' age labels used in `data` argument to
+#' [mod_pois()], [mod_binom()] or [mod_norm()].
+#' **bage** makes its choice when [set_prior()]
+#' is called.
 #'
 #' @section Joint or independent SVDs:
 #'
@@ -1167,20 +1071,58 @@ SVD <- function(ssvd, n_comp = NULL) {
 #' Option 1 is more flexible. Option 2 is
 #' more robust to sampling or measurement errors.
 #' Option 1 is obtained by setting the `joint`
-#' argument  to `FALSE`. Option 2
-#' is obtained by setting the `joint` argument to `TRUE`.
-#' The default is `FALSE`.
-#'
-#' @section Mathematical details:
+#' argument  to `FALSE`. Option 1
+#' is obtained by setting the `indep` argument to `TRUE`.
+#' The default is `TRUE`.
 #' 
+#' @section Mathematical details:
 #'
-#' **Case 1: Interaction involving age and sex or gender, but no other variables**
+#' **Case 1: Term involving age and no other variables **
+#' 
+#' When `SVD()` is used with an age main effect,
+#' 
+#' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
 #'
-#' When `joint` is `FALSE`,
+#' where
+#' - \eqn{\pmb{\beta}} is a main effect or interaction involving age;
+#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
+#' - \eqn{n} is the number of components from the SVD;
+#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}; and
+#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements.
+#' 
+#' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
+#' a large database of age-specific demographic estimates
+#' by performing an SVD and standardizing.
+#'
+#' The elements of \eqn{\pmb{\alpha}} have prior
+#' \deqn{\alpha_k \sim \text{N}(0, 1), \quad k = 1, \cdots, K.}
+#'
+#' **Case 2: Term involving age and non-sex, non-gender variable(s)**
+#'
+#' When `SVD()` is used with an interaction that involves age but that
+#' does not involve sex or gender,
+#'
+#' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
+#'
+#' where
+#' - \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+#'   values for the  \eqn{u}th combination of the non-age variables;
+#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_u};
+#' - \eqn{n} is the number of components from the SVD;
+#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{V \times n}; and
+#' - \eqn{\pmb{g}} is a known vector with \eqn{V} elements.
+#' 
+#' **Case 3: Term involving age, sex/gender, and no other variables**
+#'
+#' When `SVD()` is used with an interaction that involves
+#' age and sex or gender, there are two sub-cases, depending on
+#' the value of `indep`.
+#'
+#' When `indep` is `TRUE`,
 #' 
 #' \deqn{\pmb{\beta}_{s} = \pmb{F}_s \pmb{\alpha}_{s} + \pmb{g}_s,}
 #'
-#' and when `joint` is `TRUE`,
+#' and when `indep` is `FALSE`,
 #'
 #' \deqn{\pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g},}
 #'
@@ -1190,7 +1132,7 @@ SVD <- function(ssvd, n_comp = NULL) {
 #'   holding values for sex/gender \eqn{s};
 #' - \eqn{J} is the number of elements in \eqn{\pmb{\beta}};
 #' - \eqn{S} is the number of sexes/genders;
-#' - \eqn{n} is `n_comp`;
+#' - \eqn{n} is the number of components from the SVD;
 #' - \eqn{\pmb{F}_s} is a known \eqn{(J/S) \times n} matrix, specific
 #'   to sex/gender \eqn{s};
 #' - \eqn{\pmb{g}_s} is a known vector with \eqn{J/S} elements,
@@ -1204,13 +1146,17 @@ SVD <- function(ssvd, n_comp = NULL) {
 #' \deqn{\alpha_k \sim \text{N}(0, 1).}
 #' 
 #' 
-#' **Case 2: Interaction involving age and sex/gender, and one or more other variables**
+#' **Case 4: Term involving age, sex/gender, and other variable(s)**
 #'
-#' When `joint` is `FALSE`,
+#' When `SVD()` is used with an interaction that involves
+#' age, sex or gender, and other variables, there are two sub-cases,
+#' depending on the value of `indep`.
+#'
+#' When `indep` is `TRUE`,
 #' 
 #' \deqn{\pmb{\beta}_{u,s} = \pmb{F}_s \pmb{\alpha}_{u,s} + \pmb{g}_s,}
 #'
-#' and when `joint` is `TRUE`,
+#' and when `indep` is `FALSE`,
 #'
 #' \deqn{\pmb{\beta}_u = \pmb{F} \pmb{\alpha}_u + \pmb{g},}
 #'
@@ -1221,7 +1167,7 @@ SVD <- function(ssvd, n_comp = NULL) {
 #'   combination of the other variables;
 #' - \eqn{V} is the number of elements in \eqn{\pmb{\beta}_u};
 #' - \eqn{S} is the number of sexes/genders;
-#' - \eqn{n} is `n_comp`;
+#' - \eqn{n} is the number of components from the SVD;
 #' - \eqn{\pmb{F}_s} is a known \eqn{(V/S) \times n} matrix, specific
 #'   to sex/gender \eqn{s};
 #' - \eqn{\pmb{g}_s} is a known vector with \eqn{V/S} elements,
@@ -1231,68 +1177,71 @@ SVD <- function(ssvd, n_comp = NULL) {
 #' - \eqn{\pmb{g}} is a known vector with \eqn{V} elements, with values
 #'   for all sexes/genders.
 #'
-#' The elements of \eqn{\pmb{\alpha}_{u,s}} and \eqn{\pmb{\alpha}_u} have prior
-#' \deqn{\alpha_k \sim \text{N}(0, 1).}
 #' 
+#' @section Scaled SVDs of demographic databases in bage:
 #'
-#' @inheritSection SVD Scaled SVDs of demographic databases in bage
+#' - \code{\link{HMD}} Mortality rates from the
+#' [Human Mortality Database](https://www.mortality.org).
+#' - \code{\link{LFP}} Labour forcce participation
+#' rates from the [OECD](https://data-explorer.oecd.org).
 #'
-#' @inheritParams SVD
-#' @param joint Whether to use combined or
-#' separate SVDs. Default is `FALSE`.
+#' @param ssvd Object of class `"bage_ssvd"`
+#' holding a scaled SVD. See below for scaled SVDs
+#' of databases currently available in **bage**.
+#' @param n_comp Number of components from scaled SVD
+#' to use in modelling. The default is half
+#' the number of components of `ssvd`.
+#' @param indep Whether to use separate or
+#' combined SVDs in terms involving sex or gender.
+#' Default is `TRUE`.
 #' See below for details.
 #'
 #' @returns An object of class `"bage_prior_svd"`.
 #'
 #' @seealso
-#' - [SVD()] SVD prior for age, with no sex or gender
-#' - [SVDS_AR()], [SVDS_AR1()], [SVDS_RW()], [SVDS_RW2()] SVD priors for
-#'   for time-varying age-sex or age-gender profiles;
+#' - [SVD_AR()], [SVD_AR1()], [SVD_RW()], [SVD_RW2()] SVD priors for
+#'   for time-varying age profiles;
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via random walk with drift
 #' - [Sp()] Smoothing via splines
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [set_var_sexgender()] Identify sex or gender variable in data
 #'
 #' @references
 #' - For details of the construction of
 #'   scaled SVDS see the vignette
-#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
+#'   [here](https://bayesiandemography.github.io/bage/articles/vig2_math.html).
 #'
 #' @examples
-#' SVDS(HMD)
-#' SVDS(HMD, joint = TRUE)
+#' SVD(HMD) 
+#' SVD(HMD, n_comp = 3)
 #' @export
-SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
+SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  if (!has_sexgender(ssvd)) {
-    cli::cli_abort(c("{.arg ssvd} does not have a sex/gender dimension.",
-                     i = "Try prior {.val SVD()} instead?",
-                     i = "For a list of priors, see {.topic bage::priors}."))
-  }
-  n_comp <- n_comp_svd(n_comp = n_comp,
-                       nm_n_comp = "n_comp",
-                       ssvd = ssvd)
-  check_flag(x = joint, nm_x = "joint")
+  n_comp <- n_comp_svd(n_comp = n_comp, nm_n_comp = "n_comp", ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
   new_bage_prior_svd(ssvd = ssvd,
                      nm_ssvd = nm_ssvd,
                      n_comp = n_comp,
-                     joint = joint)
+                     indep = indep)
 }
 
 
 ## HAS_TESTS
-#' SVD Priors for Age, With Time-Varying Coefficients
+#' SVD Priors for Age, or Age and Sex/Gender,
+#' With Time-Varying Coefficients
 #'
 #' Singular Value Decomposition (SVD) priors
-#' for interactions involving age and time, and possibly
+#' for interactions involving age and time, or age,
+#' sex/gender and time, and possibly
 #' other variables, where the coefficients evolve over time.
 #'
 #' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
 #' priors assume that, in any given period,
-#' the age profiles for the quantity
+#' the age profiles or age-sex profiles for the quantity
 #' being modelled looks like they were drawn at random
 #' from an external demographic database. For instance,
 #' the `SVD_AR()` prior obtained via
@@ -1303,30 +1252,26 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #' they were obtained from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
-#' Time-varying age-sex profiles, or age-gender profiles
-#' should be modelled using [SVD_AR()], [SVD_AR1()], [SVD_RW()],
-#' or [SVD_RW2()] priors, rather than `SVD_AR()`,
-#' `SVD_AR1()`, `SVD_RW()`, or `SVD_RW2()`.
 #'
 #' @section Mathematical details:
 #' 
 #' When the interaction being modelled only involves
-#' age and time,
+#' age and time, or age, sex/gender, and time
 #' 
 #' \deqn{\pmb{\beta}_t = \pmb{F} \pmb{\alpha}_t + \pmb{g},}
 #'
-#' and when it involives other variables besides age and time,
+#' and when it involves other variables besides age, sex/gender, and time,
 #'
 #' \deqn{\pmb{\beta}_{u,t} = \pmb{F} \pmb{\alpha}_{u,t} + \pmb{g},}
 #'
 #' where
-#' - \eqn{\pmb{\beta}} is an interaction involving age, time, and possibly
-#'   other variables;
+#' - \eqn{\pmb{\beta}} is an interaction involving age, time, possibly sex/gender,
+#'   and possibly other variables;
 #' - \eqn{\pmb{\beta}_t} is a subvector of \eqn{\pmb{\beta}} holding
 #'   values for period \eqn{t};
 #' - \eqn{\pmb{\beta}_{u,t}} is a subvector of \eqn{\pmb{\beta}_t} holding
-#'   values for the  \eqn{u}th combination of the non-age, non-time variables
-#'   for period \eqn{t};
+#'   values for the  \eqn{u}th combination of the non-age, non-time,
+#'   non-sex/gender variables for period \eqn{t};
 #' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}_t};
 #' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_{u,t}};
 #' - \eqn{n} is `n_coef`;
@@ -1346,7 +1291,7 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #'
 #' or
 #'
-#' \deqn{\alpha_{k,u,t} = \phi_1 \alpha_{k,u,t-1} + \cdots + \phi_n \beta_{k,u,t-n} + \epsilon_{k,u,t}};
+#' \deqn{\alpha_{k,u,t} = \phi_1 \alpha_{k,u,t-1} + \cdots + \phi_n \beta_{k,u,t-n} + \epsilon_{k,u,t};}
 #'
 #' with `SVD_AR1()`, it is
 #'
@@ -1354,7 +1299,7 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #'
 #' or
 #'
-#' \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+#' \deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
 #'
 #' with `SVD_RW()`, it is
 #'
@@ -1362,7 +1307,7 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #'
 #' or
 #'
-#' \deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+#' \deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
 #' 
 #' and with `SVD_RW2()`, it is
 #'
@@ -1370,7 +1315,7 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #'
 #' or
 #'
-#' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}}.
+#' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}.}
 #'
 #' For more on the \eqn{\phi} and \eqn{\epsilon}, see [AR()], [AR1()],
 #' [RW()], and [RW2()].
@@ -1378,9 +1323,6 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #' @inheritSection SVD Scaled SVDs of demographic databases in bage
 #'
 #' @inheritParams SVD
-#' @param n_comp Number of components from scaled SVD
-#' to use in modelling. The default is half
-#' the number of components of `ssvd`.
 #' @param n_coef Number of AR coefficients in `SVD_RW()`.
 #' @param s Scale for standard deviations terms.
 #' @param min,max Minimum and maximum values
@@ -1391,29 +1333,32 @@ SVDS <- function(ssvd, n_comp = NULL, joint = FALSE) {
 #' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.
 #'
 #' @seealso
-#' - [SVDS()] SVD prior for non-time-varying age-sex or age-gender profile
+#' - [SVD()] SVD prior for non-time-varying terms
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via random walk with drift
 #' - [Sp()] Smoothing via splines
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
+#' - [set_var_sexgender()] Identify sex or gender variable in data
 #'
 #' @references
 #' - For details of the construction of
 #'   scaled SVDS see the vignette
-#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
+#'   [here](https://bayesiandemography.github.io/bage/articles/vig2_math.html).
 #'
 #' @examples
 #' SVD_AR1(HMD)
 #' SVD_RW(HMD, n_comp = 3)
+#' SVD_RW2(HMD, indep = FALSE)
 #' @export
-SVD_AR <- function(ssvd, n_comp = NULL, n_coef = 2, s = 1) {
+SVD_AR <- function(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
   check_n(n = n_coef,
           nm_n = "n_coef",
           min = 1L,
@@ -1427,7 +1372,7 @@ SVD_AR <- function(ssvd, n_comp = NULL, n_coef = 2, s = 1) {
   new_bage_prior_svd_ar(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
-                        joint = NULL,
+                        indep = indep,
                         n_coef = n_coef,
                         min = -1,
                         max = 1,
@@ -1438,12 +1383,13 @@ SVD_AR <- function(ssvd, n_comp = NULL, n_coef = 2, s = 1) {
 ## HAS_TESTS
 #' @rdname SVD_AR
 #' @export
-SVD_AR1 <- function(ssvd, n_comp = NULL, min = 0.8, max = 0.98, s = 1) {
+SVD_AR1 <- function(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
   check_min_max_ar(min = min, max = max)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   min <- as.double(min)
@@ -1452,7 +1398,7 @@ SVD_AR1 <- function(ssvd, n_comp = NULL, min = 0.8, max = 0.98, s = 1) {
   new_bage_prior_svd_ar(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
-                        joint = NULL,
+                        indep = indep,
                         n_coef = 1L,
                         min = min,
                         max = max,
@@ -1462,299 +1408,38 @@ SVD_AR1 <- function(ssvd, n_comp = NULL, min = 0.8, max = 0.98, s = 1) {
 
 #' @rdname SVD_AR
 #' @export
-SVD_RW <- function(ssvd, n_comp = NULL, s = 1) {
+SVD_RW <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   new_bage_prior_svd_rw(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
-                        joint = NULL,
+                        indep = indep,
                         scale = scale)
 }
 
 ## HAS_TESTS
 #' @rdname SVD_AR
 #' @export
-SVD_RW2 <- function(ssvd, n_comp = NULL, s = 1) {
+SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
+  check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   new_bage_prior_svd_rw2(ssvd = ssvd,
                          nm_ssvd = nm_ssvd,
                          n_comp = n_comp,
-                         joint = NULL,
-                         scale = scale)
-}
-
-
-## NO_TESTS
-#' SVD Priors for Age-Sex or Age-Gender Interactions,
-#' With Time-Varying Coefficients
-#'
-#' Singular Value Decomposition (SVD) priors
-#' for interactions involving age, sex or gender,
-#' time, and possibly other variables.
-#'
-#' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
-#' priors assume that, in any given period,
-#' the age-sex profile or age-gender
-#' profiles for the quantity being modelled look
-#' they were drawn at random
-#' from an external demographic database. For instance,
-#' the prior obtained via
-#' ```
-#' SVDS_AR1(HMD)
-#' ```
-#' favours age-sex profiles that look like
-#' they were obtained from the
-#' [Human Mortality Database](https://www.mortality.org).
-#'
-#' Time-varying age profiles with no sex or gender
-#' dimension should be modelled using [SVD_AR()],
-#' [SVD_AR1()], [SVD_RW()], or [SVD_RW2()] priors,
-#' rather than `SVDS_AR()`,
-#' `SVDS_AR1()`, `SVDS_RW()`, or `SVDS_RW2()`.
-#'
-#'
-#' @inheritSection SVDS Joint or independent SVDs
-#'
-#' @section Mathematical details:
-#'
-#' **Case 1: Interaction involving age, sex/gender, time, and no other variables**
-#'
-#' When `joint` is `FALSE`,
-#' 
-#' \deqn{\pmb{\beta}_{s,t} = \pmb{F}_s \pmb{\alpha}_{s,t} + \pmb{g}_s,}
-#'
-#' and when `joint` is `TRUE`,
-#'
-#' \deqn{\pmb{\beta}_t = \pmb{F} \pmb{\alpha}_t + \pmb{g},}
-#'
-#' where
-#' - \eqn{\pmb{\beta}} is an interaction involving age, sex/gender, and time;
-#' - \eqn{\pmb{\beta}_{s,t}} is a subvector of \eqn{\pmb{\beta}},
-#'   holding values for sex/gender \eqn{s} in period \eqn{t};
-#' - \eqn{\pmb{\beta}_t} is a subvector of \eqn{\pmb{\beta}},
-#'   holding values for all combinations of age and sex/gender
-#'   in period \eqn{t};
-#' - \eqn{J} is the number of elements in \eqn{\pmb{\beta}_t};
-#' - \eqn{S} is the number of sexes/genders;
-#' - \eqn{n} is `n_comp`;
-#' - \eqn{\pmb{F}_s} is a known \eqn{(J/S) \times n} matrix, specific
-#'   to sex/gender \eqn{s};
-#' - \eqn{\pmb{g}_s} is a known vector with \eqn{J/S} elements,
-#'   specific to sex/gender \eqn{s};
-#' - \eqn{\pmb{F}} is a known \eqn{J \times n} matrix, with values
-#'   for all combinations of age and sex/gender; and
-#' - \eqn{\pmb{g}} is a known vector with \eqn{J} elements, with values
-#'   for all combinations of age and sex/gender.
-#'
-#' **Case 2: Interaction involving age, sex/gender, time, and one or more other variables**
-#'
-#' When `joint` is `FALSE`,
-#' 
-#' \deqn{\pmb{\beta}_{u,s,t} = \pmb{F}_s \pmb{\alpha}_{u,s,t} + \pmb{g}_s,}
-#'
-#' and when `joint` is `TRUE`,
-#'
-#' \deqn{\pmb{\beta}_{u,t} = \pmb{F} \pmb{\alpha}_{u,t} + \pmb{g},}
-#'
-#' where
-#' - \eqn{\pmb{\beta}} is an interaction involving sex/gender;
-#' - \eqn{\pmb{\beta}_{u,s,t}} is a subvector of \eqn{\pmb{\beta}},
-#'   holding values for sex/gender \eqn{s}, for the \eqn{u}th
-#'   combination of the other variables, in period \eqn{t};
-#' - \eqn{\pmb{\beta}_{u,t}} is a subvector of \eqn{\pmb{\beta}},
-#'   holding values for all combinatinos of age and sex/gender,
-#'   for the \eqn{u}th combination of the other variables,
-#'   in period \eqn{t};
-#' - \eqn{V} is the number of elements in \eqn{\pmb{\beta}_{u,t}};
-#' - \eqn{S} is the number of sexes/genders;
-#' - \eqn{n} is `n_comp`;
-#' - \eqn{\pmb{F}_s} is a known \eqn{(V/S) \times n} matrix, specific
-#'   to sex/gender \eqn{s};
-#' - \eqn{\pmb{g}_s} is a known vector with \eqn{V/S} elements,
-#'   specific to sex/gender \eqn{s};
-#' - \eqn{\pmb{F}} is a known \eqn{V \times n} matrix, with values
-#'   for all combinations of age and sex/gender; and
-#' - \eqn{\pmb{g}} is a known vector with \eqn{V} elements, with values
-#'   for all commbinations of age and sex/gender.
-#'
-#' **Priors for coefficients**
-#'
-#' With `SVDS_AR()`, the prior for the \eqn{k}th elements of
-#' \eqn{\pmb{\alpha}_{s,t}} or \eqn{\pmb{\alpha}_{u,s,t}} is
-#'
-#' \deqn{\alpha_{k,s,t} = \phi_1 \alpha_{k,s,t-1} + \cdots + \phi_n \beta_{k,s,t-n} + \epsilon_{k,s,t}}
-#'
-#' or
-#'
-#' \deqn{\alpha_{k,u,s,t} = \phi_1 \alpha_{k,u,s,t-1} + \cdots + \phi_n \beta_{k,u,s,t-n} + \epsilon_{k,u,t}};
-#'
-#' with `SVDS_AR1()`, it is
-#'
-#' \deqn{\alpha_{k,s,t} = \phi \alpha_{k,s,t-1} + \epsilon_{k,s,t}}
-#'
-#' or
-#'
-#' \deqn{\alpha_{k,u,s,t} = \phi \alpha_{k,u,s,t-1} + \epsilon_{k,u,s,t}};
-#'
-#' with `SVDS_RW()`, it is
-#'
-#' \deqn{\alpha_{k,s,t} = \alpha_{k,s,t-1} + \epsilon_{k,s,t}}
-#'
-#' or
-#'
-#' \deqn{\alpha_{k,u,s,t} = \alpha_{k,u,s,t-1} + \epsilon_{k,u,s,t}};
-#' 
-#' and with `SVDS_RW2()`, it is
-#'
-#' \deqn{\alpha_{k,s,t} = 2 \alpha_{k,s,t-1} - \alpha_{k,s,t-2} + \epsilon_{k,s,t}}
-#'
-#' or
-#'
-#' \deqn{\alpha_{k,u,s,t} = 2 \alpha_{k,u,s,t-1} - \alpha_{k,u,s,t-2} + \epsilon_{k,u,s,t}}.
-#'
-#' For more on the \eqn{\phi} and \eqn{\epsilon}, see [AR()], [AR1()],
-#' [RW()], and [RW2()].
-#' 
-#' @inheritSection SVD Scaled SVDs of demographic databases in bage
-#'
-#' @inheritParams SVD
-#' @param n_comp Number of components from scaled SVD
-#' to use in modelling. The default is half
-#' the number of components of `ssvd`.
-#' @param joint Whether to use combined or
-#' separate SVDs. Default is `FALSE`.
-#' See below for details.
-#' @param n_coef Number of AR coefficients in `SVD_RW()`.
-#' @param s Scale for standard deviations terms.
-#' @param min,max Minimum and maximum values
-#' for autocorrelation coefficient in `SVD_AR()`.
-#' Defaults are `0.8` and `0.98`.
-#'
-#' @returns An object of class `"bage_prior_svd_ar"`,
-#' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.
-#'
-#' @seealso
-#' - [SVDS()] SVD prior for non-time-varying age-sex or age-gender profile
-#' - [SVD_AR()], [SVD_AR1()], [SVD_RW()], [SVD_RW2()] SVD priors for
-#'   for time-varying age profiles with no sex/gender dimension;
-#' - [RW()] Smoothing via random walk
-#' - [RW2()] Smoothing via random walk with drift
-#' - [Sp()] Smoothing via splines
-#' - [priors] Overview of priors implemented in **bage**
-#' - [set_prior()] Specify prior for intercept,
-#'   main effect, or interaction
-#'
-#' @references
-#' - For details of the construction of
-#'   scaled SVDS see the vignette
-#'   [here](https://bayesiandemography.github.io/bage/articles/vig4_svd.html).
-#'
-#' @examples
-#' SVDS_AR1(HMD)
-#' SVDS_RW(HMD, n_comp = 3)
-#' @export
-SVDS_AR <- function(ssvd, n_comp = NULL, joint = FALSE, n_coef = 2, s = 1) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp_svd(n_comp = n_comp,
-                       nm_n_comp = "n_comp",
-                       ssvd = ssvd)
-  check_flag(x = joint, nm_x = "joint")
-  check_n(n = n_coef,
-          nm_n = "n_coef",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
-  check_scale(x = s,
-              nm_x = "s",
-              zero_ok = FALSE)
-  n_coef <- as.integer(n_coef)
-  scale <- as.double(s)
-  new_bage_prior_svd_ar(ssvd = ssvd,
-                        nm_ssvd = nm_ssvd,
-                        n_comp = n_comp,
-                        joint = joint,
-                        n_coef = n_coef,
-                        min = -1,
-                        max = 1,
-                        scale = scale,
-                        nm = "SVDS_AR")
-}
-
-#' @rdname SVDS_AR
-#' @export
-SVDS_AR1 <- function(ssvd, n_comp = NULL, joint = FALSE, min = 0.8, max = 0.98, s = 1) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp_svd(n_comp = n_comp,
-                       nm_n_comp = "n_comp",
-                       ssvd = ssvd)
-  check_flag(x = joint, nm_x = "joint")
-  check_min_max_ar(min = min, max = max)
-  check_scale(s, nm_x = "s", zero_ok = FALSE)
-  min <- as.double(min)
-  max <- as.double(max)
-  scale <- as.double(s)
-  new_bage_prior_svd_ar(ssvd = ssvd,
-                        nm_ssvd = nm_ssvd,
-                        n_comp = n_comp,
-                        joint = joint,
-                        n_coef = 1L,
-                        min = min,
-                        max = max,
-                        scale = scale,
-                        nm = "SVDS_AR1")
-}
-
-#' @rdname SVDS_AR
-#' @export
-SVDS_RW <- function(ssvd, n_comp = NULL, joint = FALSE, s = 1) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp_svd(n_comp = n_comp,
-                       nm_n_comp = "n_comp",
-                       ssvd = ssvd)
-  check_flag(x = joint, nm_x = "joint")
-  check_scale(s, nm_x = "s", zero_ok = FALSE)
-  scale <- as.double(s)
-  new_bage_prior_svd_rw(ssvd = ssvd,
-                        nm_ssvd = nm_ssvd,
-                        n_comp = n_comp,
-                        joint = joint,
-                        scale = scale)
-}
-
-#' @rdname SVDS_AR
-#' @export
-SVDS_RW2 <- function(ssvd, n_comp = NULL, joint = FALSE, s = 1) {
-  nm_ssvd <- deparse1(substitute(ssvd))
-  check_is_ssvd(x = ssvd, nm_x = "ssvd")
-  check_ssvd_has_sexgender(x = ssvd, nm_x = "ssvd")
-  n_comp <- n_comp_svd(n_comp = n_comp,
-                       nm_n_comp = "n_comp",
-                       ssvd = ssvd)
-  check_flag(x = joint, nm_x = "joint")
-  check_scale(s, nm_x = "s", zero_ok = FALSE)
-  scale <- as.double(s)
-  new_bage_prior_svd_rw2(ssvd = ssvd,
-                         nm_ssvd = nm_ssvd,
-                         n_comp = n_comp,
-                         joint = joint,
+                         indep = indep,
                          scale = scale)
 }
 
@@ -1947,19 +1632,19 @@ new_bage_prior_spline <- function(n_comp, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_svd <- function(ssvd, nm_ssvd, n_comp, joint) {
+new_bage_prior_svd <- function(ssvd, nm_ssvd, n_comp, indep) {
     ans <- list(i_prior = 9L,
                 const = 0, ## not used
                 specific = list(ssvd = ssvd,
                                 nm_ssvd = nm_ssvd,
                                 n_comp = n_comp,
-                                joint = joint))
+                                indep = indep))
     class(ans) <- c("bage_prior_svd", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, joint,
+new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, indep,
                                   n_coef, scale, min, max, nm) {
   shape1 <- 2.0
   shape2 <- 2.0
@@ -1972,7 +1657,7 @@ new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, joint,
               specific = list(ssvd = ssvd,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
-                              joint = joint,
+                              indep = indep,
                               n_coef = n_coef,
                               shape1 = shape1,
                               shape2 = shape2,
@@ -1985,28 +1670,28 @@ new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, joint,
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_rw <- function(ssvd, nm_ssvd, n_comp, joint,
+new_bage_prior_svd_rw <- function(ssvd, nm_ssvd, n_comp, indep,
                                   scale) {
   ans <- list(i_prior = 15L,
               const = c(scale = scale),
               specific = list(ssvd = ssvd,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
-                              joint = joint,
+                              indep = indep,
                               scale = scale))
   class(ans) <- c("bage_prior_svd_rw", "bage_prior")
   ans
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_rw2 <- function(ssvd, nm_ssvd, n_comp, joint,
+new_bage_prior_svd_rw2 <- function(ssvd, nm_ssvd, n_comp, indep,
                                    scale) {
   ans <- list(i_prior = 16L,
               const = c(scale = scale),
               specific = list(ssvd = ssvd,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
-                              joint = joint,
+                              indep = indep,
                               scale = scale))
   class(ans) <- c("bage_prior_svd_rw2", "bage_prior")
   ans

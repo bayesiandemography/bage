@@ -379,7 +379,7 @@ set_var_time <- function(mod, name) {
 #'
 #' Can include resetting priors.
 #' Called by user-visible functions
-#' 'set_var_age', 'sex_var_sexgender',
+#' 'set_var_age', 'set_var_sexgender',
 #' and 'set_var_time'.
 #' 
 #' @param mod A `bage_mod` object.

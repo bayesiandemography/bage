@@ -154,13 +154,18 @@ test_that("'SVD' works with valid inputs", {
     expect_identical(SVD(HMD),
                      new_bage_prior_svd(HMD,
                                         nm_ssvd = "HMD",
-                                        joint = NULL,
-                                        n_comp = 5L))
-    expect_identical(SVD(HMD, n_comp = 3),
+                                        indep = TRUE,
+                                        n_comp = 3L))
+    expect_identical(SVD(HMD, n_comp = 2),
                      new_bage_prior_svd(HMD,
                                         nm_ssvd = "HMD",
-                                        joint = NULL,
-                                        n_comp = 3L))
+                                        indep = TRUE,
+                                        n_comp = 2L))
+    expect_identical(SVD(HMD, n_comp = 4, indep = FALSE),
+                     new_bage_prior_svd(HMD,
+                                        nm_ssvd = "HMD",
+                                        indep = FALSE,
+                                        n_comp = 4L))
 })
 
 test_that("'SVD' throws correct error when n_comp is too high", {
@@ -168,42 +173,22 @@ test_that("'SVD' throws correct error when n_comp is too high", {
                "`n_comp` larger than number of components of `ssvd`.")
 })
 
-test_that("'SVDS' works with valid inputs", {
-    expect_identical(SVDS(HMD),
-                     new_bage_prior_svd(HMD,
-                                        nm_ssvd = "HMD",
-                                        joint = FALSE,
-                                        n_comp = 5L))
-    expect_identical(SVDS(HMD, joint = TRUE, n_comp = 3),
-                     new_bage_prior_svd(HMD,
-                                        nm_ssvd = "HMD",
-                                        joint = TRUE,
-                                        n_comp = 3L))
-})
-
-test_that("'SVDS' throws correct error when ssvd has no sex diemnsion", {
-  ssvd <- sim_ssvd()
-  ssvd$data <- ssvd$data[1,]
-  expect_error(SVDS(ssvd),
-               "`ssvd` does not have a sex/gender dimension.")
-})
-
 test_that("'SVD_AR' works with valid inputs", {
   expect_identical(SVD_AR(HMD, n_coef = 3),
                    new_bage_prior_svd_ar(HMD,
                                          nm_ssvd = "HMD",
-                                         n_comp = 5L,
-                                         joint = NULL,
+                                         n_comp = 3L,
+                                         indep = TRUE,
                                          n_coef = 3L,
                                          scale = 1,
                                          min = -1,
                                          max = 1,
                                          nm = "SVD_AR"))
-  expect_identical(SVD_AR(LFP, n_comp = 2, n_coef = 1, s = 0.01),
+  expect_identical(SVD_AR(LFP, n_comp = 2, indep = FALSE, n_coef = 1, s = 0.01),
                    new_bage_prior_svd_ar(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
-                                         joint = NULL,
+                                         indep = FALSE,
                                          n_coef = 1L,
                                          min = -1,
                                          max = 1,
@@ -215,8 +200,8 @@ test_that("'SVD_AR1' works with valid inputs", {
   expect_identical(SVD_AR1(HMD),
                    new_bage_prior_svd_ar(HMD,
                                          nm_ssvd = "HMD",
-                                         n_comp = 5L,
-                                         joint = NULL,
+                                         n_comp = 3L,
+                                         indep = TRUE,
                                          n_coef = 1L,
                                          scale = 1,
                                          min = 0.8,
@@ -226,7 +211,7 @@ test_that("'SVD_AR1' works with valid inputs", {
                    new_bage_prior_svd_ar(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
-                                         joint = NULL,
+                                         indep = TRUE,
                                          n_coef = 1L,
                                          min = 0.8,
                                          max = 0.9,
@@ -238,14 +223,14 @@ test_that("'SVD_RW' works with valid inputs", {
   expect_identical(SVD_RW(HMD),
                    new_bage_prior_svd_rw(HMD,
                                          nm_ssvd = "HMD",
-                                         n_comp = 5L,
-                                         joint = NULL,
+                                         n_comp = 3L,
+                                         indep = TRUE,
                                          scale = 1))
-  expect_identical(SVD_RW(LFP, n_comp = 2, s = 0.01),
+  expect_identical(SVD_RW(LFP, n_comp = 2, s = 0.01, indep = F),
                    new_bage_prior_svd_rw(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
-                                         joint = NULL,
+                                         indep = FALSE,
                                          scale = 0.01))
 })
 
@@ -253,79 +238,15 @@ test_that("'SVD_RW2' works with valid inputs", {
   expect_identical(SVD_RW2(HMD),
                    new_bage_prior_svd_rw2(HMD,
                                           nm_ssvd = "HMD",
-                                          n_comp = 5L,
-                                          joint = NULL,
+                                          n_comp = 3L,
+                                          indep = TRUE,
                                           scale = 1))
   expect_identical(SVD_RW2(LFP, n_comp = 2, s = 0.01),
                    new_bage_prior_svd_rw2(LFP,
                                           nm_ssvd = "LFP",
                                           n_comp = 2L,
-                                          joint = NULL,
+                                          indep = TRUE,
                                           scale = 0.01))
-})
-
-test_that("'SVDS_AR' works with valid inputs", {
-  expect_identical(SVDS_AR(HMD, n_coef = 3),
-                   new_bage_prior_svd_ar(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 5L,
-                                         joint = FALSE,
-                                         n_coef = 3L,
-                                         scale = 1,
-                                         min = -1,
-                                         max = 1,
-                                         nm = "SVDS_AR"))
-  expect_identical(SVDS_AR(HMD, n_comp = 2, n_coef = 1, s = 0.01, joint = TRUE),
-                   new_bage_prior_svd_ar(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 2L,
-                                         joint = TRUE,
-                                         n_coef = 1L,
-                                         min = -1,
-                                         max = 1,
-                                         scale = 0.01,
-                                         nm = "SVDS_AR"))
-})
-
-test_that("'SVDS_AR1' works with valid inputs", {
-  expect_identical(SVDS_AR1(HMD, n_comp = 3),
-                   new_bage_prior_svd_ar(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 3L,
-                                         joint = FALSE,
-                                         n_coef = 1L,
-                                         scale = 1,
-                                         min = 0.8,
-                                         max = 0.98,
-                                         nm = "SVDS_AR1"))
-  expect_identical(SVDS_AR1(HMD, n_comp = 2, s = 0.01, max = 0.85, joint = TRUE),
-                   new_bage_prior_svd_ar(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 2L,
-                                         joint = TRUE,
-                                         n_coef = 1L,
-                                         min = 0.8,
-                                         max = 0.85,
-                                         scale = 0.01,
-                                         nm = "SVDS_AR1"))
-})
-
-test_that("'SVDS_RW' works with valid inputs", {
-  expect_identical(SVDS_RW(HMD, n_comp = 3),
-                   new_bage_prior_svd_rw(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 3L,
-                                         joint = FALSE,
-                                         scale = 1))
-})
-
-test_that("'SVDS_RW2' works with valid inputs", {
-  expect_identical(SVDS_RW2(HMD, n_comp = 3),
-                   new_bage_prior_svd_rw2(HMD,
-                                          nm_ssvd = "HMD",
-                                          n_comp = 3L,
-                                          joint = FALSE,
-                                          scale = 1))
 })
 
 
@@ -565,7 +486,7 @@ test_that("'new_bage_prior_svd' works", {
   obj <- new_bage_prior_svd(HMD,
                             nm_ssvd = "HMD",
                             n_comp = 3L,
-                            joint = NULL)
+                            indep = TRUE)
   expect_s3_class(obj, "bage_prior_svd")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 9L)
@@ -574,11 +495,11 @@ test_that("'new_bage_prior_svd' works", {
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
-                        joint = NULL))
+                        indep = TRUE))
   obj <- new_bage_prior_svd(HMD,
                             nm_ssvd = "HMD",
                             n_comp = 3L,
-                            joint = TRUE)
+                            indep = FALSE)
   expect_s3_class(obj, "bage_prior_svd")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 9L)
@@ -587,14 +508,14 @@ test_that("'new_bage_prior_svd' works", {
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
-                        joint = TRUE))
+                        indep = FALSE))
 })
 
 test_that("'new_bage_prior_svd_ar' works", {
   obj <- new_bage_prior_svd_ar(HMD,
                                nm_ssvd = "HMD",
                                n_comp = 3L,
-                               joint = NULL,
+                               indep = TRUE,
                                n_coef = 2L,
                                scale = 1,
                                min = -1,
@@ -613,7 +534,7 @@ test_that("'new_bage_prior_svd_ar' works", {
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
-                        joint = NULL,
+                        indep = TRUE,
                         n_coef = 2L,
                         shape1 = 2,
                         shape2 = 2,
@@ -624,12 +545,12 @@ test_that("'new_bage_prior_svd_ar' works", {
   obj <- new_bage_prior_svd_ar(HMD,
                                nm_ssvd = "HMD",
                                n_comp = 5L,
-                               joint = TRUE,
+                               indep = FALSE,
                                n_coef = 1L,
                                scale = 0.5,
                                min = 0.8,
                                max = 0.98,
-                               nm = "SVDS_AR1")
+                               nm = "SVD_AR1")
   expect_s3_class(obj, "bage_prior_svd_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 14L)
@@ -643,21 +564,21 @@ test_that("'new_bage_prior_svd_ar' works", {
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 5L,
-                        joint = TRUE,
+                        indep = FALSE,
                         n_coef = 1L,
                         shape1 = 2,
                         shape2 = 2,
                         min = 0.8,
                         max = 0.98,
                         scale = 0.5,
-                        nm = "SVDS_AR1"))
+                        nm = "SVD_AR1"))
 })
 
 test_that("'new_bage_prior_svd_rw' works", {
   obj <- new_bage_prior_svd_rw(HMD,
                                nm_ssvd = "HMD",
                                n_comp = 3L,
-                               joint = NULL,
+                               indep = TRUE,
                                scale = 1)
   expect_s3_class(obj, "bage_prior_svd_rw")
   expect_s3_class(obj, "bage_prior")
@@ -668,7 +589,7 @@ test_that("'new_bage_prior_svd_rw' works", {
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
-                        joint = NULL,
+                        indep = TRUE,
                         scale = 1))
 })
 
@@ -676,7 +597,7 @@ test_that("'new_bage_prior_svd_rw2' works", {
   obj <- new_bage_prior_svd_rw2(HMD,
                                 nm_ssvd = "HMD",
                                 n_comp = 3L,
-                                joint = NULL,
+                                indep = TRUE,
                                 scale = 1)
   expect_s3_class(obj, "bage_prior_svd_rw2")
   expect_s3_class(obj, "bage_prior")
@@ -687,7 +608,7 @@ test_that("'new_bage_prior_svd_rw2' works", {
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
-                        joint = NULL,
+                        indep = TRUE,
                         scale = 1))
 })
 

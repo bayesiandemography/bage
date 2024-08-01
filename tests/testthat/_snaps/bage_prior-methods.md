@@ -146,27 +146,31 @@
     Output
         SVD(HMD) 
           ssvd: HMD
-        n_comp: 5
+        n_comp: 3
 
 ---
 
     Code
-      print(SVDS(HMD))
+      print(SVD_AR(HMD))
     Output
-        SVDS(HMD) 
+        SVD_AR(HMD) 
           ssvd: HMD
-        n_comp: 5
-         joint: FALSE
+        n_comp: 3
+        n_coef: 2
+           min: -1
+           max: 1
+             s: 1
+         along: NULL
 
 ---
 
     Code
-      print(SVDS_AR(HMD))
+      print(SVD_AR(HMD, indep = FALSE))
     Output
-        SVDS_AR(HMD) 
+        SVD_AR(HMD,indep=FALSE) 
           ssvd: HMD
-        n_comp: 5
-         joint: FALSE
+        n_comp: 3
+         indep: FALSE
         n_coef: 2
            min: -1
            max: 1
@@ -180,7 +184,7 @@
     Output
         SVD_AR1(HMD) 
           ssvd: HMD
-        n_comp: 5
+        n_comp: 3
            min: 0.8
            max: 0.98
              s: 1
@@ -189,12 +193,36 @@
 ---
 
     Code
-      print(SVDS_RW(HMD))
+      print(SVD_AR1(HMD, indep = FALSE))
     Output
-        SVDS_RW(HMD) 
+        SVD_AR1(HMD,indep=FALSE) 
           ssvd: HMD
-        n_comp: 5
-         joint: FALSE
+        n_comp: 3
+         indep: FALSE
+           min: 0.8
+           max: 0.98
+             s: 1
+         along: NULL
+
+---
+
+    Code
+      print(SVD_RW(HMD))
+    Output
+        SVD_RW(HMD) 
+          ssvd: HMD
+        n_comp: 3
+             s: 1
+
+---
+
+    Code
+      print(SVD_RW(HMD, indep = FALSE))
+    Output
+        SVD_RW(HMD,indep=FALSE) 
+          ssvd: HMD
+        n_comp: 3
+         indep: FALSE
              s: 1
 
 ---
@@ -204,17 +232,17 @@
     Output
         SVD_RW2(HMD) 
           ssvd: HMD
-        n_comp: 5
+        n_comp: 3
              s: 1
 
 ---
 
     Code
-      print(SVDS_RW2(HMD))
+      print(SVD_RW2(HMD, indep = FALSE))
     Output
-        SVDS_RW2(HMD) 
+        SVD_RW2(HMD,indep=FALSE) 
           ssvd: HMD
-        n_comp: 5
-         joint: FALSE
+        n_comp: 3
+         indep: FALSE
              s: 1
 
