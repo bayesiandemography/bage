@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -204,7 +204,7 @@ where</p>
 <li>otherwise, if <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> is an age or time main effect, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a random walk prior (Section <a href="#sec:pr-rw">4.3</a>);</li>
 <li>otherwise, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a normal prior (Section <a href="#sec:pr-norm">4.1</a>)</li>
 </ul>
-<p>The intercept term <span class="math inline">\(\pmb{\beta}^{(0)}\)</span> can only be given a fixed-normal prior (Section <a href="#sec:pr-fnorm">4.2</a>) or a Known prior (Section <a href="#sec:pr-known">4.14</a>).</p>
+<p>The intercept term <span class="math inline">\(\pmb{\beta}^{(0)}\)</span> can only be given a fixed-normal prior (Section <a href="#sec:pr-fnorm">4.2</a>) or a Known prior (Section <a href="#sec:pr-known">4.17</a>).</p>
 <div class="section level3" number="4.1">
 <h3 id="sec:pr-norm">
 <span class="header-section-number">4.1</span> Normal<a class="anchor" aria-label="anchor" href="#sec:pr-norm"></a>
@@ -812,11 +812,26 @@ where <span class="math inline">\(\pmb{\beta}_u^{(m)}\)</span> is the subvector 
 <h4 id="model-11">
 <span class="header-section-number">4.12.1</span> Model<a class="anchor" aria-label="anchor" href="#model-11"></a>
 </h4>
-<p><span class="math display">\[\begin{align}
-  \pmb{\beta}_u^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m \\
-  \alpha_{uk}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m
-\end{align}\]</span>
-where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for females and males combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">10.2</a>. The construction involves centering and scaling, which allows us to use a simple prior for <span class="math inline">\(\pmb{\alpha}^{(m)}\)</span>.</p>
+<p><strong>Age but no sex or gender</strong></p>
+<p>Let <span class="math inline">\(\pmb{\beta}_u\)</span> be the age effect for the <span class="math inline">\(u\)</span>th combination of the ‘by’ variables. With an SVD prior,
+<span class="math display">\[\begin{equation}
+  \pmb{\beta}_u^{(m)} = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
+\end{equation}\]</span>
+where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">10.2</a>. The centering and scaling used in the construction allow use of the simple prior
+<span class="math display">\[\begin{equation}
+  \alpha_{u,k}^{(m)} \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m.
+\end{equation}\]</span></p>
+<p><strong>Joint model of age and sex/gender</strong></p>
+<p>In the joint model, vector <span class="math inline">\(\pmb{\beta}_u\)</span> represents the interaction between age and sex/gender for the <span class="math inline">\(u\)</span>th combination of the ‘by’ variables. Matrix <span class="math inline">\(\pmb{F}^{(m)}\)</span> and vector <span class="math inline">\(\pmb{g}^{(m)}\)</span> are calculated from data that separate sexes/genders. The model is otherwise unchanged.</p>
+<p><strong>Independent models for each sex/gender</strong></p>
+<p>In the independent model, vector <span class="math inline">\(\pmb{\beta}_{s,u}\)</span> represents age effects for sex/gender <span class="math inline">\(s\)</span> and the <span class="math inline">\(u\)</span>th combination of the ‘by’ variables, and we have
+<span class="math display">\[\begin{equation}
+  \pmb{\beta}_{s,u}^{(m)} = \pmb{F}_s^{(m)} \pmb{\alpha}_{s,u}^{(m)} + \pmb{g}_s^{(m)}, \quad s = 1, \cdots, S; \quad u = 1, \cdots, U_m
+\end{equation}\]</span>
+Matrix <span class="math inline">\(\pmb{F}_s^{(m)}\)</span> and vector <span class="math inline">\(\pmb{g}_s^{(m)}\)</span> are calculated from data that separate sexes/genders. The prior is
+<span class="math display">\[\begin{equation}
+  \alpha_{s,u,k}^{(m)} \sim \text{N}(0, 1), \quad s = 1, \cdots, S; \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m.
+\end{equation}\]</span></p>
 </div>
 <div class="section level4" number="4.12.2">
 <h4 id="contribution-to-posterior-density-11">
@@ -824,55 +839,129 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 </h4>
 <p><span class="math display">\[\begin{equation}
   \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right)
-\end{equation}\]</span></p>
+\end{equation}\]</span>
+for the age-only and joint models, and
+<span class="math display">\[\begin{equation}
+  \prod_{s=1}^S \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{s,u,k}^{(m)} \mid 0, 1 \right)
+\end{equation}\]</span>
+for the independent model</p>
 </div>
 <div class="section level4" number="4.12.3">
 <h4 id="forecasting-11">
 <span class="header-section-number">4.12.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-11"></a>
 </h4>
-<p>Main effects with a SVD prior cannot be forecasted.</p>
+<p>Terms with an SVD prior cannot be forecasted.</p>
 </div>
 <div class="section level4" number="4.12.4">
 <h4 id="code-11">
 <span class="header-section-number">4.12.4</span> Code<a class="anchor" aria-label="anchor" href="#code-11"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">ssvd</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">ssvd</span>, n_comp <span class="op">=</span> <span class="cn">NULL</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
+<p>where
+- <code>ssvd</code> is an object containing <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>
+- <code>n_comp</code> is the number of components to be used (which defaults to <code>ceiling(n/2)</code>, where <code>n</code> is the number of components in <code>ssvd</code>
+- <code>indep</code> determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
 </div>
 </div>
 <div class="section level3" number="4.13">
-<h3 id="sec:pr-svd2">
-<span class="header-section-number">4.13</span> SVDS<a class="anchor" aria-label="anchor" href="#sec:pr-svd2"></a>
+<h3 id="sec:pr-svd-rw">
+<span class="header-section-number">4.13</span> SVD_RW<a class="anchor" aria-label="anchor" href="#sec:pr-svd-rw"></a>
 </h3>
-<p>The SVDS is a two-sex extension of the basic SVD model. SVDS has two versions. The first is identical to the basic SVD model, except that different, sex-specific values for <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> are used for females and males. The second treats the Cartesian product of age and sex dimensions as if it was a single dimension. Values for <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> estimated from age-sex-specific rates. Each is twice as large as the basic SVD versions of <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>.</p>
-<p>The code is</p>
-<pre><code><span><span class="fu"><a href="../reference/SVDS.html">SVDS</a></span><span class="op">(</span><span class="va">ssvd</span>, joint <span class="op">=</span> <span class="cn">FALSE</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
-<p>When <code>joint</code> is FALSE, the first version is used, and when <code>joint</code> is TRUE the second version is used.</p>
+<div class="section level4" number="4.13.1">
+<h4 id="model-12">
+<span class="header-section-number">4.13.1</span> Model<a class="anchor" aria-label="anchor" href="#model-12"></a>
+</h4>
+<p>The <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> prior is identical to the <code><a href="../reference/SVD.html">SVD()</a></code> prior except that the coefficients evolve over time, following indepenent random walks. For instance, in the combined-sex/gender and joint models,</p>
+<p><span class="math display">\[\begin{align}
+  \pmb{\beta}_{u,t}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m; \quad t = 1, \cdots, T \\
+  \alpha_{u,k,1}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m \\
+  \alpha_{u,k,t}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,t-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m; t = 2, \cdots, T \\
+  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="4.13.2">
+<h4 id="contribution-to-posterior-density-12">
+<span class="header-section-number">4.13.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-12"></a>
+</h4>
+<p>In the combined-sex/gender and joint models,</p>
+<p><span class="math display">\[\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,k,t}^{(m)} \mid \alpha_{u,k,t-1}^{(m)}, \tau_m^2 \right),
+\end{equation}\]</span></p>
+<p>and in the independent model,</p>
+<p><span class="math display">\[\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right)
+\end{equation}\]</span></p>
+</div>
+<div class="section level4" number="4.13.3">
+<h4 id="simulation-4">
+<span class="header-section-number">4.13.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-4"></a>
+</h4>
+<p>TODO - write</p>
+</div>
+<div class="section level4" number="4.13.4">
+<h4 id="forecasting-12">
+<span class="header-section-number">4.13.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
+</h4>
+<p><span class="math display">\[\begin{align}
+  \alpha_{u,k,T+h}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m \\
+  \pmb{\beta}_{u,T+h}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
+\end{align}\]</span></p>
+</div>
+<div class="section level4" number="4.13.5">
+<h4 id="code-12">
+<span class="header-section-number">4.13.5</span> Code<a class="anchor" aria-label="anchor" href="#code-12"></a>
+</h4>
+<pre><code><span><span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">ssvd</span>, n_comp <span class="op">=</span> <span class="cn">NULL</span>, s <span class="op">=</span> <span class="fl">1</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
+<p>where
+- <code>ssvd</code> is an object containing <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>
+- <code>n_comp</code> is <span class="math inline">\(K_m\)</span> (which defaults to <code>ceiling(n/2)</code>, where <code>n</code> is the number of components in <code>ssvd</code>
+- <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
+- <code>indep</code> determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
+</div>
 </div>
 <div class="section level3" number="4.14">
-<h3 id="sec:pr-known">
-<span class="header-section-number">4.14</span> Known<a class="anchor" aria-label="anchor" href="#sec:pr-known"></a>
+<h3 id="sec:pr-svd-rw2">
+<span class="header-section-number">4.14</span> SVD_RW2<a class="anchor" aria-label="anchor" href="#sec:pr-svd-rw2"></a>
 </h3>
-<div class="section level4" number="4.14.1">
-<h4 id="model-12">
-<span class="header-section-number">4.14.1</span> Model<a class="anchor" aria-label="anchor" href="#model-12"></a>
+<p>Same structure as <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>. TODO - write details.</p>
+</div>
+<div class="section level3" number="4.15">
+<h3 id="sec:pr-svd-ar">
+<span class="header-section-number">4.15</span> SVD_AR<a class="anchor" aria-label="anchor" href="#sec:pr-svd-ar"></a>
+</h3>
+<p>Same structure as <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>. TODO - write details.</p>
+</div>
+<div class="section level3" number="4.16">
+<h3 id="sec:pr-svd-ar1">
+<span class="header-section-number">4.16</span> SVD_AR1<a class="anchor" aria-label="anchor" href="#sec:pr-svd-ar1"></a>
+</h3>
+<p>Same structure as <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>. TODO - write details.</p>
+</div>
+<div class="section level3" number="4.17">
+<h3 id="sec:pr-known">
+<span class="header-section-number">4.17</span> Known<a class="anchor" aria-label="anchor" href="#sec:pr-known"></a>
+</h3>
+<div class="section level4" number="4.17.1">
+<h4 id="model-13">
+<span class="header-section-number">4.17.1</span> Model<a class="anchor" aria-label="anchor" href="#model-13"></a>
 </h4>
 <p>Elements of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are treated as known with certainty.</p>
 </div>
-<div class="section level4" number="4.14.2">
-<h4 id="contribution-to-posterior-density-12">
-<span class="header-section-number">4.14.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-12"></a>
+<div class="section level4" number="4.17.2">
+<h4 id="contribution-to-posterior-density-13">
+<span class="header-section-number">4.17.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-13"></a>
 </h4>
 <p>Known priors make no contribution to the posterior density.</p>
 </div>
-<div class="section level4" number="4.14.3">
-<h4 id="forecasting-12">
-<span class="header-section-number">4.14.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
+<div class="section level4" number="4.17.3">
+<h4 id="forecasting-13">
+<span class="header-section-number">4.17.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-13"></a>
 </h4>
 <p>Main effects with a known prior cannot be forecasted.</p>
 </div>
-<div class="section level4" number="4.14.4">
-<h4 id="code-12">
-<span class="header-section-number">4.14.4</span> Code<a class="anchor" aria-label="anchor" href="#code-12"></a>
+<div class="section level4" number="4.17.4">
+<h4 id="code-13">
+<span class="header-section-number">4.17.4</span> Code<a class="anchor" aria-label="anchor" href="#code-13"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/Known.html">Known</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -887,8 +976,8 @@ where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math 
 <span class="header-section-number">5</span> Covariates<a class="anchor" aria-label="anchor" href="#sec:pr-cov"></a>
 </h2>
 <div class="section level3" number="5.1">
-<h3 id="model-13">
-<span class="header-section-number">5.1</span> Model<a class="anchor" aria-label="anchor" href="#model-13"></a>
+<h3 id="model-14">
+<span class="header-section-number">5.1</span> Model<a class="anchor" aria-label="anchor" href="#model-14"></a>
 </h3>
 <p>The columns of matrix <span class="math inline">\(\pmb{Z}\)</span> are assumed to be standardised to have mean 0 and standard deviation 1. <span class="math inline">\(\pmb{Z}\)</span> does not contain a column for an intercept.</p>
 <p>We implement two priors for coefficient vector <span class="math inline">\(\pmb{\zeta}\)</span>. The first prior is designed for the case where <span class="math inline">\(P\)</span>, the number of colums of <span class="math inline">\(\pmb{Z}\)</span>, is small, and most <span class="math inline">\(\zeta_p\)</span> are likely to distinguishable from zero. The second prior is designed for the case where <span class="math inline">\(P\)</span> is large, and only a few <span class="math inline">\(\zeta_p\)</span> are likely to be distinguishable from zero.</p>
@@ -944,20 +1033,20 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 </div>
 </div>
 <div class="section level3" number="5.2">
-<h3 id="contribution-to-posterior-density-13">
-<span class="header-section-number">5.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-13"></a>
+<h3 id="contribution-to-posterior-density-14">
+<span class="header-section-number">5.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-14"></a>
 </h3>
 <p>TODO - write</p>
 </div>
 <div class="section level3" number="5.3">
-<h3 id="forecasting-13">
-<span class="header-section-number">5.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-13"></a>
+<h3 id="forecasting-14">
+<span class="header-section-number">5.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-14"></a>
 </h3>
 <p>TODO - write</p>
 </div>
 <div class="section level3" number="5.4">
-<h3 id="code-13">
-<span class="header-section-number">5.4</span> Code<a class="anchor" aria-label="anchor" href="#code-13"></a>
+<h3 id="code-14">
+<span class="header-section-number">5.4</span> Code<a class="anchor" aria-label="anchor" href="#code-14"></a>
 </h3>
 <pre><code><span><span class="fu">set_covariates</span><span class="op">(</span><span class="va">formula</span>, data <span class="op">=</span> <span class="cn">NULL</span>, n_coef <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -978,8 +1067,8 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 <span class="header-section-number">6</span> Prior for dispersion terms<a class="anchor" aria-label="anchor" href="#prior-for-dispersion-terms"></a>
 </h2>
 <div class="section level3" number="6.1">
-<h3 id="model-14">
-<span class="header-section-number">6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-14"></a>
+<h3 id="model-15">
+<span class="header-section-number">6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-15"></a>
 </h3>
 <p>Use exponential distribution, parameterised using mean,
 <span class="math display">\[\begin{equation}
@@ -995,8 +1084,8 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 \end{equation}\]</span></p>
 </div>
 <div class="section level3" number="6.3">
-<h3 id="code-14">
-<span class="header-section-number">6.3</span> Code<a class="anchor" aria-label="anchor" href="#code-14"></a>
+<h3 id="code-15">
+<span class="header-section-number">6.3</span> Code<a class="anchor" aria-label="anchor" href="#code-15"></a>
 </h3>
 <pre><code><span><span class="fu"><a href="../reference/set_disp.html">set_disp</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -1057,8 +1146,8 @@ and setting
 </div>
 </div>
 <div class="section level2" number="8">
-<h2 id="simulation-4">
-<span class="header-section-number">8</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-4"></a>
+<h2 id="simulation-5">
+<span class="header-section-number">8</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-5"></a>
 </h2>
 <p>To generate one set of simulated values, we start with values for exposure, trials, or weights, <span class="math inline">\(\pmb{w}\)</span>, and possibly covariates $, then go through the following steps:</p>
 <ol style="list-style-type: decimal">
@@ -1078,8 +1167,8 @@ and setting
 <span class="header-section-number">9</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
 </h2>
 <div class="section level3" number="9.1">
-<h3 id="model-15">
-<span class="header-section-number">9.1</span> Model<a class="anchor" aria-label="anchor" href="#model-15"></a>
+<h3 id="model-16">
+<span class="header-section-number">9.1</span> Model<a class="anchor" aria-label="anchor" href="#model-16"></a>
 </h3>
 <div class="section level4" number="9.1.1">
 <h4 id="poisson-likelihood">
@@ -1139,8 +1228,8 @@ which is equivalent to
 </div>
 </div>
 <div class="section level3" number="9.2">
-<h3 id="code-15">
-<span class="header-section-number">9.2</span> Code<a class="anchor" aria-label="anchor" href="#code-15"></a>
+<h3 id="code-16">
+<span class="header-section-number">9.2</span> Code<a class="anchor" aria-label="anchor" href="#code-16"></a>
 </h3>
 <pre><code><span><span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">x</span>, condition_on <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fitted"</span>, <span class="st">"expected"</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre>
 </div>

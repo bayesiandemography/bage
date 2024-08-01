@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,17 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.2" id="bage-062">bage 0.6.2<a class="anchor" aria-label="anchor" href="#bage-062"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-interface-0-6-2">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-6-2"></a></h3>
+<ul><li>Removed <code>SVDS()</code>, <code>SVDS_AR()</code>, <code>SVDS_AR1()</code>, <code>SVDS_RW()</code>, and <code>SVDS_RW2()</code> priors. Added <code>indep</code> argument to corresponding <code>SVD</code> priors. <code>SVD</code> priors now choose between ‘total’, ‘independent’ and ‘joint’ models based on (1) the value of <code>indep</code> argument, (2) the value of <code>var_sexgender</code> and the name of the term.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-data-0-6-2">Changes to data<a class="anchor" aria-label="anchor" href="#changes-to-data-0-6-2"></a></h3>
+<ul><li>Object <code>HMD</code> now contains 5 components, rather than 10.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.1" id="bage-061">bage 0.6.1<a class="anchor" aria-label="anchor" href="#bage-061"></a></h2>
 <div class="section level3">
 <h3 id="changes-to-calculations-0-6-1">Changes to calculations<a class="anchor" aria-label="anchor" href="#changes-to-calculations-0-6-1"></a></h3>
@@ -56,7 +67,7 @@
 </ul></div>
 <div class="section level3">
 <h3 id="changes-to-interface-0-6-0">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-6-0"></a></h3>
-<ul><li>Added priors <code><a href="../reference/SVD_AR.html">SVD_AR()</a></code>, <code><a href="../reference/SVDS_AR.html">SVDS_AR()</a></code>, <code><a href="../reference/SVD_AR.html">SVD_AR1()</a></code>, <code><a href="../reference/SVDS_AR.html">SVDS_AR1()</a></code>, <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>, <code><a href="../reference/SVDS_AR.html">SVDS_RW()</a></code>, <code><a href="../reference/SVD_AR.html">SVD_RW2()</a></code>, <code><a href="../reference/SVDS_AR.html">SVDS_RW2()</a></code>
+<ul><li>Added priors <code><a href="../reference/SVD_AR.html">SVD_AR()</a></code>, <code>SVDS_AR()</code>, <code><a href="../reference/SVD_AR.html">SVD_AR1()</a></code>, <code>SVDS_AR1()</code>, <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>, <code>SVDS_RW()</code>, <code><a href="../reference/SVD_AR.html">SVD_RW2()</a></code>, <code>SVDS_RW2()</code>
 </li>
 </ul></div>
 <div class="section level3">

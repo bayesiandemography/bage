@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -554,7 +554,7 @@ sex.</p>
 <code class="sourceCode R"><span><span class="va">mod_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">time</span>,</span>
 <span>                    data <span class="op">=</span> <span class="va">dth</span>,</span>
 <span>                    exposure <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">popn</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">0.5</span>, <span class="va">popn</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVDS.html">SVDS</a></span><span class="op">(</span><span class="va">HMD</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">HMD</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mod_hmd</span></span>
 <span><span class="co">#&gt; -- Unfitted Poisson model --</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -562,7 +562,7 @@ sex.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ SVDS(HMD)</span></span>
+<span><span class="co">#&gt;     age:sex ~ SVD(HMD)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
@@ -579,7 +579,7 @@ sex.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ SVDS(HMD)</span></span>
+<span><span class="co">#&gt;     age:sex ~ SVD(HMD)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
@@ -675,7 +675,7 @@ sex.</p>
 <span><span class="co">#&gt;     time sex              ex</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  <span style="text-decoration: underline;">1</span>998 Female  82 (81, 82)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  <span style="text-decoration: underline;">1</span>998 Male    78 (78, 78)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  <span style="text-decoration: underline;">1</span>998 Male    78 (77, 78)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  <span style="text-decoration: underline;">1</span>999 Female  82 (81, 82)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  <span style="text-decoration: underline;">1</span>999 Male    78 (77, 78)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  <span style="text-decoration: underline;">2</span>000 Female  82 (82, 82)</span></span>
@@ -683,7 +683,7 @@ sex.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  <span style="text-decoration: underline;">2</span>001 Female  82 (82, 83)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">2</span>001 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">2</span>002 Female  82 (82, 83)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (79, 79)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 40 more rows</span></span></span></code></pre></div>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lifeexp_hmd</span> <span class="op">&lt;-</span> <span class="va">mod_hmd</span> <span class="op">|&gt;</span></span>
@@ -695,7 +695,7 @@ sex.</p>
 <span><span class="co">#&gt;     time sex              ex</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>  <span style="text-decoration: underline;">1</span>998 Female  82 (81, 82)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  <span style="text-decoration: underline;">1</span>998 Male    78 (78, 78)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>  <span style="text-decoration: underline;">1</span>998 Male    78 (77, 78)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>  <span style="text-decoration: underline;">1</span>999 Female  82 (81, 82)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>  <span style="text-decoration: underline;">1</span>999 Male    78 (77, 78)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>  <span style="text-decoration: underline;">2</span>000 Female  82 (82, 82)</span></span>
@@ -703,7 +703,7 @@ sex.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>  <span style="text-decoration: underline;">2</span>001 Female  82 (82, 83)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>  <span style="text-decoration: underline;">2</span>001 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>  <span style="text-decoration: underline;">2</span>002 Female  82 (82, 83)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (79, 79)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>  <span style="text-decoration: underline;">2</span>002 Male    79 (78, 79)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 40 more rows</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
