@@ -744,23 +744,14 @@ make_levels_svd_term <- function(prior,
                                  dimnames_term,
                                  var_age,
                                  var_sexgender) {
-  n_comp <- prior$specific$n_comp
-  joint <- prior$specific$joint
-  is_indep <- !is.null(joint) && !joint
-  labels_svd <- paste0("comp", seq_len(n_comp))
-  if (is_indep) {
-    levels_sexgender <- dimnames_term[[var_sexgender]]
-    labels_svd <- paste(rep(levels_sexgender, each = n_comp),
-                        labels_svd,
-                        sep = ".")
-  }
+  labels_svd <- get_labels_svd(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_sexgender = var_sexgender)
   nms <- names(dimnames_term)
   nms_noagesex <- setdiff(nms, c(var_age, var_sexgender))
   dimnames_noagesex <- dimnames_term[nms_noagesex]
-  ans <- c(list(labels_svd), dimnames_noagesex)
-  ans <- expand.grid(ans, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-  ans <- Reduce(paste_dot, ans)
-  ans
+  dimnames_svd <- c(list(.svd = labels_svd), dimnames_noagesex)
+  dimnames_to_levels(dimnames_svd)
 }
 
 
@@ -1110,7 +1101,7 @@ standardize_trend_cyc_seas_err <- function(components,
         dimnames_term <- dimnames_terms[[i_term]]
         tcse <- components$.fitted[i_tcse]
         if (!uses_along(prior))
-          cli::cli_abort("Internal error: Prior for term {.val nm_term} does not use along.")
+          cli::cli_abort("Internal error: Prior for term {.val {nm_term}} does not use along.")
         along <- prior$specific$along
         matrix_along_by <- make_matrix_along_by_effect(along = along,
                                                        dimnames_term = dimnames_term,

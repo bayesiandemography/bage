@@ -33,16 +33,11 @@
 #' | [Lin_AR()]   | Linear trend, with autoregressive errors. | Model for time, where departures from trend persist over time. | Yes |
 #' | [Lin_AR1()]   | Linear trend, with autoregressive errors of order 1. | Simpler version of `Lin_AR()`. | Yes |
 #' | [Sp()]    | P-Spline (penalised spline). | Modelling varies that smoothly, eg age. | No |
-#' | [SVD()]   | Age profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). | Main effects or interactions involving age, but not sex/gender. | No |
-#' | [SVDS()]  | Age-sex or age-gender profile, similar to `SVD()` | Interactions involving age, sex/gender, and possibly other dimensions. | No |
-#' | [SVD_AR()] | Like `SVD()`, but coefficients evolve over time, following AR models. | Interactions between age, time, and possibly other variables. | Yes |
-#' | [SVDS_AR()] | Like `SVDS()`, but coefficients evolve over time, following AR models. | Interactions between age, sex/gender, time, and possibly other variables. | Yes |
-#' | [SVD_AR1()] | Like `SVD()`, but coefficients evolve over time, following AR1 models. | Interactions between age, time, and possibly other variables. | Yes |
-#' | [SVDS_AR1()] | Like `SVDS()`, but coefficients evolve over time, following AR1 models. | Interactions between age, sex/gender, time, and possibly other variables. | Yes |
-#' | [SVD_RW()] | Like `SVD()`, but coefficients evolve over time, following random walk models. | Interactions between age, time, and possibly other variables. | Yes |
-#' | [SVDS_RW()] | Like `SVDS()`, but coefficients evolve over time, following random walk models. | Interactions between age, sex/gender, time, and possibly other variables. | Yes |
-#' | [SVD_RW2()] | Like `SVD()`, but coefficients evolve over time, following random walk with drift models. | Interactions between age, time, and possibly other variables. | Yes |
-#' | [SVDS_RW2()] | Like `SVDS()`, but coefficients evolve over time, following random walk with drift models. | Interactions between age, sex/gender, time, and possibly other variables. | Yes |
+#' | [SVD()]   | Age, age-sex, or age-gender profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). | Terms involving age and possibly sex/gender. | No |
+#' | [SVD_AR()] | Like `SVD()`, but coefficients evolve over time, following AR models. | Interactions between age, time, possibly sex/gender, and possibly other variables. | Yes |
+#' | [SVD_AR1()] | Like `SVD()`, but coefficients evolve over time, following AR1 models. | Interactions between age, time, possibly sex/gender, and possibly other variables. | Yes |
+#' | [SVD_RW()] | Like `SVD()`, but coefficients evolve over time, following random walk models. | Interactions between age, time, possily sex/gender, and possibly other variables. | Yes |
+#' | [SVD_RW2()] | Like `SVD()`, but coefficients evolve over time, following random walk with drift models. | Interactions between age, time, possibly sex/gender, and possibly other variables. | Yes |
 #'
 #' @name priors
 NULL

@@ -13,10 +13,17 @@
 #' @noRd
 get_labels_svd <- function(prior, dimnames_term, var_sexgender) {
   n_comp <- prior$specific$n_comp
-  joint <- prior$specific$joint
-  is_indep <- !is.null(joint) && !joint
+  indep <- prior$specific$indep
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  has_sexgender <- !is.null(var_sexgender)
+  if (has_sexgender) {
+    term_has_sexgender <- var_sexgender %in% nm_split
+    include_sexgender <- indep && term_has_sexgender
+  }
+  else
+    include_sexgender <- FALSE
   ans <- paste0("comp", seq_len(n_comp))
-  if (is_indep) {
+  if (include_sexgender) {
     levels_sex <- dimnames_term[[var_sexgender]]
     ans <- paste(rep(levels_sex, each = n_comp),
                  ans,
@@ -272,18 +279,27 @@ svd_to_effect <- function(svd,
   if (is_svd_rvec)
     svd <- as.matrix(svd)
   ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
+  indep <- prior$specific$indep
   n_comp <- prior$specific$n_comp
   levels_age <- dimnames_term[[var_age]]
-  nm <- paste(names(dimnames_term), collapse = ":")
+  nm <- dimnames_to_nm(dimnames_term)
   agesex <- make_agesex(nm = nm,
                         var_age = var_age,
                         var_sexgender = var_sexgender)
   has_sexgender <- !is.null(var_sexgender)
-  if (has_sexgender)
+  if (has_sexgender) {
     levels_sexgender <- dimnames_term[[var_sexgender]]
-  else
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    term_has_sexgender <- var_sexgender %in% nm_split
+    if (term_has_sexgender)
+      joint <- !indep
+    else
+      joint <- NULL
+  }
+  else {
     levels_sexgender <- NULL
+    joint <- NULL
+  }
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender)
