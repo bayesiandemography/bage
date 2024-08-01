@@ -12,7 +12,7 @@ test_that("'components' works with ssvd - all defaults", {
 
 test_that("'components' works with ssvd - indep", {
   ssvd <- sim_ssvd()
-  ans <- components(ssvd, joint = FALSE, n_comp = 3)
+  ans <- components(ssvd, indep = TRUE, n_comp = 3)
   expect_identical(names(ans), c("component", "sex", "age", "value"))
   expect_identical(ans$value,
                    c(as.numeric(ssvd$data$offset[[3]]),
@@ -22,7 +22,7 @@ test_that("'components' works with ssvd - indep", {
 
 test_that("'components' works with ssvd - joint", {
   age_labels <- poputils::age_labels(type = "lt", max = 65)
-  ans <- components(HMD, joint = TRUE, age_labels = age_labels, n_comp = 1)
+  ans <- components(HMD, indep = FALSE, age_labels = age_labels, n_comp = 1)
   expect_identical(names(ans), c("component", "sex", "age", "value"))
   matrix <- Matrix::as.matrix(HMD$data$matrix[[79]][,1, drop = FALSE])
   expect_identical(ans$value,
@@ -52,8 +52,8 @@ test_that("'components' method for ssvd - gives expected error with age labels n
 test_that("'components' method for ssvd - gives expected error when joint supplied by no sex/gender", {
   ssvd <- sim_ssvd()
   ssvd$data <- ssvd$data[1,]
-  expect_error(components(ssvd, age_labels = c("0-4", "5-9"), n_comp = 3, joint = FALSE),
-               "Value supplied for `joint`, but `object` does not have a sex/gender dimension.")
+  expect_error(components(ssvd, age_labels = c("0-4", "5-9"), n_comp = 3, indep = FALSE),
+               "Value supplied for `indep`, but `object` does not have a sex/gender dimension.")
 })
 
 
@@ -76,7 +76,7 @@ test_that("'generate' works with ssvd - indep", {
   set.seed(0)
   ssvd <- sim_ssvd()
   set.seed(0)
-  ans_obtained <- generate(ssvd, n_comp = 2, joint = FALSE)
+  ans_obtained <- generate(ssvd, n_comp = 2, indep = TRUE)
   set.seed(0)
   ans_expected <- (ssvd$data$matrix[[3]][,c(1:2, 11:12)] %*% matrix(rnorm(80), nr = 4)
     + ssvd$data$offset[[3]])
@@ -91,9 +91,9 @@ test_that("'generate' works with ssvd - indep", {
 test_that("'generate' works with ssvd - joint", {
   age_labels <- poputils::age_labels(type = "lt", max = 65)
   set.seed(0)
-  ans_obtained <- generate(HMD, joint = TRUE, age_labels = age_labels, n_draw = 2)
+  ans_obtained <- generate(HMD, indep = FALSE, age_labels = age_labels, n_draw = 2)
   set.seed(0)
-  ans_expected <- (HMD$data$matrix[[79]][,1:5] %*% matrix(rnorm(10), nr = 5)
+  ans_expected <- (HMD$data$matrix[[79]][,1:3] %*% matrix(rnorm(6), nr = 3)
     + HMD$data$offset[[79]])
   ans_expected <- tibble::tibble(draw = rep(1:2, each = 30),
                                  sexgender = rep(rep(c("Female", "Male"), each = 15),
@@ -106,9 +106,9 @@ test_that("'generate' works with ssvd - joint", {
 test_that("'generate' works with ssvd - joint", {
   age_labels <- poputils::age_labels(type = "lt", max = 65)
   set.seed(0)
-  ans_obtained <- generate(HMD, joint = TRUE, age_labels = age_labels, n_draw = 2)
+  ans_obtained <- generate(HMD, indep = FALSE, age_labels = age_labels, n_draw = 2)
   set.seed(0)
-  ans_expected <- (HMD$data$matrix[[79]][,1:5] %*% matrix(rnorm(10), nr = 5)
+  ans_expected <- (HMD$data$matrix[[79]][,1:3] %*% matrix(rnorm(6), nr = 3)
     + HMD$data$offset[[79]])
   ans_expected <- tibble::tibble(draw = rep(1:2, each = 30),
                                  sexgender = rep(rep(c("Female", "Male"), each = 15),
@@ -136,12 +136,12 @@ test_that("'generate' method for ssvd - gives expected error when 'n_comp' too h
   expect_error(generate(HMD, age_labels = age_labels, n_comp = 11),
                "`n_comp` larger than number of components of `x`.")
 })
-
+!
 test_that("'generate' method for ssvd - gives expected error when joint supplied by no sex/gender", {
   ssvd <- sim_ssvd()
   ssvd$data <- ssvd$data[1,]
-  expect_error(generate(ssvd, age_labels = c("0-4", "5-9"), n_comp = 3, joint = FALSE),
-               "Value supplied for `joint`, but `x` does not have a sex/gender dimension.")
+  expect_error(generate(ssvd, age_labels = c("0-4", "5-9"), n_comp = 3, indep = TRUE),
+               "Value supplied for `indep`, but `x` does not have a sex/gender dimension.")
 })
 
 

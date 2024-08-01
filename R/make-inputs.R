@@ -966,18 +966,31 @@ make_matrix_effectfree_effect_svd <- function(prior,
                                               var_age,
                                               var_sexgender) {
   ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
+  indep <- prior$specific$indep
   n_comp <- prior$specific$n_comp
-  nm <- paste(names(dimnames_term), collapse = ":")
+  nm <- dimnames_to_nm(dimnames_term)
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  has_age <- !is.null(var_age)
+  has_sexgender <- !is.null(var_sexgender)
   agesex <- make_agesex(nm = nm,
-                              var_age = var_age,
-                              var_sexgender = var_sexgender)
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender)
   n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
   levels_age <- if (is.null(var_age)) NULL else dimnames_term[[var_age]]
   levels_sexgender <- if (is.null(var_sexgender)) NULL else dimnames_term[[var_sexgender]]
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  if (has_sexgender) {
+    term_has_sexgender <- var_sexgender %in% nm_split
+    if (term_has_sexgender)
+      joint <- !indep
+    else
+      joint <- NULL
+  }
+  else
+    joint <- NULL
   m <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
@@ -1010,19 +1023,31 @@ make_offset_effectfree_effect_svd <- function(prior,
                                               var_age,
                                               var_sexgender) {
   ssvd <- prior$specific$ssvd
-  joint <- prior$specific$joint
+  indep <- prior$specific$indep
   n_comp <- prior$specific$n_comp
-  nm <- paste(names(dimnames_term), collapse = ":")
+  nm <- dimnames_to_nm(dimnames_term)
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  has_age <- !is.null(var_age)
+  has_sexgender <- !is.null(var_sexgender)
   agesex <- make_agesex(nm = nm,
-                              var_age = var_age,
-                              var_sexgender = var_sexgender)
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender)
   n_by <- ncol(matrix_agesex)  ## special meaning of 'n_by': excludes age and sex
-  levels_age <- if (is.null(var_age)) NULL else dimnames_term[[var_age]]
-  levels_sexgender <- if (is.null(var_sexgender)) NULL else dimnames_term[[var_sexgender]]
+  levels_age <- if (has_age) dimnames_term[[var_age]] else NULL
+  levels_sexgender <- if (has_sexgender) dimnames_term[[var_sexgender]] else NULL
   levels_effect <- dimnames_to_levels(dimnames_term)
+  if (has_sexgender) {
+    term_has_sexgender <- var_sexgender %in% nm_split
+    if (term_has_sexgender)
+      joint <- !indep
+    else
+      joint <- NULL
+  }
+  else
+    joint <- NULL
   b <- get_matrix_or_offset_svd(ssvd = ssvd,
                                 levels_age,
                                 levels_sexgender,
@@ -1671,15 +1696,15 @@ str_call_args_svd <- function(prior) {
   ssvd <- specific$ssvd
   nm_ssvd <- specific$nm_ssvd
   n_comp <- specific$n_comp
-  joint <- specific$joint
+  indep <- specific$indep
   ans <- character(3L)
   ans[[1L]] <- nm_ssvd
   n_comp_ssvd <- get_n_comp(ssvd)
   n_default <- ceiling(n_comp_ssvd / 2)
   if (n_comp != n_default)
     ans[[2L]] <- sprintf("n_comp=%s", n_comp)
-  if (!is.null(joint) && joint)
-    ans[[3L]] <- "joint=TRUE"
+  if (!indep)
+    ans[[3L]] <- "indep=FALSE"
   ans
 }
 

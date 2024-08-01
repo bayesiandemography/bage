@@ -60,7 +60,7 @@ test_that("'draw_vals_components_fitted' works", {
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
   mod <- set_prior(mod, age ~ Sp())
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- fit(mod)
   set.seed(0)
   ans <- draw_vals_components_fitted(mod, standardize = TRUE)
@@ -645,16 +645,16 @@ test_that("'make_levels_svd' works - unlist is FALSE", {
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
   mod <- set_prior(mod, age ~ SVD(HMD))
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
   set.seed(0)
   ans_obtained <- make_levels_svd(mod, unlist = FALSE)
   ans_expected <- list("(Intercept)" = NULL,
                        sex = NULL,
-                       age = paste0("comp", 1:5),
+                       age = paste0("comp", 1:3),
                        time = NULL,
-                       "sex:age" = paste0(rep(c("F", "M"), each = 5), ".comp", 1:5),
-                       "age:time" = paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+                       "sex:age" = paste0(rep(c("F", "M"), each = 3), ".comp", 1:3),
+                       "age:time" = paste0("comp", 1:3, ".", rep(2000:2005, each = 3)))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -670,9 +670,9 @@ test_that("'make_levels_svd' works - unlist is TRUE", {
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
-  mod <- set_prior(mod, age ~ SVD(HMD))
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
-  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  mod <- set_prior(mod, age ~ SVD(HMD, n_comp = 5))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD, n_comp = 5))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD, n_comp = 5))
   set.seed(0)
   ans_obtained <- make_levels_svd(mod, unlist = TRUE)
   ans_expected <- c(paste0("comp", 1:5),
@@ -680,7 +680,6 @@ test_that("'make_levels_svd' works - unlist is TRUE", {
                     paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
   expect_identical(ans_obtained, ans_expected)
 })
-
 
 
 ## 'make_levels_svd_term' ----------------------------------------------------------
@@ -694,12 +693,12 @@ test_that("'make_levels_svd_term' works - total, main effect", {
                                        dimnames_term = dimnames_term,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- paste0("comp", 1:5)
+  ans_expected <- paste0("comp", 1:3)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_levels_svd_term' works - joint, age:sex", {
-  prior <- SVDS(HMD)
+  prior <- SVD(HMD, n_comp = 5)
   dimnames_term <- list(age = c(0:59, "60+"), sex = c("M", "F"))
   var_age <- "age"
   var_sexgender <- "sex"
@@ -712,7 +711,7 @@ test_that("'make_levels_svd_term' works - joint, age:sex", {
 })
 
 test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
-  prior <- SVDS(HMD, joint = TRUE)
+  prior <- SVD(HMD, indep = FALSE, n_comp = 5)
   dimnames_term <- list(reg = 1:2, age = c(0:59, "60+"), sex = c("M", "F"))
   var_age <- "age"
   var_sexgender <- "sex"
@@ -1118,7 +1117,7 @@ test_that("'make_svd' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD, n_comp = 5))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   est <- mod$est
@@ -1237,7 +1236,7 @@ test_that("'make_term_svd' works - no svd", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_n_draw(mod, n = 5)
+  mod <- set_n_draw(mod, n = 3)
   ans_obtained <- make_term_svd(mod)
   ans_expected <- factor()
   expect_identical(ans_obtained, ans_expected)
@@ -1257,7 +1256,7 @@ test_that("'make_term_svd' works - has svd", {
   mod <- set_n_draw(mod, n = 5)
   mod <- set_prior(mod, age ~ SVD(HMD))
   ans_obtained <- make_term_svd(mod)
-  ans_expected <- factor(rep("age", times = 5))
+  ans_expected <- factor(rep("age", times = 3))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1343,10 +1342,10 @@ test_that("'infer_trend_cyc_seas_err_seasfix' works", {
                                level = level,
                                .fitted = .fitted)
   ans_obtained <- infer_trend_cyc_seas_err_seasfix(prior = mod$priors[["sex:time"]],
-                                             dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                             var_time = mod$var_time,
-                                             var_age = mod$var_age,
-                                             components = components)
+                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                   var_time = mod$var_time,
+                                                   var_age = mod$var_age,
+                                                   components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
   seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
@@ -1523,7 +1522,7 @@ test_that("'standardize_svd_spline' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- set_prior(mod, age ~ Sp(n = 5))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
@@ -1541,7 +1540,7 @@ test_that("'standardize_svd_spline' works", {
 
 ## 'standardize_trend_cyc_seas_err' -------------------------------------------
 
-test_that("'standardize_svd_spline' works", {
+test_that("'standardize_trend_cyc_seas_err' works", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2010,
@@ -1570,6 +1569,31 @@ test_that("'standardize_svd_spline' works", {
   expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
   i <- ans$term == "sex:time" & ans$component == "cyclical"
   expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+})
+
+test_that("'standardize_trend_cyc_seas_err' throws appropriate error when prior does not have along", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2010,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin_AR())
+  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  mod$priors$time <- N()
+  expect_error(standardize_trend_cyc_seas_err(components = components,
+                                        priors = mod$priors,
+                                        dimnames_terms = mod$dimnames_terms,
+                                        var_time = mod$var_time,
+                                        var_age = mod$var_age),
+               "Internal error: Prior for term \"time\" does not use along.")               
 })
 
 

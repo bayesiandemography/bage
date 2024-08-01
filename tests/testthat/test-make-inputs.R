@@ -1156,7 +1156,7 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age m
 
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age-sex interaction, joint", {
   s <- sim_ssvd()
-  prior <- SVDS(ssvd = s, n_comp = 3, joint = TRUE)
+  prior <- SVD(ssvd = s, n_comp = 3, indep = FALSE)
   dimnames_term <- list(sex = c("Female", "Male"),
                         age = c("0-4", "5-9"))
   var_time <- "time"
@@ -1199,7 +1199,7 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x
 })
 
 test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x reg x age interaction", {
-  prior <- SVDS(HMD)
+  prior <- SVD(HMD)
   dimnames_term = list(sex = c("F", "M"),
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"),
                        reg <- c("A", "B"))
@@ -1211,7 +1211,7 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x
                                                     var_time = var_time,
                                                     var_age = var_age,
                                                     var_sexgender = var_sexgender)
-  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:5, 11:15)]
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
                                       var_age = var_age,
@@ -1334,6 +1334,44 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age x
                                                     var_sexgender = var_sexgender)
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- rep(ans_expected, 3)
+  names(ans_expected) <- levels_effect
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - sex x age interaction", {
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n_comp = 2)
+  levels_effect = c("F.0-4", "M.0-4", "F.5-9", "M.5-9")
+  dimnames_term <- list(sex = c("F", "M"),
+                        age = c("0-4", "5-9"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_offset_effectfree_effect_svd(prior = prior,
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
+  ans_expected <- s$data$offset[s$data$type == "indep"][[1L]][c(1,3,2,4)]
+  names(ans_expected) <- levels_effect
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - sex x age interaction", {
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n_comp = 2, indep = FALSE)
+  levels_effect = c("F.0-4", "M.0-4", "F.5-9", "M.5-9")
+  dimnames_term <- list(sex = c("F", "M"),
+                        age = c("0-4", "5-9"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_offset_effectfree_effect_svd(prior = prior,
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
+  ans_expected <- s$data$offset[s$data$type == "joint"][[1L]][c(1,3,2,4)]
   names(ans_expected) <- levels_effect
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1645,7 +1683,7 @@ test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
 
 test_that("'n_comp_svd' works when no 'n' supplied", {
   ans_obtained <- n_comp_svd(n_comp = NULL, nm_n_comp = "n", ssvd = HMD)
-  ans_expected <- 5L
+  ans_expected <- 3L
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1806,16 +1844,16 @@ test_that("'str_call_args_svd' works - total", {
 })
 
 test_that("'str_call_args_svd' works - indep", {
-  prior <- SVDS(HMD, n_comp = 3)
+  prior <- SVD(HMD, n_comp = 2)
   ans_obtained <- str_call_args_svd(prior)
-  ans_expected <- c("HMD", "n_comp=3", "")
+  ans_expected <- c("HMD", "n_comp=2", "")
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'str_call_args_svd' works - joint", {
-  prior <- SVDS(HMD, joint = TRUE)
+  prior <- SVD(HMD, indep = FALSE, n_comp = 3)
   ans_obtained <- str_call_args_svd(prior)
-  ans_expected <- c("HMD", "", "joint=TRUE")
+  ans_expected <- c("HMD", "", "indep=FALSE")
   expect_identical(ans_obtained, ans_expected)
 })
 

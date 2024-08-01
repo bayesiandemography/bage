@@ -4,7 +4,7 @@
 \alias{components.bage_ssvd}
 \title{Extract Components used by SVD Summary}
 \usage{
-\method{components}{bage_ssvd}(object, n_comp = NULL, joint = NULL, age_labels = NULL, ...)
+\method{components}{bage_ssvd}(object, n_comp = NULL, indep = NULL, age_labels = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"bage_ssvd"}.}
@@ -13,10 +13,11 @@
 The default is half the total number of
 components of \code{object}.}
 
-\item{joint}{Whether to use joint or
-independent SVDs for each sex/gender. If
+\item{indep}{Whether to use independent or
+joint SVDs for each sex/gender. If
 no value is supplied, an SVD with no
-sex/gender dimension is used.}
+sex/gender dimension is used. Note that the
+default is different from \code{\link[=SVD]{SVD()}}.}
 
 \item{age_labels}{Age labels for the
 desired age or age-sex profile.
@@ -46,11 +47,11 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 ## females and males combined
 components(LFP, n_comp = 3)
 
-## joint model for females and males
-components(LFP, joint = TRUE, n_comp = 3)
-
 ## females and males modelled independently
-components(LFP, joint = FALSE, n_comp = 3)
+components(LFP, indep = TRUE, n_comp = 3)
+
+## joint model for females and males
+components(LFP, indep = FALSE, n_comp = 3)
 
 ## specify age groups
 labels <- poputils::age_labels(type = "five", min = 15, max = 60)
@@ -61,9 +62,9 @@ components(LFP, age_labels = labels)
 \item \link[=generate]{generate()} Randomly generate
 age-profiles, or age-sex profiles, based on a
 scaled SVD summary.
-\item \code{\link[=SVD]{SVD()}} SVD prior for age main effect.
-\item \code{\link[=SVDS]{SVDS()}} SVD prior for interaction between
-age and sex or gender.
+\item \code{\link[=SVD]{SVD()}} SVD prior for terms involving age.
+\item \code{\link[=SVD_AR1]{SVD_AR1()}}, \code{\link[=SVD_AR]{SVD_AR()}}, \code{\link[=SVD_RW]{SVD_RW()}}, \code{\link[=SVD_RW2]{SVD_RW2()}}
+Dynamic SVD priors for terms involving age and time.
 \item \code{\link[poputils:age_labels]{poputils::age_labels()}} Generate age labels.
 }
 }

@@ -764,6 +764,7 @@ check_ssvd_has_sexgender <- function(x, nm_x) {
 }
 
 
+## HAS_TESTS
 #' Check that Age-Sex Details of SVD Prior Align with Term
 #'
 #' @param prior Object of class 'bage_prior' that involves SVD
@@ -779,19 +780,12 @@ check_ssvd_has_sexgender <- function(x, nm_x) {
 check_svd_agesex <- function(prior,
                              nm,
                              var_age,
-                             var_sexgender,
                              agesex) {
-  n_dim <- length(strsplit(nm, split = ":")[[1L]])
   str_nm_prior <- str_nm_prior(prior)
-  joint <- prior$specific$joint
-  is_svds <- !is.null(joint)
+  has_age <- !is.null(var_age)
   msg1 <- "Problem with {.var {str_nm_prior}} prior for term {.var {nm}}."
-  if (is_svds)
-    str_nm_alt <- sub("^SVDS", "SVD", str_nm_prior)
-  else
-    str_nm_alt <- sub("^SVD", "SVDS", str_nm_prior)
   ## check that 'var_age' has been identified
-  if (is.null(var_age))
+  if (!has_age)
     cli::cli_abort(c(msg1,
                      i = "Can't use {.var {str_nm_prior}} prior when age variable not yet identified.",
                      i = "Use function {.fun set_var_age} to identify age variable?"))
@@ -799,59 +793,6 @@ check_svd_agesex <- function(prior,
   if (agesex == "other")
     cli::cli_abort(c(msg1,
                      i = "{.var {str_nm_prior}} prior should be used with terms involving age."))
-  ## one dimension - must be age, otherwise 'agesex' would be "other"
-  if (n_dim == 1L) {
-    if (is_svds)
-      cli::cli_abort(c(msg1,
-                       i = "{.var {str_nm_prior}} prior should be used for interaction involving age and sex/gender.",
-                       i = "{.var {nm}} term is an age main effect.",
-                       i = "Use {.var {str_nm_alt}} prior instead?"))
-  }
-  else if (n_dim == 2L) {
-    if (agesex %in% c("age:sex", "sex:age")) {
-      if (!is_svds)
-        cli::cli_abort(c(msg1,
-                         i = paste("{.var {str_nm_prior}} prior should be used for term involving",
-                                   "age but not sex/gender."),
-                         i = "{.var {nm}} term involves age and sex/gender.",
-                         i = "Use {.var {str_nm_alt}} prior instead?"))
-    }
-    else if (agesex == "age:other") {
-      if (is_svds) {
-        if (is.null(var_sexgender))
-          msg3 <- c(i = "Sex/gender variable not identified.",
-                    i = "Use function {.fun set_var_sexgender} to identify sex/gender variable?")
-        else
-          msg3 <- c(i = "{.var {nm}} term does not involve sex/gender.",
-                    i = "Use {.var {str_nm_alt}} prior instead?")
-        cli::cli_abort(c(msg1,
-                         i = "{.var {str_nm_prior}} prior should be for terms involving age and sex/gender.",
-                         msg3))
-      }
-    }
-    else
-      cli::cli_abort("Internal error: unexpected value for {.var agesex}.")
-  }
-  else { ## n_dim > 2
-    if (agesex %in% c("age:sex:other", "sex:age:other")) {
-      if (!is_svds) {
-        cli::cli_abort(c(msg1,
-                         i = "{.var {str_nm_prior}} prior should be used with terms involving age but not sex/gender.",
-                         i = "{.var {nm}} term involves age and sex/gender.",
-                         i = "Use {.var {str_nm_alt}} prior instead?"))
-      }
-    }
-    else if (agesex == "age:other") {
-      if (is_svds) {
-        cli::cli_abort(c(msg1,
-                         i = "{.var {str_nm_prior}} prior should be used for terms involving age and sex/gender.",
-                         i = "{.var {nm}} term involves age but not sex/gender.",
-                         i = "Use {.var {str_nm_alt}} prior instead?"))
-      }
-    }
-    else
-      cli::cli_abort("Internal error: unexpected value for {.var agesex}.")
-  }
   invisible(TRUE)
 }
 

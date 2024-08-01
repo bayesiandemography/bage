@@ -178,6 +178,7 @@
 #' holding components extracted from mortality
 #' data from the
 #' [Human Mortality Database](https://www.mortality.org).
+#' The object holds 5 components.
 #'
 #' @source Derived from data at
 #' Human Mortality Database. Max Planck Institute for
@@ -187,5 +188,5 @@
 #' Code to create `HMD`
 #' is in folder 'data-raw/ssvd_hmd'
 #' in the source code for **bage**
-#' package.[
+#' package.
 "HMD"

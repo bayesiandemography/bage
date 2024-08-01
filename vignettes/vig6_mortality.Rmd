@@ -270,7 +270,7 @@ where $K$ is chosen by the user. The prior for age-sex interactions looks the sa
 mod_hmd <- mod_pois(deaths ~ age:sex + time,
                     data = dth,
                     exposure = ~ ifelse(deaths > 0 & popn == 0, 0.5, popn)) |>
-  set_prior(age:sex ~ SVDS(HMD))
+  set_prior(age:sex ~ SVD(HMD))
 mod_hmd
 ```
 
