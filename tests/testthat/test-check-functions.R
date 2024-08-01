@@ -768,7 +768,7 @@ test_that("'check_string' returns correct error with blank", {
 
 ## 'check_ssvd_has_sexgender' -------------------------------------------------
 
-test_that("'check_svd_has_sexgender' works", {
+test_that("'check_ssvd_has_sexgender' works", {
   expect_true(check_ssvd_has_sexgender(x = HMD, nm_x = "ssvd"))
   HMD_nogender <- HMD
   HMD_nogender$data <- HMD_nogender$data[sapply(HMD_nogender$data$labels_sexgender, is.null),]
@@ -780,137 +780,36 @@ test_that("'check_svd_has_sexgender' works", {
 ## 'check_svd_agesex' ---------------------------------------------------------
 
 test_that("'check_svd_agesex' works with bage_prior_svd, correct inputs", {
-  prior <- SVDS(HMD)
+  prior <- SVD(HMD)
   expect_true(check_svd_agesex(prior = prior,
                                var_age = "age",
                                nm = "age:sex",
-                               var_sexgender = "sex",
                                agesex = "age:sex"))
 })
 
 test_that("'check_svd_agesex'  throws correct error when 'var_age' is NULL", {
-  prior <- SVD(HMD)
+  prior <- SVD_AR1(HMD)
   expect_error(check_svd_agesex(prior = prior,
                                 nm = "bla",
                                 var_age = NULL,
-                                var_sexgender = "sex",
                                 agesex = "other"),
-               "Problem with `SVD\\(\\)` prior for term `bla`.")
+               "Problem with `SVD_AR1\\(\\)` prior for term `bla`.")
 })
 
 test_that("'check_svd_agesex'  throws correct error when agesex is 'other'", {
-  prior <- SVDS(HMD)
+  prior <- SVD_RW(HMD)
   expect_error(check_svd_agesex(prior = prior,
                                 nm = "bla",
                                 var_age = "age",
-                                var_sexgender = "sex",
                                 agesex = "other"),
-               "Problem with `SVDS\\(\\)` prior for term `bla`.")
-})
-
-test_that("'check_svd_agesex'  throws correct error when SVDS is used for age main effect", {
-  prior <- SVDS(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "age",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "age"),
-               "Problem with `SVDS\\(\\)` prior for term `age`.")
-})
-
-test_that("'check_svd_agesex'  throws correct error when SVD is used for age-sex interaction", {
-  prior <- SVD(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "sex:age",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "sex:age"),
-               "Problem with `SVD\\(\\)` prior for term `sex:age`.")
-})
-
-test_that("'check_svd_agesex'  throws correct error when SVDS is used for misclassified age-sex interaction, var_sexgender is NULL", {
-  prior <- SVDS(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "sex:age",
-                                var_age = "age",
-                                var_sexgender = NULL,
-                                agesex = "age:other"),
-               "Problem with `SVDS\\(\\)` prior for term `sex:age`.")
-})
-
-test_that("'check_svd_agesex'  throws correct error when SVDS is used for misclassified age-sex interaction", {
-  prior <- SVDS(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "bla:age",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "age:other"),
-               "Problem with `SVDS\\(\\)` prior for term `bla:age`.")
-})
-
-test_that("'check_svd_agesex'  throws correct error when dim has length 2 and 'agesex' not recognised", {
-  prior <- SVDS(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "bla:age",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "wrong"),
-               "Internal error: unexpected value for `agesex`.")
-})
-
-test_that("'check_svd_agesex'  works when SVDS is used for 3-way interaction", {
-  prior <- SVDS(HMD)
-  expect_true(check_svd_agesex(prior = prior,
-                               nm = "sex:age:time",
-                               var_age = "age",
-                               var_sexgender = "sex",
-                               agesex = "sex:age:other"))
-})
-
-test_that("'check_svd_agesex'  throws correct error when SVD is used for 3-way interaction involving age, sex", {
-  prior <- SVD(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "sex:age:time",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "sex:age:other"),
-               "Problem with `SVD\\(\\)` prior for term `sex:age:time`.")
-})
-
-test_that("'check_svd_agesex'  throws correct error when SVDS is used for 3-way interaction involving age, not sex", {
-  prior <- SVDS(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "reg:age:time",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "age:other"),
-               "Problem with `SVDS\\(\\)` prior for term `reg:age:time`.")
-})
-
-test_that("'check_svd_agesex'  works when SVD is used for 3-way interaction involving age, not sex", {
-  prior <- SVD(HMD)
-  expect_true(check_svd_agesex(prior = prior,
-                               nm = "reg:age:time",
-                               var_age = "age",
-                               var_sexgender = "sex",
-                               agesex = "age:other"))
-})
-
-test_that("'check_svd_agesex'  throws correct error when 'agesex' wrong", {
-  prior <- SVD(HMD)
-  expect_error(check_svd_agesex(prior = prior,
-                                nm = "reg:age:time",
-                                var_age = "age",
-                                var_sexgender = "sex",
-                                agesex = "wrong"),
-               "Internal error: unexpected value for `agesex`.")
+               "Problem with `SVD_RW\\(\\)` prior for term `bla`.")
 })
 
 
 ## 'check_svd_time' ---------------------------------------------------------
 
 test_that("'check_svd_time' works with bage_prior_svd_ar, correct inputs", {
-  prior <- SVDS_AR1(HMD)
+  prior <- SVD_AR1(HMD)
   expect_true(check_svd_time(prior = prior,
                              nm = "age:year:gender",
                              var_time = "year"))
@@ -925,11 +824,11 @@ test_that("'check_svd_time'  throws correct error when time variable not identif
 })
 
 test_that("'check_svd_time'  throws correct error when time variable not identified", {
-  prior <- SVDS_RW2(HMD)
+  prior <- SVD_RW2(HMD)
   expect_error(check_svd_time(prior = prior,
-                                nm = "reg:age:sex",
-                                var_time = "time"),
-               "Problem with `SVDS_RW2\\(\\)` prior for term `reg:age:sex`.")
+                              nm = "reg:age:sex",
+                              var_time = "time"),
+               "Problem with `SVD_RW2\\(\\)` prior for term `reg:age:sex`.")
 })
 
 

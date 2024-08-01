@@ -2077,7 +2077,6 @@ is_prior_ok_for_term.bage_prior_svd <- function(prior,
   check_svd_agesex(prior = prior,
                    nm = nm,
                    var_age = var_age,
-                   var_sexgender = var_sexgender,
                    agesex = agesex)
   invisible(TRUE)
 }
@@ -2096,7 +2095,6 @@ is_prior_ok_for_term.bage_prior_svd_ar <- function(prior,
   check_svd_agesex(prior = prior,
                    nm = nm,
                    var_age = var_age,
-                   var_sexgender = var_sexgender,
                    agesex = agesex)
   check_svd_time(prior = prior,
                  nm = nm,
@@ -2129,7 +2127,6 @@ is_prior_ok_for_term.bage_prior_svd_rw <- function(prior,
   check_svd_agesex(prior = prior,
                    nm = nm,
                    var_age = var_age,
-                   var_sexgender = var_sexgender,
                    agesex = agesex)
   check_svd_time(prior = prior,
                  nm = nm,
@@ -2161,7 +2158,6 @@ is_prior_ok_for_term.bage_prior_svd_rw2 <- function(prior,
   check_svd_agesex(prior = prior,
                    nm = nm,
                    var_age = var_age,
-                   var_sexgender = var_sexgender,
                    agesex = agesex)
   check_svd_time(prior = prior,
                  nm = nm,
@@ -2965,9 +2961,9 @@ print.bage_prior_svd <- function(x, ...) {
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
   print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
-  joint <- x$specific$joint
-  if (!is.null(joint))
-    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
   invisible(x)
 }
 
@@ -2978,9 +2974,9 @@ print.bage_prior_svd_ar <- function(x, ...) {
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
   print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
-  joint <- x$specific$joint
-  if (!is.null(joint))
-    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
   nm <- x$specific$nm
   is_ar <- identical(sub("^(.*)_(.*)$", "\\2", nm), "AR")
   if (is_ar)
@@ -2999,9 +2995,9 @@ print.bage_prior_svd_rw <- function(x, ...) {
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
   print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
-  joint <- x$specific$joint
-  if (!is.null(joint))
-    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   invisible(x)
 }
@@ -3013,9 +3009,9 @@ print.bage_prior_svd_rw2 <- function(x, ...) {
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "ssvd", slot = "nm_ssvd")
   print_prior_slot(prior = x, nm = "n_comp", slot = "n_comp")
-  joint <- x$specific$joint
-  if (!is.null(joint))
-    print_prior_slot(prior = x, nm = "joint", slot = "joint")
+  indep <- x$specific$indep
+  if (!indep)
+    print_prior_slot(prior = x, nm = "indep", slot = "indep")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   invisible(x)
 }
@@ -3197,12 +3193,10 @@ str_call_prior.bage_prior_spline <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_svd <- function(prior) {
-  joint <- prior$specific$joint
-  nm <- if (is.null(joint)) "SVD" else "SVDS"
   args <- str_call_args_svd(prior)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("%s(%s)", nm, args)
+  sprintf("SVD(%s)", args)
 }
 
 ## HAS_TESTS
@@ -3221,32 +3215,26 @@ str_call_prior.bage_prior_svd_ar <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_svd_rw <- function(prior) {
-  joint <- prior$specific$joint
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
   args_along <- str_call_args_along(prior)
   args <- c(args_svd, args_scale, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  nm <- if (is.null(joint)) "SVD_RW" else "SVDS_RW"
-  sprintf("%s(%s)", nm, args)
+  sprintf("SVD_RW(%s)", args)
 }
 
 ## HAS_TESTS
 #' @export
 str_call_prior.bage_prior_svd_rw2 <- function(prior) {
-  joint <- prior$specific$joint
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
   args_along <- str_call_args_along(prior)
   args <- c(args_svd, args_scale, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  nm <- if (is.null(joint)) "SVD_RW2" else "SVDS_RW2"
-  sprintf("%s(%s)", nm, args)
+  sprintf("SVD_RW2(%s)", args)
 }
-
-
 
 
 ## 'str_nm_prior' -----------------------------------------------------------
@@ -3348,9 +3336,7 @@ str_nm_prior.bage_prior_spline <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_svd <- function(prior) {
-  joint <- prior$specific$joint
-  nm <- if (is.null(joint)) "SVD" else "SVDS"
-  sprintf("%s()", nm)
+  "SVD()"
 }
 
 ## HAS_TESTS
@@ -3363,17 +3349,13 @@ str_nm_prior.bage_prior_svd_ar <- function(prior) {
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_svd_rw <- function(prior) {
-  joint <- prior$specific$joint
-  base <- if (is.null(joint)) "SVD" else "SVDS"
-  sprintf("%s_RW()", base)
+  "SVD_RW()"
 }
 
 ## HAS_TESTS
 #' @export
 str_nm_prior.bage_prior_svd_rw2 <- function(prior) {
-  joint <- prior$specific$joint
-  base <- if (is.null(joint)) "SVD" else "SVDS"
-  sprintf("%s_RW2()", base)
+  "SVD_RW2()"
 }
 
 

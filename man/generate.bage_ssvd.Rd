@@ -4,24 +4,26 @@
 \alias{generate.bage_ssvd}
 \title{Generate Random Age or Age-Sex Profiles}
 \usage{
-\method{generate}{bage_ssvd}(x, n_draw = 20, n_comp = NULL, joint = NULL, age_labels = NULL, ...)
+\method{generate}{bage_ssvd}(x, n_draw = 20, n_comp = NULL, indep = NULL, age_labels = NULL, ...)
 }
 \arguments{
 \item{x}{An object of class \code{"bage_ssvd"}.}
 
 \item{n_draw}{Number of random draws to generate.}
 
-\item{n_comp}{The number of components
-to use when generating profiles. Default is
-half the number of components of \code{x}.}
+\item{n_comp}{The number of components.
+The default is half the total number of
+components of \code{object}.}
 
-\item{joint}{Whether to use joint or
-independent SVDs for each sex/gender. If
-no value is supplied, an SVD for sexes/genders
-combined is used.}
+\item{indep}{Whether to use independent or
+joint SVDs for each sex/gender. If
+no value is supplied, an SVD with no
+sex/gender dimension is used. Note that the
+default is different from \code{\link[=SVD]{SVD()}}.}
 
 \item{age_labels}{Age labels for the
-desired profile. If no labels are supplied, the
+desired age or age-sex profile.
+If no labels are supplied, the
 most detailed profile available is used.}
 
 \item{...}{Not currently used.}
@@ -51,7 +53,7 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 generate(HMD)
 
 ## separate SVDs for females and males
-generate(HMD, joint = FALSE) 
+generate(HMD, indep = TRUE) 
 
 ## specify age groups
 labels <- poputils::age_labels(type = "lt", max = 60)
@@ -61,9 +63,9 @@ generate(HMD, age_labels = labels)
 \itemize{
 \item \link[=components]{components()} Components
 used by SVD prior.
-\item \code{\link[=SVD]{SVD()}} SVD prior for age main effect.
-\item \code{\link[=SVDS]{SVDS()}} SVD prior for interaction between
-age and sex or gender.
+\item \code{\link[=SVD]{SVD()}} SVD prior for term involving age.
+\item \code{\link[=SVD_AR1]{SVD_AR1()}}, \code{\link[=SVD_AR]{SVD_AR()}}, \code{\link[=SVD_RW]{SVD_RW()}}, \code{\link[=SVD_RW2]{SVD_RW2()}}
+Dynamic SVD priors for terms involving age and time.
 \item \code{\link[poputils:age_labels]{poputils::age_labels()}} Generate age labels.
 }
 }

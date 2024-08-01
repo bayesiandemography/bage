@@ -1,4 +1,19 @@
 
+# bage 0.6.2
+
+## Changes to interface
+
+* Removed `SVDS()`, `SVDS_AR()`, `SVDS_AR1()`, `SVDS_RW()`, and
+  `SVDS_RW2()` priors. Added `indep` argument to corresponding `SVD`
+  priors. `SVD` priors now choose between 'total', 'independent' and
+  'joint' models based on (1) the value of `indep` argument, (2) the
+  value of `var_sexgender` and the name of the term.
+  
+## Changes to data
+
+* Object `HMD` now contains 5 components, rather than 10.
+
+
 # bage 0.6.1
 
 ## Changes to calculations

@@ -11,10 +11,11 @@
 #' @param n_comp The number of components.
 #' The default is half the total number of
 #' components of `object`.
-#' @param joint Whether to use joint or
-#' independent SVDs for each sex/gender. If
+#' @param indep Whether to use independent or
+#' joint SVDs for each sex/gender. If
 #' no value is supplied, an SVD with no
-#' sex/gender dimension is used.
+#' sex/gender dimension is used. Note that the
+#' default is different from [SVD()].
 #' @param age_labels Age labels for the
 #' desired age or age-sex profile.
 #' If no labels are supplied, the
@@ -27,28 +28,28 @@
 #' - [generate()][bage::generate()] Randomly generate
 #'   age-profiles, or age-sex profiles, based on a
 #'   scaled SVD summary.
-#' - [SVD()] SVD prior for age main effect.
-#' - [SVDS()] SVD prior for interaction between
-#'   age and sex or gender.
+#' - [SVD()] SVD prior for terms involving age.
+#' - [SVD_AR1()], [SVD_AR()], [SVD_RW()], [SVD_RW2()]
+#'   Dynamic SVD priors for terms involving age and time.
 #' - [poputils::age_labels()] Generate age labels.
 #'
 #' @examples
 #' ## females and males combined
 #' components(LFP, n_comp = 3)
 #'
-#' ## joint model for females and males
-#' components(LFP, joint = TRUE, n_comp = 3)
-#'
 #' ## females and males modelled independently
-#' components(LFP, joint = FALSE, n_comp = 3)
+#' components(LFP, indep = TRUE, n_comp = 3)
 #' 
+#' ## joint model for females and males
+#' components(LFP, indep = FALSE, n_comp = 3)
+#'
 #' ## specify age groups
 #' labels <- poputils::age_labels(type = "five", min = 15, max = 60)
 #' components(LFP, age_labels = labels)
 #' @export
 components.bage_ssvd <- function(object,
                                  n_comp = NULL,
-                                 joint = NULL,
+                                 indep = NULL,
                                  age_labels = NULL,
                                  ...) {
   n_comp_obj <- get_n_comp(object)
@@ -65,13 +66,13 @@ components.bage_ssvd <- function(object,
                        i = "{.arg n_comp}: {.val {n_comp}}.",
                        i = "Number of components: {.val {n_comp_obj}}."))
   }
-  has_joint <- !is.null(joint)
-  if (has_joint) {
-    check_flag(x = joint, nm_x = "joint")
+  has_indep <- !is.null(indep)
+  if (has_indep) {
+    check_flag(x = indep, nm_x = "indep")
     if (!has_sexgender(object))
-      cli::cli_abort(paste("Value supplied for {.arg joint}, but {.arg object}",
+      cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg object}",
                            "does not have a sex/gender dimension."))
-    type <- if (joint) "joint" else "indep"
+    type <- if (indep) "indep" else "joint"
   }
   else
     type <- "total"
@@ -99,18 +100,18 @@ components.bage_ssvd <- function(object,
   labels_sexgender <- data$labels_sexgender[[i_matched]]
   levels_age <- unique(labels_age)
   levels_sexgender <- unique(labels_sexgender)
-  agesex <- if (has_joint) "age:sex" else "age"
+  agesex <- if (has_indep) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = object,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = joint,
+                                     joint = !indep,
                                      agesex = agesex,
                                      get_matrix = TRUE,
                                      n_comp = n_comp)
   offset <- get_matrix_or_offset_svd(ssvd = object,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = joint,
+                                     joint = !indep,
                                      agesex = agesex,
                                      get_matrix = FALSE,
                                      n_comp = n_comp)
@@ -157,28 +158,18 @@ generics::generate
 #'
 #' @inheritSection SVD Scaled SVDs of demographic databases in bage
 #'
+#' @inheritParams components.bage_ssvd
 #' @param x An object of class `"bage_ssvd"`.
 #' @param n_draw Number of random draws to generate.
-#' @param n_comp The number of components
-#' to use when generating profiles. Default is
-#' half the number of components of `x`.
-#' @param joint Whether to use joint or
-#' independent SVDs for each sex/gender. If
-#' no value is supplied, an SVD for sexes/genders
-#' combined is used.
-#' @param age_labels Age labels for the
-#' desired profile. If no labels are supplied, the
-#' most detailed profile available is used. 
-#' @param ... Not currently used.
 #'
 #' @returns A tibble
 #'
 #' @seealso
 #' - [components()][bage::components()] Components
 #'   used by SVD prior.
-#' - [SVD()] SVD prior for age main effect.
-#' - [SVDS()] SVD prior for interaction between
-#'   age and sex or gender.
+#' - [SVD()] SVD prior for term involving age.
+#' - [SVD_AR1()], [SVD_AR()], [SVD_RW()], [SVD_RW2()]
+#'   Dynamic SVD priors for terms involving age and time.
 #' - [poputils::age_labels()] Generate age labels.
 #'
 #' @examples
@@ -186,7 +177,7 @@ generics::generate
 #' generate(HMD)
 #'
 #' ## separate SVDs for females and males
-#' generate(HMD, joint = FALSE) 
+#' generate(HMD, indep = TRUE) 
 #'
 #' ## specify age groups
 #' labels <- poputils::age_labels(type = "lt", max = 60)
@@ -195,7 +186,7 @@ generics::generate
 generate.bage_ssvd <- function(x,
                                n_draw = 20,
                                n_comp = NULL,
-                               joint = NULL,
+                               indep = NULL,
                                age_labels = NULL,
                                ...) {
   check_n(n = n_draw,
@@ -218,13 +209,13 @@ generate.bage_ssvd <- function(x,
                        i = "Number of components: {.val {n_comp_x}}."))
   }
   n_comp <- as.integer(n_comp)
-  has_joint <- !is.null(joint)
-  if (has_joint) {
-    check_flag(x = joint, nm_x = "joint")
+  has_indep <- !is.null(indep)
+  if (has_indep) {
+    check_flag(x = indep, nm_x = "indep")
     if (!has_sexgender(x))
-      cli::cli_abort(paste("Value supplied for {.arg joint}, but {.arg x}",
+      cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg x}",
                            "does not have a sex/gender dimension."))
-    type <- if (joint) "joint" else "indep"
+    type <- if (indep) "indep" else "joint"
   }
   else
     type <- "total"
@@ -253,18 +244,18 @@ generate.bage_ssvd <- function(x,
   levels_age <- unique(levels_age)
   levels_sexgender <- unique(levels_sexgender)
   n_sexgender <- length(levels_sexgender)
-  agesex <- if (has_joint) "age:sex" else "age"
+  agesex <- if (has_indep) "age:sex" else "age"
   matrix <- get_matrix_or_offset_svd(ssvd = x,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = joint,
+                                     joint = !indep,
                                      agesex = agesex,
                                      get_matrix = TRUE,
                                      n_comp = n_comp)
   offset <- get_matrix_or_offset_svd(ssvd = x,
                                      levels_age = levels_age,
                                      levels_sexgender = levels_sexgender,
-                                     joint = joint,
+                                     joint = !indep,
                                      agesex = agesex,
                                      get_matrix = FALSE,
                                      n_comp = n_comp)
@@ -273,7 +264,7 @@ generate.bage_ssvd <- function(x,
   Z <- matrix(Z, nrow = n_Z, ncol = n_draw)
   value <- matrix %*% Z + offset
   n_age <- length(levels_age)
-  if (has_joint) {
+  if (has_indep) {
     n_sex <- length(levels_sexgender)
     ans <- tibble::tibble(draw = rep(seq_len(n_draw), each = n_age * n_sex),
                           sexgender = rep(rep(levels_sexgender, each = n_age), times = n_draw),

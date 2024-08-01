@@ -5,15 +5,16 @@
 \alias{SVD_AR1}
 \alias{SVD_RW}
 \alias{SVD_RW2}
-\title{SVD Priors for Age, With Time-Varying Coefficients}
+\title{SVD Priors for Age, or Age and Sex/Gender,
+With Time-Varying Coefficients}
 \usage{
-SVD_AR(ssvd, n_comp = NULL, n_coef = 2, s = 1)
+SVD_AR(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1)
 
-SVD_AR1(ssvd, n_comp = NULL, min = 0.8, max = 0.98, s = 1)
+SVD_AR1(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s = 1)
 
-SVD_RW(ssvd, n_comp = NULL, s = 1)
+SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1)
 
-SVD_RW2(ssvd, n_comp = NULL, s = 1)
+SVD_RW2(ssvd, n_comp = NULL, indep = TRUE, s = 1)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
@@ -23,6 +24,11 @@ of databases currently available in \strong{bage}.}
 \item{n_comp}{Number of components from scaled SVD
 to use in modelling. The default is half
 the number of components of \code{ssvd}.}
+
+\item{indep}{Whether to use separate or
+combined SVDs in terms involving sex or gender.
+Default is \code{TRUE}.
+See below for details.}
 
 \item{n_coef}{Number of AR coefficients in \code{SVD_RW()}.}
 
@@ -38,13 +44,14 @@ An object of class \code{"bage_prior_svd_ar"},
 }
 \description{
 Singular Value Decomposition (SVD) priors
-for interactions involving age and time, and possibly
+for interactions involving age and time, or age,
+sex/gender and time, and possibly
 other variables, where the coefficients evolve over time.
 }
 \details{
 \code{SVD_AR()}, \code{SVD_AR1()}, \code{SVD_RW()}, and \code{SVD_RW2()}
 priors assume that, in any given period,
-the age profiles for the quantity
+the age profiles or age-sex profiles for the quantity
 being modelled looks like they were drawn at random
 from an external demographic database. For instance,
 the \code{SVD_AR()} prior obtained via
@@ -55,33 +62,28 @@ the \code{SVD_AR()} prior obtained via
 assumes that profiles look like
 they were obtained from the
 \href{https://www.mortality.org}{Human Mortality Database}.
-
-Time-varying age-sex profiles, or age-gender profiles
-should be modelled using \code{\link[=SVD_AR]{SVD_AR()}}, \code{\link[=SVD_AR1]{SVD_AR1()}}, \code{\link[=SVD_RW]{SVD_RW()}},
-or \code{\link[=SVD_RW2]{SVD_RW2()}} priors, rather than \code{SVD_AR()},
-\code{SVD_AR1()}, \code{SVD_RW()}, or \code{SVD_RW2()}.
 }
 \section{Mathematical details}{
 
 
 When the interaction being modelled only involves
-age and time,
+age and time, or age, sex/gender, and time
 
 \deqn{\pmb{\beta}_t = \pmb{F} \pmb{\alpha}_t + \pmb{g},}
 
-and when it involives other variables besides age and time,
+and when it involves other variables besides age, sex/gender, and time,
 
 \deqn{\pmb{\beta}_{u,t} = \pmb{F} \pmb{\alpha}_{u,t} + \pmb{g},}
 
 where
 \itemize{
-\item \eqn{\pmb{\beta}} is an interaction involving age, time, and possibly
-other variables;
+\item \eqn{\pmb{\beta}} is an interaction involving age, time, possibly sex/gender,
+and possibly other variables;
 \item \eqn{\pmb{\beta}_t} is a subvector of \eqn{\pmb{\beta}} holding
 values for period \eqn{t};
 \item \eqn{\pmb{\beta}_{u,t}} is a subvector of \eqn{\pmb{\beta}_t} holding
-values for the  \eqn{u}th combination of the non-age, non-time variables
-for period \eqn{t};
+values for the  \eqn{u}th combination of the non-age, non-time,
+non-sex/gender variables for period \eqn{t};
 \item \eqn{J} is the number of elements of \eqn{\pmb{\beta}_t};
 \item \eqn{V} is the number of elements of \eqn{\pmb{\beta}_{u,t}};
 \item \eqn{n} is \code{n_coef};
@@ -102,7 +104,7 @@ of \eqn{\pmb{\alpha}_t} or \eqn{\pmb{\alpha}_{u,t}} is
 
 or
 
-\deqn{\alpha_{k,u,t} = \phi_1 \alpha_{k,u,t-1} + \cdots + \phi_n \beta_{k,u,t-n} + \epsilon_{k,u,t}};
+\deqn{\alpha_{k,u,t} = \phi_1 \alpha_{k,u,t-1} + \cdots + \phi_n \beta_{k,u,t-n} + \epsilon_{k,u,t};}
 
 with \code{SVD_AR1()}, it is
 
@@ -110,7 +112,7 @@ with \code{SVD_AR1()}, it is
 
 or
 
-\deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+\deqn{\alpha_{k,u,t} = \phi \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
 
 with \code{SVD_RW()}, it is
 
@@ -118,7 +120,7 @@ with \code{SVD_RW()}, it is
 
 or
 
-\deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \epsilon_{k,u,t}};
+\deqn{\alpha_{k,u,t} = \alpha_{k,u,t-1} + \epsilon_{k,u,t};}
 
 and with \code{SVD_RW2()}, it is
 
@@ -126,7 +128,7 @@ and with \code{SVD_RW2()}, it is
 
 or
 
-\deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}}.
+\deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}.}
 
 For more on the \eqn{\phi} and \eqn{\epsilon}, see \code{\link[=AR]{AR()}}, \code{\link[=AR1]{AR1()}},
 \code{\link[=RW]{RW()}}, and \code{\link[=RW2]{RW2()}}.
@@ -145,22 +147,24 @@ rates from the \href{https://data-explorer.oecd.org}{OECD}.
 \examples{
 SVD_AR1(HMD)
 SVD_RW(HMD, n_comp = 3)
+SVD_RW2(HMD, indep = FALSE)
 }
 \references{
 \itemize{
 \item For details of the construction of
 scaled SVDS see the vignette
-\href{https://bayesiandemography.github.io/bage/articles/vig4_svd.html}{here}.
+\href{https://bayesiandemography.github.io/bage/articles/vig2_math.html}{here}.
 }
 }
 \seealso{
 \itemize{
-\item \code{\link[=SVDS]{SVDS()}} SVD prior for non-time-varying age-sex or age-gender profile
+\item \code{\link[=SVD]{SVD()}} SVD prior for non-time-varying terms
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
+\item \code{\link[=set_var_sexgender]{set_var_sexgender()}} Identify sex or gender variable in data
 }
 }

@@ -203,7 +203,7 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
   n_sim <- 2
   vals_hyper <- draw_vals_hyper_mod(mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod,
@@ -619,7 +619,7 @@ test_that("'draw_vals_svd_mod' works", {
     vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
     ans <- draw_vals_svd_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
-    expect_identical(dim(ans[["age"]]), c(5L, 10L))
+    expect_identical(dim(ans[["age"]]), c(3L, 10L))
 })
 
 
@@ -1181,7 +1181,7 @@ test_that("'vals_hyper_to_dataframe' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- set_prior(mod, age ~ AR())
   vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = n_sim)
   ans <- vals_hyper_to_dataframe(mod, vals_hyper = vals_hyper, n_sim = n_sim)
@@ -1233,7 +1233,7 @@ test_that("'vals_hyper_to_dataframe' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVDS(HMD))
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- set_prior(mod, age ~ AR())
   vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = n_sim)
   vals_hyperrand <- draw_vals_hyperrand_mod(mod = mod,

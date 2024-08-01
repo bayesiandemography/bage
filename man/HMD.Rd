@@ -16,7 +16,7 @@ Berkeley (USA), and French Institute for Demographic Studies
 Code to create \code{HMD}
 is in folder 'data-raw/ssvd_hmd'
 in the source code for \strong{bage}
-package.[
+package.
 }
 \usage{
 HMD
@@ -26,5 +26,6 @@ An object of class \link[=ssvd]{bage_ssvd}
 holding components extracted from mortality
 data from the
 \href{https://www.mortality.org}{Human Mortality Database}.
+The object holds 5 components.
 }
 \keyword{datasets}
