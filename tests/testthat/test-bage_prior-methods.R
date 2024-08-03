@@ -3219,6 +3219,7 @@ test_that("'print' works", {
   expect_snapshot(print(RW2_Seas(n_seas = 2)))
   expect_snapshot(print(Sp()))
   expect_snapshot(print(SVD(HMD)))
+  expect_snapshot(print(SVD(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_AR(HMD)))
   expect_snapshot(print(SVD_AR(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_AR1(HMD)))

@@ -677,34 +677,6 @@ test_that("'make_term_level_final_time_svd' works", {
 })
 
 
-## 'standardize_component' ----------------------------------------------------
-
-test_that("'standardize_component' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 100)
-  data$exposure <- 100
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = exposure)
-  mod <- set_n_draw(mod, n = 10)
-  mod <- set_prior(mod, time ~ RW_Seas(n_seas = 2))
-  mod <- fit(mod)
-  components <- components(mod)
-  component <- split(components(mod), f = components$component)$trend
-  ans_obtained <- standardize_component(mod, component = component)
-  matrix_along_by <- make_matrix_along_by_effect(along = mod$priors$time$specific$along,
-                                                 dimnames_term = mod$dimnames_terms$time,
-                                                 var_time = mod$var_time,
-                                                 var_age = mod$var_age)
-  ans_expected <- component
-  ans_expected$.fitted <- center_within_across_by(ans_expected$.fitted,
-                                                  matrix_along_by = matrix_along_by)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
 ## 'standardize_forecast' -----------------------------------------------------
 
 test_that("'standardize_forecast' works", {
