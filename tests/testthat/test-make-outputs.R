@@ -1,20 +1,29 @@
 
-## 'center_within_across_by' --------------------------------------------------
+## 'center_within_along_by' --------------------------------------------------
 
-test_that("'center_within_across_by' works with numeric vector", {
+test_that("'center_within_along_by' works with numeric vector - center_along = TRUE", {
   x <- matrix(rnorm(12), nr = 4)
   matrix_along_by <- t(matrix(0:11, nrow = 4))
-  ans_obtained <- center_within_across_by(as.numeric(x), matrix_along_by)
+  ans_obtained <- center_within_along_by(as.numeric(x), matrix_along_by, center_along = TRUE)
   ans_expected <- x - rowMeans(x)
   ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 4)
   ans_expected <- as.numeric(ans_expected)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'center_within_across_by' works with rvec", {
+test_that("'center_within_along_by' works with numeric vector - center_along = FALSE", {
+  x <- matrix(rnorm(12), nr = 4)
+  matrix_along_by <- t(matrix(0:11, nrow = 4))
+  ans_obtained <- center_within_along_by(as.numeric(x), matrix_along_by, center_along = FALSE)
+  ans_expected <- x - rep(colMeans(x), each = 4)
+  ans_expected <- as.numeric(ans_expected)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'center_within_along_by' works with rvec - center_along = TRUE", {
   x <- rvec::rvec(matrix(rnorm(120), nr = 12))
   matrix_along_by <- matrix(0:11, nrow = 4)
-  ans_obtained <- center_within_across_by(x, matrix_along_by)
+  ans_obtained <- center_within_along_by(x, matrix_along_by, center_along = TRUE)
   ans_expected <- c(x[1:4] - mean(x[1:4]),
                     x[5:8] - mean(x[5:8]),
                     x[9:12] - mean(x[9:12]))
@@ -27,20 +36,16 @@ test_that("'center_within_across_by' works with rvec", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
-## 'center_within_across_by_draws' --------------------------------------------
-
-test_that("'center_within_across_by_draws' works", {
-  draws <- matrix(rnorm(120), nr = 12)
+test_that("'center_within_along_by' works with rvec - center_along = FALSE", {
+  x <- rvec::rvec(matrix(rnorm(120), nr = 12))
   matrix_along_by <- matrix(0:11, nrow = 4)
-  ans_obtained <- center_within_across_by_draws(draws, matrix_along_by)
-  ans_expected <- rbind(draws[1:4,] - rep(colMeans(draws[1:4,]), each = 4),
-                        draws[5:8,] - rep(colMeans(draws[5:8,]), each = 4),
-                        draws[9:12,] - rep(colMeans(draws[9:12,]), each = 4))
-  ans_expected <- rbind(ans_expected[c(1, 5, 9),] - rep(colMeans(ans_expected[c(1, 5, 9), ]), each = 3),
-                    ans_expected[c(2, 6, 10),] - rep(colMeans(ans_expected[c(2, 6, 10),]), each = 3),
-                    ans_expected[c(3, 7, 11),] - rep(colMeans(ans_expected[c(3, 7, 11),]), each = 3),
-                    ans_expected[c(4, 8, 12),] - rep(colMeans(ans_expected[c(4, 8, 12),]), each = 3))[c(1,4,7,10,2,5,8,11,3,6,9,12),]
+  ans_obtained <- center_within_along_by(x, matrix_along_by, center_along = FALSE)
+  ans_expected <- c(x[c(1, 5, 9)] - mean(x[c(1, 5, 9)]),
+                    x[c(2, 6, 10)] - mean(x[c(2, 6, 10)]),
+                    x[c(3, 7, 11)] - mean(x[c(3, 7, 11)]),
+                    x[c(4, 8, 12)] - mean(x[c(4, 8, 12)]))[c(1,4,7,10,
+                                                             2,5,8,11,
+                                                             3,6,9,12)]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1509,21 +1514,83 @@ test_that("'standardize_effects' works", {
 })
 
 
+## 'standardize_effects_along_by' -------------------------------------------
+
+test_that("'standardize_effects_along_by' works - along = TRUE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2010,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin_AR())
+  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  ans <- standardize_effects_along_by(components = components,
+                                        priors = mod$priors,
+                                        dimnames_terms = mod$dimnames_terms,
+                                        var_time = mod$var_time,
+                                        var_age = mod$var_age,
+                                        center_along = TRUE)
+  i <- ans$term == "time" & ans$component == "effect"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
+  i <- ans$term == "sex:time" & ans$component == "effect"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
+})
+
+test_that("'standardize_effects_along_by' works - along = FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2010,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin_AR())
+  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  ans <- standardize_effects_along_by(components = components,
+                                        priors = mod$priors,
+                                        dimnames_terms = mod$dimnames_terms,
+                                        var_time = mod$var_time,
+                                        var_age = mod$var_age,
+                                        center_along = FALSE)
+  i <- ans$term == "time" & ans$component == "effect"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
+  i <- ans$term == "sex:time" & ans$component == "effect"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
+  i <- ans$term == "sex:time" & ans$component == "effect" & startsWith(ans$level, "M")
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
+})
+
+
 ## 'standardize_svd_spline' ---------------------------------------------------
 
-test_that("'standardize_svd_spline' works", {
+test_that("'standardize_svd_spline' works - center_along is TRUE", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
+  formula <- deaths ~ age * sex + age * time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- set_prior(mod, age ~ Sp(n = 5))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   components <- components(mod, standardize = FALSE)
@@ -1532,15 +1599,58 @@ test_that("'standardize_svd_spline' works", {
                                 dimnames_terms = mod$dimnames_terms,
                                 var_time = mod$var_time,
                                 var_age = mod$var_age,
-                                var_sexgender = mod$var_sexgender)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$component == "svd"])) < 0.000001)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$component == "spline"])) < 0.000001)
+                                var_sexgender = mod$var_sexgender,
+                                center_along = TRUE)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"]))
+              < 0.000001)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"]))
+              < 0.000001)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
+              < 0.000001)
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd" & startsWith(ans$level, "comp1")])))
+              < 0.000001))
+})
+
+test_that("'standardize_svd_spline' works - center_along is FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVD(HMD))
+  mod <- set_prior(mod, age ~ Sp(n = 5))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  ans <- standardize_svd_spline(components = components,
+                                priors = mod$priors,
+                                dimnames_terms = mod$dimnames_terms,
+                                var_time = mod$var_time,
+                                var_age = mod$var_age,
+                                var_sexgender = mod$var_sexgender,
+                                center_along = FALSE)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"]))
+              < 0.000001)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"]))
+              < 0.000001)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
+              < 0.000001)
+  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
+              < 0.000001)
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd" & startsWith(ans$level, "comp1")])))
+              > 0.000001))
 })
 
 
 ## 'standardize_trend_cyc_seas_err' -------------------------------------------
 
-test_that("'standardize_trend_cyc_seas_err' works", {
+test_that("'standardize_trend_cyc_seas_err' works - along = TRUE", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2010,
@@ -1560,15 +1670,48 @@ test_that("'standardize_trend_cyc_seas_err' works", {
                                         priors = mod$priors,
                                         dimnames_terms = mod$dimnames_terms,
                                         var_time = mod$var_time,
-                                        var_age = mod$var_age)
+                                        var_age = mod$var_age,
+                                        center_along = TRUE)
   i <- ans$term == "time" & ans$component == "trend"
-  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "time" & ans$component == "seasonal"
-  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "sex:time" & ans$component == "trend"
-  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "sex:time" & ans$component == "cyclical"
-  expect_true(rvec::draws_mean(mean(ans$.fitted[i])) < 0.000001)
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
+})
+
+test_that("'standardize_trend_cyc_seas_err' works - along = FALSE", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2010,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin_AR())
+  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  components <- components(mod, standardize = FALSE)
+  ans <- standardize_trend_cyc_seas_err(components = components,
+                                        priors = mod$priors,
+                                        dimnames_terms = mod$dimnames_terms,
+                                        var_time = mod$var_time,
+                                        var_age = mod$var_age,
+                                        center_along = FALSE)
+  i <- ans$term == "time" & ans$component == "trend"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
+  i <- ans$term == "time" & ans$component == "seasonal"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
+  i <- ans$term == "sex:time" & ans$component == "trend"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
+  i <- ans$term == "sex:time" & ans$component == "cyclical"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
 })
 
 test_that("'standardize_trend_cyc_seas_err' throws appropriate error when prior does not have along", {
@@ -1592,7 +1735,8 @@ test_that("'standardize_trend_cyc_seas_err' throws appropriate error when prior 
                                         priors = mod$priors,
                                         dimnames_terms = mod$dimnames_terms,
                                         var_time = mod$var_time,
-                                        var_age = mod$var_age),
+                                        var_age = mod$var_age,
+                                        center_along = FALSE),
                "Internal error: Prior for term \"time\" does not use along.")               
 })
 

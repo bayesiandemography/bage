@@ -151,6 +151,16 @@
 ---
 
     Code
+      print(SVD(HMD, indep = FALSE))
+    Output
+        SVD(HMD,indep=FALSE) 
+          ssvd: HMD
+        n_comp: 3
+         indep: FALSE
+
+---
+
+    Code
       print(SVD_AR(HMD))
     Output
         SVD_AR(HMD) 
