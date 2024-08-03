@@ -2,8 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{replicate_data}
 \alias{replicate_data}
-\title{Draw from the Prior Predictive Distribution of
-a Model}
+\title{Create Replicate Data}
 \usage{
 replicate_data(x, condition_on = NULL, n = 19)
 }
@@ -30,14 +29,10 @@ A tibble with the following structure:\tabular{ll}{
 }
 }
 \description{
-Draw from the prior predictive distribution
-of a model, i.e., the
-Create Replicate Data
-}
-\details{
 Use a fitted model to create replicate datasets,
 typically as a way of checking a model.
-
+}
+\details{
 Use \code{n} draws from the posterior distribution
 for model parameters to generate \code{n} simulated datasets.
 If the model is working well, these simulated
@@ -64,7 +59,7 @@ the rates or probabilities
 (the \eqn{\mu_i} and \eqn{\xi} defined
 in \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}}),
 then (ii) conditional on these hyper-parameters,
-drawing values for the rates or probabilties,
+drawing values for the rates or probabilities,
 and finally (iii) conditional on these
 rates or probabilities, drawing values for the
 outcome variable.

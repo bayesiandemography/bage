@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_var_time}
 \alias{set_var_time}
-\title{Set the time variable}
+\title{Set Time Variable}
 \usage{
 set_var_time(mod, name)
 }
@@ -59,10 +59,10 @@ mod |>
 }
 \seealso{
 \itemize{
-\item \code{\link[=set_var_age]{set_var_age()}} sets the age variable
-\item \code{\link[=set_var_sexgender]{set_var_sexgender()}} sets the sex or gender
+\item \code{\link[=set_var_age]{set_var_age()}} Set age variable
+\item \code{\link[=set_var_sexgender]{set_var_sexgender()}} Sex sex or gender variable
+\item \code{\link[=is_fitted]{is_fitted()}} Test if model has been fitted
 \item internally, \strong{bage} uses \code{\link[poputils:find_var_time]{poputils::find_var_time()}}
 to locate time variables
-\item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

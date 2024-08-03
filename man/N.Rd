@@ -14,16 +14,15 @@ Default is \code{1}.}
 An object of class \code{"bage_prior_norm"}.
 }
 \description{
-Prior for a main effect or interaction.
-Values are drawn independently from
-a common normal distribution.
+Use independent draws from a normal
+distribution to model a main effect or interaction.
 Typically used with variables other than
-age or time, such as region or ethncity.
+age or time, such as region or ethnicity,
+where there is no natural ordering.
 }
 \details{
 Argument \code{s} controls the size of errors. Smaller values
-for \code{s} tend to give more tightly clustered estimates
-for the elements of the main effect or interaction.
+for \code{s} tend to give more tightly clustered estimates.
 }
 \section{Mathematical details}{
 

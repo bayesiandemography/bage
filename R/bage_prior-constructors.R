@@ -4,18 +4,23 @@
 ## HAS_TESTS
 #' Autoregressive Prior
 #'
-#' Prior for main effects or interaction.
-#' An autoreggressive process
-#' with order `k`. Typically used with time.
+#' Use an autoregressive process to model
+#' a main effect, or use multiple autoregressive
+#' processes to model an interaction.
+#' Typically used with time effects or with
+#' interactions that involve time.
 #'
 #' If `AR()` is used with an interaction,
-#' then separate AR series are constructed along
-#' the "along" variable within
-#' each combination of the
-#' "by" variables. 
+#' separate AR processes are constructed along
+#' the "along" variable, within each combination of the
+#' "by" variables.
+#'
+#' By default, the autoregressive processes
+#' have order 2. Alternative choices can be
+#' specified through the `n_coef` argument.
 #' 
-#' Argument `s` controls the size of innovations. Smaller values
-#' for `s` tend to give smoother series.
+#' Argument `s` controls the size of innovations.
+#' Smaller values for `s` tend to give smoother estimates.
 #'
 #' @section Mathematical details:
 #'
@@ -53,7 +58,7 @@
 #'
 #' \deqn{r \sim \text{Beta}(2, 2).}
 #' 
-#' @param n_coef Thehe number of lagged terms in the
+#' @param n_coef Number of lagged terms in the
 #' model, ie the order of the model. Default is `2`.
 #' @param s Scale for the prior for the innovations.
 #' Default is `1`.
@@ -65,7 +70,7 @@
 #'
 #' @seealso
 #' - [AR1()] Special case of `AR()`
-#' - [Lin_AR()] AR process combined with straight line
+#' - [Lin_AR()], [Lin_AR1()] Straight line with AR errors
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -102,20 +107,25 @@ AR <- function(n_coef = 2, s = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' AR1 Prior
+#' Autoregressive Prior of Order 1
 #'
-#' Prior for main effect or interaction. 
-#' An autoregressive process with order 1.
-#' Typically used with time.
+#' Use an autoregressive process
+#' of order 1 to model
+#' a main effect, or use multiple AR1
+#' processes to model an interaction.
+#' Typically used with time effects or with
+#' interactions that involve time.
 #'
-#' If `AR1()` is used with an interaction,
-#' then separate AR1 series constructed along
-#' the "along" variable within
-#' each combination of the
-#' "by" variables. 
-#' 
+#' If `AR()` is used with an interaction,
+#' separate AR processes are constructed along
+#' the "along" variable, within each combination of the
+#' "by" variables.
+#'
+#' Arguments `min` and `max` can be used to specify
+#' the permissible range for autocorrelation.
+#'
 #' Argument `s` controls the size of innovations. Smaller values
-#' for `s` tend to give smoother series.
+#' for `s` tend to give smoother estimates.
 #'
 #' @section Mathematical details:
 #'
@@ -160,8 +170,8 @@ AR <- function(n_coef = 2, s = 1, along = NULL) {
 #' @returns An object of class `"bage_prior_ar"`.
 #'
 #' @seealso
-#' - [AR()] Generalisation of `AR1()`
-#' - [Lin_AR1()] AR1 process combined with straight line
+#' - [AR()] Generalization of `AR1()`
+#' - [Lin_AR()], [Lin_AR1()] Line with AR errors
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -222,11 +232,11 @@ Known <- function(values) {
 
 
 ## HAS_TESTS
-#' Linear Prior
+#' Linear Prior with Independent Normal Errors
 #'
-#' Prior for main effect or interaction.
-#' A straight line or lines, combined with independent
-#' normal errors. Typically used with time.
+#' Use a line or lines with independent
+#' normal errors to model a main effect
+#' or interaction. Typically used with time.
 #'
 #' If `Lin()` is used with an interaction,
 #' then separate lines are constructed along 
@@ -234,6 +244,11 @@ Known <- function(values) {
 #' of the "by" variables.
 #' 
 #' Argument `s` controls the size of the errors.
+#' Smaller values tend to give smoother estimates.
+#'
+#' Argument `sd` controls the size of the slopes of
+#' the lines. Larger values can give more steeply
+#' sloped lines.
 #' 
 #' @section Mathematical details:
 #'
@@ -245,7 +260,7 @@ Known <- function(values) {
 #' 
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}, \quad v > 1}
+#' \deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}}
 #' \deqn{\alpha_u \sim \text{N}(0, 1)}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
@@ -259,11 +274,9 @@ Known <- function(values) {
 #' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
 #' and
 #' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
-#' Larger values for `sd` permit steeper slopes.
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-#' where `s` is provided by the user.
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 #'
 #' @inheritParams AR
 #' @param s Scale for the prior for the errors.
@@ -302,16 +315,25 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 ## HAS_TESTS
 #' Linear Prior with Autoregressive Errors
 #'
-#' Prior for main effect or interaction.
-#' A straight line or lines, combined with
-#' autoregressive errors. Typically used with time.
+#' Use a line or lines with autoregressive
+#' errors to model a main effect
+#' or interaction. Typically used with time.
 #'
 #' If `Lin_AR()` is used with an interaction,
-#' then, within each combination of the "by" variables,
-#' the "along" variable is modelled as a straight line
-#' with autoregressive errors.
+#' separate lines are constructed along 
+#' the "along" variable, within each combination
+#' of the "by" variables.
 #'
-#' Argument `s` controls the size of the errors.
+#' The order of the autoregressive errors is
+#' controlled by the `n_coef` argument. The
+#' default is 2.
+#' 
+#' Argument `s` controls the size of the innovations.
+#' Smaller values tend to give smoother estimates.
+#'
+#' Argument `sd` controls the size of the slopes of
+#' the lines. Larger values can give more steeply
+#' sloped lines.
 #' 
 #' @section Mathematical details:
 #'
@@ -342,7 +364,6 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
 #' and
 #' \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
-#' Larger values for `sd` permit steeper slopes.
 #'
 #' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -353,17 +374,12 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #'
 #' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
 #' between -1 and 1 that jointly lead to a stationary model. The quantity
-#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} has
 #' boundary-avoiding prior
 #'
 #' \deqn{r \sim \text{Beta}(2, 2).}
 #' 
-#' Slope \eqn{\eta} is drawn from a normal distribution,
-#' \deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
-#' 
 #' @inheritParams AR
-#' @param n_coef The number of lagged terms in the
-#' model, ie the order of the model. Default is `2`.
 #' @param s Scale for the innovations in the
 #' AR process. Default is `1`.
 #' @param sd Standard deviation in the prior for
@@ -374,6 +390,7 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #'
 #' @seealso
 #' - [Lin_AR1()] Special case of `Lin_AR()`
+#' - [Lin()] Line with independent normal errors
 #' - [AR()] AR process with no line
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -409,18 +426,26 @@ Lin_AR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' Linear Prior with AR1 Errors
+#' Linear Prior with Autoregressive Errors of Order 1
 #'
-#' Prior for main effect or interaction.
-#' Combines a straight line or lines with
-#' AR1 errors. Typically used with time.
+#' Use a line or lines with AR1
+#' errors to model a main effect
+#' or interaction. Typically used with time.
 #'
-#' If `Lin_AR1()` is used with an interaction,
-#' then, within each combination of the "by" variables,
-#' the "along" variable is modelled as a straight line
-#' with autoregressive errors.
+#' If `Lin_AR()` is used with an interaction,
+#' separate lines are constructed along 
+#' the "along" variable, within each combination
+#' of the "by" variables.
 #'
-#' Argument `s` controls the size of the errors.
+#' Arguments `min` and `max` can be used to specify
+#' the permissible range for autocorrelation.
+#' 
+#' Argument `s` controls the size of the innovations.
+#' Smaller values tend to give smoother estimates.
+#'
+#' Argument `sd` controls the size of the slopes of
+#' the lines. Larger values can give more steeply
+#' sloped lines.
 #'
 #' @section Mathematical details:
 #'
@@ -472,7 +497,8 @@ Lin_AR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
 #' @returns An object of class `"bage_prior_linar"`.
 #'
 #' @seealso
-#' - [Lin_AR()] Generalisation of `Lin_AR1()`
+#' - [Lin_AR()] Generalization of `Lin_AR1()`
+#' - [Lin()] Line with independent normal errors
 #' - [AR1()] AR1 process with no line
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -511,15 +537,14 @@ Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL) {
 ## HAS_TESTS
 #' Normal Prior
 #'
-#' Prior for a main effect or interaction.
-#' Values are drawn independently from
-#' a common normal distribution.
+#' Use independent draws from a normal
+#' distribution to model a main effect or interaction.
 #' Typically used with variables other than
-#' age or time, such as region or ethncity.
+#' age or time, such as region or ethnicity,
+#' where there is no natural ordering. 
 #'
 #' Argument `s` controls the size of errors. Smaller values
-#' for `s` tend to give more tightly clustered estimates
-#' for the elements of the main effect or interaction.
+#' for `s` tend to give more tightly clustered estimates.
 #'
 #' @section Mathematical details:
 #'
@@ -559,7 +584,10 @@ N <- function(s = 1) {
 #' Normal Prior with Fixed Variance
 #'
 #' Normal prior where, in contrast to [N()], the
-#' variance is treated as fixed and known.
+#' variance is treated as fixed and known. Typically
+#' used for main effects or interactions where there
+#' are too few elements to reliably estimate variance
+#' from the available data.
 #'
 #' `NFix()` is the default prior for the intercept.
 #'
@@ -596,15 +624,17 @@ NFix <- function(sd = 1) {
 ## HAS_TESTS
 #' Random Walk Prior
 #'
-#' Prior for a main effect or interaction.
-#' A random walk. Typically used with time.
+#' Use a random walk to model
+#' a main effect, or use multiple random walks
+#' to model an interaction.
+#' Typically used with age or time effects or with
+#' interactions that involve age or time.
 #'
 #' If `RW()` is used with an interaction,
-#' then separate random walks are used for
-#' the "along" variable within
-#' each combination of the
+#' separate random walks are constructed along
+#' the "along" variable, within each combination of the
 #' "by" variables.
-#' 
+#'
 #' Argument `s` controls the size of innovations.
 #' Smaller values for `s` tend to give smoother series.
 #' 
@@ -637,8 +667,8 @@ NFix <- function(sd = 1) {
 #'
 #' @seealso
 #' - [RW2()] Random walk with drift
-#' - [AR()] Autoressive with order k
-#' - [AR1()] Autoressive with order 1
+#' - [AR()] Autoregressive with order k
+#' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
 #' - [SVD()] Smoothing of age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
@@ -663,12 +693,15 @@ RW <- function(s = 1, along = NULL) {
 ## HAS_TESTS
 #' Random Walk Prior, with Seasonal Effect
 #'
-#' Prior for a main effect or interaction,
-#' typically involving time. Combines
-#' a random walk with a seasonal effect.
+#' Use a random walk with seasonal effects to model
+#' a main effect, or use multiple random walks,
+#' each with their own seasonal effects,
+#' to model an interaction.
+#' Typically used with main effects or interactions
+#' that involve time.
 #'
 #' If `RW_Seas()` is used with an interaction,
-#' then separate series are used for
+#' separate series are used for
 #' the "along" variable within
 #' each combination of the
 #' "by" variables.
@@ -683,8 +716,9 @@ RW <- function(s = 1, along = NULL) {
 #'
 #' By default, the magnitude of seasonal effects
 #' can change over time. However, setting `s_seas`
-#' to `0` produces seasonal effects that are "fixed",
-#' ie that are the same every year.
+#' to `0` produces seasonal effects that are fixed,
+#' eg where "January" effect is the same every year,
+#'  the "Feburary" effect is the same every year, and so on.
 #'
 #' @section Mathematical details:
 #'
@@ -768,23 +802,37 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' Random Walk with Drift Prior
+#' Second-Order Random Walk Prior
 #'
-#' Prior for a main effect or interaction.
-#' A random walk with drift, also referred
-#' to as a second-order random walk.
-#' Typically used with age, or used with time
-#' when there are sustained upward
-#' or downward trends.
+#' Use a second-oder random walk to model
+#' a main effect, or use multiple second-order random walks
+#' to model an interaction.
+#' A second-order random walk is also known
+#' as a random walk with drift. It is typically
+#' used with main effects or interactions
+#' that involve time, where there are sustained
+#' trends upward or downward.
 #'
 #' If `RW2()` is used with an interaction,
-#' then separate random walks are used for
+#' separate series are used for
 #' the "along" variable within
 #' each combination of the
 #' "by" variables.
-#' 
-#' Argument `s` controls the size of errors. Smaller values
-#' for `s` tend to give smoother series.
+#'
+#' Argument `s` controls the size of innovations in the random walk.
+#' Smaller values for `s` tend to give smoother series.
+#'
+#' Argument `n_seas` controls the number of `seasons`. 
+#' When using quarterly data, for instance,
+#' `n_seas` should be `4`, and when using
+#' monthly data, `n_seas` should be `12`.
+#'
+#' By default, the magnitude of seasonal effects
+#' can change over time. However, setting `s_seas`
+#' to `0` produces seasonal effects that are fixed,
+#' eg where "January" effect is the same every year,
+#'  the "Feburary" effect is the same every year, and so on.
+#'
 #'
 #' @section Mathematical details:
 #'
@@ -815,8 +863,8 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #'
 #' @seealso
 #' - [RW()] Random walk
-#' - [AR()] Autoressive with order k
-#' - [AR1()] Autoressive with order 1
+#' - [AR()] Autoregressive with order k
+#' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
 #' - [SVD()] Smoothing of age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
@@ -838,15 +886,21 @@ RW2 <- function(s = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' Random Walk with Drift Prior, with Seasonal Effect
+#' Second-Order Random Walk Prior, with Seasonal Effect
 #'
-#' Prior for a main effect or interaction,
-#' typically involving time. Combines
-#' a random walk with drift (ie a second-order random walk)
-#' and a seasonal effect.
+#' Use a second-oder random walk with
+#' seasonal effects to model
+#' a main effect, or use multiple second-order random walks,
+#' each with their own seasonal effects,
+#' to model an interaction.
+#' A second-order random walk is also known
+#' as a random walk with drift. It is typically
+#' used with main effects or interactions
+#' that involve time, where there are sustained
+#' trends upward or downward.
 #'
 #' If `RW2_Seas()` is used with an interaction,
-#' then separate series are used for
+#' separate series are used for
 #' the "along" variable within
 #' each combination of the
 #' "by" variables.
@@ -861,8 +915,10 @@ RW2 <- function(s = 1, along = NULL) {
 #'
 #' By default, the magnitude of seasonal effects
 #' can change over time. However, setting `s_seas`
-#' to `0` produces seasonal effects that are "fixed",
-#' ie that are the same every year.
+#' to `0` produces seasonal effects that are fixed,
+#' eg where "January" effect is the same every year,
+#'  the "Feburary" effect is the same every year, and so on.
+#'
 #'
 #' @section Mathematical details:
 #'
@@ -948,14 +1004,13 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 ## HAS_TESTS
 #' P-Spline Prior
 #'
-#' A p-spline (penalised spine) prior for main
+#' Use a p-spline (penalised spine) to model main
 #' effects or interactions. Typically used with age,
 #' but can be used with any variable where outcomes are
 #' expected to vary smoothly from one element to the next.
 #'
 #' If `Sp()` is used with an interaction,
-#' then separate splines are used for
-#' the "along" variable within
+#' separate splines are used for the "along" variable within
 #' each combination of the
 #' "by" variables.
 #'
@@ -991,7 +1046,7 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' @seealso
 #' - [RW()] Smoothing via random walk
 #' - [RW2()] Smoothing via random walk with drift
-#' - [SVD()] Smoothing of age via singlular value decomposition
+#' - [SVD()] Smoothing of age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -1026,27 +1081,26 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' SVD Prior for Age, or Age and Sex/Gender
+#' SVD-Based Prior for Age or Age-Sex Profiles
 #'
-#' A Singular Value Decomposition (SVD) prior
-#' for a main effect or interaction involving age and possibly
-#' sex or gender and other variables.
+#' Use a values from a Singular Value Decomposition (SVD)
+#' to model a main effect or interaction involving age.
 #'
 #' A `SVD()` prior assumes that the age, age-sex, or age-gender
-#' profile for the quantity
-#' being modelled looks like it was drawn at random
+#' profiles for the quantity
+#' being modelled looks like they were drawn at random
 #' from an external demographic database. For instance,
 #' the prior obtained via
 #' ```
 #' SVD(HMD)
 #' ```
 #' assumes that age or age-sex profiles look like
-#' they were obtained from the
+#' they were drawn from the
 #' [Human Mortality Database](https://www.mortality.org).
 #'
 #' If `SVD()` is used with an interaction involving
 #' variables other than age and sex/gender,
-#' then separate profiles are constructed
+#' separate profiles are constructed
 #' within each combination of other variables.
 #'
 #' **bage** chooses the appropriate age-specific
@@ -1077,7 +1131,7 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 #' 
 #' @section Mathematical details:
 #'
-#' **Case 1: Term involving age and no other variables **
+#' **Case 1: Term involving age and no other variables**
 #' 
 #' When `SVD()` is used with an age main effect,
 #' 
@@ -1182,7 +1236,7 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 #'
 #' - \code{\link{HMD}} Mortality rates from the
 #' [Human Mortality Database](https://www.mortality.org).
-#' - \code{\link{LFP}} Labour forcce participation
+#' - \code{\link{LFP}} Labor forcce participation
 #' rates from the [OECD](https://data-explorer.oecd.org).
 #'
 #' @param ssvd Object of class `"bage_ssvd"`
@@ -1231,13 +1285,11 @@ SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
 
 
 ## HAS_TESTS
-#' SVD Priors for Age, or Age and Sex/Gender,
-#' With Time-Varying Coefficients
+#' Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles
 #'
-#' Singular Value Decomposition (SVD) priors
-#' for interactions involving age and time, or age,
-#' sex/gender and time, and possibly
-#' other variables, where the coefficients evolve over time.
+#' Use a values from a Singular Value Decomposition (SVD)
+#' to model an interaction involving age and time, or age,
+#' sex/gender and time, where the coefficients evolve over time.
 #'
 #' `SVD_AR()`, `SVD_AR1()`, `SVD_RW()`, and `SVD_RW2()`
 #' priors assume that, in any given period,

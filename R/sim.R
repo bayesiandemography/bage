@@ -1013,7 +1013,7 @@ perform_comp <- function(est,
 
 
 ## HAS_TESTS
-#' Simulation study of a model
+#' Simulation Study of a Model
 #'
 #' Use simulated data to assess the performance of
 #' an estimation model.
@@ -1085,8 +1085,12 @@ perform_comp <- function(est,
 #' an [rvec][rvec::rvec()].
 #' 
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to set up
-#' models
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#' model
+#' - [components()], [augment()] Draw from joint prior
+#' or posterior distribution of model
+#' - [replicate_data()] Generate replicate
+#' data for a model
 #'
 #' @examples
 #' ## results random, so set seed

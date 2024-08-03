@@ -7,7 +7,7 @@
 AR(n_coef = 2, s = 1, along = NULL)
 }
 \arguments{
-\item{n_coef}{Thehe number of lagged terms in the
+\item{n_coef}{Number of lagged terms in the
 model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the prior for the innovations.
@@ -21,19 +21,24 @@ interactions.}
 An object of class \code{"bage_prior_ar"}.
 }
 \description{
-Prior for main effects or interaction.
-An autoreggressive process
-with order \code{k}. Typically used with time.
+Use an autoregressive process to model
+a main effect, or use multiple autoregressive
+processes to model an interaction.
+Typically used with time effects or with
+interactions that involve time.
 }
 \details{
 If \code{AR()} is used with an interaction,
-then separate AR series are constructed along
-the "along" variable within
-each combination of the
+separate AR processes are constructed along
+the "along" variable, within each combination of the
 "by" variables.
 
-Argument \code{s} controls the size of innovations. Smaller values
-for \code{s} tend to give smoother series.
+By default, the autoregressive processes
+have order 2. Alternative choices can be
+specified through the \code{n_coef} argument.
+
+Argument \code{s} controls the size of innovations.
+Smaller values for \code{s} tend to give smoother estimates.
 }
 \section{Mathematical details}{
 
@@ -89,7 +94,7 @@ AR(along = "cohort")
 \seealso{
 \itemize{
 \item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}
-\item \code{\link[=Lin_AR]{Lin_AR()}} AR process combined with straight line
+\item \code{\link[=Lin_AR]{Lin_AR()}}, \code{\link[=Lin_AR1]{Lin_AR1()}} Straight line with AR errors
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

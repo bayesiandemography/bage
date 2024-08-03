@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_prior}
 \alias{set_prior}
-\title{Specify a Prior}
+\title{Specify Prior for Model Term}
 \usage{
 set_prior(mod, formula)
 }
@@ -21,7 +21,7 @@ Specify a prior distribution for an intercept,
 a main effect, or an interaction.
 }
 \details{
-If the \code{mod} argument to \code{set_prior} is
+If the \code{mod} argument to \code{set_prior()} is
 a fitted model, then \code{set_disp} 'unfits'
 the model, by deleting existing estimates.
 }
@@ -34,7 +34,8 @@ mod |> set_prior(age ~ RW2())
 }
 \seealso{
 \itemize{
-\item \link{priors} Current choices for prior distributions.
-\item \code{\link[=is_fitted]{is_fitted()}}
+\item \link{priors} Current choices for prior distributions
+\item \code{\link[=is_fitted]{is_fitted()}} Test whether a model is fitted
+\item \code{\link[=set_disp]{set_disp()}} Specify prior for dispersion
 }
 }

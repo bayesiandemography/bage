@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{RW2_Seas}
 \alias{RW2_Seas}
-\title{Random Walk with Drift Prior, with Seasonal Effect}
+\title{Second-Order Random Walk Prior, with Seasonal Effect}
 \usage{
 RW2_Seas(n_seas, s = 1, s_seas = 1, along = NULL)
 }
@@ -25,14 +25,20 @@ Object of class \code{"bage_prior_rw2seasvary"}
 or \code{"bage_prior_rw2seasfix"}.
 }
 \description{
-Prior for a main effect or interaction,
-typically involving time. Combines
-a random walk with drift (ie a second-order random walk)
-and a seasonal effect.
+Use a second-oder random walk with
+seasonal effects to model
+a main effect, or use multiple second-order random walks,
+each with their own seasonal effects,
+to model an interaction.
+A second-order random walk is also known
+as a random walk with drift. It is typically
+used with main effects or interactions
+that involve time, where there are sustained
+trends upward or downward.
 }
 \details{
 If \code{RW2_Seas()} is used with an interaction,
-then separate series are used for
+separate series are used for
 the "along" variable within
 each combination of the
 "by" variables.
@@ -47,8 +53,9 @@ monthly data, \code{n_seas} should be \code{12}.
 
 By default, the magnitude of seasonal effects
 can change over time. However, setting \code{s_seas}
-to \code{0} produces seasonal effects that are "fixed",
-ie that are the same every year.
+to \code{0} produces seasonal effects that are fixed,
+eg where "January" effect is the same every year,
+the "Feburary" effect is the same every year, and so on.
 }
 \section{Mathematical details}{
 

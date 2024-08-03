@@ -36,7 +36,7 @@ Default is \code{TRUE}.}
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Forecast rates, probabilities, or means, and
+Forecast rates, probabilities, means, and
 other model parameters.
 }
 \section{How the forecasts are constructed}{
@@ -53,7 +53,7 @@ age effects or dispersion.
 rates, probabilities or means.
 }
 
-See LINK TO VIGNETTE for more details.
+\code{vignette("vig2_math")} has the technical details.
 }
 
 \section{Output}{
@@ -77,15 +77,15 @@ when creating graphs that combine estimates and forecasts.
 \section{Standardization}{
 
 
-The standardization applied to forecasts of
-components is equivalent
-to the standardization applied to \link[=components.bage_mod]{estimates},
-with one difference. When estimates are standardized,
-estimates for time-varying quantities such as time effects
+The standardization used by \code{forecast()}
+is equivalent to the standardization
+applied by \link[=components.bage_mod]{components()},
+with one exception. In \code{component()},
+values for time-varying quantities such as time effects
 are shifted up or down so that each time series has a mean
-of zero. When forecasts are standardized, forecasts
-are shifted up or down so that each time series of forecasts lines
-up with the corresponding time series of estimates.
+of zero. in \code{forecast()}, values for time-varying quantities
+are shifted up or down so that the values for forecasts
+line up with the values for estimates.
 }
 
 \section{Using data in forecasts}{
@@ -101,8 +101,7 @@ unfitted model. In this case, the forecasts
 are based entirely on the priors. See below for
 an example. Experimenting with forecasts
 based entirely on the priors can be helpful for
-designing a model. See LINK TO WORKFLOW VIGNETTE
-for details.
+choosing an appropriate model.
 }
 
 \section{Warning}{

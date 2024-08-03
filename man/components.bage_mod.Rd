@@ -36,8 +36,10 @@ draws from the posterior distribution.
 \description{
 Extract values for hyper-parameters
 from a model object. Includes values for
-main effects and interactions, and values
-for any disperion or variance terms.
+main effects and interactions, values
+for dispersions or variances terms,
+and parameters such as SVD or spline
+coefficients.
 }
 \section{Fitted vs unfitted models}{
 
@@ -89,7 +91,7 @@ estimates, set \code{standardize} to \code{FALSE}.
 Batches of parameters, such as seasonal effects,
 that have the same structure as main effects and
 interactions have the same problems of indeterminacy.
-By default, these paramters are also standardized.
+By default, these parameters are also standardized.
 }
 
 \examples{

@@ -3,7 +3,7 @@
 \docType{data}
 \name{households}
 \alias{households}
-\title{People in One-person households in New Zealand}
+\title{People in One-Person households in New Zealand}
 \format{
 A \link[tibble:tibble-package]{tibble} with 528 rows and the
 following columns:

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{tidy.bage_mod}
 \alias{tidy.bage_mod}
-\title{Main effects and interactions from a fitted model}
+\title{Summarize Terms from a Fitted Model}
 \usage{
 \method{tidy}{bage_mod}(x, ...)
 }
@@ -15,7 +15,8 @@
 A \link[tibble:tibble-package]{tibble}.
 }
 \description{
-Main effects and interactions from a fitted model
+Summarize the intercept, main effects, and interactions
+from a fitted model.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,
@@ -25,6 +26,9 @@ mod <- fit(mod)
 tidy(mod)
 }
 \seealso{
-\code{\link[=glimpse]{glimpse()}} provides less detailed information,
-and \code{\link[=augment]{augment()}} provides more detailed.
+\itemize{
+\item \code{\link[=components]{components()}} Extract values for rates,
+probabilities, and means
+\item \code{\link[=components]{components()}} Extract values for hyper-parameters
+}
 }

@@ -35,9 +35,9 @@ and is fast.
 \strong{Extract results}
 \itemize{
 \item \code{\link[=augment]{augment()}} Add cell-level estimates to data
-\item \code{\link[=components]{components()}} Hyper-parameters
+\item \link[=components.bage_mod]{components()} Hyper-parameters
 \item \code{\link[=tidy]{tidy()}} One-line summary
-\item \code{\link[=set_n_draw]{set_n_draw()}} Specify number of posterior draws
+\item \code{\link[=set_n_draw]{set_n_draw()}} Specify number of prior or posterior draws
 }
 
 \strong{Forecast}
@@ -51,14 +51,21 @@ and is fast.
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of model
 }
 
+\strong{SVD-based modelling of age-profiles}
+\itemize{
+\item \code{\link[=ssvd]{ssvd()}} Create scaled SVD object summarising database
+\item \link[=components.bage_ssvd]{components()} Matrices and offsets from scaled SVD
+\item \link[=generate.bage_ssvd]{generate()} Random profiles
+\item \link{HMD} SVD of mortality rates from Human Mortality Database
+\item \link{LFP} SVD of Labor Force Participation rates from OECD
+}
+
 \strong{Data}
 \itemize{
 \item \link{deaths} Deaths in Iceland
 \item \link{divorces} Divorces in New Zealand
 \item \link{expenditure} Health expenditure in the Netherlands
 \item \link{us_acc_deaths} Accidental deaths in the USA
-\item \link{HMD} SVD of mortality rates from Human Mortality Database
-\item \link{LFP} SVD of Labour Force Participation rates from OECD
 }
 }
 

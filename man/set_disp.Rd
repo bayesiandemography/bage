@@ -11,7 +11,7 @@ set_disp(mod, mean)
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
-\item{mean}{Mean value for the expoential prior.
+\item{mean}{Mean value for the exponential prior.
 In Poisson and binomial models, can be set to 0.}
 }
 \value{
@@ -24,9 +24,9 @@ standard deviation parameter (in normal models.)
 }
 \details{
 The dispersion or mean parameter has an exponential
-distribution with mean \eqn{\mu}.
+distribution with mean \eqn{\mu},
 
-\deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
+\deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right).}
 
 In Poisson and binomial models,
 \code{mean} can be set to \code{0}, implying
@@ -47,6 +47,10 @@ mod |> set_disp(mean = 0)
 }
 \seealso{
 \itemize{
-\item \code{\link[=is_fitted]{is_fitted()}}
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
+model
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for a term
+\item \code{\link[=set_n_draw]{set_n_draw()}} Specify the number of draws
+\item \code{\link[=is_fitted]{is_fitted()}} Test whether a model is fitted
 }
 }

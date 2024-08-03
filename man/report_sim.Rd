@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim.R
 \name{report_sim}
 \alias{report_sim}
-\title{Simulation study of a model}
+\title{Simulation Study of a Model}
 \usage{
 report_sim(
   mod_est,
@@ -127,7 +127,11 @@ report_sim(mod_est = mod_est,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to set up
-models
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
+model
+\item \code{\link[=components]{components()}}, \code{\link[=augment]{augment()}} Draw from joint prior
+or posterior distribution of model
+\item \code{\link[=replicate_data]{replicate_data()}} Generate replicate
+data for a model
 }
 }

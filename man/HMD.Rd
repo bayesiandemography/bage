@@ -5,7 +5,7 @@
 \alias{HMD}
 \title{Components from Human Mortality Database}
 \format{
-An object of class \code{bage_ssvd} of length 1.
+Object of class \code{"bage_ssvd"}.
 }
 \source{
 Derived from data at

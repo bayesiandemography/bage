@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{Lin_AR1}
 \alias{Lin_AR1}
-\title{Linear Prior with AR1 Errors}
+\title{Linear Prior with Autoregressive Errors of Order 1}
 \usage{
 Lin_AR1(min = 0.8, max = 0.98, s = 1, sd = 1, along = NULL)
 }
@@ -26,17 +26,25 @@ interactions.}
 An object of class \code{"bage_prior_linar"}.
 }
 \description{
-Prior for main effect or interaction.
-Combines a straight line or lines with
-AR1 errors. Typically used with time.
+Use a line or lines with AR1
+errors to model a main effect
+or interaction. Typically used with time.
 }
 \details{
-If \code{Lin_AR1()} is used with an interaction,
-then, within each combination of the "by" variables,
-the "along" variable is modelled as a straight line
-with autoregressive errors.
+If \code{Lin_AR()} is used with an interaction,
+separate lines are constructed along
+the "along" variable, within each combination
+of the "by" variables.
 
-Argument \code{s} controls the size of the errors.
+Arguments \code{min} and \code{max} can be used to specify
+the permissible range for autocorrelation.
+
+Argument \code{s} controls the size of the innovations.
+Smaller values tend to give smoother estimates.
+
+Argument \code{sd} controls the size of the slopes of
+the lines. Larger values can give more steeply
+sloped lines.
 }
 \section{Mathematical details}{
 
@@ -96,7 +104,8 @@ defaults for \code{forecast::ets()}.
 }
 \seealso{
 \itemize{
-\item \code{\link[=Lin_AR]{Lin_AR()}} Generalisation of \code{Lin_AR1()}
+\item \code{\link[=Lin_AR]{Lin_AR()}} Generalization of \code{Lin_AR1()}
+\item \code{\link[=Lin]{Lin()}} Line with independent normal errors
 \item \code{\link[=AR1]{AR1()}} AR1 process with no line
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,

@@ -11,9 +11,9 @@
 #' standard deviation parameter (in normal models.)
 #'
 #' The dispersion or mean parameter has an exponential
-#' distribution with mean \eqn{\mu}.
+#' distribution with mean \eqn{\mu},
 #'
-#' \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right)}
+#' \deqn{p(\xi) = \frac{1}{\mu}\exp\left(\frac{-\xi}{\mu}\right).}
 #'
 #' In Poisson and binomial models,
 #' `mean` can be set to `0`, implying
@@ -27,13 +27,17 @@
 #' @param mod A `bage_mod` object, typically
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param mean Mean value for the expoential prior.
+#' @param mean Mean value for the exponential prior.
 #' In Poisson and binomial models, can be set to 0.
 #'
 #' @returns A `bage_mod` object
 #'
 #' @seealso
-#' - [is_fitted()]
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#' model
+#' - [set_prior()] Specify prior for a term
+#' - [set_n_draw()] Specify the number of draws
+#' - [is_fitted()] Test whether a model is fitted
 #' 
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -58,13 +62,13 @@ set_disp <- function(mod, mean) {
 ## 'set_n_draw' ---------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set the number of draws
+#' Set Number of Prior or Posterior Draws
 #'
 #' Specify the number of draws from the posterior
 #' distribution to be used in model output.
 #' A newly-created `bage_mod` object has an
 #' `n_draw` value of 1000. Higher values
-#' may be appropriate for characterising
+#' may be appropriate for characterizing
 #' the tails of distributions, or for
 #' publication-quality graphics and summaries.
 #'
@@ -77,8 +81,14 @@ set_disp <- function(mod, mean) {
 #'
 #' @returns A `bage_mod` object
 #' 
-#' @seealso Functions whose output is affected
-#' by the number of draws include [bage::augment()].
+#' @seealso
+#' - [bage::augment()], [bage::components()] functions for
+#'   drawing from prior or posterior distribution - the output
+#'   of which is affected by the value of `n_draw`.
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#' model
+#' - [set_prior()] Specify prior for a term
+#' - [set_disp()] Specify prior for dispersion
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -118,12 +128,12 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 ## 'set_prior' ----------------------------------------------------------------
 
 ## HAS_TESTS
-#' Specify a Prior
+#' Specify Prior for Model Term
 #'
 #' Specify a prior distribution for an intercept,
 #' a main effect, or an interaction.
 #'
-#' If the `mod` argument to `set_prior` is
+#' If the `mod` argument to `set_prior()` is
 #' a fitted model, then `set_disp` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
@@ -135,8 +145,9 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' @returns A modified `bage_mod` object.
 #'
 #' @seealso
-#' - [priors] Current choices for prior distributions.
-#' - [is_fitted()]
+#' - [priors] Current choices for prior distributions
+#' - [is_fitted()] Test whether a model is fitted
+#' - [set_disp()] Specify prior for dispersion
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + year,
@@ -188,7 +199,7 @@ set_prior <- function(mod, formula) {
 
 ## 'set_var_age' --------------------------------------------------------------
 
-#' Set the age variable
+#' Set Age Variable
 #'
 #' Specify which variable (if any) represents age.
 #' Functions [mod_pois()], [mod_binom()],
@@ -218,11 +229,11 @@ set_prior <- function(mod, formula) {
 #' @returns A `bage_mod` object
 #'
 #' @seealso
-#' - [set_var_sexgender()] sets the sex or gender variable
-#' - [set_var_time()] sets the time variable
+#' - [set_var_sexgender()] Set sex or gender variable
+#' - [set_var_time()] Set time variable
+#' - [is_fitted()] Test whether a model is fitted
 #' - internally, **bage** uses [poputils::find_var_age()]
 #'   to locate age variables
-#' - [is_fitted()]
 #' 
 #' @examples
 #' ## rename 'age' variable to something unusual
@@ -251,7 +262,7 @@ set_var_age <- function(mod, name) {
 ## 'set_var_sexgender' --------------------------------------------------------
 
 ## HAS_TESTS
-#' Set a sex or gender variable
+#' Set Sex or Gender Variable
 #'
 #' Specify which variable (if any) represents sex or gender.
 #' Functions [mod_pois()], [mod_binom()],
@@ -276,15 +287,15 @@ set_var_age <- function(mod, name) {
 #' @returns A `"bage_mod"` object
 #'
 #' @seealso
-#' - [set_var_age()] sets the age variable
-#' - [set_var_time()] sets the time variable
+#' - [set_var_age()] Set age variable
+#' - [set_var_time()] Set time variable
+#' - [is_fitted()] Test whether model is fitted
 #' - internally, **bage** uses [poputils::find_var_sexgender()]
 #'   to locate sex or gender variables
 #' - internally, **bage** uses [poputils::find_label_female()]
 #'   to locate female categories within a sex or gender variable
 #' - internally, **bage** uses [poputils::find_label_male()]
 #'   to locate male categories within a sex or gender variable
-#' - [is_fitted()]
 #' 
 #' @examples
 #' ## rename 'sex' variable to something unexpected
@@ -311,7 +322,7 @@ set_var_sexgender <- function(mod, name) {
 ## 'set_var_time' --------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set the time variable
+#' Set Time Variable
 #'
 #' Specify which variable (if any) represents time.
 #' Functions [mod_pois()], [mod_binom()],
@@ -341,11 +352,11 @@ set_var_sexgender <- function(mod, name) {
 #' @returns A `bage_mod` object
 #'
 #' @seealso
-#' - [set_var_age()] sets the age variable
-#' - [set_var_sexgender()] sets the sex or gender
+#' - [set_var_age()] Set age variable
+#' - [set_var_sexgender()] Sex sex or gender variable
+#' - [is_fitted()] Test if model has been fitted
 #' - internally, **bage** uses [poputils::find_var_time()]
 #'   to locate time variables
-#' - [is_fitted()]
 #'
 #' @examples
 #' ## rename time variable to something unusual

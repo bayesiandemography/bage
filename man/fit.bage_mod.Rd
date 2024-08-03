@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{fit.bage_mod}
 \alias{fit.bage_mod}
-\title{Fit a model}
+\title{Fit a Model}
 \usage{
 \method{fit}{bage_mod}(object, ...)
 }
@@ -17,7 +17,7 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 A \code{bage_mod} object
 }
 \description{
-Fit a model
+Derive a posterior distribution for a model.
 }
 \examples{
 ## specify model
@@ -44,9 +44,10 @@ comp
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to specify a model
-\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}}, and \code{\link[=tidy]{tidy()}} to examine
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a model
+\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}}, and \code{\link[=tidy]{tidy()}} Examine
 output from a model.
-\item \code{\link[=forecast]{forecast()}} to forecast, based on a model
+\item \code{\link[=forecast]{forecast()}} Forecast, based on a model
+\item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model
 }
 }

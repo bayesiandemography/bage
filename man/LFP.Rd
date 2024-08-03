@@ -3,12 +3,12 @@
 \docType{data}
 \name{LFP}
 \alias{LFP}
-\title{Components from OECD Labour Force Participation Data}
+\title{Components from OECD Labor Force Participation Data}
 \format{
-An object of class \code{bage_ssvd} of length 1.
+Object of class \code{"bage_ssvd"}.
 }
 \source{
-Derived from data in the "Labour Force Indicators"
+Derived from data in the "Labor Force Indicators"
 table of the OECD Data Explorer.
 Code to create \code{LFS}
 is in folder 'data-raw/ssvd_lfp' in
@@ -20,7 +20,7 @@ LFP
 }
 \description{
 An object of class \link[=ssvd]{bage_ssvd}
-holding components extracted from labour force participation
+holding components extracted from labor force participation
 data from the
 \href{https://data-explorer.oecd.org}{OECD Data Explorer}.
 }
