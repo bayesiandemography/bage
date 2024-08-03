@@ -245,12 +245,14 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                                   dimnames_terms = dimnames_terms,
                                   var_time = var_time,
                                   var_age = var_age,
-                                  var_sexgender = var_sexgender)
+                                  var_sexgender = var_sexgender,
+                                  center_along = TRUE)
     ans <- standardize_trend_cyc_seas_err(components = ans,
                                           priors = priors,
                                           dimnames_terms = dimnames_terms,
                                           var_time = var_time,
-                                          var_age = var_age)
+                                          var_age = var_age,
+                                          center_along = TRUE)
   }
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,

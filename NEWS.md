@@ -1,4 +1,15 @@
 
+# bage 0.6.3
+
+## Changes to calculations
+
+* Changed standardization of forecasts so that forecasts are
+  standardized along the 'along' dimension by choosing the values that
+  makes them consistent with time trends in the estimation period, and
+  then standardizing within each value of the along dimensions.
+
+
+
 # bage 0.6.2
 
 ## Changes to interface

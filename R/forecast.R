@@ -675,38 +675,6 @@ make_term_level_final_time_svd <- function(mod) {
 
 
 ## HAS_TESTS
-#' Standardize trend, cyclical, seasonal, error Terms
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param component Rows from 'components'
-#' for a type of component
-#'
-#' @return A modified version of 'component'
-#'
-#' @noRd
-standardize_component <- function(mod, component) {
-  priors <- mod$priors
-  dimnames_terms <- mod$dimnames_terms
-  var_time <- mod$var_time
-  var_age <- mod$var_age
-  terms <- split(x = component, f = component$term)
-  nms_terms <- names(terms)
-  for (nm_term in nms_terms) {
-    prior <- priors[[nm_term]]
-    dimnames_term <- dimnames_terms[[nm_term]]
-    along <- prior$specific$along ## component must have 'along'
-    matrix_along_by <- make_matrix_along_by_effect(along = along,
-                                                   dimnames_term = dimnames_term,
-                                                   var_time = var_time,
-                                                   var_age = var_age)
-    terms[[nm_term]]$.fitted <- center_within_across_by(x = terms[[nm_term]]$.fitted,
-                                                        matrix_along_by = matrix_along_by)
-  }
-  vctrs::vec_rbind(!!!terms)
-}
-
-
-## HAS_TESTS
 #' Standardize Forecasted 'components' Values
 #'
 #' Standardization consists of adding the quantity

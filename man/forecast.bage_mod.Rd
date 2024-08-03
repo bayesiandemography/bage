@@ -77,7 +77,15 @@ when creating graphs that combine estimates and forecasts.
 \section{Standardization}{
 
 
-TODO - Write this
+The standardization applied to forecasts of
+components is equivalent
+to the standardization applied to \link[=components.bage_mod]{estimates},
+with one difference. When estimates are standardized,
+estimates for time-varying quantities such as time effects
+are shifted up or down so that each time series has a mean
+of zero. When forecasts are standardized, forecasts
+are shifted up or down so that each time series of forecasts lines
+up with the corresponding time series of estimates.
 }
 
 \section{Using data in forecasts}{
