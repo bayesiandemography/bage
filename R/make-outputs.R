@@ -1,19 +1,25 @@
 
 ## HAS_TESTS
-#' Center Values Within and Across Each Combination of By Variables
-#'
+#' Center Values Within Each Value of 'along'
+#' Variable and (Optionally) Each Value
+#' of 'by' Variable
+#' 
 #' @param x A numeric vector or rvec
 #' @param matrix_along_by Mapping matrix for 'x'
+#' @param center_along Whether to center within 'along'
+#' variable
 #'
 #' @returns A modifed version of 'x'
 #'
 #' @noRd
-center_within_across_by <- function(x, matrix_along_by) {
+center_within_along_by <- function(x, matrix_along_by, center_along) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  for (i_by in seq_len(n_by)) {
-    i_along <- matrix_along_by[, i_by] + 1L
-    x[i_along] <- x[i_along] - mean(x[i_along])
+  if (center_along) {
+    for (i_by in seq_len(n_by)) {
+      i_along <- matrix_along_by[, i_by] + 1L
+      x[i_along] <- x[i_along] - mean(x[i_along])
+    }
   }
   if (n_by > 1L) {
     for (i_along in seq_len(n_along)) {
@@ -22,34 +28,6 @@ center_within_across_by <- function(x, matrix_along_by) {
     }
   }
   x
-}
-
-
-## HAS_TESTS
-#' Version of 'center_within_across_by' for Matrix of Draws
-#'
-#' @param draws A matrix, each column of which is a draw
-#' @param matrix_along_by Mapping matrix for a column of 'draws'
-#'
-#' @returns A modified version of 'draws'
-#'
-#' @noRd
-center_within_across_by_draws <- function(draws, matrix_along_by) {
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  for (i_by in seq_len(n_by)) {
-    indices_along <- matrix_along_by[, i_by] + 1L
-    means <- colMeans(draws[indices_along, , drop = FALSE])
-    draws[indices_along, ] <- draws[indices_along, ] - rep(means, each = n_along)
-  }
-  if (n_by > 1L) {
-    for (i_along in seq_len(n_along)) {
-      indices_by <- matrix_along_by[i_along, ] + 1L
-      means <- colMeans(draws[indices_by, , drop = FALSE])
-      draws[indices_by, ] <- draws[indices_by, ] - rep(means, each = n_by)
-    }
-  }
-  draws
 }
 
 
@@ -92,12 +70,14 @@ draw_vals_components_fitted <- function(mod, standardize) {
                                   dimnames_terms = dimnames_terms,
                                   var_time = var_time,
                                   var_age = var_age,
-                                  var_sexgender = var_sexgender)
+                                  var_sexgender = var_sexgender,
+                                  center_along = TRUE)
     ans <- standardize_trend_cyc_seas_err(components = ans,
                                           priors = priors,
                                           dimnames_terms = dimnames_terms,
                                           var_time = var_time,
-                                          var_age = var_age)
+                                          var_age = var_age,
+                                          center_along = TRUE)
   }
   ans
 }
@@ -1010,6 +990,54 @@ standardize_effects <- function(components, data, linpred, dimnames_terms) {
 
 
 ## HAS_TESTS
+#' Standardize Effect by Centering Along 'by' and (Optionally) 'along' Dimensions
+#'
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param center_along Whether to center along the 'along' dimension
+#' 
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+standardize_effects_along_by <- function(components,
+                                         priors,
+                                         dimnames_terms,
+                                         var_time,
+                                         var_age,
+                                         center_along) {
+  key_comp <- with(components, paste(term, component, level))
+  for (i_term in seq_along(priors)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    prior <- priors[[i_term]]
+    nm_term_split <- dimnames_to_nm_split(dimnames_term)
+    nm_term <- dimnames_to_nm(dimnames_term)
+    levels_term <- dimnames_to_levels(dimnames_term)
+    key_effect <- paste(nm_term, "effect", levels_term)
+    i_effect <- match(key_effect, key_comp, nomatch = 0L)
+    has_val <- any(i_effect > 0L)
+    uses_along <- uses_along(prior)
+    if (has_val && uses_along) {
+      dimnames_term <- dimnames_terms[[i_term]]
+      effect <- components$.fitted[i_effect]
+      along <- prior$specific$along
+      matrix_along_by <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+      effect <- center_within_along_by(x = effect,
+                                       matrix_along_by = matrix_along_by,
+                                       center_along = center_along)
+      components$.fitted[i_effect] <- effect
+    }
+  }
+  components
+}
+
+
+## HAS_TESTS
 #' Standardize SVD and Spline Coefficients
 #'
 #' @param components Data frame with estimates of hyper parameters
@@ -1018,6 +1046,7 @@ standardize_effects <- function(components, data, linpred, dimnames_terms) {
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
+#' @param center_along Whether to center along the 'along' dimension
 #' 
 #' @returns A modifed version of 'components'
 #'
@@ -1027,7 +1056,8 @@ standardize_svd_spline <- function(components,
                                    dimnames_terms,
                                    var_time,
                                    var_age,
-                                   var_sexgender) {
+                                   var_sexgender,
+                                   center_along) {
   key_components <- with(components, paste(term, component, level))
   for (i_term in seq_along(priors)) {
     prior <- priors[[i_term]]
@@ -1059,8 +1089,9 @@ standardize_svd_spline <- function(components,
                                                          var_time = var_time,
                                                          var_age = var_age,
                                                          var_sexgender = var_sexgender)
-      val_term <- center_within_across_by(x = val_term, 
-                                          matrix_along_by = matrix_along_by)
+      val_term <- center_within_along_by(x = val_term, 
+                                         matrix_along_by = matrix_along_by,
+                                         center_along)
       components$.fitted[indices_comp] <- val_term
     }
   }
@@ -1076,6 +1107,7 @@ standardize_svd_spline <- function(components,
 #' @param dimnames_terms Dimnames for array representation of terms
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
+#' @param center_along Whether to center along the 'along' dimension
 #' 
 #' @returns A modifed version of 'components'
 #'
@@ -1084,7 +1116,8 @@ standardize_trend_cyc_seas_err <- function(components,
                                            priors,
                                            dimnames_terms,
                                            var_time,
-                                           var_age) {
+                                           var_age,
+                                           center_along) {
   nms_tcse <- c("trend", "cyclical", "seasonal", "error")
   key_comp <- with(components, paste(term, component, level))
   for (i_term in seq_along(priors)) {
@@ -1107,7 +1140,9 @@ standardize_trend_cyc_seas_err <- function(components,
                                                        dimnames_term = dimnames_term,
                                                        var_time = var_time,
                                                        var_age = var_age)
-        tcse <- center_within_across_by(x = tcse, matrix_along_by = matrix_along_by)
+        tcse <- center_within_along_by(x = tcse,
+                                       matrix_along_by = matrix_along_by,
+                                       center_along = center_along)
         components$.fitted[i_tcse] <- tcse
       }
     }
