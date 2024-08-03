@@ -14,7 +14,10 @@ An object of class \code{"bage_prior_normfixed"}.
 }
 \description{
 Normal prior where, in contrast to \code{\link[=N]{N()}}, the
-variance is treated as fixed and known.
+variance is treated as fixed and known. Typically
+used for main effects or interactions where there
+are too few elements to reliably estimate variance
+from the available data.
 }
 \details{
 \code{NFix()} is the default prior for the intercept.

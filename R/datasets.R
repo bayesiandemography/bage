@@ -78,7 +78,7 @@
 "expenditure"
 
 
-#' People in One-person households in New Zealand
+#' People in One-Person households in New Zealand
 #'
 #' Counts of people in one-person households, and
 #' counts of people living in any household, by
@@ -156,14 +156,17 @@
 
 ## SVD ------------------------------------------------------------------------
 
-#' Components from OECD Labour Force Participation Data
+#' Components from OECD Labor Force Participation Data
 #'
 #' An object of class [bage_ssvd][ssvd()]
-#' holding components extracted from labour force participation
+#' holding components extracted from labor force participation
 #' data from the
 #' [OECD Data Explorer](https://data-explorer.oecd.org).
 #'
-#' @source Derived from data in the "Labour Force Indicators"
+#' @format
+#' Object of class `"bage_ssvd"`.
+#'
+#' @source Derived from data in the "Labor Force Indicators"
 #' table of the OECD Data Explorer.
 #' Code to create `LFS`
 #' is in folder 'data-raw/ssvd_lfp' in
@@ -179,6 +182,9 @@
 #' data from the
 #' [Human Mortality Database](https://www.mortality.org).
 #' The object holds 5 components.
+#'
+#' @format
+#' Object of class `"bage_ssvd"`.
 #'
 #' @source Derived from data at
 #' Human Mortality Database. Max Planck Institute for

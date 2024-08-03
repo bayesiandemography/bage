@@ -39,7 +39,7 @@
 #' - \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
 #' - \eqn{\xi} governs dispersion (ie variance.)
 #'
-#' The expected values \eqn{\mu_i} equal, on the log scale,
+#' Expected value \eqn{\mu_i} equals, on the log scale,
 #' the sum of terms formed from classifying variables,
 #'
 #' \deqn{\log \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
@@ -77,11 +77,10 @@
 #' @returns An object of class `bage_mod_pois`.
 #'
 #' @seealso
-#' - [mod_binom()] Specify a binomial model
-#' - [mod_norm()] Specify a normal model
-#' - [set_prior()] Specify non-default priors for terms
-#'   formed from classifying dimensions
-#' - [set_disp()] Specify a non-default prior for dispersion
+#' - [mod_binom()] Specify binomial model
+#' - [mod_norm()] Specify normal model
+#' - [set_prior()] Specify non-default prior for term
+#' - [set_disp()] Specify non-default prior for dispersion
 #' - [fit()] Fit a model
 #' - [forecast()] Forecast a model
 #' - [report_sim()] Do a simulation study on a model
@@ -181,7 +180,7 @@ mod_pois <- function(formula, data, exposure) {
 #' - \eqn{\mu_i} is the expected value for \eqn{\gamma_i}; and
 #' - \eqn{\xi} governs dispersion (ie variance.)
 #'
-#' The expected values \eqn{\mu_i} equal, on the logit scale,
+#' Expected value \eqn{\mu_i} equals, on a logit scale,
 #' the sum of terms formed from classifying variables,
 #'
 #' \deqn{\text{logit} \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
@@ -217,11 +216,10 @@ mod_pois <- function(formula, data, exposure) {
 #' @returns An object of class `bage_mod`.
 #'
 #' @seealso
-#' - [mod_pois()] Specify a Poisson model
-#' - [mod_norm()] Specify a normal model
-#' - [set_prior()] Specify non-default priors for terms
-#'   formed from classifying dimensions
-#' - [set_disp()] Specify a non-default prior for dispersion,
+#' - [mod_pois()] Specify Poisson model
+#' - [mod_norm()] Specify normal model
+#' - [set_prior()] Specify non-default prior for term
+#' - [set_disp()] Specify non-default prior for dispersion
 #' - [fit()] Fit a model
 #' - [forecast()] Forecast a model
 #' - [report_sim()] Do a simulation study on a model
@@ -280,7 +278,8 @@ mod_binom <- function(formula, data, size) {
 ## HAS_TESTS
 #' Specify a Normal Model
 #'
-#' @description
+#' Specify a model where the outcome is drawn from
+#' a normal distribution.
 #' 
 #' The model is hierarchical. The means in the normal distribution
 #' are described by a prior model formed from dimensions such
@@ -352,11 +351,10 @@ mod_binom <- function(formula, data, size) {
 #' @returns An object of class `bage_mod_norm`.
 #'
 #' @seealso
-#' - [mod_pois()] Specify a Poisson model
-#' - [mod_binom()] Specify a binomial model
-#' - [set_prior()] Specify non-default priors for terms
-#'   formed from classifying dimensions
-#' - [set_disp()] Specify a non-default prior for the standard deviation
+#' - [mod_pois()] Specify Poisson model
+#' - [mod_binom()] Specify binomial model
+#' - [set_prior()] Specify non-default prior for term
+#' - [set_disp()] Specify non-default prior for standard deviation
 #' - [fit()] Fit a model
 #' - [forecast()] Forecast a model
 #' - [report_sim()] Do a simulation study on a model

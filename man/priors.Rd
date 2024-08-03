@@ -7,24 +7,25 @@
 The models for rates, probabilities, or means
 created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
 and \code{\link[=mod_norm]{mod_norm()}} always include an intercept,
-and typically include main effects,
-and interactions. Most models, for instance
+and typically include main effects
+and interactions formed from
+variables in input data.
+Most models, for instance
 include an age effect, and many include
-and interaction between age and sex/gender,
+an interaction between age and sex/gender,
 or age and time.
-}
-\details{
+
 The intercept, main effects, and interactions
 all have prior models that capture the expected
 behavior of the term. Current choices of prior
 models are summarised here.
-
-Priors with links to help have been implemented.
-Priors without links are next in the queue for implementation.\tabular{llll}{
+}
+\details{
+\tabular{llll}{
    \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Can be forecasted} \cr
-   \code{\link[=N]{N()}} \tab Elements drawn from a common normal distribution with mean 0 and standard devation estimated from the data. \tab Main effects or interactions with no natural order or neighbourbood structure. \tab Yes \cr
+   \code{\link[=N]{N()}} \tab Elements drawn from a common normal distribution with mean 0 and standard devation estimated from the data. \tab Main effects or interactions with no natural order or neighborbood structure. \tab Yes \cr
    \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation supplied (fixed) by user. \tab Like \code{N()}, but where there are too few elements to estimate the standard deviation, or where there is strong prior information about its value. Intercept and sex/gender effects. \tab Yes \cr
-   \code{\link[=RW]{RW()}} \tab Random walk. Elements have a natural ordering, and neighbouring elements more strongly correlated than distant elements. \tab Modelling age, time, cohort, or other smoothly-varying dimensions. \tab Yes \cr
+   \code{\link[=RW]{RW()}} \tab Random walk. Elements have a natural ordering, and neighboring elements more strongly correlated than distant elements. \tab Modelling age, time, cohort, or other smoothly-varying dimensions. \tab Yes \cr
    \code{\link[=RW2]{RW2()}} \tab Second-order random walk. Similar to \code{RW()}, but with persistent trends. \tab As for \code{RW()}, but where greater smoothness expected. \tab Yes \cr
    \code{\link[=RW_Seas]{RW_Seas()}} \tab Random walk, with seasonal effect. \tab Main effects or interactions involving time. \tab Yes \cr
    \code{\link[=RW2_Seas]{RW2_Seas()}} \tab Random walk with drift, with seasonal effect. \tab Main effects or interactions involving time. \tab Yes \cr
@@ -38,7 +39,7 @@ Priors without links are next in the queue for implementation.\tabular{llll}{
    \code{\link[=SVD]{SVD()}} \tab Age, age-sex, or age-gender profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Terms involving age and possibly sex/gender. \tab No \cr
    \code{\link[=SVD_AR]{SVD_AR()}} \tab Like \code{SVD()}, but coefficients evolve over time, following AR models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
    \code{\link[=SVD_AR1]{SVD_AR1()}} \tab Like \code{SVD()}, but coefficients evolve over time, following AR1 models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
-   \code{\link[=SVD_RW]{SVD_RW()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk models. \tab Interactions between age, time, possily sex/gender, and possibly other variables. \tab Yes \cr
+   \code{\link[=SVD_RW]{SVD_RW()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
    \code{\link[=SVD_RW2]{SVD_RW2()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk with drift models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
 }
 }

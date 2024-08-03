@@ -32,7 +32,8 @@ Uncertain quantities are represented using
 \link[rvec:rvec]{rvecs}.
 }
 \description{
-Extract data and values from a model object.
+Extract data and rates, probabilities, or means
+from a model object.
 The return value consists of the original
 data and one or more columns of modelled values.
 }
@@ -48,8 +49,8 @@ probabilities, or means.
 unfitted model. In this case, the modelled values
 are draws from the joint prior distribution.
 In other words, the modelled values are informed by
-model priors, and by any \code{exposure}, \code{size}, or \code{weights}
-arguments in the model, but not by the observed outcomes.
+model priors, and by values for \code{exposure}, \code{size}, or \code{weights},
+but not by observed outcomes.
 }
 
 \examples{

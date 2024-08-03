@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_n_draw}
 \alias{set_n_draw}
-\title{Set the number of draws}
+\title{Set Number of Prior or Posterior Draws}
 \usage{
 set_n_draw(mod, n_draw = 1000L)
 }
@@ -21,7 +21,7 @@ Specify the number of draws from the posterior
 distribution to be used in model output.
 A newly-created \code{bage_mod} object has an
 \code{n_draw} value of 1000. Higher values
-may be appropriate for characterising
+may be appropriate for characterizing
 the tails of distributions, or for
 publication-quality graphics and summaries.
 }
@@ -40,6 +40,13 @@ mod |>
   set_n_draw(n_draw = 5000)
 }
 \seealso{
-Functions whose output is affected
-by the number of draws include \code{\link[=augment]{augment()}}.
+\itemize{
+\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}} functions for
+drawing from prior or posterior distribution - the output
+of which is affected by the value of \code{n_draw}.
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
+model
+\item \code{\link[=set_prior]{set_prior()}} Specify prior for a term
+\item \code{\link[=set_disp]{set_disp()}} Specify prior for dispersion
+}
 }

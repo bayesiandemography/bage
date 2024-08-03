@@ -13,7 +13,8 @@ generics::augment
 ## HAS_TESTS
 #' Extract Data and Modelled Values
 #'
-#' Extract data and values from a model object.
+#' Extract data and rates, probabilities, or means
+#' from a model object.
 #' The return value consists of the original
 #' data and one or more columns of modelled values.
 #'
@@ -28,8 +29,8 @@ generics::augment
 #' unfitted model. In this case, the modelled values
 #' are draws from the joint prior distribution.
 #' In other words, the modelled values are informed by
-#' model priors, and by any `exposure`, `size`, or `weights`
-#' arguments in the model, but not by the observed outcomes.
+#' model priors, and by values for `exposure`, `size`, or `weights`,
+#' but not by observed outcomes. 
 #'
 #' @param x An object of class `"bage_mod"`.
 #' @param quiet Whether to suppress messages.
@@ -104,8 +105,10 @@ generics::components
 #'
 #' Extract values for hyper-parameters
 #' from a model object. Includes values for
-#' main effects and interactions, and values
-#' for any disperion or variance terms.
+#' main effects and interactions, values
+#' for dispersions or variances terms,
+#' and parameters such as SVD or spline
+#' coefficients.
 #' 
 #' @section Fitted vs unfitted models:
 #'
@@ -154,7 +157,7 @@ generics::components
 #' Batches of parameters, such as seasonal effects,
 #' that have the same structure as main effects and
 #' interactions have the same problems of indeterminacy.
-#' By default, these paramters are also standardized.
+#' By default, these parameters are also standardized.
 #'
 #' @inheritParams augment.bage_mod
 #' @param object A `bage_mod` object,
@@ -474,7 +477,9 @@ generics::equation
 generics::fit
 
 ## HAS_TESTS
-#' Fit a model
+#' Fit a Model
+#'
+#' Derive a posterior distribution for a model.
 #'
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
@@ -484,10 +489,11 @@ generics::fit
 #' @returns A `bage_mod` object
 #'
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
-#' - [augment()], [components()], and [tidy()] to examine
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
+#' - [augment()], [components()], and [tidy()] Examine
 #'   output from a model.
-#' - [forecast()] to forecast, based on a model
+#' - [forecast()] Forecast, based on a model
+#' - [report_sim()] Do a simulation study on a model
 #' 
 #' @examples
 #' ## specify model
@@ -616,7 +622,7 @@ generics::forecast
 ## HAS_TESTS
 #' Use a Model to Make a Forecast
 #'
-#' Forecast rates, probabilities, or means, and
+#' Forecast rates, probabilities, means, and
 #' other model parameters.
 #'
 #' @section How the forecasts are constructed:
@@ -631,7 +637,7 @@ generics::forecast
 #' 3. Use the combined parameters to generate values for
 #'    rates, probabilities or means.
 #'
-#' See LINK TO VIGNETTE for more details.
+#' `vignette("vig2_math")` has the technical details.
 #'
 #' @section Output:
 #'
@@ -651,15 +657,15 @@ generics::forecast
 #'
 #' @section Standardization:
 #'
-#' The standardization applied to forecasts of
-#' components is equivalent
-#' to the standardization applied to [estimates][components.bage_mod()],
-#' with one difference. When estimates are standardized,
-#' estimates for time-varying quantities such as time effects
+#' The standardization used by `forecast()`
+#' is equivalent to the standardization
+#' applied by [components()][components.bage_mod()],
+#' with one exception. In `component()`,
+#' values for time-varying quantities such as time effects
 #' are shifted up or down so that each time series has a mean
-#' of zero. When forecasts are standardized, forecasts
-#' are shifted up or down so that each time series of forecasts lines
-#' up with the corresponding time series of estimates.
+#' of zero. in `forecast()`, values for time-varying quantities
+#' are shifted up or down so that the values for forecasts
+#' line up with the values for estimates.
 #'
 #' @section Using data in forecasts:
 #'
@@ -673,8 +679,7 @@ generics::forecast
 #' are based entirely on the priors. See below for
 #' an example. Experimenting with forecasts
 #' based entirely on the priors can be helpful for
-#' designing a model. See LINK TO WORKFLOW VIGNETTE
-#' for details.
+#' choosing an appropriate model.
 #'
 #' @section Warning:
 #'
@@ -1019,6 +1024,10 @@ has_disp.bage_mod <- function(mod) {
 #'
 #' @returns `TRUE` or `FALSE`
 #'
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
+#' - [bage::fit()] to fit a model
+#'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = injuries,
@@ -1277,13 +1286,6 @@ print.bage_mod <- function(x, ...) {
 }
 
 
-#' Draw from the Prior Predictive Distribution of
-#' a Model
-#'
-#' Draw from the prior predictive distribution
-#' of a model, i.e., the 
-
-
 ## 'replicate_data' -----------------------------------------------------------
 
 #' Create Replicate Data
@@ -1316,7 +1318,7 @@ print.bage_mod <- function(x, ...) {
 #' (the \eqn{\mu_i} and \eqn{\xi} defined
 #' in [mod_pois()] and [mod_binom()]),
 #' then (ii) conditional on these hyper-parameters,
-#' drawing values for the rates or probabilties,
+#' drawing values for the rates or probabilities,
 #' and finally (iii) conditional on these
 #' rates or probabilities, drawing values for the 
 #' outcome variable.
@@ -1511,15 +1513,20 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
 generics::tidy
 
 ## HAS_TESTS
-#' Main effects and interactions from a fitted model
+#' Summarize Terms from a Fitted Model
+#'
+#' Summarize the intercept, main effects, and interactions
+#' from a fitted model.
 #'
 #' @param x A fitted `bage_mod` object.
 #' @param ... Unused. Included for generic consistency only.
 #'
 #' @returns A [tibble][tibble::tibble-package].
 #'
-#' @seealso [glimpse()] provides less detailed information,
-#' and [augment()] provides more detailed.
+#' @seealso
+#' - [components()] Extract values for rates,
+#'   probabilities, and means
+#' - [components()] Extract values for hyper-parameters
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,

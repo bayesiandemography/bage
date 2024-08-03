@@ -27,9 +27,9 @@
 #' **Extract results**
 #'
 #' - [augment()] Add cell-level estimates to data
-#' - [components()] Hyper-parameters
+#' - [components()][bage::components.bage_mod] Hyper-parameters
 #' - [tidy()] One-line summary
-#' - [set_n_draw()] Specify number of posterior draws
+#' - [set_n_draw()] Specify number of prior or posterior draws
 #'
 #' **Forecast**
 #'
@@ -40,14 +40,20 @@
 #' - [replicate_data()] Compare real and simulated data
 #' - [report_sim()] Simulation study of model
 #'
+#' **SVD-based modelling of age-profiles**
+#'
+#' - [ssvd()] Create scaled SVD object summarising database
+#' - [components()][bage::components.bage_ssvd] Matrices and offsets from scaled SVD
+#' - [generate()][bage::generate.bage_ssvd] Random profiles
+#' - [HMD] SVD of mortality rates from Human Mortality Database
+#' - [LFP] SVD of Labor Force Participation rates from OECD
+#'
 #' **Data**
 #'
 #' - [deaths] Deaths in Iceland
 #' - [divorces] Divorces in New Zealand
 #' - [expenditure] Health expenditure in the Netherlands
 #' - [us_acc_deaths] Accidental deaths in the USA
-#' - [HMD] SVD of mortality rates from Human Mortality Database
-#' - [LFP] SVD of Labour Force Participation rates from OECD
 #' 
 #' @keywords internal
 "_PACKAGE"

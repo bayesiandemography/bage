@@ -7,7 +7,7 @@
 Lin_AR(n_coef = 2, s = 1, sd = 1, along = NULL)
 }
 \arguments{
-\item{n_coef}{The number of lagged terms in the
+\item{n_coef}{Number of lagged terms in the
 model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the innovations in the
@@ -25,17 +25,26 @@ interactions.}
 An object of class \code{"bage_prior_linar"}.
 }
 \description{
-Prior for main effect or interaction.
-A straight line or lines, combined with
-autoregressive errors. Typically used with time.
+Use a line or lines with autoregressive
+errors to model a main effect
+or interaction. Typically used with time.
 }
 \details{
 If \code{Lin_AR()} is used with an interaction,
-then, within each combination of the "by" variables,
-the "along" variable is modelled as a straight line
-with autoregressive errors.
+separate lines are constructed along
+the "along" variable, within each combination
+of the "by" variables.
 
-Argument \code{s} controls the size of the errors.
+The order of the autoregressive errors is
+controlled by the \code{n_coef} argument. The
+default is 2.
+
+Argument \code{s} controls the size of the innovations.
+Smaller values tend to give smoother estimates.
+
+Argument \code{sd} controls the size of the slopes of
+the lines. Larger values can give more steeply
+sloped lines.
 }
 \section{Mathematical details}{
 
@@ -69,7 +78,6 @@ The slopes have priors
 \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
 and
 \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
-Larger values for \code{sd} permit steeper slopes.
 
 Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -80,13 +88,10 @@ where a value for \code{s} is provided by the user.
 
 The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
 between -1 and 1 that jointly lead to a stationary model. The quantity
-\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} is given a
+\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} has
 boundary-avoiding prior
 
 \deqn{r \sim \text{Beta}(2, 2).}
-
-Slope \eqn{\eta} is drawn from a normal distribution,
-\deqn{\eta \sim \text{N}(0, (\text{sd})^2).}
 }
 
 \examples{
@@ -96,6 +101,7 @@ Lin_AR(n_coef = 3, s = 0.5, sd = 2)
 \seealso{
 \itemize{
 \item \code{\link[=Lin_AR1]{Lin_AR1()}} Special case of \code{Lin_AR()}
+\item \code{\link[=Lin]{Lin()}} Line with independent normal errors
 \item \code{\link[=AR]{AR()}} AR process with no line
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,

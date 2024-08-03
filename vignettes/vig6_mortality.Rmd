@@ -141,7 +141,7 @@ The default prior for age is a first-order random walk,
 \begin{equation}
   \beta_j^{(1)} \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
 \end{equation}
-A random walk prior embodies the idea that we expect changes from one age group to the next to be relatively small, and that neighbouring age groups are more strongly correlated than distant age groups.
+A random walk prior embodies the idea that we expect changes from one age group to the next to be relatively small, and that neighboring age groups are more strongly correlated than distant age groups.
 
 The value for the standard deviation parameter $\tau_1$ is estimated as part of the model, and has its own prior,
 \begin{equation}
