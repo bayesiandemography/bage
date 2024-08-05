@@ -73,6 +73,8 @@ and is fast.
 Useful links:
 \itemize{
   \item \url{https://bayesiandemography.github.io/bage/}
+  \item \url{https://github.com/bayesiandemography/bage}
+  \item Report bugs at \url{https://github.com/bayesiandemography/bage/issues}
 }
 
 }

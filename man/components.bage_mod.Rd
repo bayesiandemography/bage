@@ -37,11 +37,10 @@ draws from the posterior distribution.
 }
 \description{
 Extract values for hyper-parameters
-from a model object. Includes values for
-main effects and interactions, values
-for dispersions or variances terms,
-and parameters such as SVD or spline
-coefficients.
+from a model object. Hyper-parameters include
+main effects and interactions,
+dispersion and variance terms,
+and SVD or spline coefficients.
 }
 \section{Fitted vs unfitted models}{
 

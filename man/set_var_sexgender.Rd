@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_var_sexgender}
 \alias{set_var_sexgender}
-\title{Set Sex or Gender Variable}
+\title{Specify Sex or Gender Variable}
 \usage{
 set_var_sexgender(mod, name)
 }
@@ -19,8 +19,8 @@ A \code{"bage_mod"} object
 \description{
 Specify which variable (if any) represents sex or gender.
 Functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
-and \code{\link[=mod_norm]{mod_norm()}} try to find a sex or gender variable
-using variable names, but do not always get it right.
+and \code{\link[=mod_norm]{mod_norm()}} try to infer the sex/gender variable
+from variable names, but do not always get it right.
 }
 \details{
 In an R \code{\link{formula}}, a 'variable' is different

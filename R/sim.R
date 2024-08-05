@@ -1021,25 +1021,6 @@ perform_comp <- function(est,
 #' Use simulated data to assess the performance of
 #' an estimation model.
 #'
-#' @section Comparisons included in report:
-#'
-#' When `mod_est` and `mod_sim` are identical,
-#' the report produced by `report_sim()` has the
-#' following components:
-#'
-#' - `"hyper"` Hyper-parameters from priors for intercept,
-#'   main effects, and interactions.
-#' - `"effect"` Intercept, main effects, and interactions.
-#' - `"meanpar"` Expected value for rates probabilities.
-#'   Poisson and binomial models only.
-#' - `"disp"` Dispersion term, if included in model.
-#' - `"par"` Rates, probabilities, or means.
-#'
-#' When `mod_est` and `mod_sim` differ, the
-#' report omits `"hyper"`, and `"effect"`, 
-#' since, for most model specifications,
-#' these terms are not comparable across models.
-#'
 #' @param mod_est The model whose performance is being
 #' assessed. An object of class `bage_mod`.
 #' @param mod_sim The model used to generate the simulated
@@ -1059,8 +1040,9 @@ perform_comp <- function(est,
 #' no parallel processing is done.
 #'
 #' @return
-#' **`report_type` is `"short"`**
-#' A tibble with the following columns:
+#'
+#' When `report_type` is `"short"`, a tibble with the following columns:
+#' 
 #' - `component`. Part of model. See Details.
 #' `"par"` is the rate, probability, or mean
 #' parameter from the likelihood.
@@ -1072,8 +1054,8 @@ perform_comp <- function(est,
 #' that fall within each type of interval, averaged across all
 #' simulations and cells.
 #'
-#' **`report_type` is `"long"`**
-#' A tibble with the following columns:
+#' When `report_type` is `"long"`, a tibble with the following columns:
+#' 
 #' - `component`. Part of model. See [components()].
 #' `"par"` is the rate, probability,
 #' or mean parameter from the likelihood.

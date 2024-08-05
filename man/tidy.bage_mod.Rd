@@ -27,8 +27,8 @@ tidy(mod)
 }
 \seealso{
 \itemize{
-\item \code{\link[=components]{components()}} Extract values for rates,
-probabilities, and means
+\item \code{\link[=augment]{augment()}} Extract data, and values for rates,
+probabilities, or means
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters
 }
 }

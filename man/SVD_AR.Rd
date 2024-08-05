@@ -42,7 +42,7 @@ An object of class \code{"bage_prior_svd_ar"},
 \code{"bage_prior_svd_rw"}, or \code{"bage_prior_svd_rw2"}.
 }
 \description{
-Use a values from a Singular Value Decomposition (SVD)
+Use components from a Singular Value Decomposition (SVD)
 to model an interaction involving age and time, or age,
 sex/gender and time, where the coefficients evolve over time.
 }

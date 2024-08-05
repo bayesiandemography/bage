@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_var_age}
 \alias{set_var_age}
-\title{Set Age Variable}
+\title{Specify Age Variable}
 \usage{
 set_var_age(mod, name)
 }

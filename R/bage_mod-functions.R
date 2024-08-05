@@ -4,7 +4,7 @@
 ## 'set_disp' -----------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set Mean in Prior for Dispersion or Standard Deviation
+#' Specify Prior for Dispersion or Standard Deviation
 #'
 #' Specify the mean of prior for the dispersion
 #' parameter (in Poisson and binomial models) or the
@@ -62,7 +62,7 @@ set_disp <- function(mod, mean) {
 ## 'set_n_draw' ---------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set Number of Prior or Posterior Draws
+#' Specify Number of Draws from Prior or Posterior Distribution
 #'
 #' Specify the number of draws from the posterior
 #' distribution to be used in model output.
@@ -199,7 +199,7 @@ set_prior <- function(mod, formula) {
 
 ## 'set_var_age' --------------------------------------------------------------
 
-#' Set Age Variable
+#' Specify Age Variable
 #'
 #' Specify which variable (if any) represents age.
 #' Functions [mod_pois()], [mod_binom()],
@@ -262,12 +262,12 @@ set_var_age <- function(mod, name) {
 ## 'set_var_sexgender' --------------------------------------------------------
 
 ## HAS_TESTS
-#' Set Sex or Gender Variable
+#' Specify Sex or Gender Variable
 #'
 #' Specify which variable (if any) represents sex or gender.
 #' Functions [mod_pois()], [mod_binom()],
-#' and [mod_norm()] try to find a sex or gender variable
-#' using variable names, but do not always get it right.
+#' and [mod_norm()] try to infer the sex/gender variable
+#' from variable names, but do not always get it right.
 #'
 #' In an R \code{\link{formula}}, a 'variable' is different
 #' from a 'term'. For instance,
@@ -322,7 +322,7 @@ set_var_sexgender <- function(mod, name) {
 ## 'set_var_time' --------------------------------------------------------------
 
 ## HAS_TESTS
-#' Set Time Variable
+#' Specify Time Variable
 #'
 #' Specify which variable (if any) represents time.
 #' Functions [mod_pois()], [mod_binom()],
@@ -386,7 +386,7 @@ set_var_time <- function(mod, name) {
 ## Helper functions -----------------------------------------------------------
 
 ## HAS_TESTS
-#' Set var_age, var_sexgender, or var_time
+#' Specify var_age, var_sexgender, or var_time
 #'
 #' Can include resetting priors.
 #' Called by user-visible functions

@@ -104,11 +104,10 @@ generics::components
 #' Extract Values for Hyper-Parameters
 #'
 #' Extract values for hyper-parameters
-#' from a model object. Includes values for
-#' main effects and interactions, values
-#' for dispersions or variances terms,
-#' and parameters such as SVD or spline
-#' coefficients.
+#' from a model object. Hyper-parameters include
+#' main effects and interactions,
+#' dispersion and variance terms,
+#' and SVD or spline coefficients.
 #' 
 #' @section Fitted vs unfitted models:
 #'
@@ -481,7 +480,7 @@ generics::fit
 ## HAS_TESTS
 #' Fit a Model
 #'
-#' Derive a posterior distribution for a model.
+#' Calculate the posterior distribution for a model.
 #'
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
@@ -669,7 +668,7 @@ generics::forecast
 #' are shifted up or down so that the values for forecasts
 #' line up with the values for estimates.
 #'
-#' @section Using data in forecasts:
+#' @section Fitted and unfitted models:
 #'
 #' `forecast()` is typically used with a
 #' [fitted][fit()] model, i.e. a model in which parameter
@@ -1300,7 +1299,7 @@ print.bage_mod <- function(x, ...) {
 #' If the model is working well, these simulated
 #' datasets should look similar to the actual dataset.
 #'
-#' @section: The `condition_on` argument
+#' @section The `condition_on` argument:
 #'
 #' With Poisson and binomial models that include
 #' dispersion terms (which is the default), there are
@@ -1351,16 +1350,17 @@ print.bage_mod <- function(x, ...) {
 #'
 #' |`.replicate`     | data                           |
 #' |-----------------|--------------------------------|
-#' |`"Original"      | Original data supplied to [mod_pois()], [mod_binom()], [mod_norm()] |
-#' |`"Replicate 1"`  | Original data, except that actual outcome replaced by simulated values. |
-#' |`"Replicate 2"`  | Original data, except that actual outcome replaced by simulated values. |
-#' |\dots            | \dots                          |
-#' |`"Replicate <n>"`| Original data, except that actual outcome replaced by simulated values. |
+#' |`"Original"`     | Original data supplied to [mod_pois()], [mod_binom()], [mod_norm()] |
+#' |`"Replicate 1"`  | Simulated data. |
+#' |`"Replicate 2"`  | Simulated data. |
+#' |\dots            | \dots           |
+#' |`"Replicate <n>"`| Simulated data. |
 #' 
 #' 
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to create models
-#' - [fit()] to fit models
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Create model.
+#' - [fit()] Fit model.
+#' - [report_sim()] Simulation study of model.
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -1526,8 +1526,8 @@ generics::tidy
 #' @returns A [tibble][tibble::tibble-package].
 #'
 #' @seealso
-#' - [components()] Extract values for rates,
-#'   probabilities, and means
+#' - [augment()] Extract data, and values for rates,
+#'   probabilities, or means
 #' - [components()] Extract values for hyper-parameters
 #'
 #' @examples

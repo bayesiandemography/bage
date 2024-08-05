@@ -28,7 +28,7 @@ and in table "Historical population data and projections
 expenditure
 }
 \description{
-Per capita health expenditure, in Euros, for all providers,
+Per capita health expenditure, in Euros,
 by diagnostic group, age group, and year, in the Netherlands.
 }
 \keyword{datasets}

@@ -56,7 +56,7 @@
 
 #' Per Capita Health Expenditure in the Netherlands, 2003-2011
 #' 
-#' Per capita health expenditure, in Euros, for all providers,
+#' Per capita health expenditure, in Euros,
 #' by diagnostic group, age group, and year, in the Netherlands.
 #'
 #' @format A [tibble][tibble::tibble-package] with 1,296 rows and the

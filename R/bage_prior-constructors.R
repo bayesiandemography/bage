@@ -691,7 +691,7 @@ RW <- function(s = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' Random Walk Prior, with Seasonal Effect
+#' Random Walk Prior with Seasonal Effect
 #'
 #' Use a random walk with seasonal effects to model
 #' a main effect, or use multiple random walks,
@@ -886,7 +886,7 @@ RW2 <- function(s = 1, along = NULL) {
 
 
 ## HAS_TESTS
-#' Second-Order Random Walk Prior, with Seasonal Effect
+#' Second-Order Random Walk Prior with Seasonal Effect
 #'
 #' Use a second-oder random walk with
 #' seasonal effects to model
@@ -1083,7 +1083,7 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 ## HAS_TESTS
 #' SVD-Based Prior for Age or Age-Sex Profiles
 #'
-#' Use a values from a Singular Value Decomposition (SVD)
+#' Use components from a Singular Value Decomposition (SVD)
 #' to model a main effect or interaction involving age.
 #'
 #' A `SVD()` prior assumes that the age, age-sex, or age-gender
@@ -1287,7 +1287,7 @@ SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
 ## HAS_TESTS
 #' Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles
 #'
-#' Use a values from a Singular Value Decomposition (SVD)
+#' Use components from a Singular Value Decomposition (SVD)
 #' to model an interaction involving age and time, or age,
 #' sex/gender and time, where the coefficients evolve over time.
 #'

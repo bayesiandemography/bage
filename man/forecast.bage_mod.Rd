@@ -90,7 +90,7 @@ are shifted up or down so that the values for forecasts
 line up with the values for estimates.
 }
 
-\section{Using data in forecasts}{
+\section{Fitted and unfitted models}{
 
 
 \code{forecast()} is typically used with a
