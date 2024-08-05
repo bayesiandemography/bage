@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,6 +49,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bayesiandemography/bage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -83,11 +84,13 @@
 <span><span class="co">#&gt; -- Fitted Poisson model --</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    injuries ~ age:sex + ethnicity + year</span></span>
-<span><span class="co">#&gt; (Intercept) ~ NFixed(sd=10)</span></span>
-<span><span class="co">#&gt;   ethnicity ~ N()</span></span>
-<span><span class="co">#&gt;        year ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ N()</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
+<span><span class="co">#&gt;   ethnicity ~ NFix()</span></span>
+<span><span class="co">#&gt;        year ~ RW()</span></span>
+<span><span class="co">#&gt;     age:sex ~ RW()</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: popn</span></span>
 <span><span class="co">#&gt;         var_age: age</span></span>
 <span><span class="co">#&gt;   var_sexgender: sex</span></span>
@@ -96,24 +99,32 @@
 <p>Extract model-based and direct estimates.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 912 × 8</span></span>
-<span><span class="co">#&gt;    age   sex    ethnicity  year injuries  popn                    .fitted</span></span>
-<span><span class="co">#&gt;    &lt;fct&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;int&gt;    &lt;int&gt; &lt;int&gt;               &lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span><span class="co">#&gt;  1 0-4   Female Maori      2000       12 35830 0.00024 (0.00022, 0.00027)</span></span>
-<span><span class="co">#&gt;  2 5-9   Female Maori      2000        6 35120 6.8e-05 (5.6e-05, 8.3e-05)</span></span>
-<span><span class="co">#&gt;  3 10-14 Female Maori      2000        3 32830 9.1e-05 (7.8e-05, 0.00011)</span></span>
-<span><span class="co">#&gt;  4 15-19 Female Maori      2000        6 27130 0.00043 (0.00039, 0.00047)</span></span>
-<span><span class="co">#&gt;  5 20-24 Female Maori      2000        6 24380 0.00042 (0.00038, 0.00047)</span></span>
-<span><span class="co">#&gt;  6 25-29 Female Maori      2000        6 24160 0.00035 (0.00031, 0.00039)</span></span>
-<span><span class="co">#&gt;  7 30-34 Female Maori      2000       12 22560 0.00032 (0.00029, 0.00036)</span></span>
-<span><span class="co">#&gt;  8 35-39 Female Maori      2000        3 22230 0.00035 (0.00032, 0.00039)</span></span>
-<span><span class="co">#&gt;  9 40-44 Female Maori      2000        6 18130 0.00034 (0.00031, 0.00038)</span></span>
-<span><span class="co">#&gt; 10 45-49 Female Maori      2000        6 13770   0.00036 (0.00033, 4e-04)</span></span>
+<span><span class="co">#&gt; # A tibble: 912 × 9</span></span>
+<span><span class="co">#&gt;    age   sex    ethnicity  year injuries  popn .observed</span></span>
+<span><span class="co">#&gt;    &lt;fct&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;int&gt;    &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 0-4   Female Maori      2000       12 35830 0.000335 </span></span>
+<span><span class="co">#&gt;  2 5-9   Female Maori      2000        6 35120 0.000171 </span></span>
+<span><span class="co">#&gt;  3 10-14 Female Maori      2000        3 32830 0.0000914</span></span>
+<span><span class="co">#&gt;  4 15-19 Female Maori      2000        6 27130 0.000221 </span></span>
+<span><span class="co">#&gt;  5 20-24 Female Maori      2000        6 24380 0.000246 </span></span>
+<span><span class="co">#&gt;  6 25-29 Female Maori      2000        6 24160 0.000248 </span></span>
+<span><span class="co">#&gt;  7 30-34 Female Maori      2000       12 22560 0.000532 </span></span>
+<span><span class="co">#&gt;  8 35-39 Female Maori      2000        3 22230 0.000135 </span></span>
+<span><span class="co">#&gt;  9 40-44 Female Maori      2000        6 18130 0.000331 </span></span>
+<span><span class="co">#&gt; 10 45-49 Female Maori      2000        6 13770 0.000436 </span></span>
 <span><span class="co">#&gt; # ℹ 902 more rows</span></span>
-<span><span class="co">#&gt; # ℹ 1 more variable: .observed &lt;dbl&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; # ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></code></pre></div>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/bayesiandemography/bage/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/bayesiandemography/bage/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>

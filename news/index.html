@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bayesiandemography/bage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -37,9 +38,27 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-
+      <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.0" id="bage-070">bage 0.7.0<a class="anchor" aria-label="anchor" href="#bage-070"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-calculations-0-7-0">Changes to calculations<a class="anchor" aria-label="anchor" href="#changes-to-calculations-0-7-0"></a></h3>
+<ul><li>Further simplification of standardization, but likely in future to split into two types of standardization: one that gives an ANOVA-style decomposition of effects, and one that helps with understanding the dynamics of each term.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-infrastructure-0-7-0">Changes to infrastructure<a class="anchor" aria-label="anchor" href="#changes-to-infrastructure-0-7-0"></a></h3>
+<ul><li>Added Makevars file.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.3" id="bage-063">bage 0.6.3<a class="anchor" aria-label="anchor" href="#bage-063"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-calculations-0-6-3">Changes to calculations<a class="anchor" aria-label="anchor" href="#changes-to-calculations-0-6-3"></a></h3>
+<ul><li>Changed standardization of forecasts so that forecasts are standardized along the ‘along’ dimension by choosing the values that makes them consistent with time trends in the estimation period, and then standardizing within each value of the along dimensions.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.6.2" id="bage-062">bage 0.6.2<a class="anchor" aria-label="anchor" href="#bage-062"></a></h2>
 <div class="section level3">

@@ -9,7 +9,7 @@ a binomial distribution."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,7 @@ a binomial distribution."></head><body>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bayesiandemography/bage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -39,7 +40,7 @@ a binomial distribution."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Specify a Binomial Model</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/bayesiandemography/bage/blob/main/R/bage_mod-constructors.R" class="external-link"><code>R/bage_mod-constructors.R</code></a></small>
       <div class="d-none name"><code>mod_binom.Rd</code></div>
     </div>
 
@@ -102,7 +103,7 @@ a beta distribution</p>
 <p>$$y_i \sim \text{Beta}(\xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i))$$</p>
 <p>where</p><ul><li><p>\(\mu_i\) is the expected value for \(\gamma_i\); and</p></li>
 <li><p>\(\xi\) governs dispersion (ie variance.)</p></li>
-</ul><p>The expected values \(\mu_i\) equal, on the logit scale,
+</ul><p>Expected value \(\mu_i\) equals, on a logit scale,
 the sum of terms formed from classifying variables,</p>
 <p>$$\text{logit} \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}$$</p>
 <p>where</p><ul><li><p>\(\beta^{0}\) is an intercept;</p></li>
@@ -126,11 +127,10 @@ environment (see below for example).</p></li>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index">
-<ul><li><p><code><a href="mod_pois.html">mod_pois()</a></code> Specify a Poisson model</p></li>
-<li><p><code><a href="mod_norm.html">mod_norm()</a></code> Specify a normal model</p></li>
-<li><p><code><a href="set_prior.html">set_prior()</a></code> Specify non-default priors for terms
-formed from classifying dimensions</p></li>
-<li><p><code><a href="set_disp.html">set_disp()</a></code> Specify a non-default prior for dispersion,</p></li>
+<ul><li><p><code><a href="mod_pois.html">mod_pois()</a></code> Specify Poisson model</p></li>
+<li><p><code><a href="mod_norm.html">mod_norm()</a></code> Specify normal model</p></li>
+<li><p><code><a href="set_prior.html">set_prior()</a></code> Specify non-default prior for term</p></li>
+<li><p><code><a href="set_disp.html">set_disp()</a></code> Specify non-default prior for dispersion</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> Fit a model</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> Forecast a model</p></li>
 <li><p><code><a href="report_sim.html">report_sim()</a></code> Do a simulation study on a model</p></li>

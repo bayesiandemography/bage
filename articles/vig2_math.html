@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bayesiandemography/bage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -61,7 +62,7 @@
       <h1>2. Mathematical Details</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/bayesiandemography/bage/blob/main/vignettes/vig2_math.Rmd" class="external-link"><code>vignettes/vig2_math.Rmd</code></a></small>
       <div class="d-none name"><code>vig2_math.Rmd</code></div>
     </div>
 
@@ -191,7 +192,7 @@ where</p>
 <li>
 <span class="math inline">\(\pmb{Z}\)</span> is a <span class="math inline">\(n \times P\)</span> matrix of covariates; and</li>
 <li>
-<span class="math inline">\(\pmb{\zeta}\)</span> is a coefficent vector with <span class="math inline">\(P\)</span> elements.</li>
+<span class="math inline">\(\pmb{\zeta}\)</span> is a coefficient vector with <span class="math inline">\(P\)</span> elements.</li>
 </ul>
 </div>
 <div class="section level2" number="4">
@@ -860,7 +861,7 @@ for the independent model</p>
 <p>where
 - <code>ssvd</code> is an object containing <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>
 - <code>n_comp</code> is the number of components to be used (which defaults to <code>ceiling(n/2)</code>, where <code>n</code> is the number of components in <code>ssvd</code>
-- <code>indep</code> determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
+- <code>indep</code> determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
 </div>
 </div>
 <div class="section level3" number="4.13">
@@ -871,7 +872,7 @@ for the independent model</p>
 <h4 id="model-12">
 <span class="header-section-number">4.13.1</span> Model<a class="anchor" aria-label="anchor" href="#model-12"></a>
 </h4>
-<p>The <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> prior is identical to the <code><a href="../reference/SVD.html">SVD()</a></code> prior except that the coefficients evolve over time, following indepenent random walks. For instance, in the combined-sex/gender and joint models,</p>
+<p>The <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> prior is identical to the <code><a href="../reference/SVD.html">SVD()</a></code> prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models,</p>
 <p><span class="math display">\[\begin{align}
   \pmb{\beta}_{u,t}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m; \quad t = 1, \cdots, T \\
   \alpha_{u,k,1}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m \\
@@ -916,7 +917,7 @@ for the independent model</p>
 - <code>ssvd</code> is an object containing <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>
 - <code>n_comp</code> is <span class="math inline">\(K_m\)</span> (which defaults to <code>ceiling(n/2)</code>, where <code>n</code> is the number of components in <code>ssvd</code>
 - <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
-- <code>indep</code> determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
+- <code>indep</code> determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
 </div>
 </div>
 <div class="section level3" number="4.14">
@@ -994,7 +995,7 @@ for the independent model</p>
 <h4 id="shrinkage-prior">
 <span class="header-section-number">5.1.2</span> Shrinkage prior<a class="anchor" aria-label="anchor" href="#shrinkage-prior"></a>
 </h4>
-<p>Regularised horseshoe prior <span class="citation">(Piironen and Vehtari 2017)</span></p>
+<p>Regularized horseshoe prior <span class="citation">(Piironen and Vehtari 2017)</span></p>
 <p><span class="math display">\[\begin{align}
   \zeta_p \mid \vartheta_p, \varphi &amp; \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
   \vartheta_p &amp; \sim \text{Cauchy}^+(0, 1) \\
@@ -1437,7 +1438,7 @@ which is equivalent to
 <h3 id="app:svd">
 <span class="header-section-number">10.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
 </h3>
-<p>Let <span class="math inline">\(\pmb{A}\)</span> be a matrix of age-specific estimates from an international database, transformed to take values in the range <span class="math inline">\((-\infty, \infty)\)</span>. Each column of <span class="math inline">\(\pmb{A}\)</span> represesents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.</p>
+<p>Let <span class="math inline">\(\pmb{A}\)</span> be a matrix of age-specific estimates from an international database, transformed to take values in the range <span class="math inline">\((-\infty, \infty)\)</span>. Each column of <span class="math inline">\(\pmb{A}\)</span> represents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.</p>
 <p>Let <span class="math inline">\(\pmb{U}\)</span>, <span class="math inline">\(\pmb{D}\)</span>, <span class="math inline">\(\pmb{V}\)</span> be the matrices from a singular value decomposition of <span class="math inline">\(\pmb{A}\)</span>, where we have retained the first <span class="math inline">\(K\)</span> components. Then
 <span class="math display" id="eq:svd1">\[\begin{equation}
   \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{10.1}

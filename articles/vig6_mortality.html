@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bayesiandemography/bage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -63,7 +64,7 @@
       <h1>6. Modelling Mortality</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/bayesiandemography/bage/blob/main/vignettes/vig6_mortality.Rmd" class="external-link"><code>vignettes/vig6_mortality.Rmd</code></a></small>
       <div class="d-none name"><code>vig6_mortality.Rmd</code></div>
     </div>
 
@@ -314,7 +315,7 @@ that were lower than 0.001 (which is -7 on a log scale) or higher than 1
   \beta_j^{(1)} \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
 \end{equation}</annotation></semantics></math> A random walk prior
 embodies the idea that we expect changes from one age group to the next
-to be relatively small, and that neighbouring age groups are more
+to be relatively small, and that neighboring age groups are more
 strongly correlated than distant age groups.</p>
 <p>The value for the standard deviation parameter
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\tau_1</annotation></semantics></math>
@@ -385,12 +386,12 @@ function <code><a href="https://generics.r-lib.org/reference/augment.html" class
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0     Female  <span style="text-decoration: underline;">1</span>998      7 <span style="text-decoration: underline;">2</span>051   0.003<span style="text-decoration: underline;">41</span>     0.0021 (0.0016, 0.0025)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>082.  0.000<span style="text-decoration: underline;">480</span>   5e-04 (0.00037, 0.00065)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>088   0.000<span style="text-decoration: underline;">479</span> 0.00026 (0.00019, 0.00036)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998      3 <span style="text-decoration: underline;">2</span>112.  0.001<span style="text-decoration: underline;">42</span>  0.00016 (0.00011, 0.00024)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998      3 <span style="text-decoration: underline;">2</span>112.  0.001<span style="text-decoration: underline;">42</span>  0.00017 (0.00011, 0.00024)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>204   0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.1e-05, 0.00018)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>232.  0        0.00011 (7.3e-05, 0.00016)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998      1 <span style="text-decoration: underline;">2</span>175   0.000<span style="text-decoration: underline;">460</span> 9.6e-05 (6.2e-05, 0.00014)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>240   0        7.6e-05 (4.8e-05, 0.00012)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>261   0        7.8e-05 (5.1e-05, 0.00012)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>240   0        7.6e-05 (4.9e-05, 0.00012)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>261   0        7.7e-05 (5.1e-05, 0.00012)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 9     Female  <span style="text-decoration: underline;">1</span>998      0 <span style="text-decoration: underline;">2</span>182.  0        8.1e-05 (5.5e-05, 0.00012)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5,290 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
@@ -422,15 +423,15 @@ posterior distributions.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 636 × 8</span></span></span>
 <span><span class="co">#&gt;    age   sex     time .observed                    .fitted .fitted.lower</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0     Female  <span style="text-decoration: underline;">1</span>998  0.003<span style="text-decoration: underline;">41</span>     0.0021 (0.0016, 0.0025)     0.001<span style="text-decoration: underline;">65</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0     Female  <span style="text-decoration: underline;">1</span>998  0.003<span style="text-decoration: underline;">41</span>     0.0021 (0.0016, 0.0025)     0.001<span style="text-decoration: underline;">63</span>  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">480</span>   5e-04 (0.00037, 0.00065)     0.000<span style="text-decoration: underline;">374</span> </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">479</span> 0.00026 (0.00019, 0.00036)     0.000<span style="text-decoration: underline;">189</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998  0.001<span style="text-decoration: underline;">42</span>  0.00016 (0.00011, 0.00024)     0.000<span style="text-decoration: underline;">111</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.1e-05, 0.00018)     0.000<span style="text-decoration: underline;">080</span>5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998  0        0.00011 (7.3e-05, 0.00016)     0.000<span style="text-decoration: underline;">073</span>3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">460</span> 9.6e-05 (6.2e-05, 0.00014)     0.000<span style="text-decoration: underline;">061</span>8</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998  0        7.6e-05 (4.8e-05, 0.00012)     0.000<span style="text-decoration: underline;">048</span>4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998  0        7.8e-05 (5.1e-05, 0.00012)     0.000<span style="text-decoration: underline;">051</span>2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 3     Female  <span style="text-decoration: underline;">1</span>998  0.001<span style="text-decoration: underline;">42</span>  0.00017 (0.00011, 0.00024)     0.000<span style="text-decoration: underline;">112</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 4     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">454</span> 0.00012 (8.1e-05, 0.00018)     0.000<span style="text-decoration: underline;">081</span>1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 5     Female  <span style="text-decoration: underline;">1</span>998  0        0.00011 (7.3e-05, 0.00016)     0.000<span style="text-decoration: underline;">073</span>2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 6     Female  <span style="text-decoration: underline;">1</span>998  0.000<span style="text-decoration: underline;">460</span> 9.6e-05 (6.2e-05, 0.00014)     0.000<span style="text-decoration: underline;">062</span>1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 7     Female  <span style="text-decoration: underline;">1</span>998  0        7.6e-05 (4.9e-05, 0.00012)     0.000<span style="text-decoration: underline;">048</span>8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 8     Female  <span style="text-decoration: underline;">1</span>998  0        7.7e-05 (5.1e-05, 0.00012)     0.000<span style="text-decoration: underline;">051</span>1</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 9     Female  <span style="text-decoration: underline;">1</span>998  0        8.1e-05 (5.5e-05, 0.00012)     0.000<span style="text-decoration: underline;">055</span>3</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 626 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted.mid &lt;dbl&gt;, .fitted.upper &lt;dbl&gt;</span></span></span></code></pre></div>

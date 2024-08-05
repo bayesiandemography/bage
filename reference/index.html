@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,6 +28,7 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bayesiandemography/bage/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -61,7 +62,7 @@
           <code><a href="AR1.html">AR1()</a></code>
 
         </dt>
-        <dd>AR1 Prior</dd>
+        <dd>Autoregressive Prior of Order 1</dd>
       </dl><dl><dt>
 
           <code><a href="HMD.html">HMD</a></code>
@@ -79,13 +80,13 @@
           <code><a href="LFP.html">LFP</a></code>
 
         </dt>
-        <dd>Components from OECD Labour Force Participation Data</dd>
+        <dd>Components from OECD Labor Force Participation Data</dd>
       </dl><dl><dt>
 
           <code><a href="Lin.html">Lin()</a></code>
 
         </dt>
-        <dd>Linear Prior</dd>
+        <dd>Linear Prior with Independent Normal Errors</dd>
       </dl><dl><dt>
 
           <code><a href="Lin_AR.html">Lin_AR()</a></code>
@@ -97,7 +98,7 @@
           <code><a href="Lin_AR1.html">Lin_AR1()</a></code>
 
         </dt>
-        <dd>Linear Prior with AR1 Errors</dd>
+        <dd>Linear Prior with Autoregressive Errors of Order 1</dd>
       </dl><dl><dt>
 
           <code><a href="N.html">N()</a></code>
@@ -121,31 +122,31 @@
           <code><a href="RW2.html">RW2()</a></code>
 
         </dt>
-        <dd>Random Walk with Drift Prior</dd>
+        <dd>Second-Order Random Walk Prior</dd>
       </dl><dl><dt>
 
           <code><a href="RW2_Seas.html">RW2_Seas()</a></code>
 
         </dt>
-        <dd>Random Walk with Drift Prior, with Seasonal Effect</dd>
+        <dd>Second-Order Random Walk Prior with Seasonal Effect</dd>
       </dl><dl><dt>
 
           <code><a href="RW_Seas.html">RW_Seas()</a></code>
 
         </dt>
-        <dd>Random Walk Prior, with Seasonal Effect</dd>
+        <dd>Random Walk Prior with Seasonal Effect</dd>
       </dl><dl><dt>
 
           <code><a href="SVD.html">SVD()</a></code>
 
         </dt>
-        <dd>SVD Prior for Age, or Age and Sex/Gender</dd>
+        <dd>SVD-Based Prior for Age or Age-Sex Profiles</dd>
       </dl><dl><dt>
 
           <code><a href="SVD_AR.html">SVD_AR()</a></code> <code><a href="SVD_AR.html">SVD_AR1()</a></code> <code><a href="SVD_AR.html">SVD_RW()</a></code> <code><a href="SVD_AR.html">SVD_RW2()</a></code>
 
         </dt>
-        <dd>SVD Priors for Age, or Age and Sex/Gender, With Time-Varying Coefficients</dd>
+        <dd>Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles</dd>
       </dl><dl><dt>
 
           <code><a href="Sp.html">Sp()</a></code>
@@ -193,7 +194,7 @@
           <code><a href="fit.bage_mod.html">fit(<i>&lt;bage_mod&gt;</i>)</a></code>
 
         </dt>
-        <dd>Fit a model</dd>
+        <dd>Fit a Model</dd>
       </dl><dl><dt>
 
           <code><a href="forecast.bage_mod.html">forecast(<i>&lt;bage_mod&gt;</i>)</a></code>
@@ -211,7 +212,7 @@
           <code><a href="households.html">households</a></code>
 
         </dt>
-        <dd>People in One-person households in New Zealand</dd>
+        <dd>People in One-Person households in New Zealand</dd>
       </dl><dl><dt>
 
           <code><a href="injuries.html">injuries</a></code>
@@ -253,61 +254,61 @@
           <code><a href="replicate_data.html">replicate_data()</a></code>
 
         </dt>
-        <dd>Draw from the Prior Predictive Distribution of a Model</dd>
+        <dd>Create Replicate Data</dd>
       </dl><dl><dt>
 
           <code><a href="report_sim.html">report_sim()</a></code>
 
         </dt>
-        <dd>Simulation study of a model</dd>
+        <dd>Simulation Study of a Model</dd>
       </dl><dl><dt>
 
           <code><a href="set_disp.html">set_disp()</a></code>
 
         </dt>
-        <dd>Set Mean in Prior for Dispersion or Standard Deviation</dd>
+        <dd>Specify Prior for Dispersion or Standard Deviation</dd>
       </dl><dl><dt>
 
           <code><a href="set_n_draw.html">set_n_draw()</a></code>
 
         </dt>
-        <dd>Set the number of draws</dd>
+        <dd>Specify Number of Draws from Prior or Posterior Distribution</dd>
       </dl><dl><dt>
 
           <code><a href="set_prior.html">set_prior()</a></code>
 
         </dt>
-        <dd>Specify a Prior</dd>
+        <dd>Specify Prior for Model Term</dd>
       </dl><dl><dt>
 
           <code><a href="set_var_age.html">set_var_age()</a></code>
 
         </dt>
-        <dd>Set the age variable</dd>
+        <dd>Specify Age Variable</dd>
       </dl><dl><dt>
 
           <code><a href="set_var_sexgender.html">set_var_sexgender()</a></code>
 
         </dt>
-        <dd>Set a sex or gender variable</dd>
+        <dd>Specify Sex or Gender Variable</dd>
       </dl><dl><dt>
 
           <code><a href="set_var_time.html">set_var_time()</a></code>
 
         </dt>
-        <dd>Set the time variable</dd>
+        <dd>Specify Time Variable</dd>
       </dl><dl><dt>
 
           <code><a href="ssvd.html">ssvd()</a></code>
 
         </dt>
-        <dd>Create an Object to Hold Data from a Scaled SVD</dd>
+        <dd>Create Object to Hold Data from a Scaled SVD</dd>
       </dl><dl><dt>
 
           <code><a href="tidy.bage_mod.html">tidy(<i>&lt;bage_mod&gt;</i>)</a></code>
 
         </dt>
-        <dd>Main effects and interactions from a fitted model</dd>
+        <dd>Summarize Terms from a Fitted Model</dd>
       </dl><dl><dt>
 
           <code><a href="us_acc_deaths.html">us_acc_deaths</a></code>
