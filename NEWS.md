@@ -7,6 +7,10 @@
   to split into two types of standardization: one that gives an 
   ANOVA-style decomposition of effects, and one that helps with
   understanding the dynamics of each term.
+  
+## Changes to infrastructure
+
+* Added Makevars file.
 
 
 # bage 0.6.3
