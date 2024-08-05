@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_var_sexgender}
 \alias{set_var_sexgender}
-\title{Set a sex or gender variable}
+\title{Specify Sex or Gender Variable}
 \usage{
 set_var_sexgender(mod, name)
 }
@@ -19,8 +19,8 @@ A \code{"bage_mod"} object
 \description{
 Specify which variable (if any) represents sex or gender.
 Functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
-and \code{\link[=mod_norm]{mod_norm()}} try to find a sex or gender variable
-using variable names, but do not always get it right.
+and \code{\link[=mod_norm]{mod_norm()}} try to infer the sex/gender variable
+from variable names, but do not always get it right.
 }
 \details{
 In an R \code{\link{formula}}, a 'variable' is different
@@ -52,14 +52,14 @@ mod |>
 }
 \seealso{
 \itemize{
-\item \code{\link[=set_var_age]{set_var_age()}} sets the age variable
-\item \code{\link[=set_var_time]{set_var_time()}} sets the time variable
+\item \code{\link[=set_var_age]{set_var_age()}} Set age variable
+\item \code{\link[=set_var_time]{set_var_time()}} Set time variable
+\item \code{\link[=is_fitted]{is_fitted()}} Test whether model is fitted
 \item internally, \strong{bage} uses \code{\link[poputils:find_var_sexgender]{poputils::find_var_sexgender()}}
 to locate sex or gender variables
 \item internally, \strong{bage} uses \code{\link[poputils:find_label_female]{poputils::find_label_female()}}
 to locate female categories within a sex or gender variable
 \item internally, \strong{bage} uses \code{\link[poputils:find_label_male]{poputils::find_label_male()}}
 to locate male categories within a sex or gender variable
-\item \code{\link[=is_fitted]{is_fitted()}}
 }
 }

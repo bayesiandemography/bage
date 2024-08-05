@@ -1,6 +1,6 @@
 
 ## HAS_TESTS
-#' Create an Object to Hold Data from a Scaled SVD
+#' Create Object to Hold Data from a Scaled SVD
 #'
 #' Create an object of class `"bage_ssvd"` to
 #' hold results from a scaled [Singular Value Decomposition][base::svd()]
@@ -38,7 +38,7 @@
 #' @seealso
 #' - `bssvd::data_ssvd_hfd()` Prepare data from Human Fertility Database
 #' - `bssvd::data_ssvd_hmd()` Prepare data from Human Mortality Database
-#' - `bssvd::data_ssvd_lfp()` Prepare OECD data on labour force participation
+#' - `bssvd::data_ssvd_lfp()` Prepare OECD data on labor force participation
 #'
 #' @examples
 #' \dontrun{

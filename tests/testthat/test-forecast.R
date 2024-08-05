@@ -1,4 +1,41 @@
 
+## 'align_forecast' -----------------------------------------------------
+
+test_that("'align_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure) |>
+                  set_prior(age:time ~ SVD_RW(HMD))
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est_unst <- components(mod, standardize = FALSE)
+  components_est_st <- components(mod, standardize = TRUE)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est_unst,
+                                             labels_forecast = 2006:2007)
+  ans_obtained <- align_forecast(mod = mod,
+                                       comp_forecast = components_forecast,
+                                       comp_est_st = components_est_st,
+                                       comp_est_unst = components_est_unst,
+                                       labels_forecast = 2006:2007)
+  ans_expected <- components_forecast
+  ans_expected$.fitted[1:2] <- ans_expected$.fitted[1:2] +
+    (components_est_st$.fitted[24] - components_est_unst$.fitted[24])
+  ans_expected$.fitted[3:30] <- ans_expected$.fitted[3:30] +
+    rep(components_est_st$.fitted[125:138] - components_est_unst$.fitted[125:138], 2)
+  ans_expected$.fitted[31:36] <- ans_expected$.fitted[31:36] +
+    rep(components_est_st$.fitted[154:156] - components_est_unst$.fitted[154:156], 2)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'forecast_ar' --------------------------------------------------------------
 
 test_that("'forecast_ar' works, n_by = 1", {
@@ -557,30 +594,9 @@ test_that("'forecast_components' works", {
 })
 
 
-## 'make_dimnames_terms_comb' -------------------------------------------------
-
-test_that("'make_mapping_time_effect' works", {
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 100)
-  data$exposure <- 100
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = exposure)
-  labels_forecast <- as.character(2006:2007)
-  ans_obtained <- make_dimnames_terms_comb(dimnames_terms = mod$dimnames_terms,
-                                           var_time = mod$var_time,
-                                           labels_forecast = labels_forecast)
-  ans_expected <- mod$dimnames_terms
-  ans_expected$time$time <- as.character(2000:2007)
-  ans_expected[["sex:time"]]$time <- as.character(2000:2007)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_dimnames_terms_forecast' ---------------------------------------------
 
-test_that("'make_mapping_time_effect' works", {
+test_that("'make_dimnames_terms_forecast' works - time_only is FALSE", {
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
   data$exposure <- 100
@@ -591,8 +607,28 @@ test_that("'make_mapping_time_effect' works", {
   labels_forecast <- as.character(2006:2007)
   ans_obtained <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
                                                var_time = mod$var_time,
-                                               labels_forecast = labels_forecast)
+                                               labels_forecast = labels_forecast,
+                                               time_only = FALSE)
   ans_expected <- mod$dimnames_terms
+  ans_expected$time$time <- labels_forecast
+  ans_expected[["sex:time"]]$time <- labels_forecast
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_dimnames_terms_forecast' works - time_only is TRUE", {
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  labels_forecast <- as.character(2006:2007)
+  ans_obtained <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                               var_time = mod$var_time,
+                                               labels_forecast = labels_forecast,
+                                               time_only = TRUE)
+  ans_expected <- mod$dimnames_terms[c("time", "sex:time")]
   ans_expected$time$time <- labels_forecast
   ans_expected[["sex:time"]]$time <- labels_forecast
   expect_identical(ans_obtained, ans_expected)
@@ -676,41 +712,5 @@ test_that("'make_term_level_final_time_svd' works", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-
-## 'standardize_forecast' -----------------------------------------------------
-
-test_that("'standardize_forecast' works", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 100)
-  data$exposure <- 100
-  formula <- deaths ~ age * sex + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = exposure) |>
-                  set_prior(age:time ~ SVD_RW(HMD))
-  mod <- set_n_draw(mod, n = 10)
-  mod <- fit(mod)
-  components_est_unst <- components(mod, standardize = FALSE)
-  components_est_st <- components(mod, standardize = TRUE)
-  components_forecast <- forecast_components(mod = mod,
-                                             components_est = components_est_unst,
-                                             labels_forecast = 2006:2007)
-  ans_obtained <- standardize_forecast(mod = mod,
-                                       comp_forecast = components_forecast,
-                                       comp_est_st = components_est_st,
-                                       comp_est_unst = components_est_unst,
-                                       labels_forecast = 2006:2007)
-  ans_expected <- components_forecast
-  ans_expected$.fitted[1:2] <- ans_expected$.fitted[1:2] +
-    (components_est_st$.fitted[24] - components_est_unst$.fitted[24])
-  ans_expected$.fitted[3:30] <- ans_expected$.fitted[3:30] +
-    rep(components_est_st$.fitted[125:138] - components_est_unst$.fitted[125:138], 2)
-  ans_expected$.fitted[31:36] <- ans_expected$.fitted[31:36] +
-    rep(components_est_st$.fitted[154:156] - components_est_unst$.fitted[154:156], 2)
-  expect_identical(ans_obtained, ans_expected)
-})
 
 

@@ -56,7 +56,11 @@ draw_vals_components_fitted <- function(mod, standardize) {
                         component = comp,
                         level = level,
                         .fitted = draws)
-  ans <- infer_trend_cyc_seas_err(components = ans, mod = mod)
+  ans <- infer_trend_cyc_seas_err(components = ans,
+                                  priors = priors,
+                                  dimnames_terms = dimnames_terms,
+                                  var_time = var_time,
+                                  var_age = var_age)
   if (standardize) {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,
@@ -80,53 +84,6 @@ draw_vals_components_fitted <- function(mod, standardize) {
                                           center_along = TRUE)
   }
   ans
-}
-
-
-## HAS_TESTS
-#' Calculate Trend Values for a Line or Lines
-#'
-#' @param intercept Intercept(s) of line(s). An rvec.
-#' @param slope Slope(s) of line(s). An rvec.
-#' @param matrix_along_by Matrix mapping
-#' along and by dimensions to position in estimates
-#'
-#' @returns An rvec
-#'
-#' @noRd
-make_lin_trend <- function(intercept,
-                           slope,
-                           matrix_along_by) {
-  n_along <- nrow(matrix_along_by)
-  n_by <- ncol(matrix_along_by)
-  intercept <- rep(intercept, each = n_along)
-  slope <- rep(slope, each = n_along)
-  s <- rep(seq_len(n_along), times = n_by)
-  ans <- intercept + slope * s
-  i <- match(sort(matrix_along_by), matrix_along_by)
-  ans[i]
-}
-
-
-## HAS_TESTS
-#' Extract Estimates for Non-Time-Varying Effects
-#'
-#' @param components Output from 'components' function
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A tibble
-#'
-#' @noRd
-get_comp_nontime_effects <- function(components, mod) {
-  priors <- mod$priors
-  var_time <- mod$var_time
-  nms <- names(priors)
-  is_time_varying_one <- function(nm) var_time %in% strsplit(nm, split = ":")[[1L]]
-  is_time_varying <- vapply(nms, is_time_varying_one, TRUE)
-  nms_time_varying <- nms[is_time_varying]
-  is_non_time_varying <- !(components$term %in% nms_time_varying)
-  is_effect <- components$component == "effect"
-  components[is_non_time_varying & is_effect, , drop = FALSE]
 }
 
 
@@ -735,6 +692,31 @@ make_levels_svd_term <- function(prior,
 }
 
 
+## HAS_TESTS
+#' Calculate Trend Values for a Line or Lines
+#'
+#' @param intercept Intercept(s) of line(s). An rvec.
+#' @param slope Slope(s) of line(s). An rvec.
+#' @param matrix_along_by Matrix mapping
+#' along and by dimensions to position in estimates
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_lin_trend <- function(intercept,
+                           slope,
+                           matrix_along_by) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  intercept <- rep(intercept, each = n_along)
+  slope <- rep(slope, each = n_along)
+  s <- rep(seq_len(n_along), times = n_by)
+  ans <- intercept + slope * s
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans[i]
+}
+
+
 #' Make Linear Predictor from Components
 #'
 #' @param components Data frame with estimates for hyper-parameters
@@ -945,6 +927,29 @@ make_term_svd <- function(mod) {
 #'
 #' @noRd
 paste_dot <- function(x, y) paste(x, y, sep = ".")
+
+
+#' Given Estimates of Effect and Slope, Rescale Intercept for Lines
+#'
+#' @param slope Rvec of length n_by holding slope estimates
+#' @param effect Rvec holding estimates for effect
+#' @param matrix_along_by Mapping matrix
+#'
+#' @returns An rvec of length 'n_by'
+#'
+#' @noRd
+rescale_lin_intercept <- function(slope, effect, matrix_along_by) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  ans <- slope
+  for (i_by in seq_len(n_by)) {
+    i_along <- matrix_along_by[, i_by] + 1L
+    mean_effect <- mean(effect[i_along])
+    mean_incr <- 0.5 * (1 + n_along) * slope[[i_by]]
+    ans[[i_by]] <- mean_effect - mean_incr
+  }
+  ans
+}
 
 
 ## HAS_TESTS
@@ -1235,28 +1240,67 @@ make_transforms_hyper <- function(mod) {
 
 
 ## HAS_TESTS
-#' Reformat Parts of 'components' Data Frame Dealing with
-#' Hyper-Parameters that are Treated as Random Effects
+#' Derive Parts of 'components' Data Frame Dealing with
+#' Hyper-Parameters that are Treated as Random Effects - Estimates
 #'
 #' @param components A data frame
-#' @param mod An object of class 'bage_mod'.
+#' @param priors List of objects of class 'bage_prior'.
+#' @param dimnames_terms Dimnames for array representations of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
 #'
-#' @returns A modified versino of 'components'
+#' @returns A modified version of 'components'
 #'
 #' @noRd
-infer_trend_cyc_seas_err <- function(components, mod) {
-  priors <- mod$priors
-  dimnames_terms <- mod$dimnames_terms
-  var_time <- mod$var_time
-  var_age <- mod$var_age
+infer_trend_cyc_seas_err <- function(components,
+                                     priors,
+                                     dimnames_terms,
+                                     var_time,
+                                     var_age) {
   for (i_prior in seq_along(priors)) {
     prior <- priors[[i_prior]]
     dimnames_term <- dimnames_terms[[i_prior]]
     components <- infer_trend_cyc_seas_err_one(prior = prior,
-                                         dimnames_term = dimnames_term,
-                                         var_time = var_time,
-                                         var_age = var_age,
-                                         components = components)
+                                               dimnames_term = dimnames_term,
+                                               var_time = var_time,
+                                               var_age = var_age,
+                                               components = components)
+  }
+  components
+}
+
+
+## HAS_TESTS
+#' Reformat Parts of Forecasted 'components' Data Frame Dealing with
+#' Hyper-Parameters that are Treated as Random Effects
+#'
+#' @param components_forecast A data frame with forecasted
+#' (time-varying) parameters
+#' @param components A data frame with estimated
+#' (time-varying and non-time-varying) parameters
+#' @param priors List of objects of class 'bage_prior'.
+#' @param dimnames_terms Dimnames for array representations of terms
+#' being forecast
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#'
+#' @returns A modified version of 'components'
+#'
+#' @noRd
+infer_trend_cyc_seas_err_forecast <- function(components,
+                                              priors,
+                                              dimnames_terms,
+                                              var_time,
+                                              var_age) {
+  nms <- names(dimnames_terms)
+  for (nm in nms) {
+    prior <- priors[[nm]]
+    dimnames_term <- dimnames_terms[[nm]]
+    components <- infer_trend_cyc_seas_err_forecast_one(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age,
+                                                        components = components)
   }
   components
 }
@@ -1264,7 +1308,10 @@ infer_trend_cyc_seas_err <- function(components, mod) {
 
 ## HAS_TESTS
 #' Reformat 'Components' Output for Terms with Fixed Seasonal Effect
+#' - Estimates
 #'
+#' Derive 'trend' from 'effect' and 'seasonal'
+#' 
 #' @param prior Object of class 'bage_prior'.
 #' @param dimnames_term Dimnames for array representation of term
 #' @param var_time Name of time variable
@@ -1275,52 +1322,85 @@ infer_trend_cyc_seas_err <- function(components, mod) {
 #'
 #' @noRd
 infer_trend_cyc_seas_err_seasfix <- function(prior,
-                                       dimnames_term,
-                                       var_time,
-                                       var_age,
-                                       components) {
+                                             dimnames_term,
+                                             var_time,
+                                             var_age,
+                                             components) {
   n_seas <- prior$specific$n_seas
   along <- prior$specific$along
-  nm <- paste(names(dimnames_term), collapse = ":")
+  nm <- dimnames_to_nm(dimnames_term)
+  is_seasonal <- with(components, (term == nm) & (component == "hyperrand"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  seas <- components$.fitted[is_seasonal]
+  effect <- components$.fitted[is_effect]
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_along <- nrow(matrix_along_by_effect)
   n_by <- ncol(matrix_along_by_effect)
-  is_seas <- with(components,
-                  term == nm & component == "hyperrand")
-  is_effect <- with(components,
-                    term == nm & component == "effect")  
-  seas <- components$.fitted[is_seas]
-  effect <- components$.fitted[is_effect]
-  level <- components$level[is_effect]
   matrix_along_by_seas <- matrix(seq_along(seas) - 1L, nrow = n_seas, ncol = n_by)
-  seas_extend <- rep(seas[[1L]], times = n_along * n_by)
+  seasonal <- rep(seas[[1L]], times = n_along * n_by)
   for (i_by in seq_len(n_by)) {
     for (i_along in seq_len(n_along)) {
       i_seas <- ((i_along - 1L) %% n_seas) + (i_by - 1L) * n_seas + 1L
-      i_seas_extend <- matrix_along_by_effect[i_along, i_by] + 1L
-      seas_extend[i_seas_extend] <- seas[i_seas]
+      i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
+      seasonal[i_seasonal] <- seas[i_seas]
     }
   }
+  trend <- effect - seasonal
+  level <- components$level[is_effect]
   seasonal <- tibble::tibble(term = nm,
                              component = "seasonal",
                              level = level,
-                             .fitted = seas_extend)
-  trend <- effect - seas_extend
+                             .fitted = seasonal)
   trend <- tibble::tibble(term = nm,
                           component = "trend",
                           level = level,
                           .fitted = trend)
-  ## combine
-  components <- components[!is_seas, , drop = FALSE]
-  vctrs::vec_rbind(components, seasonal, trend)
+  ans <- components[!is_seasonal, , drop = FALSE]
+  ans <- vctrs::vec_rbind(ans, seasonal, trend)
+  ans
 }
 
 
 ## HAS_TESTS
-#' Reformat 'Components' Output for Terms with Fixed Seasonal Effect
+#' Derive 'Components' Output for Terms with Fixed Seasonal Effect
+#' - Forecasts
+#'
+#' Derive 'seasonal' from 'effect' and 'trend'
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+infer_trend_cyc_seas_err_seasfix_forecast <- function(prior,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_seasonal <- with(components, (term == nm) & (component == "seasonal"))
+  is_trend <- with(components, (term == nm) & (component == "trend"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  trend <- components$.fitted[is_trend]
+  effect <- components$.fitted[is_effect]
+  seasonal <- effect - trend
+  components$.fitted[is_seasonal] <- seasonal
+  components
+}
+
+
+
+## HAS_TESTS
+#' Derive 'Components' Output for Terms with Varying Seasonal Effect - Estimates
+#'
+#' Derive 'trend' from 'effect' and 'seasonal'
 #'
 #' @param prior Object of class 'bage_prior'.
 #' @param dimnames_term Dimnames for array representation of term
@@ -1332,27 +1412,17 @@ infer_trend_cyc_seas_err_seasfix <- function(prior,
 #'
 #' @noRd
 infer_trend_cyc_seas_err_seasvary <- function(prior,
-                                        dimnames_term,
-                                        var_time,
-                                        var_age,
-                                        components) {
-  along <- prior$specific$along
-  nm <- paste(names(dimnames_term), collapse = ":")
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  ## seasonal
-  is_seas <- with(components,
-                  term == nm & component == "hyperrand")
-  seas <- components$.fitted[is_seas]
-  components$.fitted[is_seas] <- seas
-  components$component[is_seas] <- "seasonal"
-  ## trend
-  is_effect <- with(components,
-                    term == nm & component == "effect")  
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_seasonal <- with(components, (term == nm) & (component == "hyperrand"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  seasonal <- components$.fitted[is_seasonal]
   effect <- components$.fitted[is_effect]
-  trend <- effect - seas
+  trend <- effect - seasonal
+  components$component[is_seasonal] <- "seasonal"
   level <- components$level[is_effect]
   trend <- tibble::tibble(term = nm,
                           component = "trend",
@@ -1360,6 +1430,37 @@ infer_trend_cyc_seas_err_seasvary <- function(prior,
                           .fitted = trend)
   ## combine
   vctrs::vec_rbind(components, trend)
+}
+
+
+## HAS_TESTS
+#' Derive 'Components' Output for Terms with Varying Seasonal Effect - Forecasts
+#'
+#' Derive 'seasonal' from 'effect' and 'trend'
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+infer_trend_cyc_seas_err_seasvary_forecast <- function(prior,
+                                                       dimnames_term,
+                                                       var_time,
+                                                       var_age,
+                                                       components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_trend <- with(components, (term == nm) & (component == "trend"))
+  is_seasonal <- with(components, (term == nm) & (component == "seasonal"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  trend <- components$.fitted[is_trend]
+  effect <- components$.fitted[is_effect]
+  seasonal <- effect - trend
+  components$.fitted[is_seasonal] <- seasonal
+  components
 }
 
 

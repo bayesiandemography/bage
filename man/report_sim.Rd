@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim.R
 \name{report_sim}
 \alias{report_sim}
-\title{Simulation study of a model}
+\title{Simulation Study of a Model}
 \usage{
 report_sim(
   mod_est,
@@ -40,8 +40,7 @@ processing. If \code{n_core} is \code{1} (the default),
 no parallel processing is done.}
 }
 \value{
-\strong{\code{report_type} is \code{"short"}}
-A tibble with the following columns:
+When \code{report_type} is \code{"short"}, a tibble with the following columns:
 \itemize{
 \item \code{component}. Part of model. See Details.
 \code{"par"} is the rate, probability, or mean
@@ -55,8 +54,7 @@ that fall within each type of interval, averaged across all
 simulations and cells.
 }
 
-\strong{\code{report_type} is \code{"long"}}
-A tibble with the following columns:
+When \code{report_type} is \code{"long"}, a tibble with the following columns:
 \itemize{
 \item \code{component}. Part of model. See \code{\link[=components]{components()}}.
 \code{"par"} is the rate, probability,
@@ -76,28 +74,6 @@ an \link[rvec:rvec]{rvec}.
 Use simulated data to assess the performance of
 an estimation model.
 }
-\section{Comparisons included in report}{
-
-
-When \code{mod_est} and \code{mod_sim} are identical,
-the report produced by \code{report_sim()} has the
-following components:
-\itemize{
-\item \code{"hyper"} Hyper-parameters from priors for intercept,
-main effects, and interactions.
-\item \code{"effect"} Intercept, main effects, and interactions.
-\item \code{"meanpar"} Expected value for rates probabilities.
-Poisson and binomial models only.
-\item \code{"disp"} Dispersion term, if included in model.
-\item \code{"par"} Rates, probabilities, or means.
-}
-
-When \code{mod_est} and \code{mod_sim} differ, the
-report omits \code{"hyper"}, and \code{"effect"},
-since, for most model specifications,
-these terms are not comparable across models.
-}
-
 \examples{
 ## results random, so set seed
 set.seed(0)
@@ -127,7 +103,11 @@ report_sim(mod_est = mod_est,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to set up
-models
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
+model
+\item \code{\link[=components]{components()}}, \code{\link[=augment]{augment()}} Draw from joint prior
+or posterior distribution of model
+\item \code{\link[=replicate_data]{replicate_data()}} Generate replicate
+data for a model
 }
 }

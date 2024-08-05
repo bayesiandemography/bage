@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{AR1}
 \alias{AR1}
-\title{AR1 Prior}
+\title{Autoregressive Prior of Order 1}
 \usage{
 AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 }
@@ -22,19 +22,24 @@ interactions.}
 An object of class \code{"bage_prior_ar"}.
 }
 \description{
-Prior for main effect or interaction.
-An autoregressive process with order 1.
-Typically used with time.
+Use an autoregressive process
+of order 1 to model
+a main effect, or use multiple AR1
+processes to model an interaction.
+Typically used with time effects or with
+interactions that involve time.
 }
 \details{
-If \code{AR1()} is used with an interaction,
-then separate AR1 series constructed along
-the "along" variable within
-each combination of the
+If \code{AR()} is used with an interaction,
+separate AR processes are constructed along
+the "along" variable, within each combination of the
 "by" variables.
 
+Arguments \code{min} and \code{max} can be used to specify
+the permissible range for autocorrelation.
+
 Argument \code{s} controls the size of innovations. Smaller values
-for \code{s} tend to give smoother series.
+for \code{s} tend to give smoother estimates.
 }
 \section{Mathematical details}{
 
@@ -90,8 +95,8 @@ defaults for \code{forecast::ets()}.
 }
 \seealso{
 \itemize{
-\item \code{\link[=AR]{AR()}} Generalisation of \code{AR1()}
-\item \code{\link[=Lin_AR1]{Lin_AR1()}} AR1 process combined with straight line
+\item \code{\link[=AR]{AR()}} Generalization of \code{AR1()}
+\item \code{\link[=Lin_AR]{Lin_AR()}}, \code{\link[=Lin_AR1]{Lin_AR1()}} Line with AR errors
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

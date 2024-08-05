@@ -20,6 +20,10 @@ a \code{1}, or a formula. See below for details.}
 An object of class \code{bage_mod_norm}.
 }
 \description{
+Specify a model where the outcome is drawn from
+a normal distribution.
+}
+\details{
 The model is hierarchical. The means in the normal distribution
 are described by a prior model formed from dimensions such
 as age, sex, and time. The terms for these dimension themselves
@@ -99,11 +103,10 @@ mod <- mod_norm(value ~ diag:age + year,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
-\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
-\item \code{\link[=set_prior]{set_prior()}} Specify non-default priors for terms
-formed from classifying dimensions
-\item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for the standard deviation
+\item \code{\link[=mod_pois]{mod_pois()}} Specify Poisson model
+\item \code{\link[=mod_binom]{mod_binom()}} Specify binomial model
+\item \code{\link[=set_prior]{set_prior()}} Specify non-default prior for term
+\item \code{\link[=set_disp]{set_disp()}} Specify non-default prior for standard deviation
 \item \code{\link[=fit]{fit()}} Fit a model
 \item \code{\link[=forecast]{forecast()}} Forecast a model
 \item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model

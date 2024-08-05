@@ -133,7 +133,7 @@ where
 - $\pmb{\beta}^{(m)}$, $m=1,\cdots,M$ is a vector with $J_m$ elements describing a main effect or interaction formed from the dimensions of data $\pmb{y}$;
 - $\pmb{X}^{(m)}$ is an $n \times J_m$ matrix of 1s and 0s, the $i$th row of which picks out the element of $\pmb{\beta}^{(m)}$ that is used with cell $i$;
 - $\pmb{Z}$ is a $n \times P$ matrix of covariates; and
-- $\pmb{\zeta}$ is a coefficent vector with $P$ elements.
+- $\pmb{\zeta}$ is a coefficient vector with $P$ elements.
 
 
 
@@ -685,14 +685,14 @@ SVD(ssvd, n_comp = NULL, indep = TRUE)
 where
 - `ssvd` is an object containing $\pmb{F}$ and $\pmb{g}$
 - `n_comp` is the number of components to be used (which defaults to `ceiling(n/2)`, where `n` is the number of components in `ssvd`
-- `indep` determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.
+- `indep` determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.
 
 
 ## SVD_RW {#sec:pr-svd-rw}
 
 ### Model
 
-The `SVD_RW()` prior is identical to the `SVD()` prior except that the coefficients evolve over time, following indepenent random walks. For instance, in the combined-sex/gender and joint models,
+The `SVD_RW()` prior is identical to the `SVD()` prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models,
 
 \begin{align}
   \pmb{\beta}_{u,t}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m; \quad t = 1, \cdots, T \\
@@ -737,7 +737,7 @@ where
 - `ssvd` is an object containing $\pmb{F}$ and $\pmb{g}$
 - `n_comp` is $K_m$ (which defaults to `ceiling(n/2)`, where `n` is the number of components in `ssvd`
 - `s` is $A_{\tau}^{(m)}$
-- `indep` determines whether and indepenent or joint model will be used if the term being modelled contains a sex or gender variable.
+- `indep` determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.
 
 
 ## SVD_RW2 {#sec:pr-svd-rw2}
@@ -798,7 +798,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 
 ### Shrinkage prior
 
-Regularised horseshoe prior [@piironen2017hyperprior]
+Regularized horseshoe prior [@piironen2017hyperprior]
 
 \begin{align}
   \zeta_p \mid \vartheta_p, \varphi & \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
@@ -1055,7 +1055,7 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
  
 ## SVD prior for age  {#app:svd}
 
-Let $\pmb{A}$ be a matrix of age-specific estimates from an international database, transformed to take values in the range $(-\infty, \infty)$. Each column of $\pmb{A}$ represesents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.
+Let $\pmb{A}$ be a matrix of age-specific estimates from an international database, transformed to take values in the range $(-\infty, \infty)$. Each column of $\pmb{A}$ represents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.
 
 Let $\pmb{U}$, $\pmb{D}$, $\pmb{V}$ be the matrices from a singular value decomposition of $\pmb{A}$, where we have retained the first $K$ components. Then
 \begin{equation}

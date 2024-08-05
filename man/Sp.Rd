@@ -21,15 +21,14 @@ interactions.}
 An object of class \code{"bage_prior_spline"}.
 }
 \description{
-A p-spline (penalised spine) prior for main
+Use a p-spline (penalised spine) to model main
 effects or interactions. Typically used with age,
 but can be used with any variable where outcomes are
 expected to vary smoothly from one element to the next.
 }
 \details{
 If \code{Sp()} is used with an interaction,
-then separate splines are used for
-the "along" variable within
+separate splines are used for the "along" variable within
 each combination of the
 "by" variables.
 }
@@ -75,7 +74,7 @@ Statistical Science. 11 (2): 89–121.
 \itemize{
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
 \item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
-\item \code{\link[=SVD]{SVD()}} Smoothing of age via singlular value decomposition
+\item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

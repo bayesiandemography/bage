@@ -231,7 +231,10 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                           vals_spline,
                           vals_svd)
   ans <- infer_trend_cyc_seas_err(components = ans,
-                                  mod = mod)
+                                  priors = priors,
+                                  dimnames_terms = dimnames_terms,
+                                  var_time = var_time,
+                                  var_age = var_age)
   if (standardize) {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,
@@ -1013,29 +1016,10 @@ perform_comp <- function(est,
 
 
 ## HAS_TESTS
-#' Simulation study of a model
+#' Simulation Study of a Model
 #'
 #' Use simulated data to assess the performance of
 #' an estimation model.
-#'
-#' @section Comparisons included in report:
-#'
-#' When `mod_est` and `mod_sim` are identical,
-#' the report produced by `report_sim()` has the
-#' following components:
-#'
-#' - `"hyper"` Hyper-parameters from priors for intercept,
-#'   main effects, and interactions.
-#' - `"effect"` Intercept, main effects, and interactions.
-#' - `"meanpar"` Expected value for rates probabilities.
-#'   Poisson and binomial models only.
-#' - `"disp"` Dispersion term, if included in model.
-#' - `"par"` Rates, probabilities, or means.
-#'
-#' When `mod_est` and `mod_sim` differ, the
-#' report omits `"hyper"`, and `"effect"`, 
-#' since, for most model specifications,
-#' these terms are not comparable across models.
 #'
 #' @param mod_est The model whose performance is being
 #' assessed. An object of class `bage_mod`.
@@ -1056,8 +1040,9 @@ perform_comp <- function(est,
 #' no parallel processing is done.
 #'
 #' @return
-#' **`report_type` is `"short"`**
-#' A tibble with the following columns:
+#'
+#' When `report_type` is `"short"`, a tibble with the following columns:
+#' 
 #' - `component`. Part of model. See Details.
 #' `"par"` is the rate, probability, or mean
 #' parameter from the likelihood.
@@ -1069,8 +1054,8 @@ perform_comp <- function(est,
 #' that fall within each type of interval, averaged across all
 #' simulations and cells.
 #'
-#' **`report_type` is `"long"`**
-#' A tibble with the following columns:
+#' When `report_type` is `"long"`, a tibble with the following columns:
+#' 
 #' - `component`. Part of model. See [components()].
 #' `"par"` is the rate, probability,
 #' or mean parameter from the likelihood.
@@ -1085,8 +1070,12 @@ perform_comp <- function(est,
 #' an [rvec][rvec::rvec()].
 #' 
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to set up
-#' models
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#' model
+#' - [components()], [augment()] Draw from joint prior
+#' or posterior distribution of model
+#' - [replicate_data()] Generate replicate
+#' data for a model
 #'
 #' @examples
 #' ## results random, so set seed

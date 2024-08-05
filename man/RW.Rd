@@ -18,14 +18,16 @@ interactions.}
 An object of class \code{"bage_prior_rw"}.
 }
 \description{
-Prior for a main effect or interaction.
-A random walk. Typically used with time.
+Use a random walk to model
+a main effect, or use multiple random walks
+to model an interaction.
+Typically used with age or time effects or with
+interactions that involve age or time.
 }
 \details{
 If \code{RW()} is used with an interaction,
-then separate random walks are used for
-the "along" variable within
-each combination of the
+separate random walks are constructed along
+the "along" variable, within each combination of the
 "by" variables.
 
 Argument \code{s} controls the size of innovations.
@@ -66,8 +68,8 @@ RW(along = "cohort")
 \seealso{
 \itemize{
 \item \code{\link[=RW2]{RW2()}} Random walk with drift
-\item \code{\link[=AR]{AR()}} Autoressive with order k
-\item \code{\link[=AR1]{AR1()}} Autoressive with order 1
+\item \code{\link[=AR]{AR()}} Autoregressive with order k
+\item \code{\link[=AR1]{AR1()}} Autoregressive with order 1
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
 \item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}

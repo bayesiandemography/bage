@@ -487,20 +487,6 @@ test_that("'make_is_in_lik' works with NAs", {
 })
 
 
-## 'make_is_time_varying' -----------------------------------------------------
-
-test_that("'make_is_time_varying' works", {
-  term <- c("(Intercept)", "age", "age", "time", "sex:time", "time:sex", "age:sex:time",
-            "time", "sex:time", "sex:time")
-  level <- c("(Intercept)", "0-4", "5+", "1999", "F.1999", "1999.F", "0.F.2020",
-             "sd", "coef11", "mslope")
-  var_time <- "time"
-  ans_obtained <- make_is_time_varying(term = term, level = level, var_time = var_time)
-  ans_expected <- c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_lengths_effect' ---------------------------------------------------------
 
 test_that("'make_lengths_effect' works with valid inputs", {
