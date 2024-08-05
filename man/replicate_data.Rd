@@ -2,8 +2,7 @@
 % Please edit documentation in R/bage_mod-methods.R
 \name{replicate_data}
 \alias{replicate_data}
-\title{Draw from the Prior Predictive Distribution of
-a Model}
+\title{Create Replicate Data}
 \usage{
 replicate_data(x, condition_on = NULL, n = 19)
 }
@@ -22,29 +21,25 @@ Default is 19.}
 \value{
 A tibble with the following structure:\tabular{ll}{
    \code{.replicate} \tab data \cr
-   `"Original" \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
-   \code{"Replicate 1"} \tab Original data, except that actual outcome replaced by simulated values. \cr
-   \code{"Replicate 2"} \tab Original data, except that actual outcome replaced by simulated values. \cr
+   \code{"Original"} \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
+   \code{"Replicate 1"} \tab Simulated data. \cr
+   \code{"Replicate 2"} \tab Simulated data. \cr
    \dots \tab \dots \cr
-   \code{"Replicate <n>"} \tab Original data, except that actual outcome replaced by simulated values. \cr
+   \code{"Replicate <n>"} \tab Simulated data. \cr
 }
 }
 \description{
-Draw from the prior predictive distribution
-of a model, i.e., the
-Create Replicate Data
-}
-\details{
 Use a fitted model to create replicate datasets,
 typically as a way of checking a model.
-
+}
+\details{
 Use \code{n} draws from the posterior distribution
 for model parameters to generate \code{n} simulated datasets.
 If the model is working well, these simulated
 datasets should look similar to the actual dataset.
 }
-\section{}{
- The \code{condition_on} argument
+\section{The \code{condition_on} argument}{
+
 
 With Poisson and binomial models that include
 dispersion terms (which is the default), there are
@@ -64,7 +59,7 @@ the rates or probabilities
 (the \eqn{\mu_i} and \eqn{\xi} defined
 in \code{\link[=mod_pois]{mod_pois()}} and \code{\link[=mod_binom]{mod_binom()}}),
 then (ii) conditional on these hyper-parameters,
-drawing values for the rates or probabilties,
+drawing values for the rates or probabilities,
 and finally (iii) conditional on these
 rates or probabilities, drawing values for the
 outcome variable.
@@ -100,7 +95,8 @@ rep_data |>
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to create models
-\item \code{\link[=fit]{fit()}} to fit models
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Create model.
+\item \code{\link[=fit]{fit()}} Fit model.
+\item \code{\link[=report_sim]{report_sim()}} Simulation study of model.
 }
 }

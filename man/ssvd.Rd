@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_ssvd-constructors.R
 \name{ssvd}
 \alias{ssvd}
-\title{Create an Object to Hold Data from a Scaled SVD}
+\title{Create Object to Hold Data from a Scaled SVD}
 \usage{
 ssvd(data)
 }
@@ -54,6 +54,6 @@ HMD <- ssvd(data)
 \itemize{
 \item \code{bssvd::data_ssvd_hfd()} Prepare data from Human Fertility Database
 \item \code{bssvd::data_ssvd_hmd()} Prepare data from Human Mortality Database
-\item \code{bssvd::data_ssvd_lfp()} Prepare OECD data on labour force participation
+\item \code{bssvd::data_ssvd_lfp()} Prepare OECD data on labor force participation
 }
 }

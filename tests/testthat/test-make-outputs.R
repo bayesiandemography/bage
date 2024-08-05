@@ -111,26 +111,6 @@ test_that("'get_disp' works - fitted", {
 })  
 
 
-## 'get_comp_nontime_effects' -------------------------------------------------
-
-test_that("'get_comp_nontime_effects' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  comp <- components(mod)
-  ans_obtained <- get_comp_nontime_effects(components = comp, mod = mod)
-  ans_expected <- comp[c(1:11, 13:14, 22:41),]
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'insert_draws_known' -------------------------------------------------------
 
 test_that("'insert_draws_known' works", {
@@ -1273,6 +1253,23 @@ test_that("'paste_dot' works with valid inputs", {
 })
 
 
+## 'rescale_lin_intercept' ----------------------------------------------------
+
+test_that("'rescale_lin_intercept' works with valid inputs", {
+  set.seed(0)
+  slope <- rvec::rnorm_rvec(n = 4, n_draw = 10)
+  effect <- rvec::rnorm_rvec(n = 20, n_draw = 10)
+  matrix_along_by <- matrix(0:19, nrow = 5)
+  ans_obtained <- rescale_lin_intercept(slope = slope,
+                                        effect = effect,
+                                        matrix_along_by = matrix_along_by)
+  ans_expected <- slope
+  for (i in 1:4)
+    ans_expected[i] <- mean(effect[1:5 + (i - 1) * 5]) - mean(slope[i] * (1:5))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'make_transforms_hyper' ----------------------------------------------------
 
 test_that("'make_transforms_hyper' works", {
@@ -1317,8 +1314,43 @@ test_that("'infer_trend_cyc_seas_err' works", {
                                term = term,
                                level = level,
                                .fitted = .fitted)
-  ans_obtained <- infer_trend_cyc_seas_err(components = components, mod = mod)
+  ans_obtained <- infer_trend_cyc_seas_err(components = components,
+                                           priors = mod$priors,
+                                           dimnames_terms = mod$dimnames_terms,
+                                           var_time = mod$var_time,
+                                           var_age = mod$var_age)
   expect_setequal(ans_obtained$component, c("effect", "hyper", "disp"))
+})
+
+
+## 'infer_trend_seas_err_forecast' --------------------------------------------
+
+test_that("'infer_trend_cyc_seas_err_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(time ~ RW2()) |>
+                  set_prior(sex:time ~ Lin()) |>
+                  fit(mod)
+  mod <- set_n_draw(mod, 5)
+  mod <- fit(mod)
+  comp_est <- components(mod)
+  comp_forecast <- forecast(mod, labels = 2006:2007, standardize = FALSE, output = "components")
+  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                          var_time = mod$var_time,
+                                                          labels_forecast = 2006:2007,
+                                                          time_only = TRUE)
+  ans_obtained <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
+                                                    priors = mod$priors,
+                                                    dimnames_terms = dimnames_terms_forecast,
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age)
+  expect_equal(ans_obtained[1:3], comp_forecast[1:3])
 })
 
 
@@ -1371,9 +1403,36 @@ test_that("'infer_trend_cyc_seas_err_seasfix' works", {
 })
 
 
+## 'infer_trend_cyc_seas_err_seasfix' -----------------------------------------------
+
+test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3, s_seas = 0)) |>
+                  set_n_draw(n = 10) |>
+                  fit(mod)
+  components <- components(mod)
+  ans <- infer_trend_cyc_seas_err_seasfix_forecast(prior = mod$priors[["sex:time"]],
+                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                   var_time = mod$var_time,
+                                                   var_age = mod$var_age,
+                                                   components = components)
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "seasonal"]
+  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
+  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
+  expect_equal(effect, season + trend)
+})
+
+
 ## 'infer_trend_cyc_seas_err_seasvary' ----------------------------------------------
 
-test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
+test_that("'infer_trend_cyc_seas_err_seasvary' works", {
   set.seed(0)
   data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1400,10 +1459,10 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
                                                  var_time = mod$var_time,
                                                  var_age = mod$var_age)
   ans_obtained <- infer_trend_cyc_seas_err_seasvary(prior = mod$priors[["sex:time"]],
-                                             dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                             var_time = mod$var_time,
-                                             var_age = mod$var_age,
-                                             components = components)
+                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age,
+                                                    components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
   ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
@@ -1417,6 +1476,33 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
                           .fitted = trend)
   ans_expected <- vctrs::vec_rbind(ans_expected, trend)
   expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'infer_trend_cyc_seas_err_seasvary_forecast' -------------------------------
+
+test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * time + age
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
+                  set_n_draw(n = 10) |>
+                  fit(mod)
+  components <- components(mod)
+  ans <- infer_trend_cyc_seas_err_seasvary_forecast(prior = mod$priors[["sex:time"]],
+                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                                    var_time = mod$var_time,
+                                                    var_age = mod$var_age,
+                                                    components = components)
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "seasonal"]
+  trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
+  effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
+  expect_equal(effect, season + trend)
 })
 
 

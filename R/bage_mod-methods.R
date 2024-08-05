@@ -13,7 +13,8 @@ generics::augment
 ## HAS_TESTS
 #' Extract Data and Modelled Values
 #'
-#' Extract data and values from a model object.
+#' Extract data and rates, probabilities, or means
+#' from a model object.
 #' The return value consists of the original
 #' data and one or more columns of modelled values.
 #'
@@ -28,8 +29,8 @@ generics::augment
 #' unfitted model. In this case, the modelled values
 #' are draws from the joint prior distribution.
 #' In other words, the modelled values are informed by
-#' model priors, and by any `exposure`, `size`, or `weights`
-#' arguments in the model, but not by the observed outcomes.
+#' model priors, and by values for `exposure`, `size`, or `weights`,
+#' but not by observed outcomes. 
 #'
 #' @param x An object of class `"bage_mod"`.
 #' @param quiet Whether to suppress messages.
@@ -103,9 +104,10 @@ generics::components
 #' Extract Values for Hyper-Parameters
 #'
 #' Extract values for hyper-parameters
-#' from a model object. Includes values for
-#' main effects and interactions, and values
-#' for any disperion or variance terms.
+#' from a model object. Hyper-parameters include
+#' main effects and interactions,
+#' dispersion and variance terms,
+#' and SVD or spline coefficients.
 #' 
 #' @section Fitted vs unfitted models:
 #'
@@ -154,7 +156,7 @@ generics::components
 #' Batches of parameters, such as seasonal effects,
 #' that have the same structure as main effects and
 #' interactions have the same problems of indeterminacy.
-#' By default, these paramters are also standardized.
+#' By default, these parameters are also standardized.
 #'
 #' @inheritParams augment.bage_mod
 #' @param object A `bage_mod` object,
@@ -162,7 +164,9 @@ generics::components
 #' [mod_binom()], or [mod_norm()].
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
-#' Default is `TRUE`.
+#' Default is `TRUE`. Standardization methods are
+#' still under development, and may change in future.
+#' `r lifecycle::badge("experimental")`.
 #'
 #' @returns
 #' A [tibble][tibble::tibble-package]
@@ -474,7 +478,9 @@ generics::equation
 generics::fit
 
 ## HAS_TESTS
-#' Fit a model
+#' Fit a Model
+#'
+#' Calculate the posterior distribution for a model.
 #'
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
@@ -484,10 +490,11 @@ generics::fit
 #' @returns A `bage_mod` object
 #'
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
-#' - [augment()], [components()], and [tidy()] to examine
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
+#' - [augment()], [components()], and [tidy()] Examine
 #'   output from a model.
-#' - [forecast()] to forecast, based on a model
+#' - [forecast()] Forecast, based on a model
+#' - [report_sim()] Do a simulation study on a model
 #' 
 #' @examples
 #' ## specify model
@@ -616,7 +623,7 @@ generics::forecast
 ## HAS_TESTS
 #' Use a Model to Make a Forecast
 #'
-#' Forecast rates, probabilities, or means, and
+#' Forecast rates, probabilities, means, and
 #' other model parameters.
 #'
 #' @section How the forecasts are constructed:
@@ -631,7 +638,7 @@ generics::forecast
 #' 3. Use the combined parameters to generate values for
 #'    rates, probabilities or means.
 #'
-#' See LINK TO VIGNETTE for more details.
+#' `vignette("vig2_math")` has the technical details.
 #'
 #' @section Output:
 #'
@@ -651,17 +658,17 @@ generics::forecast
 #'
 #' @section Standardization:
 #'
-#' The standardization applied to forecasts of
-#' components is equivalent
-#' to the standardization applied to [estimates][components.bage_mod()],
-#' with one difference. When estimates are standardized,
-#' estimates for time-varying quantities such as time effects
+#' The standardization used by `forecast()`
+#' is equivalent to the standardization
+#' applied by [components()][components.bage_mod()],
+#' with one exception. In `component()`,
+#' values for time-varying quantities such as time effects
 #' are shifted up or down so that each time series has a mean
-#' of zero. When forecasts are standardized, forecasts
-#' are shifted up or down so that each time series of forecasts lines
-#' up with the corresponding time series of estimates.
+#' of zero. in `forecast()`, values for time-varying quantities
+#' are shifted up or down so that the values for forecasts
+#' line up with the values for estimates.
 #'
-#' @section Using data in forecasts:
+#' @section Fitted and unfitted models:
 #'
 #' `forecast()` is typically used with a
 #' [fitted][fit()] model, i.e. a model in which parameter
@@ -673,8 +680,7 @@ generics::forecast
 #' are based entirely on the priors. See below for
 #' an example. Experimenting with forecasts
 #' based entirely on the priors can be helpful for
-#' designing a model. See LINK TO WORKFLOW VIGNETTE
-#' for details.
+#' choosing an appropriate model.
 #'
 #' @section Warning:
 #'
@@ -689,7 +695,9 @@ generics::forecast
 #' with the forecasts. Default is `FALSE`.
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
-#' Default is `TRUE`.
+#' Default is `TRUE`. Standardization methods are
+#' still under development, and may change in future.
+#' `r lifecycle::badge("experimental")`.
 #' @param labels Labels for future values.
 #' @param ... Not currently used.
 #'
@@ -737,7 +745,7 @@ forecast.bage_mod <- function(object,
                               ...) {
   data_est <- object$data
   priors <- object$priors
-  dimnames_terms_est <- object$dimnames_terms
+  dn_terms_est <- object$dimnames_terms
   var_time <- object$var_time
   var_age <- object$var_age
   var_sexgender <- object$var_sexgender
@@ -758,14 +766,15 @@ forecast.bage_mod <- function(object,
                                             components_est = comp_est_unst,
                                             labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dimnames_terms_est,
-                                                          var_time = var_time,
-                                                          labels_forecast = labels)
+  dn_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
+                                                    var_time = var_time,
+                                                    labels_forecast = labels,
+                                                    time_only = FALSE)
   if (output == "augment") {
     comp_comb_unst <- vctrs::vec_rbind(comp_est_unst, comp_forecast_unst)
     linpred_forecast <- make_linpred_comp(components = comp_comb_unst,
                                           data = data_forecast,
-                                          dimnames_terms = dimnames_terms_forecast)
+                                          dimnames_terms = dn_terms_forecast)
     seed_forecast_augment <- object$seed_forecast_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_forecast_augment) ## set pre-determined seed
@@ -784,44 +793,41 @@ forecast.bage_mod <- function(object,
       comp_est_st <- standardize_effects(components = comp_est_unst,
                                          data = data_est,
                                          linpred = linpred_est,
-                                         dimnames_terms = dimnames_terms_est)
+                                         dimnames_terms = dn_terms_est)
       comp_est_st <- standardize_svd_spline(components = comp_est_st,
                                             priors = priors,
-                                            dimnames_terms = dimnames_terms_est,
+                                            dimnames_terms = dn_terms_est,
                                             var_time = var_time,
                                             var_age = var_age,
                                             var_sexgender = var_sexgender,
                                             center_along = TRUE)
       comp_est_st <- standardize_trend_cyc_seas_err(components = comp_est_st,
                                                     priors = priors,
-                                                    dimnames_terms = dimnames_terms_est,
+                                                    dimnames_terms = dn_terms_est,
                                                     var_time = var_time,
                                                     var_age = var_age,
                                                     center_along = TRUE)
-      comp_forecast_st <- standardize_forecast(mod = object,
-                                               comp_forecast = comp_forecast_unst,
-                                               comp_est_st = comp_est_st,
-                                               comp_est_unst = comp_est_unst,
-                                               labels_forecast = labels)
-      comp_forecast_st <- standardize_effects_along_by(components = comp_forecast_st,
-                                                       priors = priors,
-                                                       dimnames_terms = dimnames_terms_forecast,
-                                                       var_time = var_time,
-                                                       var_age = var_age,
-                                                       center_along = FALSE)
-      comp_forecast_st <- standardize_svd_spline(components = comp_forecast_st,
-                                                 priors = priors,
-                                                 dimnames_terms = dimnames_terms_forecast,
-                                                 var_time = var_time,
-                                                 var_age = var_age,
-                                                 var_sexgender = var_sexgender,
-                                                 center_along = FALSE)
-      comp_forecast_st <- standardize_trend_cyc_seas_err(components = comp_forecast_st,
-                                                         priors = priors,
-                                                         dimnames_terms = dimnames_terms_forecast,
-                                                         var_time = var_time,
-                                                         var_age = var_age,
-                                                         center_along = FALSE)
+      dn_terms_forecast_time <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
+                                                             var_time = var_time,
+                                                             labels_forecast = labels,
+                                                             time_only = TRUE)
+      comp_forecast_st <- align_forecast(mod = object,
+                                         comp_forecast = comp_forecast_unst,
+                                         comp_est_st = comp_est_st,
+                                         comp_est_unst = comp_est_unst,
+                                         labels_forecast = labels)
+      linpred_forecast_time <- make_linpred_comp(components = comp_forecast_st,
+                                                 data = data_forecast,
+                                                 dimnames_terms = dn_terms_forecast_time)
+      comp_forecast_st <- standardize_effects(components = comp_forecast_st,
+                                              data = data_forecast,
+                                              linpred = linpred_forecast_time,
+                                              dimnames_terms = dn_terms_forecast_time)
+      comp_forecast_st <- infer_trend_cyc_seas_err_forecast(components = comp_forecast_st,
+                                                            priors = priors,
+                                                            dimnames_terms = dn_terms_forecast_time,
+                                                            var_time = var_time,
+                                                            var_age = var_age)
       if (include_estimates) {
         ans <- vctrs::vec_rbind(comp_est_st, comp_forecast_st)
         ans <- sort_components(components = ans, mod = object)
@@ -1018,6 +1024,10 @@ has_disp.bage_mod <- function(mod) {
 #' @param x An object of class `"bage_mod"`.
 #'
 #' @returns `TRUE` or `FALSE`
+#'
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] to specify a model
+#' - [bage::fit()] to fit a model
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
@@ -1277,13 +1287,6 @@ print.bage_mod <- function(x, ...) {
 }
 
 
-#' Draw from the Prior Predictive Distribution of
-#' a Model
-#'
-#' Draw from the prior predictive distribution
-#' of a model, i.e., the 
-
-
 ## 'replicate_data' -----------------------------------------------------------
 
 #' Create Replicate Data
@@ -1296,7 +1299,7 @@ print.bage_mod <- function(x, ...) {
 #' If the model is working well, these simulated
 #' datasets should look similar to the actual dataset.
 #'
-#' @section: The `condition_on` argument
+#' @section The `condition_on` argument:
 #'
 #' With Poisson and binomial models that include
 #' dispersion terms (which is the default), there are
@@ -1316,7 +1319,7 @@ print.bage_mod <- function(x, ...) {
 #' (the \eqn{\mu_i} and \eqn{\xi} defined
 #' in [mod_pois()] and [mod_binom()]),
 #' then (ii) conditional on these hyper-parameters,
-#' drawing values for the rates or probabilties,
+#' drawing values for the rates or probabilities,
 #' and finally (iii) conditional on these
 #' rates or probabilities, drawing values for the 
 #' outcome variable.
@@ -1347,16 +1350,17 @@ print.bage_mod <- function(x, ...) {
 #'
 #' |`.replicate`     | data                           |
 #' |-----------------|--------------------------------|
-#' |`"Original"      | Original data supplied to [mod_pois()], [mod_binom()], [mod_norm()] |
-#' |`"Replicate 1"`  | Original data, except that actual outcome replaced by simulated values. |
-#' |`"Replicate 2"`  | Original data, except that actual outcome replaced by simulated values. |
-#' |\dots            | \dots                          |
-#' |`"Replicate <n>"`| Original data, except that actual outcome replaced by simulated values. |
+#' |`"Original"`     | Original data supplied to [mod_pois()], [mod_binom()], [mod_norm()] |
+#' |`"Replicate 1"`  | Simulated data. |
+#' |`"Replicate 2"`  | Simulated data. |
+#' |\dots            | \dots           |
+#' |`"Replicate <n>"`| Simulated data. |
 #' 
 #' 
 #' @seealso
-#' - [mod_pois()], [mod_binom()], [mod_norm()] to create models
-#' - [fit()] to fit models
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Create model.
+#' - [fit()] Fit model.
+#' - [report_sim()] Simulation study of model.
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -1511,15 +1515,20 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
 generics::tidy
 
 ## HAS_TESTS
-#' Main effects and interactions from a fitted model
+#' Summarize Terms from a Fitted Model
+#'
+#' Summarize the intercept, main effects, and interactions
+#' from a fitted model.
 #'
 #' @param x A fitted `bage_mod` object.
 #' @param ... Unused. Included for generic consistency only.
 #'
 #' @returns A [tibble][tibble::tibble-package].
 #'
-#' @seealso [glimpse()] provides less detailed information,
-#' and [augment()] provides more detailed.
+#' @seealso
+#' - [augment()] Extract data, and values for rates,
+#'   probabilities, or means
+#' - [components()] Extract values for hyper-parameters
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{Lin}
 \alias{Lin}
-\title{Linear Prior}
+\title{Linear Prior with Independent Normal Errors}
 \usage{
 Lin(s = 1, sd = 1, along = NULL)
 }
@@ -21,9 +21,9 @@ interactions.}
 An object of class \code{"bage_prior_lin"}.
 }
 \description{
-Prior for main effect or interaction.
-A straight line or lines, combined with independent
-normal errors. Typically used with time.
+Use a line or lines with independent
+normal errors to model a main effect
+or interaction. Typically used with time.
 }
 \details{
 If \code{Lin()} is used with an interaction,
@@ -32,6 +32,11 @@ the "along" variable, within each combination
 of the "by" variables.
 
 Argument \code{s} controls the size of the errors.
+Smaller values tend to give smoother estimates.
+
+Argument \code{sd} controls the size of the slopes of
+the lines. Larger values can give more steeply
+sloped lines.
 }
 \section{Mathematical details}{
 
@@ -44,7 +49,7 @@ When \code{Lin()} is used with a main effect,
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}, \quad v > 1}
+\deqn{\beta_{u,v} \sim  \alpha_u + v \eta_u + \epsilon_{u,v}}
 \deqn{\alpha_u \sim \text{N}(0, 1)}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 
@@ -60,11 +65,9 @@ The slopes have priors
 \deqn{\eta \sim \text{N}(0, \text{sd}^2)}
 and
 \deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
-Larger values for \code{sd} permit steeper slopes.
 
 Parameter \eqn{\tau} has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-where \code{s} is provided by the user.
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 }
 
 \examples{

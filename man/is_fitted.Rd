@@ -24,3 +24,9 @@ is_fitted(mod)
 mod <- fit(mod)
 is_fitted(mod)
 }
+\seealso{
+\itemize{
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to specify a model
+\item \code{\link[=fit]{fit()}} to fit a model
+}
+}

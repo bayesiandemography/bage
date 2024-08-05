@@ -61,7 +61,7 @@ where
 \item \eqn{\xi} governs dispersion (ie variance.)
 }
 
-The expected values \eqn{\mu_i} equal, on the log scale,
+Expected value \eqn{\mu_i} equals, on the log scale,
 the sum of terms formed from classifying variables,
 
 \deqn{\log \mu_i = \sum_{m=0}^{M} \beta_{j_i^m}^{(m)}}
@@ -112,11 +112,10 @@ mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
-\item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
-\item \code{\link[=set_prior]{set_prior()}} Specify non-default priors for terms
-formed from classifying dimensions
-\item \code{\link[=set_disp]{set_disp()}} Specify a non-default prior for dispersion
+\item \code{\link[=mod_binom]{mod_binom()}} Specify binomial model
+\item \code{\link[=mod_norm]{mod_norm()}} Specify normal model
+\item \code{\link[=set_prior]{set_prior()}} Specify non-default prior for term
+\item \code{\link[=set_disp]{set_disp()}} Specify non-default prior for dispersion
 \item \code{\link[=fit]{fit()}} Fit a model
 \item \code{\link[=forecast]{forecast()}} Forecast a model
 \item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{SVD}
 \alias{SVD}
-\title{SVD Prior for Age, or Age and Sex/Gender}
+\title{SVD-Based Prior for Age or Age-Sex Profiles}
 \usage{
 SVD(ssvd, n_comp = NULL, indep = TRUE)
 }
@@ -24,14 +24,13 @@ See below for details.}
 An object of class \code{"bage_prior_svd"}.
 }
 \description{
-A Singular Value Decomposition (SVD) prior
-for a main effect or interaction involving age and possibly
-sex or gender and other variables.
+Use components from a Singular Value Decomposition (SVD)
+to model a main effect or interaction involving age.
 }
 \details{
 A \code{SVD()} prior assumes that the age, age-sex, or age-gender
-profile for the quantity
-being modelled looks like it was drawn at random
+profiles for the quantity
+being modelled looks like they were drawn at random
 from an external demographic database. For instance,
 the prior obtained via
 
@@ -39,12 +38,12 @@ the prior obtained via
 }\if{html}{\out{</div>}}
 
 assumes that age or age-sex profiles look like
-they were obtained from the
+they were drawn from the
 \href{https://www.mortality.org}{Human Mortality Database}.
 
 If \code{SVD()} is used with an interaction involving
 variables other than age and sex/gender,
-then separate profiles are constructed
+separate profiles are constructed
 within each combination of other variables.
 
 \strong{bage} chooses the appropriate age-specific
@@ -79,7 +78,7 @@ The default is \code{TRUE}.
 \section{Mathematical details}{
 
 
-**Case 1: Term involving age and no other variables **
+\strong{Case 1: Term involving age and no other variables}
 
 When \code{SVD()} is used with an age main effect,
 
@@ -192,7 +191,7 @@ for all sexes/genders.
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the
 \href{https://www.mortality.org}{Human Mortality Database}.
-\item \code{\link{LFP}} Labour forcce participation
+\item \code{\link{LFP}} Labor forcce participation
 rates from the \href{https://data-explorer.oecd.org}{OECD}.
 }
 }

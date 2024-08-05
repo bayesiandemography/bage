@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{RW_Seas}
 \alias{RW_Seas}
-\title{Random Walk Prior, with Seasonal Effect}
+\title{Random Walk Prior with Seasonal Effect}
 \usage{
 RW_Seas(n_seas, s = 1, s_seas = 1, along = NULL)
 }
@@ -25,13 +25,16 @@ Object of class \code{"bage_prior_rwseasvary"}
 or \code{"bage_prior_rwseasfix"}.
 }
 \description{
-Prior for a main effect or interaction,
-typically involving time. Combines
-a random walk with a seasonal effect.
+Use a random walk with seasonal effects to model
+a main effect, or use multiple random walks,
+each with their own seasonal effects,
+to model an interaction.
+Typically used with main effects or interactions
+that involve time.
 }
 \details{
 If \code{RW_Seas()} is used with an interaction,
-then separate series are used for
+separate series are used for
 the "along" variable within
 each combination of the
 "by" variables.
@@ -46,8 +49,9 @@ monthly data, \code{n_seas} should be \code{12}.
 
 By default, the magnitude of seasonal effects
 can change over time. However, setting \code{s_seas}
-to \code{0} produces seasonal effects that are "fixed",
-ie that are the same every year.
+to \code{0} produces seasonal effects that are fixed,
+eg where "January" effect is the same every year,
+the "Feburary" effect is the same every year, and so on.
 }
 \section{Mathematical details}{
 

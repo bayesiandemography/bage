@@ -5,8 +5,7 @@
 \alias{SVD_AR1}
 \alias{SVD_RW}
 \alias{SVD_RW2}
-\title{SVD Priors for Age, or Age and Sex/Gender,
-With Time-Varying Coefficients}
+\title{Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles}
 \usage{
 SVD_AR(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1)
 
@@ -43,10 +42,9 @@ An object of class \code{"bage_prior_svd_ar"},
 \code{"bage_prior_svd_rw"}, or \code{"bage_prior_svd_rw2"}.
 }
 \description{
-Singular Value Decomposition (SVD) priors
-for interactions involving age and time, or age,
-sex/gender and time, and possibly
-other variables, where the coefficients evolve over time.
+Use components from a Singular Value Decomposition (SVD)
+to model an interaction involving age and time, or age,
+sex/gender and time, where the coefficients evolve over time.
 }
 \details{
 \code{SVD_AR()}, \code{SVD_AR1()}, \code{SVD_RW()}, and \code{SVD_RW2()}
@@ -139,7 +137,7 @@ For more on the \eqn{\phi} and \eqn{\epsilon}, see \code{\link[=AR]{AR()}}, \cod
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the
 \href{https://www.mortality.org}{Human Mortality Database}.
-\item \code{\link{LFP}} Labour forcce participation
+\item \code{\link{LFP}} Labor forcce participation
 rates from the \href{https://data-explorer.oecd.org}{OECD}.
 }
 }

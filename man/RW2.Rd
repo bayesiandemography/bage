@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{RW2}
 \alias{RW2}
-\title{Random Walk with Drift Prior}
+\title{Second-Order Random Walk Prior}
 \usage{
 RW2(s = 1, along = NULL)
 }
@@ -18,22 +18,35 @@ interactions.}
 An object of class \code{"bage_prior_rw2"}.
 }
 \description{
-Prior for a main effect or interaction.
-A random walk with drift, also referred
-to as a second-order random walk.
-Typically used with age, or used with time
-when there are sustained upward
-or downward trends.
+Use a second-oder random walk to model
+a main effect, or use multiple second-order random walks
+to model an interaction.
+A second-order random walk is also known
+as a random walk with drift. It is typically
+used with main effects or interactions
+that involve time, where there are sustained
+trends upward or downward.
 }
 \details{
 If \code{RW2()} is used with an interaction,
-then separate random walks are used for
+separate series are used for
 the "along" variable within
 each combination of the
 "by" variables.
 
-Argument \code{s} controls the size of errors. Smaller values
-for \code{s} tend to give smoother series.
+Argument \code{s} controls the size of innovations in the random walk.
+Smaller values for \code{s} tend to give smoother series.
+
+Argument \code{n_seas} controls the number of \code{seasons}.
+When using quarterly data, for instance,
+\code{n_seas} should be \code{4}, and when using
+monthly data, \code{n_seas} should be \code{12}.
+
+By default, the magnitude of seasonal effects
+can change over time. However, setting \code{s_seas}
+to \code{0} produces seasonal effects that are fixed,
+eg where "January" effect is the same every year,
+the "Feburary" effect is the same every year, and so on.
 }
 \section{Mathematical details}{
 
@@ -69,8 +82,8 @@ RW2(s = 0.5)
 \seealso{
 \itemize{
 \item \code{\link[=RW]{RW()}} Random walk
-\item \code{\link[=AR]{AR()}} Autoressive with order k
-\item \code{\link[=AR1]{AR1()}} Autoressive with order 1
+\item \code{\link[=AR]{AR()}} Autoregressive with order k
+\item \code{\link[=AR1]{AR1()}} Autoregressive with order 1
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
 \item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
