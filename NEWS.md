@@ -1,4 +1,14 @@
 
+# bage 0.7.0 
+
+## Changes to calculations
+
+* Further simplification of standardization, but likely in future
+  to split into two types of standardization: one that gives an 
+  ANOVA-style decomposition of effects, and one that helps with
+  understanding the dynamics of each term.
+
+
 # bage 0.6.3
 
 ## Changes to calculations
