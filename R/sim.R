@@ -231,7 +231,10 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                           vals_spline,
                           vals_svd)
   ans <- infer_trend_cyc_seas_err(components = ans,
-                                  mod = mod)
+                                  priors = priors,
+                                  dimnames_terms = dimnames_terms,
+                                  var_time = var_time,
+                                  var_age = var_age)
   if (standardize) {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,

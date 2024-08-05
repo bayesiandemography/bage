@@ -1,4 +1,56 @@
-
+## HAS_TESTS
+#' Standardize Forecasted 'components' Values
+#'
+#' Standardization consists of adding the quantity
+#' (standardized_val_final_est_period - unstandardized_val_final_est_period)
+#' to all forecasted values - within each combination of the 'by' variables.
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param comp_forecast Unstandardized forecast of 'components'
+#' @param comp_est_st Standardized estimates of 'components'
+#' @param comp_est_unst Unstandardized estimates of 'components'
+#' @param labels_forecast Time labels for forecasted periods
+#'
+#' @returns A tibble
+#' 
+#' @noRd
+align_forecast <- function(mod,
+                                 comp_forecast,
+                                 comp_est_st,
+                                 comp_est_unst,
+                                 labels_forecast) {
+  ## obtain values for 'term' and 'level' for final period of estimates
+  term_level_effect <- make_term_level_final_time_effect(mod)
+  term_level_svd <- make_term_level_final_time_svd(mod)
+  term_level <- vctrs::vec_rbind(term_level_effect, term_level_svd)
+  ## create mapping between levels for final period of estimates and levels for forecasts
+  mapping_effect <- make_mapping_final_time_effect(mod = mod, labels_forecast = labels_forecast)
+  mapping_svd <- make_mapping_final_time_svd(mod = mod, labels_forecast = labels_forecast)
+  mapping <- vctrs::vec_rbind(mapping_effect, mapping_svd)
+  ## obtain values of .fitted for time-varying quantities for final period of estimates
+  tail_unst <- merge(comp_est_unst, term_level, by = c("term", "level"), sort = FALSE)
+  tail_st <- merge(comp_est_st, term_level, by = c("term", "level"), sort = FALSE)
+  names(tail_unst)[match(".fitted", names(tail_unst))] <- "nonstandardized"
+  names(tail_st)[match(".fitted", names(tail_st))] <- "standardized"
+  ## calculate difference between standardized and non-standardized .fitted in final period
+  diff <- merge(tail_unst, tail_st, by = c("term", "level", "component"), sort = FALSE)
+  diff$diff <- diff$standardized - diff$nonstandardized
+  names(diff)[match("level", names(diff))] <- "level_final"
+  ## attach differences to forecasts
+  ans <- merge(comp_forecast, mapping, by = "level", sort = FALSE)
+  ans <- merge(ans, diff, by = c("term", "component", "level_final"), sort = FALSE)
+  ## revise forecasts
+  ans$.fitted <- ans$.fitted + ans$diff
+  ans <- ans[c("term", "component", "level", ".fitted")]
+  ord <- order(match(ans[[1L]], comp_forecast[[1L]]),
+               match(ans[[2L]], comp_forecast[[2L]]),
+               match(ans[[3L]], comp_forecast[[3L]]))
+  ans <- ans[ord, ]
+  ans <- tibble::tibble(ans)
+  ## return
+  ans
+}
+    
 
 ## HAS_TESTS
 #' Forecast an AR Process
@@ -461,33 +513,6 @@ make_data_forecast <- function(mod, labels_forecast) {
 
 
 ## HAS_TESTS
-#' Convert Dimnames for Estimates into Dimnames for
-#' Estimates and Forecasts Combined
-#'
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time variable, or NULL
-#' @param labels_forecast Vector
-#' with labels for future time periods.
-#'
-#' @returns Modified version of 'dimnames_terms'
-#'
-#' @noRd
-make_dimnames_terms_comb <- function(dimnames_terms, var_time, labels_forecast) {
-  labels_forecast <- as.character(labels_forecast)
-  for (i in seq_along(dimnames_terms)) {
-    dimnames_term <- dimnames_terms[[i]]
-    nm_split <- dimnames_to_nm_split(dimnames_term)
-    has_time <- var_time %in% nm_split
-    if (has_time)
-      dimnames_terms[[i]][[var_time]] <- c(dimnames_terms[[i]][[var_time]],
-                                           labels_forecast)
-  }
-  dimnames_terms
-}
-
-
-## HAS_TESTS
 #' Convert Dimnames for Estimates into Dimnames for Forecasts
 #'
 #' @param dimnames_term Dimnames for array
@@ -495,11 +520,16 @@ make_dimnames_terms_comb <- function(dimnames_terms, var_time, labels_forecast) 
 #' @param var_time Name of time variable, or NULL
 #' @param labels_forecast Vector
 #' with labels for future time periods.
+#' @param time_only If TRUE, only keep terms
+#' that involve time
 #'
 #' @returns Modified version of 'dimnames_terms'
 #'
 #' @noRd
-make_dimnames_terms_forecast <- function(dimnames_terms, var_time, labels_forecast) {
+make_dimnames_terms_forecast <- function(dimnames_terms,
+                                         var_time,
+                                         labels_forecast,
+                                         time_only) {
   labels_forecast <- as.character(labels_forecast)
   for (i in seq_along(dimnames_terms)) {
     dimnames_term <- dimnames_terms[[i]]
@@ -507,7 +537,13 @@ make_dimnames_terms_forecast <- function(dimnames_terms, var_time, labels_foreca
     has_time <- var_time %in% nm_split
     if (has_time)
       dimnames_terms[[i]][[var_time]] <- labels_forecast
+    else {
+      if (time_only)
+        dimnames_terms[i] <- list(NULL)
+    }
   }
+  is_null <- vapply(dimnames_terms, is.null, FALSE)
+  dimnames_terms <- dimnames_terms[!is_null]
   dimnames_terms
 }
     
@@ -516,7 +552,7 @@ make_dimnames_terms_forecast <- function(dimnames_terms, var_time, labels_foreca
 #' Make Mapping Between 'level' Value from Final Year of Estimates
 #' and 'level' Value from Forecasts - On Original Scale
 #'
-#' Helper function for 'standardize_forecast'
+#' Helper function for 'align_forecast'
 #'
 #' @param mod Objec of class 'bage_mod'
 #' @param labels_forecast Vector
@@ -553,7 +589,7 @@ make_mapping_final_time_effect <- function(mod, labels_forecast) {
 #' Make Mapping Between 'level' Value from Final Year of Estimates
 #' and 'level' Value from Forecasts - On SVD Scale
 #'
-#' Helper function for 'standardize_forecast'
+#' Helper function for 'align_forecast'
 #'
 #' @param mod Objec of class 'bage_mod'
 #' @param labels_forecast Vector
@@ -602,7 +638,7 @@ make_mapping_final_time_svd <- function(mod, labels_forecast) {
 #' Extract the 'term' and 'level' Values for the Last Period
 #' of 'components' - on Original Scale
 #'
-#' Helper function for 'standardize_forecast'
+#' Helper function for 'align_forecast'
 #'
 #' @param mod Object of class 'bage_mod'
 #'
@@ -634,7 +670,7 @@ make_term_level_final_time_effect <- function(mod) {
 #' Extract the 'term' and 'level' Values for the Last Period
 #' of 'components' - On SVD Scale
 #'
-#' Helper function for 'standardize_forecast'
+#' Helper function for 'align_forecast'
 #'
 #' @param mod Object of class 'bage_mod'
 #'
@@ -673,64 +709,4 @@ make_term_level_final_time_svd <- function(mod) {
   vctrs::vec_rbind(!!!ans)
 }
 
-
-## HAS_TESTS
-#' Standardize Forecasted 'components' Values
-#'
-#' Standardization consists of adding the quantity
-#' (standardized_val_final_est_period - unstandardized_valu_final_est_period)
-#' to all forecasted values - within each combination of the 'by' variables.
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param comp_forecast Unstandardized forecast of 'components'
-#' @param comp_est_st Standardized estimates of 'components'
-#' @param comp_est_unst Unstandardized estimates of 'components'
-#' @param labels_forecast Time labels for forecasted periods
-#'
-#' @returns A tibble
-#' 
-#' @noRd
-standardize_forecast <- function(mod,
-                                 comp_forecast,
-                                 comp_est_st,
-                                 comp_est_unst,
-                                 labels_forecast) {
-  ## obtain values for 'term' and 'level' for final period of estimates
-  term_level_effect <- make_term_level_final_time_effect(mod)
-  term_level_svd <- make_term_level_final_time_svd(mod)
-  term_level <- vctrs::vec_rbind(term_level_effect, term_level_svd)
-  ## create mapping between levels for final period of estimates and levels for forecasts
-  mapping_effect <- make_mapping_final_time_effect(mod = mod, labels_forecast = labels_forecast)
-  mapping_svd <- make_mapping_final_time_svd(mod = mod, labels_forecast = labels_forecast)
-  mapping <- vctrs::vec_rbind(mapping_effect, mapping_svd)
-  ## obtain values of .fitted for time-varying quantities for final period of estimates
-  tail_unst <- merge(comp_est_unst, term_level, by = c("term", "level"), sort = FALSE)
-  tail_st <- merge(comp_est_st, term_level, by = c("term", "level"), sort = FALSE)
-  names(tail_unst)[match(".fitted", names(tail_unst))] <- "nonstandardized"
-  names(tail_st)[match(".fitted", names(tail_st))] <- "standardized"
-  ## calculate difference between standardized and non-standardized .fitted in final period
-  diff <- merge(tail_unst, tail_st, by = c("term", "level", "component"), sort = FALSE)
-  diff$diff <- diff$standardized - diff$nonstandardized
-  names(diff)[match("level", names(diff))] <- "level_final"
-  ## attach differences to forecasts
-  ans <- merge(comp_forecast, mapping, by = "level", sort = FALSE)
-  ans <- merge(ans, diff, by = c("term", "component", "level_final"), sort = FALSE)
-  ## revise forecasts
-  ans$.fitted <- ans$.fitted + ans$diff
-  ans <- ans[c("term", "component", "level", ".fitted")]
-  ord <- order(match(ans[[1L]], comp_forecast[[1L]]),
-               match(ans[[2L]], comp_forecast[[2L]]),
-               match(ans[[3L]], comp_forecast[[3L]]))
-  ans <- ans[ord, ]
-  ans <- tibble::tibble(ans)
-  ## return
-  ans
-}
-    
-    
-
-
-
-  
-  
 

@@ -1607,7 +1607,7 @@ has_hyperrand.bage_prior_rw2seasvary <- function(prior) TRUE
 
 ## 'infer_trend_cyc_seas_err_one' ---------------------------------------------------
 
-#' Reformat Parts of 'Components' Output Dealing with a
+#' Derive Parts of 'Components' Output Dealing with a
 #' Prior that has Hyper-Parameters Treated as Random Effects
 #'
 #' In all priors with 'hyperrand' elements, the reformatting involves
@@ -1624,32 +1624,51 @@ has_hyperrand.bage_prior_rw2seasvary <- function(prior) TRUE
 #'
 #' @noRd
 infer_trend_cyc_seas_err_one <- function(prior,
-                                   dimnames_term,
-                                   var_time,
-                                   var_age,
-                                   components) {
+                                         dimnames_term,
+                                         var_time,
+                                         var_age,
+                                         components) {
   UseMethod("infer_trend_cyc_seas_err_one")
 }
 
 ## HAS_TESTS
 #' @export
 infer_trend_cyc_seas_err_one.bage_prior <- function(prior,
-                                              dimnames_term,
-                                              var_time,
-                                              var_age,
-                                              components)
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    components)
   components
 
 ## HAS_TESTS
 #' @export
 infer_trend_cyc_seas_err_one.bage_prior_lin <- function(prior,
-                                                  dimnames_term,
-                                                  var_time,
-                                                  var_age,
-                                                  components) {
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        components) {
+  along <- prior$specific$along
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
   nm <- dimnames_to_nm(dimnames_term)
-  is_change <- with(components, component == "hyperrand" & term == nm)
-  components$component[is_change] <- "hyper"
+  is_effect <- with(components,
+  (term == nm) & (component == "effect"))
+  is_intercept <- with(components, (term == nm) & startsWith(component, "hyper") & startsWith(level, "intercept"))
+  is_slope <- with(components,
+  (term == nm) & startsWith(component, "hyper") & startsWith(level, "slope"))
+  effect <- components$.fitted[is_effect]
+  intercept <- components$.fitted[is_intercept]
+  slope <- components$.fitted[is_slope]
+  intercept <- rescale_lin_intercept(slope = slope,
+                                     effect = effect,
+                                     matrix_along_by = matrix_along_by_effect)
+  components$component[is_intercept] <- "hyper"
+  components$.fitted[is_intercept] <- intercept
+  components$component[is_slope] <- "hyper"
   components
 }
 
@@ -1660,29 +1679,33 @@ infer_trend_cyc_seas_err_one.bage_prior_linar <- function(prior,
                                                           var_time,
                                                           var_age,
                                                           components) {
-  along <- prior$specific$along
   nm <- dimnames_to_nm(dimnames_term)
+  is_intercept <- with(components,
+  (term == nm) & startsWith(component, "hyper") & startsWith(level, "intercept"))
+  is_slope <- with(components,
+  (term == nm) & startsWith(component, "hyper") & startsWith(level, "slope"))
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  is_trend <- with(components, (term == nm) & (component == "trend"))
+  is_cyclical <- with(components, (term == nm) & (component == "cyclical"))
+  effect <- components$.fitted[is_effect]
+  intercept <- components$.fitted[is_intercept]
+  slope <- components$.fitted[is_slope]
+  along <- prior$specific$along
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  is_effect <- with(components,
-                    term == nm & component == "effect")
-  is_intercept <- with(components,
-                       term == nm & startsWith(component, "hyper") & startsWith(level, "intercept"))
-  is_slope <- with(components,
-                   term == nm & startsWith(component, "hyper") & startsWith(level, "slope"))
-  effect <- components$.fitted[is_effect]
-  intercept <- components$.fitted[is_intercept]
-  slope <- components$.fitted[is_slope]
+  intercept <- rescale_lin_intercept(slope = slope,
+                                     effect = effect,
+                                     matrix_along_by = matrix_along_by_effect)
   trend <- make_lin_trend(intercept = intercept,
                           slope = slope,
                           matrix_along_by = matrix_along_by_effect)
   cyclical <- effect - trend
   components$component[is_intercept] <- "hyper"
+  components$.fitted[is_intercept] <- intercept
   components$component[is_slope] <- "hyper"
+  has_trend_cyclical_already <- any(is_trend)
   level <- components$level[is_effect]
   trend <- tibble::tibble(term = nm,
                           component = "trend",
@@ -1692,22 +1715,23 @@ infer_trend_cyc_seas_err_one.bage_prior_linar <- function(prior,
                              component = "cyclical",
                              level = level,
                              .fitted = cyclical)
-  vctrs::vec_rbind(components, trend, cyclical)
+  components <- vctrs::vec_rbind(components, trend, cyclical)
+  components
 }
-
+  
 
 ## HAS_TESTS
 #' @export
 infer_trend_cyc_seas_err_one.bage_prior_rwseasfix <- function(prior,
-                                                        dimnames_term,
-                                                        var_time,
-                                                        var_age,
-                                                        components)
+                                                              dimnames_term,
+                                                              var_time,
+                                                              var_age,
+                                                              components)
   infer_trend_cyc_seas_err_seasfix(prior = prior,
-                             dimnames_term = dimnames_term,
-                             var_time = var_time,
-                             var_age = var_age,
-                             components = components)
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   components = components)
 
 ## HAS_TESTS
 #' @export
@@ -1747,6 +1771,119 @@ infer_trend_cyc_seas_err_one.bage_prior_rw2seasvary <- function(prior,
                               var_time = var_time,
                               var_age = var_age,
                               components = components)
+
+
+
+
+## 'infer_trend_cyc_seas_err_forecast_one' ---------------------------------------------------
+
+#' Derive Parts of 'Components' Output Dealing with a
+#' Prior that has Hyper-Parameters Treated as Random Effects - Forecasts
+#'
+#' In all priors with 'hyperrand' elements, the reformatting involves
+#' renaming columns. 
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param matrix_along_by Matrix with mapping for along, by dimensions
+#' @param components A data frame.
+#'
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+infer_trend_cyc_seas_err_forecast_one <- function(prior,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  components) {
+  UseMethod("infer_trend_cyc_seas_err_forecast_one")
+}
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_forecast_one.bage_prior <- function(prior,
+                                                             dimnames_term,
+                                                             var_time,
+                                                             var_age,
+                                                             components)
+  components
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_forecast_one.bage_prior_linar <- function(prior,
+                                                                   dimnames_term,
+                                                                   var_time,
+                                                                   var_age,
+                                                                   components) {
+  nm <- dimnames_to_nm(dimnames_term)
+  is_effect <- with(components, (term == nm) & (component == "effect"))
+  is_trend <- with(components, (term == nm) & (component == "trend"))
+  is_cyclical <- with(components, (term == nm) & (component == "cyclical"))
+  effect <- components$.fitted[is_effect]
+  trend <- components$.fitted[is_trend]
+  cyclical <- effect - trend
+  components$.fitted[is_cyclical] <- cyclical
+  components
+}
+  
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_forecast_one.bage_prior_rwseasfix <- function(prior,
+                                                                       dimnames_term,
+                                                                       var_time,
+                                                                       var_age,
+                                                                       components)
+  infer_trend_cyc_seas_err_seasfix_forecast(prior = prior,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age,
+                                            components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_forecast_one.bage_prior_rwseasvary <- function(prior,
+                                                                        dimnames_term,
+                                                                        var_time,
+                                                                        var_age,
+                                                                        components)
+  infer_trend_cyc_seas_err_seasvary_forecast(prior = prior,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2seasfix <- function(prior,
+                                                                        dimnames_term,
+                                                                        var_time,
+                                                                        var_age,
+                                                                        components)
+  infer_trend_cyc_seas_err_seasfix_forecast(prior = prior,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age,
+                                            components = components)
+
+## HAS_TESTS
+#' @export
+infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2seasvary <- function(prior,
+                                                                         dimnames_term,
+                                                                         var_time,
+                                                                         var_age,
+                                                                         components)
+  infer_trend_cyc_seas_err_seasvary_forecast(prior = prior,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             components = components)
+
+
+
+
 
 ## 'is_known' -----------------------------------------------------------------
 

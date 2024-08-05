@@ -13,7 +13,9 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 
 \item{standardize}{Whether to standardize
 parameter estimates. See below for details.
-Default is \code{TRUE}.}
+Default is \code{TRUE}. Standardization methods are
+still under development, and may change in future.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
