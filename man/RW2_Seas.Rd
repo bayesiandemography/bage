@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_prior-constructors.R
 \name{RW2_Seas}
 \alias{RW2_Seas}
-\title{Second-Order Random Walk Prior, with Seasonal Effect}
+\title{Second-Order Random Walk Prior with Seasonal Effect}
 \usage{
 RW2_Seas(n_seas, s = 1, s_seas = 1, along = NULL)
 }

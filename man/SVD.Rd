@@ -24,7 +24,7 @@ See below for details.}
 An object of class \code{"bage_prior_svd"}.
 }
 \description{
-Use a values from a Singular Value Decomposition (SVD)
+Use components from a Singular Value Decomposition (SVD)
 to model a main effect or interaction involving age.
 }
 \details{

@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_disp}
 \alias{set_disp}
-\title{Set Mean in Prior for Dispersion or Standard Deviation}
+\title{Specify Prior for Dispersion or Standard Deviation}
 \usage{
 set_disp(mod, mean)
 }

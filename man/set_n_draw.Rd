@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_n_draw}
 \alias{set_n_draw}
-\title{Set Number of Prior or Posterior Draws}
+\title{Specify Number of Draws from Prior or Posterior Distribution}
 \usage{
 set_n_draw(mod, n_draw = 1000L)
 }

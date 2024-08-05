@@ -34,11 +34,13 @@ mod
 #> -- Fitted Poisson model --
 #> 
 #>    injuries ~ age:sex + ethnicity + year
-#> (Intercept) ~ NFixed(sd=10)
-#>   ethnicity ~ N()
-#>        year ~ RW()
-#>     age:sex ~ N()
 #> 
+#> (Intercept) ~ NFix()
+#>   ethnicity ~ NFix()
+#>        year ~ RW()
+#>     age:sex ~ RW()
+#> 
+#>      dispersion: mean=1
 #>        exposure: popn
 #>         var_age: age
 #>   var_sexgender: sex
@@ -50,19 +52,19 @@ Extract model-based and direct estimates.
 
 ``` r
 augment(mod)
-#> # A tibble: 912 × 8
-#>    age   sex    ethnicity  year injuries  popn                    .fitted
-#>    <fct> <chr>  <chr>     <int>    <int> <int>               <rdbl<1000>>
-#>  1 0-4   Female Maori      2000       12 35830 0.00024 (0.00022, 0.00027)
-#>  2 5-9   Female Maori      2000        6 35120 6.8e-05 (5.6e-05, 8.3e-05)
-#>  3 10-14 Female Maori      2000        3 32830 9.1e-05 (7.8e-05, 0.00011)
-#>  4 15-19 Female Maori      2000        6 27130 0.00043 (0.00039, 0.00047)
-#>  5 20-24 Female Maori      2000        6 24380 0.00042 (0.00038, 0.00047)
-#>  6 25-29 Female Maori      2000        6 24160 0.00035 (0.00031, 0.00039)
-#>  7 30-34 Female Maori      2000       12 22560 0.00032 (0.00029, 0.00036)
-#>  8 35-39 Female Maori      2000        3 22230 0.00035 (0.00032, 0.00039)
-#>  9 40-44 Female Maori      2000        6 18130 0.00034 (0.00031, 0.00038)
-#> 10 45-49 Female Maori      2000        6 13770   0.00036 (0.00033, 4e-04)
+#> # A tibble: 912 × 9
+#>    age   sex    ethnicity  year injuries  popn .observed
+#>    <fct> <chr>  <chr>     <int>    <int> <int>     <dbl>
+#>  1 0-4   Female Maori      2000       12 35830 0.000335 
+#>  2 5-9   Female Maori      2000        6 35120 0.000171 
+#>  3 10-14 Female Maori      2000        3 32830 0.0000914
+#>  4 15-19 Female Maori      2000        6 27130 0.000221 
+#>  5 20-24 Female Maori      2000        6 24380 0.000246 
+#>  6 25-29 Female Maori      2000        6 24160 0.000248 
+#>  7 30-34 Female Maori      2000       12 22560 0.000532 
+#>  8 35-39 Female Maori      2000        3 22230 0.000135 
+#>  9 40-44 Female Maori      2000        6 18130 0.000331 
+#> 10 45-49 Female Maori      2000        6 13770 0.000436 
 #> # ℹ 902 more rows
-#> # ℹ 1 more variable: .observed <dbl>
+#> # ℹ 2 more variables: .fitted <rdbl<1000>>, .expected <rdbl<1000>>
 ```

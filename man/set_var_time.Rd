@@ -2,7 +2,7 @@
 % Please edit documentation in R/bage_mod-functions.R
 \name{set_var_time}
 \alias{set_var_time}
-\title{Set Time Variable}
+\title{Specify Time Variable}
 \usage{
 set_var_time(mod, name)
 }

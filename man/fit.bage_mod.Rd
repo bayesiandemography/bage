@@ -17,7 +17,7 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 A \code{bage_mod} object
 }
 \description{
-Derive a posterior distribution for a model.
+Calculate the posterior distribution for a model.
 }
 \examples{
 ## specify model

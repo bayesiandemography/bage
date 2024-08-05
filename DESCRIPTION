@@ -14,7 +14,7 @@ Authors@R:
       person(given = "Bayesian Demography Limited",
              role = "cph"))
 Description: Fast Bayesian estimation and forecasting of age-specific
-    rates, probabilities, and means, based on Template Model Builder.
+    rates, probabilities, and means, based on 'Template Model Builder'.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -43,8 +43,6 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tidyr
-Remotes:
-    bayesiandemography/poputils
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 LinkingTo: 
@@ -52,4 +50,5 @@ LinkingTo:
     RcppEigen
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
-URL: https://bayesiandemography.github.io/bage/
+URL: https://bayesiandemography.github.io/bage/, https://github.com/bayesiandemography/bage
+BugReports: https://github.com/bayesiandemography/bage/issues

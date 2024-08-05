@@ -21,11 +21,11 @@ Default is 19.}
 \value{
 A tibble with the following structure:\tabular{ll}{
    \code{.replicate} \tab data \cr
-   `"Original" \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
-   \code{"Replicate 1"} \tab Original data, except that actual outcome replaced by simulated values. \cr
-   \code{"Replicate 2"} \tab Original data, except that actual outcome replaced by simulated values. \cr
+   \code{"Original"} \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
+   \code{"Replicate 1"} \tab Simulated data. \cr
+   \code{"Replicate 2"} \tab Simulated data. \cr
    \dots \tab \dots \cr
-   \code{"Replicate <n>"} \tab Original data, except that actual outcome replaced by simulated values. \cr
+   \code{"Replicate <n>"} \tab Simulated data. \cr
 }
 }
 \description{
@@ -38,8 +38,8 @@ for model parameters to generate \code{n} simulated datasets.
 If the model is working well, these simulated
 datasets should look similar to the actual dataset.
 }
-\section{}{
- The \code{condition_on} argument
+\section{The \code{condition_on} argument}{
+
 
 With Poisson and binomial models that include
 dispersion terms (which is the default), there are
@@ -95,7 +95,8 @@ rep_data |>
 }
 \seealso{
 \itemize{
-\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} to create models
-\item \code{\link[=fit]{fit()}} to fit models
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Create model.
+\item \code{\link[=fit]{fit()}} Fit model.
+\item \code{\link[=report_sim]{report_sim()}} Simulation study of model.
 }
 }

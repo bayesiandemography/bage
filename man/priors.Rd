@@ -22,24 +22,24 @@ models are summarised here.
 }
 \details{
 \tabular{llll}{
-   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Can be forecasted} \cr
-   \code{\link[=N]{N()}} \tab Elements drawn from a common normal distribution with mean 0 and standard devation estimated from the data. \tab Main effects or interactions with no natural order or neighborbood structure. \tab Yes \cr
-   \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation supplied (fixed) by user. \tab Like \code{N()}, but where there are too few elements to estimate the standard deviation, or where there is strong prior information about its value. Intercept and sex/gender effects. \tab Yes \cr
-   \code{\link[=RW]{RW()}} \tab Random walk. Elements have a natural ordering, and neighboring elements more strongly correlated than distant elements. \tab Modelling age, time, cohort, or other smoothly-varying dimensions. \tab Yes \cr
-   \code{\link[=RW2]{RW2()}} \tab Second-order random walk. Similar to \code{RW()}, but with persistent trends. \tab As for \code{RW()}, but where greater smoothness expected. \tab Yes \cr
-   \code{\link[=RW_Seas]{RW_Seas()}} \tab Random walk, with seasonal effect. \tab Main effects or interactions involving time. \tab Yes \cr
-   \code{\link[=RW2_Seas]{RW2_Seas()}} \tab Random walk with drift, with seasonal effect. \tab Main effects or interactions involving time. \tab Yes \cr
-   \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k}. \tab Modelling variables that revert towards the mean, which often includes time. \tab Yes \cr
-   \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1. Special case of \code{AR()}, though has more options for controlling damping. \tab As for \code{AR()}. \tab Yes \cr
-   \code{\link[=Known]{Known()}} \tab Values supplied by treated and treated as known. \tab Simulations and experiments. \tab No \cr
+   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \cr
+   \code{\link[=N]{N()}} \tab Elements drawn from normal distribution. \tab Term with no natural order. \tab Yes \cr
+   \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation fixed. \tab Term with few elements. \tab Yes \cr
+   \code{\link[=RW]{RW()}} \tab Random walk. \tab Smoothing. \tab Yes \cr
+   \code{\link[=RW2]{RW2()}} \tab Second-order random walk, ie RW with drift. \tab Like \code{RW()}, but smoother. \tab Yes \cr
+   \code{\link[=RW_Seas]{RW_Seas()}} \tab Random walk, with seasonal effect. \tab Terms involving time. \tab Yes \cr
+   \code{\link[=RW2_Seas]{RW2_Seas()}} \tab Second-order random walk, with seasonal effect. \tab Term involving time. \tab Yes \cr
+   \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k}. \tab Mean reversion. \tab Yes \cr
+   \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1. Special case of \code{AR()}. \tab Mean reversion. \tab Yes \cr
+   \code{\link[=Known]{Known()}} \tab Values  treated as known. \tab Simulations,  prior knowledge. \tab No \cr
    \code{\link[=Lin]{Lin()}} \tab Linear trend, with independent normal. \tab Parsimonious model for time. \tab Yes \cr
-   \code{\link[=Lin_AR]{Lin_AR()}} \tab Linear trend, with autoregressive errors. \tab Model for time, where departures from trend persist over time. \tab Yes \cr
-   \code{\link[=Lin_AR1]{Lin_AR1()}} \tab Linear trend, with autoregressive errors of order 1. \tab Simpler version of \code{Lin_AR()}. \tab Yes \cr
-   \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline). \tab Modelling varies that smoothly, eg age. \tab No \cr
-   \code{\link[=SVD]{SVD()}} \tab Age, age-sex, or age-gender profile that looks like it was drawn at random from a database of rates, which are summarised using a singular value decomposition (SVD). \tab Terms involving age and possibly sex/gender. \tab No \cr
-   \code{\link[=SVD_AR]{SVD_AR()}} \tab Like \code{SVD()}, but coefficients evolve over time, following AR models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
-   \code{\link[=SVD_AR1]{SVD_AR1()}} \tab Like \code{SVD()}, but coefficients evolve over time, following AR1 models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
-   \code{\link[=SVD_RW]{SVD_RW()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
-   \code{\link[=SVD_RW2]{SVD_RW2()}} \tab Like \code{SVD()}, but coefficients evolve over time, following random walk with drift models. \tab Interactions between age, time, possibly sex/gender, and possibly other variables. \tab Yes \cr
+   \code{\link[=Lin_AR]{Lin_AR()}} \tab Linear trend, with autoregressive errors. \tab Term involving time. \tab Yes \cr
+   \code{\link[=Lin_AR1]{Lin_AR1()}} \tab Linear trend, with AR1 errors. \tab Terms involving time. \tab Yes \cr
+   \code{\link[=Sp]{Sp()}} \tab P-Spline (penalised spline). \tab Smoothing, eg over age. \tab No \cr
+   \code{\link[=SVD]{SVD()}} \tab Age or age-sex profile based on SVD of database. \tab Age or age-sex. \tab No \cr
+   \code{\link[=SVD_AR]{SVD_AR()}} \tab \code{SVD()}, but coefficients follow \code{AR()}. \tab Age or age-sex and time. \tab Yes \cr
+   \code{\link[=SVD_AR1]{SVD_AR1()}} \tab \code{SVD()}, but coefficients follow \code{AR1()}. \tab Age or age-sex and time. \tab Yes \cr
+   \code{\link[=SVD_RW]{SVD_RW()}} \tab \code{SVD()}, but coefficients follow \code{RW()}. \tab Age or age-sex and time. \tab Yes \cr
+   \code{\link[=SVD_RW2]{SVD_RW2()}} \tab \code{SVD()}, but coefficients follow \code{RW2()}. \tab Age or age-sex and time. \tab Yes \cr
 }
 }
