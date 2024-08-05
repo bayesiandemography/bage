@@ -26,7 +26,9 @@ with the forecasts. Default is \code{FALSE}.}
 
 \item{standardize}{Whether to standardize
 parameter estimates. See below for details.
-Default is \code{TRUE}.}
+Default is \code{TRUE}. Standardization methods are
+still under development, and may change in future.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}.}
 
 \item{labels}{Labels for future values.}
 

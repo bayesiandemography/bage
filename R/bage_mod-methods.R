@@ -165,7 +165,9 @@ generics::components
 #' [mod_binom()], or [mod_norm()].
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
-#' Default is `TRUE`.
+#' Default is `TRUE`. Standardization methods are
+#' still under development, and may change in future.
+#' `r lifecycle::badge("experimental")`.
 #'
 #' @returns
 #' A [tibble][tibble::tibble-package]
@@ -694,7 +696,9 @@ generics::forecast
 #' with the forecasts. Default is `FALSE`.
 #' @param standardize Whether to standardize
 #' parameter estimates. See below for details.
-#' Default is `TRUE`.
+#' Default is `TRUE`. Standardization methods are
+#' still under development, and may change in future.
+#' `r lifecycle::badge("experimental")`.
 #' @param labels Labels for future values.
 #' @param ... Not currently used.
 #'
@@ -742,7 +746,7 @@ forecast.bage_mod <- function(object,
                               ...) {
   data_est <- object$data
   priors <- object$priors
-  dimnames_terms_est <- object$dimnames_terms
+  dn_terms_est <- object$dimnames_terms
   var_time <- object$var_time
   var_age <- object$var_age
   var_sexgender <- object$var_sexgender
@@ -763,14 +767,15 @@ forecast.bage_mod <- function(object,
                                             components_est = comp_est_unst,
                                             labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dimnames_terms_est,
-                                                          var_time = var_time,
-                                                          labels_forecast = labels)
+  dn_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
+                                                    var_time = var_time,
+                                                    labels_forecast = labels,
+                                                    time_only = FALSE)
   if (output == "augment") {
     comp_comb_unst <- vctrs::vec_rbind(comp_est_unst, comp_forecast_unst)
     linpred_forecast <- make_linpred_comp(components = comp_comb_unst,
                                           data = data_forecast,
-                                          dimnames_terms = dimnames_terms_forecast)
+                                          dimnames_terms = dn_terms_forecast)
     seed_forecast_augment <- object$seed_forecast_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_forecast_augment) ## set pre-determined seed
@@ -789,44 +794,41 @@ forecast.bage_mod <- function(object,
       comp_est_st <- standardize_effects(components = comp_est_unst,
                                          data = data_est,
                                          linpred = linpred_est,
-                                         dimnames_terms = dimnames_terms_est)
+                                         dimnames_terms = dn_terms_est)
       comp_est_st <- standardize_svd_spline(components = comp_est_st,
                                             priors = priors,
-                                            dimnames_terms = dimnames_terms_est,
+                                            dimnames_terms = dn_terms_est,
                                             var_time = var_time,
                                             var_age = var_age,
                                             var_sexgender = var_sexgender,
                                             center_along = TRUE)
       comp_est_st <- standardize_trend_cyc_seas_err(components = comp_est_st,
                                                     priors = priors,
-                                                    dimnames_terms = dimnames_terms_est,
+                                                    dimnames_terms = dn_terms_est,
                                                     var_time = var_time,
                                                     var_age = var_age,
                                                     center_along = TRUE)
-      comp_forecast_st <- standardize_forecast(mod = object,
-                                               comp_forecast = comp_forecast_unst,
-                                               comp_est_st = comp_est_st,
-                                               comp_est_unst = comp_est_unst,
-                                               labels_forecast = labels)
-      comp_forecast_st <- standardize_effects_along_by(components = comp_forecast_st,
-                                                       priors = priors,
-                                                       dimnames_terms = dimnames_terms_forecast,
-                                                       var_time = var_time,
-                                                       var_age = var_age,
-                                                       center_along = FALSE)
-      comp_forecast_st <- standardize_svd_spline(components = comp_forecast_st,
-                                                 priors = priors,
-                                                 dimnames_terms = dimnames_terms_forecast,
-                                                 var_time = var_time,
-                                                 var_age = var_age,
-                                                 var_sexgender = var_sexgender,
-                                                 center_along = FALSE)
-      comp_forecast_st <- standardize_trend_cyc_seas_err(components = comp_forecast_st,
-                                                         priors = priors,
-                                                         dimnames_terms = dimnames_terms_forecast,
-                                                         var_time = var_time,
-                                                         var_age = var_age,
-                                                         center_along = FALSE)
+      dn_terms_forecast_time <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
+                                                             var_time = var_time,
+                                                             labels_forecast = labels,
+                                                             time_only = TRUE)
+      comp_forecast_st <- align_forecast(mod = object,
+                                         comp_forecast = comp_forecast_unst,
+                                         comp_est_st = comp_est_st,
+                                         comp_est_unst = comp_est_unst,
+                                         labels_forecast = labels)
+      linpred_forecast_time <- make_linpred_comp(components = comp_forecast_st,
+                                                 data = data_forecast,
+                                                 dimnames_terms = dn_terms_forecast_time)
+      comp_forecast_st <- standardize_effects(components = comp_forecast_st,
+                                              data = data_forecast,
+                                              linpred = linpred_forecast_time,
+                                              dimnames_terms = dn_terms_forecast_time)
+      comp_forecast_st <- infer_trend_cyc_seas_err_forecast(components = comp_forecast_st,
+                                                            priors = priors,
+                                                            dimnames_terms = dn_terms_forecast_time,
+                                                            var_time = var_time,
+                                                            var_age = var_age)
       if (include_estimates) {
         ans <- vctrs::vec_rbind(comp_est_st, comp_forecast_st)
         ans <- sort_components(components = ans, mod = object)

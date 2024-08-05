@@ -1165,7 +1165,8 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   components <- vctrs::vec_rbind(components_est, components_forecast)
   dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
                                                     var_time = mod$var_time,
-                                                    labels_forecast = labels_forecast)
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
   linpred_forecast <- make_linpred_comp(components = components,
                                         data = data_forecast,
                                         dimnames_terms = dimnames_forecast)
@@ -1201,7 +1202,8 @@ test_that("'forecast_augment' works - binomial, no disp", {
   components <- vctrs::vec_rbind(components_est, components_forecast)
   dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
                                                     var_time = mod$var_time,
-                                                    labels_forecast = labels_forecast)
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
   linpred_forecast <- make_linpred_comp(components = components,
                                         data = data_forecast,
                                         dimnames_terms = dimnames_forecast)
@@ -1236,7 +1238,8 @@ test_that("'forecast_augment' works - normal", {
   components <- vctrs::vec_rbind(components_est, components_forecast)
   dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
                                                     var_time = mod$var_time,
-                                                    labels_forecast = labels_forecast)
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
   linpred_forecast <- make_linpred_comp(components = components,
                                         data = data_forecast,
                                         dimnames_terms = dimnames_forecast)
@@ -1249,7 +1252,6 @@ test_that("'forecast_augment' works - normal", {
   expect_setequal(ans$time, 2006:2008)
   expect_identical(names(ans), names(aug_est))
 })
-
 
 
 ## 'get_nm_outcome' -----------------------------------------------------------
