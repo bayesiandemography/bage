@@ -97,7 +97,7 @@ RW_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 \seealso{
 \itemize{
 \item \code{\link[=RW]{RW()}} Random walk without seasonal effect
-\item \code{\link[=RW2_Seas]{RW2_Seas()}} Random walk with drift, with seasonal effect
+\item \code{\link[=RW2_Seas]{RW2_Seas()}} Second-order random walk, with seasonal effect
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

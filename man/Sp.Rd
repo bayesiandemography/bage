@@ -56,7 +56,7 @@ spline basis functions; and
 }
 
 The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
-to follow a \link[=RW2]{random walk with drift}.
+to follow a \link[=RW2]{second-order random walk}.
 }
 
 \examples{
@@ -73,7 +73,7 @@ Statistical Science. 11 (2): 89–121.
 \seealso{
 \itemize{
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
-\item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
+\item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
 \item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,

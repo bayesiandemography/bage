@@ -212,7 +212,7 @@ scaled SVDS see the vignette
 \item \code{\link[=SVD_AR]{SVD_AR()}}, \code{\link[=SVD_AR1]{SVD_AR1()}}, \code{\link[=SVD_RW]{SVD_RW()}}, \code{\link[=SVD_RW2]{SVD_RW2()}} SVD priors for
 for time-varying age profiles;
 \item \code{\link[=RW]{RW()}} Smoothing via random walk
-\item \code{\link[=RW2]{RW2()}} Smoothing via random walk with drift
+\item \code{\link[=RW2]{RW2()}} Smoothing via second-order random walk
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,

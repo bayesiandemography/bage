@@ -30,8 +30,9 @@ seasonal effects to model
 a main effect, or use multiple second-order random walks,
 each with their own seasonal effects,
 to model an interaction.
-A second-order random walk is also known
-as a random walk with drift. It is typically
+A second-order random walk is effectively
+a random walk with drift where the
+drift term varies. It is typically
 used with main effects or interactions
 that involve time, where there are sustained
 trends upward or downward.
@@ -100,7 +101,7 @@ RW2_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW2]{RW2()}} Random walk with drift, without seasonal effect
+\item \code{\link[=RW2]{RW2()}} Second-order random walk, without seasonal effect
 \item \code{\link[=RW_Seas]{RW_Seas()}} Random walk, with seasonal effect
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
