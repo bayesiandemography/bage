@@ -12,6 +12,13 @@
 
 * Added Makevars file.
 
+## Changes to documentation
+
+* Stopped referring to second-order walks as equivalent to random
+  walks with drift. (A second-order random walk differs from a random
+  walk in that the implied drift term in a second-order random walk
+  can vary over time.)
+
 
 # bage 0.6.3
 

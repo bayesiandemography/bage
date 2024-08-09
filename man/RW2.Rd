@@ -21,8 +21,9 @@ An object of class \code{"bage_prior_rw2"}.
 Use a second-oder random walk to model
 a main effect, or use multiple second-order random walks
 to model an interaction.
-A second-order random walk is also known
-as a random walk with drift. It is typically
+A second-order random walk is effectively
+a random walk with drift where the
+drift term varies. It is typically
 used with main effects or interactions
 that involve time, where there are sustained
 trends upward or downward.
