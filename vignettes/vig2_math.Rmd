@@ -364,7 +364,7 @@ RWSeas(n, s = 1, s_seas = 1, along = NULL)
 
 
 
-## Random walk with drift, with seasonal effect {#sec:rw2seas}
+## Second-order randomw walk, with seasonal effect {#sec:rw2seas}
 
 ### Model
 

@@ -289,7 +289,7 @@ Known <- function(values) {
 #' @seealso
 #' - [Lin_AR()] Linear with AR errors
 #' - [Lin_AR1()] Linear with AR1 errors
-#' - [RW2()] Random walk with drift
+#' - [RW2()] Second-order random walk
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -666,7 +666,7 @@ NFix <- function(sd = 1) {
 #' @returns An object of class `"bage_prior_rw"`.
 #'
 #' @seealso
-#' - [RW2()] Random walk with drift
+#' - [RW2()] Second-order random walk
 #' - [AR()] Autoregressive with order k
 #' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
@@ -767,7 +767,7 @@ RW <- function(s = 1, along = NULL) {
 #'
 #' @seealso
 #' - [RW()] Random walk without seasonal effect
-#' - [RW2_Seas()] Random walk with drift, with seasonal effect
+#' - [RW2_Seas()] Second-order random walk, with seasonal effect
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -807,8 +807,9 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' Use a second-oder random walk to model
 #' a main effect, or use multiple second-order random walks
 #' to model an interaction.
-#' A second-order random walk is also known
-#' as a random walk with drift. It is typically
+#' A second-order random walk is effectively
+#' a random walk with drift where the
+#' drift term varies. It is typically
 #' used with main effects or interactions
 #' that involve time, where there are sustained
 #' trends upward or downward.
@@ -893,8 +894,9 @@ RW2 <- function(s = 1, along = NULL) {
 #' a main effect, or use multiple second-order random walks,
 #' each with their own seasonal effects,
 #' to model an interaction.
-#' A second-order random walk is also known
-#' as a random walk with drift. It is typically
+#' A second-order random walk is effectively
+#' a random walk with drift where the
+#' drift term varies. It is typically
 #' used with main effects or interactions
 #' that involve time, where there are sustained
 #' trends upward or downward.
@@ -966,7 +968,7 @@ RW2 <- function(s = 1, along = NULL) {
 #' or `"bage_prior_rw2seasfix"`.
 #'
 #' @seealso
-#' - [RW2()] Random walk with drift, without seasonal effect
+#' - [RW2()] Second-order random walk, without seasonal effect
 #' - [RW_Seas()] Random walk, with seasonal effect
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -1035,7 +1037,7 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' - \eqn{n} is `n_comp`.
 #'
 #' The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
-#' to follow a [random walk with drift][RW2()].
+#' to follow a [second-order random walk][RW2()].
 #'
 #' @inheritParams AR
 #' @param n_comp Number of spline basis functions (components)
@@ -1045,7 +1047,7 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #'
 #' @seealso
 #' - [RW()] Smoothing via random walk
-#' - [RW2()] Smoothing via random walk with drift
+#' - [RW2()] Smoothing via second-order random walk
 #' - [SVD()] Smoothing of age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -1256,7 +1258,7 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
 #' - [SVD_AR()], [SVD_AR1()], [SVD_RW()], [SVD_RW2()] SVD priors for
 #'   for time-varying age profiles;
 #' - [RW()] Smoothing via random walk
-#' - [RW2()] Smoothing via random walk with drift
+#' - [RW2()] Smoothing via second-order random walk
 #' - [Sp()] Smoothing via splines
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -1387,7 +1389,7 @@ SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
 #' @seealso
 #' - [SVD()] SVD prior for non-time-varying terms
 #' - [RW()] Smoothing via random walk
-#' - [RW2()] Smoothing via random walk with drift
+#' - [RW2()] Smoothing via second-order random walk
 #' - [Sp()] Smoothing via splines
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
