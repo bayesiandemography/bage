@@ -67,7 +67,7 @@ RW(along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW2]{RW2()}} Random walk with drift
+\item \code{\link[=RW2]{RW2()}} Second-order random walk
 \item \code{\link[=AR]{AR()}} Autoregressive with order k
 \item \code{\link[=AR1]{AR1()}} Autoregressive with order 1
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
