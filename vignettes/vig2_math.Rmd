@@ -920,9 +920,19 @@ Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta
 
 ## Standardization {#sec:standard}
 
+### The need for standardization
+
 NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
 
-Although the sum $\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}$ is well identified by the data, the individual $\pmb{\beta}^{(m)}$ are not. When reporting estimated $\pmb{\beta}^{(m)}$, we standardize. The standarization algorithm is as follows.
+Although the sum $\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}$ is well identified by the data, the individual $\pmb{\beta}^{(m)}$ are not. For instance, adding $\Delta$ to $\pmb{\beta}^{(0)}$ and subtracting it from every term in $\pmb{\beta}^{(m)}$ for some $m > 0$ leaves the likelihood unchanged. The use of proper priors for the $\pmb{\beta}^{(m)}$ mean that posterior distributions for the $\pmb{\beta}^{(m)}$, and for related terms such as trend, cyclical, and seasonal effects, are proper. However, they can be diffuse and hard to interpret.
+
+To help with interpretation of the $\pmb{\beta}^{(m)}$ and related terms, we standardize. We in fact appy two forms of standardization, each designed for a different purpose.
+
+
+### ANOVA-style standardization
+
+The first type of standardization is applied only to the $\pmb{\beta}^{(m)}$. The aim is to partition the total variation in $\mu_i$ into variation associated with each main effect or interaction, in the style, for instance, of Section 15.6 of @gelman2014bayesian. Let $\tilde{\pmb{\beta}}^{(m)}$ be the standardized version of $\pmb{\beta}^{(m)}$. We obtain the $\tilde{\pmb{\beta}}^{(m)}$ through the following algorithm:
+
 
 Set
 \begin{equation}
@@ -934,7 +944,12 @@ For $m = 0, \cdots, M$:
 - Set $\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}$
 - Set $\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}$
 
-TODO - describe derivaition of components within LinAR, RWSeas, RW2Seas.
+
+### Term-level standardization
+
+Term-level standardization aims to clarify the behaviour of the terms making up the model, including trend, cyclical, and seasonal effects. The intercept term is left untouched. All other $\pmb{\beta}^{(m)}$ are centered across the "along" dimension, and each of the "by" dimensions. 
+
+
 
 # Simulation
 
