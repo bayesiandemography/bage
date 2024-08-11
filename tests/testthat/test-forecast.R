@@ -15,8 +15,8 @@ test_that("'align_forecast' works", {
                   set_prior(age:time ~ SVD_RW(HMD))
   mod <- set_n_draw(mod, n = 10)
   mod <- fit(mod)
-  components_est_unst <- components(mod, standardize = FALSE)
-  components_est_st <- components(mod, standardize = TRUE)
+  components_est_unst <- components(mod, standardize = "none")
+  components_est_st <- components(mod, standardize = "terms")
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est_unst,
                                              labels_forecast = 2006:2007)

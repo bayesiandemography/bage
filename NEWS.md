@@ -1,4 +1,16 @@
 
+# bage 0.7.1
+
+## Changes to interface
+
+* There are now three choices for the `standardization` argument:
+  `"terms"`, `"anova"`, and `"none"`. With `"terms"`, all effects,
+  plus assoicated SVD coefficients, and trend, cyclical, and
+  seasonal terms, are centered independently. With `"anova"`, the type
+  of standardization descibed in Section 15.6 of Gelman et al (2014)
+  Bayesian Data Analysis, is applied to the effects.
+
+
 # bage 0.7.0 
 
 ## Changes to calculations

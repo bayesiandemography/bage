@@ -1,5 +1,221 @@
 
 ## HAS_TESTS
+#' Center Effects, SVD, Spline, Trend, Cyclical, Seasonal, Error
+#'
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#' @param center_along Whether to center along the 'along' dimension
+#' 
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+center_all <- function(components,
+                       priors,
+                       dimnames_terms,
+                       var_time,
+                       var_age,
+                       var_sexgender,
+                       center_along) {
+  components <- center_effects(components = components,
+                               priors = priors,
+                               dimnames_terms = dimnames_terms,
+                               var_time = var_time,
+                               var_age = var_age,
+                               center_along = center_along)
+  components <- center_svd_spline(components = components,
+                                  priors = priors,
+                                  dimnames_terms = dimnames_terms,
+                                  var_time = var_time,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  center_along = center_along)
+  components <- center_trend_cyc_seas_err(components = components,
+                                          priors = priors,
+                                          dimnames_terms = dimnames_terms,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          center_along = center_along)
+  components
+}
+
+
+## HAS_TESTS
+#' Center Effects Along 'by' and (Optionally) 'along' Dimensions
+#'
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param center_along Whether to center along the 'along' dimension
+#' 
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+center_effects <- function(components,
+                           priors,
+                           dimnames_terms,
+                           var_time,
+                           var_age,
+                           center_along) {
+  key_comp <- with(components, paste(term, component, level))
+  for (i_term in seq_along(priors)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    prior <- priors[[i_term]]
+    nm_term_split <- dimnames_to_nm_split(dimnames_term)
+    nm_term <- dimnames_to_nm(dimnames_term)
+    levels_term <- dimnames_to_levels(dimnames_term)
+    key_effect <- paste(nm_term, "effect", levels_term)
+    i_effect <- match(key_effect, key_comp, nomatch = 0L)
+    has_val <- any(i_effect > 0L)
+    is_intercept <- nm_term == "(Intercept)"
+    if (has_val && !is_intercept) {
+      effect <- components$.fitted[i_effect]
+      uses_along <- uses_along(prior)
+      if (uses_along) {
+        along <- prior$specific$along
+        matrix_along_by <- make_matrix_along_by_effect(along = along,
+                                                       dimnames_term = dimnames_term,
+                                                       var_time = var_time,
+                                                       var_age = var_age)
+        effect <- center_within_along_by(x = effect,
+                                         matrix_along_by = matrix_along_by,
+                                         center_along = center_along)
+      }
+      else {
+        i_along <- 1L
+        matrix_along_by <- make_matrix_along_by_inner(i_along = i_along,
+                                                      dimnames_term = dimnames_term)
+        effect <- center_within_along_by(x = effect,
+                                         matrix_along_by = matrix_along_by,
+                                         center_along = TRUE)
+      }
+      components$.fitted[i_effect] <- effect
+    }
+  }
+  components
+}
+
+
+## HAS_TESTS
+#' Center SVD and Spline Coefficients
+#'
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#' @param center_along Whether to center along the 'along' dimension
+#' 
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+center_svd_spline <- function(components,
+                              priors,
+                              dimnames_terms,
+                              var_time,
+                              var_age,
+                              var_sexgender,
+                              center_along) {
+  key_components <- with(components, paste(term, component, level))
+  for (i_term in seq_along(priors)) {
+    prior <- priors[[i_term]]
+    is_svd <- is_svd(prior)
+    is_spline <- is_spline(prior)
+    if (is_svd || is_spline) {
+      dimnames_term <- dimnames_terms[[i_term]]
+      nm_split <- dimnames_to_nm_split(dimnames_term)
+      nm <- dimnames_to_nm(dimnames_term)
+      if (is_svd) {
+        levels <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+        key_term <- "svd"
+      }
+      else {
+        levels <- make_levels_spline_term(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age)
+        key_term <- "spline"
+      }
+      key_term <- paste(nm, key_term, levels)
+      indices_comp <- match(key_term, key_components)
+      val_term <- components$.fitted[indices_comp]
+      matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
+                                                         dimnames_term = dimnames_term,
+                                                         var_time = var_time,
+                                                         var_age = var_age,
+                                                         var_sexgender = var_sexgender)
+      val_term <- center_within_along_by(x = val_term, 
+                                         matrix_along_by = matrix_along_by,
+                                         center_along)
+      components$.fitted[indices_comp] <- val_term
+    }
+  }
+  components
+}
+
+
+## HAS_TESTS
+#' Center Trend, Cyclical, Seasonal, and Error Components of Terms
+#'
+#' @param components Data frame with estimates of hyper parameters
+#' @param priors Named list of objects of class 'bage_prior'
+#' @param dimnames_terms Dimnames for array representation of terms
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param center_along Whether to center along the 'along' dimension
+#' 
+#' @returns A modifed version of 'components'
+#'
+#' @noRd
+center_trend_cyc_seas_err <- function(components,
+                                      priors,
+                                      dimnames_terms,
+                                      var_time,
+                                      var_age,
+                                      center_along) {
+  nms_tcse <- c("trend", "cyclical", "seasonal", "error")
+  key_comp <- with(components, paste(term, component, level))
+  for (i_term in seq_along(priors)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm_term_split <- dimnames_to_nm_split(dimnames_term)
+    nm_term <- dimnames_to_nm(dimnames_term)
+    levels_term <- dimnames_to_levels(dimnames_term)
+    for (nm_tcse in nms_tcse) {
+      key_tcse <- paste(nm_term, nm_tcse, levels_term)
+      i_tcse <- match(key_tcse, key_comp, nomatch = 0L)
+      has_val <- any(i_tcse > 0L)
+      if (has_val) {
+        prior <- priors[[i_term]]
+        dimnames_term <- dimnames_terms[[i_term]]
+        tcse <- components$.fitted[i_tcse]
+        if (!uses_along(prior))
+          cli::cli_abort("Internal error: Prior for term {.val {nm_term}} does not use along.")
+        along <- prior$specific$along
+        matrix_along_by <- make_matrix_along_by_effect(along = along,
+                                                       dimnames_term = dimnames_term,
+                                                       var_time = var_time,
+                                                       var_age = var_age)
+        tcse <- center_within_along_by(x = tcse,
+                                       matrix_along_by = matrix_along_by,
+                                       center_along = center_along)
+        components$.fitted[i_tcse] <- tcse
+      }
+    }
+  }
+  components
+} 
+
+
+## HAS_TESTS
 #' Center Values Within Each Value of 'along'
 #' Variable and (Optionally) Each Value
 #' of 'by' Variable
@@ -61,28 +277,29 @@ draw_vals_components_fitted <- function(mod, standardize) {
                                   dimnames_terms = dimnames_terms,
                                   var_time = var_time,
                                   var_age = var_age)
-  if (standardize) {
+  if (standardize == "terms") {
+    ans <- center_all(components = ans,
+                      priors = priors,
+                      dimnames_terms = dimnames_terms,
+                      var_time = var_time,
+                      var_age = var_age,
+                      var_sexgender = var_sexgender,
+                      center_along = TRUE)
+  }
+  else if (standardize == "anova") {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,
                                  dimnames_terms = dimnames_terms)
-    ans <- standardize_effects(components = ans,
-                               data = data,
-                               linpred = linpred,
-                               dimnames_terms = dimnames_terms)
-    ans <- standardize_svd_spline(components = ans,
-                                  priors = priors,
-                                  dimnames_terms = dimnames_terms,
-                                  var_time = var_time,
-                                  var_age = var_age,
-                                  var_sexgender = var_sexgender,
-                                  center_along = TRUE)
-    ans <- standardize_trend_cyc_seas_err(components = ans,
-                                          priors = priors,
-                                          dimnames_terms = dimnames_terms,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          center_along = TRUE)
+    ans <- standardize_anova(components = ans,
+                             data = data,
+                             linpred = linpred,
+                             dimnames_terms = dimnames_terms)
   }
+  else if (standardize == "none") {
+    NULL
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for {.arg standardize}.")
   ans
 }
 
@@ -954,6 +1171,7 @@ rescale_lin_intercept <- function(slope, effect, matrix_along_by) {
 
 ## HAS_TESTS
 #' Standardize Posterior Draws for Intercept, Main Effects, and Interactions
+#' following 'ANOVA' Conventions
 #'
 #' @param components Data frame with estimates of hyper-parameters
 #' @param data Data frame with original data
@@ -964,7 +1182,7 @@ rescale_lin_intercept <- function(slope, effect, matrix_along_by) {
 #' @returns Modifed version of 'components'
 #'
 #' @noRd
-standardize_effects <- function(components, data, linpred, dimnames_terms) {
+standardize_anova <- function(components, data, linpred, dimnames_terms) {
   max_resid_permitted <- 0.001
   key_comp <- with(components, paste(term, component, level))
   data_has_intercept <- "(Intercept)" %in% names(data)
@@ -992,168 +1210,6 @@ standardize_effects <- function(components, data, linpred, dimnames_terms) {
                                  "Maximum difference is {.val {max_resid}}."))   ## nocov
   components
 }
-
-
-## HAS_TESTS
-#' Standardize Effect by Centering Along 'by' and (Optionally) 'along' Dimensions
-#'
-#' @param components Data frame with estimates of hyper parameters
-#' @param priors Named list of objects of class 'bage_prior'
-#' @param dimnames_terms Dimnames for array representation of terms
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param center_along Whether to center along the 'along' dimension
-#' 
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-standardize_effects_along_by <- function(components,
-                                         priors,
-                                         dimnames_terms,
-                                         var_time,
-                                         var_age,
-                                         center_along) {
-  key_comp <- with(components, paste(term, component, level))
-  for (i_term in seq_along(priors)) {
-    dimnames_term <- dimnames_terms[[i_term]]
-    prior <- priors[[i_term]]
-    nm_term_split <- dimnames_to_nm_split(dimnames_term)
-    nm_term <- dimnames_to_nm(dimnames_term)
-    levels_term <- dimnames_to_levels(dimnames_term)
-    key_effect <- paste(nm_term, "effect", levels_term)
-    i_effect <- match(key_effect, key_comp, nomatch = 0L)
-    has_val <- any(i_effect > 0L)
-    uses_along <- uses_along(prior)
-    if (has_val && uses_along) {
-      dimnames_term <- dimnames_terms[[i_term]]
-      effect <- components$.fitted[i_effect]
-      along <- prior$specific$along
-      matrix_along_by <- make_matrix_along_by_effect(along = along,
-                                                     dimnames_term = dimnames_term,
-                                                     var_time = var_time,
-                                                     var_age = var_age)
-      effect <- center_within_along_by(x = effect,
-                                       matrix_along_by = matrix_along_by,
-                                       center_along = center_along)
-      components$.fitted[i_effect] <- effect
-    }
-  }
-  components
-}
-
-
-## HAS_TESTS
-#' Standardize SVD and Spline Coefficients
-#'
-#' @param components Data frame with estimates of hyper parameters
-#' @param priors Named list of objects of class 'bage_prior'
-#' @param dimnames_terms Dimnames for array representation of terms
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#' @param center_along Whether to center along the 'along' dimension
-#' 
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-standardize_svd_spline <- function(components,
-                                   priors,
-                                   dimnames_terms,
-                                   var_time,
-                                   var_age,
-                                   var_sexgender,
-                                   center_along) {
-  key_components <- with(components, paste(term, component, level))
-  for (i_term in seq_along(priors)) {
-    prior <- priors[[i_term]]
-    is_svd <- is_svd(prior)
-    is_spline <- is_spline(prior)
-    if (is_svd || is_spline) {
-      dimnames_term <- dimnames_terms[[i_term]]
-      nm_split <- dimnames_to_nm_split(dimnames_term)
-      nm <- dimnames_to_nm(dimnames_term)
-      if (is_svd) {
-        levels <- make_levels_svd_term(prior = prior,
-                                       dimnames_term = dimnames_term,
-                                       var_age = var_age,
-                                       var_sexgender = var_sexgender)
-        key_term <- "svd"
-      }
-      else {
-        levels <- make_levels_spline_term(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age)
-        key_term <- "spline"
-      }
-      key_term <- paste(nm, key_term, levels)
-      indices_comp <- match(key_term, key_components)
-      val_term <- components$.fitted[indices_comp]
-      matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                         dimnames_term = dimnames_term,
-                                                         var_time = var_time,
-                                                         var_age = var_age,
-                                                         var_sexgender = var_sexgender)
-      val_term <- center_within_along_by(x = val_term, 
-                                         matrix_along_by = matrix_along_by,
-                                         center_along)
-      components$.fitted[indices_comp] <- val_term
-    }
-  }
-  components
-}
-
-
-## HAS_TESTS
-#' Standardize Trend, Cyclical, Seasonal, and Error Components of Terms
-#'
-#' @param components Data frame with estimates of hyper parameters
-#' @param priors Named list of objects of class 'bage_prior'
-#' @param dimnames_terms Dimnames for array representation of terms
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param center_along Whether to center along the 'along' dimension
-#' 
-#' @returns A modifed version of 'components'
-#'
-#' @noRd
-standardize_trend_cyc_seas_err <- function(components,
-                                           priors,
-                                           dimnames_terms,
-                                           var_time,
-                                           var_age,
-                                           center_along) {
-  nms_tcse <- c("trend", "cyclical", "seasonal", "error")
-  key_comp <- with(components, paste(term, component, level))
-  for (i_term in seq_along(priors)) {
-    dimnames_term <- dimnames_terms[[i_term]]
-    nm_term_split <- dimnames_to_nm_split(dimnames_term)
-    nm_term <- dimnames_to_nm(dimnames_term)
-    levels_term <- dimnames_to_levels(dimnames_term)
-    for (nm_tcse in nms_tcse) {
-      key_tcse <- paste(nm_term, nm_tcse, levels_term)
-      i_tcse <- match(key_tcse, key_comp, nomatch = 0L)
-      has_val <- any(i_tcse > 0L)
-      if (has_val) {
-        prior <- priors[[i_term]]
-        dimnames_term <- dimnames_terms[[i_term]]
-        tcse <- components$.fitted[i_tcse]
-        if (!uses_along(prior))
-          cli::cli_abort("Internal error: Prior for term {.val {nm_term}} does not use along.")
-        along <- prior$specific$along
-        matrix_along_by <- make_matrix_along_by_effect(along = along,
-                                                       dimnames_term = dimnames_term,
-                                                       var_time = var_time,
-                                                       var_age = var_age)
-        tcse <- center_within_along_by(x = tcse,
-                                       matrix_along_by = matrix_along_by,
-                                       center_along = center_along)
-        components$.fitted[i_tcse] <- tcse
-      }
-    }
-  }
-  components
-} 
 
 
 ## HAS_TESTS

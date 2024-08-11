@@ -541,7 +541,8 @@ test_that("'new_bage_prior_svd_ar' works", {
                         min = -1,
                         max = 1,
                         scale = 1,
-                        nm = "SVD_AR"))
+                        nm = "SVD_AR",
+                        along = NULL))
   obj <- new_bage_prior_svd_ar(HMD,
                                nm_ssvd = "HMD",
                                n_comp = 5L,
@@ -571,7 +572,8 @@ test_that("'new_bage_prior_svd_ar' works", {
                         min = 0.8,
                         max = 0.98,
                         scale = 0.5,
-                        nm = "SVD_AR1"))
+                        nm = "SVD_AR1",
+                        along = NULL))
 })
 
 test_that("'new_bage_prior_svd_rw' works", {
@@ -590,7 +592,8 @@ test_that("'new_bage_prior_svd_rw' works", {
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
-                        scale = 1))
+                        scale = 1,
+                        along = NULL))
 })
 
 test_that("'new_bage_prior_svd_rw2' works", {
@@ -609,7 +612,8 @@ test_that("'new_bage_prior_svd_rw2' works", {
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
-                        scale = 1))
+                        scale = 1,
+                        along = NULL))
 })
 
 

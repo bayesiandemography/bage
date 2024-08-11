@@ -190,7 +190,6 @@ draw_vals_coef <- function(prior, n_sim) {
 draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
   data <- mod$data
   priors <- mod$priors
-  nms_priors <- names(priors)
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
@@ -230,33 +229,37 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                           vals_effect,
                           vals_spline,
                           vals_svd)
+  ## this step is currently needed to get names right, but should be dropped
+  ## when we refactor to using 'draw_vals_term', since we already
+  ## have all the quantities needed, and don't need to infer them  
   ans <- infer_trend_cyc_seas_err(components = ans,
                                   priors = priors,
                                   dimnames_terms = dimnames_terms,
                                   var_time = var_time,
                                   var_age = var_age)
-  if (standardize) {
+  if (standardize == "terms") {
+    ans <- center_all(components = ans,
+                      priors = priors,
+                      dimnames_terms = dimnames_terms,
+                      var_time = var_time,
+                      var_age = var_age,
+                      var_sexgender = var_sexgender,
+                      center_along = TRUE)
+  }
+  else if (standardize == "anova") {
     linpred <- make_linpred_comp(components = ans,
                                  data = data,
                                  dimnames_terms = dimnames_terms)
-    ans <- standardize_effects(components = ans,
-                               data = data,
-                               linpred = linpred,
-                               dimnames_terms = dimnames_terms)
-    ans <- standardize_svd_spline(components = ans,
-                                  priors = priors,
-                                  dimnames_terms = dimnames_terms,
-                                  var_time = var_time,
-                                  var_age = var_age,
-                                  var_sexgender = var_sexgender,
-                                  center_along = TRUE)
-    ans <- standardize_trend_cyc_seas_err(components = ans,
-                                          priors = priors,
-                                          dimnames_terms = dimnames_terms,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          center_along = TRUE)
+    ans <- standardize_anova(components = ans,
+                             data = data,
+                             linpred = linpred,
+                             dimnames_terms = dimnames_terms)
   }
+  else if (standardize == "none") {
+    NULL
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for {.arg standardize}.")
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,
                                 n_sim = n_sim)

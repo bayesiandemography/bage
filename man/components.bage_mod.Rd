@@ -4,18 +4,22 @@
 \alias{components.bage_mod}
 \title{Extract Values for Hyper-Parameters}
 \usage{
-\method{components}{bage_mod}(object, standardize = TRUE, quiet = FALSE, ...)
+\method{components}{bage_mod}(
+  object,
+  standardize = c("terms", "anova", "none"),
+  quiet = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{bage_mod} object,
 typically created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
-\item{standardize}{Whether to standardize
-parameter estimates. See below for details.
-Default is \code{TRUE}. Standardization methods are
-still under development, and may change in future.
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}.}
+\item{standardize}{Standardization method:
+one of \code{"terms"}, \code{"anova"}, or "none".
+The default is \code{"terms"}.
+See below for details.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
