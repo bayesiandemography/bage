@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,13 @@
       <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.1" id="bage-071">bage 0.7.1<a class="anchor" aria-label="anchor" href="#bage-071"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-interface-0-7-1">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-7-1"></a></h3>
+<ul><li>There are now three choices for the <code>standardization</code> argument: <code>"terms"</code>, <code>"anova"</code>, and <code>"none"</code>. With <code>"terms"</code>, all effects, plus assoicated SVD coefficients, and trend, cyclical, and seasonal terms, are centered independently. With <code>"anova"</code>, the type of standardization descibed in Section 15.6 of Gelman et al (2014) Bayesian Data Analysis, is applied to the effects.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.0" id="bage-070">bage 0.7.0<a class="anchor" aria-label="anchor" href="#bage-070"></a></h2>
 <div class="section level3">

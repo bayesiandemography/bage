@@ -9,7 +9,7 @@ other model parameters."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,7 @@ other model parameters.</p>
 <span>  <span class="va">object</span>,</span>
 <span>  output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"augment"</span>, <span class="st">"components"</span><span class="op">)</span>,</span>
 <span>  include_estimates <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  standardize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  standardize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"terms"</span>, <span class="st">"anova"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  <span class="va">labels</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -83,11 +83,10 @@ with the forecasts. Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-standardize">standardize<a class="anchor" aria-label="anchor" href="#arg-standardize"></a></dt>
-<dd><p>Whether to standardize
-parameter estimates. See below for details.
-Default is <code>TRUE</code>. Standardization methods are
-still under development, and may change in future.
-<a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a>.</p></dd>
+<dd><p>Standardization method:
+one of <code>"terms"</code>, <code>"anova"</code>, or "none".
+The default is <code>"terms"</code>.
+See below for details.</p></dd>
 
 
 <dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
@@ -142,11 +141,8 @@ when creating graphs that combine estimates and forecasts.</p>
 <p>The standardization used by <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code>
 is equivalent to the standardization
 applied by <a href="components.bage_mod.html">components()</a>,
-with one exception. In <code>component()</code>,
-values for time-varying quantities such as time effects
-are shifted up or down so that each time series has a mean
-of zero. in <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code>, values for time-varying quantities
-are shifted up or down so that the values for forecasts
+except that values for forecasted terms are
+are shifted so that they
 line up with the values for estimates.</p>
     </div>
     <div class="section level2">
