@@ -322,7 +322,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
                   exposure = 1)
   mod <- set_n_draw(mod, 10)
   ans_obtained <- draw_vals_augment_unfitted(mod)
-  vals_components <- draw_vals_components_unfitted(mod, n_sim = 10, standardize = TRUE)
+  vals_components <- draw_vals_components_unfitted(mod, n_sim = 10, standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                          data = mod$data,
@@ -357,7 +357,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_fitted <- exp(make_linpred_comp(components = vals_components,
                                        data = mod$data,
                                        dimnames_term = mod$dimnames_terms))
@@ -387,7 +387,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = FALSE)
+                                                   standardize = "none")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
   vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
@@ -420,7 +420,7 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = FALSE)
+                                                   standardize = "none")
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                            data = mod$data,
                                            dimnames_term = mod$dimnames_terms))
@@ -448,7 +448,7 @@ test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   invlogit <- function(x) exp(x) / (1 + exp(x))
   vals_expected <- invlogit(make_linpred_comp(components = vals_components,
                                               data = mod$data,
@@ -478,7 +478,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_pois' - no na", {
                   exposure = 1)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                            data = mod$data,
@@ -508,7 +508,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_pois' - offset has NA", {
                   exposure = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                          data = mod$data,
@@ -541,7 +541,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_binom' - no na", {
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
   vals_expected <- invlogit(make_linpred_comp(components = vals_components,
@@ -573,7 +573,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_binom' - has na", {
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
   vals_expected <- invlogit(make_linpred_comp(components = vals_components,
@@ -605,7 +605,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - no na", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
   vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
@@ -635,7 +635,7 @@ test_that("'draw_vals_outcome' works with 'bage_mod_norm' - offset has NA na", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   standardize = TRUE)
+                                                   standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
   vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
@@ -1074,15 +1074,21 @@ test_that("'forecast' works with fitted model - output is 'components'", {
   ans_unstand_est <- forecast(mod,
                               labels = 2005:2006,
                               output = "comp",
-                              standardize = FALSE,
+                              standardize = "none",
                               include_estimates = TRUE)
   expect_identical(names(ans_est), names(ans_unstand_est))
   ans_unstand_no_est <- forecast(mod,
                                  labels = 2005:2006,
                                  output = "comp",
-                                 standardize = FALSE,
+                                 standardize = "none",
                                  include_estimates = FALSE)
   expect_identical(names(ans_no_est), names(ans_unstand_no_est))
+  ans_anova <- forecast(mod,
+                        labels = 2005:2006,
+                        output = "comp",
+                        standardize = "anova",
+                        include_estimates = TRUE)
+  expect_identical(names(ans_anova), names(ans_unstand_est))
 })
 
 test_that("'forecast' gives same answer when run twice - output is 'components'", {

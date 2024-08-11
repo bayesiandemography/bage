@@ -8,7 +8,7 @@
   object,
   output = c("augment", "components"),
   include_estimates = FALSE,
-  standardize = TRUE,
+  standardize = c("terms", "anova", "none"),
   labels,
   ...
 )
@@ -24,11 +24,10 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
 
-\item{standardize}{Whether to standardize
-parameter estimates. See below for details.
-Default is \code{TRUE}. Standardization methods are
-still under development, and may change in future.
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}.}
+\item{standardize}{Standardization method:
+one of \code{"terms"}, \code{"anova"}, or "none".
+The default is \code{"terms"}.
+See below for details.}
 
 \item{labels}{Labels for future values.}
 
@@ -82,11 +81,8 @@ when creating graphs that combine estimates and forecasts.
 The standardization used by \code{forecast()}
 is equivalent to the standardization
 applied by \link[=components.bage_mod]{components()},
-with one exception. In \code{component()},
-values for time-varying quantities such as time effects
-are shifted up or down so that each time series has a mean
-of zero. in \code{forecast()}, values for time-varying quantities
-are shifted up or down so that the values for forecasts
+except that values for forecasted terms are
+are shifted so that they
 line up with the values for estimates.
 }
 

@@ -1647,27 +1647,12 @@ infer_trend_cyc_seas_err_one.bage_prior_lin <- function(prior,
                                                         var_time,
                                                         var_age,
                                                         components) {
-  along <- prior$specific$along
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
   nm <- dimnames_to_nm(dimnames_term)
-  is_effect <- with(components,
-  (term == nm) & (component == "effect"))
-  is_intercept <- with(components, (term == nm) & startsWith(component, "hyper") & startsWith(level, "intercept"))
+  is_intercept <- with(components,
+  (term == nm) & startsWith(component, "hyper") & startsWith(level, "intercept"))
   is_slope <- with(components,
   (term == nm) & startsWith(component, "hyper") & startsWith(level, "slope"))
-  effect <- components$.fitted[is_effect]
-  intercept <- components$.fitted[is_intercept]
-  slope <- components$.fitted[is_slope]
-  intercept <- rescale_lin_intercept(slope = slope,
-                                     effect = effect,
-                                     matrix_along_by = matrix_along_by_effect)
   components$component[is_intercept] <- "hyper"
-  components$.fitted[is_intercept] <- intercept
   components$component[is_slope] <- "hyper"
   components
 }
@@ -1695,17 +1680,12 @@ infer_trend_cyc_seas_err_one.bage_prior_linar <- function(prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  intercept <- rescale_lin_intercept(slope = slope,
-                                     effect = effect,
-                                     matrix_along_by = matrix_along_by_effect)
   trend <- make_lin_trend(intercept = intercept,
                           slope = slope,
                           matrix_along_by = matrix_along_by_effect)
   cyclical <- effect - trend
   components$component[is_intercept] <- "hyper"
-  components$.fitted[is_intercept] <- intercept
   components$component[is_slope] <- "hyper"
-  has_trend_cyclical_already <- any(is_trend)
   level <- components$level[is_effect]
   trend <- tibble::tibble(term = nm,
                           component = "trend",
@@ -3682,15 +3662,15 @@ uses_along.bage_prior_svd <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_svd_ar <- function(prior) FALSE
+uses_along.bage_prior_svd_ar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_svd_rw <- function(prior) FALSE
+uses_along.bage_prior_svd_rw <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_svd_rw2 <- function(prior) FALSE
+uses_along.bage_prior_svd_rw2 <- function(prior) TRUE
 
 
 ## 'uses_hyperrand' -----------------------------------------------------------

@@ -3760,9 +3760,9 @@ test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(RW2_Seas(n_seas = 3)))
   expect_true(uses_along(Sp()))
   expect_false(uses_along(SVD(HMD)))
-  expect_false(uses_along(SVD_AR(HMD)))
-  expect_false(uses_along(SVD_RW(HMD)))
-  expect_false(uses_along(SVD_RW2(HMD)))
+  expect_true(uses_along(SVD_AR(HMD)))
+  expect_true(uses_along(SVD_RW(HMD)))
+  expect_true(uses_along(SVD_RW2(HMD)))
 })
 
 

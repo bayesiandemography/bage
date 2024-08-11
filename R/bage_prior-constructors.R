@@ -1718,7 +1718,8 @@ new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, indep,
                               min = min,
                               max = max,
                               scale = scale,
-                              nm = nm))
+                              nm = nm,
+                              along = NULL))
   class(ans) <- c("bage_prior_svd_ar", "bage_prior")
   ans
 }
@@ -1732,7 +1733,8 @@ new_bage_prior_svd_rw <- function(ssvd, nm_ssvd, n_comp, indep,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
-                              scale = scale))
+                              scale = scale,
+                              along = NULL))
   class(ans) <- c("bage_prior_svd_rw", "bage_prior")
   ans
 }
@@ -1746,7 +1748,8 @@ new_bage_prior_svd_rw2 <- function(ssvd, nm_ssvd, n_comp, indep,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
-                              scale = scale))
+                              scale = scale,
+                              along = NULL))
   class(ans) <- c("bage_prior_svd_rw2", "bage_prior")
   ans
 }
