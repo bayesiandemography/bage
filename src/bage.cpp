@@ -679,7 +679,6 @@ struct LIST_Type_t : vector<vector<Type> > {
   }
 };
 
-
 // Objective function ---------------------------------------------------------
 
 template<class Type>

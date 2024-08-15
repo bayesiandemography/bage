@@ -7,7 +7,7 @@
 set_var_age(mod, name)
 }
 \arguments{
-\item{mod}{A \code{bage_mod} object, typically
+\item{mod}{An object of class \code{"bage_mod"},
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 

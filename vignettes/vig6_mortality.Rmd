@@ -330,7 +330,7 @@ ggplot(age_sex_interact,
 # Model testing
 
 ```{r, fig.width = 7, fig.height = 7}
-rep_data_base <- replicate_data(mod_base, condition_on = "meanpar")
+rep_data_base <- replicate_data(mod_base, condition_on = "expected")
 
 data <- rep_data_base |>
   filter(time == 2022) |>
@@ -346,7 +346,7 @@ ggplot(data, aes(x = age_mid(age), y = diff)) +
 ```
 
 ```{r, fig.width = 7, fig.height = 7}
-rep_data_hmd <- replicate_data(mod_hmd, condition_on = "meanpar")
+rep_data_hmd <- replicate_data(mod_hmd, condition_on = "expected")
 
 data <- rep_data_hmd |>
   filter(time == 2022) |>

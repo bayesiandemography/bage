@@ -1138,9 +1138,9 @@ report_sim <- function(mod_est,
   mod_sim$n_draw <- n_sim
   comp_sim <- components(mod_sim, quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
-  nm_outcome <- get_nm_outcome(mod_sim)
-  outcome_sim <- aug_sim[[nm_outcome]]
-  outcome_sim <- as.matrix(outcome_sim)
+  nm_outcome_obs <- get_nm_outcome_obs(mod_sim)
+  outcome_obs_sim <- aug_sim[[nm_outcome_obs]]
+  outcome_obs_sim <- as.matrix(outcome_obs_sim)
   ## create closure for evaluating 'mod_est' fitted
   ## to a single simulation-truth, and apply to
   ## the 'n_sim' sets
@@ -1148,7 +1148,7 @@ report_sim <- function(mod_est,
     library(bage)
     perform_comp <- utils::getFromNamespace("perform_comp", ns = "bage")
     perform_aug <- utils::getFromNamespace("perform_aug", ns = "bage")
-    outcome <- outcome_sim[, i_sim]
+    outcome <- outcome_obs_sim[, i_sim]
     mod_est$outcome <- outcome
     mod_est <- fit(mod_est)
     comp_est <- components(mod_est)

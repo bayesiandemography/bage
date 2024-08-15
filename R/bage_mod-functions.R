@@ -1,6 +1,71 @@
 
 ## User-visible functions that look like methods, but technically are not
 
+
+## 'set_datamod_outcome_rr3' ----------------------------------------------------------
+
+#' Specify RR3 Data Model
+#'
+#' Specify a data model where the outcome variable
+#' has been randomly rounded to base 3.
+#'
+#' `set_datamod_outcome_rr3()` can only be used with
+#' Poisson and binomial models (created with
+#' [mod_pois()] and [mod_binom()].)
+#'
+#' Random rounding to base 3 (RR3) is a confidentialization
+#' technique that is sometimes applied by statistical
+#' agencies. RR3 is applied to integer data. The
+#' procedure for rounding value \eqn{n} is as follows:
+#'
+#' - If \eqn{n} is divisible by 3, leave it unchanged
+#' - If dividing \eqn{n} by 3 leaves a remainder of 1, then
+#'   round down (subtract 1) with probability 2/3,
+#'   and round up (add 2) with probability 1/3.
+#' - If dividing \eqn{n} by 3 leaves a remainder of 1,
+#'   then round down (subtract 2)
+#'   with probability 1/3, and round up (add 1)
+#'   with probability 2/3.
+#'
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#'
+#' @returns A modified version of `mod`.
+#'
+#' @seealso
+#' - [datamods] Overview of data models implemented in **bage**
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#'   model for rates, probabilities, or means
+#'
+#' @examples
+#' ## 'injuries' variable in 'injuries' dataset
+#' ## has been randomly rounded to base 3
+#' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
+#'                 data = injuries,
+#'                 exposure = popn) |>
+#'   set_datamod_outcome_rr3() |>
+#'   fit()
+#' @export
+set_datamod_outcome_rr3 <- function(mod) {
+  ## check is valid distribution
+  valid_distn <- c("binom", "pois")
+  nm_distn <- nm_distn(mod)
+  if (!(nm_distn %in% valid_distn))
+    cli::cli_abort(c("Outcome has {.val {nm_distn}} distribution.",
+                     i = "RR3 data model can only be used with {.val {valid_distn}} distributions."))
+  ## check that values for outcome all divisible by 3
+  outcome <- mod$outcome
+  is_base3 <- (outcome %% 3L) == 0L
+  n_not_base3 <- sum(!is_base3)
+  if (n_not_base3 > 0L)
+    cli::cli_abort("Outcome variable has {cli::qty(n_not_base3)} value{?s} not divisible by 3.")
+  ## return
+  mod$datamod_outcome <- new_bage_datamod_outcome_rr3()
+  mod
+}
+
+
 ## 'set_disp' -----------------------------------------------------------------
 
 ## HAS_TESTS
@@ -23,10 +88,8 @@
 #' If the `mod` argument to `set_disp` is
 #' a fitted model, then `set_disp` 'unfits'
 #' the model, deleting existing estimates.
-#' 
-#' @param mod A `bage_mod` object, typically
-#' created with [mod_pois()],
-#' [mod_binom()], or [mod_norm()].
+#'
+#' @inheritParams set_datamod_outcome_rr3
 #' @param mean Mean value for the exponential prior.
 #' In Poisson and binomial models, can be set to 0.
 #'
@@ -34,7 +97,7 @@
 #'
 #' @seealso
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
-#' model
+#' model for rates, probabilities, or means
 #' - [set_prior()] Specify prior for a term
 #' - [set_n_draw()] Specify the number of draws
 #' - [is_fitted()] Test whether a model is fitted
@@ -76,7 +139,7 @@ set_disp <- function(mod, mean) {
 #' model fitting: it only affects posterior
 #' summaries.
 #'
-#' @inheritParams set_disp
+#' @inheritParams set_datamod_outcome_rr3
 #' @param n_draw Number of draws.
 #'
 #' @returns A `bage_mod` object
@@ -223,7 +286,7 @@ set_prior <- function(mod, formula) {
 #' a fitted model, then `set_var_age` 'unfits'
 #' the model by deleting existing estimates.
 #' 
-#' @inheritParams set_disp
+#' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the age variable.
 #'
 #' @returns A `bage_mod` object
@@ -281,7 +344,7 @@ set_var_age <- function(mod, name) {
 #' a fitted model, then `set_var_sexgender` 'unfits'
 #' the model deleting existing estimates.
 #' 
-#' @inheritParams set_disp
+#' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the sex or gender variable.
 #'
 #' @returns A `"bage_mod"` object
@@ -346,7 +409,7 @@ set_var_sexgender <- function(mod, name) {
 #' a fitted model, then `set_var_time` 'unfits'
 #' the model, by deleting existing estimates.
 #' 
-#' @inheritParams set_disp
+#' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the time variable.
 #'
 #' @returns A `bage_mod` object

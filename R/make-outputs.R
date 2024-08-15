@@ -303,6 +303,8 @@ draw_vals_components_fitted <- function(mod, standardize) {
   ans
 }
 
+  
+
 
 ## HAS_TESTS
 #' Extract Values for Dispersion
@@ -327,6 +329,44 @@ get_disp <- function(mod) {
   ans
 }
 
+
+#' Insert a Into a Data Frame
+#'
+#' Insert a variable into a dataframe, immediately
+#' after another variable.
+#'
+#' Currently assumes that not inserting
+#' at start of 'df'.
+#'
+#' @param df A data frame (including a tibble)
+#' @param nm_after Name of the variable that the
+#' 'x' should come after
+#' @param x New variable
+#' @param nm_x Name of new variable
+#'
+#' @returns A modified version of 'df'
+#'
+#' @noRd
+insert_after <- function(df, nm_after, x, nm_x) {
+  nms_df <- names(df)
+  n_df <- length(nms_df)
+  i_after <- match(nm_after, names(df))
+  if (i_after < n_df) {
+    s_before <- seq_len(i_after)
+    s_after <- seq.int(from = i_after + 1L, to = n_df)
+    ans <- vctrs::vec_cbind(df[s_before],
+                            x,
+                            df[s_after],
+                            .name_repair = "universal_quiet")
+  }
+  else {
+    ans <- vctrs::vec_cbind(df,
+                            x,
+                            .name_repair = "universal_quiet")
+  }
+  names(ans)[[i_after + 1L]] <- nm_x
+  ans
+}
   
 ## HAS_TESTS
 #' Insert values for fixed parameters into
@@ -599,7 +639,7 @@ make_draws_hyperrand <- function(mod, draws_post) {
 }
 
 
-## NO_TESTS
+## HAS_TESTS
 #' Construct Estimates of Effects from Estimates of Free Parameters
 #'
 #' @param mod A fitted object of class "bage_mod"
