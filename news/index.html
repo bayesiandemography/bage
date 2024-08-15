@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,16 @@
       <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.2" id="bage-072">bage 0.7.2<a class="anchor" aria-label="anchor" href="#bage-072"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-interface-0-7-2">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-7-2"></a></h3>
+<ul><li>Added first data model. New function is <code>set_datamod_outcome_rr3()</code>, which deals with the case where the outcome variable has been randomly rounded to base 3.</li>
+<li>
+<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> now creates a new version of the outcome variable if (i) the outcome variable has <code>NA</code>s, or (ii) a data model is being applied to the outcome variable. The name of the new variable is created by added a <code>.</code> to the start of the name of the outcome variable.</li>
+<li>A help page summarising available data modls</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.1" id="bage-071">bage 0.7.1<a class="anchor" aria-label="anchor" href="#bage-071"></a></h2>
 <div class="section level3">

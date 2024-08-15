@@ -9,7 +9,7 @@ typically as a way of checking a model."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +66,7 @@ and then <code><a href="https://generics.r-lib.org/reference/fit.html" class="ex
 
 <dt id="arg-condition-on">condition_on<a class="anchor" aria-label="anchor" href="#arg-condition-on"></a></dt>
 <dd><p>Parameters to condition
-on. Either <code>"meanpar"</code> or <code>"par"</code>. See
+on. Either <code>"expected"</code> or <code>"fitted"</code>. See
 details.</p></dd>
 
 
@@ -92,14 +92,14 @@ datasets should look similar to the actual dataset.</p>
 
 <p>With Poisson and binomial models that include
 dispersion terms (which is the default), there are
-two options for constructing replicate data.</p><ul><li><p>When <code>condition_on</code> is <code>"par"</code>,
+two options for constructing replicate data.</p><ul><li><p>When <code>condition_on</code> is <code>"fitted"</code>,
 the replicate data is created by (i) drawing values
 from the posterior distribution for rates or probabilities
 (the \(\gamma_i\) defined in <code><a href="mod_pois.html">mod_pois()</a></code>
 and <code><a href="mod_binom.html">mod_binom()</a></code>), and (ii)  conditional on these
 rates or probabilities, drawing values for the
 outcome variable.</p></li>
-<li><p>When <code>condition_on</code> is <code>"meanpar"</code>,
+<li><p>When <code>condition_on</code> is <code>"expected"</code>,
 the replicate data is created by (i) drawing
 values from hyper-parameters governing
 the rates or probabilities
@@ -110,17 +110,29 @@ drawing values for the rates or probabilities,
 and finally (iii) conditional on these
 rates or probabilities, drawing values for the
 outcome variable.</p></li>
-</ul><p>The default for <code>condition_on</code> is <code>"meanpar"</code>.
-The <code>"meanpar"</code> option
+</ul><p>The default for <code>condition_on</code> is <code>"expected"</code>.
+The <code>"expected"</code> option
 provides a more severe test for
-a model than the <code>"par"</code> option,
-since "par" values are weighted averages
-of the "meanpar" values and the original
+a model than the <code>"fitted"</code> option,
+since "fitted" values are weighted averages
+of the "expected" values and the original
 data.</p>
 <p>As described in <code><a href="mod_norm.html">mod_norm()</a></code>, normal models
-have a slightly different structure from Poisson
+have a different structure from Poisson
 and binomial models, and the distinction between
-<code>"par"</code> and <code>"meanpar"</code> does not apply.</p>
+<code>"fitted"</code> and <code>"expected"</code> does not apply.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="data-models-for-outcomes">Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a></h2>
+
+
+
+<p>If a data model has been provided for
+the outcome variable, then creation of replicate
+data will include a step where errors are added
+to outcomes. For instance, the a rr3
+data model is used, then <code>replicate_data()</code> rounds
+the outcomes to base 3.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -158,25 +170,35 @@ and binomial models, and the distinction between
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .replicate       n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> Original     <span style="text-decoration: underline;">21</span>588</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Replicate 1  <span style="text-decoration: underline;">21</span>146</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Replicate 2  <span style="text-decoration: underline;">21</span>224</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Replicate 3  <span style="text-decoration: underline;">21</span>413</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Replicate 4  <span style="text-decoration: underline;">21</span>110</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Replicate 5  <span style="text-decoration: underline;">21</span>303</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Replicate 6  <span style="text-decoration: underline;">21</span>806</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Replicate 7  <span style="text-decoration: underline;">21</span>056</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Replicate 8  <span style="text-decoration: underline;">21</span>478</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Replicate 9  <span style="text-decoration: underline;">20</span>827</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Replicate 10 <span style="text-decoration: underline;">20</span>663</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Replicate 11 <span style="text-decoration: underline;">21</span>599</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Replicate 12 <span style="text-decoration: underline;">20</span>769</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Replicate 13 <span style="text-decoration: underline;">21</span>343</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> Replicate 14 <span style="text-decoration: underline;">21</span>419</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> Replicate 15 <span style="text-decoration: underline;">21</span>874</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> Replicate 16 <span style="text-decoration: underline;">20</span>719</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> Replicate 17 <span style="text-decoration: underline;">20</span>291</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">19</span> Replicate 18 <span style="text-decoration: underline;">21</span>139</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">20</span> Replicate 19 <span style="text-decoration: underline;">21</span>576</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Replicate 1  <span style="text-decoration: underline;">21</span>542</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Replicate 2  <span style="text-decoration: underline;">21</span>094</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Replicate 3  <span style="text-decoration: underline;">21</span>683</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Replicate 4  <span style="text-decoration: underline;">21</span>862</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Replicate 5  <span style="text-decoration: underline;">22</span>027</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Replicate 6  <span style="text-decoration: underline;">20</span>889</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Replicate 7  <span style="text-decoration: underline;">20</span>449</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Replicate 8  <span style="text-decoration: underline;">21</span>257</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Replicate 9  <span style="text-decoration: underline;">21</span>362</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Replicate 10 <span style="text-decoration: underline;">21</span>414</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Replicate 11 <span style="text-decoration: underline;">21</span>697</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Replicate 12 <span style="text-decoration: underline;">20</span>553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Replicate 13 <span style="text-decoration: underline;">21</span>137</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> Replicate 14 <span style="text-decoration: underline;">21</span>290</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> Replicate 15 <span style="text-decoration: underline;">21</span>021</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> Replicate 16 <span style="text-decoration: underline;">21</span>481</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> Replicate 17 <span style="text-decoration: underline;">22</span>017</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">19</span> Replicate 18 <span style="text-decoration: underline;">20</span>830</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">20</span> Replicate 19 <span style="text-decoration: underline;">21</span>414</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## when the overall model includes an rr3 data model,</span></span></span>
+<span class="r-in"><span><span class="co">## replicate data are rounded to base 3</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
+<span class="r-in"><span>         data <span class="op">=</span> <span class="va">injuries</span>,</span></span>
+<span class="r-in"><span>         exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">set_datamod_outcome_rr3</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">replicate_data</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in new_bage_datamod_outcome_rr3():</span> could not find function "new_bage_datamod_outcome_rr3"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

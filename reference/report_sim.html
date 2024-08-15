@@ -9,7 +9,7 @@ an estimation model."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -160,22 +160,7 @@ data for a model</p></li>
 <span class="r-in"><span>  <span class="fu"><a href="set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">`(Intercept)`</span> <span class="op">~</span> <span class="fu"><a href="Known.html">Known</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">report_sim</span><span class="op">(</span>mod_est <span class="op">=</span> <span class="va">mod_est</span>,</span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">10</span><span class="op">)</span> <span class="co">## in practice should use larger value</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $components</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 7</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   term        component    .error .cover_50 .cover_95 .length_50 .length_95</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept) effect     0             1          1        0           0   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> region      effect    -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">536</span>      0.66       1        0.933       2.67</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> region      hyper      0.021<span style="text-decoration: underline;">9</span>        0.3        0.9      0.606       1.96</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> disp        disp      -<span style="color: #BB0000;">0.336</span>         0.6        1        0.882       3.16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $augment</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 7</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   .var      .observed   .error .cover_50 .cover_95 .length_50 .length_95</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> .fitted        1.63 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">23</span>      0.54      0.94     0.078<span style="text-decoration: underline;">4</span>      0.229</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> .expected      1.63 -<span style="color: #BB0000;">0.262</span>        0.6       1        1.26        4.93 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in draw_vals_outcome_true(datamod = datamod_outcome, nm_distn = nm_distn,     outcome_obs = outcome_obs, fitted = vals_fitted, disp = vals_disp,     offset = offset):</span> could not find function "draw_vals_outcome_true"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## simulation with estimation model different</span></span></span>
 <span class="r-in"><span><span class="co">## from data-generating model</span></span></span>
@@ -184,22 +169,7 @@ data for a model</p></li>
 <span class="r-in"><span><span class="fu">report_sim</span><span class="op">(</span>mod_est <span class="op">=</span> <span class="va">mod_est</span>,</span></span>
 <span class="r-in"><span>           mod_sim <span class="op">=</span> <span class="va">mod_sim</span>,</span></span>
 <span class="r-in"><span>           n_sim <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $components</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 4 × 7</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   term        component   .error .cover_50 .cover_95 .length_50 .length_95</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> (Intercept) effect     0            1          1        0           0   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> region      effect    -<span style="color: #BB0000;">0.003</span><span style="color: #BB0000; text-decoration: underline;">25</span>      0.62       1        1.20        3.42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> region      hyper     -<span style="color: #BB0000;">0.500</span>        0.2        0.8      0.666       2.08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> disp        disp      -<span style="color: #BB0000;">0.067</span><span style="color: #BB0000; text-decoration: underline;">6</span>       0.5        0.8      1.09        3.83</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $augment</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 7</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   .var      .observed   .error .cover_50 .cover_95 .length_50 .length_95</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> .fitted        12.3 -<span style="color: #BB0000;">0.003</span><span style="color: #BB0000; text-decoration: underline;">20</span>      0.54      0.96      0.113      0.331</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> .expected      12.3 -<span style="color: #BB0000;">6.30</span>         0.5       0.96      6.13      24.2  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in draw_vals_outcome_true(datamod = datamod_outcome, nm_distn = nm_distn,     outcome_obs = outcome_obs, fitted = vals_fitted, disp = vals_disp,     offset = offset):</span> could not find function "draw_vals_outcome_true"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
