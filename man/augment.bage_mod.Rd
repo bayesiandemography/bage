@@ -16,8 +16,12 @@ Default is \code{FALSE}.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}, with the original
-data plus the following columns:
+data plus one or more of the following columns:
 \itemize{
+\item \verb{.<outcome>} Corrected or extended version of
+the outcome variable, in applications where the
+outcome variable has missing values, or a data model
+is being used.
 \item \code{.observed} 'Direct' estimates of rates or
 probabilities, ie counts divided by exposure or size
 (in Poisson and binomial models.)
@@ -53,6 +57,25 @@ model priors, and by values for \code{exposure}, \code{size}, or \code{weights},
 but not by observed outcomes.
 }
 
+\section{Imputed values for outcome variable}{
+
+
+\code{augment()} automatically imputes any missing
+values for the outcome variable. If outcome variable
+\code{var} has one or more \code{NA}s, then \code{augment}
+creates a variable \code{.var}
+holding original and imputed values.
+}
+
+\section{Data model for outcome variable}{
+
+
+If the overall model includes a data model
+for the outcome variable \code{var},
+then \code{augment()} creates a new variable \code{.var} containing
+estimates of the true value for the outcome.
+}
+
 \examples{
 ## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
@@ -68,15 +91,39 @@ mod <- mod |>
 
 ## look at posterior distribution
 mod |> augment()
+
+## insert a missing value into outcome variable
+injuries_missing <- injuries
+injuries_missing$injuries[1] <- NA
+
+## fitting model and calling 'augument'
+## creates a new variable called '.injuries'
+## holding observed and imputed values
+mod_pois(injuries ~ age + sex + year,
+         data = injuries_missing,
+         exposure = popn) |>
+  fit() |>
+  augment()
+
+## specifying a data model for the
+## original data also leads to a new
+## variable called '.injuries'
+mod_pois(injuries ~ age + sex + year,
+         data = injuries,
+         exposure = popn) |>
+  set_datamod_outcome_rr3() |>
+  fit() |>
+  augment()
 }
 \seealso{
 \itemize{
 \item \code{\link[=components]{components()}} Extract values for hyper-parameters from a model
-\item \code{\link[=tidy]{tidy()}} Extract a one-line summary of a model
+\item \code{\link[=tidy]{tidy()}} Short summary of a model
 \item \code{\link[=mod_pois]{mod_pois()}} Specify a Poisson model
 \item \code{\link[=mod_binom]{mod_binom()}} Specify a binomial model
 \item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
 \item \code{\link[=fit]{fit()}} Fit a model
 \item \code{\link[=is_fitted]{is_fitted()}} See if a model has been fitted
+\item \link{datamods} Overview of data models implemented in \strong{bage}
 }
 }

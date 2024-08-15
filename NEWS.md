@@ -1,4 +1,18 @@
 
+# bage 0.7.2
+
+## Changes to interface
+
+* Added first data model. New function is `set_datamod_outcome_rr3()`,
+  which deals with the case where the outcome variable has been
+  randomly rounded to base 3.
+* `augment()` now creates a new version of the outcome variable if (i)
+  the outcome variable has `NA`s, or (ii) a data model is being
+  applied to the outcome variable. The name of the new variable is
+  created by added a `.` to the start of the name of the outcome
+  variable.
+* A help page summarising available data modls 
+
 # bage 0.7.1
 
 ## Changes to interface

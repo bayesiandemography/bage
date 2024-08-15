@@ -1,4 +1,62 @@
 
+## 'set_datamod_outcome_rr3' --------------------------------------------------
+
+test_that("'set_datamod_outcome_rr3' works with Poisson", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans <- set_datamod_outcome_rr3(mod)
+  expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
+})
+
+test_that("'set_datamod_outcome_rr3' works with binomial", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data)) + 12
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  ans <- set_datamod_outcome_rr3(mod)
+  expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
+})
+
+test_that("'set_datamod_outcome_rr3' throws correct error when used with non-Poisson, non-binom", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  formula <- deaths ~ age:sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = 1)
+  expect_error(set_datamod_outcome_rr3(mod),
+               "Outcome has \"norm\" distribution.")
+})
+
+test_that("'set_datamod_outcome_rr3' throws correct error when used with non-Poisson, non-binom", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- 1
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  expect_error(set_datamod_outcome_rr3(mod),
+               "Outcome variable has values not divisible by 3.")
+  data$deaths <- c(1, rep(3, times = nrow(data) - 1))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  expect_error(set_datamod_outcome_rr3(mod),
+               "Outcome variable has value not divisible by 3.")
+})
+
+
 ## 'set_disp' -----------------------------------------------------------------
 
 test_that("'set_disp' works with Poisson", {

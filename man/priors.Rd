@@ -4,12 +4,10 @@
 \alias{priors}
 \title{Priors for Intercept, Main Effects, Interactions}
 \description{
-The models for rates, probabilities, or means
-created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
+The models created with functions \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
 and \code{\link[=mod_norm]{mod_norm()}} always include an intercept,
 and typically include main effects
-and interactions formed from
-variables in input data.
+and interactions formed from variables in input data.
 Most models, for instance
 include an age effect, and many include
 an interaction between age and sex/gender,

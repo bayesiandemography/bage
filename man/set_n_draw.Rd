@@ -7,7 +7,7 @@
 set_n_draw(mod, n_draw = 1000L)
 }
 \arguments{
-\item{mod}{A \code{bage_mod} object, typically
+\item{mod}{An object of class \code{"bage_mod"},
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 

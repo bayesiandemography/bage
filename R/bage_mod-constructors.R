@@ -396,8 +396,15 @@ mod_norm <- function(formula, data, weights) {
     offset <- make_offset_ones(data)
   ## process outcome
   outcome <- args[["outcome"]]
-  outcome_mean <- mean(outcome, na.rm = TRUE)
-  outcome_sd <- stats::sd(outcome, na.rm = TRUE)
+  n_obs <- sum(!is.na(outcome))
+  if (n_obs == 0L)
+    outcome_mean <- 0
+  else
+    outcome_mean <- mean(outcome, na.rm = TRUE)
+  if (n_obs <= 1L)
+    outcome_sd <- 1
+  else
+    outcome_sd <- stats::sd(outcome, na.rm = TRUE)
   outcome <- (outcome - outcome_mean) / outcome_sd
   args[["outcome"]] <- outcome
   ## create object and return
@@ -460,6 +467,7 @@ mod_helper <- function(formula, data, n_draw) {
   list(formula = formula,
        data = data,
        outcome = outcome,
+       datamod_outcome = NULL,
        priors = priors,
        dimnames_terms = dimnames_terms,
        var_age = var_age,

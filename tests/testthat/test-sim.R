@@ -1101,6 +1101,20 @@ test_that("'report_sim' works when mod_sim more complicated that mod_est", {
     expect_setequal(names(ans_obtained), c("components", "augment"))
 })
 
+test_that("'report_sim' works with rr3 model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:5, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- 3 * rpois(n = nrow(data), lambda = 10)
+    mod_est <- mod_pois(deaths ~ age + sex,
+                        data = data,
+                        exposure = popn) |>
+                        set_datamod_outcome_rr3()
+    set.seed(0)
+    ans_obtained <- report_sim(mod_est, n_sim = 2)
+    expect_setequal(names(ans_obtained), c("components", "augment"))
+})
+
 test_that("'report_sim' works when mod_sim is identical to mod_est - parallel processing", {
   set.seed(0)
   data <- expand.grid(age = 0:4, sex = c("F", "M"))

@@ -195,7 +195,7 @@ check_formula_vnames_in_data <- function(formula, data) {
 
 
 ## HAS_TESTS
-#' Given that 'condition_on' argument is "meanpar", check that
+#' Given that 'condition_on' argument is "expected", check that
 #' the model includes a dispersion term
 #'
 #' @param x A fitted 'bage_mod' object
@@ -203,13 +203,13 @@ check_formula_vnames_in_data <- function(formula, data) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_has_disp_if_condition_on_meanpar <- function(x) {
+check_has_disp_if_condition_on_expected <- function(x) {
     if (!has_disp(x)) {
-        val_meanpar <- "meanpar"
-        val_par <- "par"
-        cli::cli_abort(c(paste("{.arg condition_on} is {.val {val_meanpar}} but model",
+        val_expected <- "expected"
+        val_fitted <- "fitted"
+        cli::cli_abort(c(paste("{.arg condition_on} is {.val {val_expected}} but model",
                                "has no dispersion term."),
-                         i = "Use {.code condition_on = {.val {val_par}}} instead?"))
+                         i = "Use {.code condition_on = {.val {val_fitted}}} instead?"))
     }
     invisible(TRUE)
 }

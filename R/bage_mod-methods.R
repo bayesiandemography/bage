@@ -30,8 +30,23 @@ generics::augment
 #' are draws from the joint prior distribution.
 #' In other words, the modelled values are informed by
 #' model priors, and by values for `exposure`, `size`, or `weights`,
-#' but not by observed outcomes. 
+#' but not by observed outcomes.
 #'
+#' @section Imputed values for outcome variable:
+#'
+#' `augment()` automatically imputes any missing
+#' values for the outcome variable. If outcome variable
+#' `var` has one or more `NA`s, then `augment`
+#' creates a variable `.var`
+#' holding original and imputed values.
+#'
+#' @section Data model for outcome variable:
+#'
+#' If the overall model includes a data model
+#' for the outcome variable `var`,
+#' then `augment()` creates a new variable `.var` containing
+#' estimates of the true value for the outcome.
+#' 
 #' @param x An object of class `"bage_mod"`.
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
@@ -39,28 +54,33 @@ generics::augment
 #'
 #' @returns
 #' A [tibble][tibble::tibble-package], with the original
-#' data plus the following columns:
-#'
+#' data plus one or more of the following columns:
+#' 
+#' - `.<outcome>` Corrected or extended version of
+#'   the outcome variable, in applications where the
+#'   outcome variable has missing values, or a data model
+#'   is being used.
 #' - `.observed` 'Direct' estimates of rates or
-#' probabilities, ie counts divided by exposure or size
-#' (in Poisson and binomial models.)
+#'   probabilities, ie counts divided by exposure or size
+#'   (in Poisson and binomial models.)
 #' - `.fitted` Draws of rates, probabilities,
-#' or means.
+#'   or means.
 #' - `.expected` Draws of expected values for
-#' rates or probabilities (in Poisson
-#' that include exposure, or in binomial models.)
+#'   rates or probabilities (in Poisson
+#'   that include exposure, or in binomial models.)
 #'
 #' Uncertain quantities are represented using
 #' [rvecs][rvec::rvec()].
 #'
 #' @seealso
 #' - [components()] Extract values for hyper-parameters from a model
-#' - [tidy()] Extract a one-line summary of a model
+#' - [tidy()] Short summary of a model
 #' - [mod_pois()] Specify a Poisson model
 #' - [mod_binom()] Specify a binomial model
 #' - [mod_norm()] Specify a normal model
 #' - [fit()] Fit a model
 #' - [is_fitted()] See if a model has been fitted
+#' - [datamods] Overview of data models implemented in **bage**
 #' 
 #' @examples
 #' ## specify model
@@ -77,6 +97,29 @@ generics::augment
 #'
 #' ## look at posterior distribution
 #' mod |> augment()
+#'
+#' ## insert a missing value into outcome variable
+#' injuries_missing <- injuries
+#' injuries_missing$injuries[1] <- NA
+#'
+#' ## fitting model and calling 'augument'
+#' ## creates a new variable called '.injuries'
+#' ## holding observed and imputed values
+#' mod_pois(injuries ~ age + sex + year,
+#'          data = injuries_missing,
+#'          exposure = popn) |>
+#'   fit() |>
+#'   augment()
+#'
+#' ## specifying a data model for the
+#' ## original data also leads to a new
+#' ## variable called '.injuries'
+#' mod_pois(injuries ~ age + sex + year,
+#'          data = injuries,
+#'          exposure = popn) |>
+#'   set_datamod_outcome_rr3() |>
+#'   fit() |>
+#'   augment()
 #' @export
 augment.bage_mod <- function(x,
                              quiet = FALSE,
@@ -248,6 +291,11 @@ draw_vals_augment_fitted <- function(mod) {
 ## HAS_TESTS
 #' @export
 draw_vals_augment_fitted.bage_mod <- function(mod) {
+  outcome <- mod$outcome
+  offset <- mod$offset
+  seed_augment <- mod$seed_augment
+  datamod_outcome <- mod$datamod_outcome
+  nm_distn <- nm_distn(mod)
   ans <- mod$data
   ans$.observed <- make_observed(mod)
   linpred <- make_linpred_raw(mod)
@@ -258,7 +306,6 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
     disp <- mod$draws_disp
     disp <- matrix(disp, nrow = 1L)
     disp <- rvec::rvec_dbl(disp)
-    seed_augment <- mod$seed_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     ans$.fitted <- make_par_disp(x = mod,
@@ -267,19 +314,72 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     ans$.expected <- expected
   }
-  else
+  else {
+    disp <- NULL
     ans$.fitted <- inv_transform(linpred)
+  }
+  outcome_has_na <- anyNA(outcome)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  if (outcome_has_na || has_datamod_outcome) {
+    nm_outcome <- get_nm_outcome(mod)
+    outcome_obs <- ans[[nm_outcome]]
+    fitted <- ans$.fitted
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
+    outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                           nm_distn = nm_distn,
+                                           outcome_obs = outcome_obs,
+                                           fitted = fitted,
+                                           disp = disp,
+                                           offset = offset)
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+    nm_outcome_true <- paste0(".", nm_outcome)
+    ans <- insert_after(df = ans,
+                        nm_after = nm_outcome,
+                        x = outcome_true,
+                        nm_x = nm_outcome_true)
+  }
   ans
 }
+  
 
 ## HAS_TESTS
 #' @export
 draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
+  outcome <- mod$outcome
+  offset <- mod$offset
+  datamod_outcome <- mod$datamod_outcome
+  seed_augment <- mod$seed_augment
+  nm_distn <- nm_distn(mod)
   ans <- mod$data
   linpred <- make_linpred_raw(mod)
   scale_outcome <- get_fun_scale_outcome(mod)
   .fitted <- scale_outcome(linpred)
   ans$.fitted <- .fitted
+  outcome_has_na <- anyNA(outcome)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  if (outcome_has_na || has_datamod_outcome) {
+    nm_outcome <- get_nm_outcome(mod)
+    outcome_obs <- ans[[nm_outcome]]
+    fitted <- ans$.fitted
+    disp <- mod$draws_disp
+    disp <- matrix(disp, nrow = 1L)
+    disp <- rvec::rvec_dbl(disp)
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
+    outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                           nm_distn = nm_distn,
+                                           outcome_obs = outcome_obs,
+                                           fitted = fitted,
+                                           disp = disp,
+                                           offset = offset)
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+    nm_outcome_true <- paste0(".", nm_outcome)
+    ans <- insert_after(df = ans,
+                        nm_after = nm_outcome,
+                        x = outcome_true,
+                        nm_x = nm_outcome_true)
+  }
   ans
 }
 
@@ -303,13 +403,15 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
+  datamod_outcome <- mod$datamod_outcome
+  offset <- mod$offset
+  nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
                                                    standardize = "none")
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   nm_outcome <- get_nm_outcome(mod)
-  offset <- mod$offset
   vals_linpred <- make_linpred_comp(components = vals_components,
                                     data = data,
                                     dimnames_terms = dimnames_terms)
@@ -326,13 +428,28 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   }
   else
     vals_fitted <- inv_transform(vals_linpred)
-  vals_outcome <- draw_vals_outcome(mod = mod,
-                                    vals_fitted = vals_fitted)
+  outcome_obs <- rep(NA_real_, times = length(vals_fitted))
+  vals_outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                              nm_distn = nm_distn,
+                                              outcome_obs = outcome_obs,
+                                              fitted = vals_fitted,
+                                              disp = vals_disp,
+                                              offset = offset)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  if (has_datamod_outcome)
+    vals_outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                              outcome_true = vals_outcome_true)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-  vals_observed <- vals_outcome / offset
   ans <- mod$data
-  ans[[nm_outcome]] <- vals_outcome
-  ans$.observed <- vals_observed
+  if (has_datamod_outcome) {
+    ans[[nm_outcome]] <- vals_outcome_obs
+    nm_outcome_true <- paste0(".", nm_outcome)
+    ans[[nm_outcome_true]] <- vals_outcome_true
+  }
+  else {
+    ans[[nm_outcome]] <- vals_outcome_true
+  }
+  ans$.observed <- ans[[nm_outcome]] / offset
   ans$.fitted <- vals_fitted
   if (has_disp)
     ans$.expected <- vals_expected
@@ -345,6 +462,10 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
+  datamod_outcome <- mod$datamod_outcome
+  outcome_sd <- mod$outcome_sd
+  offset <- mod$offset
+  nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
                                                    standardize = "none")
@@ -356,15 +477,31 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   vals_fitted <- scale_outcome(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
+  vals_disp <- outcome_sd * vals_disp
+  outcome_obs <- rep(NA_real_, times = length(vals_fitted))
   seed_augment <- mod$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
-  vals_outcome <- draw_vals_outcome(mod = mod,
-                                    vals_fitted = vals_fitted,
-                                    vals_disp = vals_disp)
+  vals_outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                              nm_distn = nm_distn,
+                                              outcome_obs = outcome_obs,
+                                              fitted = vals_fitted,
+                                              disp = vals_disp,
+                                              offset = offset)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  if (has_datamod_outcome)
+    vals_outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                              outcome_true = vals_outcome_true)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans <- mod$data
-  ans[[nm_outcome]] <- vals_outcome
+  if (has_datamod_outcome) {
+    ans[[nm_outcome]] <- vals_outcome_obs
+    nm_outcome_true <- paste0(".", nm_outcome)
+    ans[[nm_outcome_true]] <- vals_outcome_true
+  }
+  else {
+    ans[[nm_outcome]] <- vals_outcome_true
+  }
   ans$.fitted <- vals_fitted
   ans
 }
@@ -399,68 +536,6 @@ draw_vals_fitted.bage_mod_binom <- function(mod, vals_expected, vals_disp)
   rvec::rbeta_rvec(n = length(vals_expected),
                    shape1 = vals_expected / vals_disp,
                    shape2 = (1 - vals_expected) / vals_disp)
-
-
-## 'draw_vals_outcome' --------------------------------------------------------
-
-#' Draw Values for Outcome Variable
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vals_fitted '.fitted' variable from 'augment'. An rvec.
-#' @param vals_disp Standard deviation. Only used with
-#' normal model. An rvec
-#'
-#' @returns An rvec
-#'
-#' @noRd
-draw_vals_outcome <- function(mod, vals_fitted, vals_disp) {
-    UseMethod("draw_vals_outcome")
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_outcome.bage_mod_pois <- function(mod, vals_fitted, vals_disp) {
-  offset <- mod$offset
-  n_val <- length(vals_fitted)
-  n_draw <- rvec::n_draw(vals_fitted)
-  is_not_na <- !is.na(offset)
-  vals <- rvec::rpois_rvec(n = sum(is_not_na),
-                           lambda = vals_fitted[is_not_na] * offset[is_not_na])
-  na <- if (is.integer(vctrs::field(vals, "data"))) NA_integer_ else NA_real_
-  ans <- rvec::rvec(matrix(na, nrow = n_val, ncol = n_draw))
-  ans[is_not_na] <- vals
-  ans
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_outcome.bage_mod_binom <- function(mod, vals_fitted, vals_disp) {
-  offset <- mod$offset
-  n_val <- length(vals_fitted)
-  n_draw <- rvec::n_draw(vals_fitted)
-  is_not_na <- !is.na(offset)
-  vals <- rvec::rbinom_rvec(n = sum(is_not_na),
-                            size = offset[is_not_na],
-                            prob = vals_fitted[is_not_na])
-  na <- if (is.integer(vctrs::field(vals, "data"))) NA_integer_ else NA_real_
-  ans <- rvec::rvec(matrix(na, nrow = n_val, ncol = n_draw))
-  ans[is_not_na] <- vals
-  ans
-}
-
-## HAS_TESTS
-#' @export
-draw_vals_outcome.bage_mod_norm <- function(mod, vals_fitted, vals_disp) {
-  offset <- mod$offset
-  n_val <- length(vals_fitted)
-  n_draw <- rvec::n_draw(vals_fitted)
-  ans <- rvec::rvec_dbl(matrix(NA_real_, nrow = n_val, ncol = n_draw))
-  is_not_na <- !is.na(offset)
-  ans[is_not_na] <- rvec::rnorm_rvec(n = sum(is_not_na),
-                                     mean = vals_fitted[is_not_na],
-                                     sd = vals_disp / sqrt(offset[is_not_na]))
-  ans
-}
 
 
 ## 'equation' -----------------------------------------------------------------
@@ -521,10 +596,10 @@ generics::fit
 fit.bage_mod <- function(object, ...) {
   object <- unfit(object)
   ## data
-  nm_distn <- nm_distn(object)
   outcome <- object$outcome
   offset <- object$offset
   terms_effect <- object$terms_effect
+  i_lik <- make_i_lik_mod(object)
   is_in_lik <- make_is_in_lik(object)
   terms_effectfree <- make_terms_effectfree(object)
   uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(object)
@@ -542,7 +617,7 @@ fit.bage_mod <- function(object, ...) {
   matrices_along_by_effectfree <- make_matrices_along_by_effectfree(object)
   mean_disp <- object$mean_disp
   has_disp <- mean_disp > 0
-  data <- list(nm_distn = nm_distn,
+  data <- list(i_lik = i_lik,
                outcome = outcome,
                offset = offset,
                is_in_lik = is_in_lik,
@@ -990,6 +1065,35 @@ get_nm_outcome.bage_mod <- function(mod) {
 }
 
 
+## 'get_nm_outcome' -----------------------------------------------------------
+
+#' Get the Name of the Variable with Observed Values
+#' for the Outcome Variable
+#'
+#' Gives identical result to 'get_nm_outcome' when
+#' 'mod' does not have a data model for outcomes.
+#'
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A string
+#'
+#' @noRd
+get_nm_outcome_obs <- function(mod) {
+    UseMethod("get_nm_outcome_obs")
+}
+
+## HAS_TESTS
+#' @export
+get_nm_outcome_obs.bage_mod <- function(mod) {
+  datamod_outcome <- mod$datamod_outcome
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  ans <- get_nm_outcome(mod)
+  if (has_datamod_outcome)
+    ans <- paste0(".", ans)
+  ans
+}
+
+
 ## 'has_disp' ----------------------------------------------------------------
 
 #' Test whether a model includes a dispersion parameter
@@ -1044,7 +1148,67 @@ is_fitted.bage_mod <- function(x)
   !is.null(x$est)
 
 
-## 'make_par_disp' ---------------------------------------------------
+## 'make_i_lik' ---------------------------------------------------------------
+
+#' Make 'i_lik' Index used by TMB
+#'
+#' Create when 'fit' is called, since index
+#' can be changed after 'mod' object is
+#' constructed.
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns An integer scalar
+#'
+#' @noRd
+make_i_lik_mod <- function(mod) {
+  UseMethod("make_i_lik_mod")
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_mod.bage_mod_pois <- function(mod) {
+  datamod_outcome <- mod$datamod_outcome
+  nm_distn <- nm_distn(mod)
+  has_disp <- has_disp(mod)
+  if (is.null(datamod_outcome) && has_disp)
+    303L
+  else if (is.null(datamod_outcome) && !has_disp)
+    301L
+  else 
+    make_i_lik(mod = datamod_outcome,
+               nm_distn = nm_distn,
+               has_disp = has_disp)
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_mod.bage_mod_binom <- function(mod) {
+  datamod_outcome <- mod$datamod_outcome
+  nm_distn <- nm_distn(mod)
+  has_disp <- has_disp(mod)
+  if (is.null(datamod_outcome) && has_disp)
+    103L
+  else if (is.null(datamod_outcome) && !has_disp)
+    101L
+  else
+    make_i_lik(mod = datamod_outcome,
+               nm_distn = nm_distn,
+               has_disp = has_disp)
+}
+
+## HAS_TESTS
+#' @export
+make_i_lik_mod.bage_mod_norm <- function(mod) {
+  datamod_outcome <- mod$datamod_outcome
+  if (is.null(datamod_outcome))
+    201L
+  else
+    cli::cli_abort("Internal error: Invalid inputs.")
+}
+
+
+## 'make_par_disp' ------------------------------------------------------------
 
 #' Make Random Draws of '.fitted' in Models
 #' with Dispersion term
@@ -1058,9 +1222,9 @@ is_fitted.bage_mod <- function(x)
 #'
 #' @noRd
 make_par_disp <- function(x,
-                                meanpar,
-                                disp) {
-    UseMethod("make_par_disp")
+                          meanpar,
+                          disp) {
+  UseMethod("make_par_disp")
 }
 
 ## HAS_TESTS
@@ -1176,7 +1340,7 @@ nm_distn.bage_mod_binom <- function(mod) "binom"
 nm_distn.bage_mod_norm <- function(mod) "norm"
 
 
-## 'nm_distn' -----------------------------------------------------------------
+## 'nm_offset' -----------------------------------------------------------------
 
 #' Name of offset used in printing
 #'
@@ -1217,6 +1381,7 @@ print.bage_mod <- function(x, ...) {
     var_sexgender <- x$var_sexgender
     var_time <- x$var_time
     mean_disp <- x$mean_disp
+    datamod_outcome <- x$datamod_outcome
     is_fitted <- is_fitted(x)
     str_title <- sprintf("-- %s %s model --",
                          if (is_fitted) "Fitted" else "Unfitted",
@@ -1245,6 +1410,13 @@ print.bage_mod <- function(x, ...) {
     cat("\n\n")
     cat(str_priors)
     cat("\n\n")
+    if (!is.null(datamod_outcome)) {
+        cat(sprintf("% *s: %s",
+                    nchar_offset + 6,
+                    "data model for outcome",
+                    str_call_datamod(datamod_outcome)))
+        cat("\n\n")
+    }
     cat(str_disp)
     cat("\n")
     if (has_offset) {
@@ -1302,14 +1474,14 @@ print.bage_mod <- function(x, ...) {
 #' dispersion terms (which is the default), there are
 #' two options for constructing replicate data.
 #'
-#' - When `condition_on` is `"par"`,
+#' - When `condition_on` is `"fitted"`,
 #' the replicate data is created by (i) drawing values
 #' from the posterior distribution for rates or probabilities
 #' (the \eqn{\gamma_i} defined in [mod_pois()]
 #' and [mod_binom()]), and (ii)  conditional on these
 #' rates or probabilities, drawing values for the 
 #' outcome variable.
-#' - When `condition_on` is `"meanpar"`,
+#' - When `condition_on` is `"expected"`,
 #' the replicate data is created by (i) drawing
 #' values from hyper-parameters governing
 #' the rates or probabilities 
@@ -1321,24 +1493,33 @@ print.bage_mod <- function(x, ...) {
 #' rates or probabilities, drawing values for the 
 #' outcome variable.
 #'
-#' The default for `condition_on` is `"meanpar"`.
-#' The `"meanpar"` option
+#' The default for `condition_on` is `"expected"`.
+#' The `"expected"` option
 #' provides a more severe test for
-#' a model than the `"par"` option,
-#' since "par" values are weighted averages
-#' of the "meanpar" values and the original
+#' a model than the `"fitted"` option,
+#' since "fitted" values are weighted averages
+#' of the "expected" values and the original
 #' data.
 #'
 #' As described in [mod_norm()], normal models
-#' have a slightly different structure from Poisson
+#' have a different structure from Poisson
 #' and binomial models, and the distinction between
-#' `"par"` and `"meanpar"` does not apply.
+#' `"fitted"` and `"expected"` does not apply.
+#'
+#' @section Data models for outcomes:
+#'
+#' If a [data model][datamods] has been provided for
+#' the outcome variable, then creation of replicate
+#' data will include a step where errors are added
+#' to outcomes. For instance, the a [rr3][set_datamod_outcome_rr3()]
+#' data model is used, then `replicate_data()` rounds
+#' the outcomes to base 3.
 #'
 #' @param x A fitted model, typically created by
 #' calling [mod_pois()], [mod_binom()], or [mod_norm()],
 #' and then [fit()].
 #' @param condition_on Parameters to condition
-#' on. Either `"meanpar"` or `"par"`. See
+#' on. Either `"expected"` or `"fitted"`. See
 #' details.
 #' @param n Number of replicate datasets to create.
 #' Default is 19.
@@ -1372,6 +1553,15 @@ print.bage_mod <- function(x, ...) {
 #' rep_data |>
 #'   group_by(.replicate) |>
 #'   count(wt = injuries)
+#'
+#' ## when the overall model includes an rr3 data model,
+#' ## replicate data are rounded to base 3
+#' mod_pois(injuries ~ age:sex + ethnicity + year,
+#'          data = injuries,
+#'          exposure = popn) |>
+#'   set_datamod_outcome_rr3() |>
+#'   fit() |>
+#'   replicate_data()
 #' @export
 replicate_data <- function(x, condition_on = NULL, n = 19) {
     UseMethod("replicate_data")
@@ -1380,128 +1570,140 @@ replicate_data <- function(x, condition_on = NULL, n = 19) {
 ## HAS_TESTS
 #' @export
 replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
-    if (is.null(condition_on))
-        condition_on <- "meanpar"
-    else
-        condition_on <- match.arg(condition_on, choices = c("meanpar", "par"))
-    check_n(n = n,
-            nm_n = "n",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
-    check_is_fitted(x = x, nm_x = "x")
-    data <- x$data
-    outcome <- x$outcome
-    offset <- x$offset
-    nm_outcome <- get_nm_outcome(x)
-    x <- set_n_draw(x, n_draw = n)
-    aug <- augment(x)
-    n_obs <- nrow(data)
-    if (condition_on == "par") {
-        par <- aug$.fitted
-        lambda <- offset * par
-        y_rep <- rvec::rpois_rvec(n = n_obs,
-                                  lambda = lambda)
-    }
-    else if (condition_on == "meanpar") {
-        check_has_disp_if_condition_on_meanpar(x)
-        meanpar <- aug$.expected
-        comp <- components(x)
-        disp <- comp[[".fitted"]][comp$component == "disp"]
-        size <- 1 / disp
-        mu <- offset * meanpar
-        y_rep <- rvec::rnbinom_rvec(n = n_obs,
-                                    size = size,
-                                    mu = mu)
-    }
-    else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
-    outcome_rep <- c(outcome, as.numeric(y_rep))
-    ans <- make_copies_repdata(data = data, n = n)
-    ans[[nm_outcome]] <- outcome_rep
-    ans
+  if (is.null(condition_on))
+    condition_on <- "expected"
+  else
+    condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
+  check_n(n = n,
+          nm_n = "n",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_is_fitted(x = x, nm_x = "x")
+  data <- x$data
+  outcome <- x$outcome
+  offset <- x$offset
+  datamod_outcome <- x$datamod_outcome
+  nm_outcome <- get_nm_outcome(x)
+  x <- set_n_draw(x, n_draw = n)
+  aug <- augment(x)
+  n_obs <- nrow(data)
+  if (condition_on == "fitted") {
+    fitted <- aug$.fitted
+    lambda <- offset * fitted
+    y_rep <- rvec::rpois_rvec(n = n_obs,
+                              lambda = lambda)
+  }
+  else if (condition_on == "expected") {
+    check_has_disp_if_condition_on_expected(x)
+    expected <- aug$.expected
+    comp <- components(x)
+    disp <- comp[[".fitted"]][comp$component == "disp"]
+    size <- 1 / disp
+    mu <- offset * expected
+    y_rep <- rvec::rnbinom_rvec(n = n_obs,
+                                size = size,
+                                mu = mu)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
+  if (!is.null(datamod_outcome))
+    y_rep <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                   outcome_true = y_rep)
+  outcome_rep <- c(outcome, as.numeric(y_rep))
+  ans <- make_copies_repdata(data = data, n = n)
+  ans[[nm_outcome]] <- outcome_rep
+  ans
 }
 
 ## HAS_TESTS
 #' @export
 replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
-    if (is.null(condition_on))
-        condition_on <- "meanpar"
-    else
-        condition_on <- match.arg(condition_on, choices = c("meanpar", "par"))
-    check_n(n = n,
-            nm_n = "n",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
-    check_is_fitted(x = x, nm_x = "x")
-    data <- x$data
-    formula <- x$formula
-    outcome <- x$outcome
-    offset <- x$offset
-    nm_outcome <- get_nm_outcome(x)
-    x <- set_n_draw(x, n_draw = n)
-    aug <- augment(x)
-    n_obs <- nrow(data)
-    if (condition_on == "par") {
-        par <- aug$.fitted
-        y_rep <- rvec::rbinom_rvec(n = n_obs,
-                                   size = offset,
-                                   prob = par)
-    }
-    else if (condition_on == "meanpar") {
-        check_has_disp_if_condition_on_meanpar(x)
-        meanpar <- aug$.expected
-        comp <- components(x)
-        disp <- comp[[".fitted"]][comp$component == "disp"]
-        shape1 <- meanpar / disp
-        shape2 <- (1 - meanpar) / disp
-        prob <- rvec::rbeta_rvec(n = n_obs,
-                                 shape1 = shape1,
-                                 shape2 = shape2)
-        y_rep <- rvec::rbinom_rvec(n = n_obs,
-                                   size = offset,
-                                   prob = prob)
-    }
-    else
-        cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
-    outcome_rep <- c(outcome, as.numeric(y_rep))
-    ans <- make_copies_repdata(data = data, n = n)
-    ans[[nm_outcome]] <- outcome_rep
-    ans
+  if (is.null(condition_on))
+    condition_on <- "expected"
+  else
+    condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
+  check_n(n = n,
+          nm_n = "n",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_is_fitted(x = x, nm_x = "x")
+  data <- x$data
+  formula <- x$formula
+  outcome <- x$outcome
+  offset <- x$offset
+  datamod_outcome <- x$datamod_outcome
+  nm_outcome <- get_nm_outcome(x)
+  x <- set_n_draw(x, n_draw = n)
+  aug <- augment(x)
+  n_obs <- nrow(data)
+  if (condition_on == "fitted") {
+    fitted <- aug$.fitted
+    y_rep <- rvec::rbinom_rvec(n = n_obs,
+                               size = offset,
+                               prob = fitted)
+  }
+  else if (condition_on == "expected") {
+    check_has_disp_if_condition_on_expected(x)
+    expected <- aug$.expected
+    comp <- components(x)
+    disp <- comp[[".fitted"]][comp$component == "disp"]
+    shape1 <- expected / disp
+    shape2 <- (1 - expected) / disp
+    prob <- rvec::rbeta_rvec(n = n_obs,
+                             shape1 = shape1,
+                             shape2 = shape2)
+    y_rep <- rvec::rbinom_rvec(n = n_obs,
+                               size = offset,
+                               prob = prob)
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for 'condition_on'.") ## nocov
+  if (!is.null(datamod_outcome))
+    y_rep <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                   outcome_true = y_rep)
+  outcome_rep <- c(outcome, as.numeric(y_rep))
+  ans <- make_copies_repdata(data = data, n = n)
+  ans[[nm_outcome]] <- outcome_rep
+  ans
 }
 
 ## HAS_TESTS
 #' @export
 replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
-    if (!is.null(condition_on))
-        cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
-                        i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
-                                  "when model {.arg x} has a normal likelihood.")))
-    check_n(n = n,
-            nm_n = "n",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
-    check_is_fitted(x = x, nm_x = "x")
-    data <- x$data
-    formula <- x$formula
-    outcome <- x$outcome
-    offset <- x$offset
-    nm_outcome <- get_nm_outcome(x)
-    x <- set_n_draw(x, n_draw = n)
-    aug <- augment(x)
-    comp <- components(x)
-    disp <- comp[[".fitted"]][comp$component == "disp"]
-    n_obs <- nrow(data)
-    par <- aug$.fitted
-    y_rep <- rvec::rnorm_rvec(n = n_obs,
-                              mean = par,
-                              sd = disp / sqrt(offset))
-    outcome_rep <- c(outcome, as.numeric(y_rep))
-    ans <- make_copies_repdata(data = data, n = n)
-    ans[[nm_outcome]] <- outcome_rep
-    ans
+  if (!is.null(condition_on))
+    cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
+                    i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
+                              "when model {.arg x} has a normal likelihood.")))
+  check_n(n = n,
+          nm_n = "n",
+          min = 1L,
+          max = NULL,
+          null_ok = FALSE)
+  check_is_fitted(x = x, nm_x = "x")
+  data <- x$data
+  formula <- x$formula
+  outcome <- x$outcome
+  offset <- x$offset
+  datamod_outcome <- x$datamod_outcome
+  nm_outcome <- get_nm_outcome(x)
+  x <- set_n_draw(x, n_draw = n)
+  aug <- augment(x)
+  comp <- components(x)
+  disp <- comp[[".fitted"]][comp$component == "disp"]
+  n_obs <- nrow(data)
+  fitted <- aug$.fitted
+  y_rep <- rvec::rnorm_rvec(n = n_obs,
+                            mean = fitted,
+                            sd = disp / sqrt(offset))
+  if (!is.null(datamod_outcome))
+    y_rep <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                   outcome_true = y_rep)
+  outcome_rep <- c(outcome, as.numeric(y_rep))
+  ans <- make_copies_repdata(data = data, n = n)
+  ans[[nm_outcome]] <- outcome_rep
+  ans
 }
 
 

@@ -12,6 +12,8 @@
               sex ~ NFix()
              time ~ RW()
       
+      data model for outcome: rr3()
+      
            dispersion: mean=1
              exposure: popn
               var_age: age
@@ -32,6 +34,8 @@
               age ~ RW()
               sex ~ NFix()
              time ~ RW()
+      
+      data model for outcome: rr3()
       
            dispersion: mean=1
              exposure: popn

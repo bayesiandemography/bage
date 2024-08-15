@@ -12,7 +12,7 @@ calling \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()
 and then \code{\link[=fit]{fit()}}.}
 
 \item{condition_on}{Parameters to condition
-on. Either \code{"meanpar"} or \code{"par"}. See
+on. Either \code{"expected"} or \code{"fitted"}. See
 details.}
 
 \item{n}{Number of replicate datasets to create.
@@ -45,14 +45,14 @@ With Poisson and binomial models that include
 dispersion terms (which is the default), there are
 two options for constructing replicate data.
 \itemize{
-\item When \code{condition_on} is \code{"par"},
+\item When \code{condition_on} is \code{"fitted"},
 the replicate data is created by (i) drawing values
 from the posterior distribution for rates or probabilities
 (the \eqn{\gamma_i} defined in \code{\link[=mod_pois]{mod_pois()}}
 and \code{\link[=mod_binom]{mod_binom()}}), and (ii)  conditional on these
 rates or probabilities, drawing values for the
 outcome variable.
-\item When \code{condition_on} is \code{"meanpar"},
+\item When \code{condition_on} is \code{"expected"},
 the replicate data is created by (i) drawing
 values from hyper-parameters governing
 the rates or probabilities
@@ -65,18 +65,29 @@ rates or probabilities, drawing values for the
 outcome variable.
 }
 
-The default for \code{condition_on} is \code{"meanpar"}.
-The \code{"meanpar"} option
+The default for \code{condition_on} is \code{"expected"}.
+The \code{"expected"} option
 provides a more severe test for
-a model than the \code{"par"} option,
-since "par" values are weighted averages
-of the "meanpar" values and the original
+a model than the \code{"fitted"} option,
+since "fitted" values are weighted averages
+of the "expected" values and the original
 data.
 
 As described in \code{\link[=mod_norm]{mod_norm()}}, normal models
-have a slightly different structure from Poisson
+have a different structure from Poisson
 and binomial models, and the distinction between
-\code{"par"} and \code{"meanpar"} does not apply.
+\code{"fitted"} and \code{"expected"} does not apply.
+}
+
+\section{Data models for outcomes}{
+
+
+If a \link[=datamods]{data model} has been provided for
+the outcome variable, then creation of replicate
+data will include a step where errors are added
+to outcomes. For instance, the a \link[=set_datamod_outcome_rr3]{rr3}
+data model is used, then \code{replicate_data()} rounds
+the outcomes to base 3.
 }
 
 \examples{
@@ -92,6 +103,15 @@ library(dplyr)
 rep_data |>
   group_by(.replicate) |>
   count(wt = injuries)
+
+## when the overall model includes an rr3 data model,
+## replicate data are rounded to base 3
+mod_pois(injuries ~ age:sex + ethnicity + year,
+         data = injuries,
+         exposure = popn) |>
+  set_datamod_outcome_rr3() |>
+  fit() |>
+  replicate_data()
 }
 \seealso{
 \itemize{

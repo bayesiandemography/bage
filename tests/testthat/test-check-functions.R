@@ -177,9 +177,9 @@ test_that("'check_formula_vnames_in_data' returns correct error with invalid inp
 })
 
 
-## 'check_has_disp_if_condition_on_meanpar' ----------------------------------
+## 'check_has_disp_if_condition_on_expected' ----------------------------------
 
-test_that("'check_has_disp_if_condition_on_meanpar' works", {
+test_that("'check_has_disp_if_condition_on_expected' works", {
     set.seed(0)
     data <- expand.grid(age = 0:9, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -188,10 +188,10 @@ test_that("'check_has_disp_if_condition_on_meanpar' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    expect_true(check_has_disp_if_condition_on_meanpar(mod))
+    expect_true(check_has_disp_if_condition_on_expected(mod))
     mod <- set_disp(mod, mean = 0)
-    expect_error(check_has_disp_if_condition_on_meanpar(mod),
-                 "`condition_on` is \"meanpar\" but model has no dispersion term")
+    expect_error(check_has_disp_if_condition_on_expected(mod),
+                 "`condition_on` is \"expected\" but model has no dispersion term")
 })
 
 

@@ -473,6 +473,45 @@ test_that("'get_disp' works - fitted", {
 })  
 
 
+## 'insert_after' -------------------------------------------------------
+
+test_that("'insert_after' works with data frames", {
+  df <- data.frame(x = 1:3, y = 3:1)
+  x <- 11:13
+  nm_x = "new"
+  ans_obtained <- insert_after(df = df,
+                               nm_after = "x",
+                               x = x,
+                               nm_x = nm_x)
+  ans_expected <- data.frame(x = 1:3, new = 11:13, y = 3:1)
+  expect_identical(ans_obtained, ans_expected)
+  ans_obtained <- insert_after(df = df,
+                               nm_after = "y",
+                               x = x,
+                               nm_x = nm_x)
+  ans_expected <- data.frame(x = 1:3, y = 3:1, new = 11:13)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'insert_after' works with tibbles", {
+  df <- tibble::tibble(x = 1:3, y = 3:1)
+  x <- 11:13
+  nm_x = "new"
+  ans_obtained <- insert_after(df = df,
+                               nm_after = "x",
+                               x = x,
+                               nm_x = nm_x)
+  ans_expected <- tibble(x = 1:3, new = 11:13, y = 3:1)
+  expect_identical(ans_obtained, ans_expected)
+  ans_obtained <- insert_after(df = df,
+                               nm_after = "y",
+                               x = x,
+                               nm_x = nm_x)
+  ans_expected <- tibble(x = 1:3, y = 3:1, new = 11:13)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'insert_draws_known' -------------------------------------------------------
 
 test_that("'insert_draws_known' works", {
@@ -828,6 +867,7 @@ test_that("'make_draws_post' works with valid inputs - no R_prec", {
   outcome <- mod$outcome
   offset <- mod$offset
   terms_effect <- mod$terms_effect
+  i_lik <- make_i_lik_mod(mod)
   is_in_lik <- make_is_in_lik(mod)
   terms_effectfree <- make_terms_effectfree(mod)
   uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
@@ -848,6 +888,7 @@ test_that("'make_draws_post' works with valid inputs - no R_prec", {
   data <- list(nm_distn = nm_distn,
                outcome = outcome,
                offset = offset,
+               i_lik = i_lik,
                is_in_lik = is_in_lik,
                terms_effect = terms_effect,
                terms_effectfree = terms_effectfree,

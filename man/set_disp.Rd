@@ -7,7 +7,7 @@
 set_disp(mod, mean)
 }
 \arguments{
-\item{mod}{A \code{bage_mod} object, typically
+\item{mod}{An object of class \code{"bage_mod"},
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 
@@ -48,7 +48,7 @@ mod |> set_disp(mean = 0)
 \seealso{
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
-model
+model for rates, probabilities, or means
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for a term
 \item \code{\link[=set_n_draw]{set_n_draw()}} Specify the number of draws
 \item \code{\link[=is_fitted]{is_fitted()}} Test whether a model is fitted
