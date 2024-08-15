@@ -127,10 +127,10 @@ and binomial models, and the distinction between
 
 
 
-<p>If a data model has been provided for
+<p>If a <a href="datamods.html">data model</a> has been provided for
 the outcome variable, then creation of replicate
 data will include a step where errors are added
-to outcomes. For instance, the a rr3
+to outcomes. For instance, the a <a href="set_datamod_outcome_rr3.html">rr3</a>
 data model is used, then <code>replicate_data()</code> rounds
 the outcomes to base 3.</p>
     </div>
@@ -170,35 +170,48 @@ the outcomes to base 3.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    .replicate       n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> Original     <span style="text-decoration: underline;">21</span>588</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Replicate 1  <span style="text-decoration: underline;">21</span>542</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Replicate 2  <span style="text-decoration: underline;">21</span>094</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Replicate 3  <span style="text-decoration: underline;">21</span>683</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Replicate 4  <span style="text-decoration: underline;">21</span>862</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Replicate 5  <span style="text-decoration: underline;">22</span>027</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Replicate 6  <span style="text-decoration: underline;">20</span>889</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Replicate 7  <span style="text-decoration: underline;">20</span>449</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Replicate 8  <span style="text-decoration: underline;">21</span>257</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Replicate 9  <span style="text-decoration: underline;">21</span>362</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Replicate 10 <span style="text-decoration: underline;">21</span>414</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Replicate 11 <span style="text-decoration: underline;">21</span>697</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Replicate 12 <span style="text-decoration: underline;">20</span>553</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Replicate 13 <span style="text-decoration: underline;">21</span>137</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> Replicate 14 <span style="text-decoration: underline;">21</span>290</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> Replicate 15 <span style="text-decoration: underline;">21</span>021</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> Replicate 16 <span style="text-decoration: underline;">21</span>481</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> Replicate 17 <span style="text-decoration: underline;">22</span>017</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">19</span> Replicate 18 <span style="text-decoration: underline;">20</span>830</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">20</span> Replicate 19 <span style="text-decoration: underline;">21</span>414</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Replicate 1  <span style="text-decoration: underline;">22</span>386</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Replicate 2  <span style="text-decoration: underline;">21</span>618</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Replicate 3  <span style="text-decoration: underline;">21</span>250</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Replicate 4  <span style="text-decoration: underline;">20</span>465</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Replicate 5  <span style="text-decoration: underline;">21</span>373</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Replicate 6  <span style="text-decoration: underline;">20</span>696</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Replicate 7  <span style="text-decoration: underline;">20</span>920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Replicate 8  <span style="text-decoration: underline;">21</span>450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Replicate 9  <span style="text-decoration: underline;">21</span>385</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Replicate 10 <span style="text-decoration: underline;">21</span>888</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Replicate 11 <span style="text-decoration: underline;">21</span>296</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Replicate 12 <span style="text-decoration: underline;">21</span>360</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Replicate 13 <span style="text-decoration: underline;">21</span>872</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> Replicate 14 <span style="text-decoration: underline;">21</span>041</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> Replicate 15 <span style="text-decoration: underline;">20</span>835</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> Replicate 16 <span style="text-decoration: underline;">20</span>771</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span> Replicate 17 <span style="text-decoration: underline;">22</span>390</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">19</span> Replicate 18 <span style="text-decoration: underline;">21</span>895</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">20</span> Replicate 19 <span style="text-decoration: underline;">20</span>526</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## when the overall model includes an rr3 data model,</span></span></span>
 <span class="r-in"><span><span class="co">## replicate data are rounded to base 3</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
 <span class="r-in"><span>         data <span class="op">=</span> <span class="va">injuries</span>,</span></span>
 <span class="r-in"><span>         exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
-<span class="r-in"><span>  <span class="fu">set_datamod_outcome_rr3</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">replicate_data</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in new_bage_datamod_outcome_rr3():</span> could not find function "new_bage_datamod_outcome_rr3"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 18,240 × 7</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    .replicate age   sex    ethnicity  year injuries  popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> Original   0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">35</span>830</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> Original   5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">35</span>120</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> Original   10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">32</span>830</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> Original   15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">27</span>130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> Original   20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>380</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> Original   25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>160</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Original   30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">22</span>560</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Original   35-39 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">22</span>230</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Original   40-44 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">18</span>130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Original   45-49 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">13</span>770</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 18,230 more rows</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

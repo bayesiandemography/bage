@@ -33,6 +33,7 @@
 <url><loc>https://bayesiandemography.github.io/bage/reference/bage-package.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/components.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/components.bage_ssvd.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/datamods.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/deaths.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/divorces.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/expenditure.html</loc></url>
@@ -50,6 +51,7 @@
 <url><loc>https://bayesiandemography.github.io/bage/reference/reexports.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/replicate_data.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/report_sim.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/set_datamod_outcome_rr3.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_disp.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_n_draw.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_prior.html</loc></url>
