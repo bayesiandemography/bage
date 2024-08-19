@@ -32,33 +32,6 @@ generics::augment
 #' model priors, and by values for `exposure`, `size`, or `weights`,
 #' but not by observed outcomes.
 #'
-#' @section Centering in unfitted models:
-#'
-#' Most sets of priors used in **bage** place weak constraints
-#' on the overall level for rates, probabilities, or means,
-#' even when the priors place strong constraints
-#' on variation within each main
-#' effect or interaction. Drawing straight from these
-#' most sets of priors
-#' can produces rates, probabilities, or means that are
-#' unrealistically high or low, by several orders of magnitude.
-#'
-#' By default, when called on an unfitted
-#' model, `augment()` and `components()` draw from
-#' from a modified set of priors. The modification preserves
-#' differentials across dimensions such as age and
-#' sex, but gives more demographically-plausible
-#' levels. The interaction is set to 0,
-#' and all main effects and interactions are scaled to
-#' have mean zero, with one exception. The exception is that, if the
-#' a model has one or more terms with SVD-based priors
-#' such as [SVD()] or [SVD_AR()], then the first such term
-#' is not scaled. SVD-based priors are designed to
-#' produce values demographically-plausible values without
-#' the need for scaling. 
-#'
-#' Centering can be overriden by setting `center` to `FALSE`.
-#'
 #' @section Imputed values for outcome variable:
 #'
 #' `augment()` automatically imputes any missing
@@ -75,9 +48,6 @@ generics::augment
 #' estimates of the true value for the outcome.
 #' 
 #' @param x An object of class `"bage_mod"`.
-#' @param center Whether to center effects
-#' when drawing from prior distribution.
-#' Default is `TRUE`. See below for details.
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
@@ -153,24 +123,16 @@ generics::augment
 #'   augment()
 #' @export
 augment.bage_mod <- function(x,
-                             center = TRUE,
                              quiet = FALSE,
                              ...) {
   is_fitted <- is_fitted(x)
-  if (!isTRUE(center)) {
-    if (is_fitted)
-      cli::cli_abort(c("Value supplied for {.arg center}, but model has been fitted.",
-                       i = "Value supplied for {.arg center}: {.val {center}}.",
-                       i = "{.arg center} should be used only when drawing from prior."))
-    check_flag(x = center, nm_x = "center")
-  }
   check_flag(x = quiet, nm_x = "quiet")
   if (is_fitted)
     ans <- draw_vals_augment_fitted(x)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
-    ans <- draw_vals_augment_unfitted(mod = x, center = center)
+    ans <- draw_vals_augment_unfitted(x)
   }
   ans
 }
@@ -204,8 +166,6 @@ generics::components
 #' In other words, the modelled values are informed by
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' argument in the model, but not by the observed outcomes.
-#'
-#' @inheritSection augment.bage_mod Centering in unfitted models
 #'
 #' @section Standardizing estimates:
 #'
@@ -298,19 +258,11 @@ generics::components
 #' @export
 components.bage_mod <- function(object,
                                 standardize = c("terms", "anova", "none"),
-                                center = TRUE,
                                 quiet = FALSE,
                                 ...) {
   standardize <- match.arg(standardize)
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
-  if (!isTRUE(center)) {
-    if (is_fitted)
-      cli::cli_abort(c("Value supplied for {.arg center}, but model has been fitted.",
-                       i = "Value supplied for {.arg center}: {.val {center}}.",
-                       i = "{.arg center} should be used only when drawing from prior."))
-    check_flag(x = center, nm_x = "center")
-  }
   if (is_fitted)
     ans <- draw_vals_components_fitted(mod = object,
                                        standardize = standardize)
@@ -320,7 +272,6 @@ components.bage_mod <- function(object,
     n_draw <- object$n_draw
     ans <- draw_vals_components_unfitted(mod = object,
                                          n_sim = n_draw,
-                                         center = center,
                                          standardize = standardize)
   }
   ans <- sort_components(components = ans, mod = object)
@@ -441,18 +392,17 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
 #' Draw '.fitted' and Possibly '.expected' from Unfitted Model
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param center Whether to center model terms
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_augment_unfitted <- function(mod, center) {
+draw_vals_augment_unfitted <- function(mod) {
   UseMethod("draw_vals_augment_unfitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
+draw_vals_augment_unfitted.bage_mod <- function(mod) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -461,7 +411,6 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
-                                                   center = center,
                                                    standardize = "none")
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
@@ -512,7 +461,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod_norm <- function(mod, center) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -522,7 +471,6 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod, center) {
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
-                                                   center = center,
                                                    standardize = "none")
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
@@ -929,9 +877,7 @@ forecast.bage_mod <- function(object,
                              var_time = var_time,
                              var_age = var_age,
                              var_sexgender = var_sexgender,
-                             center_along = TRUE,
-                             center_intercept = FALSE,
-                             center_first_svd = TRUE)
+                             center_along = TRUE)
       ans <- align_forecast(mod = object,
                             comp_forecast = ans,
                             comp_est_st = comp_est,
@@ -943,9 +889,7 @@ forecast.bage_mod <- function(object,
                         var_time = var_time,
                         var_age = var_age,
                         var_sexgender = var_sexgender,
-                        center_along = FALSE,
-                        center_intercept = FALSE,
-                        center_first_svd = TRUE)
+                        center_along = FALSE)
     }
     else if (standardize == "anova") {
       linpred_est <- make_linpred_raw(object)

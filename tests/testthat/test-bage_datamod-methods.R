@@ -1,15 +1,4 @@
 
-## 'make_i_lik' ---------------------------------------------------------------
-
-test_that("'make_i_lik' works with bage_datamod_outcome_rr3", {
-  x <- new_bage_datamod_outcome_rr3()
-  expect_identical(make_i_lik(x, nm_distn = "binom", has_disp = FALSE), 102L)
-  expect_identical(make_i_lik(x, nm_distn = "pois", has_disp = FALSE), 302L)
-  expect_identical(make_i_lik(x, nm_distn = "binom", has_disp = TRUE), 104L)
-  expect_identical(make_i_lik(x, nm_distn = "pois", has_disp = TRUE), 304L)
-})
-  
-
 ## 'draw_vals_outcome_true' ---------------------------------------------------
 
 test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
@@ -24,7 +13,6 @@ test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
                   exposure = 1)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
@@ -61,7 +49,6 @@ test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
                   exposure = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = TRUE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
@@ -95,7 +82,6 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, data complete", {
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
@@ -131,7 +117,6 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, has offset has na", 
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = FALSE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
@@ -169,7 +154,6 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = TRUE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
@@ -205,7 +189,6 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
-                                                   center = TRUE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
@@ -225,6 +208,37 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
   ans_expected[3]<- NA
   expect_equal(ans_obtained, ans_expected)
 })
+
+test_that("'draw_vals_outcome_true' method for NULL throws correct error with invalid nm_distn", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 20)
+  data$deaths[c(1, 5, 10)] <- NA
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  vals_components <- draw_vals_components_unfitted(mod = mod,
+                                                   n_sim = n_sim,
+                                                   standardize = "anova")
+  vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
+  vals_expected <- exp(make_linpred_comp(components = vals_components,
+                                         data = mod$data,
+                                         dimnames_term = mod$dimnames_terms))
+  vals_fitted <- draw_vals_fitted(mod = mod,
+                                  vals_expected = vals_expected,
+                                  vals_disp = vals_disp)
+  set.seed(1)
+  expect_error(draw_vals_outcome_true(datamod = NULL,
+                                         nm_distn = "wrong",
+                                         outcome_obs = mod$outcome,
+                                         fitted = vals_fitted,
+                                         disp = vals_disp,
+                                      offset = mod$offset),
+               "Internal error: Invalid value for `nm_distn`.")
+})
+
 
 test_that("'draw_vals_outcome_true' works with rr3, pois, no na", {
   set.seed(0)
@@ -315,6 +329,19 @@ test_that("'draw_vals_outcome_true' throws appropriate error with invalid nm_dis
 })
 
 
+## 'make_i_lik' ---------------------------------------------------------------
+
+test_that("'make_i_lik' works with bage_datamod_outcome_rr3", {
+  x <- new_bage_datamod_outcome_rr3()
+  expect_identical(make_i_lik(x, nm_distn = "binom", has_disp = FALSE), 102L)
+  expect_identical(make_i_lik(x, nm_distn = "pois", has_disp = FALSE), 302L)
+  expect_identical(make_i_lik(x, nm_distn = "binom", has_disp = TRUE), 104L)
+  expect_identical(make_i_lik(x, nm_distn = "pois", has_disp = TRUE), 304L)
+  expect_error(make_i_lik(x, nm_distn = "wrong", has_disp = TRUE),
+               "Internal error: Invalid inputs.")
+})
+
+
 ## 'str_call_datamod' ----------------------------------------------------------------------
 
 test_that("'str_call_datamod' works", {
@@ -343,6 +370,11 @@ test_that("rr3 leaves type unchanged", {
 test_that("rr3 throws correct error with non-integer", {
   expect_error(rr3(c(1, 2, 1.1)),
                "`x` has non-integer values.")
+})
+
+test_that("rr3 throws correct error with value too large", {
+  expect_error(rr3(c(1, 2, .Machine$integer.max + 1)),
+               "Maximum value in `x` greater than largest integer that can be represented on this machine.")
 })
 
 test_that("rr3 works with rvec", {

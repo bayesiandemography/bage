@@ -7,7 +7,6 @@
 \method{components}{bage_mod}(
   object,
   standardize = c("terms", "anova", "none"),
-  center = TRUE,
   quiet = FALSE,
   ...
 )
@@ -21,10 +20,6 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 one of \code{"terms"}, \code{"anova"}, or "none".
 The default is \code{"terms"}.
 See below for details.}
-
-\item{center}{Whether to center effects
-when drawing from prior distribution.
-Default is \code{TRUE}. See below for details.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -70,67 +65,41 @@ argument in the model, but not by the observed outcomes.
 \section{Standardizing estimates}{
 
 
-In many models, the sum of the intercept, main effects,
-and interactions is well-identified by the data, but
-the values of the intercept, main effects,
-and interactions are not. For instance, consider a model
-containing the lines
+Often the sum of the intercept, main effect,
+and interaction terms is well-identified by the data, but
+the values for individual terms is not. This indeterminancy
+does not affect the ultimate estimation of rates,
+probabilities, and means, but does complicate the
+interpretation of the higher-level terms.
 
-\deqn{y_i \sim \text{N}(\mu_i, \sigma^2)}
-\deqn{\mu_i = \beta^{(0)} + \beta_i^{(1)}.}
-
-If we add 1 to \eqn{\beta^{(0)}} and subtract 1
-from each of the \eqn{\beta_i^{(1)}}, then the \eqn{\mu_i}
-are unchanged, and the model's fit to the
-\eqn{y_i} is unchanged. This indeterminacy does not
-affect our ability to estimate the \eqn{\mu_i},
-but does complicate the interpretation of \eqn{\beta^{(0)}}
-and the \eqn{\beta_i^{(1)}}.
-
-A common strategy for dealing with poorly-
-identified intercepts, main effects, and interactions
-is to post-process the estimates, so that all terms
-other than the intercept, are constrained to sum to zero.
-By default, this is what \strong{bage} does. For a
-description of the algorithm used by \strong{bage},
-see \code{vignette("vig2_math")}.
-
-For unstandardized
-estimates, set \code{standardize} to \code{FALSE}.
-
-Batches of parameters, such as seasonal effects,
-that have the same structure as main effects and
-interactions have the same problems of indeterminacy.
-By default, these parameters are also standardized.
+One way of dealing with poorly-
+identified terms is to post-process the estimates,
+imposing some sort of standardization. There are
+three options, specified through the \code{standardize}
+argument:
+\itemize{
+\item \code{"terms"} Each main effect or interaction,
+and any component terms such as trend or
+seasonal effects, are independently scaled
+so that they sum to 0.
+\item \code{"anova"} An ANOVA-style decomposition is
+carried out so that all variation associated
+with age is attributed to the age term,
+all variation associated with the interaction
+between age and sex is attributed to the
+age-sex term, and so on. Components terms
+such as trend and seasonal effects are left untouched.
+\item \code{"none"} No standardization is done.
 }
 
-\section{Centering in unfitted models}{
+\code{"terms"} standardization is helpful for understanding
+model dynamics. \code{"anova"} standardization is helpful
+for understanding the contribution of each variable
+to overall patterns.
 
-
-Most sets of priors used in \strong{bage} place weak constraints
-on the overall level for rates, probabilities, or means,
-even when the priors place strong constraints
-on variation within each main
-effect or interaction. Drawing straight from these
-most sets of priors
-can produces rates, probabilities, or means that are
-unrealistically high or low, by several orders of magnitude.
-
-By default, when called on an unfitted
-model, \code{augment()} and \code{components()} draw from
-from a modified set of priors. The modification preserves
-differentials across dimensions such as age and
-sex, but gives more demographically-plausible
-levels. The interaction is set to 0,
-and all main effects and interactions are scaled to
-have mean zero, with one exception. The exception is that, if the
-a model has one or more terms with SVD-based priors
-such as \code{\link[=SVD]{SVD()}} or \code{\link[=SVD_AR]{SVD_AR()}}, then the first such term
-is not scaled. SVD-based priors are designed to
-produce values demographically-plausible values without
-the need for scaling.
-
-Centering can be overriden by setting \code{center} to \code{FALSE}.
+For a description of the standardization
+algorithms used by \strong{bage},
+see \code{vignette("vig2_math")}.
 }
 
 \examples{
@@ -163,5 +132,6 @@ means, or probabilities
 \item \code{\link[=mod_norm]{mod_norm()}} Specify a normal model
 \item \code{\link[=fit]{fit()}} Fit a model
 \item \code{\link[=is_fitted]{is_fitted()}} See if a model has been fitted
+\item \code{\link[=unfit]{unfit()}} Reset a model
 }
 }
