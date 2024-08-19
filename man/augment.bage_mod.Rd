@@ -13,6 +13,10 @@
 Default is \code{FALSE}.}
 
 \item{...}{Unused. Included for generic consistency only.}
+
+\item{center}{Whether to center effects
+when drawing from prior distribution.
+Default is \code{TRUE}. See below for details.}
 }
 \value{
 A \link[tibble:tibble-package]{tibble}, with the original
@@ -55,6 +59,35 @@ are draws from the joint prior distribution.
 In other words, the modelled values are informed by
 model priors, and by values for \code{exposure}, \code{size}, or \code{weights},
 but not by observed outcomes.
+}
+
+\section{Centering in unfitted models}{
+
+
+Most sets of priors used in \strong{bage} place weak constraints
+on the overall level for rates, probabilities, or means,
+even when the priors place strong constraints
+on variation within each main
+effect or interaction. Drawing straight from these
+most sets of priors
+can produces rates, probabilities, or means that are
+unrealistically high or low, by several orders of magnitude.
+
+By default, when called on an unfitted
+model, \code{augment()} and \code{components()} draw from
+from a modified set of priors. The modification preserves
+differentials across dimensions such as age and
+sex, but gives more demographically-plausible
+levels. The interaction is set to 0,
+and all main effects and interactions are scaled to
+have mean zero, with one exception. The exception is that, if the
+a model has one or more terms with SVD-based priors
+such as \code{\link[=SVD]{SVD()}} or \code{\link[=SVD_AR]{SVD_AR()}}, then the first such term
+is not scaled. SVD-based priors are designed to
+produce values demographically-plausible values without
+the need for scaling.
+
+Centering can be overriden by setting \code{center} to \code{FALSE}.
 }
 
 \section{Imputed values for outcome variable}{

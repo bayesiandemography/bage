@@ -156,7 +156,7 @@ test_that("'draw_vals_coef' works with n = 10", {
 
 ## 'draw_vals_components_unfitted' --------------------------------------------
 
-test_that("'draw_vals_components_unfitted' works", {
+test_that("'draw_vals_components_unfitted' works, center = FALSE, standardize = 'terms'", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -168,11 +168,37 @@ test_that("'draw_vals_components_unfitted' works", {
   mod <- set_prior(mod, age ~ Sp())
   mod <- set_prior(mod, age:time ~ Sp())
   n_sim <- 2
-  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim, standardize = "terms")
+  ans <- draw_vals_components_unfitted(mod = mod,
+                                       n_sim = n_sim,
+                                       center = FALSE,
+                                       standardize = "terms")
   ans_est <- components(fit(mod))
   comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
                 all.y = TRUE)
   expect_true(identical(nrow(comb), nrow(ans)))
+})
+
+test_that("'draw_vals_components_unfitted' works, center = TRUE, standardize = 'terms'", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp())
+  mod <- set_prior(mod, age:time ~ Sp())
+  n_sim <- 2
+  ans <- draw_vals_components_unfitted(mod = mod,
+                                       n_sim = n_sim,
+                                       center = TRUE,
+                                       standardize = "terms")
+  ans_est <- components(fit(mod))
+  comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
+                all.y = TRUE)
+  expect_true(identical(nrow(comb), nrow(ans)))
+  expect_equal(rvec::draws_mean(subset(ans, term == "(Intercept)")$.fitted), 0)
 })
 
 test_that("'draw_vals_components_unfitted' gives correct error with invalid standardize", {
@@ -184,7 +210,8 @@ test_that("'draw_vals_components_unfitted' gives correct error with invalid stan
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_error(draw_vals_components_unfitted(mod = mod, n_sim = 5, standardize = "wrong"),
+  expect_error(draw_vals_components_unfitted(mod = mod, n_sim = 5, center = FALSE,
+                                             standardize = "wrong"),
                "Internal error: Invalid value for `standardize`.")
 })
 
@@ -577,7 +604,7 @@ test_that("'draw_vals_seasvary' works - along dimension is second", {
 
 ## draw_vals_slope ------------------------------------------------------------
 
-test_that("'draw_vals_slope' works", {
+test_that("'draw_vals_slope' works - has 'by' variables", {
   set.seed(0)
   n_sim <- 1000
   sd_slope <- 0.5
@@ -593,6 +620,22 @@ test_that("'draw_vals_slope' works", {
   rownames(ans_expected) <- paste("slope", c("a", "b"), sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'draw_vals_slope' works - no 'by' variables", {
+  set.seed(0)
+  n_sim <- 1000
+  sd_slope <- 0.5
+  matrix_along_by <- matrix(0:9, nr = 10, dimnames = list(1:10))
+  ans_obtained <- draw_vals_slope(sd_slope = 0.5,
+                                  matrix_along_by = matrix_along_by,
+                                  n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(n = 1000, 0, 0.5),
+                         nr = 1)
+  rownames(ans_expected) <- "slope"
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 
 ## draw_vals_spline_mod -------------------------------------------------------
@@ -1103,12 +1146,14 @@ test_that("'report_sim' works when mod_sim more complicated that mod_est", {
 
 test_that("'report_sim' works with rr3 model", {
     set.seed(0)
-    data <- expand.grid(age = 0:5, sex = c("F", "M"))
+    data <- expand.grid(age = poputils::age_labels(type = "five", max = 60),
+                        sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- 3 * rpois(n = nrow(data), lambda = 10)
+    data$deaths <- 3 * rpois(n = nrow(data), lambda = 5)
     mod_est <- mod_pois(deaths ~ age + sex,
                         data = data,
                         exposure = popn) |>
+                        set_prior(age ~ SVD(HMD)) |>
                         set_datamod_outcome_rr3()
     set.seed(0)
     ans_obtained <- report_sim(mod_est, n_sim = 2)

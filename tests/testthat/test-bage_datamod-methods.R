@@ -24,6 +24,7 @@ test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
                   exposure = 1)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
+                                                   center = FALSE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
@@ -60,6 +61,7 @@ test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
                   exposure = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
+                                                   center = TRUE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
@@ -93,6 +95,7 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, data complete", {
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
+                                                   center = FALSE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
@@ -128,6 +131,7 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, has offset has na", 
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
+                                                   center = FALSE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
@@ -165,6 +169,7 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
+                                                   center = TRUE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
@@ -200,6 +205,7 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim,
+                                                   center = TRUE,
                                                    standardize = "anova")
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp

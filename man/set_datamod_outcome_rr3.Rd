@@ -37,6 +37,10 @@ then round down (subtract 2)
 with probability 1/3, and round up (add 1)
 with probability 2/3.
 }
+
+If \code{set_datamod_outcome_rr3()} is applied to
+a fitted model, it 'unfits'
+the model, deleting existing estimates.
 }
 \examples{
 ## 'injuries' variable in 'injuries' dataset

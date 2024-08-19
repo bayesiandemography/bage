@@ -181,13 +181,15 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws
+#' @param center Whether to center all terms (including
+#' intercept, but excluding first term with SVD prior)
 #' @param standardize Whether to standardize
 #' estimates
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
+draw_vals_components_unfitted <- function(mod, n_sim, center, standardize) {
   data <- mod$data
   priors <- mod$priors
   dimnames_terms <- mod$dimnames_terms
@@ -229,6 +231,16 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                           vals_effect,
                           vals_spline,
                           vals_svd)
+  if (center)
+    ans <- center_all(components = ans,
+                      priors = priors,
+                      dimnames_terms = dimnames_terms,
+                      var_time = var_time,
+                      var_age = var_age,
+                      var_sexgender = var_sexgender,
+                      center_along = TRUE,
+                      center_intercept = TRUE,
+                      center_first_svd = FALSE)
   ## this step is currently needed to get names right, but should be dropped
   ## when we refactor to using 'draw_vals_term', since we already
   ## have all the quantities needed, and don't need to infer them  
@@ -244,7 +256,9 @@ draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
                       var_time = var_time,
                       var_age = var_age,
                       var_sexgender = var_sexgender,
-                      center_along = TRUE)
+                      center_along = TRUE,
+                      center_intercept = FALSE,
+                      center_first_svd = TRUE)
   }
   else if (standardize == "anova") {
     linpred <- make_linpred_comp(components = ans,
@@ -584,7 +598,10 @@ draw_vals_slope <- function(sd_slope, matrix_along_by, n_sim) {
   ans <- stats::rnorm(n = n_by * n_sim, sd = sd_slope)
   ans <- matrix(ans, nrow = n_by, ncol = n_sim)
   nms_by <- colnames(matrix_along_by)
-  rownames <- paste("slope", nms_by, sep = ".")
+  if (n_by > 1L)
+    rownames <- paste("slope", nms_by, sep = ".")
+  else
+    rownames <- "slope"
   rownames(ans) <- rownames
   ans
 }

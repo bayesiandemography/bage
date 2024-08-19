@@ -7,6 +7,7 @@
 \method{components}{bage_mod}(
   object,
   standardize = c("terms", "anova", "none"),
+  center = TRUE,
   quiet = FALSE,
   ...
 )
@@ -20,6 +21,10 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 one of \code{"terms"}, \code{"anova"}, or "none".
 The default is \code{"terms"}.
 See below for details.}
+
+\item{center}{Whether to center effects
+when drawing from prior distribution.
+Default is \code{TRUE}. See below for details.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -97,6 +102,35 @@ Batches of parameters, such as seasonal effects,
 that have the same structure as main effects and
 interactions have the same problems of indeterminacy.
 By default, these parameters are also standardized.
+}
+
+\section{Centering in unfitted models}{
+
+
+Most sets of priors used in \strong{bage} place weak constraints
+on the overall level for rates, probabilities, or means,
+even when the priors place strong constraints
+on variation within each main
+effect or interaction. Drawing straight from these
+most sets of priors
+can produces rates, probabilities, or means that are
+unrealistically high or low, by several orders of magnitude.
+
+By default, when called on an unfitted
+model, \code{augment()} and \code{components()} draw from
+from a modified set of priors. The modification preserves
+differentials across dimensions such as age and
+sex, but gives more demographically-plausible
+levels. The interaction is set to 0,
+and all main effects and interactions are scaled to
+have mean zero, with one exception. The exception is that, if the
+a model has one or more terms with SVD-based priors
+such as \code{\link[=SVD]{SVD()}} or \code{\link[=SVD_AR]{SVD_AR()}}, then the first such term
+is not scaled. SVD-based priors are designed to
+produce values demographically-plausible values without
+the need for scaling.
+
+Centering can be overriden by setting \code{center} to \code{FALSE}.
 }
 
 \examples{

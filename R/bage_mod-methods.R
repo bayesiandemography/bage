@@ -32,6 +32,33 @@ generics::augment
 #' model priors, and by values for `exposure`, `size`, or `weights`,
 #' but not by observed outcomes.
 #'
+#' @section Centering in unfitted models:
+#'
+#' Most sets of priors used in **bage** place weak constraints
+#' on the overall level for rates, probabilities, or means,
+#' even when the priors place strong constraints
+#' on variation within each main
+#' effect or interaction. Drawing straight from these
+#' most sets of priors
+#' can produces rates, probabilities, or means that are
+#' unrealistically high or low, by several orders of magnitude.
+#'
+#' By default, when called on an unfitted
+#' model, `augment()` and `components()` draw from
+#' from a modified set of priors. The modification preserves
+#' differentials across dimensions such as age and
+#' sex, but gives more demographically-plausible
+#' levels. The interaction is set to 0,
+#' and all main effects and interactions are scaled to
+#' have mean zero, with one exception. The exception is that, if the
+#' a model has one or more terms with SVD-based priors
+#' such as [SVD()] or [SVD_AR()], then the first such term
+#' is not scaled. SVD-based priors are designed to
+#' produce values demographically-plausible values without
+#' the need for scaling. 
+#'
+#' Centering can be overriden by setting `center` to `FALSE`.
+#'
 #' @section Imputed values for outcome variable:
 #'
 #' `augment()` automatically imputes any missing
@@ -48,6 +75,9 @@ generics::augment
 #' estimates of the true value for the outcome.
 #' 
 #' @param x An object of class `"bage_mod"`.
+#' @param center Whether to center effects
+#' when drawing from prior distribution.
+#' Default is `TRUE`. See below for details.
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
@@ -80,6 +110,7 @@ generics::augment
 #' - [mod_norm()] Specify a normal model
 #' - [fit()] Fit a model
 #' - [is_fitted()] See if a model has been fitted
+#' - [unfit()] Reset a model
 #' - [datamods] Overview of data models implemented in **bage**
 #' 
 #' @examples
@@ -88,14 +119,14 @@ generics::augment
 #'                 data = injuries,
 #'                 exposure = popn)
 #'
-#' ## look at prior distribution
+#' ## draw from the prior distribution
 #' mod |> augment()
 #'
 #' ## fit model
 #' mod <- mod |>
 #'   fit()
 #'
-#' ## look at posterior distribution
+#' ## draw from the posterior distribution
 #' mod |> augment()
 #'
 #' ## insert a missing value into outcome variable
@@ -122,16 +153,24 @@ generics::augment
 #'   augment()
 #' @export
 augment.bage_mod <- function(x,
+                             center = TRUE,
                              quiet = FALSE,
                              ...) {
-  check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(x)
+  if (!isTRUE(center)) {
+    if (is_fitted)
+      cli::cli_abort(c("Value supplied for {.arg center}, but model has been fitted.",
+                       i = "Value supplied for {.arg center}: {.val {center}}.",
+                       i = "{.arg center} should be used only when drawing from prior."))
+    check_flag(x = center, nm_x = "center")
+  }
+  check_flag(x = quiet, nm_x = "quiet")
   if (is_fitted)
     ans <- draw_vals_augment_fitted(x)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
-    ans <- draw_vals_augment_unfitted(x)
+    ans <- draw_vals_augment_unfitted(mod = x, center = center)
   }
   ans
 }
@@ -166,40 +205,44 @@ generics::components
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' argument in the model, but not by the observed outcomes.
 #'
+#' @inheritSection augment.bage_mod Centering in unfitted models
+#'
 #' @section Standardizing estimates:
 #'
-#' In many models, the sum of the intercept, main effects,
-#' and interactions is well-identified by the data, but
-#' the values of the intercept, main effects,
-#' and interactions are not. For instance, consider a model
-#' containing the lines
+#' Often the sum of the intercept, main effect,
+#' and interaction terms is well-identified by the data, but
+#' the values for individual terms is not. This indeterminancy
+#' does not affect the ultimate estimation of rates,
+#' probabilities, and means, but does complicate the
+#' interpretation of the higher-level terms.
 #'
-#' \deqn{y_i \sim \text{N}(\mu_i, \sigma^2)}
-#' \deqn{\mu_i = \beta^{(0)} + \beta_i^{(1)}.}
+#' One way of dealing with poorly-
+#' identified terms is to post-process the estimates,
+#' imposing some sort of standardization. There are
+#' three options, specified through the `standardize`
+#' argument:
 #'
-#' If we add 1 to \eqn{\beta^{(0)}} and subtract 1
-#' from each of the \eqn{\beta_i^{(1)}}, then the \eqn{\mu_i}
-#' are unchanged, and the model's fit to the
-#' \eqn{y_i} is unchanged. This indeterminacy does not
-#' affect our ability to estimate the \eqn{\mu_i},
-#' but does complicate the interpretation of \eqn{\beta^{(0)}}
-#' and the \eqn{\beta_i^{(1)}}.
+#' - `"terms"` Each main effect or interaction,
+#'   and any component terms such as trend or
+#'   seasonal effects, are independently scaled
+#'   so that they sum to 0. 
+#' - `"anova"` An ANOVA-style decomposition is
+#'   carried out so that all variation associated
+#'   with age is attributed to the age term,
+#'   all variation associated with the interaction
+#'   between age and sex is attributed to the
+#'   age-sex term, and so on. Components terms
+#'   such as trend and seasonal effects are left untouched.
+#' - `"none"` No standardization is done.
 #'
-#' A common strategy for dealing with poorly-
-#' identified intercepts, main effects, and interactions
-#' is to post-process the estimates, so that all terms
-#' other than the intercept, are constrained to sum to zero.
-#' By default, this is what **bage** does. For a
-#' description of the algorithm used by **bage**,
+#' `"terms"` standardization is helpful for understanding
+#' model dynamics. `"anova"` standardization is helpful
+#' for understanding the contribution of each variable
+#' to overall patterns.
+#' 
+#' For a description of the standardization
+#' algorithms used by **bage**,
 #' see `vignette("vig2_math")`.
-#'
-#' For unstandardized
-#' estimates, set `standardize` to `FALSE`.
-#'
-#' Batches of parameters, such as seasonal effects,
-#' that have the same structure as main effects and
-#' interactions have the same problems of indeterminacy.
-#' By default, these parameters are also standardized.
 #'
 #' @inheritParams augment.bage_mod
 #' @param object A `bage_mod` object,
@@ -231,6 +274,7 @@ generics::components
 #' - [mod_norm()] Specify a normal model
 #' - [fit()] Fit a model
 #' - [is_fitted()] See if a model has been fitted
+#' - [unfit()] Reset a model
 #'
 #' @examples
 #' ## specify model
@@ -254,11 +298,19 @@ generics::components
 #' @export
 components.bage_mod <- function(object,
                                 standardize = c("terms", "anova", "none"),
+                                center = TRUE,
                                 quiet = FALSE,
                                 ...) {
   standardize <- match.arg(standardize)
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
+  if (!isTRUE(center)) {
+    if (is_fitted)
+      cli::cli_abort(c("Value supplied for {.arg center}, but model has been fitted.",
+                       i = "Value supplied for {.arg center}: {.val {center}}.",
+                       i = "{.arg center} should be used only when drawing from prior."))
+    check_flag(x = center, nm_x = "center")
+  }
   if (is_fitted)
     ans <- draw_vals_components_fitted(mod = object,
                                        standardize = standardize)
@@ -268,6 +320,7 @@ components.bage_mod <- function(object,
     n_draw <- object$n_draw
     ans <- draw_vals_components_unfitted(mod = object,
                                          n_sim = n_draw,
+                                         center = center,
                                          standardize = standardize)
   }
   ans <- sort_components(components = ans, mod = object)
@@ -321,18 +374,17 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   outcome_has_na <- anyNA(outcome)
   has_datamod_outcome <- !is.null(datamod_outcome)
   if (outcome_has_na || has_datamod_outcome) {
-    nm_outcome <- get_nm_outcome(mod)
-    outcome_obs <- ans[[nm_outcome]]
     fitted <- ans$.fitted
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
                                            nm_distn = nm_distn,
-                                           outcome_obs = outcome_obs,
+                                           outcome_obs = outcome,
                                            fitted = fitted,
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+    nm_outcome <- get_nm_outcome(mod)
     nm_outcome_true <- paste0(".", nm_outcome)
     ans <- insert_after(df = ans,
                         nm_after = nm_outcome,
@@ -389,17 +441,18 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
 #' Draw '.fitted' and Possibly '.expected' from Unfitted Model
 #'
 #' @param mod Object of class 'bage_mod'
+#' @param center Whether to center model terms
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_augment_unfitted <- function(mod) {
+draw_vals_augment_unfitted <- function(mod, center) {
   UseMethod("draw_vals_augment_unfitted")
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod <- function(mod) {
+draw_vals_augment_unfitted.bage_mod <- function(mod, center) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -408,6 +461,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
+                                                   center = center,
                                                    standardize = "none")
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
@@ -458,7 +512,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
+draw_vals_augment_unfitted.bage_mod_norm <- function(mod, center) {
   data <- mod$data
   dimnames_terms <- mod$dimnames_terms
   n_draw <- mod$n_draw
@@ -468,6 +522,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw,
+                                                   center = center,
                                                    standardize = "none")
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
@@ -874,7 +929,9 @@ forecast.bage_mod <- function(object,
                              var_time = var_time,
                              var_age = var_age,
                              var_sexgender = var_sexgender,
-                             center_along = TRUE)
+                             center_along = TRUE,
+                             center_intercept = FALSE,
+                             center_first_svd = TRUE)
       ans <- align_forecast(mod = object,
                             comp_forecast = ans,
                             comp_est_st = comp_est,
@@ -886,7 +943,9 @@ forecast.bage_mod <- function(object,
                         var_time = var_time,
                         var_age = var_age,
                         var_sexgender = var_sexgender,
-                        center_along = FALSE)
+                        center_along = FALSE,
+                        center_intercept = FALSE,
+                        center_first_svd = TRUE)
     }
     else if (standardize == "anova") {
       linpred_est <- make_linpred_raw(object)

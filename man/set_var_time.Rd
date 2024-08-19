@@ -36,9 +36,9 @@ By default, \strong{bage} gives a term involving time a
 via \code{set_var_time()} can change priors:
 see below for an example.
 
-If the \code{mod} argument to \code{set_var_time} is
-a fitted model, then \code{set_var_time} 'unfits'
-the model, by deleting existing estimates.
+If \code{set_var_time()} is applied to
+a fitted model, it 'unfits'
+the model, deleting existing estimates.
 }
 \examples{
 ## rename time variable to something unusual

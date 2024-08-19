@@ -31,9 +31,9 @@ from a 'term'. For instance,
 contains variables \code{gender} and \code{region},
 and terms \code{gender}, \code{region}, and \code{gender:region}.
 
-If the \code{mod} argument to \code{set_var_sexgender} is
-a fitted model, then \code{set_var_sexgender} 'unfits'
-the model deleting existing estimates.
+If \code{set_var_sexgender()} is applied to
+a fitted model, it 'unfits'
+the model, deleting existing estimates.
 }
 \examples{
 ## rename 'sex' variable to something unexpected
