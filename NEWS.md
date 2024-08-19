@@ -11,7 +11,7 @@
   applied to the outcome variable. The name of the new variable is
   created by added a `.` to the start of the name of the outcome
   variable.
-* A help page summarising available data modls 
+* A help page summarising available data models
 
 # bage 0.7.1
 
