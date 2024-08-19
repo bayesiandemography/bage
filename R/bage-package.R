@@ -53,6 +53,7 @@
 #' - [deaths] Deaths in Iceland
 #' - [divorces] Divorces in New Zealand
 #' - [expenditure] Health expenditure in the Netherlands
+#' - [injuries] Injuries in New Zealand
 #' - [us_acc_deaths] Accidental deaths in the USA
 #' 
 #' @keywords internal

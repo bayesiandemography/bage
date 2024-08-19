@@ -27,10 +27,10 @@
 #' Divorces in New Zealand
 #'
 #' Counts of divorces and population, by age, sex,
-#' and calendar year, in New Zealand, 1992-2021.
+#' and calendar year, in New Zealand, 2011-2021.
 #'
 #' @format
-#' A [tibble][tibble::tibble-package] with 660 rows
+#' A [tibble][tibble::tibble-package] with 242 rows
 #' and the following columns:
 #' 
 #' - `age`: 5-year age groups, `"15-19"` to `"65+"`
