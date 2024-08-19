@@ -21,9 +21,9 @@ Specify a prior distribution for an intercept,
 a main effect, or an interaction.
 }
 \details{
-If the \code{mod} argument to \code{set_prior()} is
-a fitted model, then \code{set_disp} 'unfits'
-the model, by deleting existing estimates.
+If \code{set_prior()} is applied to
+a fitted model, it 'unfits'
+the model, deleting existing estimates.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + year,

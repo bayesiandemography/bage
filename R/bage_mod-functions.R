@@ -27,6 +27,10 @@
 #'   with probability 1/3, and round up (add 1)
 #'   with probability 2/3.
 #'
+#' If `set_datamod_outcome_rr3()` is applied to
+#' a fitted model, it 'unfits'
+#' the model, deleting existing estimates.
+#'
 #' @param mod An object of class `"bage_mod"`,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
@@ -62,6 +66,7 @@ set_datamod_outcome_rr3 <- function(mod) {
     cli::cli_abort("Outcome variable has {cli::qty(n_not_base3)} value{?s} not divisible by 3.")
   ## return
   mod$datamod_outcome <- new_bage_datamod_outcome_rr3()
+  mod <- unfit(mod)
   mod
 }
 
@@ -85,8 +90,8 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' that the dispersion term is also `0`.
 #' In normal models, `mean` must be non-negative.
 #'
-#' If the `mod` argument to `set_disp` is
-#' a fitted model, then `set_disp` 'unfits'
+#' If `set_disp()` is applied to
+#' a fitted model, it 'unfits'
 #' the model, deleting existing estimates.
 #'
 #' @inheritParams set_datamod_outcome_rr3
@@ -196,9 +201,9 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' Specify a prior distribution for an intercept,
 #' a main effect, or an interaction.
 #'
-#' If the `mod` argument to `set_prior()` is
-#' a fitted model, then `set_disp` 'unfits'
-#' the model, by deleting existing estimates.
+#' If `set_prior()` is applied to
+#' a fitted model, it 'unfits'
+#' the model, deleting existing estimates.
 #' 
 #' @param mod A `bage_mod` object, created with
 #' [mod_pois()], [mod_binom()], or [mod_norm()].
@@ -282,9 +287,9 @@ set_prior <- function(mod, formula) {
 #' via `set_var_age()` can change priors:
 #' see below for an example.
 #'
-#' If the `mod` argument to `set_var_age` is
-#' a fitted model, then `set_var_age` 'unfits'
-#' the model by deleting existing estimates.
+#' If `set_var_age()` is applied to
+#' a fitted model, it 'unfits'
+#' the model, deleting existing estimates.
 #' 
 #' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the age variable.
@@ -340,9 +345,9 @@ set_var_age <- function(mod, name) {
 #' contains variables `gender` and `region`,
 #' and terms `gender`, `region`, and `gender:region`.
 #'
-#' If the `mod` argument to `set_var_sexgender` is
-#' a fitted model, then `set_var_sexgender` 'unfits'
-#' the model deleting existing estimates.
+#' If `set_var_sexgender()` is applied to
+#' a fitted model, it 'unfits'
+#' the model, deleting existing estimates.
 #' 
 #' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the sex or gender variable.
@@ -405,9 +410,9 @@ set_var_sexgender <- function(mod, name) {
 #' via `set_var_time()` can change priors:
 #' see below for an example.
 #'
-#' If the `mod` argument to `set_var_time` is
-#' a fitted model, then `set_var_time` 'unfits'
-#' the model, by deleting existing estimates.
+#' If `set_var_time()` is applied to
+#' a fitted model, it 'unfits'
+#' the model, deleting existing estimates.
 #' 
 #' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the time variable.
@@ -443,6 +448,52 @@ set_var_time <- function(mod, name) {
                   name = name,
                   var = "time")
 }
+
+
+## HAS_TESTS
+#' Unfit a Model
+#'
+#' Reset a model, deleting all estimates.
+#'
+#' @param mod A fitted object of class `"bage_mod"`,
+#' object, created through a call to [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#'
+#' @returns An unfitted version of `mod`.
+#'
+#' @seealso
+#' - [fit()] Fit a model
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
+#' - Functions such as [set_prior()], [set_disp()] and
+#'   [set_var_age()] unfit models as side effects.
+#'
+#' @examples
+#' ## create a model, which starts out unfitted
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#' is_fitted(mod)
+#'
+#' ## calling 'fit' produces a fitted version
+#' mod <- fit(mod)
+#' is_fitted(mod)
+#'
+#' ## calling 'unfit' resets the model
+#' mod <- unfit(mod)
+#' is_fitted(mod)
+#' @export
+unfit <- function(mod) {
+    mod["est"] <- list(NULL)
+    mod["is_fixed"] <- list(NULL)
+    mod["R_prec"] <- list(NULL)
+    mod["scaled_eigen"] <- list(NULL)
+    mod["draws_effectfree"] <- list(NULL)
+    mod["draws_hyper"] <- list(NULL)
+    mod["draws_hyperrand"] <- list(NULL)
+    mod["draws_disp"] <- list(NULL)
+    mod
+}
+
 
 
 
@@ -516,23 +567,3 @@ set_var_inner <- function(mod, name, var) {
   mod
 }
 
-
-## HAS_TESTS
-#' Reset a model
-#'
-#' @param mod A `bage_mod` object.
-#'
-#' @returns A `bage_mod` object
-#'
-#' @noRd
-unfit <- function(mod) {
-    mod["est"] <- list(NULL)
-    mod["is_fixed"] <- list(NULL)
-    mod["R_prec"] <- list(NULL)
-    mod["scaled_eigen"] <- list(NULL)
-    mod["draws_effectfree"] <- list(NULL)
-    mod["draws_hyper"] <- list(NULL)
-    mod["draws_hyperrand"] <- list(NULL)
-    mod["draws_disp"] <- list(NULL)
-    mod
-}

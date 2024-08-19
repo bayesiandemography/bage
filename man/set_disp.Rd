@@ -33,8 +33,8 @@ In Poisson and binomial models,
 that the dispersion term is also \code{0}.
 In normal models, \code{mean} must be non-negative.
 
-If the \code{mod} argument to \code{set_disp} is
-a fitted model, then \code{set_disp} 'unfits'
+If \code{set_disp()} is applied to
+a fitted model, it 'unfits'
 the model, deleting existing estimates.
 }
 \examples{
