@@ -1,3 +1,10 @@
+# bage 0.7.3
+
+## Changes to data and examples
+
+* Modified example for `augment()` so it runs faster
+* Reduced size of `divorces` dataset
+
 
 # bage 0.7.2
 
