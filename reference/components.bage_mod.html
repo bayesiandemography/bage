@@ -126,33 +126,35 @@ argument in the model, but not by the observed outcomes.</p>
 
 
 
-<p>In many models, the sum of the intercept, main effects,
-and interactions is well-identified by the data, but
-the values of the intercept, main effects,
-and interactions are not. For instance, consider a model
-containing the lines</p>
-<p>$$y_i \sim \text{N}(\mu_i, \sigma^2)$$
-$$\mu_i = \beta^{(0)} + \beta_i^{(1)}.$$</p>
-<p>If we add 1 to \(\beta^{(0)}\) and subtract 1
-from each of the \(\beta_i^{(1)}\), then the \(\mu_i\)
-are unchanged, and the model's fit to the
-\(y_i\) is unchanged. This indeterminacy does not
-affect our ability to estimate the \(\mu_i\),
-but does complicate the interpretation of \(\beta^{(0)}\)
-and the \(\beta_i^{(1)}\).</p>
-<p>A common strategy for dealing with poorly-
-identified intercepts, main effects, and interactions
-is to post-process the estimates, so that all terms
-other than the intercept, are constrained to sum to zero.
-By default, this is what <strong>bage</strong> does. For a
-description of the algorithm used by <strong>bage</strong>,
+<p>Often the sum of the intercept, main effect,
+and interaction terms is well-identified by the data, but
+the values for individual terms is not. This indeterminancy
+does not affect the ultimate estimation of rates,
+probabilities, and means, but does complicate the
+interpretation of the higher-level terms.</p>
+<p>One way of dealing with poorly-
+identified terms is to post-process the estimates,
+imposing some sort of standardization. There are
+three options, specified through the <code>standardize</code>
+argument:</p><ul><li><p><code>"terms"</code> Each main effect or interaction,
+and any component terms such as trend or
+seasonal effects, are independently scaled
+so that they sum to 0.</p></li>
+<li><p><code>"anova"</code> An ANOVA-style decomposition is
+carried out so that all variation associated
+with age is attributed to the age term,
+all variation associated with the interaction
+between age and sex is attributed to the
+age-sex term, and so on. Components terms
+such as trend and seasonal effects are left untouched.</p></li>
+<li><p><code>"none"</code> No standardization is done.</p></li>
+</ul><p><code>"terms"</code> standardization is helpful for understanding
+model dynamics. <code>"anova"</code> standardization is helpful
+for understanding the contribution of each variable
+to overall patterns.</p>
+<p>For a description of the standardization
+algorithms used by <strong>bage</strong>,
 see <code><a href="../articles/vig2_math.html">vignette("vig2_math")</a></code>.</p>
-<p>For unstandardized
-estimates, set <code>standardize</code> to <code>FALSE</code>.</p>
-<p>Batches of parameters, such as seasonal effects,
-that have the same structure as main effects and
-interactions have the same problems of indeterminacy.
-By default, these parameters are also standardized.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -165,6 +167,7 @@ means, or probabilities</p></li>
 <li><p><code><a href="mod_norm.html">mod_norm()</a></code> Specify a normal model</p></li>
 <li><p><code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> Fit a model</p></li>
 <li><p><code><a href="is_fitted.html">is_fitted()</a></code> See if a model has been fitted</p></li>
+<li><p><code><a href="unfit.html">unfit()</a></code> Reset a model</p></li>
 </ul></div>
     </div>
 
