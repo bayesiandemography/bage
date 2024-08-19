@@ -23,9 +23,7 @@ test_that("'center_all' works - along = TRUE", {
                     var_time = mod$var_time,
                     var_age = mod$var_age,
                     var_sexgender = mod$var_sexgender,
-                    center_along = TRUE,
-                    center_intercept = FALSE,
-                    center_first_svd = FALSE)
+                    center_along = TRUE)
   i <- ans$term == "(Intercept)" & ans$component == "effect"
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
   i <- ans$term == "time" & ans$component == "effect"
@@ -34,44 +32,6 @@ test_that("'center_all' works - along = TRUE", {
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "time" & ans$component == "seasonal"
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "cyclical"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-})
-
-test_that("'center_all' works - along = FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_all(components = components,
-                    priors = mod$priors,
-                    dimnames_terms = mod$dimnames_terms,
-                    var_time = mod$var_time,
-                    var_age = mod$var_age,
-                    center_along = FALSE,
-                    center_intercept = TRUE,
-                    center_first_svd = FALSE)
-  i <- ans$term == "(Intercept)" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "time" & ans$component == "seasonal"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
   i <- ans$term == "sex:time" & ans$component == "trend"
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "sex:time" & ans$component == "cyclical"
@@ -81,7 +41,7 @@ test_that("'center_all' works - along = FALSE", {
 
 ## 'center_effects' -----------------------------------------------------------
 
-test_that("'center_effects' works - center_along is TRUE, center_intercept is FALSE, no SVD", {
+test_that("'center_effects' works - center_along is TRUE", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2010,
@@ -102,16 +62,16 @@ test_that("'center_effects' works - center_along is TRUE, center_intercept is FA
                         dimnames_terms = mod$dimnames_terms,
                         var_time = mod$var_time,
                         var_age = mod$var_age,
-                        center_along = TRUE,
-                        center_intercept = FALSE,
-                        center_first_svd = FALSE)
+                        center_along = TRUE)
+  i <- ans$term == "(Intercept)" & ans$component == "effect"
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
   i <- ans$term == "time" & ans$component == "effect"
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "sex:time" & ans$component == "effect"
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
 })
 
-test_that("'center_effects' works - center_along is TRUE, center_intercept is TRUE, has SVD, center_first_svd is TRUE", {
+test_that("'center_effects' works - center_along is FALSE", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2010,
@@ -133,11 +93,9 @@ test_that("'center_effects' works - center_along is TRUE, center_intercept is TR
                         dimnames_terms = mod$dimnames_terms,
                         var_time = mod$var_time,
                         var_age = mod$var_age,
-                        center_along = FALSE,
-                        center_intercept = TRUE,
-                        center_first_svd = TRUE)
+                        center_along = FALSE)
   i <- ans$term == "(Intercept)" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
+  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
   i <- ans$term == "age" & ans$component == "effect"
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "time" & ans$component == "effect"
@@ -146,40 +104,6 @@ test_that("'center_effects' works - center_along is TRUE, center_intercept is TR
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
   i <- ans$term == "sex:time" & ans$component == "effect" & startsWith(ans$level, "M")
   expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-})
-
-test_that("'center_effects' works - center_along is TRUE, center_intercept is TRUE, has SVD, center_first_svd is FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age ~ SVD(HMD))
-  mod <- set_prior(mod, age:time ~ SVD_AR(HMD))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_effects(components = components,
-                        priors = mod$priors,
-                        dimnames_terms = mod$dimnames_terms,
-                        var_time = mod$var_time,
-                        var_age = mod$var_age,
-                        center_along = TRUE,
-                        center_intercept = TRUE,
-                        center_first_svd = FALSE)
-  i <- ans$term == "(Intercept)" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "age" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "age:time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
 })
 
 

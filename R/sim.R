@@ -181,15 +181,13 @@ draw_vals_coef <- function(prior, n_sim) {
 #'
 #' @param mod Object of class 'bage_mod'
 #' @param n_sim Number of draws
-#' @param center Whether to center all terms (including
-#' intercept, but excluding first term with SVD prior)
 #' @param standardize Whether to standardize
 #' estimates
 #'
 #' @returns Named list
 #'
 #' @noRd
-draw_vals_components_unfitted <- function(mod, n_sim, center, standardize) {
+draw_vals_components_unfitted <- function(mod, n_sim, standardize) {
   data <- mod$data
   priors <- mod$priors
   dimnames_terms <- mod$dimnames_terms
@@ -231,16 +229,6 @@ draw_vals_components_unfitted <- function(mod, n_sim, center, standardize) {
                           vals_effect,
                           vals_spline,
                           vals_svd)
-  if (center)
-    ans <- center_all(components = ans,
-                      priors = priors,
-                      dimnames_terms = dimnames_terms,
-                      var_time = var_time,
-                      var_age = var_age,
-                      var_sexgender = var_sexgender,
-                      center_along = TRUE,
-                      center_intercept = TRUE,
-                      center_first_svd = FALSE)
   ## this step is currently needed to get names right, but should be dropped
   ## when we refactor to using 'draw_vals_term', since we already
   ## have all the quantities needed, and don't need to infer them  
@@ -256,9 +244,7 @@ draw_vals_components_unfitted <- function(mod, n_sim, center, standardize) {
                       var_time = var_time,
                       var_age = var_age,
                       var_sexgender = var_sexgender,
-                      center_along = TRUE,
-                      center_intercept = FALSE,
-                      center_first_svd = TRUE)
+                      center_along = TRUE)
   }
   else if (standardize == "anova") {
     linpred <- make_linpred_comp(components = ans,
@@ -1153,7 +1139,7 @@ report_sim <- function(mod_est,
           null_ok = FALSE)
   ## use 'mod_sim' to generate 'n_sim' sets of simulation-truth
   mod_sim$n_draw <- n_sim
-  comp_sim <- components(mod_sim, quiet = TRUE)
+  comp_sim <- components(mod_sim, standardize = "none", quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
   nm_outcome_obs <- get_nm_outcome_obs(mod_sim)
   outcome_obs_sim <- aug_sim[[nm_outcome_obs]]
@@ -1168,7 +1154,7 @@ report_sim <- function(mod_est,
     outcome <- outcome_obs_sim[, i_sim]
     mod_est$outcome <- outcome
     mod_est <- fit(mod_est)
-    comp_est <- components(mod_est)
+    comp_est <- components(mod_est, standardize = "none")
     aug_est <- augment(mod_est)
     results_comp <- perform_comp(est = comp_est,
                                  sim = comp_sim,

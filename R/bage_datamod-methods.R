@@ -136,7 +136,7 @@ draw_vals_outcome_true.bage_datamod_outcome_rr3 <- function(datamod,
       ans[i_val, i_draw] <- val
     }
   }
-  ans <- rvec::rvec_int(ans)
+  ans <- rvec::rvec(ans)
   ans
 }                            
 
@@ -229,6 +229,7 @@ str_call_datamod.bage_datamod_outcome_rr3 <- function(datamod) {
 #' rr3(x)
 #' @noRd
 rr3 <- function(x) {
+  largest_int <- .Machine$integer.max
   is_rvec <- rvec::is_rvec(x)
   if (is_rvec) {
     n_draw <- rvec::n_draw(x)
@@ -238,30 +239,32 @@ rr3 <- function(x) {
   is_x_integerish <- is_x_integer || all(round(x) == x, na.rm = TRUE)
   if (!is_x_integerish)
     cli::cli_abort("{.arg x} has non-integer values.")
+  if (max(x, na.rm = TRUE) > largest_int)
+    cli::cli_abort(c(paste("Maximum value in {.arg x} greater than largest integer",
+                           "that can be represented on this machine."),
+                     i = "Maximum value in {.arg x}: {.val {max(x, na.rm = TRUE)}}.",
+                     i = "Largest integer: {.val {largest_int}}."))
   x_mod_3 <- as.integer(x) %% 3L
   n <- length(x)
   p <- stats::runif(n = n)
   ## deal with NAs - leave untouched
   is_processed <- is.na(x)
   ## deal with values divisible by 3 - leave untouched
-  is_mod_0 <- !is_processed & (x_mod_3 == 0L)
-  is_processed <- is_processed | is_mod_0
+  is_remainder_0 <- !is_processed & (x_mod_3 == 0L)
+  is_processed <- is_processed | is_remainder_0
   ## deal with mod 1, which has 2/3 chance of rounding down, 1/3 chance of rounding up
-  is_mod_1 <- !is_processed & (x_mod_3 == 1L)
-  is_round_down <- is_mod_1 & (p < 2/3)
-  is_round_up <- is_mod_1 & (p >= 2/3)
+  is_remainder_1 <- !is_processed & (x_mod_3 == 1L)
+  is_round_down <- is_remainder_1 & (p < 2/3)
+  is_round_up <- is_remainder_1 & (p >= 2/3)
   x[is_round_down] <- x[is_round_down] - 1L
   x[is_round_up] <- x[is_round_up] + 2L
-  is_processed <- is_processed | is_mod_1
+  is_processed <- is_processed | is_remainder_1
   ## deal with mod 2, which has 1/3 chance of rounding down, 2/3 chance of rounding up
-  is_mod_2 <- !is_processed
-  is_round_down <- is_mod_2 & (p < 1/3)
-  is_round_up <- is_mod_2 & (p >= 1/3)
+  is_remainder_2 <- !is_processed
+  is_round_down <- is_remainder_2 & (p < 1/3)
+  is_round_up <- is_remainder_2 & (p >= 1/3)
   x[is_round_down] <- x[is_round_down] - 2L
   x[is_round_up] <- x[is_round_up] + 1L
-  ## convert back to numeric if was originally numeric and is now integer
-  if (!is_x_integer && is.integer(x))
-    x <- as.numeric(x)
   ## convert back to rvec if was originally rvec
   if (is_rvec) {
     x <- matrix(x, ncol = n_draw)

@@ -97,6 +97,18 @@ test_that("'mod_norm' works with valid inputs - no weights", {
     expect_s3_class(ans_obtained, "bage_mod_norm")
 })
 
+test_that("'mod_norm' works with no values for outcome variable", {
+    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data$popn <- seq_len(nrow(data))
+    data$income <- NA
+    formula <- income ~ age:sex + time
+    ans_obtained <- mod_norm(formula = formula,
+                             data = data,
+                             weights = 1)
+    expect_s3_class(ans_obtained, "bage_mod_norm")
+    expect_identical(ans_obtained$outcome_mean, 0)
+    expect_identical(ans_obtained$outcome_sd, 1)
+})
 
 ## 'mod_helper' ---------------------------------------------------------------
 

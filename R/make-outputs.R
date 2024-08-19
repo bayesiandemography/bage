@@ -9,9 +9,6 @@
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
 #' @param center_along Whether to center along the 'along' dimension
-#' @param center_intercept Whether to set the intercept to 0
-#' @param center_first_svd Whether to center the first occurrence
-#' of an SVD prior (if any)
 #' 
 #' @returns A modifed version of 'components'
 #'
@@ -22,17 +19,13 @@ center_all <- function(components,
                        var_time,
                        var_age,
                        var_sexgender,
-                       center_along,
-                       center_intercept,
-                       center_first_svd) {
+                       center_along) {
   components <- center_effects(components = components,
                                priors = priors,
                                dimnames_terms = dimnames_terms,
                                var_time = var_time,
                                var_age = var_age,
-                               center_along = center_along,
-                               center_intercept = center_intercept,
-                               center_first_svd = center_first_svd)
+                               center_along = center_along)
   components <- center_svd_spline(components = components,
                                   priors = priors,
                                   dimnames_terms = dimnames_terms,
@@ -59,9 +52,6 @@ center_all <- function(components,
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param center_along Whether to center along the 'along' dimension
-#' @param center_intercept Whether to set the intercept to 0
-#' @param center_first_svd Whether to center the first occurrence
-#' of an SVD prior (if any)
 #' 
 #' @returns A modifed version of 'components'
 #'
@@ -71,11 +61,8 @@ center_effects <- function(components,
                            dimnames_terms,
                            var_time,
                            var_age,
-                           center_along,
-                           center_intercept,
-                           center_first_svd) {
+                           center_along) {
   key_comp <- with(components, paste(term, component, level))
-  found_first_svd <- FALSE
   for (i_term in seq_along(priors)) {
     dimnames_term <- dimnames_terms[[i_term]]
     prior <- priors[[i_term]]
@@ -88,39 +75,25 @@ center_effects <- function(components,
     if (has_val) {
       effect <- components$.fitted[i_effect]
       is_intercept <- nm_term == "(Intercept)"
-      if (is_intercept) {
-        if (center_intercept)
-          effect[[1L]] <- 0
-        else
-          NULL ## do nothing
-      }
-      else {
-        is_first_svd <- is_svd(prior) && !found_first_svd
-        if (is_first_svd)
-          found_first_svd <- TRUE
-        if (is_first_svd && !center_first_svd) {
-          NULL ## do nothing
+      if (!is_intercept) {
+        uses_along <- uses_along(prior)
+        if (uses_along) {
+          along <- prior$specific$along
+          matrix_along_by <- make_matrix_along_by_effect(along = along,
+                                                         dimnames_term = dimnames_term,
+                                                         var_time = var_time,
+                                                         var_age = var_age)
+          effect <- center_within_along_by(x = effect,
+                                           matrix_along_by = matrix_along_by,
+                                           center_along = center_along)
         }
         else {
-          uses_along <- uses_along(prior)
-          if (uses_along) {
-            along <- prior$specific$along
-            matrix_along_by <- make_matrix_along_by_effect(along = along,
-                                                           dimnames_term = dimnames_term,
-                                                           var_time = var_time,
-                                                           var_age = var_age)
-            effect <- center_within_along_by(x = effect,
-                                             matrix_along_by = matrix_along_by,
-                                             center_along = center_along)
-          }
-          else {
-            i_along <- 1L
-            matrix_along_by <- make_matrix_along_by_inner(i_along = i_along,
-                                                          dimnames_term = dimnames_term)
-            effect <- center_within_along_by(x = effect,
-                                             matrix_along_by = matrix_along_by,
-                                             center_along = TRUE)
-          }
+          i_along <- 1L
+          matrix_along_by <- make_matrix_along_by_inner(i_along = i_along,
+                                                        dimnames_term = dimnames_term)
+          effect <- center_within_along_by(x = effect,
+                                           matrix_along_by = matrix_along_by,
+                                           center_along = TRUE)
         }
       }
       components$.fitted[i_effect] <- effect
@@ -313,9 +286,7 @@ draw_vals_components_fitted <- function(mod, standardize) {
                       var_time = var_time,
                       var_age = var_age,
                       var_sexgender = var_sexgender,
-                      center_along = TRUE,
-                      center_intercept = FALSE,
-                      center_first_svd = TRUE)
+                      center_along = TRUE)
   }
   else if (standardize == "anova") {
     linpred <- make_linpred_comp(components = ans,
