@@ -65,6 +65,7 @@ and is fast.
 \item \link{deaths} Deaths in Iceland
 \item \link{divorces} Divorces in New Zealand
 \item \link{expenditure} Health expenditure in the Netherlands
+\item \link{injuries} Injuries in New Zealand
 \item \link{us_acc_deaths} Accidental deaths in the USA
 }
 }

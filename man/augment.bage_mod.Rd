@@ -78,9 +78,10 @@ estimates of the true value for the outcome.
 
 \examples{
 ## specify model
-mod <- mod_pois(injuries ~ age + sex + year,
-                data = injuries,
-                exposure = popn)
+mod <- mod_pois(divorces ~ age + sex + time,
+                data = divorces,
+                exposure = population) |>
+  set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
 
 ## draw from the prior distribution
 mod |> augment()
@@ -93,24 +94,24 @@ mod <- mod |>
 mod |> augment()
 
 ## insert a missing value into outcome variable
-injuries_missing <- injuries
-injuries_missing$injuries[1] <- NA
+divorces_missing <- divorces
+divorces_missing$divorces[1] <- NA
 
 ## fitting model and calling 'augument'
-## creates a new variable called '.injuries'
+## creates a new variable called '.divorces'
 ## holding observed and imputed values
-mod_pois(injuries ~ age + sex + year,
-         data = injuries_missing,
-         exposure = popn) |>
+mod_pois(divorces ~ age + sex + time,
+         data = divorces_missing,
+         exposure = population) |>
   fit() |>
   augment()
 
 ## specifying a data model for the
 ## original data also leads to a new
-## variable called '.injuries'
-mod_pois(injuries ~ age + sex + year,
-         data = injuries,
-         exposure = popn) |>
+## variable called '.divorces'
+mod_pois(divorces ~ age + sex + time,
+         data = divorces,
+         exposure = population) |>
   set_datamod_outcome_rr3() |>
   fit() |>
   augment()
