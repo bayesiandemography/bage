@@ -22,7 +22,7 @@ package.
 HMD
 }
 \description{
-An object of class \link[=ssvd]{bage_ssvd}
+An object of class \code{"bage_ssvd"}
 holding components extracted from mortality
 data from the
 \href{https://www.mortality.org}{Human Mortality Database}.

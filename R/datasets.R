@@ -158,7 +158,7 @@
 
 #' Components from OECD Labor Force Participation Data
 #'
-#' An object of class [bage_ssvd][ssvd()]
+#' An object of class `"bage_ssvd"`
 #' holding components extracted from labor force participation
 #' data from the
 #' [OECD Data Explorer](https://data-explorer.oecd.org).
@@ -177,7 +177,7 @@
 
 #' Components from Human Mortality Database
 #'
-#' An object of class [bage_ssvd][ssvd()]
+#' An object of class `"bage_ssvd"`
 #' holding components extracted from mortality
 #' data from the
 #' [Human Mortality Database](https://www.mortality.org).
