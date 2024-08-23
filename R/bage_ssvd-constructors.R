@@ -45,7 +45,7 @@
 #' data <- data_ssvd_hmd("hmd_statistics_20240226.zip")
 #' HMD <- ssvd(data)
 #' }
-#' @export
+#' @noRd
 ssvd <- function(data) {
     nms_valid <- c("type",
                    "labels_age",

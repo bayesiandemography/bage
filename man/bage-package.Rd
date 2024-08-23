@@ -53,11 +53,10 @@ and is fast.
 
 \strong{SVD-based modelling of age-profiles}
 \itemize{
-\item \code{\link[=ssvd]{ssvd()}} Create scaled SVD object summarising database
 \item \link[=components.bage_ssvd]{components()} Matrices and offsets from scaled SVD
 \item \link[=generate.bage_ssvd]{generate()} Random profiles
 \item \link{HMD} SVD of mortality rates from Human Mortality Database
-\item \link{LFP} SVD of Labor Force Participation rates from OECD
+\item \link{LFP} SVD of labor force participation rates from OECD
 }
 
 \strong{Data}

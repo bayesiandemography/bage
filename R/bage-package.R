@@ -42,11 +42,10 @@
 #'
 #' **SVD-based modelling of age-profiles**
 #'
-#' - [ssvd()] Create scaled SVD object summarising database
 #' - [components()][bage::components.bage_ssvd] Matrices and offsets from scaled SVD
 #' - [generate()][bage::generate.bage_ssvd] Random profiles
 #' - [HMD] SVD of mortality rates from Human Mortality Database
-#' - [LFP] SVD of Labor Force Participation rates from OECD
+#' - [LFP] SVD of labor force participation rates from OECD
 #'
 #' **Data**
 #'
