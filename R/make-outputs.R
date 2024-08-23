@@ -370,30 +370,30 @@ insert_after <- function(df, nm_after, x, nm_x) {
   ans
 }
   
-## HAS_TESTS
-#' Insert values for fixed parameters into
-#' random draws for non-fixed parameters
-#'
-#' @param draws A matrix containing draws
-#' for non-fixed parameters. Each row is one
-#' variable and each column is one draw.
-#' @param est Mean values for (fixed and unfixed)
-#' parameters. Output from TMB.
-#' @param is_fixed Logical vector indicator whether
-#' each (unlisted) value in 'est' is fixed
-#'
-#' @returns A matrix with more rows than 'draws',
-#' but same number of columns.
-#'
-#' @noRd
-insert_draws_known <- function(draws, est, is_fixed) {
-    est <- unlist(est)
-    ans <- matrix(nrow = length(is_fixed),
-                  ncol = ncol(draws))
-    ans[!is_fixed, ] <- draws
-    ans[is_fixed, ] <- est[is_fixed]
-    ans
-}
+## ## HAS_TESTS
+## #' Insert values for fixed parameters into
+## #' random draws for non-fixed parameters
+## #'
+## #' @param draws A matrix containing draws
+## #' for non-fixed parameters. Each row is one
+## #' variable and each column is one draw.
+## #' @param est Mean values for (fixed and unfixed)
+## #' parameters. Output from TMB.
+## #' @param is_fixed Logical vector indicator whether
+## #' each (unlisted) value in 'est' is fixed
+## #'
+## #' @returns A matrix with more rows than 'draws',
+## #' but same number of columns.
+## #'
+## #' @noRd
+## insert_draws_known <- function(draws, est, is_fixed) {
+##     est <- unlist(est)
+##     ans <- matrix(nrow = length(is_fixed),
+##                   ncol = ncol(draws))
+##     ans[!is_fixed, ] <- draws
+##     ans[is_fixed, ] <- est[is_fixed]
+##     ans
+## }
 
 
 #' Test Whether Two Objects Have the Same Class
