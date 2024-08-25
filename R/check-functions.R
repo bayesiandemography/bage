@@ -824,6 +824,40 @@ check_svd_time <- function(prior, nm, var_time) {
 
 
 ## HAS_TESTS
+#' Check 'vars_inner' Argument
+#'
+#' @param vars_inner
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_vars_inner <- function(vars_inner) {
+  ## is character
+  if (!is.character(vars_inner))
+    cli::cli_abort(c("{.arg vars_inner} is not a character vector.",
+                     i = "{.arg vars_inner} has class {.cls {class(vars_inner)}}."))
+  ## not length 0
+  if (identical(length(vars_inner), 0L))
+    cli::cli_abort("{.arg vars_inner} has length 0.")
+  ## no NAs
+  n_na <- sum(is.na(vars_inner))
+  if (n_na > 0L)
+    cli::cli_abort("{.arg vars_inner} has {cli::qty(n_na)} NA{?s}.")
+  ## blanks
+  n_blank <- sum(!nzchar(vars_inner))
+  if (n_blank > 0L)
+    cli::cli_abort("{.arg vars_inner} has {cli::qty(n_blank)} blank{?s}.")
+  ## duplicated
+  n_dup <- sum(duplicated(vars_inner))
+  if (n_dup > 0L)
+    cli::cli_abort("{.arg vars_inner} has {cli::qty(n_dup)} duplicate{?s}.")
+  ## return
+  invisible(TRUE)
+}
+
+
+
+## HAS_TESTS
 #' Check that 'widths' consists of numbers between 0 and 1
 #'
 #' @param width s

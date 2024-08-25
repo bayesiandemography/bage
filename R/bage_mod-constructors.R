@@ -479,6 +479,7 @@ mod_helper <- function(formula, data, n_draw) {
        terms_effect = terms_effect,
        mean_disp = 1,
        n_draw = n_draw,
+       vars_inner = NULL,
        draws_effectfree = NULL,
        draws_hyper = NULL,
        draws_hyperrand = NULL,
