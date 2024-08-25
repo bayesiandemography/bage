@@ -2059,7 +2059,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_lin", {
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ Lin()) |>
-                  fit(mod)
+                  fit()
   comp <- components(mod)
   ans_obtained <- infer_trend_cyc_seas_err_one(prior = mod$priors[["sex:time"]],
                                                dimnames_term = mod$dimnames_terms[["sex:time"]],
@@ -2083,7 +2083,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_linar", {
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ Lin_AR()) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2122,7 +2122,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasfix", {
                   exposure = popn) |>
                   set_prior(sex:time ~ RW_Seas(n_seas = 3, s_seas = 0)) |>
                   set_n_draw(n = 10) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2168,7 +2168,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ RW_Seas(n_seas = 3)) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2214,7 +2214,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasfix", {
                   exposure = popn) |>
                   set_prior(sex:time ~ RW2_Seas(n_seas = 3, s_seas = 0)) |>
                   set_n_draw(n = 10) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2260,7 +2260,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
                   exposure = popn) |>
                   set_prior(sex:time ~ RW2_Seas(n_seas = 3)) |>
                   set_n_draw(n_draw = 10) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2308,7 +2308,7 @@ test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_linar",
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ Lin_AR()) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2346,7 +2346,7 @@ test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_rwseasf
                   exposure = popn) |>
                   set_prior(sex:time ~ RW_Seas(n_seas = 3, s_seas = 0)) |>
                   set_n_draw(n = 10) |>
-                  fit(mod)
+                  fit()
   components <- components(mod)
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
@@ -2384,7 +2384,7 @@ test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_rwseasv
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ RW_Seas(n_seas = 3)) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2422,7 +2422,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasfix", {
                   exposure = popn) |>
                   set_prior(sex:time ~ RW2_Seas(n_seas = 3, s_seas = 0)) |>
                   set_n_draw(n = 10) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)
@@ -2460,7 +2460,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
                   exposure = popn) |>
                   set_prior(sex:time ~ RW2_Seas(n_seas = 3)) |>
                   set_n_draw(n_draw = 10) |>
-                  fit(mod)
+                  fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
   level <- make_level_components(mod)

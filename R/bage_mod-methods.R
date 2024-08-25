@@ -560,9 +560,15 @@ generics::fit
 #'
 #' Calculate the posterior distribution for a model.
 #'
+#' @section Two-step estimation
+#'
+#' TODO - WRITE THIS
+#'
 #' @param object A `bage_mod` object,
-#' typically created with [mod_pois()],
+#' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
+#' @param vars_inner Names of variables to use in
+#' two-step estimation. See below for details.
 #' @param ... Not currently used.
 #'
 #' @returns A `bage_mod` object
@@ -596,100 +602,15 @@ generics::fit
 #' ## extract hyper-parameters
 #' comp <- components(mod)
 #' comp
-#' @export    
-fit.bage_mod <- function(object, ...) {
-  object <- unfit(object)
-  ## data
-  outcome <- object$outcome
-  offset <- object$offset
-  terms_effect <- object$terms_effect
-  i_lik <- make_i_lik_mod(object)
-  is_in_lik <- make_is_in_lik(object)
-  terms_effectfree <- make_terms_effectfree(object)
-  uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(object)
-  matrices_effectfree_effect <- make_matrices_effectfree_effect(object)
-  uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(object)
-  offsets_effectfree_effect <- make_offsets_effectfree_effect(object)
-  matrices_effect_outcome <- object$matrices_effect_outcome
-  i_prior <- make_i_prior(object)
-  uses_hyper <- make_uses_hyper(object)
-  terms_hyper <- make_terms_hyper(object)
-  uses_hyperrand <- make_uses_hyperrand(object)
-  terms_hyperrand <- make_terms_hyperrand(object)
-  const <- make_const(object)
-  terms_const <- make_terms_const(object)
-  matrices_along_by_effectfree <- make_matrices_along_by_effectfree(object)
-  mean_disp <- object$mean_disp
-  has_disp <- mean_disp > 0
-  data <- list(i_lik = i_lik,
-               outcome = outcome,
-               offset = offset,
-               is_in_lik = is_in_lik,
-               terms_effect = terms_effect,
-               terms_effectfree = terms_effectfree,
-               uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
-               matrices_effectfree_effect = matrices_effectfree_effect,
-               uses_offset_effectfree_effect = uses_offset_effectfree_effect,
-               offsets_effectfree_effect = offsets_effectfree_effect,
-               matrices_effect_outcome = matrices_effect_outcome,
-               i_prior = i_prior,
-               uses_hyper = uses_hyper,
-               terms_hyper = terms_hyper,
-               uses_hyperrand = uses_hyperrand,
-               terms_hyperrand = terms_hyperrand,
-               consts = const, ## 'const' is reserved word in C
-               terms_consts = terms_const,
-               matrices_along_by_effectfree = matrices_along_by_effectfree,
-               mean_disp = mean_disp)
-  ## parameters
-  effectfree <- make_effectfree(object)
-  hyper <- make_hyper(object)
-  hyperrand <- make_hyperrand(object)
-  log_disp <- 0
-  parameters <- list(effectfree = effectfree,   
-                     hyper = hyper,
-                     hyperrand = hyperrand,
-                     log_disp = log_disp)
-  ## MakeADFun
-  map <- make_map(object)
-  random <- make_random(object)
-  has_random_effects <- !is.null(random)
-  f <- TMB::MakeADFun(data = data,
-                      parameters = parameters,
-                      map = map,
-                      DLL = "bage",
-                      random = random,
-                      silent = TRUE)
-  ## optimise
-  stats::nlminb(start = f$par,
-                objective = f$fn,
-                gradient = f$gr,
-                silent = TRUE)
-  ## extract results
-  if (has_random_effects)
-    sdreport <- TMB::sdreport(f,
-                              bias.correct = TRUE,
-                              getJointPrecision = TRUE)
+#' @export
+fit.bage_mod <- function(object, vars_inner = NULL, ...) {
+  has_vars_inner <- !is.null(vars_inner)
+  if (has_vars_inner)
+    fit_inner_outer(mod = object, vars_inner = vars_inner)
   else
-    sdreport <- TMB::sdreport(f) 
-  est <- as.list(sdreport, what = "Est")
-  attr(est, "what") <- NULL
-  is_fixed <- make_is_fixed(est = est, map = map)
-  if (has_random_effects)
-    prec <- sdreport$jointPrecision
-  else
-    prec <- solve(sdreport$cov.fixed) ## should be very low dimension
-  R_prec <- tryCatch(chol(prec), error = function(e) e)
-  if (is.matrix(R_prec))
-    object$R_prec <- R_prec
-  else
-    object$scaled_eigen <- make_scaled_eigen(prec) ## nocov - can't figure out how to test this
-  object$est <- est
-  object$is_fixed <- is_fixed
-  if (object$store_draws)
-    object <- make_stored_draws(object)
-  object
+    fit_default(object)
 }
+
 
 
 ## 'forecast' -----------------------------------------------------------------
@@ -1149,7 +1070,7 @@ is_fitted <- function(x) {
 ## HAS_TESTS
 #' @export
 is_fitted.bage_mod <- function(x)
-  !is.null(x$est)
+  !is.null(x$draws_effectfree)
 
 
 ## 'make_i_lik' ---------------------------------------------------------------
@@ -1749,12 +1670,13 @@ tidy.bage_mod <- function(x, ...) {
     ans <- tibble::tibble(term, spec, n)
     is_fitted <- is_fitted(x)
     if (is_fitted) {
-        effectfree <- x$est$effectfree
-        matrix <- make_combined_matrix_effectfree_effect(x)
-        offset <- make_combined_offset_effectfree_effect(x)
-        effect <- matrix %*% effectfree + offset
-        effect <- split(effect, terms)
-        ans[["sd"]] <- vapply(effect, stats::sd, 0)
+      comp <- components(x)
+      is_effect <- comp$component == "effect"
+      effect <- comp$.fitted[is_effect]
+      effect <- rvec::draws_median(effect)
+      term <- comp$term[is_effect]
+      effect <- split(effect, term)
+      ans[["sd"]] <- vapply(effect, stats::sd, 0)
     }
     ans <- tibble::tibble(ans)
     ans

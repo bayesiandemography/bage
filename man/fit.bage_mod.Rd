@@ -4,7 +4,7 @@
 \alias{fit.bage_mod}
 \title{Fit a Model}
 \usage{
-\method{fit}{bage_mod}(object, ...)
+\method{fit}{bage_mod}(object, vars_inner = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{bage_mod} object,

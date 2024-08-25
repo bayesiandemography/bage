@@ -787,7 +787,6 @@ Type objective_function<Type>::operator() ()
       }
     }
   }
-
   // contribution to log posterior from dispersion term
   if (has_disp) {
     Type rate_disp = 1 / mean_disp;
