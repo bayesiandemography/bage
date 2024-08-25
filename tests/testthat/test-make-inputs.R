@@ -1411,6 +1411,33 @@ test_that("'make_outcome' works with valid inputs", {
 })
 
 
+## 'make_point_est_effects' ---------------------------------------------------
+
+test_that("'make_point_est_effects' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  comp <- components(mod)
+  ans_obtained <- make_point_est_effects(comp)
+  int <- comp$.fitted[comp$term == "(Intercept)"]
+  age <- comp$.fitted[comp$term == "age" & comp$component == "effect"]
+  sex <- comp$.fitted[comp$term == "sex" & comp$component == "effect"]
+  agesex <- comp$.fitted[comp$term == "age:sex" & comp$component == "effect"]
+  ans_expected <- list("(Intercept)" = rvec::draws_median(int),
+                       age = rvec::draws_median(age),
+                       sex = rvec::draws_median(sex),
+                       "age:sex" = rvec::draws_median(agesex))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'make_priors' --------------------------------------------------------------
 
 test_that("'make_priors' works with valid inputs - has intercept", {
@@ -1571,6 +1598,71 @@ test_that("'make_terms_hyperrand' works", {
 })
 
 
+## 'make_use_term' ------------------------------------------------------------
+
+test_that("'make_use_term' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:3,
+                      sex = c("F", "M"),
+                      time = 1:3,
+                      deaths = 3)
+  mod <- mod_pois(deaths ~ age * sex + age * region + sex * time,
+                  data = data,
+                  exposure = 1)
+  vars_inner <- c("sex", "age")
+  ans_obtained <- make_use_term(mod = mod, vars_inner = vars_inner)
+  ans_expected <- c(T, T, T, F, F, T, F, F)
+  names(ans_expected) <- names(mod$priors)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_use_term' throws correct error when 'vars_inner' has invalid variable", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:3,
+                      sex = c("F", "M"),
+                      time = 1:3,
+                      deaths = 3)
+  mod <- mod_pois(deaths ~ age * sex + age * region + sex * time,
+                  data = data,
+                  exposure = 1)
+  vars_inner <- c("sex", "wrong")
+  expect_error(make_use_term(mod = mod, vars_inner = vars_inner),
+               "`vars_inner` has variable not found in model.")
+})
+
+test_that("'make_use_term' throws correct error when cannot form term from 'vars_inner'", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:3,
+                      sex = c("F", "M"),
+                      time = 1:3,
+                      deaths = 3)
+  mod <- mod_pois(deaths ~ age : sex + age : region + sex * time,
+                  data = data,
+                  exposure = 1)
+  vars_inner <- "age"
+  expect_error(make_use_term(mod = mod, vars_inner = vars_inner),
+               "No terms in model can be formed from `vars_inner`.")
+})
+
+test_that("'make_use_term' throws correct error when can form all terms from 'vars_inner'", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:3,
+                      sex = c("F", "M"),
+                      time = 1:3,
+                      deaths = 3)
+  mod <- mod_pois(deaths ~ age : sex + age : region + sex * time,
+                  data = data,
+                  exposure = 1)
+  vars_inner <- c("age", "sex", "region", "time")
+  expect_error(make_use_term(mod = mod, vars_inner = vars_inner),
+               "All terms in model can be formed from `vars_inner`.")
+})
+
+
 ## 'make_uses_hyper' ----------------------------------------------------------
 
 test_that("'make_uses_hyper' works with valid inputs", {
@@ -1705,6 +1797,55 @@ test_that("'print_prior_header' works", {
 
 test_that("'print_prior_slot' works", {
   expect_snapshot(print_prior_slot(AR(), nm = "n_coef", slot = "n_coef"))
+})
+
+
+## 'reduce_model_terms' -------------------------------------------------------
+
+test_that("'reduce_model' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:3,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  set.seed(1)
+  mod <- mod_pois(deaths ~ age * sex + sex * region,
+                  data = data,
+                  exposure = popn)
+  use_term <- make_use_term(mod, vars_inner = c("age", "sex"))
+  ans_obtained <- reduce_model_terms(mod, use_term = use_term)
+  set.seed(1)
+  ans_expected <- mod_pois(deaths ~ age * sex,
+                           data = data,
+                           exposure = popn)
+  ans_expected$formula <- ans_obtained$formula
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'set_priors_known' ---------------------------------------------------------
+
+test_that("'set_priors_known' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  comp <- components(mod)
+  prior_values <- make_point_est_effects(comp)
+  ans_obtained <- set_priors_known(mod, prior_values = prior_values)
+  ans_expected <- mod |>
+  set_prior((Intercept) ~ Known(prior_values[["(Intercept)"]])) |>
+  set_prior(age ~ Known(prior_values[["age"]])) |>
+  set_prior(sex ~ Known(prior_values[["sex"]])) |>
+  set_prior(age:sex ~ Known(prior_values[["age:sex"]]))
+  expect_equal(ans_obtained, ans_expected)
 })
 
 

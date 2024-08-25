@@ -832,6 +832,44 @@ test_that("'check_svd_time'  throws correct error when time variable not identif
 })
 
 
+## 'check_vars_inner' ---------------------------------------------------------
+
+test_that("'check_vars_inner' returns TRUE with valid inputs", {
+  expect_true(check_vars_inner(c("age", "sex")))
+})
+
+test_that("'check_vars_inner' throws correct error with non-character", {
+  expect_error(check_vars_inner(1:2),
+               "`vars_inner` is not a character vector.")
+})
+
+test_that("'check_vars_inner' throws correct error with length 0", {
+  expect_error(check_vars_inner(character()),
+               "`vars_inner` has length 0.")
+})
+
+test_that("'check_vars_inner' throws correct error with NA", {
+  expect_error(check_vars_inner(c("age", NA)),
+               "`vars_inner` has NA.")
+  expect_error(check_vars_inner(c("age", NA, NA)),
+               "`vars_inner` has NAs.")
+})
+
+test_that("'check_vars_inner' throws correct error with blanks", {
+  expect_error(check_vars_inner(c("age", "")),
+               "`vars_inner` has blank.")
+  expect_error(check_vars_inner(c("age", "", "")),
+               "`vars_inner` has blanks.")
+})
+
+test_that("'check_vars_inner' throws correct error with duplicates", {
+  expect_error(check_vars_inner(c("age", "age")),
+               "`vars_inner` has duplicate.")
+  expect_error(check_vars_inner(c("age", "age", "age")),
+               "`vars_inner` has duplicates.")
+})
+
+
 ## 'check_widths' -------------------------------------------------------------
 
 test_that("'check_widths' returns TRUE with valid inputs", {

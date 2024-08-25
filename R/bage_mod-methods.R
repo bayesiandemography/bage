@@ -1664,7 +1664,6 @@ generics::tidy
 tidy.bage_mod <- function(x, ...) {
     priors <- x$priors
     n <- x$lengths_effect
-    terms <- x$terms_effect
     term <- names(priors)
     spec <- vapply(priors, str_call_prior, "")
     ans <- tibble::tibble(term, spec, n)
@@ -1672,11 +1671,11 @@ tidy.bage_mod <- function(x, ...) {
     if (is_fitted) {
       comp <- components(x)
       is_effect <- comp$component == "effect"
-      effect <- comp$.fitted[is_effect]
-      effect <- rvec::draws_median(effect)
-      term <- comp$term[is_effect]
-      effect <- split(effect, term)
-      ans[["sd"]] <- vapply(effect, stats::sd, 0)
+      effects <- comp$.fitted[is_effect]
+      effects <- rvec::draws_median(effects)
+      terms <- comp$term[is_effect]
+      effects <- split(effects, terms)
+      ans[["sd"]] <- vapply(effects, stats::sd, 0)
     }
     ans <- tibble::tibble(ans)
     ans

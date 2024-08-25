@@ -4,8 +4,8 @@ fit_inner_outer <- function(mod, vars_inner) {
   mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
   mod_inner <- fit_default(mod_inner)
   comp_inner <- components(mod_inner)
-  point_est_terms_inner <- make_point_est_terms(comp_inner)
-  mod_outer <- set_priors_known(mod = mod, vals = point_est_inner)
+  point_est_effects_inner <- make_point_est_effects(comp_inner)
+  mod_outer <- set_priors_known(mod = mod, vals = point_est_effects_inner)
   use_term[] <- TRUE
   mod_outer <- fit_default(mod_outer)
   mod <- make_stored_draws_inner_outer(mod = mod,
@@ -15,17 +15,14 @@ fit_inner_outer <- function(mod, vars_inner) {
 }
 
 
-reduce_model_terms <- function(mod, use_term) {
-  nms_components <- "xxx"
-}
 
-
-
+  
 
 #' @noRd
 make_stored_draws_inner_outer <- function(mod, mod_inner, mod_outer, use_term) {
-  n_term <- length(use_term)
-  nms_term <- names(mod$priors)
+  priors <- mod$priors
+  n_term <- length(priors)
+  nms_term <- names(priors)
   draws_effectfree <- vector(mode = "list", length = n_term)
   draws_hyper <- vector(mode = "list", length = n_term)
   draws_hyperrand <- vector(mode = "list", length = n_term)
@@ -55,52 +52,19 @@ make_stored_draws_inner_outer <- function(mod, mod_inner, mod_outer, use_term) {
       draws_hyperrand[[i_term]] <- draws_hyperrand_outer[is_hyperrand, ]
     }
   }
-  mod$draws_effectfree <- vctrs::vec_rbind(!!!draws_effectfree)
-  mod$draws_hyper <- vctrs::vec_rbind(!!!draws_hyper)
-  mod$draws_hyperrand <- vctrs::vec_rbind(!!!draws_hyperrand)
+  draws_effectfree <- vctrs::vec_rbind(!!!draws_effectfree)
+  draws_hyper <- vctrs::vec_rbind(!!!draws_hyper)
+  draws_hyperrand <- vctrs::vec_rbind(!!!draws_hyperrand)
+  mod$draws_effectfree <- draws_effectfree
+  mod$draws_hyper <- draws_hyper
+  mod$draws_hyperrand <- draws_hyperrand
   if (has_disp(mod))
     mod$draws_disp <- mod_outer$draws_disp
   mod
 }
 
+  
 
-
-
-
-check_vars_inner <- function(vars_inner, vars) {
-  ## duplicated
-  ## NAs
-  ## blanks
-  in_vars <- vars_inner %in% vars
-  i_not_in_vars <- match(FALSE, in_vars, nomatch = 0L)
-  if (i_not_in_vars > 0L) {
-    cli::cli_abort(c("{.arg {vars_inner[[i_not_in_vars]]}} is not a variable in the model.",
-                     i = "Model variables: {.val {vars}}."))
-  }
-  invisible(TRUE)
-}  
-
-get_vars <- function(formula) {
-  factors <- attr(terms(formula), "factors")
-  rownames(factors)[-1L]
-}
-
-make_is_term_inner <- function(formula, vars_inner) {
-  factors <- attr(terms(formula), "factors")
-  rn <- rownames(factors)
-  apply(factors, 2L, function(i) all(rn[i] %in% vars_inner))
-}
-
-
-make_include_term <- function(mod) {
-  priors <- mod$priors
-  has_vars_inner <- !is.null(vars_inner)
-  if (has_vars_inner)
-    ans <- make_is_term_inner(mod)
-  else
-    ans <- rep(TRUE, times = length(priors))
-  ans
-}
 
   
   

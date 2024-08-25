@@ -1131,6 +1131,25 @@ make_outcome <- function(formula, data) {
 }
 
 
+#' Derive Point Estimates for Effects
+#'
+#' @param components Output from call
+#' to 'components()'. A tibble.
+#'
+#' @returns A named list of numeric vectors
+#'
+#' @noRd
+make_point_est_effects <- function(components) {
+  is_effect <- components$component == "effect"
+  term <- components$term[is_effect]
+  .fitted <- components$.fitted[is_effect]
+  .fitted <- rvec::draws_median(.fitted)
+  ans <- split(x = .fitted, f = term)
+  ans <- ans[unique(term)] ## 'split' orders result
+  ans
+}
+
+
 ## HAS_TESTS
 #' Make default priors
 #'
@@ -1229,6 +1248,51 @@ make_spline_matrix <- function(n_along, n_comp) {
   Matrix::sparseMatrix(i = row(ans),
                        j = col(ans),
                        x = as.double(ans))
+}
+
+
+## HAS_TESTS
+#' Use 'vars_inner' to Construct 'use_term'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vars_inner Character vectors with
+#' names of variables
+#'
+#' @returns A logical vector
+#'
+#' @noRd
+make_use_term <- function(mod, vars_inner) {
+  check_vars_inner(vars_inner)
+  formula <- mod$formula
+  priors <- mod$priors
+  nms_priors <- names(priors)
+  factors <- attr(terms(formula), "factors")
+  factors <- factors[-1L, ] ## drop response
+  vars <- rownames(factors)
+  in_vars <- vars_inner %in% vars
+  n_not_in_mod <- sum(!in_vars)
+  if (n_not_in_mod > 0L) {
+    cli::cli_abort(c(paste("{.arg vars_inner} has {cli::qty(n_not_in_mod)} variable{?s}",
+                           "not found in model."),
+                     i = "{.arg vars_inner}: {.val {vars_inner}}.",
+                     i = "Variables in model: {.val {vars}}."))
+  }
+  ans <- apply(factors > 0, 2L, function(i) all(vars[i] %in% vars_inner))
+  terms_model <- setdiff(nms_priors, "(Intercept)")
+  if (!any(ans))
+    cli::cli_abort(c("No terms in model can be formed from {.arg vars_inner}.",
+                     i = "Terms in model: {.val {terms_model}}.",
+                     i = "{.arg var_inner}: {.val {vars_inner}}."))
+  if (all(ans))
+    cli::cli_abort(c("All terms in model can be formed from {.arg vars_inner}.",
+                     i = "No terms left over to use in 'outer' model.",
+                     i = "Terms in model: {.val {terms_model}}.",
+                     i = "{.arg var_inner}: {.val {vars_inner}}."))
+  has_intercept <- attr(terms(formula), "intercept")
+  if (has_intercept)
+    ans <- c(TRUE, ans)
+  names(ans) <- nms_priors
+  ans
 }
 
 
@@ -1475,6 +1539,46 @@ n_comp_svd <- function(n_comp, nm_n_comp, ssvd) {
 
 
 ## HAS_TESTS
+#' Discard Terms from a Model
+#'
+#' Discard terms for which 'use_term' is FALSE.
+#'
+#' @param mod Object of class `bage_mod`
+#' @param use_term Logical vector
+#'
+#' @returns Modified version of 'mod'
+#' 
+#' @noRd
+reduce_model_terms <- function(mod, use_term) {
+  mod <- unfit(mod)
+  mod$priors <- mod$priors[use_term]
+  mod$dimnames_terms <- mod$dimnames_terms[use_term]
+  mod$matrices_effect_outcome <- mod$matrices_effect_outcome[use_term]
+  mod$lengths_effect <- mod$lengths_effect[use_term]
+  levels_effect <- mod$levels_effect
+  terms_effect <- mod$terms_effect
+  levels_effect <- split(levels_effect, terms_effect)
+  terms_effect <- split(terms_effect, terms_effect)
+  levels_effect <- levels_effect[use_term]
+  terms_effect <- terms_effect[use_term]
+  levels_effect <- do.call(c, levels_effect)
+  terms_effect <- do.call(c, terms_effect)
+  levels_effect <- unname(levels_effect)
+  terms_effect <- unname(terms_effect)
+  terms_effect <- factor(terms_effect)
+  mod$levels_effect <- levels_effect
+  mod$terms_effect <- terms_effect
+  formula <- mod$formula
+  nms_terms <- names(mod$priors)
+  formula_new <- paste(". ~", paste(nms_terms, collapse = " + "))
+  formula_new <- as.formula(formula_new)
+  formula <- update(formula, formula_new)
+  mod$formula <- formula
+  mod
+}
+
+
+## HAS_TESTS
 #' Standard Printing of Prior
 #'
 #' @param prior Object of class 'bage_mod'
@@ -1505,6 +1609,7 @@ print_prior <- function(prior, nms, slots) {
 print_prior_header <- function(prior)
   cat(" ", str_call_prior(prior), "\n")
 
+
 ## HAS_TESTS
 #' Print Single Slot from Prior
 #'
@@ -1522,6 +1627,29 @@ print_prior_slot <- function(prior, nm, slot) {
     val_slot <- "NULL"
   cat(sprintf("% *s: %s\n", n_offset, nm, val_slot))
 }  
+
+
+#' Replace Existing Priors with "Known" Priors
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param values Named list with 'values'
+#' vectors for priors
+#'
+#' @returns A modified version of 'mod'
+#'
+#' @noRd
+set_priors_known <- function(mod, prior_values) {
+  mod <- unfit(mod)
+  priors <- mod$priors
+  nms <- names(prior_values)
+  for (nm in nms) {
+    values <- prior_values[[nm]]
+    priors[[nm]] <- Known(values)
+  }
+  mod$priors <- priors
+  mod
+}
+
 
 ## HAS_TESTS
 #' Compile Args for 'along' Part of Prior for 'str_call_prior'
