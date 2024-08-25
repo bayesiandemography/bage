@@ -1,3 +1,44 @@
+
+## 'combine_stored_draws_inner_outer' -----------------------------------------
+
+test_that("'combine_stored_draws_inner_outer' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4,
+                      sex = c("F", "M"),
+                      region = c("a", "b"),
+                      time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex  + region * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, region:time ~ Lin())
+  mod <- set_n_draw(mod, n_draw = 10)
+  vars_inner <- c("age", "sex")
+  use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
+  mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
+  mod_inner <- fit_default(mod_inner)
+  mod_outer <- mod
+  mod_outer <- fit_default(mod_outer)
+  mod_comb <- combine_stored_draws_inner_outer(mod = mod,
+                                               mod_inner = mod_inner,
+                                               mod_outer = mod_outer,
+                                               use_term = use_term)
+  is_inner <- mod_comb$terms_effect %in% c("(Intercept)", "age", "sex", "age:sex")
+  expect_identical(mod_comb$draws_effectfree[is_inner, ],
+                   mod_inner$draws_effectfree)
+  expect_identical(mod_comb$draws_effectfree[!is_inner, ],
+                   mod_outer$draws_effectfree[!is_inner, ])
+  expect_identical(nrow(mod_comb$draws_hyper),
+                   nrow(mod_outer$draws_hyper))
+  expect_identical(nrow(mod_comb$draws_hyperrand),
+                   nrow(mod_outer$draws_hyperrand))
+  expect_identical(mod_comb$draws_disp,
+                   mod_outer$draws_disp)
+})
+
+
 ## 'default_prior' ------------------------------------------------------------
 
 test_that("'default_prior' works with ordinary term", {

@@ -1,5 +1,68 @@
 
 ## HAS_TESTS
+#' Combined Stored Draws from Two Models
+#'
+#' @param mod Model receiving the draws
+#' @param mod_inner Model for which use_term is TRUE
+#' @param mod_outer Model for which use_term is FALSE
+#' @param use_term Logical vector
+#'
+#' @returns Modified version of 'mod'
+#' 
+#' @noRd
+combine_stored_draws_inner_outer <- function(mod, mod_inner, mod_outer, use_term) {
+  priors <- mod$priors
+  n_term <- length(priors)
+  nms_term <- names(priors)
+  draws_effectfree <- vector(mode = "list", length = n_term)
+  draws_hyper <- vector(mode = "list", length = n_term)
+  draws_hyperrand <- vector(mode = "list", length = n_term)
+  terms_effectfree_inner <- make_terms_effectfree(mod_inner)
+  terms_effectfree_outer <- make_terms_effectfree(mod_outer)
+  terms_hyper_inner <- make_terms_hyper(mod_inner)
+  terms_hyper_outer <- make_terms_hyper(mod_outer)
+  terms_hyperrand_inner <- make_terms_hyperrand(mod_inner)
+  terms_hyperrand_outer <- make_terms_hyperrand(mod_outer)
+  draws_effectfree_inner <- mod_inner$draws_effectfree
+  draws_effectfree_outer <- mod_outer$draws_effectfree
+  draws_hyper_inner <- mod_inner$draws_hyper
+  draws_hyper_outer <- mod_outer$draws_hyper
+  draws_hyperrand_inner <- mod_inner$draws_hyperrand
+  draws_hyperrand_outer <- mod_outer$draws_hyperrand
+  for (i_term in seq_len(n_term)) {
+    nm_term <- nms_term[[i_term]]
+    use_inner <- use_term[[i_term]]
+    if (use_inner) {
+      is_term_effectfree <- terms_effectfree_inner == nm_term
+      draws_effectfree[[i_term]] <- draws_effectfree_inner[is_term_effectfree, , drop = FALSE]
+      is_term_hyper <- terms_hyper_inner == nm_term
+      draws_hyper[[i_term]] <- draws_hyper_inner[is_term_hyper, , drop = FALSE]
+      is_term_hyperrand <- terms_hyperrand_inner == nm_term
+      draws_hyperrand[[i_term]] <- draws_hyperrand_inner[is_term_hyperrand, , drop = FALSE]
+    }
+    else {
+      is_term_effectfree <- terms_effectfree_outer == nm_term
+      draws_effectfree[[i_term]] <- draws_effectfree_outer[is_term_effectfree, , drop = FALSE]
+      is_term_hyper <- terms_hyper_outer == nm_term
+      draws_hyper[[i_term]] <- draws_hyper_outer[is_term_hyper, , drop = FALSE]
+      is_term_hyperrand <- terms_hyperrand_outer == nm_term
+      draws_hyperrand[[i_term]] <- draws_hyperrand_outer[is_term_hyperrand, , drop = FALSE]
+    }
+  }
+  draws_effectfree <- do.call(rbind, draws_effectfree)
+  draws_hyper <- do.call(rbind, draws_hyper)
+  draws_hyperrand <- do.call(rbind, draws_hyperrand)
+  mod$draws_effectfree <- draws_effectfree
+  mod$draws_hyper <- draws_hyper
+  mod$draws_hyperrand <- draws_hyperrand
+  if (has_disp(mod))
+    mod$draws_disp <- mod_outer$draws_disp
+  mod
+}
+
+
+
+## HAS_TESTS
 #' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term
@@ -1252,51 +1315,6 @@ make_spline_matrix <- function(n_along, n_comp) {
 
 
 ## HAS_TESTS
-#' Use 'vars_inner' to Construct 'use_term'
-#'
-#' @param mod Object of class 'bage_mod'
-#' @param vars_inner Character vectors with
-#' names of variables
-#'
-#' @returns A logical vector
-#'
-#' @noRd
-make_use_term <- function(mod, vars_inner) {
-  check_vars_inner(vars_inner)
-  formula <- mod$formula
-  priors <- mod$priors
-  nms_priors <- names(priors)
-  factors <- attr(terms(formula), "factors")
-  factors <- factors[-1L, ] ## drop response
-  vars <- rownames(factors)
-  in_vars <- vars_inner %in% vars
-  n_not_in_mod <- sum(!in_vars)
-  if (n_not_in_mod > 0L) {
-    cli::cli_abort(c(paste("{.arg vars_inner} has {cli::qty(n_not_in_mod)} variable{?s}",
-                           "not found in model."),
-                     i = "{.arg vars_inner}: {.val {vars_inner}}.",
-                     i = "Variables in model: {.val {vars}}."))
-  }
-  ans <- apply(factors > 0, 2L, function(i) all(vars[i] %in% vars_inner))
-  terms_model <- setdiff(nms_priors, "(Intercept)")
-  if (!any(ans))
-    cli::cli_abort(c("No terms in model can be formed from {.arg vars_inner}.",
-                     i = "Terms in model: {.val {terms_model}}.",
-                     i = "{.arg var_inner}: {.val {vars_inner}}."))
-  if (all(ans))
-    cli::cli_abort(c("All terms in model can be formed from {.arg vars_inner}.",
-                     i = "No terms left over to use in 'outer' model.",
-                     i = "Terms in model: {.val {terms_model}}.",
-                     i = "{.arg var_inner}: {.val {vars_inner}}."))
-  has_intercept <- attr(terms(formula), "intercept")
-  if (has_intercept)
-    ans <- c(TRUE, ans)
-  names(ans) <- nms_priors
-  ans
-}
-
-
-## HAS_TESTS
 #' Make factor identifying components of 'const'
 #'
 #' Make factor the same length as 'const',
@@ -1435,6 +1453,51 @@ make_terms_hyperrand <- function(mod) {
   lengths <- make_lengths_hyperrand(mod)
   ans <- rep(nms_terms, times = lengths)
   ans <- factor(ans, levels = nms_terms)
+  ans
+}
+
+
+## HAS_TESTS
+#' Use 'vars_inner' to Construct 'use_term'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param vars_inner Character vectors with
+#' names of variables
+#'
+#' @returns A logical vector
+#'
+#' @noRd
+make_use_term <- function(mod, vars_inner) {
+  check_vars_inner(vars_inner)
+  formula <- mod$formula
+  priors <- mod$priors
+  nms_priors <- names(priors)
+  factors <- attr(terms(formula), "factors")
+  factors <- factors[-1L, ] ## drop response
+  vars <- rownames(factors)
+  in_vars <- vars_inner %in% vars
+  n_not_in_mod <- sum(!in_vars)
+  if (n_not_in_mod > 0L) {
+    cli::cli_abort(c(paste("{.arg vars_inner} has {cli::qty(n_not_in_mod)} variable{?s}",
+                           "not found in model."),
+                     i = "{.arg vars_inner}: {.val {vars_inner}}.",
+                     i = "Variables in model: {.val {vars}}."))
+  }
+  ans <- apply(factors > 0, 2L, function(i) all(vars[i] %in% vars_inner))
+  terms_model <- setdiff(nms_priors, "(Intercept)")
+  if (!any(ans))
+    cli::cli_abort(c("No terms in model can be formed from {.arg vars_inner}.",
+                     i = "Terms in model: {.val {terms_model}}.",
+                     i = "{.arg var_inner}: {.val {vars_inner}}."))
+  if (all(ans))
+    cli::cli_abort(c("All terms in model can be formed from {.arg vars_inner}.",
+                     i = "No terms left over to use in 'outer' model.",
+                     i = "Terms in model: {.val {terms_model}}.",
+                     i = "{.arg var_inner}: {.val {vars_inner}}."))
+  has_intercept <- attr(terms(formula), "intercept")
+  if (has_intercept)
+    ans <- c(TRUE, ans)
+  names(ans) <- nms_priors
   ans
 }
 
