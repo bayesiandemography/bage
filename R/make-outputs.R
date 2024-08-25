@@ -306,6 +306,101 @@ draw_vals_components_fitted <- function(mod, standardize) {
 }
 
   
+#' Default Method for Fitting a Model
+#'
+#' @param object A `bage_mod` object.
+#' typically created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#'
+#' @returns A `bage_mod` object
+#'
+#' @noRd
+fit_default <- function(mod) {
+  mod <- unfit(mod)
+  ## data
+  outcome <- mod$outcome
+  offset <- mod$offset
+  terms_effect <- mod$terms_effect
+  i_lik <- make_i_lik_mod(mod)
+  is_in_lik <- make_is_in_lik(mod)
+  terms_effectfree <- make_terms_effectfree(mod)
+  uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
+  matrices_effectfree_effect <- make_matrices_effectfree_effect(mod)
+  uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(mod)
+  offsets_effectfree_effect <- make_offsets_effectfree_effect(mod)
+  matrices_effect_outcome <- mod$matrices_effect_outcome
+  i_prior <- make_i_prior(mod)
+  uses_hyper <- make_uses_hyper(mod)
+  terms_hyper <- make_terms_hyper(mod)
+  uses_hyperrand <- make_uses_hyperrand(mod)
+  terms_hyperrand <- make_terms_hyperrand(mod)
+  const <- make_const(mod)
+  terms_const <- make_terms_const(mod)
+  matrices_along_by_effectfree <- make_matrices_along_by_effectfree(mod)
+  mean_disp <- mod$mean_disp
+  has_disp <- mean_disp > 0
+  data <- list(i_lik = i_lik,
+               outcome = outcome,
+               offset = offset,
+               is_in_lik = is_in_lik,
+               terms_effect = terms_effect,
+               terms_effectfree = terms_effectfree,
+               uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
+               matrices_effectfree_effect = matrices_effectfree_effect,
+               uses_offset_effectfree_effect = uses_offset_effectfree_effect,
+               offsets_effectfree_effect = offsets_effectfree_effect,
+               matrices_effect_outcome = matrices_effect_outcome,
+               i_prior = i_prior,
+               uses_hyper = uses_hyper,
+               terms_hyper = terms_hyper,
+               uses_hyperrand = uses_hyperrand,
+               terms_hyperrand = terms_hyperrand,
+               consts = const, ## 'const' is reserved word in C
+               terms_consts = terms_const,
+               matrices_along_by_effectfree = matrices_along_by_effectfree,
+               mean_disp = mean_disp)
+  ## parameters
+  effectfree <- make_effectfree(mod)
+  hyper <- make_hyper(mod)
+  hyperrand <- make_hyperrand(mod)
+  log_disp <- 0
+  parameters <- list(effectfree = effectfree,   
+                     hyper = hyper,
+                     hyperrand = hyperrand,
+                     log_disp = log_disp)
+  ## MakeADFun
+  map <- make_map(mod)
+  random <- make_random(mod)
+  has_random_effects <- !is.null(random)
+  f <- TMB::MakeADFun(data = data,
+                      parameters = parameters,
+                      map = map,
+                      DLL = "bage",
+                      random = random,
+                      silent = TRUE)
+  ## optimise
+  stats::nlminb(start = f$par,
+                objective = f$fn,
+                gradient = f$gr,
+                silent = TRUE)
+  ## extract results
+  if (has_random_effects)
+    sdreport <- TMB::sdreport(f,
+                              bias.correct = TRUE,
+                              getJointPrecision = TRUE)
+  else
+    sdreport <- TMB::sdreport(f) 
+  est <- as.list(sdreport, what = "Est")
+  if (has_random_effects)
+    prec <- sdreport$jointPrecision
+  else
+    prec <- solve(sdreport$cov.fixed) ## should be very low dimension
+  mod <- make_stored_draws(mod = mod,
+                           est = est,
+                           prec = prec,
+                           map = map)
+  mod
+}
 
 
 ## HAS_TESTS
@@ -370,31 +465,6 @@ insert_after <- function(df, nm_after, x, nm_x) {
   ans
 }
   
-## ## HAS_TESTS
-## #' Insert values for fixed parameters into
-## #' random draws for non-fixed parameters
-## #'
-## #' @param draws A matrix containing draws
-## #' for non-fixed parameters. Each row is one
-## #' variable and each column is one draw.
-## #' @param est Mean values for (fixed and unfixed)
-## #' parameters. Output from TMB.
-## #' @param is_fixed Logical vector indicator whether
-## #' each (unlisted) value in 'est' is fixed
-## #'
-## #' @returns A matrix with more rows than 'draws',
-## #' but same number of columns.
-## #'
-## #' @noRd
-## insert_draws_known <- function(draws, est, is_fixed) {
-##     est <- unlist(est)
-##     ans <- matrix(nrow = length(is_fixed),
-##                   ncol = ncol(draws))
-##     ans[!is_fixed, ] <- draws
-##     ans[is_fixed, ] <- est[is_fixed]
-##     ans
-## }
-
 
 #' Test Whether Two Objects Have the Same Class
 #'
@@ -472,15 +542,14 @@ make_combined_offset_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_comp_components <- function(mod) {
-  est <- mod$est
   terms_effect <- mod$terms_effect
   terms_spline <- make_term_spline(mod)
   terms_svd <- make_term_svd(mod)
   has_disp <- has_disp(mod)
   vals <- c("effect", "hyper", "hyperrand", "spline", "svd", "disp")
   n_effect <- length(terms_effect)
-  n_hyper <- length(est$hyper)
-  n_hyperrand <- length(est$hyperrand)
+  n_hyper <- length(make_hyper(mod))
+  n_hyperrand <- length(make_hyperrand(mod))
   n_spline <- length(terms_spline)
   n_svd <- length(terms_svd)
   n_disp <- as.integer(has_disp)
@@ -557,14 +626,13 @@ make_draws_components <- function(mod) {
 #'
 #' Includes transforming back to natural units.
 #'
-#' @param mod A fitted object of class "bage_mod"
 #' @param draws_post Posterior draws for all parameters
 #' estimated in TMB. Output from 'make_draws_post'.
 #'
 #' @returns A numeric vector.
 #' 
 #' @noRd
-make_draws_disp <- function(mod, draws_post) {
+make_draws_disp <- function(draws_post) {
   n_val <- nrow(draws_post)
   ans <- draws_post[n_val, ]
   ans <- exp(ans)
@@ -578,15 +646,15 @@ make_draws_disp <- function(mod, draws_post) {
 #' Make draws from 'effectfree' (as opposed
 #' to 'effect', the values that users see.)
 #
-#' @param mod A fitted object of class "bage_mod"
+#' @param est Named list. Output from TMB.
 #' @param draws_post Posterior draws for all parameters
 #' estimated in TMB. Output from 'make_draws_post'.
 #'
 #' @returns A matrix
 #' 
 #' @noRd
-make_draws_effectfree <- function(mod, draws_post) {
-  n_effectfree <- length(mod$est$effectfree)
+make_draws_effectfree <- function(est, draws_post) {
+  n_effectfree <- length(est$effectfree)
   i_effectfree <- seq_len(n_effectfree)
   draws_post[i_effectfree, , drop = FALSE]
 }
@@ -598,21 +666,22 @@ make_draws_effectfree <- function(mod, draws_post) {
 #' Does not include hyperrand or disp.
 #' Includes transforming back to natural units.
 #'
-#' @param mod A fitted object of class "bage_mod"
+#' @param est Named list. Output from TMB.
+#' @param transforms_hyper List of transforms to be
+#' applied to hyper-parameters
 #' @param draws_post Posterior draws for all parameters
 #' estimated in TMB. Output from 'make_draws_post'.
 #'
 #' @returns A matrix
 #' 
 #' @noRd
-make_draws_hyper <- function(mod, draws_post) {
-  n_effectfree <- length(mod$est$effectfree)
-  n_hyper <- length(mod$est$hyper)
+make_draws_hyper <- function(est, transforms_hyper, draws_post) {
+  n_effectfree <- length(est$effectfree)
+  n_hyper <- length(est$hyper)
   i_hyper <- seq.int(from = n_effectfree + 1L, length.out = n_hyper)
   ans <- draws_post[i_hyper, , drop = FALSE]
-  transforms <- make_transforms_hyper(mod)
-  for (i in seq_along(transforms)) {
-    transform <- transforms[[i]]
+  for (i in seq_along(transforms_hyper)) {
+    transform <- transforms_hyper[[i]]
     if (!is.null(transform))
       ans[i, ] <- transform(ans[i, ])
   }
@@ -624,17 +693,17 @@ make_draws_hyper <- function(mod, draws_post) {
 #' Make Draws from Hyper-Parameters that can be
 #' Treated as Random Effects
 #'
-#' @param mod A fitted object of class "bage_mod"
+#' @param est Named list. Output from TMB.
 #' @param draws_post Posterior draws for all parameters
 #' estimated in TMB. Output from 'make_draws_post'.
 #'
 #' @returns A matrix
 #' 
 #' @noRd
-make_draws_hyperrand <- function(mod, draws_post) {
-  n_effectfree <- length(mod$est$effectfree)
-  n_hyper <- length(mod$est$hyper)
-  n_hyperrand <- length(mod$est$hyperrand)
+make_draws_hyperrand <- function(est, draws_post) {
+  n_effectfree <- length(est$effectfree)
+  n_hyper <- length(est$hyper)
+  n_hyperrand <- length(est$hyperrand)
   i_hyperrand <- seq.int(from = n_effectfree + n_hyper + 1L,
                          length.out = n_hyperrand)
   draws_post[i_hyperrand, , drop = FALSE]
@@ -666,35 +735,37 @@ make_effects <- function(mod, effectfree) {
 #' matrix of TMB model output.
 #'
 #' If the Cholesky decomposition of
-#' 'prec' was successful, then use that.
+#' 'prec' is successful, then use that.
 #' Otherwise, use the eigen decomposition.
 #' Insert values for parameters that were
 #' fixed via the 'map' function
 #'
-#' @param mod Object of class 'bage_mod'
+#' @param est Named list with estimates returned by TMB
+#' @param prec Precision matrix returned by TMB
+#' @param map 'map' argument to TMB
+#' @param n_draw Number of posterior draws
 #'
 #' @returns A matrix
 #'
 #' @noRd
-make_draws_post <- function(mod) {
-  est <- unlist(mod$est)
-  R_prec <- mod$R_prec
-  scaled_eigen <- mod$scaled_eigen
-  is_fixed <- mod$is_fixed
-  n_draw <- mod$n_draw
-  ans <- matrix(nrow = length(is_fixed),
-                ncol = n_draw)
-  mean <- est[!is_fixed]
+make_draws_post <- function(est, prec, map, n_draw) {
+  is_fixed <- make_is_fixed(est = est, map = map)
+  est_unlist <- unlist(est)
+  mean <- est_unlist[!is_fixed]
+  R_prec <- tryCatch(chol(prec), error = function(e) NULL)
   if (is.matrix(R_prec))
     draws_nonfixed <- rmvnorm_chol(n = n_draw,
                                    mean = mean,
                                    R_prec = R_prec)
-  else
+  else {
+    scaled_eigen <- make_scaled_eigen(prec)
     draws_nonfixed <- rmvnorm_eigen(n = n_draw,
                                     mean = mean,
                                     scaled_eigen = scaled_eigen)
+  }
+  ans <- matrix(nrow = length(is_fixed), ncol = n_draw)
   ans[!is_fixed, ] <- draws_nonfixed
-  ans[is_fixed, ] <- est[is_fixed]
+  ans[is_fixed, ] <- est_unlist[is_fixed]
   ans
 }
 
@@ -1270,19 +1341,26 @@ standardize_anova <- function(components, data, linpred, dimnames_terms) {
 #' @returns Modified version of 'mod'
 #'
 #' @noRd
-make_stored_draws <- function(mod) {
-  if (!is_fitted(mod))
-    cli::cli_abort("Internal error: Can't make stored draws for an unfitted model.")
+make_stored_draws <- function(mod, est, prec, map) {
+  n_draw <- mod$n_draw
+  transforms_hyper <- make_transforms_hyper(mod)
   seed_stored_draws <- mod$seed_stored_draws
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_stored_draws) ## set pre-determined seed
-  draws_post <- make_draws_post(mod)
-  mod$draws_effectfree <- make_draws_effectfree(mod = mod, draws_post = draws_post)
-  mod$draws_hyper <- make_draws_hyper(mod = mod, draws_post = draws_post)
-  mod$draws_hyperrand <- make_draws_hyperrand(mod = mod, draws_post = draws_post)
-  if (has_disp(mod))
-    mod$draws_disp <- make_draws_disp(mod = mod, draws_post = draws_post)
+  draws_post <- make_draws_post(est = est,
+                                prec = prec,
+                                map = map,
+                                n_draw = n_draw)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  mod$draws_effectfree <- make_draws_effectfree(est = est,
+                                                draws_post = draws_post)
+  mod$draws_hyper <- make_draws_hyper(est = est,
+                                      transforms_hyper = transforms_hyper,
+                                      draws_post = draws_post)
+  mod$draws_hyperrand <- make_draws_hyperrand(est = est,
+                                              draws_post = draws_post)
+  if (has_disp(mod))
+    mod$draws_disp <- make_draws_disp(draws_post)
   mod
 }
 

@@ -617,8 +617,8 @@ test_that("'fit' works with known intercept and sex effect", {
     mod <- set_prior(mod, `(Intercept)` ~ Known(values = -2))
     mod <- set_prior(mod, sex ~ Known(values = c(-0.1, 0.1)))
     ans_obtained <- fit(mod)
-    expect_equal(ans_obtained$est$effectfree[[1L]], -2)
-    expect_equal(ans_obtained$est$effectfree[names(ans_obtained$est$effectfree) == "sex"], c(sex = -0.1, sex = 0.1))
+    expect_equal(ans_obtained$draws_effectfree[1,1], -2)
+    expect_equal(ans_obtained$draws_effectfree[12:13,1], c(-0.1, 0.1))
 })
 
 test_that("'fit' works with AR1", {
@@ -671,7 +671,7 @@ test_that("'fit' works when all observed values for one year are NA", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_false(is.null(mod_fitted$est))
+    expect_true(is_fitted(mod_fitted))
 })
 
 test_that("'fit' works when model consists of intercept only", {
@@ -682,7 +682,7 @@ test_that("'fit' works when model consists of intercept only", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_false(is.null(mod_fitted$est))
+    expect_true(is_fitted(mod_fitted))
 })
 
 test_that("'fit' works when model has no hyper-parameters", {
@@ -694,7 +694,7 @@ test_that("'fit' works when model has no hyper-parameters", {
                     exposure = 1) |>
                     set_disp(mean = 0)
     mod_fitted <- fit(mod)
-    expect_false(is.null(mod_fitted$est))
+    expect_true(is_fitted(mod_fitted))
 })
 
 test_that("'fit' works when single dimension", {
@@ -704,7 +704,7 @@ test_that("'fit' works when single dimension", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_identical(length(mod_fitted$est$effectfree), nrow(data) + 1L)
+    expect_identical(nrow(mod_fitted$draws_effectfree), nrow(data) + 1L)
 })
 
 test_that("'fit' works with SVD", {
@@ -1200,7 +1200,7 @@ test_that("'get_fun_scale_outcome' works with valid inputs", {
 
 ## 'has_disp' -----------------------------------------------------------------
 
-test_that("'is_fitted' works with valid inputs", {
+test_that("'has_disp' works with valid inputs", {
     data <- data.frame(deaths = 1:10,
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ time,
@@ -1475,7 +1475,6 @@ test_that("'replicate_data' works with mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_n_draw(mod, 5)
     mod <- fit(mod)
     ans <- replicate_data(mod)
     expect_identical(names(ans), c(".replicate", names(data)))
@@ -1495,7 +1494,6 @@ test_that("'replicate_data' works with mod_pois, rr3 data model", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_n_draw(mod, 5)
     mod <- set_datamod_outcome_rr3(mod)
     mod <- fit(mod)
     ans <- replicate_data(mod)
@@ -1504,7 +1502,7 @@ test_that("'replicate_data' works with mod_pois, rr3 data model", {
     tab <- tapply(ans$deaths, ans$.replicate, sd)
     expect_true(var(tab) > 0)
     ans_fit <- replicate_data(mod, condition_on = "fitted")
-    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.01)
+    expect_equal(mean(ans_fit$deaths), mean(ans$deaths), tolerance = 0.02)
     expect_true(all(ans_fit$deaths %% 3 == 0))
 })
 

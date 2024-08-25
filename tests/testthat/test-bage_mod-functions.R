@@ -91,22 +91,21 @@ test_that("'set_disp' works with normal", {
 ## 'set_n_draw' ---------------------------------------------------------------
 
 test_that("'set_n_draw' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- fit(mod)
-    mod <- set_n_draw(mod, n_draw = 10)
-    ans_obtained <- mod$n_draw
-    ans_expected <- 10L
-    expect_identical(ans_obtained, ans_expected)
-    expect_identical(ncol(mod$draws_effectfree), 10L)
-    expect_identical(ncol(mod$draws_hyper), 10L)
-    expect_identical(ncol(mod$draws_hyperrand), 10L)
-    expect_identical(length(mod$draws_disp), 10L)
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rev(seq_len(nrow(data)))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  expect_identical(mod$n_draw, 10L)
+  mod <- fit(mod)
+  mod <- set_n_draw(mod, n_draw = 5)
+  expect_identical(mod$n_draw, 5L)
+  expect_true(is_fitted(mod))
+  expect_message(set_n_draw(mod, n_draw = 10),
+                 "New value")
 })
 
 
@@ -171,10 +170,8 @@ test_that("'set_prior' unfits a fitted model", {
                     data = data,
                     exposure = popn)
     mod <- fit(mod)
-    expect_false(is.null(mod$est))
     mod <- set_prior(mod, time ~ RW())
-    expect_true(is.null(mod$est))
-    expect_true("est" %in% names(mod))
+    expect_false(is_fitted(mod))
 })
 
 test_that("'set_prior' works with when order of components of interaction changed", {

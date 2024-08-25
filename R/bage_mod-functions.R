@@ -140,10 +140,11 @@ set_disp <- function(mod, mean) {
 #' the tails of distributions, or for
 #' publication-quality graphics and summaries.
 #'
-#' The value of `n_draw` does not affect
-#' model fitting: it only affects posterior
-#' summaries.
-#'
+#' If the new value for `n_draw` is greater than
+#' the old value, and the model has already been fitted,
+#' then the model is [unfitted][unfit()], and
+#' function [fit()] may need to be called again.
+#' 
 #' @inheritParams set_datamod_outcome_rr3
 #' @param n_draw Number of draws.
 #'
@@ -157,6 +158,8 @@ set_disp <- function(mod, mean) {
 #' model
 #' - [set_prior()] Specify prior for a term
 #' - [set_disp()] Specify prior for dispersion
+#' - [fit()] Fit a model
+#' - [unfit()] Reset a model
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -178,8 +181,11 @@ set_n_draw <- function(mod, n_draw = 1000L) {
   n_draw_old <- mod$n_draw
   mod$n_draw <- n_draw
   if (is_fitted(mod)) {
-    if (n_draw > n_draw_old)
-      mod <- make_stored_draws(mod)
+    if (n_draw > n_draw_old) {
+      cli::cli_alert(paste("New value for {.arg n_draw} ({.val {n_draw}}) greater than",
+                           "old value ({.val {n_draw_old}}), so unfitting model."))
+      mod <- unfit(mod)
+    }
     if (n_draw < n_draw_old) {
       s <- seq_len(n_draw)
       mod$draws_effectfree <- mod$draws_effectfree[, s, drop = FALSE] 
@@ -191,6 +197,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
   }
   mod
 }
+
 
 
 ## 'set_prior' ----------------------------------------------------------------
@@ -483,18 +490,13 @@ set_var_time <- function(mod, name) {
 #' is_fitted(mod)
 #' @export
 unfit <- function(mod) {
-    mod["est"] <- list(NULL)
-    mod["is_fixed"] <- list(NULL)
-    mod["R_prec"] <- list(NULL)
-    mod["scaled_eigen"] <- list(NULL)
-    mod["draws_effectfree"] <- list(NULL)
-    mod["draws_hyper"] <- list(NULL)
-    mod["draws_hyperrand"] <- list(NULL)
-    mod["draws_disp"] <- list(NULL)
-    mod
+  check_bage_mod(x = mod, nm_x = "mod")
+  mod["draws_effectfree"] <- list(NULL)
+  mod["draws_hyper"] <- list(NULL)
+  mod["draws_hyperrand"] <- list(NULL)
+  mod["draws_disp"] <- list(NULL)
+  mod
 }
-
-
 
 
 ## Helper functions -----------------------------------------------------------

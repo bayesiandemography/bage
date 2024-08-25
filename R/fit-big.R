@@ -1,160 +1,69 @@
 
-fit.bage_mod <- function(object, vars_inner = NULL, ...) {
-  has_vars_inner <- !is.null(vars_inner)
-  
-  if (has_vars_inner)
-    fit_big(mod = object, vals_inner = vals_inner)
-  else
-    fit_standard(object)
-}
-
-
-fit_big <- function(mod, vals_inner) {
-  mod_inner <- fit(mod_inner)
+fit_inner_outer <- function(mod, vars_inner) {
+  use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
+  mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
+  mod_inner <- fit_default(mod_inner)
   comp_inner <- components(mod_inner)
-  point_est_inner <- make_point_est_inner(mod = mod,
-                                          comp_inner = comp_inner)
-  mod_outer <- set_priors_known(mod = mod,
-                                vals = point_est_inner)
-  mod_outer <- fit(mod_outer)
-  mod <- make_stored_draws_twostep(mod = mod,
-                                   mod_inner = mod_inner,
-                                   mod_outer = mod_outer)
+  point_est_terms_inner <- make_point_est_terms(comp_inner)
+  mod_outer <- set_priors_known(mod = mod, vals = point_est_inner)
+  use_term[] <- TRUE
+  mod_outer <- fit_default(mod_outer)
+  mod <- make_stored_draws_inner_outer(mod = mod,
+                                       mod_inner = mod_inner,
+                                       mod_outer = mod_outer)
   mod
 }
 
-#' ## extract hyper-parameters
-#' comp <- components(mod)
-#' comp
-#' @export    
-fit_standard <- function() {
-  mod <- unfit(mod)
-  ## data
-  outcome <- mod$outcome
-  offset <- mod$offset
-  terms_effect <- mod$terms_effect
-  i_lik <- make_i_lik_mod(mod)
-  is_in_lik <- make_is_in_lik(mod)
-  terms_effectfree <- make_terms_effectfree(mod)
-  uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
-  matrices_effectfree_effect <- make_matrices_effectfree_effect(mod)
-  uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(mod)
-  offsets_effectfree_effect <- make_offsets_effectfree_effect(mod)
-  matrices_effect_outcome <- mod$matrices_effect_outcome
-  i_prior <- make_i_prior(mod)
-  uses_hyper <- make_uses_hyper(mod)
-  terms_hyper <- make_terms_hyper(mod)
-  uses_hyperrand <- make_uses_hyperrand(mod)
-  terms_hyperrand <- make_terms_hyperrand(mod)
-  const <- make_const(mod)
-  terms_const <- make_terms_const(mod)
-  matrices_along_by_effectfree <- make_matrices_along_by_effectfree(mod)
-  mean_disp <- mod$mean_disp
-  has_disp <- mean_disp > 0
-  data <- list(i_lik = i_lik,
-               outcome = outcome,
-               offset = offset,
-               is_in_lik = is_in_lik,
-               terms_effect = terms_effect,
-               terms_effectfree = terms_effectfree,
-               uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
-               matrices_effectfree_effect = matrices_effectfree_effect,
-               uses_offset_effectfree_effect = uses_offset_effectfree_effect,
-               offsets_effectfree_effect = offsets_effectfree_effect,
-               matrices_effect_outcome = matrices_effect_outcome,
-               i_prior = i_prior,
-               uses_hyper = uses_hyper,
-               terms_hyper = terms_hyper,
-               uses_hyperrand = uses_hyperrand,
-               terms_hyperrand = terms_hyperrand,
-               consts = const, ## 'const' is reserved word in C
-               terms_consts = terms_const,
-               matrices_along_by_effectfree = matrices_along_by_effectfree,
-               mean_disp = mean_disp)
-  ## parameters
-  effectfree <- make_effectfree(mod)
-  hyper <- make_hyper(mod)
-  hyperrand <- make_hyperrand(mod)
-  log_disp <- 0
-  parameters <- list(effectfree = effectfree,   
-                     hyper = hyper,
-                     hyperrand = hyperrand,
-                     log_disp = log_disp)
-  ## MakeADFun
-  map <- make_map(mod)
-  random <- make_random(mod)
-  has_random_effects <- !is.null(random)
-  f <- TMB::MakeADFun(data = data,
-                      parameters = parameters,
-                      map = map,
-                      DLL = "bage",
-                      random = random,
-                      silent = TRUE)
-  ## optimise
-  stats::nlminb(start = f$par,
-                modive = f$fn,
-                gradient = f$gr,
-                silent = TRUE)
-  ## extract results
-  if (has_random_effects)
-    sdreport <- TMB::sdreport(f,
-                              bias.correct = TRUE,
-                              getJointPrecision = TRUE)
-  else
-    sdreport <- TMB::sdreport(f) 
-  est <- as.list(sdreport, what = "Est")
-  attr(est, "what") <- NULL
-  if (has_random_effects)
-    prec <- sdreport$jointPrecision
-  else
-    prec <- solve(sdreport$cov.fixed) ## should be very low dimension
-  object <- make_stored_draws(object = object,
-                              est = est,
-                              prec = prec)
-  object
+
+reduce_model_terms <- function(mod, use_term) {
+  nms_components <- "xxx"
 }
 
+
+
+
 #' @noRd
-make_stored_draws <- function(mod, est, prec, map) {
-  n_draw <- mod$n_draw
-  seed_stored_draws <- mod$seed_stored_draws
-  seed_restore <- make_seed() ## create randomly-generated seed
-  set.seed(seed_stored_draws) ## set pre-determined seed
-  draws_post <- make_draws_post(est = est,
-                                prec = prec,
-                                map = map,
-                                n_draw = n_draw)
-  mod$draws_effectfree <- make_draws_effectfree(est = est, draws_post = draws_post)
-  mod$draws_hyper <- make_draws_hyper(est = est, draws_post = draws_post)
-  mod$draws_hyperrand <- make_draws_hyperrand(est = est, draws_post = draws_post)
+make_stored_draws_inner_outer <- function(mod, mod_inner, mod_outer, use_term) {
+  n_term <- length(use_term)
+  nms_term <- names(mod$priors)
+  draws_effectfree <- vector(mode = "list", length = n_term)
+  draws_hyper <- vector(mode = "list", length = n_term)
+  draws_hyperrand <- vector(mode = "list", length = n_term)
+  terms_effectfree_inner <- make_terms_effectfree(mod_inner)
+  terms_effectfree_outer <- make_terms_effectfree(mod_outer)
+  terms_hyper_inner <- make_terms_hyper(mod_inner)
+  terms_hyper_outer <- make_terms_hyper(mod_outer)
+  terms_hyperrand_inner <- make_terms_hyperrand(mod_inner)
+  terms_hyperrand_outer <- make_terms_hyperrand(mod_outer)
+  for (i_term in seq_len(n_term)) {
+    nm_term <- nms_term[[i_term]]
+    use_inner <- use_term[[i_term]]
+    if (use_inner) {
+      is_effectfree <- terms_effectfree_inner == nm_term
+      draws_effectfree[[i_term]] <- draws_effectfree_inner[is_effectfree, ]
+      is_hyper <- terms_hyper_inner == nm_term
+      draws_hyper[[i_term]] <- draws_hyper_inner[is_hyper, ]
+      is_hyperrand <- terms_hyperrand_inner == nm_term
+      draws_hyperrand[[i_term]] <- draws_hyperrand_inner[is_hyperrand, ]
+    }
+    else {
+      is_effectfree <- terms_effectfree_outer == nm_term
+      draws_effectfree[[i_term]] <- draws_effectfree_outer[is_effectfree, ]
+      is_hyper <- terms_hyper_outer == nm_term
+      draws_hyper[[i_term]] <- draws_hyper_outer[is_hyper, ]
+      is_hyperrand <- terms_hyperrand_outer == nm_term
+      draws_hyperrand[[i_term]] <- draws_hyperrand_outer[is_hyperrand, ]
+    }
+  }
+  mod$draws_effectfree <- vctrs::vec_rbind(!!!draws_effectfree)
+  mod$draws_hyper <- vctrs::vec_rbind(!!!draws_hyper)
+  mod$draws_hyperrand <- vctrs::vec_rbind(!!!draws_hyperrand)
   if (has_disp(mod))
-    mod$draws_disp <- make_draws_disp(est = est, draws_post = draws_post)
-  set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+    mod$draws_disp <- mod_outer$draws_disp
   mod
 }
 
 
-#' @noRd
-make_draws_post <- function(est, prec, map, n_draw) {
-  R_prec <- tryCatch(chol(prec), error = function(e) NULL)
-  est <- unlist(est)
-  is_fixed <- make_is_fixed(est = est, map = map)
-  n_draw <- mod$n_draw
-  ans <- matrix(nrow = length(is_fixed),
-                ncol = n_draw)
-  mean <- est[!is_fixed]
-  if (is.matrix(R_prec))
-    draws_nonfixed <- rmvnorm_chol(n = n_draw,
-                                   mean = mean,
-                                   R_prec = R_prec)
-  else
-    draws_nonfixed <- rmvnorm_eigen(n = n_draw,
-                                    mean = mean,
-                                    scaled_eigen = scaled_eigen)
-  ans[!is_fixed, ] <- draws_nonfixed
-  ans[is_fixed, ] <- est[is_fixed]
-  ans
-}
 
 
 
@@ -171,7 +80,7 @@ check_vars_inner <- function(vars_inner, vars) {
   invisible(TRUE)
 }  
 
-get_vars <- function(formula)
+get_vars <- function(formula) {
   factors <- attr(terms(formula), "factors")
   rownames(factors)[-1L]
 }
@@ -193,24 +102,9 @@ make_include_term <- function(mod) {
   ans
 }
 
-get_postmedian_inner <- function(mod, components) {
-
-}
   
   
-
-set_approx_twostep <- function(mod, vars_inner) {
-  formula <- mod$formula
-  vars <- get_vars(formula)
-  check_vars_inner(vars_inner = vars_inner, vars = vars)
-  mod$vars_inner <- vars_inner
-  mod <- unfit(mod)
-  mod
-}
+  
+  
 
 
-make_mod_inner <- function(mod) {
-  is_var_inner <- mod$is_var_inner
-  
-  
-  
