@@ -1497,6 +1497,7 @@ make_use_term <- function(mod, vars_inner) {
   has_intercept <- attr(terms(formula), "intercept")
   if (has_intercept)
     ans <- c(TRUE, ans)
+    ## ans <- c(FALSE, ans)
   names(ans) <- nms_priors
   ans
 }
