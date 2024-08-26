@@ -236,7 +236,6 @@ set_prior <- function(mod, formula) {
   check_bage_mod(x = mod, nm_x = "mod")
   check_format_prior_formula(formula)
   nms_terms <- names(mod$priors)
-  matrices_effect_outcome <- mod$matrices_effect_outcome
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age

@@ -831,6 +831,35 @@ test_that("'fit_default' works with pois", {
 })
 
 
+## 'fit_inner_outer' ----------------------------------------------------------
+
+test_that("'fit_inner_outer' works with", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4,
+                      time = 2000:2005,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  formula <- deaths ~ age * sex + region * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  set.seed(0)
+  ans_inner_outer <- fit_inner_outer(mod, vars_inner = c("age", "sex"))
+  set.seed(0)
+  ans_default <- fit_default(mod)
+  aug_inner_outer <- ans_inner_outer |>
+  augment()
+  aug_default <- ans_default |>
+  augment()
+  comp_inner_outer <- ans_inner_outer |>
+  components()
+  comp_default <- ans_default |>
+  components()
+})
+
+
 ## 'make_levels_spline' ----------------------------------------------------------
 
 test_that("'make_levels_spline' works - unlist is FALSE", {

@@ -403,6 +403,31 @@ fit_default <- function(mod) {
 }
 
 
+#' Two-Step Method for Fitting a Model
+#'
+#' @param object A `bage_mod` object.
+#' @param vars_inner Variables used
+#' in inner model.
+#'
+#' @returns A `bage_mod` object
+#'
+#' @noRd
+fit_inner_outer <- function(mod, vars_inner) {
+  use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
+  mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
+  mod_inner <- fit_default(mod_inner)
+  components_inner <- components(mod_inner, standardize = "none")
+  point_est_inner <- make_point_est_effects(components_inner)
+  mod_outer <- set_priors_known(mod = mod, prior_values = point_est_inner)
+  mod_outer <- fit_default(mod_outer)
+  mod <- combine_stored_draws_inner_outer(mod = mod,
+                                          mod_inner = mod_inner,
+                                          mod_outer = mod_outer,
+                                          use_term = use_term)
+  mod
+}
+
+
 ## HAS_TESTS
 #' Extract Values for Dispersion
 #'
