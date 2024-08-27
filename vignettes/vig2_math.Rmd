@@ -95,7 +95,7 @@ and
 
 We allow $\xi$ to equal 0, in which case the model reduces to 
 \begin{equation}
-  y_i  \text{Binom}(w_i, \mu_i).
+  y_i \sim  \text{Binom}(w_i, \mu_i).
 \end{equation}
 Equations \@ref(eq:lik-binom-1) and \@ref(eq:lik-binom-2) are equivalent to
 \begin{equation}

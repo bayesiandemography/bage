@@ -512,7 +512,7 @@ test_that("'make_combined_matrix_effect_outcome' works with valid inputs", {
                     exposure = popn)
     ans_obtained <- make_combined_matrix_effect_outcome(mod)
     expect_identical(nrow(ans_obtained), nrow(data))
-    expect_identical(ncol(ans_obtained), length(mod$terms_effect))
+    expect_identical(ncol(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
 })
 
 
@@ -528,7 +528,7 @@ test_that("'make_combined_matrix_effectfree_effect' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_combined_matrix_effectfree_effect(mod)
-    expect_identical(nrow(ans_obtained), length(mod$terms_effect))
+    expect_identical(nrow(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
     expect_identical(ncol(ans_obtained), length(make_terms_effectfree(mod)))
 })
 
@@ -545,7 +545,7 @@ test_that("'make_combined_offset_effectfree_effect' works with valid inputs", {
                     data = data,
                     exposure = popn)
     ans_obtained <- make_combined_offset_effectfree_effect(mod)
-    expect_identical(length(ans_obtained), length(mod$terms_effect))
+    expect_identical(length(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
     expect_true(all(ans_obtained == 0))
 })
 

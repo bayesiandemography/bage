@@ -320,7 +320,8 @@ fit_default <- function(mod) {
   ## data
   outcome <- mod$outcome
   offset <- mod$offset
-  terms_effect <- mod$terms_effect
+  dimnames_terms <- mod$dimnames_terms
+  terms_effect <- make_terms_effects(dimnames_terms)
   i_lik <- make_i_lik_mod(mod)
   is_in_lik <- make_is_in_lik(mod)
   terms_effectfree <- make_terms_effectfree(mod)
@@ -567,12 +568,13 @@ make_combined_offset_effectfree_effect <- function(mod) {
 #'
 #' @noRd
 make_comp_components <- function(mod) {
-  terms_effect <- mod$terms_effect
+  dimnames_terms <- mod$dimnames_terms
+  terms_effects <- make_terms_effects(dimnames_terms)
   terms_spline <- make_term_spline(mod)
   terms_svd <- make_term_svd(mod)
   has_disp <- has_disp(mod)
   vals <- c("effect", "hyper", "hyperrand", "spline", "svd", "disp")
-  n_effect <- length(terms_effect)
+  n_effect <- length(terms_effects)
   n_hyper <- length(make_hyper(mod))
   n_hyperrand <- length(make_hyperrand(mod))
   n_spline <- length(terms_spline)
@@ -840,7 +842,8 @@ make_is_fixed <- function(est, map) {
 #'
 #' @noRd
 make_level_components <- function(mod) {
-  effect <- mod$levels_effect
+  dimnames_terms <- mod$dimnames_terms
+  effect <- make_levels_effects(dimnames_terms)
   hyper <- make_levels_hyper(mod)
   hyperrand <- make_levels_hyperrand(mod)
   spline <- make_levels_spline(mod, unlist = TRUE)
@@ -890,13 +893,13 @@ make_levels_hyperrand <- function(mod) {
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
-  levels_effect <- mod$levels_effect
-  terms_effect <- mod$terms_effect
-  levels_effect <- split(levels_effect, terms_effect)
+  levels_effects <- make_levels_effects(dimnames_terms)
+  terms_effects <- make_terms_effects(dimnames_terms)
+  levels_effects <- split(levels_effects, terms_effects)
   ans <- .mapply(levels_hyperrand,
                  dots = list(prior = priors,
                              dimnames_term = dimnames_terms,
-                             levels_effect = levels_effect),
+                             levels_effect = levels_effects),
                  MoreArgs = list(var_time = var_time,
                                  var_age = var_age))
   ans <- unlist(ans)
@@ -1402,7 +1405,8 @@ make_stored_draws <- function(mod, est, prec, map) {
 #'
 #' @noRd
 make_term_components <- function(mod) {
-  effect <- mod$terms_effect
+  dimnames_terms <- mod$dimnames_terms
+  effect <- make_terms_effects(dimnames_terms)
   hyper <- make_terms_hyper(mod)
   hyperrand <- make_terms_hyperrand(mod)
   spline <- make_term_spline(mod)

@@ -1153,8 +1153,7 @@ report_sim <- function(mod_est,
     perform_aug <- utils::getFromNamespace("perform_aug", ns = "bage")
     outcome <- outcome_obs_sim[, i_sim]
     mod_est$outcome <- outcome
-    ## mod_est <- fit(mod_est)
-    mod_est <- fit(mod_est, vars_inner = c("age", "sex", "time"))
+    mod_est <- fit(mod_est)
     comp_est <- components(mod_est, standardize = "none")
     aug_est <- augment(mod_est)
     results_comp <- perform_comp(est = comp_est,
