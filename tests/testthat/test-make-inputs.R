@@ -25,7 +25,8 @@ test_that("'combine_stored_draws_inner_outer' works with valid inputs", {
                                                mod_inner = mod_inner,
                                                mod_outer = mod_outer,
                                                use_term = use_term)
-  is_inner <- mod_comb$terms_effect %in% c("(Intercept)", "age", "sex", "age:sex")
+  terms <- make_terms_effects(mod_comb$dimnames_terms)
+  is_inner <- terms %in% c("(Intercept)", "age", "sex", "age:sex")
   expect_identical(mod_comb$draws_effectfree[is_inner, ],
                    mod_inner$draws_effectfree)
   expect_identical(mod_comb$draws_effectfree[!is_inner, ],
@@ -531,12 +532,21 @@ test_that("'make_is_in_lik' works with NAs", {
 ## 'make_lengths_effect' ---------------------------------------------------------
 
 test_that("'make_lengths_effect' works with valid inputs", {
-    matrices_effect_outcome = list(a = matrix(nr = 100, nc = 1),
-                                b = matrix(nr = 100, nc = 5),
-                                c = matrix(nr = 100, nc = 5))
-    ans_obtained <- make_lengths_effect(matrices_effect_outcome)
-    ans_expected <- c(a = 1L, b = 5L, c = 5L)
-    expect_identical(ans_obtained, ans_expected)
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  dimnames_terms <- make_dimnames_terms(data = data, formula = formula)
+  ans_obtained <- make_lengths_effect(dimnames_terms)
+  ans_expected <- c("(Intercept)" = 1L,
+                    age = 10L,
+                    sex = 2L,
+                    time = 6L,
+                    "age:sex" = 20L)
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -646,18 +656,16 @@ test_that("'make_levels_age' works when data has no age variable", {
 })
 
 
-## 'make_levels_effect' ----------------------------------------------------------
+## 'make_levels_effects' ----------------------------------------------------------
 
-test_that("'make_levels_effect' works with valid inputs - pois, complete levels", {
+test_that("'make_levels_effects' works with valid inputs - pois, complete levels", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     formula <- deaths ~ age * sex + time
     dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
-    matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                            dimnames_terms = dimnames_terms)
-    ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
+    ans_obtained <- make_levels_effects(dimnames_terms)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -668,7 +676,7 @@ test_that("'make_levels_effect' works with valid inputs - pois, complete levels"
     expect_identical(ans_obtained, ans_expected)                      
 })
 
-test_that("'make_levels_effect' works with valid inputs - pois, incomplete levels", {
+test_that("'make_levels_effects' works with valid inputs - pois, incomplete levels", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -676,9 +684,7 @@ test_that("'make_levels_effect' works with valid inputs - pois, incomplete level
     data <- data[-3, ]
     formula <- deaths ~ age * sex + time
     dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
-    matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                            dimnames_terms = dimnames_terms)
-    ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
+    ans_obtained <- make_levels_effects(dimnames_terms)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -689,16 +695,14 @@ test_that("'make_levels_effect' works with valid inputs - pois, incomplete level
     expect_identical(ans_obtained, ans_expected)                      
 })
 
-test_that("'make_levels_effect' works with valid inputs - norm", {
+test_that("'make_levels_effects' works with valid inputs - norm", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$income <- rnorm(n = nrow(data))
     formula <- income ~ age * sex + time
     dimnames_terms <- make_dimnames_terms(formula = formula, data = data)
-    matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                            dimnames_terms = dimnames_terms)
-    ans_obtained <- make_levels_effect(matrices_effect_outcome = matrices_effect_outcome)
+    ans_obtained <- make_levels_effects(dimnames_terms)
     ans_expected <- c("(Intercept)",
                       0:9,
                       c("F", "M"),
@@ -1555,16 +1559,25 @@ test_that("'make_terms_const' works with valid inputs", {
 })
 
 
-## 'make_terms_effect' -----------------------------------------------------------
+## 'make_terms_effects' -----------------------------------------------------------
 
-test_that("'make_terms_effect' works with valid inputs", {
-    matrices_effect_outcome = list(a = matrix(nr = 100, nc = 1),
-                                b = matrix(nr = 100, nc = 5),
-                                c = matrix(nr = 100, nc = 5))
-    ans_obtained <- make_terms_effect(matrices_effect_outcome)
-    ans_expected <- factor(rep(c("a", "b", "c"),
-                               times = c(1, 5, 5)))
-    expect_identical(ans_obtained, ans_expected)
+test_that("'make_terms_effects' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(agegp = 0:9,
+                      region = 1:2,
+                      SEX = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ agegp * SEX + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, agegp ~ AR1())
+  ans_obtained <- make_terms_effects(mod$dimnames_terms)
+  ans_expected <- factor(c("(Intercept)", rep("agegp", 10), rep("SEX", 2),
+                           rep("region", 2), rep("agegp:SEX", 20)),
+                         levels = c("(Intercept)", "agegp", "SEX", "region", "agegp:SEX"))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -1881,11 +1894,11 @@ test_that("'set_priors_known' works with valid inputs", {
   comp <- components(mod)
   prior_values <- make_point_est_effects(comp)
   ans_obtained <- set_priors_known(mod, prior_values = prior_values)
-  ans_expected <- mod |>
-  set_prior((Intercept) ~ Known(prior_values[["(Intercept)"]])) |>
-  set_prior(age ~ Known(prior_values[["age"]])) |>
-  set_prior(sex ~ Known(prior_values[["sex"]])) |>
-  set_prior(age:sex ~ Known(prior_values[["age:sex"]]))
+  ans_expected <- unfit(mod)
+  ans_expected$priors[[1]] <- Known(prior_values[["(Intercept)"]])
+  ans_expected$priors[[2]] <- Known(prior_values[["age"]])
+  ans_expected$priors[[3]] <- Known(prior_values[["sex"]])
+  ans_expected$priors[[4]] <- Known(prior_values[["age:sex"]])
   expect_equal(ans_obtained, ans_expected)
 })
 

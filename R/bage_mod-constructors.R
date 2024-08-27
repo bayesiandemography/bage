@@ -451,9 +451,7 @@ mod_helper <- function(formula, data, n_draw) {
   var_time <- infer_var_time(formula)
   matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
                                                           dimnames_terms = dimnames_terms)
-  levels_effect <- make_levels_effect(matrices_effect_outcome)
-  lengths_effect <- make_lengths_effect(matrices_effect_outcome)
-  terms_effect <- make_terms_effect(matrices_effect_outcome)
+  lengths_effect <- make_lengths_effect(dimnames_terms)
   priors <- make_priors(formula = formula,
                         var_age = var_age,
                         var_time = var_time,
@@ -474,9 +472,6 @@ mod_helper <- function(formula, data, n_draw) {
        var_sexgender = var_sexgender,
        var_time = var_time,
        matrices_effect_outcome = matrices_effect_outcome,
-       levels_effect = levels_effect,
-       lengths_effect = lengths_effect,
-       terms_effect = terms_effect,
        mean_disp = 1,
        n_draw = n_draw,
        vars_inner = NULL,

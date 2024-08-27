@@ -516,14 +516,21 @@ make_is_in_lik <- function(mod) {
 ## HAS_TESTS
 #' Lengths of vectors of parameters
 #' 
-#' @param matrices_effect_outcome Named list of Matrix matrices
+#' @param dimnames_terms Named list with
+#' dimnames for array representation of terms
 #'
 #' @returns A named integer vector.
 #'
 #' @noRd
-make_lengths_effect <- function(matrices_effect_outcome) {
-    matrices <- lapply(matrices_effect_outcome, Matrix::as.matrix)
-    vapply(matrices, ncol, 1L)
+make_lengths_effect <- function(dimnames_terms) {
+  ans <- c("(Intercept)" = 1L)
+  if (length(dimnames_terms) > 1L) {
+    lengths <- lapply(dimnames_terms[-1L], lengths)
+    prod_int <- function(x) as.integer(prod(x))
+    ans_terms <- vapply(lengths, prod_int, 0L)
+    ans <- c(ans, ans_terms)
+  }
+  ans
 }
 
 
@@ -576,13 +583,13 @@ make_lengths_hyperrand <- function(mod) {
   var_time <- mod$var_time
   var_age <- mod$var_age
   dimnames_terms <- mod$dimnames_terms
-  levels_effect <- mod$levels_effect
-  terms_effect <- mod$terms_effect
-  levels_effect <- split(levels_effect, terms_effect)
+  levels_effects <- make_levels_effects(dimnames_terms)
+  terms_effects <- make_terms_effects(dimnames_terms)
+  levels_effects <- split(levels_effects, terms_effects)
   levels <- .mapply(levels_hyperrand,
                     dots = list(prior = priors,
                                 dimnames_term = dimnames_terms,
-                                levels_effect = levels_effect),
+                                levels_effect = levels_effects),
                     MoreArgs = list(var_time = var_time,
                                     var_age = var_age))
   ans <- lengths(levels)
@@ -618,16 +625,14 @@ make_levels_age <- function(mod) {
 #' ensure that the levels are correct (rather than
 #' relying on undocumented properties of 'xtabs' etc),
 #'
-#' @param matrices_effect_outcome List of matrices mapping
+#' @param dimnames_terms List with dimnames from
+#' array representation of terms
 #'
 #' @returns A character vector.
 #'
 #' @noRd
-make_levels_effect <- function(matrices_effect_outcome) {
-  ans <- lapply(matrices_effect_outcome, colnames)
-  nms <- names(matrices_effect_outcome)
-  if (identical(nms[[1L]], "(Intercept)"))
-    ans[[1L]] <- "(Intercept)"
+make_levels_effects <- function(dimnames_terms) {
+  ans <- lapply(dimnames_terms, dimnames_to_levels)
   ans <- unlist(ans, use.names = FALSE)
   ans
 }
@@ -1355,18 +1360,18 @@ make_terms_const <- function(mod) {
 #' giving the name of the term
 #' that the each element belongs to.
 #'
-#' @param matrices_effect_outcome Named list of Matrix objects
+#' @param dimnames_terms Named list with
+#' dimnames for array representation of terms
 #'
 #' @returns A factor.
 #'
 #' @noRd
-make_terms_effect <- function(matrices_effect_outcome) {
-    nms <- names(matrices_effect_outcome)
-    matrices_effect_outcome <- lapply(matrices_effect_outcome, Matrix::as.matrix)
-    lengths <- vapply(matrices_effect_outcome, ncol, 1L)
-    ans <- rep(nms, times = lengths)
-    ans <- factor(ans, levels = nms)
-    ans
+make_terms_effects <- function(dimnames_terms) {
+  nms <- names(dimnames_terms)
+  lengths <- make_lengths_effect(dimnames_terms)
+  ans <- rep(nms, times = lengths)
+  ans <- factor(ans, levels = nms)
+  ans
 }
 
 
@@ -1617,21 +1622,6 @@ reduce_model_terms <- function(mod, use_term) {
   mod <- unfit(mod)
   mod$priors <- mod$priors[use_term]
   mod$dimnames_terms <- mod$dimnames_terms[use_term]
-  mod$matrices_effect_outcome <- mod$matrices_effect_outcome[use_term]
-  mod$lengths_effect <- mod$lengths_effect[use_term]
-  levels_effect <- mod$levels_effect
-  terms_effect <- mod$terms_effect
-  levels_effect <- split(levels_effect, terms_effect)
-  terms_effect <- split(terms_effect, terms_effect)
-  levels_effect <- levels_effect[use_term]
-  terms_effect <- terms_effect[use_term]
-  levels_effect <- do.call(c, levels_effect)
-  terms_effect <- do.call(c, terms_effect)
-  levels_effect <- unname(levels_effect)
-  terms_effect <- unname(terms_effect)
-  terms_effect <- factor(terms_effect)
-  mod$levels_effect <- levels_effect
-  mod$terms_effect <- terms_effect
   formula <- mod$formula
   nms_terms <- names(mod$priors)
   formula_new <- paste(". ~", paste(nms_terms, collapse = " + "))
@@ -1693,10 +1683,11 @@ print_prior_slot <- function(prior, nm, slot) {
 }  
 
 
+## HAS_TESTS
 #' Replace Existing Priors with "Known" Priors
 #'
 #' @param mod Object of class 'bage_mod'
-#' @param values Named list with 'values'
+#' @param prior_values Named list with 'values'
 #' vectors for priors
 #'
 #' @returns A modified version of 'mod'

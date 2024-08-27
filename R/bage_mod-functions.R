@@ -525,11 +525,12 @@ set_var_inner <- function(mod, name, var) {
   ## extract values
   formula <- mod$formula
   priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
   name_old <- mod[[attr_name]]
   names_oth <- lapply(attr_names_oth, function(nm) mod[[nm]])
   has_name_old <- !is.null(name_old)
   names_priors <- names(priors)
-  matrices_effect_outcome <- mod$matrices_effect_outcome
+  lengths_effects <- make_lengths_effect(dimnames_terms)
   ## check 'name'
   check_string(x = name, nm_x = "name")
   check_formula_has_variable(name = name, formula = formula)
@@ -548,13 +549,13 @@ set_var_inner <- function(mod, name, var) {
   ## reset priors
   var_age <- mod[["var_age"]]
   var_time <- mod[["var_time"]]
-  length_effect <- ncol(matrices_effect_outcome[[name]])
+  length_effect <- lengths_effects[[name]]
   priors[[name]] <- default_prior(nm_term = name,
                                   var_age = var_age,
                                   var_time = var_time,
                                   length_effect = length_effect)
   if (has_name_old) {
-    length_effect_old <- ncol(matrices_effect_outcome[[name_old]])
+    length_effect_old <- lengths_effects[[name_old]]
     priors[[name_old]] <- default_prior(nm_term = name_old,
                                         var_age = var_age, 
                                         var_time = var_time,

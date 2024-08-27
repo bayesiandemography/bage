@@ -107,24 +107,3 @@ if (FALSE) {
   rep <- report_sim(mod_est = mod_est, n_sim = 10, n_core = 2)
   
 }
-
-
-set.seed(0)
-data <- expand.grid(age = poputils::age_labels(type = "lt"),
-                    sex = c("Female", "Male"),
-                    time = 2001:2010,
-                    region = 1:100)
-data$population <- runif(n = nrow(data), min = 100, max = 300)
-data$deaths <- NA
-mod_est <- mod_pois(deaths ~ age : sex + time + region,
-                    data = data,
-                    exposure = population) |>
-set_prior(`(Intercept)` ~ NFix(s = 0.01)) |>
-set_prior(age:sex ~ SVD(HMD)) |>
-set_prior(time ~ Lin_AR1()) |>
-set_prior(region ~ NFix(sd = 0.1)) |>
-set_disp(mean = 0.01)
-
-system.time(
-  rep <- report_sim(mod_est = mod_est, n_sim = 1)
-)
