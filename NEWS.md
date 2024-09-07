@@ -1,3 +1,33 @@
+
+# bage 0.7.5
+
+## Changes to interface
+
+* Added arguments `method` and `vars_inner` to `fit()`. When
+  `method` is `"standard"` (the default) `fit()` uses the existing
+  calculation methods. When `method` is `"inner-outer"`, `fit()` uses
+  a new, somewhat experimental calculation method that involves
+  fitting an inner model using a subset of variables, and then an
+  outer model using the remaining variables. With big datasets,
+  `"inner-outer"` can be faster, and use less memory, but give very
+  similar results.
+  
+## Changes to calculations
+
+* `fit()` now internally aggregates input data before fitting, so that
+  cells with the same combinations of predictor variables are
+  combined. This increases speed and reduces memory usage.
+
+
+# bage 0.7.4
+
+## Changes to interface
+
+* Function `ssvd()` no longer exported. Will export once package
+  **bssvd** matures.
+* **bage** released on to CRAN
+
+
 # bage 0.7.3
 
 ## Changes to data and examples
