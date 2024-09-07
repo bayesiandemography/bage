@@ -7,6 +7,8 @@
 report_sim(
   mod_est,
   mod_sim = NULL,
+  method = c("standard", "inner-outer"),
+  vars_inner = NULL,
   n_sim = 100,
   point_est_fun = c("median", "mean"),
   widths = c(0.5, 0.95),
@@ -20,6 +22,13 @@ assessed. An object of class \code{bage_mod}.}
 
 \item{mod_sim}{The model used to generate the simulated
 data. If no value is supplied, \code{mod_est} is used.}
+
+\item{method}{Estimation method used for \code{mod_est}.
+See \code{\link[=fit]{fit()}}.}
+
+\item{vars_inner}{Variables used in inner model
+with \code{"inner-outer"}estimation method.
+See \code{\link[=fit]{fit()}}.}
 
 \item{n_sim}{Number of sets of simulated data to use.
 Default is 100.}

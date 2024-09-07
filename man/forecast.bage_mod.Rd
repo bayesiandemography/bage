@@ -113,7 +113,7 @@ The interface for \code{forecast()} has not been finalised.
 mod <- mod_pois(injuries ~ age * sex + ethnicity + year,
                 data = injuries,
                 exposure = popn) |>
-  fit(mod)
+  fit()
 mod
 
 ## forecasts

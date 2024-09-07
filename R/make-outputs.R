@@ -250,6 +250,87 @@ center_within_along_by <- function(x, matrix_along_by, center_along) {
 
 
 ## HAS_TESTS
+#' Combined Stored Draws and Point EStimates from Two Models
+#'
+#' Term used from first model if 'use_term' is TRUE; otherwise
+#' from second model. Dispersion ignored.
+#'
+#' @param mod Model receiving the draws
+#' @param mod_inner Model for which use_term is TRUE
+#' @param mod_outer Model for which use_term is FALSE
+#' @param use_term Logical vector
+#'
+#' @returns Modified version of 'mod'
+#' 
+#' @noRd
+combine_stored_draws_point_inner_outer <- function(mod, mod_inner, mod_outer, use_term) { 
+  priors <- mod$priors
+  n_term <- length(priors)
+  nms_term <- names(priors)
+  terms_effectfree_inner <- make_terms_effectfree(mod_inner)
+  terms_effectfree_outer <- make_terms_effectfree(mod_outer)
+  terms_hyper_inner <- make_terms_hyper(mod_inner)
+  terms_hyper_outer <- make_terms_hyper(mod_outer)
+  terms_hyperrand_inner <- make_terms_hyperrand(mod_inner)
+  terms_hyperrand_outer <- make_terms_hyperrand(mod_outer)
+  draws_effectfree_inner <- mod_inner$draws_effectfree
+  draws_effectfree_outer <- mod_outer$draws_effectfree
+  draws_hyper_inner <- mod_inner$draws_hyper
+  draws_hyper_outer <- mod_outer$draws_hyper
+  draws_hyperrand_inner <- mod_inner$draws_hyperrand
+  draws_hyperrand_outer <- mod_outer$draws_hyperrand
+  point_effectfree_inner <- mod_inner$point_effectfree
+  point_effectfree_outer <- mod_outer$point_effectfree
+  point_hyper_inner <- mod_inner$point_hyper
+  point_hyper_outer <- mod_outer$point_hyper
+  point_hyperrand_inner <- mod_inner$point_hyperrand
+  point_hyperrand_outer <- mod_outer$point_hyperrand
+  draws_effectfree <- vector(mode = "list", length = n_term)
+  draws_hyper <- vector(mode = "list", length = n_term)
+  draws_hyperrand <- vector(mode = "list", length = n_term)
+  point_effectfree <- double()
+  point_hyper <- double()
+  point_hyperrand <- double()
+  for (i_term in seq_len(n_term)) {
+    nm_term <- nms_term[[i_term]]
+    use_inner <- use_term[[i_term]]
+    if (use_inner) {
+      is_term_effectfree <- terms_effectfree_inner == nm_term
+      draws_effectfree[[i_term]] <- draws_effectfree_inner[is_term_effectfree, , drop = FALSE]
+      point_effectfree <- c(point_effectfree, point_effectfree_inner[is_term_effectfree])
+      is_term_hyper <- terms_hyper_inner == nm_term
+      draws_hyper[[i_term]] <- draws_hyper_inner[is_term_hyper, , drop = FALSE]
+      point_hyper <- c(point_hyper, point_hyper_inner[is_term_hyper])
+      is_term_hyperrand <- terms_hyperrand_inner == nm_term
+      draws_hyperrand[[i_term]] <- draws_hyperrand_inner[is_term_hyperrand, , drop = FALSE]
+      point_hyperrand <- c(point_hyperrand, point_hyperrand_inner[is_term_hyperrand])
+    }
+    else {
+      is_term_effectfree <- terms_effectfree_outer == nm_term
+      draws_effectfree[[i_term]] <- draws_effectfree_outer[is_term_effectfree, , drop = FALSE]
+      point_effectfree <- c(point_effectfree, point_effectfree_outer[is_term_effectfree])
+      is_term_hyper <- terms_hyper_outer == nm_term
+      draws_hyper[[i_term]] <- draws_hyper_outer[is_term_hyper, , drop = FALSE]
+      point_hyper <- c(point_hyper, point_hyper_outer[is_term_hyper])
+      is_term_hyperrand <- terms_hyperrand_outer == nm_term
+      draws_hyperrand[[i_term]] <- draws_hyperrand_outer[is_term_hyperrand, , drop = FALSE]
+      point_hyperrand <- c(point_hyperrand, point_hyperrand_outer[is_term_hyperrand])
+    }
+  }
+  draws_effectfree <- do.call(rbind, draws_effectfree)
+  draws_hyper <- do.call(rbind, draws_hyper)
+  draws_hyperrand <- do.call(rbind, draws_hyperrand)
+  mod$draws_effectfree <- draws_effectfree
+  mod$draws_hyper <- draws_hyper
+  mod$draws_hyperrand <- draws_hyperrand
+  mod$point_effectfree <- point_effectfree
+  mod$point_hyper <- point_hyper
+  mod$point_hyperrand <- point_hyperrand
+  mod
+}
+
+
+## HAS_TESTS
 #' Return Values for Higher-Level Parameters from Fitted Model
 #'
 #' @param mod A fitted object of class 'bage_mod'
@@ -315,21 +396,29 @@ draw_vals_components_fitted <- function(mod, standardize) {
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_default <- function(mod) {
+fit_default <- function(mod, aggregate = TRUE) {
   mod <- unfit(mod)
   ## data
-  outcome <- mod$outcome
-  offset <- mod$offset
+  if (aggregate) {
+    vals_ag <- make_vals_ag(mod)
+    outcome <- vals_ag$outcome
+    offset <- vals_ag$offset
+    matrices_effect_outcome <- vals_ag$matrices_effect_outcome
+  }
+  else {
+    vals_in_lik <- make_vals_in_lik(mod)
+    outcome <- vals_in_lik$outcome
+    offset <- vals_in_lik$offset
+    matrices_effect_outcome <- vals_in_lik$matrices_effect_outcome
+  }
   dimnames_terms <- mod$dimnames_terms
   terms_effect <- make_terms_effects(dimnames_terms)
   i_lik <- make_i_lik_mod(mod)
-  is_in_lik <- make_is_in_lik(mod)
   terms_effectfree <- make_terms_effectfree(mod)
   uses_matrix_effectfree_effect <- make_uses_matrix_effectfree_effect(mod)
   matrices_effectfree_effect <- make_matrices_effectfree_effect(mod)
   uses_offset_effectfree_effect <- make_uses_offset_effectfree_effect(mod)
   offsets_effectfree_effect <- make_offsets_effectfree_effect(mod)
-  matrices_effect_outcome <- mod$matrices_effect_outcome
   i_prior <- make_i_prior(mod)
   uses_hyper <- make_uses_hyper(mod)
   terms_hyper <- make_terms_hyper(mod)
@@ -343,7 +432,6 @@ fit_default <- function(mod) {
   data <- list(i_lik = i_lik,
                outcome = outcome,
                offset = offset,
-               is_in_lik = is_in_lik,
                terms_effect = terms_effect,
                terms_effectfree = terms_effectfree,
                uses_matrix_effectfree_effect = uses_matrix_effectfree_effect,
@@ -400,8 +488,11 @@ fit_default <- function(mod) {
                            est = est,
                            prec = prec,
                            map = map)
+  mod <- make_stored_point(mod = mod,
+                           est = est)
   mod
 }
+
 
 
 #' Two-Step Method for Fitting a Model
@@ -414,17 +505,32 @@ fit_default <- function(mod) {
 #'
 #' @noRd
 fit_inner_outer <- function(mod, vars_inner) {
-  use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
-  mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
-  mod_inner <- fit_default(mod_inner)
-  components_inner <- components(mod_inner, standardize = "none")
-  point_est_inner <- make_point_est_effects(components_inner)
-  mod_outer <- set_priors_known(mod = mod, prior_values = point_est_inner)
-  mod_outer <- fit_default(mod_outer)
-  mod <- combine_stored_draws_inner_outer(mod = mod,
-                                          mod_inner = mod_inner,
-                                          mod_outer = mod_outer,
-                                          use_term = use_term)
+  if (is.null(vars_inner))
+    vars_inner <- make_vars_inner(mod)
+  else
+    check_vars_inner(vars_inner)
+  use_term <- make_use_term(mod = mod,
+                            vars_inner = vars_inner)
+  mod_inner <- make_mod_inner(mod = mod,
+                              use_term = use_term)
+  mod_inner <- fit_default(mod = mod_inner,
+                           aggregate = TRUE)
+  mod_outer <- make_mod_outer(mod = mod,
+                              mod_inner = mod_inner,
+                              use_term = use_term)
+  mod_outer <- fit_default(mod = mod_outer,
+                           aggregate = TRUE)
+  mod <- combine_stored_draws_point_inner_outer(mod = mod,
+                                                mod_inner = mod_inner,
+                                                mod_outer = mod_outer,
+                                                use_term = use_term)
+  if (has_disp(mod)) {
+    mod_disp <- make_mod_disp(mod)
+    mod_disp <- fit_default(mod = mod_disp,
+                            aggregate = FALSE)
+    mod <- transfer_draws_disp(mod = mod,
+                               mod_disp = mod_disp)
+  }
   mod
 }
 
@@ -516,8 +622,12 @@ is_same_class <- function(x, y)
 #'
 #' @noRd
 make_combined_matrix_effect_outcome <- function(mod) {
-    matrices_effect_outcome <- mod$matrices_effect_outcome
-    Reduce(Matrix::cbind2, matrices_effect_outcome)
+  data <- mod$data
+  dimnames_terms <- mod$dimnames_terms
+  nms_terms <- names(dimnames_terms)
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                          dimnames_terms = dimnames_terms)
+  Reduce(Matrix::cbind2, matrices_effect_outcome)
 }
 
 
@@ -1118,17 +1228,48 @@ make_linpred_comp <- function(components, data, dimnames_terms) {
 #' Return value aligned to outcome, not data.
 #'
 #' @param mod Object of class "bage_mod"
+#' @param point Whether to return point estimates
+#' or draws from the posterior.
 #'
-#' @returns An rvec
+#' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_raw <- function(mod) {
+make_linpred_raw <- function(mod, point) {
   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-  effectfree <- mod$draws_effectfree
+  if (point)
+    effectfree <- mod$point_effectfree
+  else
+    effectfree <- mod$draws_effectfree
   effect <- make_effects(mod = mod, effectfree = effectfree)
   ans <- matrix_effect_outcome %*% effect
-  ans <- Matrix::as.matrix(ans)
-  ans <- rvec::rvec(ans)
+  if (point)
+    ans <- as.double(ans)
+  else {
+    ans <- Matrix::as.matrix(ans)
+    ans <- rvec::rvec(ans)
+  }
+  ans
+}
+
+
+## HAS_TESTS
+#' Derive Point Estimates for Effects
+#'
+#' @param mod A fitted object of class 'bage_mod'
+#'
+#' @returns A named list of numeric vectors
+#'
+#' @noRd
+make_point_est_effects <- function(mod) {
+  if (!is_fitted(mod))
+    cli::cli_abort("Internal error: Model not fitted.")
+  point_effectfree <- mod$point_effectfree
+  dimnames_terms <- mod$dimnames_terms
+  terms_effects <- make_terms_effects(dimnames_terms)
+  point_effects <- make_effects(mod = mod, effectfree = point_effectfree)
+  point_effects <- as.double(point_effects)
+  ans <- split(x = point_effects, f = terms_effects)
+  ans <- ans[unique(terms_effects)] ## 'split' orders result
   ans
 }
 
@@ -1389,6 +1530,34 @@ make_stored_draws <- function(mod, est, prec, map) {
                                               draws_post = draws_post)
   if (has_disp(mod))
     mod$draws_disp <- make_draws_disp(draws_post)
+  mod
+}
+
+
+## NO_TESTS
+#' Make Point Estimates Stored as Part of Model Object
+#'
+#' Draws created are
+#' - 'point_effectfree',
+#' - 'point_hyper',
+#' - 'point_hyperrand', and, optionally,
+#' - 'point_disp'.
+#'
+#' @param mod A fitted 'bage_mod' object
+#'
+#' @returns Modified version of 'mod'
+#'
+#' @noRd
+make_stored_point <- function(mod, est) {
+  transforms_hyper <- make_transforms_hyper(mod)
+  mod$point_effectfree <- est$effectfree
+  point_hyper <- est$hyper
+  for (i in seq_along(point_hyper))
+    point_hyper[[i]] <- transforms_hyper[[i]](point_hyper[[i]])
+  mod$point_hyper <- point_hyper
+  mod$point_hyperrand <- est$hyperrand
+  if (has_disp(mod))
+    mod$point_disp <- exp(est$log_disp)
   mod
 }
 
@@ -1757,6 +1926,22 @@ sort_components <- function(components, mod) {
   components[ord, , drop = FALSE]
 }
   
+
+## HAS_TESTS
+#' Transfer Draws for Dispersion between Models
+#'
+#'
+#' @param mod Model receiving the draws
+#' @param mod_disp Model giving the draws
+#'
+#' @returns Modified version of 'mod'
+#' 
+#' @noRd
+transfer_draws_disp <- function(mod, mod_disp) { 
+  mod$draws_disp <- mod_disp$draws_disp
+  mod
+}
+
 
 ## HAS_TESTS
 #' Create Functions Needed to Transform Hyper-Parameters

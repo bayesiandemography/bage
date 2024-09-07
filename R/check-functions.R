@@ -215,6 +215,34 @@ check_has_disp_if_condition_on_expected <- function(x) {
 }
 
 
+## NO_TESTS
+#' Check That No Arguments Absorbed By Dots in Function
+#'
+#' @param dots Arguments absorbed
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_has_no_dots <- function(...) {
+  dots <- list(...)
+  n_dot <- length(dots)
+  if (n_dot > 0L) {
+    nms <- names(dots)
+    if (is.null(nms)) {
+      if (n_dot == 1L)
+        cli::cli_abort("Invalid unnamed argument.")
+      else
+        cli::cli_abort("{n_dot} invalid unnamed arguments.")
+    }
+    else {
+      i_nonblank <- match(TRUE, nzchar(nms))
+      cli::cli_abort("{.arg {nms[i_nonblank]}} is not a valid argument.")
+    }
+  }
+  invisible(TRUE)
+}
+
+
 ## HAS_TESTS
 #' Check that an Object is a Data Frame
 #'
@@ -429,6 +457,35 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
         }
     }
     invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that Model Data Includes at Least One Valid Observation
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns TRUE, invisbly
+#'
+#' @noRd
+check_mod_has_obs <- function(mod) {
+  is_in_lik <- make_is_in_lik(mod)
+    msg1 <- "No data for fitting model."
+  if (length(is_in_lik) == 0L)
+    cli::cli_abort(msg1)
+  if (!any(is_in_lik)) {
+    has_offset <- !is.null(mod$vname_offset)
+    if (has_offset) {
+      nm_offset <- nm_offset(mod)
+      msg2 <- paste("Every case has {nm_offset} {.val {0}},",
+                    "{nm_offset} {.val {NA}}, or outcome {.val {NA}}.")
+    }
+    else
+      msg2 <- "Every case has outcome {.val {NA}}."
+    message <- c(msg1, i = msg2)
+    cli::cli_abort(message)
+  }
+  invisible(TRUE)
 }
 
 

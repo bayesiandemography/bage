@@ -128,6 +128,7 @@ augment.bage_mod <- function(x,
                              ...) {
   is_fitted <- is_fitted(x)
   check_flag(x = quiet, nm_x = "quiet")
+  check_has_no_dots(...)
   if (is_fitted)
     ans <- draw_vals_augment_fitted(x)
   else {
@@ -264,6 +265,7 @@ components.bage_mod <- function(object,
   standardize <- match.arg(standardize)
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
+  check_has_no_dots(...)
   if (is_fitted)
     ans <- draw_vals_components_fitted(mod = object,
                                        standardize = standardize)
@@ -303,7 +305,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   nm_distn <- nm_distn(mod)
   ans <- mod$data
   ans$.observed <- make_observed(mod)
-  linpred <- make_linpred_raw(mod)
+  linpred <- make_linpred_raw(mod = mod, point = FALSE)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   if (has_disp) {
@@ -356,7 +358,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   seed_augment <- mod$seed_augment
   nm_distn <- nm_distn(mod)
   ans <- mod$data
-  linpred <- make_linpred_raw(mod)
+  linpred <- make_linpred_raw(mod = mod, point = FALSE)
   scale_outcome <- get_fun_scale_outcome(mod)
   .fitted <- scale_outcome(linpred)
   ans$.fitted <- .fitted
@@ -560,25 +562,48 @@ generics::fit
 #'
 #' Calculate the posterior distribution for a model.
 #'
-#' @section Two-step estimation
+#' @section Estimation methods:
 #'
-#' TODO - WRITE THIS
+#' - `"standard"` All parameters, other than
+#'   the lowest-level rates, probabilities, or
+#'   means are jointly estimated within TMB.
+#'   The default.
+#' - `"inner-outer"`. Multiple-stage estimation,
+#'   which can be faster than `"standard"` for
+#'   models with many parameters. In Step 1, the
+#'   data is aggregated across all dimensions other
+#'   than those specified in `var_inner`, and a model
+#'   for the `inner` variables is fitted to the data.
+#'   In Step 2, the data is aggregated across the
+#'   remaining variables, and a model for the
+#'   `outer` variables is fitted to the data.
+#'   Parameter estimtes from steps 1 and 2 are then
+#'   combined.
 #'
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param vars_inner Names of variables to use in
-#' two-step estimation. See below for details.
+#' @param method Estimation method. Current
+#' choices are `"standard"` (the default)
+#' and `"inner-outer"`.
+#' See below for details.
+#' @param vars_inner Names of variables to use
+#' for inner model when `method` is `"inner-outer".
+#' If `NULL` (the default) `vars_inner` is the
+#' [age][set_var_age()], [sex/gender][set_var_sexgender()],
+#' and [time][set_var_time()] variables.
 #' @param ... Not currently used.
 #'
 #' @returns A `bage_mod` object
 #'
 #' @seealso
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
-#' - [augment()], [components()], and [tidy()] Examine
-#'   output from a model.
+#' - [augment()], [components()], [tidy()] Examine
+#'   output from a model
 #' - [forecast()] Forecast, based on a model
-#' - [report_sim()] Do a simulation study on a model
+#' - [report_sim()] Simulation study of a model
+#' - [unfit()] Reset a model
+#' - [is_fitted()] Check if a model has been fitted
 #' 
 #' @examples
 #' ## specify model
@@ -603,14 +628,20 @@ generics::fit
 #' comp <- components(mod)
 #' comp
 #' @export
-fit.bage_mod <- function(object, vars_inner = NULL, ...) {
-  has_vars_inner <- !is.null(vars_inner)
-  if (has_vars_inner)
+fit.bage_mod <- function(object,
+                         method = c("standard", "inner-outer"),
+                         vars_inner = NULL,
+                         ...) {
+  check_mod_has_obs(object)
+  method <- match.arg(method)
+  check_has_no_dots(...)
+  if (method == "standard")
+    fit_default(object)
+  else if (method == "inner-outer")
     fit_inner_outer(mod = object, vars_inner = vars_inner)
   else
-    fit_default(object)
+    cli::cli_abort("Internal error: Unexpected value for {.arg method}.") ## nocov
 }
-
 
 
 ## 'forecast' -----------------------------------------------------------------
@@ -708,7 +739,7 @@ generics::forecast
 #' mod <- mod_pois(injuries ~ age * sex + ethnicity + year,
 #'                 data = injuries,
 #'                 exposure = popn) |>
-#'   fit(mod)
+#'   fit()
 #' mod
 #'
 #' ## forecasts
@@ -814,7 +845,7 @@ forecast.bage_mod <- function(object,
                         center_along = FALSE)
     }
     else if (standardize == "anova") {
-      linpred_est <- make_linpred_raw(object)
+      linpred_est <- make_linpred_raw(mod = object, point = FALSE)
       comp_est <- standardize_anova(components = comp_est_unst,
                                     data = data_est,
                                     linpred = linpred_est,
@@ -907,6 +938,54 @@ forecast_augment.bage_mod_norm <- function(mod,
   ans$.fitted <- fitted
   ans
 }
+
+
+## 'get_fun_ag_offset' --------------------------------------------------------
+
+#' Get Function to Use for Aggregating
+#' Values for Offset
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A function
+#'
+#' @noRd
+get_fun_ag_offset <- function(mod) {
+  UseMethod("get_fun_ag_offset")
+}
+
+## HAS_TESTS
+#' @export
+get_fun_ag_offset.bage_mod <- function(mod) sum
+
+## HAS_TESTS
+#' @export
+get_fun_ag_offset.bage_mod_norm <- function(mod) {
+  function(x) (length(x)^2) / sum(1 / x)
+}
+
+
+## 'get_fun_ag_outcome' --------------------------------------------------------
+
+#' Get Function to Use for Aggregating
+#' Values for Outcome
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A function
+#'
+#' @noRd
+get_fun_ag_outcome <- function(mod) {
+  UseMethod("get_fun_ag_outcome")
+}
+
+## HAS_TESTS
+#' @export
+get_fun_ag_outcome.bage_mod <- function(mod) sum
+
+## HAS_TESTS
+#' @export
+get_fun_ag_outcome.bage_mod_norm <- function(mod) mean
 
 
 ## 'get_fun_inv_transform' ----------------------------------------------------
@@ -1130,6 +1209,159 @@ make_i_lik_mod.bage_mod_norm <- function(mod) {
     201L
   else
     cli::cli_abort("Internal error: Invalid inputs.")
+}
+
+
+## 'make_mod_disp' -----------------------------------------------------------
+
+#' Make the Model Used to Estimate Dispersion as Part of the Inner-Outer Fit Procedure
+#'
+#' @param mod The model being fitted. Object of class 'bage_mod'
+#'
+#' @returns An object of class 'bage_mod'
+#'
+#' @noRd
+make_mod_disp <- function(mod) {
+  UseMethod("make_mod_disp")
+}
+
+## HAS_TESTS
+#' @export
+make_mod_disp.bage_mod_pois <- function(mod) {
+  nrow_max <- 10000L
+  n_term <- length(mod$dimnames_terms)
+  use_term <- rep(c(TRUE, FALSE), times = c(1L, n_term - 1L))
+  ans <- reduce_model_terms(mod = mod, use_term = use_term)
+  linpred <- make_linpred_raw(mod = mod, point = TRUE)
+  nrow_data <- nrow(mod$data)
+  if (nrow_data > nrow_max) {
+    i_keep <- sample(nrow_data, size = nrow_max)
+    ans$data <- ans$data[i_keep, , drop = FALSE]
+    ans$outcome <- ans$outcome[i_keep]
+    ans$offset <- ans$offset[i_keep]
+    linpred <- linpred[i_keep]
+  }
+  mu <- exp(linpred)
+  ans$offset <- ans$offset * mu
+  ans
+}
+
+## HAS_TESTS
+#' @export
+make_mod_disp.bage_mod_binom <- function(mod) {
+  nrow_max <- 10000L
+  point_est <- make_point_est_effects(mod)
+  i_intercept <- match("(Intercept)", names(point_est), nomatch = 0L)
+  if (i_intercept > 0L)
+    point_est <- point_est[-i_intercept]
+  ans <- set_priors_known(mod = mod, prior_values = point_est)
+  nrow_data <- nrow(mod$data)
+  if (nrow_data > nrow_max) {
+    i_keep <- sample(nrow_data, size = nrow_max)
+    ans$data <- ans$data[i_keep, , drop = FALSE]
+    ans$outcome <- ans$outcome[i_keep]
+    ans$offset <- ans$offset[i_keep]
+  }
+  ans
+}
+
+## HAS_TESTS
+#' @export
+make_mod_disp.bage_mod_norm <- function(mod) {
+  nrow_max <- 10000L
+  n_term <- length(mod$dimnames_terms)
+  use_term <- rep(c(TRUE, FALSE), times = c(1L, n_term - 1L))
+  ans <- reduce_model_terms(mod = mod, use_term = use_term)
+  linpred <- make_linpred_raw(mod = mod, point = TRUE)
+  nrow_data <- nrow(mod$data)
+  if (nrow_data > nrow_max) {
+    i_keep <- sample(nrow_data, size = nrow_max)
+    ans$data <- ans$data[i_keep, , drop = FALSE]
+    ans$outcome <- ans$outcome[i_keep]
+    ans$offset <- ans$offset[i_keep]
+    linpred <- linpred[i_keep]
+  }
+  ans$outcome <- ans$outcome - linpred
+  ans
+}
+
+
+## 'make_mod_inner' -----------------------------------------------------------
+
+#' Make the Inner Model as Part of the Inner-Outer Fit Procedure
+#'
+#' @param mod The model being fitted. Object of class 'bage_mod'
+#' @param use_term Logical vector identifying terms to
+#' be used in inner and outer models
+#'
+#' @returns An object of class 'bage_mod'
+#'
+#' @noRd
+make_mod_inner <- function(mod, use_term) {
+  UseMethod("make_mod_inner")
+}
+
+## HAS_TESTS
+#' @export
+make_mod_inner.bage_mod <- function(mod, use_term) {
+  ans <- reduce_model_terms(mod = mod, use_term = use_term)
+  ans$mean_disp <- 0
+  ans
+}
+
+## HAS_TESTS
+#' @export
+make_mod_inner.bage_mod_norm <- function(mod, use_term) {
+  reduce_model_terms(mod = mod, use_term = use_term)
+}
+
+
+## 'make_mod_outer' -----------------------------------------------------------
+
+#' Make the Outer Model as Part of the Inner-Outer Fit Procedure
+#'
+#' @param mod The model being fitted. Object of class 'bage_mod'
+#' @param mod_inner The 'inner' model, with the variables
+#' picked out by vars_inner/use_term. Object of class 'bage_mod'
+#' @param use_term Logical vector identifying terms to
+#' be used in inner and outer models
+#'
+#' @returns An object of class 'bage_mod'
+#'
+#' @noRd
+make_mod_outer <- function(mod, mod_inner, use_term) {
+  UseMethod("make_mod_outer")
+}
+
+## HAS_TESTS
+#' @export
+make_mod_outer.bage_mod_pois <- function(mod, mod_inner, use_term) {
+  linpred_inner <- make_linpred_raw(mod = mod_inner, point = TRUE)
+  mu_inner <- exp(linpred_inner)
+  use_term <- !use_term
+  ans <- reduce_model_terms(mod = mod, use_term = use_term)
+  ans$offset <- ans$offset * mu_inner
+  ans$mean_disp <- 0
+  ans
+}
+
+## HAS_TESTS
+#' @export
+make_mod_outer.bage_mod_binom <- function(mod, mod_inner, use_term) {
+  point_est_inner <- make_point_est_effects(mod_inner)
+  ans <- set_priors_known(mod = mod, prior_values = point_est_inner)
+  ans$mean_disp <- 0
+  ans
+}
+
+## HAS_TESTS
+#' @export
+make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
+  linpred_inner <- make_linpred_raw(mod = mod_inner, point = TRUE)
+  use_term <- !use_term
+  ans <- reduce_model_terms(mod = mod, use_term = use_term)
+  ans$outcome <- ans$outcome - linpred_inner
+  ans
 }
 
 
@@ -1662,6 +1894,7 @@ generics::tidy
 #' tidy(mod)
 #' @export
 tidy.bage_mod <- function(x, ...) {
+  check_has_no_dots(...)
   priors <- x$priors
   dimnames_terms <- x$dimnames_terms
   n <- make_lengths_effect(dimnames_terms)

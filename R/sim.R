@@ -295,8 +295,6 @@ draw_vals_disp <- function(mod, n_sim) {
 #'
 #' Draw values for main effects and interactions.
 #'
-#' Set intercept to 0
-#'
 #' @param mod Object of class "bage_mod"
 #' @param vals_hyper List of lists.
 #' @param vals_hyperrand List of lists.
@@ -1031,6 +1029,11 @@ perform_comp <- function(est,
 #' assessed. An object of class `bage_mod`.
 #' @param mod_sim The model used to generate the simulated
 #' data. If no value is supplied, `mod_est` is used.
+#' @param method Estimation method used for `mod_est`.
+#' See [fit()].
+#' @param vars_inner Variables used in inner model
+#' with `"inner-outer"`estimation method.
+#' See [fit()].
 #' @param n_sim Number of sets of simulated data to use.
 #' Default is 100.
 #' @param point_est_fun Name of the function to use
@@ -1112,6 +1115,8 @@ perform_comp <- function(est,
 #' @export
 report_sim <- function(mod_est,
                        mod_sim = NULL,
+                       method = c("standard", "inner-outer"),
+                       vars_inner = NULL,
                        n_sim = 100,
                        point_est_fun = c("median", "mean"),
                        widths = c(0.5, 0.95),
@@ -1153,7 +1158,7 @@ report_sim <- function(mod_est,
     perform_aug <- utils::getFromNamespace("perform_aug", ns = "bage")
     outcome <- outcome_obs_sim[, i_sim]
     mod_est$outcome <- outcome
-    mod_est <- fit(mod_est)
+    mod_est <- fit(mod_est, method = method, vars_inner = vars_inner)
     comp_est <- components(mod_est, standardize = "none")
     aug_est <- augment(mod_est)
     results_comp <- perform_comp(est = comp_est,

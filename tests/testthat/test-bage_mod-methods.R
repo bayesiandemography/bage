@@ -853,6 +853,7 @@ test_that("'fit' and 'forecast' work with SVD_AR", {
                       time = 2001:2010)
   data$population <- runif(n = nrow(data), min = 100, max = 300)
   data$deaths <- NA
+  data$deaths[1] <- 100
   mod <- mod_pois(deaths ~ age:time,
                   data = data,
                   exposure = population) |>
@@ -868,7 +869,8 @@ test_that("'fit' and 'forecast' work with SVD_RW", {
   data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
                       time = 2001:2010)
   data$population <- runif(n = nrow(data), min = 100, max = 300)
-  data$deaths <- NA
+  data$deaths <- rpois(n = nrow(data), lambda = 0.05 * data$population)
+  data$deaths[1] <- NA
   mod <- mod_pois(deaths ~ age:time,
                   data = data,
                   exposure = population) |>
@@ -884,7 +886,8 @@ test_that("'fit' and 'forecast' work with SVD_RW2", {
   data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
                       time = 2001:2010)
   data$population <- runif(n = nrow(data), min = 100, max = 300)
-  data$deaths <- NA
+  data$deaths <- rpois(n = nrow(data), lambda = 0.05 * data$population)
+  data$deaths[1] <- NA
   mod <- mod_pois(deaths ~ age:time,
                   data = data,
                   exposure = population) |>
@@ -895,6 +898,44 @@ test_that("'fit' and 'forecast' work with SVD_RW2", {
   expect_setequal(c(names(f), ".deaths"),
                   names(augment(mod)))
 })
+
+test_that("'fit' works inner-outer", {
+  set.seed(0)
+  ## structure of data
+  data <- expand.grid(age = poputils::age_labels(type = "lt"),
+                      sex = c("Female", "Male"),
+                      time = 2011:2015,
+                      region = 1:10)
+  data$population <- runif(n = nrow(data), min = 10, max = 1000)
+  data$deaths <- NA
+  ## generate single dataset
+  mod_sim <- mod_pois(deaths ~ age * sex + region + time,
+                      data = data,
+                      exposure = population) |>
+                      set_prior(`(Intercept)` ~ NFix(s = 0.1)) |>
+                      set_prior(age ~ RW(s = 0.02)) |>
+                      set_prior(sex ~ NFix(sd = 0.1)) |>
+                      set_prior(age:sex ~ SVD(HMD)) |>
+                      set_prior(time ~ Lin_AR(s = 0.05, sd = 0.02)) |>
+                      set_prior(region ~ NFix(sd = 0.05)) |>
+                      set_disp(mean = 0.005)
+  data_sim <- mod_sim |>
+  set_n_draw(n = 1) |>
+  augment(quiet = TRUE) |>
+  dplyr::mutate(deaths = rvec::draws_median(deaths)) |>
+  dplyr::select(age, sex, time, region, population, deaths)
+  ## specify estimation model
+  mod_est <- mod_pois(deaths ~ age * sex + region + time,
+                      data = data_sim,
+                      exposure = population) |>
+                      set_prior(age:sex ~ SVD(HMD)) |>
+                      set_prior(time ~ Lin_AR())
+  ## fit estimation model
+  mod_est <- mod_est |>
+  fit(method = "inner-outer")
+  expect_true(is_fitted(mod_est))
+})
+
 
 
 ## 'forecast' -----------------------------------------------------------------
@@ -1142,6 +1183,94 @@ test_that("'forecast_augment' works - normal", {
 })
 
 
+## 'get_fun_ag_offset' --------------------------------------------------------
+
+test_that("'get_fun_ag_offset' works with binom", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  f <- get_fun_ag_offset(mod)
+  ans_obtained <- f(mod$offset)
+  ans_expected <- sum(mod$offset)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_fun_ag_offset' works with norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  f <- get_fun_ag_offset(mod)
+  ans_obtained <- f(mod$offset)
+  n <- length(mod$offset)
+  ans_expected <- (n^2) / sum(1 / mod$offset)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'get_fun_ag_outcome' --------------------------------------------------------
+
+test_that("'get_fun_ag_outcome' works with binom", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  f <- get_fun_ag_outcome(mod)
+  ans_obtained <- f(mod$outcome)
+  ans_expected <- sum(mod$outcome)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_fun_ag_outcome' works with norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  f <- get_fun_ag_outcome(mod)
+  ans_obtained <- f(mod$outcome)
+  ans_expected <- mean(mod$outcome)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+## 'get_fun_inv_transform' ----------------------------------------------------
+
+test_that("'get_fun_inv_transform' works with valid inputs", {
+    set.seed(0)
+    x <- runif(100)
+    logit <- function(x) log(x) - log(1 - x)
+    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_pois"))(log(x)), x)
+    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_binom"))(logit(x)), x)
+    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_norm"))(x), x)
+})
+
+
+## 'get_fun_scale_outcome' --------------------------------------------------------
+
+test_that("'get_fun_scale_outcome' works with valid inputs", {
+    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_pois", "bage_mod")))(1), 1)
+    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_binom", "bage_mod")))(1), 1)
+    expect_equal(get_fun_scale_outcome(structure(list(outcome_mean = 3, outcome_sd = 2),
+                                                 class = c("bage_mod_norm", "bage_mod")))(1), 5)
+})
+
+
 ## 'get_nm_outcome' -----------------------------------------------------------
 
 test_that("'get_nm_outcome' works with 'bage_mod_pois'", {
@@ -1175,27 +1304,6 @@ test_that("'get_nm_outcome_obs' works with 'bage_mod_pois'", {
   expect_identical(get_nm_outcome_obs(mod), ".deaths")
 })
 
-
-## 'get_fun_inv_transform' ----------------------------------------------------
-
-test_that("'get_fun_inv_transform' works with valid inputs", {
-    set.seed(0)
-    x <- runif(100)
-    logit <- function(x) log(x) - log(1 - x)
-    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_pois"))(log(x)), x)
-    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_binom"))(logit(x)), x)
-    expect_equal(get_fun_inv_transform(structure(1, class = "bage_mod_norm"))(x), x)
-})
-
-
-## 'get_fun_scale_outcome' --------------------------------------------------------
-
-test_that("'get_fun_scale_outcome' works with valid inputs", {
-    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_pois", "bage_mod")))(1), 1)
-    expect_equal(get_fun_scale_outcome(structure(1, class = c("bage_mod_binom", "bage_mod")))(1), 1)
-    expect_equal(get_fun_scale_outcome(structure(list(outcome_mean = 3, outcome_sd = 2),
-                                                 class = c("bage_mod_norm", "bage_mod")))(1), 5)
-})
 
 
 ## 'has_disp' -----------------------------------------------------------------
@@ -1260,7 +1368,7 @@ test_that("'make_i_lik_mod' works with bage_mod_binom", {
   expect_identical(make_i_lik_mod(set_datamod_outcome_rr3(mod0)), 102L)
 })
 
-test_that("'make_i_lik_mod' works with bage_mod_binom", {
+test_that("'make_i_lik_mod' works with bage_mod_norm", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$wt <- rpois(n = nrow(data), lambda = 1000)
@@ -1270,8 +1378,226 @@ test_that("'make_i_lik_mod' works with bage_mod_binom", {
                   data = data,
                   weights = wt)
   expect_identical(make_i_lik_mod(mod), 201L)
-  mod$nm_datamod <- "wrong"
+  mod$datamod_outcome <- "wrong"
+  expect_error(make_i_lik_mod(mod),
+               "Internal error: Invalid inputs.")
 })
+
+
+## 'make_mod_disp' -----------------------------------------------------------
+
+test_that("'make_mod_disp' works with pois", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rpois(n = nrow(data), lambda = 0.3 * data$popn)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  mod_disp <- make_mod_disp(mod)
+  expect_setequal(names(mod_disp$priors), "(Intercept)")
+  mu <- exp(make_linpred_raw(mod, point = TRUE))
+  expect_equal(mod_disp$offset, mod$offset * mu)
+  expect_true(mod_disp$mean_disp > 0)
+  expect_identical(length(mod_disp$dimnames_terms), 1L)
+})
+
+test_that("'make_mod_disp' works with pois - large dataset", {
+  set.seed(0)
+  data <- expand.grid(time = 1:6000, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rpois(n = nrow(data), lambda = 0.3 * data$popn)
+  formula <- deaths ~ sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod$point_effectfree <- rnorm(1 + 6000 + 2)
+  mod_disp <- make_mod_disp(mod)
+  expect_true(identical(nrow(mod_disp$data), 10000L))
+})
+
+test_that("'make_mod_disp' works with binom", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), size =  data$popn, prob = 0.3)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  mod <- fit(mod)
+  mod_disp <- make_mod_disp(mod)
+  expect_setequal(names(mod_disp$priors), names(mod$priors))
+  expect_true(mod_disp$mean_disp > 0)
+  expect_s3_class(mod_disp$priors[["age"]], "bage_prior_known")
+  expect_equal(mod_disp$offset, mod$offset)
+})
+
+test_that("'make_mod_disp' works with binom", {
+  set.seed(0)
+  data <- expand.grid(time = 1:6, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), prob = 0.2, size = data$popn)
+  formula <- deaths ~ sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  mod_disp <- make_mod_disp(mod)
+  expect_setequal(names(mod_disp$priors), "(Intercept)")
+  mu <- exp(make_linpred_raw(mod, point = TRUE))
+  expect_true(mod_disp$mean_disp > 0)
+})
+
+test_that("'make_mod_disp' works with binom - large dataset", {
+  set.seed(0)
+  data <- expand.grid(time = 1:6000, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), prob = 0.3, size = data$popn)
+  formula <- deaths ~ sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  mod$point_effectfree <- rnorm(1 + 6000 + 2)
+  mod$draws_effectfree  <- 1 ## to fool 'is_fitted'
+  mod_disp <- make_mod_disp(mod)
+  expect_true(identical(nrow(mod_disp$data), 10000L))
+})
+
+test_that("'make_mod_disp' works with norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age * sex + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  mod <- fit(mod)
+  mod_disp <- make_mod_disp(mod)
+  expect_setequal(names(mod_disp$priors), "(Intercept)")
+  mu <- make_linpred_raw(mod, point = TRUE)
+  expect_equal(mod_disp$outcome, mod$outcome - mu)
+  expect_true(mod_disp$mean_disp > 0)
+  expect_identical(length(mod_disp$dimnames_terms), 1L)
+})
+
+test_that("'make_mod_disp' works with norm - large dataset", {
+  set.seed(0)
+  data <- expand.grid(time = 2000:8000, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ time + sex
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  mod$point_effectfree <- rnorm(1 + 6001 + 2)
+  mod_disp <- make_mod_disp(mod)
+  expect_true(identical(nrow(mod_disp$data), 10000L))
+})
+
+
+## 'make_mod_inner' -----------------------------------------------------------
+
+test_that("'make_mod_inner' works with pois", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rpois(n = nrow(data), lambda = 0.3 * data$popn)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  use_term <- make_use_term(mod, vars_inner = c("age", "sex"))
+  ans_obtained <- make_mod_inner(mod, use_term)
+  ans_expected <- reduce_model_terms(mod, use_term = use_term)
+  ans_expected$mean_disp <- 0
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_mod_inner' works with norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age * sex + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  use_term <- make_use_term(mod, vars_inner = c("age", "sex"))
+  ans_obtained <- make_mod_inner(mod, use_term = use_term)
+  ans_expected <- reduce_model_terms(mod, use_term = use_term)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_mod_outer' -----------------------------------------------------------
+
+test_that("'make_mod_outer' works with pois", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rpois(n = nrow(data), lambda = 0.3 * data$popn)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  use_term <- make_use_term(mod, vars_inner = c("age", "sex"))
+  mod_inner <- reduce_model_terms(mod, use_term = use_term)
+  mod_inner <- fit(mod_inner)
+  mod_outer <- make_mod_outer(mod,
+                              mod_inner = mod_inner,
+                              use_term = use_term)
+  expect_setequal(names(mod_outer$priors), c("time", "sex:time"))
+  mu <- exp(make_linpred_raw(mod_inner, point = TRUE))
+  expect_equal(mod_outer$offset, mod$offset * mu)
+  expect_equal(mod_outer$mean_disp, 0)
+})
+
+test_that("'make_mod_outer' works with binom", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), size =  data$popn, prob = 0.3)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  use_term <- make_use_term(mod, vars_inner = c("age", "sex"))
+  mod_inner <- reduce_model_terms(mod, use_term = use_term)
+  mod_inner <- fit(mod_inner)
+  mod_outer <- make_mod_outer(mod,
+                              mod_inner = mod_inner,
+                              use_term = use_term)
+  expect_setequal(names(mod_outer$priors), names(mod$priors))
+  expect_s3_class(mod_outer$priors[["age"]], "bage_prior_known")
+  expect_equal(mod_outer$offset, mod$offset)
+  expect_equal(mod_outer$mean_disp, 0)
+})
+
+test_that("'make_mod_outer' works with norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$wt <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age * sex + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  use_term <- make_use_term(mod, vars_inner = c("age", "sex"))
+  mod_inner <- reduce_model_terms(mod, use_term = use_term)
+  mod_inner <- fit(mod_inner)
+  mod_outer <- make_mod_outer(mod,
+                              mod_inner = mod_inner,
+                              use_term = use_term)
+  expect_setequal(names(mod_outer$priors), c("time", "sex:time"))
+  mu <- make_linpred_raw(mod_inner, point = TRUE)
+  expect_equal(mod_outer$outcome, mod$outcome - mu)
+  expect_true(mod_outer$mean_disp > 0)
+})
+
 
 ## 'make_par_disp' ---------------------------------------------------
 

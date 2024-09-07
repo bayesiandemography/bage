@@ -449,8 +449,6 @@ mod_helper <- function(formula, data, n_draw) {
   var_age <- infer_var_age(formula)
   var_sexgender <- infer_var_sexgender(formula)
   var_time <- infer_var_time(formula)
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                          dimnames_terms = dimnames_terms)
   lengths_effect <- make_lengths_effect(dimnames_terms)
   priors <- make_priors(formula = formula,
                         var_age = var_age,
@@ -471,7 +469,6 @@ mod_helper <- function(formula, data, n_draw) {
        var_age = var_age,
        var_sexgender = var_sexgender,
        var_time = var_time,
-       matrices_effect_outcome = matrices_effect_outcome,
        mean_disp = 1,
        n_draw = n_draw,
        vars_inner = NULL,
@@ -479,6 +476,10 @@ mod_helper <- function(formula, data, n_draw) {
        draws_hyper = NULL,
        draws_hyperrand = NULL,
        draws_disp = NULL,
+       point_effectfree = NULL,
+       point_hyper = NULL,
+       point_hyperrand = NULL,
+       point_disp = NULL,
        seed_stored_draws = seed_stored_draws,
        seed_components = seed_components,
        seed_augment = seed_augment,

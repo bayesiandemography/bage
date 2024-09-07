@@ -4,12 +4,22 @@
 \alias{fit.bage_mod}
 \title{Fit a Model}
 \usage{
-\method{fit}{bage_mod}(object, vars_inner = NULL, ...)
+\method{fit}{bage_mod}(object, method = c("standard", "inner-outer"), vars_inner = NULL, ...)
 }
 \arguments{
 \item{object}{A \code{bage_mod} object,
-typically created with \code{\link[=mod_pois]{mod_pois()}},
+created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
+\item{method}{Estimation method. Current
+choices are \code{"standard"} (the default)
+and \code{"inner-outer"}.
+See below for details.}
+
+\item{vars_inner}{Names of variables to use
+for inner model when \code{method} is \verb{"inner-outer". If }NULL\verb{(the default)}vars_inner` is the
+\link[=set_var_age]{age}, \link[=set_var_sexgender]{sex/gender},
+and \link[=set_var_time]{time} variables.}
 
 \item{...}{Not currently used.}
 }
@@ -19,6 +29,27 @@ A \code{bage_mod} object
 \description{
 Calculate the posterior distribution for a model.
 }
+\section{Estimation methods}{
+
+\itemize{
+\item \code{"standard"} All parameters, other than
+the lowest-level rates, probabilities, or
+means are jointly estimated within TMB.
+The default.
+\item \code{"inner-outer"}. Multiple-stage estimation,
+which can be faster than \code{"standard"} for
+models with many parameters. In Step 1, the
+data is aggregated across all dimensions other
+than those specified in \code{var_inner}, and a model
+for the \code{inner} variables is fitted to the data.
+In Step 2, the data is aggregated across the
+remaining variables, and a model for the
+\code{outer} variables is fitted to the data.
+Parameter estimtes from steps 1 and 2 are then
+combined.
+}
+}
+
 \examples{
 ## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
@@ -45,9 +76,11 @@ comp
 \seealso{
 \itemize{
 \item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a model
-\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}}, and \code{\link[=tidy]{tidy()}} Examine
-output from a model.
+\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}}, \code{\link[=tidy]{tidy()}} Examine
+output from a model
 \item \code{\link[=forecast]{forecast()}} Forecast, based on a model
-\item \code{\link[=report_sim]{report_sim()}} Do a simulation study on a model
+\item \code{\link[=report_sim]{report_sim()}} Simulation study of a model
+\item \code{\link[=unfit]{unfit()}} Reset a model
+\item \code{\link[=is_fitted]{is_fitted()}} Check if a model has been fitted
 }
 }

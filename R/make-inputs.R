@@ -1,68 +1,5 @@
 
 ## HAS_TESTS
-#' Combined Stored Draws from Two Models
-#'
-#' @param mod Model receiving the draws
-#' @param mod_inner Model for which use_term is TRUE
-#' @param mod_outer Model for which use_term is FALSE
-#' @param use_term Logical vector
-#'
-#' @returns Modified version of 'mod'
-#' 
-#' @noRd
-combine_stored_draws_inner_outer <- function(mod, mod_inner, mod_outer, use_term) {
-  priors <- mod$priors
-  n_term <- length(priors)
-  nms_term <- names(priors)
-  draws_effectfree <- vector(mode = "list", length = n_term)
-  draws_hyper <- vector(mode = "list", length = n_term)
-  draws_hyperrand <- vector(mode = "list", length = n_term)
-  terms_effectfree_inner <- make_terms_effectfree(mod_inner)
-  terms_effectfree_outer <- make_terms_effectfree(mod_outer)
-  terms_hyper_inner <- make_terms_hyper(mod_inner)
-  terms_hyper_outer <- make_terms_hyper(mod_outer)
-  terms_hyperrand_inner <- make_terms_hyperrand(mod_inner)
-  terms_hyperrand_outer <- make_terms_hyperrand(mod_outer)
-  draws_effectfree_inner <- mod_inner$draws_effectfree
-  draws_effectfree_outer <- mod_outer$draws_effectfree
-  draws_hyper_inner <- mod_inner$draws_hyper
-  draws_hyper_outer <- mod_outer$draws_hyper
-  draws_hyperrand_inner <- mod_inner$draws_hyperrand
-  draws_hyperrand_outer <- mod_outer$draws_hyperrand
-  for (i_term in seq_len(n_term)) {
-    nm_term <- nms_term[[i_term]]
-    use_inner <- use_term[[i_term]]
-    if (use_inner) {
-      is_term_effectfree <- terms_effectfree_inner == nm_term
-      draws_effectfree[[i_term]] <- draws_effectfree_inner[is_term_effectfree, , drop = FALSE]
-      is_term_hyper <- terms_hyper_inner == nm_term
-      draws_hyper[[i_term]] <- draws_hyper_inner[is_term_hyper, , drop = FALSE]
-      is_term_hyperrand <- terms_hyperrand_inner == nm_term
-      draws_hyperrand[[i_term]] <- draws_hyperrand_inner[is_term_hyperrand, , drop = FALSE]
-    }
-    else {
-      is_term_effectfree <- terms_effectfree_outer == nm_term
-      draws_effectfree[[i_term]] <- draws_effectfree_outer[is_term_effectfree, , drop = FALSE]
-      is_term_hyper <- terms_hyper_outer == nm_term
-      draws_hyper[[i_term]] <- draws_hyper_outer[is_term_hyper, , drop = FALSE]
-      is_term_hyperrand <- terms_hyperrand_outer == nm_term
-      draws_hyperrand[[i_term]] <- draws_hyperrand_outer[is_term_hyperrand, , drop = FALSE]
-    }
-  }
-  draws_effectfree <- do.call(rbind, draws_effectfree)
-  draws_hyper <- do.call(rbind, draws_hyper)
-  draws_hyperrand <- do.call(rbind, draws_hyperrand)
-  mod$draws_effectfree <- draws_effectfree
-  mod$draws_hyper <- draws_hyper
-  mod$draws_hyperrand <- draws_hyperrand
-  if (has_disp(mod))
-    mod$draws_disp <- mod_outer$draws_disp
-  mod
-}
-
-
-
-## HAS_TESTS
 #' Derive default prior from name and length of term
 #'
 #' @param nm_term Name of model term
@@ -350,15 +287,20 @@ make_agesex <- function(nm, var_age, var_sexgender) {
 #'
 #' @noRd
 make_const <- function(mod) {
-    priors <- mod$priors
-    ans <- lapply(priors, const)
+  priors <- mod$priors
+  ans <- lapply(priors, const)
+  if (length(ans) > 0L)
     ans <- unlist(ans)
-    ans
+  else
+    ans <- double()
+  ans
 }
 
 
 ## HAS_TESTS
 #' Make Dimnames for Terms in Model
+#'
+#' Handles case where formula does not have intercept.
 #'
 #' @param mod Object of class 'bage_mod'
 #'
@@ -366,8 +308,12 @@ make_const <- function(mod) {
 #'
 #' @noRd
 make_dimnames_terms <- function(formula, data) {
-  ans <- list("(Intercept)" = list())
-  factors <- attr(stats::terms(formula), "factors")
+  ans <- list()
+  terms_formula <- stats::terms(formula)
+  has_intercept <- attr(terms_formula, "intercept")
+  if (has_intercept)
+    ans <- c(ans, list("(Intercept)" = list()))
+  factors <- attr(terms_formula, "factors")
   if (length(factors) > 0L) {
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
@@ -402,20 +348,24 @@ make_dimnames_terms <- function(formula, data) {
 #'
 #' @noRd
 make_effectfree <- function(mod) {
-    priors <- mod$priors
-    lengths_effectfree <- make_lengths_effectfree(mod)
-    ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
-    for (i_term in seq_along(priors)) {
-        prior <- priors[[i_term]]
-        is_known <- is_known(prior)
-        if (is_known) {
-            values <- values_known(prior)
-            ans[[i_term]] <- values
-        }
+  priors <- mod$priors
+  lengths_effectfree <- make_lengths_effectfree(mod)
+  ans <- lapply(lengths_effectfree, function(n) rep(0, times = n))
+  for (i_term in seq_along(priors)) {
+    prior <- priors[[i_term]]
+    is_known <- is_known(prior)
+    if (is_known) {
+      values <- values_known(prior)
+      ans[[i_term]] <- values
     }
+  }
+  if (length(ans) > 0L) {
     ans <- unlist(ans)
     names(ans) <- rep(names(priors), times = lengths_effectfree)
-    ans
+  }
+  else
+    ans <- double()
+  ans
 }
 
 
@@ -506,10 +456,7 @@ make_i_prior <- function(mod) {
 make_is_in_lik <- function(mod) {
     outcome <- mod$outcome
     offset <- mod$offset
-    ans <- (!is.na(outcome)
-        & !is.na(offset)
-        & (offset > 0))
-    as.integer(ans)
+    !is.na(outcome) & !is.na(offset) & (offset > 0)
 }
 
 
@@ -523,13 +470,13 @@ make_is_in_lik <- function(mod) {
 #'
 #' @noRd
 make_lengths_effect <- function(dimnames_terms) {
-  ans <- c("(Intercept)" = 1L)
-  if (length(dimnames_terms) > 1L) {
-    lengths <- lapply(dimnames_terms[-1L], lengths)
-    prod_int <- function(x) as.integer(prod(x))
-    ans_terms <- vapply(lengths, prod_int, 0L)
-    ans <- c(ans, ans_terms)
-  }
+  ans <- lapply(dimnames_terms, lengths)
+  ans <- vapply(ans, prod, 1)
+  ans <- vapply(ans, as.integer, 1L)
+  nms <- names(dimnames_terms)
+  i_intercept <- match("(Intercept)", nms, nomatch = 0L)
+  if (i_intercept > 0L)
+    ans[[i_intercept]] <- 1L
   ans
 }
 
@@ -543,12 +490,12 @@ make_lengths_effect <- function(dimnames_terms) {
 #'
 #' @noRd
 make_lengths_effectfree <- function(mod) {
-    priors <- mod$priors
-    matrices <- make_matrices_effectfree_effect(mod)
-    matrices <- lapply(matrices, Matrix::as.matrix)
-    ans <- vapply(matrices, ncol, 1L)
-    names(ans) <- names(priors)
-    ans
+  priors <- mod$priors
+  matrices <- make_matrices_effectfree_effect(mod)
+  matrices <- lapply(matrices, Matrix::as.matrix)
+  ans <- vapply(matrices, ncol, 1L)
+  names(ans) <- names(priors)
+  ans
 }
 
 
@@ -633,7 +580,10 @@ make_levels_age <- function(mod) {
 #' @noRd
 make_levels_effects <- function(dimnames_terms) {
   ans <- lapply(dimnames_terms, dimnames_to_levels)
-  ans <- unlist(ans, use.names = FALSE)
+  if (length(ans) > 0L)
+    ans <- unlist(ans, use.names = FALSE)
+  else
+    ans <- character()
   ans
 }
 
@@ -656,8 +606,12 @@ make_levels_forecast_all <- function(mod, labels_forecast) {
   formula <- mod$formula
   data <- mod$data
   var_time <- mod$var_time
-  ans <- list("(Intercept)" = NULL)
-  factors <- attr(stats::terms(formula), "factors")
+  ans <- list()
+  terms_formula <- stats::terms(formula)
+  has_intercept <- attr(terms_formula, "intercept")
+  if (has_intercept)
+    ans <- c(ans, list("(Intercept)" = NULL))
+  factors <- attr(terms_formula, "factors")
   if (length(factors) > 0L) {
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
@@ -846,8 +800,12 @@ make_matrices_along_by_forecast <- function(mod, labels_forecast) {
   formula <- mod$formula
   data <- mod$data
   var_time <- mod$var_time
-  ans <- list("(Intercept)" = NULL)
-  factors <- attr(stats::terms(formula), "factors")
+  ans <- list()
+  terms_formula <- stats::terms(formula)
+  has_intercept <- attr(terms_formula, "intercept")
+  if (has_intercept)
+    ans <- c(ans, list("(Intercept)" = NULL))
+  factors <- attr(terms_formula, "factors")
   if (length(factors) > 1L) {
     factors <- factors[-1L, , drop = FALSE]
     factors <- factors > 0L
@@ -894,20 +852,23 @@ make_matrices_effect_outcome <- function(data, dimnames_terms) {
   n_term <- length(dimnames_terms)
   ans <- vector(mode = "list", length = n_term)
   names(ans) <- names(dimnames_terms)
-  ## make intercept
-  n_data <- nrow(data)
-  i <- seq_len(n_data)
-  j <- rep.int(1L, times = n_data)
-  x <- rep.int(1L, times = n_data)
-  ans[[1L]] <- Matrix::sparseMatrix(i = i, j = j, x = x)
-  ## make other terms
-  if (n_term > 1L) {
-    for (i_term in seq.int(from = 2L, to = n_term)) {
-      dimnames_term <- dimnames_terms[[i_term]]
+  for (i_term in seq_len(n_term)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    nm <- dimnames_to_nm(dimnames_term)
+    is_intercept <- nm == "(Intercept)"
+    if (is_intercept) {
+      n_data <- nrow(data)
+      i <- seq_len(n_data)
+      j <- rep.int(1L, times = n_data)
+      x <- rep.int(1L, times = n_data)
+      m_term <- Matrix::sparseMatrix(i = i, j = j, x = x)
+    }
+    else {
       nm_split <- dimnames_to_nm_split(dimnames_term)
-      nm <- dimnames_to_nm(dimnames_term)
       data_term <- data[nm_split]
-      data_term[] <- lapply(data_term, to_factor)
+      data_term[] <- .mapply(factor,
+                             dots = list(x = data_term, levels = dimnames_term),
+                             MoreArgs = list())
       contrasts_term <- lapply(data_term, stats::contrasts, contrast = FALSE)
       formula_term <- paste0("~", nm, "-1")
       formula_term <- stats::as.formula(formula_term)
@@ -916,8 +877,8 @@ make_matrices_effect_outcome <- function(data, dimnames_terms) {
                                             contrasts.arg = contrasts_term,
                                             row.names = FALSE)
       colnames(m_term) <- dimnames_to_levels(dimnames_term)
-      ans[[i_term]] <- m_term
     }
+    ans[[i_term]] <- m_term
   }
   ans        
 }
@@ -1199,25 +1160,6 @@ make_outcome <- function(formula, data) {
 }
 
 
-#' Derive Point Estimates for Effects
-#'
-#' @param components Output from call
-#' to 'components()'. A tibble.
-#'
-#' @returns A named list of numeric vectors
-#'
-#' @noRd
-make_point_est_effects <- function(components) {
-  is_effect <- components$component == "effect"
-  term <- components$term[is_effect]
-  .fitted <- components$.fitted[is_effect]
-  .fitted <- rvec::draws_median(.fitted)
-  ans <- split(x = .fitted, f = term)
-  ans <- ans[unique(term)] ## 'split' orders result
-  ans
-}
-
-
 ## HAS_TESTS
 #' Make default priors
 #'
@@ -1477,7 +1419,8 @@ make_use_term <- function(mod, vars_inner) {
   formula <- mod$formula
   priors <- mod$priors
   nms_priors <- names(priors)
-  factors <- attr(terms(formula), "factors")
+  terms_formula <- stats::terms(formula) 
+  factors <- attr(terms_formula, "factors")
   factors <- factors[-1L, ] ## drop response
   vars <- rownames(factors)
   in_vars <- vars_inner %in% vars
@@ -1499,7 +1442,7 @@ make_use_term <- function(mod, vars_inner) {
                      i = "No terms left over to use in 'outer' model.",
                      i = "Terms in model: {.val {terms_model}}.",
                      i = "{.arg var_inner}: {.val {vars_inner}}."))
-  has_intercept <- attr(terms(formula), "intercept")
+  has_intercept <- attr(terms_formula, "intercept")
   if (has_intercept)
     ans <- c(TRUE, ans)
     ## ans <- c(FALSE, ans)
@@ -1579,6 +1522,110 @@ make_uses_offset_effectfree_effect <- function(mod) {
 
 
 ## HAS_TESTS
+#' Create Aggregated Version of Outcome, Offset, and
+#' 'matrices_effect_outcome'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list
+#'
+#' @noRd    
+make_vals_ag <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  nm_outcome <- get_nm_outcome(mod)
+  nm_offset <- mod$vname_offset
+  has_offset <- !is.null(nm_offset)
+  dimnames_terms <- mod$dimnames_terms
+  fun_ag_outcome <- get_fun_ag_outcome(mod)
+  vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+  data[[nm_outcome]] <- mod$outcome
+  if (has_offset)
+    data[[nm_offset]] <- mod$offset
+  is_in_lik <- make_is_in_lik(mod)
+  data <- data[is_in_lik, , drop = FALSE]
+  outcome_df <- stats::aggregate(data[nm_outcome], data[vars], fun_ag_outcome)
+  if (has_offset) {
+    fun_ag_offset <- get_fun_ag_offset(mod)
+    offset_df <- stats::aggregate(data[nm_offset], data[vars], fun_ag_offset)
+    data_ag <- merge(outcome_df, offset_df, by = vars)
+    offset <- data_ag[[nm_offset]]
+  }
+  else {
+    data_ag <- outcome_df
+    offset <- rep(1, times = nrow(data_ag))
+  }
+  outcome <- data_ag[[nm_outcome]]
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data_ag,
+                                                          dimnames_terms = dimnames_terms)
+  list(outcome = outcome,
+       offset = offset,
+       matrices_effect_outcome = matrices_effect_outcome)
+}
+
+
+## HAS_TESTS
+#' Create Version of Outcome, Offset, and
+#' 'matrices_effect_outcome' Where Observations
+#' Not Contributing to Likelihood Removed
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A named list
+#'
+#' @noRd    
+make_vals_in_lik <- function(mod) {
+  data <- mod$data
+  outcome <- mod$outcome
+  offset <- mod$offset
+  dimnames_terms <- mod$dimnames_terms
+  is_in_lik <- make_is_in_lik(mod)
+  data <- data[is_in_lik, , drop = FALSE]
+  outcome <- outcome[is_in_lik]
+  offset <- offset[is_in_lik]
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
+                                                          dimnames_terms = dimnames_terms)
+  list(outcome = outcome,
+       offset = offset,
+       matrices_effect_outcome = matrices_effect_outcome)
+}
+
+
+## HAS_TESTS
+#' Construct Value for 'vars_inner' Argument
+#'
+#' Use values for var_age, var_sexgender, and var_time.
+#' Alert users if some or all of these not available.
+#'
+#' @param mod Object of class 'bage_mod'.
+#'
+#' @returns A character vector.
+#'
+#' @noRd
+make_vars_inner <- function(mod) {
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  var_time <- mod$var_time
+  dimnames_terms <- mod$dimnames_terms
+  ans <- c(var_age,
+           var_sexgender,
+           var_time)
+  if (is.null(ans)) {
+    nms_terms <- names(dimnames_terms)
+    cli::cli_abort(c("Unable to infer {.arg vars_inner}.",
+                     i = "Model term{?s}: {.val {nms_terms}}.",
+                     i = paste("Use {.fun set_var_age}, {.fun set_var_sexgender}",
+                               "{.fun set_var_time} to specify age, sex/gender,",
+                               "and time variables?"),
+                     i = "Or use other variables?"))
+  }
+  if (length(ans) < 3L)
+    cli::cli_alert("Setting {.arg vars_inner} to {.val {ans}}.")
+  ans
+}
+
+
+## HAS_TESTS
 #' Prepare Number of Components Argument for SVD Prior
 #'
 #' @param n_comp Value for number provided by user
@@ -1624,9 +1671,18 @@ reduce_model_terms <- function(mod, use_term) {
   mod$dimnames_terms <- mod$dimnames_terms[use_term]
   formula <- mod$formula
   nms_terms <- names(mod$priors)
-  formula_new <- paste(". ~", paste(nms_terms, collapse = " + "))
-  formula_new <- as.formula(formula_new)
-  formula <- update(formula, formula_new)
+  has_intercept <- "(Intercept)" %in% nms_terms
+  nms_terms <- setdiff(nms_terms, "(Intercept)")
+  n_nm <- length(nms_terms)
+  if (n_nm == 0L)
+    formula_new <- ". ~ 1"
+  else {
+    formula_new <- paste(". ~", paste(nms_terms, collapse = " + "))
+    if (!has_intercept)
+      formula_new <- paste(formula_new, "- 1")
+  }
+  formula_new <- stats::as.formula(formula_new)
+  formula <- stats::update(formula, formula_new)
   mod$formula <- formula
   mod
 }
