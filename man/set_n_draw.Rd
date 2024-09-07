@@ -26,9 +26,10 @@ the tails of distributions, or for
 publication-quality graphics and summaries.
 }
 \details{
-The value of \code{n_draw} does not affect
-model fitting: it only affects posterior
-summaries.
+If the new value for \code{n_draw} is greater than
+the old value, and the model has already been fitted,
+then the model is \link[=unfit]{unfitted}, and
+function \code{\link[=fit]{fit()}} may need to be called again.
 }
 \examples{
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
@@ -48,5 +49,7 @@ of which is affected by the value of \code{n_draw}.
 model
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for a term
 \item \code{\link[=set_disp]{set_disp()}} Specify prior for dispersion
+\item \code{\link[=fit]{fit()}} Fit a model
+\item \code{\link[=unfit]{unfit()}} Reset a model
 }
 }

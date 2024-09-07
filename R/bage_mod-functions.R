@@ -494,6 +494,10 @@ unfit <- function(mod) {
   mod["draws_hyper"] <- list(NULL)
   mod["draws_hyperrand"] <- list(NULL)
   mod["draws_disp"] <- list(NULL)
+  mod["point_effectfree"] <- list(NULL)
+  mod["point_hyper"] <- list(NULL)
+  mod["point_hyperrand"] <- list(NULL)
+  mod["point_disp"] <- list(NULL)
   mod
 }
 

@@ -690,7 +690,6 @@ Type objective_function<Type>::operator() ()
   DATA_INTEGER(i_lik);
   DATA_VECTOR(outcome);
   DATA_VECTOR(offset);
-  DATA_IVECTOR(is_in_lik);
   DATA_FACTOR(terms_effect);
   DATA_FACTOR(terms_effectfree);
   DATA_IVECTOR(uses_matrix_effectfree_effect);
@@ -796,15 +795,13 @@ Type objective_function<Type>::operator() ()
   
   // contribution to log posterior from data
   for (int i_outcome = 0; i_outcome < n_outcome; i_outcome++) {
-    if (is_in_lik[i_outcome]) {
-      Type out = outcome[i_outcome];
-      Type lin = linpred[i_outcome];
-      Type off = offset[i_outcome];
-      if (has_disp)
-	ans -= loglik_uses_disp(out, lin, off, disp, i_lik);
-      else
-	ans -= loglik_not_uses_disp(out, lin, off, i_lik);
-    }
+    Type out = outcome[i_outcome];
+    Type lin = linpred[i_outcome];
+    Type off = offset[i_outcome];
+    if (has_disp)
+      ans -= loglik_uses_disp(out, lin, off, disp, i_lik);
+    else
+      ans -= loglik_not_uses_disp(out, lin, off, i_lik);
   }
   return ans;
 }

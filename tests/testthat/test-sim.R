@@ -239,7 +239,8 @@ test_that("'draw_vals_effect_mod' works with bage_mod_pois", {
                               n_sim = n_sim)
   expect_setequal(names(ans), c("(Intercept)", "age", "time", "age:time", "age:sex"))
   expect_true(all(sapply(ans, ncol) == n_sim))
-  expect_identical(sapply(ans, nrow), sapply(mod$matrices_effect_outcome, ncol))
+  expect_identical(sapply(ans, nrow),
+                   sapply(make_matrices_effect_outcome(mod$data, mod$dimnames_terms), ncol))
 })
 
 

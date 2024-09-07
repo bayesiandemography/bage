@@ -324,6 +324,50 @@ test_that("'center_within_along_by' works with rvec - center_along = FALSE", {
 })
 
 
+## 'combine_stored_draws_point_inner_outer' -----------------------------------------
+
+test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:4,
+                      sex = c("F", "M"),
+                      region = c("a", "b"),
+                      time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex  + region * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, region:time ~ Lin())
+  mod <- set_n_draw(mod, n_draw = 10)
+  vars_inner <- c("age", "sex")
+  use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
+  mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
+  mod_inner <- fit_default(mod_inner)
+  mod_outer <- reduce_model_terms(mod = mod, use_term = !use_term)
+  mod_outer <- fit_default(mod_outer)
+  mod_comb <- combine_stored_draws_point_inner_outer(mod = mod,
+                                                     mod_inner = mod_inner,
+                                                     mod_outer = mod_outer,
+                                                     use_term = use_term)
+  terms <- make_terms_effects(mod_comb$dimnames_terms)
+  is_inner <- terms %in% c("(Intercept)", "age", "sex", "age:sex")
+  is_outer <- terms %in% c("region", "time", "region:time")
+  expect_identical(mod_comb$draws_effectfree[is_inner, ],
+                   mod_inner$draws_effectfree)
+  expect_identical(mod_comb$draws_effectfree[is_outer, ],
+                   mod_outer$draws_effectfree)
+  expect_identical(ncol(mod_comb$draws_hyper),
+                   ncol(mod_outer$draws_hyper))
+  expect_identical(ncol(mod_comb$draws_hyperrand),
+                   ncol(mod_outer$draws_hyperrand))
+  expect_identical(mod_comb$point_effectfree[is_inner],
+                   mod_inner$point_effectfree)
+  expect_identical(mod_comb$point_effectfree[is_outer],
+                   mod_outer$point_effectfree)
+})
+
+
 ## 'draw_vals_components_fitted' ----------------------------------------------
 
 test_that("'draw_vals_components_fitted' works - standardize = 'terms'", {
@@ -513,6 +557,7 @@ test_that("'make_combined_matrix_effect_outcome' works with valid inputs", {
     ans_obtained <- make_combined_matrix_effect_outcome(mod)
     expect_identical(nrow(ans_obtained), nrow(data))
     expect_identical(ncol(ans_obtained), length(make_terms_effects(mod$dimnames_terms)))
+    expect_false(all(ans_obtained[,1] == 0))
 })
 
 
@@ -833,14 +878,14 @@ test_that("'fit_default' works with pois", {
 
 ## 'fit_inner_outer' ----------------------------------------------------------
 
-test_that("'fit_inner_outer' works with", {
+test_that("'fit_inner_outer' works with with pois", {
   set.seed(0)
-  data <- expand.grid(age = 0:4,
-                      time = 2000:2005,
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
                       sex = c("F", "M"),
                       region = c("a", "b"))
   data$popn <- rpois(n = nrow(data), lambda = 1000)
-  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rnbinom(n = nrow(data), mu = 0.1 * data$popn, size = 100)
   formula <- deaths ~ age * sex + region * time
   mod <- mod_pois(formula = formula,
                   data = data,
@@ -851,12 +896,61 @@ test_that("'fit_inner_outer' works with", {
   ans_default <- fit_default(mod)
   aug_inner_outer <- ans_inner_outer |>
   augment()
+  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
   aug_default <- ans_default |>
   augment()
-  comp_inner_outer <- ans_inner_outer |>
-  components()
-  comp_default <- ans_default |>
-  components()
+  fit_default <- rvec::draws_median(aug_default$.fitted)
+  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
+})
+
+test_that("'fit_inner_outer' works with with binom", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$deaths <- rbinom(n = nrow(data), prob = 0.2, size = data$popn)
+  formula <- deaths ~ age * sex + region * time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  set.seed(0)
+  ans_inner_outer <- fit_inner_outer(mod, vars_inner = NULL)
+  set.seed(0)
+  ans_default <- fit_default(mod)
+  aug_inner_outer <- ans_inner_outer |>
+  augment()
+  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
+  aug_default <- ans_default |>
+  augment()
+  fit_default <- rvec::draws_median(aug_default$.fitted)
+  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
+})
+
+test_that("'fit_inner_outer' works with with norm", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  set.seed(0)
+  ans_inner_outer <- fit_inner_outer(mod, vars_inner = c("age", "sex"))
+  set.seed(0)
+  ans_default <- fit_default(mod)
+  aug_inner_outer <- ans_inner_outer |>
+  augment()
+  fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
+  aug_default <- ans_default |>
+  augment()
+  fit_default <- rvec::draws_median(aug_default$.fitted)
+  expect_true(cor(fit_inner_outer, fit_default) > 0.98)
 })
 
 
@@ -1086,6 +1180,31 @@ test_that("'make_stored_draws' works with valid inputs", {
 })
 
 
+## 'make_stored_point' --------------------------------------------------------
+
+test_that("'make_stored_draws' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex ~ Known(c(0.1, -0.1)))
+  est <- list(effectfree = c(rnorm(11), 0.1, -0.1),
+              hyper = rnorm(1),
+              hyperrand = numeric(),
+              log_disp = runif(1))
+  ans <- make_stored_point(mod = mod,
+                           est = est)
+  expect_identical(ans$point_effectfree, est$effectfree)
+  expect_identical(ans$point_hyper, exp(est$hyper))
+  expect_identical(ans$point_hyperrand, double())
+  expect_identical(ans$point_disp, exp(est$log_disp))
+})
+
+
 ## 'make_par_disp' ------------------------------------------------------------
 
 test_that("'make_par_disp' works with bage_mod_pois", {
@@ -1298,7 +1417,7 @@ test_that("'make_linpred_comp' works with valid inputs", {
 
 ## 'make_linpred_raw' ---------------------------------------------------------
 
-test_that("'make_linpred_raw' works with valid inputs", {
+test_that("'make_linpred_raw' works with valid inputs - point is FALSE", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1309,12 +1428,69 @@ test_that("'make_linpred_raw' works with valid inputs", {
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
-  ans_obtained <- make_linpred_raw(mod)
+  ans_obtained <- make_linpred_raw(mod, point = FALSE)
   comp <- components(mod, standardize = "none", quiet = TRUE)
   ans_expected <- make_linpred_comp(components = comp,
                                     data = mod$data,
                                     dimnames_terms = mod$dimnames_terms)
   expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_linpred_raw' works with valid inputs - point is TRUE", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_raw(mod, point = TRUE)
+  m <- make_combined_matrix_effect_outcome(mod)
+  ans_expected <- as.double(m %*% mod$point_effectfree)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_point_est_effects' ---------------------------------------------------
+
+test_that("'make_point_est_effects' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit(mod)
+  ans_obtained <- make_point_est_effects(mod)
+  int <- unname(mod$point_effectfree[1])
+  age <- unname(mod$point_effectfree[2:11])
+  sex <- unname(mod$point_effectfree[12:13])
+  agesex <- unname(mod$point_effectfree[14:33])
+  ans_expected <- list("(Intercept)" = int,
+                       age = age,
+                       sex = sex,
+                       "age:sex" = agesex)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_point_est_effects' throws correct error when not fitted", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_error(make_point_est_effects(mod),
+               "Internal error: Model not fitted.")
 })
 
 

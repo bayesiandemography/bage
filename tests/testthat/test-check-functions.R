@@ -195,6 +195,31 @@ test_that("'check_has_disp_if_condition_on_expected' works", {
 })
 
 
+## 'check_has_no_dots' --------------------------------------------------------
+
+test_that("'check_has_no_dots works with unnamed invalid arguments", {
+  f <- function(x, ...) {
+    check_has_no_dots(...)
+  }
+  expect_true(f(x = 3))
+  expect_error(f(x = 3, "wrong"),
+               "Invalid unnamed argument")
+  expect_error(f(x = 3, "wrong", 1:10),
+               "2 invalid unnamed arguments")
+})
+
+test_that("'check_has_no_dots works with named invalid arguments", {
+  f <- function(x, y, ...) {
+    check_has_no_dots(...)
+  }
+  expect_true(f(x = 3, y = 1))
+  expect_error(f(x = 3, y = 4, z = "wrong"),
+               "`z` is not a valid argument.")
+  expect_error(f(x = 3, z = "wrong", y = 4, q = "alsowrong"),
+               "`z` is not a valid argument.")
+})  
+
+
 ## 'check_is_dataframe' -------------------------------------------------------
 
 test_that("'check_is_dataframe' works with valid inputs", {
@@ -375,6 +400,65 @@ test_that("'check_mod_est_sim_compatible' raises correct error when data have di
                     exposure = popn)
     expect_error(check_mod_est_sim_compatible(mod1, mod2),
                  "`mod_est` and `mod_sim` have different data")
+})
+
+
+## 'check_mod_has_obs' --------------------------------------------------------
+
+test_that("'check_mod_has_obs' returns TRUE with valid data", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_true(check_mod_has_obs(mod))
+})
+
+test_that("'check_mod_has_obs' returns correct error with zero-row data", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data[FALSE, ],
+                    exposure = popn)
+    expect_error(check_mod_has_obs(mod),
+                 "No data for fitting model.")
+})
+
+test_that("'check_mod_has_obs' returns correct error with no valid rows - has exposure", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$popn[1:5] <- NA
+    data$popn[6] <- 0
+    data$deaths[6] <- 0
+    data$deaths[-(1:6)] <- NA
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_error(check_mod_has_obs(mod),
+                 "No data for fitting model.")
+})
+
+test_that("'check_mod_has_obs' returns correct error with no valid rows - no exposure", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$deaths <- NA
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = 1)
+    expect_error(check_mod_has_obs(mod),
+                 "No data for fitting model.")
 })
 
 
