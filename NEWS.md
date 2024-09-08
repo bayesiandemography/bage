@@ -11,13 +11,18 @@
   outer model using the remaining variables. With big datasets,
   `"inner-outer"` can be faster, and use less memory, but give very
   similar results.
+* Added information on numbers of parameters, and standard deviations
+  to output for print.
   
 ## Changes to calculations
 
 * `fit()` now internally aggregates input data before fitting, so that
   cells with the same combinations of predictor variables are
   combined. This increases speed and reduces memory usage.
+  
+## Changes to documentation
 
+* Added help for `print.bage_mod`
 
 # bage 0.7.4
 

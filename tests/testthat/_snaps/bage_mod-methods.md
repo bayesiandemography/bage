@@ -14,6 +14,11 @@
       
       data model for outcome: rr3()
       
+       term n_par n_par_free
+        age    10         10
+        sex     2          2
+       time     6          6
+      
            dispersion: mean=1
              exposure: popn
               var_age: age
@@ -36,6 +41,11 @@
              time ~ RW()
       
       data model for outcome: rr3()
+      
+       term n_par n_par_free std_dev
+        age    10         10  0.0470
+        sex     2          2  0.0028
+       time     6          6  0.0140
       
            dispersion: mean=1
              exposure: popn

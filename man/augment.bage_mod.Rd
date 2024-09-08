@@ -7,7 +7,9 @@
 \method{augment}{bage_mod}(x, quiet = FALSE, ...)
 }
 \arguments{
-\item{x}{An object of class \code{"bage_mod"}.}
+\item{x}{Object of class \code{"bage_mod"}, typically
+created with \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
+or \code{\link[=mod_norm]{mod_norm()}}.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
