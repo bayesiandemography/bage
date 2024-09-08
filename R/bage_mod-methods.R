@@ -47,7 +47,9 @@ generics::augment
 #' then `augment()` creates a new variable `.var` containing
 #' estimates of the true value for the outcome.
 #' 
-#' @param x An object of class `"bage_mod"`.
+#' @param x Object of class `"bage_mod"`, typically
+#' created with [mod_pois()], [mod_binom()],
+#' or [mod_norm()].
 #' @param quiet Whether to suppress messages.
 #' Default is `FALSE`.
 #' @param ... Unused. Included for generic consistency only.
@@ -207,7 +209,7 @@ generics::components
 #' see `vignette("vig2_math")`.
 #'
 #' @inheritParams augment.bage_mod
-#' @param object A `bage_mod` object,
+#' @param object Object of class `"bage_mod"`,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #' @param standardize Standardization method:
@@ -1525,6 +1527,58 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 
 ## 'print' --------------------------------------------------------------------
 
+#' Printing a Model
+#'
+#' @description
+#' After calling a function such as [mod_pois()] or
+#' [set_prior()] it is good practice to print the
+#' model object at the console, to check the model's
+#' structure. The output from `print()` has
+#' the following components:
+#'
+#' - A header giving the class of the model
+#'   and noting whether the model has been fitted.
+#' - A [formula][stats::formula()] giving the
+#'   outcome variable and terms for the model.
+#' - Priors for each model term.
+#' - A table giving the number of parameters, and
+#'   (fitted models only) the standard
+#'   deviation across those parameters,
+#'   a measure of the term's importance.
+#' - Values for other model settings.
+#'
+#' @param x Object of class `"bage_mod"`, typically
+#' created with [mod_pois()], [mod_binom()],
+#' or [mod_norm()].
+#' @param ... Unused. Included for generic consistency only.
+#'   
+#' @returns `x`, invisibly.
+#'
+#' @seealso
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Model specification and class
+#' - [fit.bage_mod()][fit()] and [is_fitted()] Model fitting
+#' - [priors] Overview of priors for model terms
+#' - [tidy.bage_mod()][tidy()] Number of parameters,
+#'   and standard deviations
+#' - [set_disp()] Dispersion
+#' - [set_var_age()], [set_var_sexgender()], [set_var_time()]
+#'    Age, sex/gender and time variables
+#' - [set_n_draw()] Model draws
+#'
+#' @rdname print.bage_mod
+#'
+#' @examples
+#' mod <- mod_pois(injuries ~ age + sex + year,
+#'                 data = injuries,
+#'                 exposure = popn)
+#'
+#' ## print unfitted model
+#' mod
+#'
+#' mod <- fit(mod)
+#'
+#' ## print fitted model
+#' mod
 #' @export
 print.bage_mod <- function(x, ...) {
     nchar_offset <- 15L
@@ -1552,6 +1606,14 @@ print.bage_mod <- function(x, ...) {
     calls_priors <- vapply(priors, str_call_prior, "")
     str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
     str_priors <- paste(str_priors, collapse = "\n")
+    terms <- tidy(x)
+    i_intercept <- match("(Intercept)", terms$term, nomatch = 0L)
+    terms <- terms[-i_intercept, ]
+    i_spec <- match("spec", names(terms), nomatch = 0L)
+    terms <- terms[, -i_spec]
+    if (is_fitted)
+      terms$std_dev <- signif(terms$std_dev, digits = 2)
+    terms <- as.data.frame(terms)
     str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
@@ -1574,6 +1636,8 @@ print.bage_mod <- function(x, ...) {
                     str_call_datamod(datamod_outcome)))
         cat("\n\n")
     }
+    print(terms, row.names = FALSE)
+    cat("\n")
     cat(str_disp)
     cat("\n")
     if (has_offset) {
@@ -1876,16 +1940,48 @@ generics::tidy
 #' Summarize the intercept, main effects, and interactions
 #' from a fitted model.
 #'
-#' @param x A fitted `bage_mod` object.
+#' The [tibble][tibble::tibble-package] returned by `tidy()`
+#' contains the following columns:
+#'
+#' - `term` Name of the intercept, main effect, or interaction
+#' - `spec` Specification for prior
+#' - `n_par` Number of parameters
+#' - `n_par_free` Number of free parameters
+#' - `std_dev` Standard deviation for point estimates.
+#' 
+#' With some priors, the number of free parameters is less than
+#' the number of parameters for that term. For instance, an [SVD()]
+#' prior might use three vectors to represent 101 age groups
+#' so that the number of parameters is 101, but the number of
+#' free parameters is 3.
+#'
+#' `std_dev` is the standard deviation across elements of a
+#' term, based on point estimates of those elements.
+#' For instance, if the point
+#' estimates for a term with three elements are
+#' 0.3, 0.5, and 0.1,  then the value for `std_dev` is
+
+#' ```
+#' sd(c(0.3, 0.5, 0.1))
+#' ```
+#' `std_dev` is a measure of the contribution of a term to
+#' variation in the outcome variable.
+#' 
+#' @param x Object of class `"bage_mod"`, typically
+#' created with [mod_pois()], [mod_binom()],
+#' or [mod_norm()].
 #' @param ... Unused. Included for generic consistency only.
 #'
-#' @returns A [tibble][tibble::tibble-package].
+#' @returns A [tibble][tibble::tibble-package]
 #'
 #' @seealso
 #' - [augment()] Extract data, and values for rates,
 #'   probabilities, or means
 #' - [components()] Extract values for hyper-parameters
 #'
+#' @references `std_dev` is modified from Gelman et al. (2014)
+#' *Bayesian Data Analysis. Third Edition*. pp396--397.
+#' 
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
 #'                 data = injuries,
@@ -1897,19 +1993,19 @@ tidy.bage_mod <- function(x, ...) {
   check_has_no_dots(...)
   priors <- x$priors
   dimnames_terms <- x$dimnames_terms
-  n <- make_lengths_effect(dimnames_terms)
+  n_par <- make_lengths_effect(dimnames_terms)
+  n_par_free <- make_lengths_effectfree(x)
   term <- names(priors)
   spec <- vapply(priors, str_call_prior, "")
-  ans <- tibble::tibble(term, spec, n)
+  ans <- tibble::tibble(term, spec, n_par, n_par_free)
   is_fitted <- is_fitted(x)
   if (is_fitted) {
-    comp <- components(x)
-    is_effect <- comp$component == "effect"
-    effects <- comp$.fitted[is_effect]
-    effects <- rvec::draws_median(effects)
-    terms <- comp$term[is_effect]
+    effectfree <- x$point_effectfree
+    effects <- make_effects(mod = x, effectfree = effectfree)
+    effects <- as.double(effects)
+    terms <- make_terms_effects(dimnames_terms)
     effects <- split(effects, terms)
-    ans[["sd"]] <- vapply(effects, stats::sd, 0)
+    ans[["std_dev"]] <- vapply(effects, stats::sd, 0)
   }
   ans <- tibble::tibble(ans)
   ans

@@ -12,7 +12,7 @@
 )
 }
 \arguments{
-\item{object}{A \code{bage_mod} object,
+\item{object}{Object of class \code{"bage_mod"},
 typically created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
 

@@ -7,16 +7,47 @@
 \method{tidy}{bage_mod}(x, ...)
 }
 \arguments{
-\item{x}{A fitted \code{bage_mod} object.}
+\item{x}{Object of class \code{"bage_mod"}, typically
+created with \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}},
+or \code{\link[=mod_norm]{mod_norm()}}.}
 
 \item{...}{Unused. Included for generic consistency only.}
 }
 \value{
-A \link[tibble:tibble-package]{tibble}.
+A \link[tibble:tibble-package]{tibble}
 }
 \description{
 Summarize the intercept, main effects, and interactions
 from a fitted model.
+}
+\details{
+The \link[tibble:tibble-package]{tibble} returned by \code{tidy()}
+contains the following columns:
+\itemize{
+\item \code{term} Name of the intercept, main effect, or interaction
+\item \code{spec} Specification for prior
+\item \code{n_par} Number of parameters
+\item \code{n_par_free} Number of free parameters
+\item \code{std_dev} Standard deviation for point estimates.
+}
+
+With some priors, the number of free parameters is less than
+the number of parameters for that term. For instance, an \code{\link[=SVD]{SVD()}}
+prior might use three vectors to represent 101 age groups
+so that the number of parameters is 101, but the number of
+free parameters is 3.
+
+\code{std_dev} is the standard deviation across elements of a
+term, based on point estimates of those elements.
+For instance, if the point
+estimates for a term with three elements are
+0.3, 0.5, and 0.1,  then the value for \code{std_dev} is
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{sd(c(0.3, 0.5, 0.1))
+}\if{html}{\out{</div>}}
+
+\code{std_dev} is a measure of the contribution of a term to
+variation in the outcome variable.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,
@@ -24,6 +55,10 @@ mod <- mod_pois(injuries ~ age + sex + year,
                 exposure = popn)
 mod <- fit(mod)
 tidy(mod)
+}
+\references{
+\code{std_dev} is modified from Gelman et al. (2014)
+\emph{Bayesian Data Analysis. Third Edition}. pp396--397.
 }
 \seealso{
 \itemize{
