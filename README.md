@@ -10,6 +10,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![R-CMD-check](https://github.com/bayesiandemography/bage/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bayesiandemography/bage/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/bayesiandemography/bage/branch/main/graph/badge.svg)](https://app.codecov.io/gh/bayesiandemography/bage?branch=main)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/bage)](https://CRAN.R-project.org/package=bage)
 <!-- badges: end -->
 
 Fast Bayesian estimation and forecasting of age-specific rates.
@@ -17,7 +19,8 @@ Fast Bayesian estimation and forecasting of age-specific rates.
 ## Installation
 
 ``` r
-devtools::install_github("bayesiandemography/bage")
+install_github("bage") ## release version
+devtools::install_github("bayesiandemography/bage") ## development version
 ```
 
 ## Example
@@ -39,6 +42,11 @@ mod
 #>   ethnicity ~ NFix()
 #>        year ~ RW()
 #>     age:sex ~ RW()
+#> 
+#>       term n_par n_par_free std_dev
+#>  ethnicity     2          2   0.450
+#>       year    19         19   0.092
+#>    age:sex    24         24   0.880
 #> 
 #>      dispersion: mean=1
 #>        exposure: popn
