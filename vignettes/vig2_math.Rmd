@@ -23,11 +23,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-
-```{r setup}
-library(bage)
-```
-
 # Introduction
 
 Specification document - a mathematical description of models used by bage.
@@ -911,7 +906,7 @@ RR3 data models can be used with Poisson or binomial likelihoods. Let $y_i$ deno
 
 # Estimation
 
-## Filtering and Aggregation
+## Filtering and Aggregation {#sec:filter-ag}
 
 The data that we supply to TMB is a a filtered and aggregated version of the data that the user provides through the `data` argument.
 
@@ -936,6 +931,50 @@ and the aggregation formuala for weights is
 
 
 ## Inner-Outer Approximation
+
+### Step 0: Select 'inner' and 'outer' variables
+
+Select variables to be used in inner model. By default, these are the age, sex, and time variables in the model. All remaining variables are 'outer' variables.
+
+### Step 1: Fit inner model
+
+Aggregate the data using the classification formed by the inner variables. (See Section \@ref(sec:filter-ag) on aggregation procedures.) Remove all terms not involving 'inner' variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.
+
+### Step 2: Fit outer model
+
+Let $\hat{\mu}_i^{\text{in}}$ be point estimates for the linear predictor $\mu_i$ obtained from the inner model. 
+
+**Poisson model**
+
+Aggregate the data using the classification formed by the outer variables. Remove all terms involving the 'inner' variables, plus the intercept, from the model. Set dispersion to 0. Set exposure to $w_i^{\text{out}} = \hat{\mu}^{\text{in}} w_i$. Fit the model.
+
+**Binomial model**
+
+Fit the original model, but set dispersion to 0, and for all terms from the 'inner' model, use Known priors using point estimates from the inner model.
+
+**Normal model**
+
+Aggregate the data using the classification formed by the outer variables. Remove all terms involving the 'inner' variables, plus the intercept, from the model. Set the outcome variable to to $y_i^{\text{out}} = y_i - \hat{\mu}^{\text{in}}. Fit the model.
+
+### Step 4: Concatenate estimates
+
+Concatenate posterior distributions for the inner terms from the inner model to posterior distributions for the outer terms from the outer model.
+
+### Step 5: Calculate dispersion
+
+If the original model includes a dispersion term, then estimate dispersion. Let $\hat{\mu}_i^{\text{comb}}$ be point estimates for the linear predictor obtained from the concatenated estimates. 
+
+**Poisson model**
+
+Use the original disaggregated data, or, if the original data contains more then 10,000 rows, select 10,000 rows at random from the original data. Remove all terms from the original model except for the intercept. Set exposure to $w_i^{\text{out}} = \hat{\mu}^{\text{comb}} w_i$.
+
+**Binomial model**
+
+Fit the the original model, but with all terms except the intercept having Known priors, where the values are obtained from point estimates from the concatenated estimates. 
+
+**Normal model**
+
+Use the original disaggregated data, or, if the original data contains more then 10,000 rows, select 10,000 rows at random from the original data. Remove all terms from the original model except for the intercept. Set the outcome to $y_i^{\text{out}} = y_i - \hat{\mu}^{\text{comb}}$.
 
 
 # Deriving outputs
@@ -1015,7 +1054,7 @@ The forecasted values for the time-varying $\pmb{\beta}^{(m)}$, and for SVD coef
 
 # Simulation
 
-To generate one set of simulated values, we start with values for exposure, trials, or weights,  $\pmb{w}$, and possibly covariates $\pmb{Z}, then go through the following steps:
+To generate one set of simulated values, we start with values for exposure, trials, or weights,  $\pmb{w}$, and possibly covariates $\pmb{Z}$, then go through the following steps:
 
 1. Draw values for any parameters in the priors for the $\pmb{\beta}^{(m)}$, $m = 1, \cdots, M$.
 1. Conditional on the values drawn in Step 1, draw values the $\pmb{\beta}^{(m)}$, $m = 0, \cdots, M$.
