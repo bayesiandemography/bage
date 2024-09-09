@@ -9,7 +9,7 @@ other model parameters."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -182,7 +182,7 @@ choosing an appropriate model.</p>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
 <span class="r-in"><span>                data <span class="op">=</span> <span class="va">injuries</span>,</span></span>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -- Fitted Poisson model --</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -194,6 +194,13 @@ choosing an appropriate model.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ethnicity ~ NFix()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     age:sex ~ RW()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       term n_par n_par_free std_dev</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        age    12         12   0.730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        sex     2          2   0.110</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ethnicity     2          2   0.450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       year    19         19   0.092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    age:sex    24         24   0.430</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,33 @@
       <small>Source: <a href="https://github.com/bayesiandemography/bage/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.5" id="bage-075">bage 0.7.5<a class="anchor" aria-label="anchor" href="#bage-075"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-interface-0-7-5">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-7-5"></a></h3>
+<ul><li>Added arguments <code>method</code> and <code>vars_inner</code> to <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>. When <code>method</code> is <code>"standard"</code> (the default) <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> uses the existing calculation methods. When <code>method</code> is <code>"inner-outer"</code>, <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> uses a new, somewhat experimental calculation method that involves fitting an inner model using a subset of variables, and then an outer model using the remaining variables. With big datasets, <code>"inner-outer"</code> can be faster, and use less memory, but give very similar results.</li>
+<li>Added information on numbers of parameters, and standard deviations to output for print.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-calculations-0-7-5">Changes to calculations<a class="anchor" aria-label="anchor" href="#changes-to-calculations-0-7-5"></a></h3>
+<ul><li>
+<code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> now internally aggregates input data before fitting, so that cells with the same combinations of predictor variables are combined. This increases speed and reduces memory usage.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-documentation-0-7-5">Changes to documentation<a class="anchor" aria-label="anchor" href="#changes-to-documentation-0-7-5"></a></h3>
+<ul><li>Added help for <code>print.bage_mod</code>
+</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.4" id="bage-074">bage 0.7.4<a class="anchor" aria-label="anchor" href="#bage-074"></a></h2><p class="text-muted">CRAN release: 2024-08-28</p>
+<div class="section level3">
+<h3 id="changes-to-interface-0-7-4">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-7-4"></a></h3>
+<ul><li>Function <code>ssvd()</code> no longer exported. Will export once package <strong>bssvd</strong> matures.</li>
+<li>
+<strong>bage</strong> released on to CRAN</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.3" id="bage-073">bage 0.7.3<a class="anchor" aria-label="anchor" href="#bage-073"></a></h2>
 <div class="section level3">

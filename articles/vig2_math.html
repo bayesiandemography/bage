@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,8 +68,6 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2" number="1">
 <h2 id="introduction">
 <span class="header-section-number">1</span> Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
@@ -146,7 +144,7 @@ and
 \end{equation}\]</span></p>
 <p>We allow <span class="math inline">\(\xi\)</span> to equal 0, in which case the model reduces to
 <span class="math display">\[\begin{equation}
-  y_i  \text{Binom}(w_i, \mu_i).
+  y_i \sim  \text{Binom}(w_i, \mu_i).
 \end{equation}\]</span>
 Equations <a href="#eq:lik-binom-1">(2.3)</a> and <a href="#eq:lik-binom-2">(2.4)</a> are equivalent to
 <span class="math display">\[\begin{equation}
@@ -818,7 +816,7 @@ where <span class="math inline">\(\pmb{\beta}_u^{(m)}\)</span> is the subvector 
 <span class="math display">\[\begin{equation}
   \pmb{\beta}_u^{(m)} = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
 \end{equation}\]</span>
-where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">11.2</a>. The centering and scaling used in the construction allow use of the simple prior
+where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">12.2</a>. The centering and scaling used in the construction allow use of the simple prior
 <span class="math display">\[\begin{equation}
   \alpha_{u,k}^{(m)} \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m.
 \end{equation}\]</span></p>
@@ -1129,8 +1127,83 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 </div>
 </div>
 <div class="section level2" number="8">
+<h2 id="estimation">
+<span class="header-section-number">8</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a>
+</h2>
+<div class="section level3" number="8.1">
+<h3 id="sec:filter-ag">
+<span class="header-section-number">8.1</span> Filtering and Aggregation<a class="anchor" aria-label="anchor" href="#sec:filter-ag"></a>
+</h3>
+<p>The data that we supply to TMB is a a filtered and aggregated version of the data that the user provides through the <code>data</code> argument.</p>
+<p>In the filtering stage, we remove any rows where (i) the offset is 0 or NA, or (ii) the outcome variable is NA.</p>
+<p>In the aggregation stage, we identify any rows in the data that duplicated combinations of classification variables. For instance, if the classification variables are <code>age</code> and <code>sex</code>, and we have two rows where <code>age</code> is <code>"20-24"</code> and sex is <code>"Female"</code>, then these rows would count as duplicated combinations. We aggregate offset and outcome variables across these duplicates. With Poisson and binomial models, the aggregation formula for outcomes is
+<span class="math display">\[\begin{equation}
+  y^{\text{new}} = \sum_{i=1}^D y_i^{\text{old}},
+\end{equation}\]</span>
+and the aggregation formula for exposure/size is
+<span class="math display">\[\begin{equation}
+  w^{\text{new}} = \sum_{i=1}^D w_i^{\text{old}},
+\end{equation}\]</span>
+where <span class="math inline">\(D\)</span> is the number of times a particular combination is duplicated. With normal models, the aggregation formula for outcomes is
+<span class="math display">\[\begin{equation}
+  y^{\text{new}} = \frac{\sum_{i=1}^D y_i^{\text{old}}}{D},
+\end{equation}\]</span>
+and the aggregation formuala for weights is
+<span class="math display">\[\begin{equation}
+  w^{\text{new}} = \frac{1}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
+\end{equation}\]</span></p>
+</div>
+<div class="section level3" number="8.2">
+<h3 id="inner-outer-approximation">
+<span class="header-section-number">8.2</span> Inner-Outer Approximation<a class="anchor" aria-label="anchor" href="#inner-outer-approximation"></a>
+</h3>
+<div class="section level4" number="8.2.1">
+<h4 id="step-0-select-inner-and-outer-variables">
+<span class="header-section-number">8.2.1</span> Step 0: Select ‘inner’ and ‘outer’ variables<a class="anchor" aria-label="anchor" href="#step-0-select-inner-and-outer-variables"></a>
+</h4>
+<p>Select variables to be used in inner model. By default, these are the age, sex, and time variables in the model. All remaining variables are ‘outer’ variables.</p>
+</div>
+<div class="section level4" number="8.2.2">
+<h4 id="step-1-fit-inner-model">
+<span class="header-section-number">8.2.2</span> Step 1: Fit inner model<a class="anchor" aria-label="anchor" href="#step-1-fit-inner-model"></a>
+</h4>
+<p>Aggregate the data using the classification formed by the inner variables. (See Section <a href="#sec:filter-ag">8.1</a> on aggregation procedures.) Remove all terms not involving ‘inner’ variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.</p>
+</div>
+<div class="section level4" number="8.2.3">
+<h4 id="step-2-fit-outer-model">
+<span class="header-section-number">8.2.3</span> Step 2: Fit outer model<a class="anchor" aria-label="anchor" href="#step-2-fit-outer-model"></a>
+</h4>
+<p>Let <span class="math inline">\(\hat{\mu}_i^{\text{in}}\)</span> be point estimates for the linear predictor <span class="math inline">\(\mu_i\)</span> obtained from the inner model.</p>
+<p><strong>Poisson model</strong></p>
+<p>Aggregate the data using the classification formed by the outer variables. Remove all terms involving the ‘inner’ variables, plus the intercept, from the model. Set dispersion to 0. Set exposure to <span class="math inline">\(w_i^{\text{out}} = \hat{\mu}^{\text{in}} w_i\)</span>. Fit the model.</p>
+<p><strong>Binomial model</strong></p>
+<p>Fit the original model, but set dispersion to 0, and for all terms from the ‘inner’ model, use Known priors using point estimates from the inner model.</p>
+<p><strong>Normal model</strong></p>
+<p>Aggregate the data using the classification formed by the outer variables. Remove all terms involving the ‘inner’ variables, plus the intercept, from the model. Set the outcome variable to to $y_i^{} = y_i - ^{}. Fit the model.</p>
+</div>
+<div class="section level4" number="8.2.4">
+<h4 id="step-4-concatenate-estimates">
+<span class="header-section-number">8.2.4</span> Step 4: Concatenate estimates<a class="anchor" aria-label="anchor" href="#step-4-concatenate-estimates"></a>
+</h4>
+<p>Concatenate posterior distributions for the inner terms from the inner model to posterior distributions for the outer terms from the outer model.</p>
+</div>
+<div class="section level4" number="8.2.5">
+<h4 id="step-5-calculate-dispersion">
+<span class="header-section-number">8.2.5</span> Step 5: Calculate dispersion<a class="anchor" aria-label="anchor" href="#step-5-calculate-dispersion"></a>
+</h4>
+<p>If the original model includes a dispersion term, then estimate dispersion. Let <span class="math inline">\(\hat{\mu}_i^{\text{comb}}\)</span> be point estimates for the linear predictor obtained from the concatenated estimates.</p>
+<p><strong>Poisson model</strong></p>
+<p>Use the original disaggregated data, or, if the original data contains more then 10,000 rows, select 10,000 rows at random from the original data. Remove all terms from the original model except for the intercept. Set exposure to <span class="math inline">\(w_i^{\text{out}} = \hat{\mu}^{\text{comb}} w_i\)</span>.</p>
+<p><strong>Binomial model</strong></p>
+<p>Fit the the original model, but with all terms except the intercept having Known priors, where the values are obtained from point estimates from the concatenated estimates.</p>
+<p><strong>Normal model</strong></p>
+<p>Use the original disaggregated data, or, if the original data contains more then 10,000 rows, select 10,000 rows at random from the original data. Remove all terms from the original model except for the intercept. Set the outcome to <span class="math inline">\(y_i^{\text{out}} = y_i - \hat{\mu}^{\text{comb}}\)</span>.</p>
+</div>
+</div>
+</div>
+<div class="section level2" number="9">
 <h2 id="deriving-outputs">
-<span class="header-section-number">8</span> Deriving outputs<a class="anchor" aria-label="anchor" href="#deriving-outputs"></a>
+<span class="header-section-number">9</span> Deriving outputs<a class="anchor" aria-label="anchor" href="#deriving-outputs"></a>
 </h2>
 <p>Running TMB yields a set of means <span class="math inline">\(\pmb{m}\)</span>, and a precision matrix <span class="math inline">\(\pmb{Q}^{-1}\)</span>, which together define the approximate joint posterior distribution of</p>
 <ul>
@@ -1158,25 +1231,25 @@ and setting
 \end{equation}\]</span></p>
 <p>Next we convert any transformed hyper-parameters back to the original units, and insert values for <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> for terms that have Known priors. We denote the resulting vector <span class="math inline">\(\pmb{\theta}\)</span>.</p>
 <p>Finally we draw from the distribution of <span class="math inline">\(\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}\)</span> using the methods described in Section <a href="#sec:lik">2</a>.</p>
-<div class="section level3" number="8.1">
+<div class="section level3" number="9.1">
 <h3 id="sec:standard">
-<span class="header-section-number">8.1</span> Standardization<a class="anchor" aria-label="anchor" href="#sec:standard"></a>
+<span class="header-section-number">9.1</span> Standardization<a class="anchor" aria-label="anchor" href="#sec:standard"></a>
 </h3>
-<div class="section level4" number="8.1.1">
+<div class="section level4" number="9.1.1">
 <h4 id="the-need-for-standardization">
-<span class="header-section-number">8.1.1</span> The need for standardization<a class="anchor" aria-label="anchor" href="#the-need-for-standardization"></a>
+<span class="header-section-number">9.1.1</span> The need for standardization<a class="anchor" aria-label="anchor" href="#the-need-for-standardization"></a>
 </h4>
 <p>NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from <span class="math inline">\(\pmb{\mu}\)</span> and then proceed as before.</p>
 <p>Although the sum <span class="math inline">\(\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}\)</span> is well identified by the data, the individual <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are not. For instance, adding <span class="math inline">\(\Delta\)</span> to <span class="math inline">\(\pmb{\beta}^{(0)}\)</span> and subtracting it from every term in <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> for some <span class="math inline">\(m &gt; 0\)</span> leaves the likelihood unchanged. The use of proper priors for the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> mean that posterior distributions for the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, and for related terms such as trend, cyclical, and seasonal effects, are proper. However, they can be diffuse and hard to interpret.</p>
 <p>To help with interpretation of the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> and related terms, we standardize. We in fact appy two forms of standardization, each designed for a different purpose.</p>
 </div>
-<div class="section level4" number="8.1.2">
+<div class="section level4" number="9.1.2">
 <h4 id="standardization-of-estimates">
-<span class="header-section-number">8.1.2</span> Standardization of estimates<a class="anchor" aria-label="anchor" href="#standardization-of-estimates"></a>
+<span class="header-section-number">9.1.2</span> Standardization of estimates<a class="anchor" aria-label="anchor" href="#standardization-of-estimates"></a>
 </h4>
-<div class="section level5" number="8.1.2.1">
+<div class="section level5" number="9.1.2.1">
 <h5 id="anova-style-standardization">
-<span class="header-section-number">8.1.2.1</span> ANOVA-style standardization<a class="anchor" aria-label="anchor" href="#anova-style-standardization"></a>
+<span class="header-section-number">9.1.2.1</span> ANOVA-style standardization<a class="anchor" aria-label="anchor" href="#anova-style-standardization"></a>
 </h5>
 <p>The first type of standardization is applied only to the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>. The aim is to partition the total variation in <span class="math inline">\(\mu_i\)</span> into variation associated with each main effect or interaction, in the style, for instance, of Section 15.6 of <span class="citation">Gelman et al. (2014)</span>. Let <span class="math inline">\(\tilde{\pmb{\beta}}^{(m)}\)</span> be the standardized version of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>. We obtain the <span class="math inline">\(\tilde{\pmb{\beta}}^{(m)}\)</span> through the following algorithm:</p>
 <p>Set
@@ -1191,37 +1264,37 @@ and setting
 </li>
 </ul>
 </div>
-<div class="section level5" number="8.1.2.2">
+<div class="section level5" number="9.1.2.2">
 <h5 id="term-level-standardization">
-<span class="header-section-number">8.1.2.2</span> Term-level standardization<a class="anchor" aria-label="anchor" href="#term-level-standardization"></a>
+<span class="header-section-number">9.1.2.2</span> Term-level standardization<a class="anchor" aria-label="anchor" href="#term-level-standardization"></a>
 </h5>
 <p>Term-level standardization aims to clarify the behaviour of the terms making up the model, including trend, cyclical, and seasonal effects. The intercept term is left untouched. All other <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are centered across the “along” dimension, and each of the “by” dimensions.</p>
 </div>
 </div>
-<div class="section level4" number="8.1.3">
+<div class="section level4" number="9.1.3">
 <h4 id="standardization-of-forecasts">
-<span class="header-section-number">8.1.3</span> Standardization of forecasts<a class="anchor" aria-label="anchor" href="#standardization-of-forecasts"></a>
+<span class="header-section-number">9.1.3</span> Standardization of forecasts<a class="anchor" aria-label="anchor" href="#standardization-of-forecasts"></a>
 </h4>
-<div class="section level5" number="8.1.3.1">
+<div class="section level5" number="9.1.3.1">
 <h5 id="anova-style-standardization-1">
-<span class="header-section-number">8.1.3.1</span> ANOVA-style standardization<a class="anchor" aria-label="anchor" href="#anova-style-standardization-1"></a>
+<span class="header-section-number">9.1.3.1</span> ANOVA-style standardization<a class="anchor" aria-label="anchor" href="#anova-style-standardization-1"></a>
 </h5>
 <p>The forecasted values for the time-varying <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are shifted up or down so that they line up with the estimated values. The standardization algorithm is then applied to these shifted values.</p>
 </div>
-<div class="section level5" number="8.1.3.2">
+<div class="section level5" number="9.1.3.2">
 <h5 id="term-level-standardization-1">
-<span class="header-section-number">8.1.3.2</span> Term-level standardization<a class="anchor" aria-label="anchor" href="#term-level-standardization-1"></a>
+<span class="header-section-number">9.1.3.2</span> Term-level standardization<a class="anchor" aria-label="anchor" href="#term-level-standardization-1"></a>
 </h5>
 <p>The forecasted values for the time-varying <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, and for SVD coefficients, and trend, cyclical, and seasonal components, are shifted up or down so that they line up with the estimated values. All terms are then centered along all dimensions other than time.</p>
 </div>
 </div>
 </div>
 </div>
-<div class="section level2" number="9">
+<div class="section level2" number="10">
 <h2 id="simulation-5">
-<span class="header-section-number">9</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-5"></a>
+<span class="header-section-number">10</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-5"></a>
 </h2>
-<p>To generate one set of simulated values, we start with values for exposure, trials, or weights, <span class="math inline">\(\pmb{w}\)</span>, and possibly covariates $, then go through the following steps:</p>
+<p>To generate one set of simulated values, we start with values for exposure, trials, or weights, <span class="math inline">\(\pmb{w}\)</span>, and possibly covariates <span class="math inline">\(\pmb{Z}\)</span>, then go through the following steps:</p>
 <ol style="list-style-type: decimal">
 <li>Draw values for any parameters in the priors for the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, <span class="math inline">\(m = 1, \cdots, M\)</span>.</li>
 <li>Conditional on the values drawn in Step 1, draw values the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, <span class="math inline">\(m = 0, \cdots, M\)</span>.</li>
@@ -1234,29 +1307,29 @@ and setting
 <li>In Poisson and binomial models, use <span class="math inline">\(\pmb{\gamma}\)</span> and <span class="math inline">\(\pmb{w}\)</span> to draw <span class="math inline">\(\pmb{y}\)</span>; in normal models, use <span class="math inline">\(\pmb{\mu}\)</span>, <span class="math inline">\(\xi\)</span>, and <span class="math inline">\(\pmb{w}\)</span> to draw <span class="math inline">\(\pmb{y}\)</span>.</li>
 </ol>
 </div>
-<div class="section level2" number="10">
+<div class="section level2" number="11">
 <h2 id="replicate-data">
-<span class="header-section-number">10</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
+<span class="header-section-number">11</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
 </h2>
-<div class="section level3" number="10.1">
+<div class="section level3" number="11.1">
 <h3 id="model-16">
-<span class="header-section-number">10.1</span> Model<a class="anchor" aria-label="anchor" href="#model-16"></a>
+<span class="header-section-number">11.1</span> Model<a class="anchor" aria-label="anchor" href="#model-16"></a>
 </h3>
-<div class="section level4" number="10.1.1">
+<div class="section level4" number="11.1.1">
 <h4 id="poisson-likelihood">
-<span class="header-section-number">10.1.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#poisson-likelihood"></a>
+<span class="header-section-number">11.1.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#poisson-likelihood"></a>
 </h4>
-<div class="section level5" number="10.1.1.1">
+<div class="section level5" number="11.1.1.1">
 <h5 id="condition-on-pmbgamma">
-<span class="header-section-number">10.1.1.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma"></a>
+<span class="header-section-number">11.1.1.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma"></a>
 </h5>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{Poisson}(\gamma_i w_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level5" number="10.1.1.2">
+<div class="section level5" number="11.1.1.2">
 <h5 id="condition-on-pmbmu-xi">
-<span class="header-section-number">10.1.1.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi"></a>
+<span class="header-section-number">11.1.1.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi"></a>
 </h5>
 <p><span class="math display">\[\begin{align}
   y_i^{\text{rep}} &amp; \sim \text{Poisson}(\gamma_i^{\text{rep}} w_i) \\
@@ -1268,21 +1341,21 @@ which is equivalent to
 \end{equation}\]</span></p>
 </div>
 </div>
-<div class="section level4" number="10.1.2">
+<div class="section level4" number="11.1.2">
 <h4 id="binomial-likelihood">
-<span class="header-section-number">10.1.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#binomial-likelihood"></a>
+<span class="header-section-number">11.1.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#binomial-likelihood"></a>
 </h4>
-<div class="section level5" number="10.1.2.1">
+<div class="section level5" number="11.1.2.1">
 <h5 id="condition-on-pmbgamma-1">
-<span class="header-section-number">10.1.2.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma-1"></a>
+<span class="header-section-number">11.1.2.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma-1"></a>
 </h5>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{Binomial}(w_i, \gamma_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level5" number="10.1.2.2">
+<div class="section level5" number="11.1.2.2">
 <h5 id="condition-on-pmbmu-xi-1">
-<span class="header-section-number">10.1.2.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi-1"></a>
+<span class="header-section-number">11.1.2.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi-1"></a>
 </h5>
 <p><span class="math display">\[\begin{align}
   y_i^{\text{rep}} &amp; \sim \text{Binomial}(w_im \gamma_i^{\text{rep}}) \\
@@ -1290,35 +1363,35 @@ which is equivalent to
 \end{align}\]</span></p>
 </div>
 </div>
-<div class="section level4" number="10.1.3">
+<div class="section level4" number="11.1.3">
 <h4 id="normal-likelihood">
-<span class="header-section-number">10.1.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#normal-likelihood"></a>
+<span class="header-section-number">11.1.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#normal-likelihood"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{N}(\gamma_i, \xi^2 / w_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="10.1.4">
+<div class="section level4" number="11.1.4">
 <h4 id="data-models-for-outcomes">
-<span class="header-section-number">10.1.4</span> Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a>
+<span class="header-section-number">11.1.4</span> Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a>
 </h4>
 <p>If the overall model includes a data model for the outcome, then a further set of draws is made, deriving values for the observed outcomes, given values for the true outcomes.</p>
 </div>
 </div>
-<div class="section level3" number="10.2">
+<div class="section level3" number="11.2">
 <h3 id="code-16">
-<span class="header-section-number">10.2</span> Code<a class="anchor" aria-label="anchor" href="#code-16"></a>
+<span class="header-section-number">11.2</span> Code<a class="anchor" aria-label="anchor" href="#code-16"></a>
 </h3>
 <pre><code><span><span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">x</span>, condition_on <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fitted"</span>, <span class="st">"expected"</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre>
 </div>
 </div>
-<div class="section level2" number="11">
+<div class="section level2" number="12">
 <h2 id="appendices">
-<span class="header-section-number">11</span> Appendices<a class="anchor" aria-label="anchor" href="#appendices"></a>
+<span class="header-section-number">12</span> Appendices<a class="anchor" aria-label="anchor" href="#appendices"></a>
 </h2>
-<div class="section level3" number="11.1">
+<div class="section level3" number="12.1">
 <h3 id="app:defn">
-<span class="header-section-number">11.1</span> Definitions<a class="anchor" aria-label="anchor" href="#app:defn"></a>
+<span class="header-section-number">12.1</span> Definitions<a class="anchor" aria-label="anchor" href="#app:defn"></a>
 </h3>
 <table class="table">
 <colgroup>
@@ -1511,24 +1584,24 @@ which is equivalent to
 </tbody>
 </table>
 </div>
-<div class="section level3" number="11.2">
+<div class="section level3" number="12.2">
 <h3 id="app:svd">
-<span class="header-section-number">11.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
+<span class="header-section-number">12.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
 </h3>
 <p>Let <span class="math inline">\(\pmb{A}\)</span> be a matrix of age-specific estimates from an international database, transformed to take values in the range <span class="math inline">\((-\infty, \infty)\)</span>. Each column of <span class="math inline">\(\pmb{A}\)</span> represents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.</p>
 <p>Let <span class="math inline">\(\pmb{U}\)</span>, <span class="math inline">\(\pmb{D}\)</span>, <span class="math inline">\(\pmb{V}\)</span> be the matrices from a singular value decomposition of <span class="math inline">\(\pmb{A}\)</span>, where we have retained the first <span class="math inline">\(K\)</span> components. Then
 <span class="math display" id="eq:svd1">\[\begin{equation}
-  \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{11.1}
+  \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{12.1}
 \end{equation}\]</span></p>
 <p>Let <span class="math inline">\(m_k\)</span> and <span class="math inline">\(s_k\)</span> be the mean and sample standard deviation of the elements of the <span class="math inline">\(k\)</span>th row of <span class="math inline">\(\pmb{V}\)</span>, with <span class="math inline">\(\pmb{m} = (m_1, \cdots, m_k)^{\top}\)</span> and <span class="math inline">\(\pmb{s} = (s_1, \cdots, s_k)^{\top}\)</span>. Then
 <span class="math display">\[\begin{equation}
   \tilde{\pmb{V}} = (\text{diag}(\pmb{s}))^{-1} (\pmb{V} - \pmb{m} \pmb{1}^{\top})
 \end{equation}\]</span>
 is a standardized version of <span class="math inline">\(\pmb{V}\)</span>.</p>
-<p>We can rewrite <a href="#eq:svd1">(11.1)</a> as
+<p>We can rewrite <a href="#eq:svd1">(12.1)</a> as
 <span class="math display" id="eq:svd2">\[\begin{align}
   \pmb{A} &amp; \approx \pmb{U} \pmb{D} (\text{diag}(\pmb{s}) \tilde{\pmb{V}} + \pmb{m} \pmb{1}^{\top}) \\
-  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{11.2}
+  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{12.2}
 \end{align}\]</span>
 where <span class="math inline">\(\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})\)</span> and <span class="math inline">\(\pmb{g} = \pmb{U} \pmb{D} \pmb{m}\)</span>.</p>
 <p>Let <span class="math inline">\(\tilde{\pmb{v}}_l\)</span> be a randomly-selected column from <span class="math inline">\(\tilde{\pmb{V}}\)</span>. From the construction of <span class="math inline">\(\tilde{\pmb{V}}\)</span>, and the orthogonality of the rows of <span class="math inline">\(\pmb{V}\)</span>, we have <span class="math inline">\(\text{E}[\tilde{\pmb{v}}_l] = \pmb{0}\)</span> and <span class="math inline">\(\text{var}[\tilde{\pmb{v}}_l] = \pmb{I}\)</span>. This implies that if <span class="math inline">\(\pmb{z}\)</span> is a vector of standard normal variables, then

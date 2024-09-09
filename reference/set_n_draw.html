@@ -19,7 +19,7 @@ publication-quality graphics and summaries."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,9 +89,10 @@ created with <code><a href="mod_pois.html">mod_pois()</a></code>,
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The value of <code>n_draw</code> does not affect
-model fitting: it only affects posterior
-summaries.</p>
+    <p>If the new value for <code>n_draw</code> is greater than
+the old value, and the model has already been fitted,
+then the model is <a href="unfit.html">unfitted</a>, and
+function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> may need to be called again.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -103,6 +104,8 @@ of which is affected by the value of <code>n_draw</code>.</p></li>
 model</p></li>
 <li><p><code><a href="set_prior.html">set_prior()</a></code> Specify prior for a term</p></li>
 <li><p><code><a href="set_disp.html">set_disp()</a></code> Specify prior for dispersion</p></li>
+<li><p><code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> Fit a model</p></li>
+<li><p><code><a href="unfit.html">unfit()</a></code> Reset a model</p></li>
 </ul></div>
     </div>
 
@@ -121,6 +124,11 @@ model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     age:sex ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       term n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ethnicity     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       year    19         19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    age:sex    24         24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
@@ -138,6 +146,11 @@ model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ethnicity ~ NFix()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     age:sex ~ RW()</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       term n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ethnicity     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       year    19         19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    age:sex    24         24</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>

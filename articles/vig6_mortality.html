@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -225,6 +225,12 @@ deaths but no population. Our model is then</p>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
 <span><span class="co">#&gt;     age:sex ~ RW()</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     term n_par n_par_free</span></span>
+<span><span class="co">#&gt;      age   106        106</span></span>
+<span><span class="co">#&gt;      sex     2          2</span></span>
+<span><span class="co">#&gt;     time    25         25</span></span>
+<span><span class="co">#&gt;  age:sex   212        212</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
 <span><span class="co">#&gt;         var_age: age</span></span>
@@ -364,6 +370,12 @@ has a penalized-complexity prior <span class="citation">[@simpson2022priors]</sp
 <span><span class="co">#&gt;         sex ~ NFix()</span></span>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
 <span><span class="co">#&gt;     age:sex ~ RW()</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     term n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;      age   106        106   2.700</span></span>
+<span><span class="co">#&gt;      sex     2          2   0.075</span></span>
+<span><span class="co">#&gt;     time    25         25   0.096</span></span>
+<span><span class="co">#&gt;  age:sex   212        212   0.210</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
@@ -565,6 +577,10 @@ sex.</p>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
 <span><span class="co">#&gt;     age:sex ~ SVD(HMD)</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     term n_par n_par_free</span></span>
+<span><span class="co">#&gt;     time    25         25</span></span>
+<span><span class="co">#&gt;  age:sex   212          6</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
 <span><span class="co">#&gt;         var_age: age</span></span>
@@ -581,6 +597,10 @@ sex.</p>
 <span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
 <span><span class="co">#&gt;        time ~ RW()</span></span>
 <span><span class="co">#&gt;     age:sex ~ SVD(HMD)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     term n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;     time    25         25   0.096</span></span>
+<span><span class="co">#&gt;  age:sex   212          6   2.800</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;      dispersion: mean=1</span></span>
 <span><span class="co">#&gt;        exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
