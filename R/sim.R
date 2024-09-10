@@ -376,6 +376,29 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 
 
 ## HAS_TESTS
+#' Draw Values for the 'intercept' Hyper-Parameters of a Prior
+#'
+#' @param matrix_along_by Matrix with mapping for along and by dimensions
+#' @param n_sim Number of draws
+#'
+#' @returns A matrix
+#'
+#' @noRd
+draw_vals_intercept <- function(matrix_along_by, n_sim) {
+  n_by <- ncol(matrix_along_by)
+  ans <- stats::rnorm(n = n_by * n_sim)
+  ans <- matrix(ans, nrow = n_by, ncol = n_sim)
+  nms_by <- colnames(matrix_along_by)
+  if (n_by > 1L)
+    rownames <- paste("intercept", nms_by, sep = ".")
+  else
+    rownames <- "intercept"
+  rownames(ans) <- rownames
+  ans
+}
+
+
+## HAS_TESTS
 #' Generate Draws from Lin
 #'
 #' Each column is one draw.
@@ -570,7 +593,7 @@ draw_vals_seasvary <- function(n_seas, sd_seas, matrix_along_by) {
 ## HAS_TESTS
 #' Draw Values for the 'slope' Hyper-Parameters of a Prior
 #'
-#' @param prior An object of class 'bage_prior'
+#' @param sd_slope Standard deviation of slope. A positive scalar.
 #' @param matrix_along_by Matrix with mapping for along and by dimensions
 #' @param n_sim Number of draws
 #'

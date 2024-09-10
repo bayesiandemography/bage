@@ -282,6 +282,38 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
 })
 
 
+## draw_vals_intercept ------------------------------------------------------------
+
+test_that("'draw_vals_intercept' works - has 'by' variables", {
+  set.seed(0)
+  n_sim <- 1000
+  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(1:5, c("a", "b")))
+  ans_obtained <- draw_vals_intercept(matrix_along_by = matrix_along_by,
+                                  n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(n = 2000,
+                               mean = rep(0, each = 2),
+                               sd = 1),
+                         nr = 2)
+  rownames(ans_expected) <- paste("intercept", c("a", "b"), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_intercept' works - no 'by' variables", {
+  set.seed(0)
+  n_sim <- 1000
+  sd_slope <- 0.5
+  matrix_along_by <- matrix(0:9, nr = 10, dimnames = list(1:10))
+  ans_obtained <- draw_vals_intercept(matrix_along_by = matrix_along_by,
+                                      n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- matrix(rnorm(n = 1000, sd = 1),
+                         nr = 1)
+  rownames(ans_expected) <- "intercept"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'draw_vals_lin' -----------------------------------------------------------
 
 test_that("'draw_vals_lin' works - along dimension is first", {
@@ -612,7 +644,6 @@ test_that("'draw_vals_slope' works - no 'by' variables", {
   rownames(ans_expected) <- "slope"
   expect_identical(ans_obtained, ans_expected)
 })
-
 
 
 ## draw_vals_spline_mod -------------------------------------------------------

@@ -653,7 +653,8 @@ draw_vals_hyperrand.bage_prior_lin <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_by <- ncol(matrix_along_by_effect)
-  intercept <- matrix(stats::rnorm(n = n_by * n_sim), nrow = n_by)
+  intercept <- draw_vals_intercept(matrix_along_by = matrix_along_by_effect,
+                                   n_sim = n_sim)
   slope <- draw_vals_slope(sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
@@ -676,7 +677,8 @@ draw_vals_hyperrand.bage_prior_linar <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_by <- ncol(matrix_along_by_effect)
-  intercept <- matrix(stats::rnorm(n = n_by * n_sim), nrow = n_by)
+  intercept <- draw_vals_intercept(matrix_along_by = matrix_along_by_effect,
+                                   n_sim = n_sim)
   slope <- draw_vals_slope(sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)

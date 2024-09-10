@@ -1,4 +1,11 @@
 
+# bage 0.7.5.1
+
+## Bug fixes
+
+* Fixed bug in code for simulating from `Lin()` and `Lin_AR()` priors.
+
+
 # bage 0.7.5
 
 ## Changes to interface
