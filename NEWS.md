@@ -19,7 +19,8 @@
   `"inner-outer"` can be faster, and use less memory, but give very
   similar results.
 * Added information on numbers of parameters, and standard deviations
-  to output for print.
+  to output for print. Thank you to Duncan Elliot for suggesting
+  printing numbers of parameters.
   
 ## Changes to calculations
 
