@@ -497,7 +497,7 @@ forecast_seasvary <- function(n_seas,
 #' @returns A tibble.
 #'
 #' @noRd
-make_data_forecast <- function(mod, labels_forecast) {
+make_data_forecast_labels <- function(mod, labels_forecast) {
   formula <- mod$formula
   data <- mod$data
   var_time <- mod$var_time
@@ -507,7 +507,46 @@ make_data_forecast <- function(mod, labels_forecast) {
   ans <- vctrs::vec_expand_grid(!!!ans)
   ans <- vctrs::vec_rbind(data, ans)
   i_original <- seq_len(nrow(data))
-  ans <- ans[-i_original, ]
+  ans <- ans[-i_original, , drop = FALSE]
+  ans
+}
+
+
+## HAS_TESTS
+#' Construct 'data_forecast' from 'newdata' Argument to 'forecast'
+#'
+#' Checks for overlap with historical data.
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param newdata Data frame with data for the forecast period
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_data_forecast_newdata <- function(mod, newdata) {
+  check_is_dataframe(x = newdata, nm_x = "newdata")
+  formula <- mod$formula
+  data <- mod$data
+  var_time <- mod$var_time
+  nms_model <- all.vars(formula[-2L])
+  nms_newdata <- names(newdata)
+  not_in_newdata <- !(nms_model %in% nms_newdata)
+  n_not_in_newdata <- sum(not_in_newdata)
+  if (n_not_in_newdata > 0L)
+    cli::cli_abort(paste("Variable{?s} in model but not in {.arg newdata}:",
+                         "{.val {nms_model[not_in_newdata]}}."))
+  labels_new <- unique(newdata[[var_time]])
+  labels_est <- unique(data[[var_time]])
+  duplicates <- intersect(labels_new, labels_est)
+  n_dup <- length(duplicates)
+  if (n_dup > 0L)
+    cli::cli_abort(c("Time periods in {.arg newdata} and {.arg data} overlap.",
+                     i = "Time periods in {.arg newdata}: {.val {labels_new}}.",
+                     i = "Time periods in {.arg data}: {.val {labels_est}}.",
+                     i = "Overlap: {.val {duplicates}}."))
+  ans <- vctrs::vec_rbind(data, newdata)
+  i_original <- seq_len(nrow(data))
+  ans <- ans[-i_original, , drop = FALSE]
   ans
 }
 

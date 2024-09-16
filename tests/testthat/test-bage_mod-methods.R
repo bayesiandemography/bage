@@ -1086,7 +1086,7 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod = mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod = mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1123,7 +1123,7 @@ test_that("'forecast_augment' works - binomial, no disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1159,7 +1159,7 @@ test_that("'forecast_augment' works - normal", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
