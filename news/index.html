@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,6 +42,14 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.6" id="bage-076">bage 0.7.6<a class="anchor" aria-label="anchor" href="#bage-076"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-interface-0-7-6">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-7-6"></a></h3>
+<ul><li>Added <code>newdata</code> argument to <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code>.</li>
+<li>Added minimum version numbers for <strong>rvec</strong> and <strong>poputils</strong>.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.5.1" id="bage-0751">bage 0.7.5.1<a class="anchor" aria-label="anchor" href="#bage-0751"></a></h2>
 <div class="section level3">
 <h3 id="bug-fixes-0-7-5-1">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-7-5-1"></a></h3>
@@ -53,7 +61,7 @@
 <div class="section level3">
 <h3 id="changes-to-interface-0-7-5">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-7-5"></a></h3>
 <ul><li>Added arguments <code>method</code> and <code>vars_inner</code> to <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>. When <code>method</code> is <code>"standard"</code> (the default) <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> uses the existing calculation methods. When <code>method</code> is <code>"inner-outer"</code>, <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> uses a new, somewhat experimental calculation method that involves fitting an inner model using a subset of variables, and then an outer model using the remaining variables. With big datasets, <code>"inner-outer"</code> can be faster, and use less memory, but give very similar results.</li>
-<li>Added information on numbers of parameters, and standard deviations to output for print.</li>
+<li>Added information on numbers of parameters, and standard deviations to output for print. Thank you to Duncan Elliot for suggesting printing numbers of parameters.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="changes-to-calculations-0-7-5">Changes to calculations<a class="anchor" aria-label="anchor" href="#changes-to-calculations-0-7-5"></a></h3>
