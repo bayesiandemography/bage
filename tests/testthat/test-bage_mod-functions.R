@@ -13,6 +13,19 @@ test_that("'set_datamod_outcome_rr3' works with Poisson", {
   expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
 })
 
+test_that("'set_datamod_outcome_rr3' works with Poisson - outcome has NA", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- sample(c(0, 3, 9, 12), size = nrow(data), replace = TRUE)
+  data$deaths[1] <- NA
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans <- set_datamod_outcome_rr3(mod)
+  expect_identical(ans$datamod_outcome, new_bage_datamod_outcome_rr3())
+})
+
 test_that("'set_datamod_outcome_rr3' works with binomial", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data)) + 12

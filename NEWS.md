@@ -1,4 +1,12 @@
 
+# bage 0.7.6
+
+## Changes to interface
+
+* Added `newdata` argument to `forecast()`.
+* Added minimum version numbers for **rvec** and **poputils**.
+
+
 # bage 0.7.5.1
 
 ## Bug fixes
