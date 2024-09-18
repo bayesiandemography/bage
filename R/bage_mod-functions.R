@@ -60,7 +60,7 @@ set_datamod_outcome_rr3 <- function(mod) {
                      i = "RR3 data model can only be used with {.val {valid_distn}} distributions."))
   ## check that values for outcome all divisible by 3
   outcome <- mod$outcome
-  is_base3 <- (outcome %% 3L) == 0L
+  is_base3 <- is.na(outcome) | ((outcome %% 3L) == 0L)
   n_not_base3 <- sum(!is_base3)
   if (n_not_base3 > 0L)
     cli::cli_abort("Outcome variable has {cli::qty(n_not_base3)} value{?s} not divisible by 3.")
