@@ -312,9 +312,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   has_disp <- has_disp(mod)
   if (has_disp) {
     expected <- inv_transform(linpred)
-    disp <- mod$draws_disp
-    disp <- matrix(disp, nrow = 1L)
-    disp <- rvec::rvec_dbl(disp)
+    disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     ans$.fitted <- make_par_disp(x = mod,
@@ -369,16 +367,13 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   if (outcome_has_na || has_datamod_outcome) {
     nm_outcome <- get_nm_outcome(mod)
     outcome_obs <- ans[[nm_outcome]]
-    fitted <- ans$.fitted
-    disp <- mod$draws_disp
-    disp <- matrix(disp, nrow = 1L)
-    disp <- rvec::rvec_dbl(disp)
+    disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
                                            nm_distn = nm_distn,
                                            outcome_obs = outcome_obs,
-                                           fitted = fitted,
+                                           fitted = .fitted,
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
@@ -669,6 +664,9 @@ generics::forecast
 #'    age effects or dispersion.
 #' 3. Use the combined parameters to generate values for
 #'    rates, probabilities or means.
+#' 4. If a `newdata` argument has been provided,
+#'    and `output` is `"augment"`,
+#'    draw values for outcome.
 #'
 #' `vignette("vig2_math")` has the technical details.
 #'
@@ -718,6 +716,8 @@ generics::forecast
 #' @param object A `bage_mod` object,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
+#' @param newdata Data frame with data for
+#' future periods.
 #' @param output Type of output returned
 #' @param include_estimates Whether to
 #' include historical estimates along
@@ -758,6 +758,19 @@ generics::forecast
 #'   forecast(labels = 2019:2024,
 #'            output = "components")
 #'
+#' ## hold back some data and forecast
+#' library(dplyr, warn.conflicts = FALSE)
+#' data_historical <- injuries |>
+#'   filter(year <= 2015)
+#' data_forecast <- injuries |>
+#'   filter(year > 2015) |>
+#'   mutate(injuries = NA)
+#' mod_pois(injuries ~ age * sex + ethnicity + year,
+#'          data = data_historical,
+#'          exposure = popn) |>
+#'   fit() |>
+#'   forecast(newdata = data_forecast)
+#'
 #' ## forecast based on priors only
 #' mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
 #'                          data = injuries,
@@ -766,10 +779,11 @@ generics::forecast
 #'   forecast(labels = 2019:2024)
 #' @export    
 forecast.bage_mod <- function(object,
+                              newdata = NULL,
                               output = c("augment", "components"),
                               include_estimates = FALSE,
                               standardize = c("terms", "anova", "none"),
-                              labels,
+                              labels = NULL,
                               ...) {
   data_est <- object$data
   priors <- object$priors
@@ -786,7 +800,20 @@ forecast.bage_mod <- function(object,
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
   comp_est_unst <- components(object, standardize = "none")
-  data_forecast <- make_data_forecast(mod = object, labels_forecast = labels)
+  has_newdata <- !is.null(newdata)
+  has_labels <- !is.null(labels)
+  if (has_newdata && has_labels)
+    cli::cli_abort(c("Values supplied for {.arg newdata} and for {.arg labels}.",
+                     i = paste("Please supply a value for {.arg newdata}",
+                               "or for {.arg labels} but not for both.")))
+  if (!has_newdata && !has_labels)
+    cli::cli_abort("No value supplied for {.arg newdata} or for {.arg labels}.")
+  if (has_newdata) {
+    data_forecast <- make_data_forecast_newdata(mod = object, newdata = newdata)
+    labels <- unique(data_forecast[[var_time]])
+  }
+  if (has_labels)
+    data_forecast <- make_data_forecast_labels(mod = object, labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
@@ -910,8 +937,26 @@ forecast_augment <- function(mod,
 forecast_augment.bage_mod <- function(mod,
                                       data_forecast,
                                       linpred_forecast) {
+  outcome_est <- mod$outcome
+  datamod_outcome <- mod$datamod_outcome
+  seed_augment <- mod$seed_augment
+  nm_distn <- nm_distn(mod)
+  nm_outcome <- get_nm_outcome(mod)
+  nm_outcome_true <- paste0(".", nm_outcome)
+  vname_offset <- mod$vname_offset
+  has_offset_est <- !is.null(vname_offset)
   has_disp <- has_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  has_imputed_outcome_est <- anyNA(outcome_est)
+  blank <- rep(NA_real_, times = nrow(data_forecast))
+  if (has_offset_est)
+    offset_forecast <- data_forecast[[vname_offset]]
+  else
+    offset_forecast <- rep(1, times = nrow(data_forecast))
+  has_offset_forecast <- !all(is.na(offset_forecast))
+  ans <- data_forecast
+  ## Derive fitted and (if has disp) expected
   if (has_disp) {
     expected <- inv_transform(linpred_forecast)
     disp <- get_disp(mod)
@@ -919,9 +964,52 @@ forecast_augment.bage_mod <- function(mod,
                                vals_expected = expected,
                                vals_disp = disp)
   }
-  else
+  else {
+    disp <- NULL
     fitted <- inv_transform(linpred_forecast)
-  ans <- data_forecast
+  }
+  ## Derive outcome and observed. If have data model
+  ## or imputed outcomes in historical estimates,
+  ## then have two versions of outcome variable in forecasts
+  if (has_offset_forecast)  {
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
+    outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                           nm_distn = nm_distn,
+                                           outcome_obs = blank,
+                                           fitted = fitted,
+                                           disp = disp,
+                                           offset = offset_forecast)
+    if (has_datamod_outcome) {
+      outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                           outcome_true = outcome_true)
+      ans[[nm_outcome]] <- outcome_obs
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome,
+                          x = outcome_true,
+                          nm_x = nm_outcome_true)
+    }
+    else {
+      if (has_imputed_outcome_est) {
+        ans[[nm_outcome]] <- blank
+        ans <- insert_after(df = ans,
+                            nm_after = nm_outcome,
+                            x = outcome_true,
+                            nm_x = nm_outcome_true)
+      }
+      else
+        ans[[nm_outcome]] <- outcome_true
+    }
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  }
+  else {
+    ans[[nm_outcome]] <- blank
+    if (has_datamod_outcome || has_imputed_outcome_est)
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome,
+                          x = blank,
+                          nm_x = nm_outcome_true)
+  }
   ans$.observed <- NA_real_
   ans$.fitted <- fitted
   if (has_disp)
@@ -929,14 +1017,76 @@ forecast_augment.bage_mod <- function(mod,
   ans
 }
 
+
 ## HAS_TESTS
 #' @export
 forecast_augment.bage_mod_norm <- function(mod,
                                            data_forecast,
                                            linpred_forecast) {
+  outcome_est <- mod$outcome
+  datamod_outcome <- mod$datamod_outcome
+  seed_augment <- mod$seed_augment
+  nm_distn <- nm_distn(mod)
+  nm_outcome <- get_nm_outcome(mod)
+  nm_outcome_true <- paste0(".", nm_outcome)
+  vname_offset <- mod$vname_offset
+  has_offset_est <- !is.null(vname_offset)
   scale_outcome <- get_fun_scale_outcome(mod)
-  fitted <- scale_outcome(linpred_forecast)
+  has_datamod_outcome <- !is.null(datamod_outcome)
+  has_imputed_outcome_est <- anyNA(outcome_est)
+  blank <- rep(NA_real_, times = nrow(data_forecast))
+  if (has_offset_est)
+    offset_forecast <- data_forecast[[vname_offset]]
+  else
+    offset_forecast <- rep(1, times = nrow(data_forecast))
+  has_offset_forecast <- !all(is.na(offset_forecast))
   ans <- data_forecast
+  ## Derive fitted
+  fitted <- scale_outcome(linpred_forecast)
+  ans$.fitted <- fitted
+  ## Derive outcome and observed. If have data model
+  ## or imputed outcomes in historical estimates,
+  ## then have two versions of outcome variable in forecasts
+  if (has_offset_forecast)  {
+    disp <- get_disp(mod)
+    seed_restore <- make_seed() ## create randomly-generated seed
+    set.seed(seed_augment) ## set pre-determined seed
+    outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
+                                           nm_distn = nm_distn,
+                                           outcome_obs = blank,
+                                           fitted = fitted,
+                                           disp = disp,
+                                           offset = offset_forecast)
+    if (has_datamod_outcome) {
+      outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
+                                           outcome_true = outcome_true)
+      ans[[nm_outcome]] <- outcome_obs
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome,
+                          x = outcome_true,
+                          nm_x = nm_outcome_true)
+    }
+    else {
+      if (has_imputed_outcome_est) {
+        ans[[nm_outcome]] <- blank
+        ans <- insert_after(df = ans,
+                            nm_after = nm_outcome,
+                            x = outcome_true,
+                            nm_x = nm_outcome_true)
+      }
+      else
+        ans[[nm_outcome]] <- outcome_true
+    }
+    set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
+  }
+  else {
+    ans[[nm_outcome]] <- blank
+    if (has_datamod_outcome || has_imputed_outcome_est)
+      ans <- insert_after(df = ans,
+                          nm_after = nm_outcome,
+                          x = blank,
+                          nm_x = nm_outcome_true)
+  }
   ans$.fitted <- fitted
   ans
 }

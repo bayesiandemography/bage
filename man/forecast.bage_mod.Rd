@@ -6,10 +6,11 @@
 \usage{
 \method{forecast}{bage_mod}(
   object,
+  newdata = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
   standardize = c("terms", "anova", "none"),
-  labels,
+  labels = NULL,
   ...
 )
 }
@@ -17,6 +18,9 @@
 \item{object}{A \code{bage_mod} object,
 typically created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
+\item{newdata}{Data frame with data for
+future periods.}
 
 \item{output}{Type of output returned}
 
@@ -52,6 +56,9 @@ interactions with non-time-varying parameters, e.g.
 age effects or dispersion.
 \item Use the combined parameters to generate values for
 rates, probabilities or means.
+\item If a \code{newdata} argument has been provided,
+and \code{output} is \code{"augment"},
+draw values for outcome.
 }
 
 \code{vignette("vig2_math")} has the technical details.
@@ -129,6 +136,19 @@ mod |>
 mod |>
   forecast(labels = 2019:2024,
            output = "components")
+
+## hold back some data and forecast
+library(dplyr, warn.conflicts = FALSE)
+data_historical <- injuries |>
+  filter(year <= 2015)
+data_forecast <- injuries |>
+  filter(year > 2015) |>
+  mutate(injuries = NA)
+mod_pois(injuries ~ age * sex + ethnicity + year,
+         data = data_historical,
+         exposure = popn) |>
+  fit() |>
+  forecast(newdata = data_forecast)
 
 ## forecast based on priors only
 mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,

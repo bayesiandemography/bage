@@ -1,7 +1,7 @@
 Package: bage
 Type: Package
 Title: Bayesian Estimation and Forecasting of Age-Specific Rates
-Version: 0.7.5.1
+Version: 0.7.6
 Authors@R: 
     c(person(given = "John",
              family = "Bryant",
@@ -27,8 +27,8 @@ Imports:
     matrixStats,
     methods,
     parallel,
-    poputils,
-    rvec,
+    poputils (>= 0.3.3),
+    rvec (>= 0.0.7),
     stats,
     tibble,
     TMB,

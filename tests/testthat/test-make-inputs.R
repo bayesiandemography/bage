@@ -363,6 +363,22 @@ test_that("'make_const' works with valid inputs", {
     expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_const' works with valid inputs - no terms", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- reduce_model_terms(mod, use_term = rep(F, 3))
+    ans_obtained <- make_const(mod)
+    ans_expected <- double()
+    expect_identical(ans_obtained, ans_expected)
+})
+
 
 ## 'make_dimnames_terms' ------------------------------------------------------
 
@@ -417,6 +433,22 @@ test_that("'make_effectfree' works with valid inputs", {
     ans_expected <- c("(Intercept)" = 3,
                       agegp = 0, agegp = 0, agegp = 0,
                       SEX = 0, SEX = 0)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_effectfree' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(agegp = 0:2,
+                        SEX = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ agegp + SEX
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- reduce_model_terms(mod, use_term = rep(F, 3))
+    ans_obtained <- make_effectfree(mod)
+    ans_expected <- double()
     expect_identical(ans_obtained, ans_expected)
 })
 
