@@ -955,6 +955,23 @@ test_that("'forecast' works with fitted model - output is 'augment'", {
     expect_identical(names(ans_est), names(ans_no_est))
 })
 
+test_that("'forecast' works with fitted model - uses newdata", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + sex * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    newdata <- make_data_forecast_labels(mod, labels = 2005)
+    newdata$deaths <- rpois(n = nrow(newdata), lambda = 10)
+    ans_est <- forecast(mod, newdata = newdata, include_estimates = TRUE)
+    expect_identical(names(ans_est), names(augment(mod)))
+})
+
+
 test_that("'forecast' gives same answer when run twice - output is 'augment'", {
     set.seed(0)
     data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
@@ -1070,10 +1087,44 @@ test_that("'forecast' throws correct error when time var not identified'", {
                  "Can't forecast when time variable not identified.")
 })
 
+test_that("'forecast' throws correct error when labels and newdata both supplied'", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    labels <- 2007:2008
+    newdata <- make_data_forecast_labels(mod = mod, labels = labels)
+    expect_error(forecast(mod,
+                          labels = labels,
+                          newdata = newdata),
+                 "Values supplied for `newdata` and for `labels`.")
+})
+
+test_that("'forecast' throws error when neither labels nor newdata supplied", {
+    set.seed(0)
+    data <- expand.grid(age = 0:4, time = 2000:2004, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age * sex + sex * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- fit(mod)
+    newdata <- make_data_forecast_labels(mod, 2005:2006)
+    newdata$deaths <- rpois(n = nrow(newdata), lambda = 10)
+    expect_error(forecast(mod, include_estimates = TRUE),
+                 "No value supplied for `newdata` or for `labels`.")
+})
+
 
 ## 'forecast_augment' --------------------------------------------------------
 
-test_that("'forecast_augment' works - Poisson, has disp", {
+test_that("'forecast_augment' works - Poisson, has disp, no forecasted offset", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
@@ -1086,7 +1137,7 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod = mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod = mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1109,6 +1160,167 @@ test_that("'forecast_augment' works - Poisson, has disp", {
   expect_identical(names(ans), names(aug_est))
 })
 
+
+test_that("'forecast_augment' works - Poisson, no offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  data_forecast <- make_data_forecast_labels(mod = mod, labels_forecast = 2006:2008)
+  labels_forecast <- 2006:2008
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(rvec::is_rvec(ans$deaths))
+  expect_true(all(is.na(ans$.observed)))
+})
+
+test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- rpois(n = nrow(data), lambda = 1000)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  data_forecast <- make_data_forecast_labels(mod = mod, labels_forecast = 2006:2008)
+  labels_forecast <- 2006:2008
+  data_forecast$exposure <- rpois(n = nrow(data_forecast), lambda = 1000)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(rvec::is_rvec(ans$deaths))
+  expect_true(all(is.na(ans$.observed)))
+})
+
+test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, imputed historical est", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$deaths[1] <- NA
+  data$exposure <- rpois(n = nrow(data), lambda = 1000)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  data_forecast <- make_data_forecast_labels(mod = mod, labels_forecast = 2006:2008)
+  labels_forecast <- 2006:2008
+  data_forecast$exposure <- rpois(n = nrow(data_forecast), lambda = 1000)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(all(is.na(ans$deaths)))
+  expect_true(all(is.na(ans$.observed)))
+  expect_true(rvec::is_rvec(ans$.deaths))
+})
+
+test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, datamod", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 30) * 3
+  data$deaths[1] <- NA
+  data$exposure <- rpois(n = nrow(data), lambda = 1000)
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- set_datamod_outcome_rr3(mod)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  data_forecast <- make_data_forecast_labels(mod = mod, labels_forecast = 2006:2008)
+  labels_forecast <- 2006:2008
+  data_forecast$exposure <- rpois(n = nrow(data_forecast), lambda = 1000)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(rvec::is_rvec(ans$deaths))
+  expect_true(all(is.na(ans$.observed)))
+  expect_true(rvec::is_rvec(ans$.deaths))
+  expect_true(all(rvec::extract_draw(ans$deaths) %% 3 == 0))
+})
+
 test_that("'forecast_augment' works - binomial, no disp", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -1123,7 +1335,7 @@ test_that("'forecast_augment' works - binomial, no disp", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1159,7 +1371,7 @@ test_that("'forecast_augment' works - normal", {
   mod <- fit(mod)
   components_est <- components(mod)
   labels_forecast <- 2006:2008
-  data_forecast <- make_data_forecast(mod= mod, labels_forecast = labels_forecast)
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
   set.seed(1)
   components_forecast <- forecast_components(mod = mod,
                                              components_est = components_est,
@@ -1180,6 +1392,121 @@ test_that("'forecast_augment' works - normal", {
   expect_setequal(ans$sex, aug_est$sex)
   expect_setequal(ans$time, 2006:2008)
   expect_identical(names(ans), names(aug_est))
+})
+
+test_that("'forecast_augment' works - normal, has forecasted offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = popn)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
+  data_forecast$popn <- rpois(n = nrow(data_forecast), lambda = 1000)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(rvec::is_rvec(ans$income))
+})
+
+test_that("'forecast_augment' works - normal, no offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$income <- rnorm(n = nrow(data))
+  formula <- income ~ age + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = 1)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(rvec::is_rvec(ans$income))
+})
+
+
+test_that("'forecast_augment' works - normal, estimated has imputed", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 1000)
+  data$income <- rnorm(n = nrow(data))
+  data$income[1] <- NA
+  formula <- income ~ age + sex * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = popn)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- fit(mod)
+  components_est <- components(mod)
+  labels_forecast <- 2006:2008
+  data_forecast <- make_data_forecast_labels(mod= mod, labels_forecast = labels_forecast)
+  data_forecast$popn <- rpois(n = nrow(data_forecast), lambda = 1000)
+  set.seed(1)
+  components_forecast <- forecast_components(mod = mod,
+                                             components_est = components_est,
+                                             labels_forecast = labels_forecast)
+  components <- vctrs::vec_rbind(components_est, components_forecast)
+  dimnames_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
+                                                    var_time = mod$var_time,
+                                                    labels_forecast = labels_forecast,
+                                                    time_only = FALSE)
+  linpred_forecast <- make_linpred_comp(components = components,
+                                        data = data_forecast,
+                                        dimnames_terms = dimnames_forecast)
+  ans <- forecast_augment(mod = mod,
+                          data_forecast = data_forecast,
+                          linpred_forecast = linpred_forecast)
+  aug_est <- augment(mod)
+  expect_setequal(ans$age, aug_est$age)
+  expect_setequal(ans$sex, aug_est$sex)
+  expect_setequal(ans$time, 2006:2008)
+  expect_identical(names(ans), names(aug_est))
+  expect_true(rvec::is_rvec(ans$.income))
+  expect_true(all(is.na(ans$income)))
 })
 
 

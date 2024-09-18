@@ -569,9 +569,9 @@ test_that("'forecast_seasvary' works", {
 })
 
 
-## 'make_data_forecast' -------------------------------------------------------
+## 'make_data_forecast_labels' ------------------------------------------------
 
-test_that("'forecast_components' works", {
+test_that("'make_data_forecast_labels' works", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
@@ -582,8 +582,8 @@ test_that("'forecast_components' works", {
                   data = data,
                   exposure = exposure)
   mod <- set_n_draw(mod, n = 10)
-  ans <- make_data_forecast(mod = mod,
-                            labels_forecast = 2006:2008)
+  ans <- make_data_forecast_labels(mod = mod,
+                                   labels_forecast = 2006:2008)
   expect_identical(names(ans), names(data))
   expect_true(all(is.na(ans$deaths)))
   expect_true(all(is.na(ans$exposure)))
@@ -591,6 +591,64 @@ test_that("'forecast_components' works", {
   expect_setequal(ans$age, data$age)
   expect_setequal(ans$sex, data$sex)
   expect_setequal(ans$time, 2006:2008)
+})
+
+
+## 'make_data_forecast_newdata' -----------------------------------------------
+
+test_that("'make_data_forecast_newdata' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  newdata <- make_data_forecast_labels(mod = mod,
+                                       labels_forecast = 2006:2008)
+  ans_obtained <- make_data_forecast_newdata(mod = mod, newdata = newdata)
+  expect_identical(ans_obtained, newdata)
+})
+
+test_that("'make_data_forecast_newdata' raises correct error with variables missing", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  newdata <- make_data_forecast_labels(mod = mod,
+                                       labels_forecast = 2006:2008)
+  newdata <- newdata[-1]
+  expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
+               "Variable in model but not in `newdata`: \"age\".")
+  newdata <- newdata[-1]
+  expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
+               "Variables in model but not in `newdata`: \"age\" and \"time\".")
+})
+
+test_that("'make_data_forecast_newdata' raises correct error when periods overlap", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  newdata <- make_data_forecast_labels(mod = mod,
+                                       labels_forecast = 2005:2008)
+  expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
+               "Time periods in `newdata` and `data` overlap.")
 })
 
 
