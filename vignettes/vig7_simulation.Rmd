@@ -1,0 +1,54 @@
+---
+title: "7. Simulation"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+    number_sections: true
+pkgdown:
+  as_is: true
+vignette: >
+  %\VignetteIndexEntry{7. Simulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+- simulation study
+- draw values for parameters
+- conditional on parameters, draw values for 
+- conditional on fa
+
+```{r, echo=FALSE, out.width="50%", fig.cap = "Simulation. Generate values for parameters. Based on values for these parameters, draw values for data. Use the data to infer values for the parameters. Compare the  inferred values with the original values."}
+knitr::include_graphics("vig7_fig.png")
+```
+
+- interface is still developing - likely to change in future
+
+
+# Estimation model same as data generation model
+
+example
+
+why do it?
+
+
+
+
+# Estimation model different from data generation model
+
+
+
+
+# References
