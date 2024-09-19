@@ -1,4 +1,12 @@
 
+# bage 0.7.7
+
+## Bug fixes
+
+* `report_sim()` now works on fitted models. Thank you to Ollie Pike
+  for pointing out that it previously did not.
+
+
 # bage 0.7.6
 
 ## Changes to interface
