@@ -225,11 +225,23 @@ NFix(sd = 1)
 
 ### Model
 
+**Existing version**
+
 \begin{align}
-  \beta_{u1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
-  \beta_{uv}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
+  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
+
+**Suggested new version**
+\begin{align}
+  \beta_{u,1}^{(m)} & = 0, \quad u = 1, \cdots, U_m \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+\end{align}
+
+(Keeps mean closer to 0.)
+
 
 ### Contribution to posterior density
 
@@ -268,11 +280,24 @@ RW(s = 1, along = NULL)
 
 ### Model
 
+**Existing version**
+
+
 \begin{align}
   \beta_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots, U_m, \quad v = 1,2 \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
+
+**Suggested new version**
+
+\begin{align}
+  \beta_{u,1}^{(m)} & = 0, \quad u = 1,\cdots,U_m  \\
+  \beta_{u,2}^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right), \quad u = 1,\cdots, U_m \\
+  \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
+\end{align}
+
 
 
 ### Contribution to posterior density
@@ -359,7 +384,7 @@ RWSeas(n, s = 1, s_seas = 1, along = NULL)
 
 
 
-## Second-order randomw walk, with seasonal effect {#sec:rw2seas}
+## Second-order random walk, with seasonal effect {#sec:rw2seas}
 
 ### Model
 
@@ -503,12 +528,33 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 
 ### Model
 
+**Existing version**
+
+
 \begin{align}
   \beta_{u,v}^{(m)} & \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
   \alpha_u^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots,U_m  \\
-  \eta_u^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \eta_u^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
+
+
+**Suggested new version**
+
+\begin{align}
+  \beta_{u,v}^{(m)} & \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
+  \eta_u^{(m)} & \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
+  \alpha_u^{(m)} & = -\frac{V_m + 1}{2} \eta_u^{(m)}, \quad u = 1,\cdots,U_m  \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
+\end{align}
+where $B_{\eta}^{(m)}$ and $A_{\eta}^{(m)}$ default to 0 and 1, though alternatives can be supplied by the user, or via informative priors (for instance, $B_{\eta}^{(m)} = -0.01$, or similar, for mortality)
+
+Note that with the new version
+\begin{equation}
+ E \sum_{v=1}^{V_m} \beta_{u,v}^{(m)} = \sum_{v=1}^{V_m}\left(-\frac{V_m + 1}{2} \eta_u^{(m)} + v \eta_u^{(m)}\right) = 0
+\end{equation}
+
+
 
 
 ### Contribution to posterior density
