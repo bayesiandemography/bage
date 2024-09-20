@@ -24,14 +24,14 @@ divorces_raw <- read_csv(.raw,
                          n_max = 40,
                          na = "..",
                          col_types = col_types,
-                         col_names = col_names) %>%
-    pivot_longer(cols = -time,
-                 names_to = c("sex", "age"),
-                 names_sep = "\\.") %>%
-    filter(time %in% levels_time) %>%
-    mutate(time = as.integer(time)) %>%
-    mutate(age = reformat_age(age)) %>%
-    count(age, sex, time, wt = value, name = "divorces")
+                         col_names = col_names) |>
+  pivot_longer(cols = -time,
+               names_to = c("sex", "age"),
+               names_sep = "\\.") |>
+  filter(time %in% levels_time) |>
+  mutate(time = as.integer(time)) |>
+  mutate(age = reformat_age(age)) |>
+  count(age, sex, time, wt = value, name = "divorces")
 
 saveRDS(divorces_raw, file = .out)
 

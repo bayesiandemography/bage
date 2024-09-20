@@ -5,6 +5,7 @@
 
 * `report_sim()` now works on fitted models. Thank you to Ollie Pike
   for pointing out that it previously did not.
+* Removed redundant levels from `age` variable in `divorces`.
 
 
 # bage 0.7.6
