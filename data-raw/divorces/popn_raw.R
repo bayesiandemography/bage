@@ -24,17 +24,18 @@ popn_raw <- read_csv(.raw,
                      n_max = 31,
                      na = "..",
                      col_types = col_types,
-                     col_names = col_names) %>%
-    pivot_longer(cols = -time,
-                 names_to = c("sex", "age"),
-                 names_sep = "\\.") %>%
-    filter(time %in% levels_time) %>%
-    mutate(age = reformat_age(age),
-           age = combine_age(age, to = "five"),
-           age = set_age_open(age, lower = 65)) %>%
-    filter(age_lower(age) >= 15) %>%
-    mutate(time = as.integer(time)) %>%
-    count(age, sex, time, wt = value, name = "population")
+                     col_names = col_names) |>
+  pivot_longer(cols = -time,
+               names_to = c("sex", "age"),
+               names_sep = "\\.") |>
+  filter(time %in% levels_time) |>
+  mutate(age = reformat_age(age),
+         age = combine_age(age, to = "five"),
+         age = set_age_open(age, lower = 65)) |>
+  filter(age_lower(age) >= 15) |>
+  droplevels() |>
+  mutate(time = as.integer(time)) |>
+  count(age, sex, time, wt = value, name = "population")
 
 saveRDS(popn_raw, file = .out)
 
