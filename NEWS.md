@@ -7,6 +7,11 @@
   for pointing out that it previously did not.
 * Removed redundant levels from `age` variable in `divorces`.
 
+## Changes to internal calculations
+
+* Removed internal **bage** function `rr3()`. Call **poputils**
+  function `rr3()` instead.
+
 
 # bage 0.7.6
 
