@@ -1156,8 +1156,10 @@ report_sim <- function(mod_est,
   else {
     check_mod_est_sim_compatible(mod_est = mod_est,
                                  mod_sim = mod_sim)
-    mod_sim <- unfit(mod_sim)
-    cli::cli_alert("Unfitting {.arg mod_sim}.")
+    if (is_fitted(mod_sim)) {
+      mod_sim <- unfit(mod_sim)
+      cli::cli_alert("Unfitting {.arg mod_sim}.")
+    }
   }    
   check_n(n = n_sim,
           nm_n = "n_sim",
