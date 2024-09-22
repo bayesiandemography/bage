@@ -13,7 +13,7 @@ url <- paste("https://sdmx.oecd.org/public/rest/data",
 lfp_sdmx <- rsdmx::readSDMX(url)
 lfp_df <- as.data.frame(lfp_sdmx)
 data <- data_ssvd_lfp(lfp_df)
-LFP <- ssvd(data)
+LFP <- bage:::ssvd(data)
 
 save(LFP, file = .out, compress = "bzip2")
 
