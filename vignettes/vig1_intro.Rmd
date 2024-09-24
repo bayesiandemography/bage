@@ -23,7 +23,7 @@ library(ggplot2)
 
 ```{r}
 mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn) |>
   set_prior(year ~ AR1())
 mod

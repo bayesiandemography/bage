@@ -43,10 +43,10 @@ a fitted model, it 'unfits'
 the model, deleting existing estimates.
 }
 \examples{
-## 'injuries' variable in 'injuries' dataset
+## 'injuries' variable in 'nzl_injuries' dataset
 ## has been randomly rounded to base 3
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn) |>
   set_datamod_outcome_rr3() |>
   fit()

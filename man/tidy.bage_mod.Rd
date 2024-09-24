@@ -51,7 +51,7 @@ variation in the outcome variable.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 mod <- fit(mod)
 tidy(mod)

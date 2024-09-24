@@ -51,21 +51,24 @@ and is fast.
 \item \code{\link[=report_sim]{report_sim()}} Simulation study of model
 }
 
-\strong{SVD-based modelling of age-profiles}
+\strong{SVD-based modelling of age profiles}
 \itemize{
 \item \link[=components.bage_ssvd]{components()} Matrices and offsets from scaled SVD
 \item \link[=generate.bage_ssvd]{generate()} Random profiles
-\item \link{HMD} SVD of mortality rates from Human Mortality Database
-\item \link{LFP} SVD of labor force participation rates from OECD
+\item \link{HFD} Scaled SVD of fertility rates from Human Fertility Database
+\item \link{HMD} Scaled SVD of mortality rates from Human Mortality Database
+\item \link{LFP} Scaled SVD of labor force participation rates from OECD
 }
 
 \strong{Data}
 \itemize{
-\item \link{deaths} Deaths in Iceland
-\item \link{divorces} Divorces in New Zealand
-\item \link{expenditure} Health expenditure in the Netherlands
-\item \link{injuries} Injuries in New Zealand
-\item \link{us_acc_deaths} Accidental deaths in the USA
+\item \link{isl_deaths} Deaths in Iceland
+\item \link{kor_births} Births in South Korea
+\item \link{nld_expenditure} Health expenditure in the Netherlands
+\item \link{nzl_divorces} Divorces in New Zealand
+\item \link{nzl_households} One-person households in New Zealand
+\item \link{nzl_injuries} Fatal injuries in New Zealand
+\item \link{usa_deaths} Accidental deaths in the USA
 }
 }
 

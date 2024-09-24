@@ -91,7 +91,7 @@ environment (see below for example).
 
 \examples{
 mod <- mod_binom(oneperson ~ age:region + age:year,
-                 data = households,
+                 data = nzl_households,
                  size = total)
 
 ## use formula to specify size
