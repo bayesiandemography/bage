@@ -30,7 +30,7 @@ Fit Poisson model to data on injuries.
 ``` r
 library(bage)
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn) |>
   fit()
 mod
