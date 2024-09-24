@@ -175,6 +175,28 @@
 "LFP"
 
 
+#' Components from Human Fertility Database
+#'
+#' An object of class `"bage_ssvd"`
+#' holding components extracted from mortality
+#' data from the
+#' [Human Fertility Database](https://www.humanfertility.org).
+#' The object holds 5 components.
+#'
+#' @format
+#' Object of class `"bage_ssvd"`.
+#'
+#' @source Derived from data from the
+#' Human Fertility Database.Max Planck Institute
+#' for Demographic Research (Germany) and Vienna
+#' Institute of Demography (Austria). .
+#' Code to create `HFD`
+#' is in folder 'data-raw/ssvd_hfd'
+#' in the source code for **bage**
+#' package.
+"HFD"
+
+
 #' Components from Human Mortality Database
 #'
 #' An object of class `"bage_ssvd"`
@@ -186,12 +208,11 @@
 #' @format
 #' Object of class `"bage_ssvd"`.
 #'
-#' @source Derived from data at
+#' @source Derived from data from the
 #' Human Mortality Database. Max Planck Institute for
 #' Demographic Research (Germany), University of California,
 #' Berkeley (USA), and French Institute for Demographic Studies
-#' (France). Available at www.mortality.org.
-#' Code to create `HMD`
+#' (France). Code to create `HMD`
 #' is in folder 'data-raw/ssvd_hmd'
 #' in the source code for **bage**
 #' package.

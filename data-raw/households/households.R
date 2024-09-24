@@ -1,6 +1,6 @@
 
 library(readr)
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(tidyr)
 library(forcats)
 library(poputils)
