@@ -1,10 +1,17 @@
 
 # bage 0.7.8
 
-## Data
+## Datasets
 
 * Added `HFD`, a scaled SVD object holding data from the Human
-  Fertiltiy Database 
+  Fertiltiy Database
+* Changed names of data objects:
+  - `deaths` --> `isl_deaths`
+  - `expenditure` --> `nld_expenditure`
+  - `divorces` --> `nzl_divorces`
+  - `injuries` --> `nzl_injuries`
+  - `us_acc_deaths` --> `usa_deaths`
+* Added new data object `kor_births`, births in South Korea
 
 
 # bage 0.7.7

@@ -37,7 +37,7 @@ the model, deleting existing estimates.
 }
 \examples{
 ## rename 'sex' variable to something unexpected
-injuries2 <- injuries
+injuries2 <- nzl_injuries
 injuries2$biological_sex <- injuries2$sex
 
 ## mod_pois does not recognize sex variable

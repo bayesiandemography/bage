@@ -105,7 +105,7 @@ see \code{vignette("vig2_math")}.
 \examples{
 ## specify model
 mod <- mod_pois(injuries ~ age + sex + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 
 ## extract prior distribution

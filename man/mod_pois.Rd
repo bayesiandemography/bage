@@ -97,17 +97,17 @@ environment (see below for example).
 \examples{
 ## specify a model with exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 
 ## specify a model without exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = 1)
 
 ## use a formula to specify exposure
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = ~ pmax(popn, 1))
 }
 \seealso{

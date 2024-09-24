@@ -93,12 +93,12 @@ environment (see below for example).
 
 \examples{
 mod <- mod_norm(value ~ diag:age + year,
-                data = expenditure,
+                data = nld_expenditure,
                 weights = 1)
 
 ## use formula to specify weights
 mod <- mod_norm(value ~ diag:age + year,
-                data = expenditure,
+                data = nld_expenditure,
                 weights = ~sqrt(value))
 }
 \seealso{

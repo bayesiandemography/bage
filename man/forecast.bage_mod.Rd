@@ -118,7 +118,7 @@ The interface for \code{forecast()} has not been finalised.
 \examples{
 ## specify and fit model
 mod <- mod_pois(injuries ~ age * sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn) |>
   fit()
 mod
@@ -139,9 +139,9 @@ mod |>
 
 ## hold back some data and forecast
 library(dplyr, warn.conflicts = FALSE)
-data_historical <- injuries |>
+data_historical <- nzl_injuries |>
   filter(year <= 2015)
-data_forecast <- injuries |>
+data_forecast <- nzl_injuries |>
   filter(year > 2015) |>
   mutate(injuries = NA)
 mod_pois(injuries ~ age * sex + ethnicity + year,
@@ -152,7 +152,7 @@ mod_pois(injuries ~ age * sex + ethnicity + year,
 
 ## forecast based on priors only
 mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
-                         data = injuries,
+                         data = nzl_injuries,
                          exposure = popn)
 mod_unfitted |>
   forecast(labels = 2019:2024)
