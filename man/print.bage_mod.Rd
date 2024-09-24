@@ -37,7 +37,7 @@ a measure of the term's importance.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 
 ## print unfitted model

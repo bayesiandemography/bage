@@ -41,7 +41,7 @@ library(bage)
 library(dplyr, warn.conflicts = FALSE)
 library(poputils)
 
-divorces_small <- divorces |>
+divorces_small <- nzl_divorces |>
   filter(age_upper(age) < 40,
          time >= 2016) |>
   droplevels()

@@ -43,10 +43,10 @@
 #'   model for rates, probabilities, or means
 #'
 #' @examples
-#' ## 'injuries' variable in 'injuries' dataset
+#' ## 'injuries' variable in 'nzl_injuries' dataset
 #' ## has been randomly rounded to base 3
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn) |>
 #'   set_datamod_outcome_rr3() |>
 #'   fit()
@@ -109,7 +109,7 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' 
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #' mod
 #' mod |> set_disp(mean = 0.1)
@@ -163,7 +163,7 @@ set_disp <- function(mod, mean) {
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #' mod
 #'
@@ -226,7 +226,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #' mod
 #' mod |> set_prior(age ~ RW2())
@@ -311,7 +311,7 @@ set_prior <- function(mod, formula) {
 #' 
 #' @examples
 #' ## rename 'age' variable to something unusual
-#' injuries2 <- injuries
+#' injuries2 <- nzl_injuries
 #' injuries2$age_last_birthday <- injuries2$age
 #'
 #' ## mod_pois does not recognize age variable
@@ -373,7 +373,7 @@ set_var_age <- function(mod, name) {
 #' 
 #' @examples
 #' ## rename 'sex' variable to something unexpected
-#' injuries2 <- injuries
+#' injuries2 <- nzl_injuries
 #' injuries2$biological_sex <- injuries2$sex
 #'
 #' ## mod_pois does not recognize sex variable
@@ -434,7 +434,7 @@ set_var_sexgender <- function(mod, name) {
 #'
 #' @examples
 #' ## rename time variable to something unusual
-#' injuries2 <- injuries
+#' injuries2 <- nzl_injuries
 #' injuries2$calendar_year <- injuries2$year
 #'
 #' ## mod_pois does not recognize time variable
@@ -476,7 +476,7 @@ set_var_time <- function(mod, name) {
 #' @examples
 #' ## create a model, which starts out unfitted
 #' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #' is_fitted(mod)
 #'

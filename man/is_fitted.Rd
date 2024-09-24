@@ -18,7 +18,7 @@ called on a model object.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + sex + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 is_fitted(mod)
 mod <- fit(mod)

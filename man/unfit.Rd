@@ -20,7 +20,7 @@ Reset a model, deleting all estimates.
 \examples{
 ## create a model, which starts out unfitted
 mod <- mod_pois(injuries ~ age + sex + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 is_fitted(mod)
 
