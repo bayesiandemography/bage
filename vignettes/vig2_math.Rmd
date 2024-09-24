@@ -1195,7 +1195,7 @@ We can rewrite \@ref(eq:svd1) as
 \end{align}
 where $\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})$ and $\pmb{g} = \pmb{U} \pmb{D} \pmb{m}$.
 
-Let $\tilde{\pmb{v}}_l$ be a randomly-selected column from $\tilde{\pmb{V}}$. From the construction of $\tilde{\pmb{V}}$, and the orthogonality of the rows of $\pmb{V}$, we have $\text{E}[\tilde{\pmb{v}}_l] = \pmb{0}$ and $\text{var}[\tilde{\pmb{v}}_l] = \pmb{I}$. This implies that if $\pmb{z}$ is a vector of standard normal variables, then
+Let $\tilde{\pmb{v}}_l$ be a randomly-selected column from $\tilde{\pmb{V}}$. From the construction of $\tilde{\pmb{V}}$ we have $\text{E}[\tilde{v}_{kl}] = 0$ and $\text{var}[\tilde{v}_{kl}] = 1$. If $\pmb{z}$ is a vector of standard normal variables, then
 \begin{equation}
   \pmb{F} \pmb{z} + \pmb{g}
 \end{equation}

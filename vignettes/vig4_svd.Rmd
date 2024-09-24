@@ -16,72 +16,19 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(bage)
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
 ```
 
 
 
 
-# Derivation of standardised principal components
+```{r}
+draws <- generate(HFD, n_draw = 200, age_labels = 15:49) |>
+  mutate(age = as.integer(age),
+         value = exp(value))
+ggplot(draws, aes(x = age, y = value, group = draw)) +
+  geom_line(alpha = 0.1)
+```
 
-## Data 
-
-Let $\pmb{Y}$ be an $A \times L$ matrix of values, where $a=1,\cdots,A$ indexes age group and $l=1,\cdots,L$ indexes some combination of classifying variables, such as country crossed with time. The values are real numbers, including negative numbers, such as log-transformed rates, or logit-transformed probabilities.
-
-## Singular value decomposition
-
-We perform a singular value decomposition on $\pmb{Y}$, and retain only the first $C < A$ components, to obtain
-\begin{equation}
-  \pmb{Y} \approx \pmb{U} \pmb{D} \pmb{V}^\top
-\end{equation}
-
-$\pmb{U}$ is an $A \times C$ matrix whose columns are left singular vectors. $\pmb{D}$ is a $C \times C$ diagonal matrix holding the singular values. $\pmb{V}$ is a $L \times C$ matrix whose columns are right singular vectors.
-
-## Standardising
-
-Let $\pmb{m}_V$ be a vector, the $c$th element of which is the mean of the $c$th singular vector, $\sum_{l=1}^L v_{lc} / L$. Similarly, let $\pmb{s}_V$ be a vector, the $c$th element of which is the standard deviation of the $c$th singular vector, $\sqrt{\sum_{l=1}^L (v_{lc} - m_c)^2 / (L-1)}$. Then define 
-\begin{align}
-  \pmb{M}_V & = \pmb{1} \pmb{m}_V^\top  \\
-  \pmb{S}_V & = \text{diag}(\pmb{s}_V),
-\end{align}
-where $\pmb{1}$ is an L-vector of ones. Let $\tilde{\pmb{V}}$ be a standardized version of $\pmb{V}$,
-\begin{equation}
-  \tilde{\pmb{V}} = (\pmb{V} - \pmb{M}_V) \pmb{S}_V^{-1}.
-\end{equation}
-
-We can now express $\pmb{Y}$ as
-\begin{align}
-  \pmb{Y} & \approx \pmb{U} \pmb{D} (\tilde{\pmb{V}} \pmb{S}_V + \pmb{M}_V)^\top \\
-  & = \pmb{U} \pmb{D} \pmb{S}_V \tilde{\pmb{V}}^\top + \pmb{U} \pmb{D}\pmb{M}_V ^\top \\
-  & = \pmb{A}\tilde{\pmb{V}}^\top + \pmb{B}.
-\end{align}
-
-Furthermore, we can express matrix $\pmb{B}$ as 
-\begin{align}
-  \pmb{B} & = \pmb{U} \pmb{D}\pmb{M}_V ^\top \\
-  & = \pmb{U} \pmb{D} \pmb{m}_V \pmb{1}^\top$ \\
-  & = \pmb{b} \pmb{1}^\top.
-\end{align}
-
-
-## Result
-
-Consider a randomly selected row $\tilde{\pmb{v}}_l$ from $\tilde{\pmb{V}}$. From the construction of $\tilde{\pmb{V}}$, and the orthogonality of the columns of $\pmb{V}$ $\color{cyan}{\text{TODO-spell this out a bit more}}$, we obtain
-\begin{equation}
-  \text{E}[\tilde{\pmb{v}}_l] = \pmb{0}
-\end{equation}
-and 
-\begin{equation}
-  \text{Var}[\tilde{\pmb{v}}_l] = \pmb{I}.
-\end{equation}
-This implies that if set 
-\begin{equation}
-  \pmb{y}' = \pmb{A} \pmb{z} + \pmb{b}
-\end{equation}
-where
-\begin{equation}
-  \pmb{z} \sim \text{N}(\pmb{0}, \pmb{I}),
-\end{equation}
-then $\pmb{y}'$ will look like a randomly-chosen column from $\pmb{Y}$.
-
-$\color{cyan}{\text{TODO - illustrate with examples}}$
 
