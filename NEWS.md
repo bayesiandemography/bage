@@ -1,4 +1,12 @@
 
+# bage 0.7.8
+
+## Data
+
+* Added `HFD`, a scaled SVD object holding data from the Human
+  Fertiltiy Database 
+
+
 # bage 0.7.7
 
 ## Bug fixes

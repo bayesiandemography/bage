@@ -7,8 +7,9 @@ all: ../data/deaths.rda \
      ../data/households.rda \
      ../data/injuries.rda \
      ../data/us_acc_deaths.rda \
-     ../data/LFP.rda \
+     ../data/HFD.rda \
      ../data/HMD.rda \
+     ../data/LFP.rda \
 	documentation
 
 
@@ -55,11 +56,15 @@ divorces/popn_raw.rds: divorces/popn_raw.R \
 
 ## 'bage_ssvd' objects
 
-../data/LFP.rda: ssvd_lfp/LFP.R
+../data/HFD.rda: ssvd_hfd/HFD.R \
+  ssvd_hfd/asfrRR.txt.zip
 	Rscript $^ $@
 
 ../data/HMD.rda: ssvd_hmd/HMD.R \
   ssvd_hmd/hmd_statistics_20240226.zip
+	Rscript $^ $@
+
+../data/LFP.rda: ssvd_lfp/LFP.R
 	Rscript $^ $@
 
 
