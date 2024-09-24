@@ -36,19 +36,20 @@
 <url><loc>https://bayesiandemography.github.io/bage/reference/components.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/components.bage_ssvd.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/datamods.html</loc></url>
-<url><loc>https://bayesiandemography.github.io/bage/reference/deaths.html</loc></url>
-<url><loc>https://bayesiandemography.github.io/bage/reference/divorces.html</loc></url>
-<url><loc>https://bayesiandemography.github.io/bage/reference/expenditure.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/fit.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/forecast.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/generate.bage_ssvd.html</loc></url>
-<url><loc>https://bayesiandemography.github.io/bage/reference/households.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/index.html</loc></url>
-<url><loc>https://bayesiandemography.github.io/bage/reference/injuries.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/is_fitted.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/isl_deaths.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/kor_births.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/mod_binom.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/mod_norm.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/mod_pois.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/nld_expenditure.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/nzl_divorces.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/nzl_households.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/nzl_injuries.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/print.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/priors.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/reexports.html</loc></url>
@@ -63,6 +64,6 @@
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_var_time.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/tidy.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/unfit.html</loc></url>
-<url><loc>https://bayesiandemography.github.io/bage/reference/us_acc_deaths.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/usa_deaths.html</loc></url>
 </urlset>
 

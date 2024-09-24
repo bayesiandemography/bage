@@ -13,7 +13,7 @@ data and one or more columns of modelled values."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -155,7 +155,7 @@ estimates of the true value for the outcome.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## specify model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">divorces</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">time</span>,</span></span>
-<span class="r-in"><span>                data <span class="op">=</span> <span class="va">divorces</span>,</span></span>
+<span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_divorces</span>,</span></span>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">population</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="set_n_draw.html">set_n_draw</a></span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">100</span><span class="op">)</span> <span class="co">## smaller sample, so 'augment' faster</span></span></span>
 <span class="r-in"><span></span></span>
@@ -201,7 +201,7 @@ estimates of the true value for the outcome.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;100&gt;&gt;</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## insert a missing value into outcome variable</span></span></span>
-<span class="r-in"><span><span class="va">divorces_missing</span> <span class="op">&lt;-</span> <span class="va">divorces</span></span></span>
+<span class="r-in"><span><span class="va">divorces_missing</span> <span class="op">&lt;-</span> <span class="va">nzl_divorces</span></span></span>
 <span class="r-in"><span><span class="va">divorces_missing</span><span class="op">$</span><span class="va">divorces</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## fitting model and calling 'augument'</span></span></span>
@@ -232,7 +232,7 @@ estimates of the true value for the outcome.</p>
 <span class="r-in"><span><span class="co">## original data also leads to a new</span></span></span>
 <span class="r-in"><span><span class="co">## variable called '.divorces'</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">divorces</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">time</span>,</span></span>
-<span class="r-in"><span>         data <span class="op">=</span> <span class="va">divorces</span>,</span></span>
+<span class="r-in"><span>         data <span class="op">=</span> <span class="va">nzl_divorces</span>,</span></span>
 <span class="r-in"><span>         exposure <span class="op">=</span> <span class="va">population</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>

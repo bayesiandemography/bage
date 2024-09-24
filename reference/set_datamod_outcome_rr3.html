@@ -9,7 +9,7 @@ has been randomly rounded to base 3."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,10 +100,10 @@ model for rates, probabilities, or means</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## 'injuries' variable in 'injuries' dataset</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## 'injuries' variable in 'nzl_injuries' dataset</span></span></span>
 <span class="r-in"><span><span class="co">## has been randomly rounded to base 3</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span></span>
-<span class="r-in"><span>                data <span class="op">=</span> <span class="va">injuries</span>,</span></span>
+<span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span></span>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">set_datamod_outcome_rr3</span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></span>
