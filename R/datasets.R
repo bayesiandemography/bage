@@ -21,7 +21,31 @@
 #' age and sex 1998-2022 - Current municipalities",
 #' on the Statistics Iceland website. Data downloaded
 #' on 12 July 2023.
-"deaths"
+"isl_deaths"
+
+
+#' Births in South Korea
+#'
+#' Births by age of mother, region, and calendar year,
+#' 2011-2023.
+#'
+#' @format
+#' A [tibble][tibble::tibble-package] with 1,872 rows and the following
+#' columns:
+#' 
+#' - `age` Five-year age groups from `"10-14" to `"50-54"`
+#' - `sex` `"Female"` and `"Male"`
+#' - `region` Administrative region
+#' - `time` Calendar year, 2011-2023
+#' - `births` Counts of births
+#' - `popn` Mid-year population
+#'
+#' @source Tables "Live Births by Age Group of Mother,
+#' Sex and Birth Order for Provinces",
+#' and "Resident Population in Five-Year Age Groups",
+#' on the Korean Statistical Information Service website.
+#' Data downloaded on 24 September 2024.
+"kor_births"
 
 
 #' Divorces in New Zealand
@@ -51,7 +75,7 @@
 #' database Infoshare
 #' on the Statistics New Zealand website.
 #' Data downloaded on 26 March 2023.
-"divorces"
+"nzl_divorces"
 
 
 #' Per Capita Health Expenditure in the Netherlands, 2003-2011
@@ -75,10 +99,10 @@
 #' and in table "Historical population data and projections
 #' (1950-2050)" from OECD database 'OECD.Stat' (downloaded
 #' 5 June 2016).
-"expenditure"
+"nld_expenditure"
 
 
-#' People in One-Person households in New Zealand
+#' People in One-Person Households in New Zealand
 #'
 #' Counts of people in one-person households, and
 #' counts of people living in any household, by
@@ -104,7 +128,7 @@
 #' in the online database NZ.Stat,
 #' on the Statistics New Zealand website.
 #' Data downloaded on 3 January 2023.
-"households"
+"nzl_households"
 
 
 #' Fatal Injuries in New Zealand
@@ -134,7 +158,7 @@
 #' of injury, 2000-2021" in the online database NZ.Stat,
 #' on the Statistics New Zealand website.
 #' Data downloaded on 1 January 2023.
-"injuries"
+"nzl_injuries"
 
 
 #' Accidental Deaths in the USA
@@ -151,7 +175,7 @@
 #'
 #' @source Reformatted version of
 #' `datasets::USAccDeaths`.
-"us_acc_deaths"
+"usa_deaths"
 
 
 ## SVD ------------------------------------------------------------------------
