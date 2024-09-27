@@ -33,7 +33,7 @@ function \code{\link[=fit]{fit()}} may need to be called again.
 }
 \examples{
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 mod
 

@@ -35,7 +35,7 @@ test_that("'ssvd' throws correct error when type has invalid category", {
     data <- sim_ssvd()$data
     data$type[3] <- "wrong"
     expect_error(ssvd(data),
-                 "`type` has invalid set of categories.")
+                 "`type` has invalid category.")
 })
 
 test_that("'ssvd' throws correct error when matrix is not list column", {

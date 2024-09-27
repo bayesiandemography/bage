@@ -88,7 +88,7 @@ generics::augment
 #' @examples
 #' ## specify model
 #' mod <- mod_pois(divorces ~ age + sex + time,
-#'                 data = divorces,
+#'                 data = nzl_divorces,
 #'                 exposure = population) |>
 #'   set_n_draw(n_draw = 100) ## smaller sample, so 'augment' faster
 #'
@@ -103,7 +103,7 @@ generics::augment
 #' mod |> augment()
 #'
 #' ## insert a missing value into outcome variable
-#' divorces_missing <- divorces
+#' divorces_missing <- nzl_divorces
 #' divorces_missing$divorces[1] <- NA
 #'
 #' ## fitting model and calling 'augument'
@@ -119,7 +119,7 @@ generics::augment
 #' ## original data also leads to a new
 #' ## variable called '.divorces'
 #' mod_pois(divorces ~ age + sex + time,
-#'          data = divorces,
+#'          data = nzl_divorces,
 #'          exposure = population) |>
 #'   set_datamod_outcome_rr3() |>
 #'   fit() |>
@@ -243,7 +243,7 @@ generics::components
 #' @examples
 #' ## specify model
 #' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #'
 #' ## extract prior distribution
@@ -605,7 +605,7 @@ generics::fit
 #' @examples
 #' ## specify model
 #' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #'
 #' ## examine unfitted model
@@ -739,7 +739,7 @@ generics::forecast
 #' @examples
 #' ## specify and fit model
 #' mod <- mod_pois(injuries ~ age * sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn) |>
 #'   fit()
 #' mod
@@ -760,9 +760,9 @@ generics::forecast
 #'
 #' ## hold back some data and forecast
 #' library(dplyr, warn.conflicts = FALSE)
-#' data_historical <- injuries |>
+#' data_historical <- nzl_injuries |>
 #'   filter(year <= 2015)
-#' data_forecast <- injuries |>
+#' data_forecast <- nzl_injuries |>
 #'   filter(year > 2015) |>
 #'   mutate(injuries = NA)
 #' mod_pois(injuries ~ age * sex + ethnicity + year,
@@ -773,7 +773,7 @@ generics::forecast
 #'
 #' ## forecast based on priors only
 #' mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
-#'                          data = injuries,
+#'                          data = nzl_injuries,
 #'                          exposure = popn)
 #' mod_unfitted |>
 #'   forecast(labels = 2019:2024)
@@ -1288,7 +1288,7 @@ has_disp.bage_mod <- function(mod) {
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #' is_fitted(mod)
 #' mod <- fit(mod)
@@ -1719,7 +1719,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #'
 #' ## print unfitted model
@@ -1913,7 +1913,7 @@ print.bage_mod <- function(x, ...) {
 #'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = 1) |>
 #'   fit()
 #'
@@ -1928,7 +1928,7 @@ print.bage_mod <- function(x, ...) {
 #' ## when the overall model includes an rr3 data model,
 #' ## replicate data are rounded to base 3
 #' mod_pois(injuries ~ age:sex + ethnicity + year,
-#'          data = injuries,
+#'          data = nzl_injuries,
 #'          exposure = popn) |>
 #'   set_datamod_outcome_rr3() |>
 #'   fit() |>
@@ -2134,7 +2134,7 @@ generics::tidy
 #' 
 #' @examples
 #' mod <- mod_pois(injuries ~ age + sex + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #' mod <- fit(mod)
 #' tidy(mod)

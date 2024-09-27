@@ -92,7 +92,7 @@ the outcomes to base 3.
 
 \examples{
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = 1) |>
   fit()
 
@@ -107,7 +107,7 @@ rep_data |>
 ## when the overall model includes an rr3 data model,
 ## replicate data are rounded to base 3
 mod_pois(injuries ~ age:sex + ethnicity + year,
-         data = injuries,
+         data = nzl_injuries,
          exposure = popn) |>
   set_datamod_outcome_rr3() |>
   fit() |>

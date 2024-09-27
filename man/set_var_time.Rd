@@ -42,7 +42,7 @@ the model, deleting existing estimates.
 }
 \examples{
 ## rename time variable to something unusual
-injuries2 <- injuries
+injuries2 <- nzl_injuries
 injuries2$calendar_year <- injuries2$year
 
 ## mod_pois does not recognize time variable

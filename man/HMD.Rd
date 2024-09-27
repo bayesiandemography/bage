@@ -8,12 +8,11 @@
 Object of class \code{"bage_ssvd"}.
 }
 \source{
-Derived from data at
+Derived from data from the
 Human Mortality Database. Max Planck Institute for
 Demographic Research (Germany), University of California,
 Berkeley (USA), and French Institute for Demographic Studies
-(France). Available at www.mortality.org.
-Code to create \code{HMD}
+(France). Code to create \code{HMD}
 is in folder 'data-raw/ssvd_hmd'
 in the source code for \strong{bage}
 package.

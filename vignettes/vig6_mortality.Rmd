@@ -44,7 +44,7 @@ library(ggplot2)
 
 The Iceland deaths data is included in the **bage** package. It contains counts of deaths, and estimates of the mid-year population, disaggregated by age and sex, for the years 1998--2022.
 ```{r}
-dth <- bage::deaths
+dth <- bage::isl_deaths
 dth
 ```
 

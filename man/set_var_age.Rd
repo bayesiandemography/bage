@@ -42,7 +42,7 @@ the model, deleting existing estimates.
 }
 \examples{
 ## rename 'age' variable to something unusual
-injuries2 <- injuries
+injuries2 <- nzl_injuries
 injuries2$age_last_birthday <- injuries2$age
 
 ## mod_pois does not recognize age variable

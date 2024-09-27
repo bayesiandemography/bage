@@ -1,4 +1,33 @@
 
+# bage 0.7.8
+
+## Datasets
+
+* Added `HFD`, a scaled SVD object holding data from the Human
+  Fertiltiy Database
+* Changed names of data objects:
+  - `deaths` --> `isl_deaths`
+  - `expenditure` --> `nld_expenditure`
+  - `divorces` --> `nzl_divorces`
+  - `injuries` --> `nzl_injuries`
+  - `us_acc_deaths` --> `usa_deaths`
+* Added new data object `kor_births`, births in South Korea
+
+
+# bage 0.7.7
+
+## Bug fixes
+
+* `report_sim()` now works on fitted models. Thank you to Ollie Pike
+  for pointing out that it previously did not.
+* Removed redundant levels from `age` variable in `divorces`.
+
+## Changes to internal calculations
+
+* Removed internal **bage** function `rr3()`. Call **poputils**
+  function `rr3()` instead.
+
+
 # bage 0.7.6
 
 ## Changes to interface
