@@ -10,7 +10,7 @@
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="6. Modelling Mortality">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="6. Modelling Mortality">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -242,118 +242,90 @@ deaths but no population. Our model is then</p>
 <div class="section level3">
 <h3 id="mathematical-description-of-the-model">Mathematical description of the model<a class="anchor" aria-label="anchor" href="#mathematical-description-of-the-model"></a>
 </h3>
-<p>The model implemented by <code>mod_base</code> assumes that
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mo>∼</mo><mtext mathvariant="normal">Poisson</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>γ</mi><mi>i</mi></msub><msub><mi>w</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p>The model implemented by <code>mod_base</code> assumes that <span class="math display">\[\begin{equation}
   y_i \sim \text{Poisson}(\gamma_i w_i)
-\end{equation}</annotation></semantics></math> where</p>
+\end{equation}\]</span> where</p>
 <ul>
 <li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>i</mi></msub><annotation encoding="application/x-tex">y_i</annotation></semantics></math>
-is deaths in age-sex-time cell
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>,</li>
+<span class="math inline">\(y_i\)</span> is deaths in age-sex-time
+cell <span class="math inline">\(i\)</span>,</li>
 <li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>w</mi><mi>i</mi></msub><annotation encoding="application/x-tex">w_i</annotation></semantics></math>
-is the population at risk, and</li>
+<span class="math inline">\(w_i\)</span> is the population at risk,
+and</li>
 <li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>
-is the underlying death rate.</li>
+<span class="math inline">\(\gamma_i\)</span> is the underlying
+death rate.</li>
 </ul>
 <p>By modelling deaths as draws from a Poisson distribution, the model
 recognizes the contribution of individual-level randomness to observed
 death counts. Recognizing individual-level randomness is important when
 analyzing data where cell counts are small.</p>
-<p>Death rates
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>
-are treated as draws from a Gamma distribution,</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>γ</mi><mi>i</mi></msub><mo>∼</mo><mtext mathvariant="normal">Gamma</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>ξ</mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo>,</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>ξ</mi><msub><mi>μ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p>Death rates <span class="math inline">\(\gamma_i\)</span> are treated
+as draws from a Gamma distribution,</p>
+<p><span class="math display">\[\begin{equation}
   \gamma_i \sim \text{Gamma}(\xi^{-1}, (\xi \mu_i)^{-1}).
-\end{equation}</annotation></semantics></math></p>
-<p>The expected value for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>
-is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math>,
-and the variance is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ξ</mi><msubsup><mi>μ</mi><mi>i</mi><mn>2</mn></msubsup></mrow><annotation encoding="application/x-tex">\xi \mu_i^2</annotation></semantics></math>.
-By modelling
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>
-as a draw from a distribution, we are recognizing our model is only able
-to explain some of the variation in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>.
-Larger values for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ξ</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math>
-imply more unexplained variation.</p>
-<p>We model
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math>,
-on the log scale, as a sum of factors formed from the the dimensions of
-the data,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><msub><mi>μ</mi><mi>i</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>m</mi><mo>=</mo><mn>0</mn></mrow><mn>4</mn></munderover><msubsup><mi>β</mi><msubsup><mi>j</mi><mi>i</mi><mi>m</mi></msubsup><mrow><mo stretchy="true" form="prefix">(</mo><mi>m</mi><mo stretchy="true" form="postfix">)</mo></mrow></msubsup></mrow><annotation encoding="application/x-tex">\begin{equation}
-  \log \mu_i = \sum_{m=0}^4 \beta_{j_i^m}^{(m)} 
-\end{equation}</annotation></semantics></math> where</p>
+\end{equation}\]</span></p>
+<p>The expected value for <span class="math inline">\(\gamma_i\)</span>
+is <span class="math inline">\(\mu_i\)</span>, and the variance is <span class="math inline">\(\xi \mu_i^2\)</span>. By modelling <span class="math inline">\(\gamma_i\)</span> as a draw from a distribution,
+we are recognizing our model is only able to explain some of the
+variation in <span class="math inline">\(\gamma_i\)</span>. Larger
+values for <span class="math inline">\(\xi\)</span> imply more
+unexplained variation.</p>
+<p>We model <span class="math inline">\(\mu_i\)</span>, on the log
+scale, as a sum of factors formed from the the dimensions of the data,
+<span class="math display">\[\begin{equation}
+  \log \mu_i = \sum_{m=0}^4 \beta_{j_i^m}^{(m)}
+\end{equation}\]</span> where</p>
 <ul>
 <li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝛃</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\pmb{\beta}^{(0)}</annotation></semantics></math>
-is an intercept,</li>
+<span class="math inline">\(\pmb{\beta}^{(0)}\)</span> is an
+intercept,</li>
 <li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝛃</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>m</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\pmb{\beta}^{(m)}</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>⋯</mi><mo>,</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">m = 1, \cdots, 4</annotation></semantics></math>,
-is a main effect or interaction, and</li>
+<span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, <span class="math inline">\(m = 1, \cdots, 4\)</span>, is a main effect or
+interaction, and</li>
 <li>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>j</mi><mi>i</mi><mi>m</mi></msubsup><annotation encoding="application/x-tex">j_i^m</annotation></semantics></math>
-is the element of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝛃</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>m</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\pmb{\beta}^{(m)}</annotation></semantics></math>
-that is associated with cell
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>.</li>
+<span class="math inline">\(j_i^m\)</span> is the element of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> that is associated with
+cell <span class="math inline">\(i\)</span>.</li>
 </ul>
-<p>Each of the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>m</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\beta^{(m)}</annotation></semantics></math>
-in the model for
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math>
-receives a prior. The default prior for the intercept is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>∼</mo><mtext mathvariant="normal">N</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msup><mn>10</mn><mn>2</mn></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p>Each of the <span class="math inline">\(\beta^{(m)}\)</span> in the
+model for <span class="math inline">\(\mu_i\)</span> receives a prior.
+The default prior for the intercept is <span class="math display">\[\begin{equation}
   \beta^{(0)} \sim \text{N}(0, 10^2)
-\end{equation}</annotation></semantics></math> This prior allows for a
-much broader range of values than we would expect to see in practice. We
-would only rarely expect to see values of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>
+\end{equation}\]</span> This prior allows for a much broader range of
+values than we would expect to see in practice. We would only rarely
+expect to see values of <span class="math inline">\(\gamma_i\)</span>
 that were lower than 0.001 (which is -7 on a log scale) or higher than 1
 (which is 0).</p>
-<p>The default prior for age is a first-order random walk,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>β</mi><mi>j</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msubsup><mo>∼</mo><mtext mathvariant="normal">N</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msubsup><mi>β</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msubsup><mo>,</mo><msubsup><mi>τ</mi><mn>1</mn><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="1.0em"></mspace><mi>j</mi><mo>=</mo><mn>2</mn><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>J</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\begin{equation}
-  \beta_j^{(1)} \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2, \dots, J_1
-\end{equation}</annotation></semantics></math> A random walk prior
-embodies the idea that we expect changes from one age group to the next
-to be relatively small, and that neighboring age groups are more
-strongly correlated than distant age groups.</p>
-<p>The value for the standard deviation parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>τ</mi><mn>1</mn></msub><annotation encoding="application/x-tex">\tau_1</annotation></semantics></math>
-is estimated as part of the model, and has its own prior,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>τ</mi><mn>1</mn><mn>2</mn></msubsup><mo>∼</mo><msup><mtext mathvariant="normal">N</mtext><mo>+</mo></msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p>The default prior for age is a first-order random walk, <span class="math display">\[\begin{equation}
+  \beta_j^{(1)} \sim \text{N}(\beta_{j-1}^{(1)}, \tau_1^2), \quad j = 2,
+\dots, J_1
+\end{equation}\]</span> A random walk prior embodies the idea that we
+expect changes from one age group to the next to be relatively small,
+and that neighboring age groups are more strongly correlated than
+distant age groups.</p>
+<p>The value for the standard deviation parameter <span class="math inline">\(\tau_1\)</span> is estimated as part of the model,
+and has its own prior, <span class="math display">\[\begin{equation}
     \tau_1^2 \sim \text{N}^+(0, 1)
-\end{equation}</annotation></semantics></math><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mtext mathvariant="normal">N</mtext><mo>+</mo></msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{N}^+(0, 1)</annotation></semantics></math>
-denotes a half-normal distribution, that is, a normal distribution
-restricted to non-negative values.</p>
+\end{equation}\]</span> <span class="math inline">\(\text{N}^+(0,
+1)\)</span> denotes a half-normal distribution, that is, a normal
+distribution restricted to non-negative values.</p>
 <p>For this prior to be properly identified, we need to place some
 constraint on the overall level. We use a soft constraint on the mean,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><mn>1</mn><msub><mi>J</mi><mn>1</mn></msub></mfrac><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><msub><mi>J</mi><mn>1</mn></msub></munderover><msubsup><mi>β</mi><mi>j</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msubsup><mo>∼</mo><mtext mathvariant="normal">N</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<span class="math display">\[\begin{equation}
   \frac{1}{J_1}\sum_{j=1}^{J_1} \beta_j^{(1)} \sim \text{N}(0, 1)
-\end{equation}</annotation></semantics></math></p>
-<p>The sex main effect has the prior
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>β</mi><mi>j</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow></msubsup></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">N</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>τ</mi><mn>2</mn><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="1.0em"></mspace><mi>j</mi><mo>=</mo><mn>1</mn><mo>,</mo><mn>2</mn></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msubsup><mi>τ</mi><mn>2</mn><mn>2</mn></msubsup></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><msup><mtext mathvariant="normal">N</mtext><mo>+</mo></msup><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+\end{equation}\]</span></p>
+<p>The sex main effect has the prior <span class="math display">\[\begin{align}
   \beta_j^{(2)} &amp; \sim \text{N}(0, \tau_2^2), \quad j = 1, 2 \\
   \tau_2^2 &amp; \sim \text{N}^+(0, 1)
-\end{align}</annotation></semantics></math></p>
-<p>The time term
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>3</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\beta^{(3)}</annotation></semantics></math>
-has the same random-walk prior as the age effect. The age-sex
-interaction
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>β</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>4</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\beta^{(4)}</annotation></semantics></math>
-has the same prior as the sex effect.</p>
-<p>Finally, the dispersion term
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ξ</mi><annotation encoding="application/x-tex">\xi</annotation></semantics></math>
-has a penalized-complexity prior <span class="citation">[@simpson2022priors]</span>,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>ξ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mfrac><mn>1</mn><mrow><mn>2</mn><msqrt><mi>ξ</mi></msqrt></mrow></mfrac><msup><mi>e</mi><mrow><mo>−</mo><msqrt><mi>ξ</mi></msqrt></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+\end{align}\]</span></p>
+<p>The time term <span class="math inline">\(\beta^{(3)}\)</span> has
+the same random-walk prior as the age effect. The age-sex interaction
+<span class="math inline">\(\beta^{(4)}\)</span> has the same prior as
+the sex effect.</p>
+<p>Finally, the dispersion term <span class="math inline">\(\xi\)</span>
+has a penalized-complexity prior <span class="citation">[@simpson2022priors]</span>, <span class="math display">\[\begin{equation}
     p(\xi) = \frac{1}{2 \sqrt{\xi}}e^{-\sqrt{\xi}}.
-\end{equation}</annotation></semantics></math></p>
+\end{equation}\]</span></p>
 </div>
 <div class="section level3">
 <h3 id="fitting-the-model">Fitting the model<a class="anchor" aria-label="anchor" href="#fitting-the-model"></a>
@@ -412,14 +384,11 @@ function <code><a href="https://generics.r-lib.org/reference/augment.html" class
 adds</p>
 <ul>
 <li>a column called <code>.observed</code> containing direct estimates
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mi>i</mi></msub><mi>/</mi><msub><mi>w</mi><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">y_i/w_i</annotation></semantics></math>),</li>
+(<span class="math inline">\(y_i/w_i\)</span>),</li>
 <li>a column called <code>.fitted</code> containing estimates of the
-rates
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\gamma_i</annotation></semantics></math>),
-and</li>
+rates (<span class="math inline">\(\gamma_i\)</span>), and</li>
 <li>a column called <code>.expected</code> containing expected values
-for the rates
-(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\mu_i</annotation></semantics></math>).</li>
+for the rates (<span class="math inline">\(\mu_i\)</span>).</li>
 </ul>
 <p>The <code>.fitted</code> and <code>.expected</code> columns both
 consist of <a href="https://bayesiandemography.github.io/rvec/reference/rvec.html" class="external-link">rvecs</a>.
@@ -472,8 +441,7 @@ estimates, together with the original direct estimates,</p>
 <h3 id="extracting-higher-level-terms">Extracting higher-level terms<a class="anchor" aria-label="anchor" href="#extracting-higher-level-terms"></a>
 </h3>
 <p>We can gain insights into the model by extracting and graphing
-estimates of the main effects and interactions, the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>𝛃</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>m</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><annotation encoding="application/x-tex">\pmb{\beta}^{(m)}</annotation></semantics></math>.</p>
+estimates of the main effects and interactions, the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>.</p>
 <p>Estimates of the main effects and interactions, and of other
 higher-level parameters, can be obtained with function
 <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>.</p>
@@ -523,41 +491,21 @@ rates,</p>
 <h3 id="mathematical-structure">Mathematical structure<a class="anchor" aria-label="anchor" href="#mathematical-structure"></a>
 </h3>
 <p>The <a href="https://www.mortality.org" class="external-link">Human Mortality Database</a>
-provides estimates of mortality rates for many countries. Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐌</mi><annotation encoding="application/x-tex">\pmb{M}</annotation></semantics></math>
-denote a matrix holding these estimates, on a log scale. By applying a
-<a href="https://en.wikipedia.org/wiki/Singular_value_decomposition" class="external-link">Singlar
-Value Decomposition</a> to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐌</mi><annotation encoding="application/x-tex">\pmb{M}</annotation></semantics></math>,
-and then rescaling, we can construct a matrix
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐅</mi><annotation encoding="application/x-tex">\pmb{F}</annotation></semantics></math>
-and a column vector
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐠</mi><annotation encoding="application/x-tex">\pmb{g}</annotation></semantics></math>,
-that parsimoniously summarize the age-profiles, or age-sex profiles,
-that are observed in
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐌</mi><annotation encoding="application/x-tex">\pmb{M}</annotation></semantics></math>.
-If
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>z</mi><annotation encoding="application/x-tex">z</annotation></semantics></math>
-is a vector of independent draws from a
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">N</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{N}(0,1)</annotation></semantics></math>
-distribution, then the resulting vector
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝐦</mi><mo>=</mo><mi>𝐅</mi><mi>𝐳</mi><mo>+</mo><mi>𝐠</mi></mrow><annotation encoding="application/x-tex">\begin{equation}
+provides estimates of mortality rates for many countries. Let <span class="math inline">\(\pmb{M}\)</span> denote a matrix holding these
+estimates, on a log scale. By applying a <a href="https://en.wikipedia.org/wiki/Singular_value_decomposition" class="external-link">Singlar
+Value Decomposition</a> to <span class="math inline">\(\pmb{M}\)</span>,
+and then rescaling, we can construct a matrix <span class="math inline">\(\pmb{F}\)</span> and a column vector <span class="math inline">\(\pmb{g}\)</span>, that parsimoniously summarize
+the age-profiles, or age-sex profiles, that are observed in <span class="math inline">\(\pmb{M}\)</span>. If <span class="math inline">\(z\)</span> is a vector of independent draws from a
+<span class="math inline">\(\text{N}(0,1)\)</span> distribution, then
+the resulting vector <span class="math display">\[\begin{equation}
   \pmb{m} = \pmb{F} \pmb{z} + \pmb{g}
-\end{equation}</annotation></semantics></math> looks like a
-randomly-selected column from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐌</mi><annotation encoding="application/x-tex">\pmb{M}</annotation></semantics></math>.</p>
-<p>We use
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐅</mi><annotation encoding="application/x-tex">\pmb{F}</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐠</mi><annotation encoding="application/x-tex">\pmb{g}</annotation></semantics></math>
-to build priors for age effects and age-sex interactions. The prior for
-age effects is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msup><mi>𝛃</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></msup></mtd><mtd columnalign="left" style="text-align: left"><mo>=</mo><mi>𝐅</mi><mi>𝛂</mi><mo>+</mo><mi>𝐠</mi></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>α</mi><mi>k</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mo>∼</mo><mtext mathvariant="normal">N</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="1.0em"></mspace><mi>k</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>⋯</mi><mo>,</mo><mi>K</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+\end{equation}\]</span> looks like a randomly-selected column from <span class="math inline">\(\pmb{M}\)</span>.</p>
+<p>We use <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span> to build priors for age effects
+and age-sex interactions. The prior for age effects is <span class="math display">\[\begin{align}
   \pmb{\beta}^{(1)} &amp; = \pmb{F} \pmb{\alpha} + \pmb{g} \\
   \alpha_k &amp; \sim \text{N}(0, 1), \quad k = 1, \cdots, K
-\end{align}</annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
-is chosen by the user. The prior for age-sex interactions looks the same
+\end{align}\]</span> where <span class="math inline">\(K\)</span> is
+chosen by the user. The prior for age-sex interactions looks the same
 except that, by default, the calculations are done separately for each
 sex.</p>
 </div>
