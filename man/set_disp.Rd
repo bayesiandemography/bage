@@ -39,7 +39,7 @@ the model, deleting existing estimates.
 }
 \examples{
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 mod
 mod |> set_disp(mean = 0.1)

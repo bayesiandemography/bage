@@ -88,17 +88,17 @@
 #' @examples
 #' ## specify a model with exposure
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = popn)
 #'
 #' ## specify a model without exposure
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = 1)
 #'
 #' ## use a formula to specify exposure
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-#'                 data = injuries,
+#'                 data = nzl_injuries,
 #'                 exposure = ~ pmax(popn, 1))
 #' @export
 mod_pois <- function(formula, data, exposure) {
@@ -226,7 +226,7 @@ mod_pois <- function(formula, data, exposure) {
 #'
 #' @examples
 #' mod <- mod_binom(oneperson ~ age:region + age:year,
-#'                  data = households,
+#'                  data = nzl_households,
 #'                  size = total)
 #'
 #' ## use formula to specify size
@@ -361,12 +361,12 @@ mod_binom <- function(formula, data, size) {
 #'
 #' @examples
 #' mod <- mod_norm(value ~ diag:age + year,
-#'                 data = expenditure,
+#'                 data = nld_expenditure,
 #'                 weights = 1)
 #'
 #' ## use formula to specify weights
 #' mod <- mod_norm(value ~ diag:age + year,
-#'                 data = expenditure,
+#'                 data = nld_expenditure,
 #'                 weights = ~sqrt(value))
 #' @export
 mod_norm <- function(formula, data, weights) {

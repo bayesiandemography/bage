@@ -1147,11 +1147,20 @@ report_sim <- function(mod_est,
                        n_core = 1) {
   ## check inputs
   check_bage_mod(x = mod_est, nm_x = "mod_est")
+  if (is_fitted(mod_est)) {
+    mod_est <- unfit(mod_est)
+    cli::cli_alert("Unfitting {.arg mod_est}.")
+  }
   if (is.null(mod_sim))
     mod_sim <- mod_est
-  else
+  else {
     check_mod_est_sim_compatible(mod_est = mod_est,
                                  mod_sim = mod_sim)
+    if (is_fitted(mod_sim)) {
+      mod_sim <- unfit(mod_sim)
+      cli::cli_alert("Unfitting {.arg mod_sim}.")
+    }
+  }    
   check_n(n = n_sim,
           nm_n = "n_sim",
           min = 1L,

@@ -308,7 +308,7 @@ test_that("'draw_vals_augment_fitted' works with Poisson, has rr3", {
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                       KEEP.OUT.ATTRS = FALSE)
   data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rr3(rpois(n = nrow(data), lambda = 10))
+  data$deaths <- poputils::rr3(rpois(n = nrow(data), lambda = 10))
   formula <- deaths ~ age + sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
@@ -333,7 +333,7 @@ test_that("'draw_vals_augment_fitted' works with binomial, has rr3", {
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
                       KEEP.OUT.ATTRS = FALSE)
   data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rr3(rbinom(n = nrow(data), size = data$popn, prob = 0.4))
+  data$deaths <- poputils::rr3(rbinom(n = nrow(data), size = data$popn, prob = 0.4))
   formula <- deaths ~ age + sex + time
   mod <- mod_binom(formula = formula,
                    data = data,

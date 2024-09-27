@@ -1183,6 +1183,24 @@ test_that("'report_sim' works when mod_sim is identical to mod_est - parallel pr
   expect_identical(names(ans_obtained), c("components", "augment"))
 })
 
+test_that("'report_sim' works with fitted model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:2, time = 2000:2002, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+                  fit()
+  set.seed(0)
+  ans1 <- suppressMessages(report_sim(mod_est = mod, n_sim = 1))
+  expect_true(is.list(ans1))
+  set.seed(0)
+  ans2 <- suppressMessages(report_sim(mod_est = mod, mod_sim = mod, n_sim = 1))
+  expect_identical(ans1, ans2)
+})
+
 
 ## 'vals_disp_to_dataframe' ---------------------------------------------------
 

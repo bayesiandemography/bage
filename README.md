@@ -19,18 +19,18 @@ Fast Bayesian estimation and forecasting of age-specific rates.
 ## Installation
 
 ``` r
-install_github("bage") ## release version
+install.packages("bage") ## CRAN version
 devtools::install_github("bayesiandemography/bage") ## development version
 ```
 
 ## Example
 
-Fit Poisson model to data on injuries.
+Fit Poisson model to data on injuries
 
 ``` r
 library(bage)
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn) |>
   fit()
 mod
@@ -56,7 +56,7 @@ mod
 #>          n_draw: 1000
 ```
 
-Extract model-based and direct estimates.
+Extract model-based and direct estimates
 
 ``` r
 augment(mod)

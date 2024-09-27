@@ -27,7 +27,7 @@ the model, deleting existing estimates.
 }
 \examples{
 mod <- mod_pois(injuries ~ age + year,
-                data = injuries,
+                data = nzl_injuries,
                 exposure = popn)
 mod
 mod |> set_prior(age ~ RW2())

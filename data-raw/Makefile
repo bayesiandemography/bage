@@ -1,65 +1,75 @@
 
-
 .PHONY: all
-all: ../data/deaths.rda \
-     ../data/divorces.rda \
-     ../data/expenditure.rda \
-     ../data/households.rda \
-     ../data/injuries.rda \
-     ../data/us_acc_deaths.rda \
-     ../data/LFP.rda \
+all: ../data/isl_deaths.rda \
+     ../data/kor_births.rda \
+     ../data/nzl_divorces.rda \
+     ../data/nld_expenditure.rda \
+     ../data/nzl_households.rda \
+     ../data/nzl_injuries.rda \
+     ../data/usa_deaths.rda \
+     ../data/HFD.rda \
      ../data/HMD.rda \
+     ../data/LFP.rda \
 	documentation
 
 
 ## Data frames
 
-../data/deaths.rda: deaths/deaths.R \
-  deaths/MAN02008_20230712-132130.csv.zip \
-  deaths/MAN05221_20230712-131721.csv.zip
+../data/isl_deaths.rda: isl_deaths/isl_deaths.R \
+  isl_deaths/MAN02008_20230712-132130.csv.zip \
+  isl_deaths/MAN05221_20230712-131721.csv.zip
 	Rscript $^ $@
 
-divorces/divorces_raw.rds: divorces/divorces_raw.R \
-  divorces/VSM480501_20230322_102557_40.csv.gz
+../data/kor_births.rda: kor_births/kor_births.R \
+  kor_births/101_DT_1B81A12_20240924103050.csv \
+  kor_births/Resident_Population_in_FiveYear_Age_Groups__2011_._20240924104155.csv
 	Rscript $^ $@
 
-divorces/popn_raw.rds: divorces/popn_raw.R \
-  divorces/DPE403905_20230322_103055_56.csv.gz
+nzl_divorces/divorces_raw.rds: nzl_divorces/divorces_raw.R \
+  nzl_divorces/VSM480501_20230322_102557_40.csv.gz
 	Rscript $^ $@
 
-.INTERMEDIATE: divorces/divorces_raw.rds
-.INTERMEDIATE: divorces/popn_raw.rds
-../data/divorces.rda: divorces/divorces.R \
-  divorces/divorces_raw.rds \
-  divorces/popn_raw.rds
+nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
+  nzl_divorces/DPE403905_20230322_103055_56.csv.gz
 	Rscript $^ $@
 
-../data/expenditure.rda: expenditure/expenditure.R \
-  expenditure/EBDAG_24052016055802288.csv.gz \
-  expenditure/POP_PROJ_04062016225548685.csv.gz
+.INTERMEDIATE: nzl_divorces/divorces_raw.rds
+.INTERMEDIATE: nzl_divorces/popn_raw.rds
+../data/nzl_divorces.rda: nzl_divorces/nzl_divorces.R \
+  nzl_divorces/divorces_raw.rds \
+  nzl_divorces/popn_raw.rds
 	Rscript $^ $@
 
-../data/households.rda: households/households.R \
-  households/TABLECODE8420_Data.csv.gz
+../data/nld_expenditure.rda: nld_expenditure/nld_expenditure.R \
+  nld_expenditure/EBDAG_24052016055802288.csv.gz \
+  nld_expenditure/POP_PROJ_04062016225548685.csv.gz
 	Rscript $^ $@
 
-../data/injuries.rda: injuries/injuries.R \
-  injuries/TABLECODE7935_Data.csv.gz \
-  injuries/DPE479901_20230101_021445_73.csv.gz \
-  injuries/DPE403903_20230101_021709_80.csv.gz
+../data/nzl_households.rda: nzl_households/nzl_households.R \
+  nzl_households/TABLECODE8420_Data.csv.gz
 	Rscript $^ $@
 
-../data/us_acc_deaths.rda: us_acc_deaths/us_acc_deaths.R
+../data/nzl_injuries.rda: nzl_injuries/nzl_injuries.R \
+  nzl_injuries/TABLECODE7935_Data.csv.gz \
+  nzl_injuries/DPE479901_20230101_021445_73.csv.gz \
+  nzl_injuries/DPE403903_20230101_021709_80.csv.gz
+	Rscript $^ $@
+
+../data/usa_deaths.rda: usa_deaths/usa_deaths.R
 	Rscript $^ $@
 
 
 ## 'bage_ssvd' objects
 
-../data/LFP.rda: ssvd_lfp/LFP.R
+../data/HFD.rda: ssvd_hfd/HFD.R \
+  ssvd_hfd/asfrRR.txt.zip
 	Rscript $^ $@
 
 ../data/HMD.rda: ssvd_hmd/HMD.R \
   ssvd_hmd/hmd_statistics_20240226.zip
+	Rscript $^ $@
+
+../data/LFP.rda: ssvd_lfp/LFP.R
 	Rscript $^ $@
 
 
