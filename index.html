@@ -69,13 +69,13 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bage"</span><span class="op">)</span> <span class="co">## release version</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"bage"</span><span class="op">)</span> <span class="co">## CRAN version</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bayesiandemography/bage"</span><span class="op">)</span> <span class="co">## development version</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>Fit Poisson model to data on injuries.</p>
+<p>Fit Poisson model to data on injuries</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
 <span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
@@ -103,7 +103,7 @@
 <span><span class="co">#&gt;   var_sexgender: sex</span></span>
 <span><span class="co">#&gt;        var_time: year</span></span>
 <span><span class="co">#&gt;          n_draw: 1000</span></span></code></pre></div>
-<p>Extract model-based and direct estimates.</p>
+<p>Extract model-based and direct estimates</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 912 × 9</span></span>
