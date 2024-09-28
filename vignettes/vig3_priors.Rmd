@@ -10,10 +10,69 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4
 )
 ```
 
 ```{r setup}
 library(bage)
+library(ggplot2)
+library(dplyr, warn.conflicts = FALSE)
+```
+
+
+
+# Priors for Exchangeable Units
+
+## Normal `N()`
+
+```{r}
+x <- N()
+draws <- generate(x, n = 10, n_draw = 18)
+ggplot(draws, aes(x = x, y = value)) +
+  facet_wrap(vars(draw), nrow = 3) +
+  geom_point() +
+  theme(text = element_text(size = 8))
+```
+
+```{r}
+x <- N(s = 0.05)
+draws <- generate(x, n = 10, n_draw = 20)
+ggplot(draws, aes(x = x, y = value)) +
+  facet_wrap(vars(draw)) +
+  geom_point() +
+  scale_x_continuous(n.breaks = 10) +
+  xlab("Unit") +
+  ylab("") +
+  theme(text = element_text(size = 8))
+```
+
+
+
+
+
+# Priors for Series
+
+## Random Walk `RW()`
+
+```{r}
+x <- RW()
+draws <- generate(x, n = 30, n_draw = 20)
+ggplot(draws, aes(x = x, y = value)) +
+  facet_wrap(vars(draw), nrow = 4) +
+  geom_line() +
+  theme(text = element_text(size = 8))
+```
+
+
+
+```{r}
+x <- RW(s = 0.01)
+draws <- generate(x, n = 30, n_draw = 20)
+ggplot(draws, aes(x = x, y = value)) +
+  facet_wrap(vars(draw), nrow = 4) +
+  geom_line() +
+  theme(text = element_text(size = 8))
 ```

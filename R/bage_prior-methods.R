@@ -1562,6 +1562,83 @@ forecast_term.bage_prior_svd_rw2 <- function(prior,
 }
 
 
+## 'generate' -----------------------------------------------------------------
+
+#' @importFrom generics generate
+#' @export
+generics::generate
+
+#' Generate Values from Priors
+#'
+#' Generate draws from priors for model terms.
+#' The terms are assumed to be main effects,
+#' except in the case of dynamic SVD priors
+#' (eg [SVD_RW()]) where they assumed to
+#' be age-time interactions.
+#'
+#' @param x Object of class `"bage_prior"`
+#' @param n Number of elements in term.
+#' Default is `20`.
+#' @param n_draw Number of draws. Default
+#' is `25`.
+#' @param standardize. Whether to standardize
+#' the values for the effect. If `"terms"` (the default),
+#' values are centered.
+#'
+#' @returns A [tibble][tibble::tibble()]
+#'
+#' @seealso
+#' - [priors] Overview of priors implemented in **bage**
+#' - [augment()], [compose()] Draw from posterior or prior
+#'   distribution for whole model
+#'
+#' @examples
+#' rw <- RW()
+#' generate(rw)
+#' @export
+generate.bage_prior_norm <- function(x,
+                                     n = 20,
+                                     n_draw = 25,
+                                     standardize = c("terms", "none")) {
+  standardize <- match.arg(standardize)
+  l <- generate_prior_helper(n = n, n_draw = n_draw)
+  ans <- l$ans
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  sd <- rep(sd, each = n)
+  value <- stats::rnorm(n = n * n_draw, sd = sd)
+  if (standardize == "terms") {
+    value <- matrix(value, nrow = n, ncol = n_draw)
+    value <- scale(value, center = TRUE, scale = FALSE)
+    value <- as.double(value)
+  }
+  ans$value <- value
+  ans
+}
+
+
+#' @rdname generate.bage_prior_norm
+#' @export
+generate.bage_prior_rw <- function(x,
+                                   n = 20,
+                                   n_draw = 25,
+                                   standardize = c("terms", "none")) {
+  standardize <- match.arg(standardize)
+  l <- generate_prior_helper(n = n, n_draw = n_draw)
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  ans <- l$ans
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  value <- draw_vals_rw(sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  if (standardize == "terms")
+    value <- scale(value, center = TRUE, scale = FALSE)
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+  
 
 
 ## 'has_hyperrand' ------------------------------------------------------------
@@ -2668,6 +2745,24 @@ make_matrix_along_by_effectfree.bage_prior <- function(prior,
   ans
 }
 
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  along <- prior$specific$along
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- length(dimnames_term[[i_along]])
+  dimnames_term[[i_along]] <- dimnames_term[[i_along]][-1L]
+  make_matrix_along_by_inner(i_along = i_along,
+                             dimnames_term = dimnames_term)
+}
+
+
 ## HAS_TESTS
 #' @export
 make_matrix_along_by_effectfree.bage_prior_spline <- function(prior,
@@ -2777,6 +2872,28 @@ make_matrix_effectfree_effect.bage_prior <- function(prior,
                                                      var_sexgender) {
   n <- prod(lengths(dimnames_term))
   Matrix::.sparseDiagonal(n)
+}
+
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
+  along <- prior$specific$along
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  X <- rbind(0, Matrix::.sparseDiagonal(n_along - 1L))
+  I <- Matrix::.sparseDiagonal(n_by)
+  X_all_by <- Matrix::kronecker(I, X)
+  matrix_alongfirst_to_standard <- make_index_matrix(matrix_along_by_effect)
+  matrix_alongfirst_to_standard %*% X_all_by
 }
 
 ## HAS_TESTS
@@ -3734,6 +3851,10 @@ uses_matrix_effectfree_effect <- function(prior) {
 ## HAS_TESTS
 #' @export
 uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rw <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export

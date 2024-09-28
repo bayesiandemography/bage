@@ -350,7 +350,7 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
                                                      mod_inner = mod_inner,
                                                      mod_outer = mod_outer,
                                                      use_term = use_term)
-  terms <- make_terms_effects(mod_comb$dimnames_terms)
+  terms <- make_terms_effectfree(mod)
   is_inner <- terms %in% c("(Intercept)", "age", "sex", "age:sex")
   is_outer <- terms %in% c("region", "time", "region:time")
   expect_identical(mod_comb$draws_effectfree[is_inner, ],
@@ -451,6 +451,18 @@ test_that("'draw_vals_components_fitted' gives correct error with invalid standa
   expect_error(draw_vals_components_fitted(mod, standardize = "wrong"),
                "Internal error: Invalid value for `standardize`.")
 })
+
+
+## 'generate_prior_helper' ----------------------------------------------------
+
+test_that("'generate_prior_helper' works with valid inputs", {
+  ans_obtained <- generate_prior_helper(n = 5, n_draw = 2)
+  ans_expected <- list(matrix_along_by = matrix(0:4, nc = 1, dimnames = list(1:5, NULL)),
+                       levels_effect = 1:5,
+                       ans = tibble::tibble(x = rep(1:5, times = 2),
+                                            draw = rep(1:2, each = 5)))
+  expect_identical(ans_obtained, ans_expected)
+})                       
 
 
 ## 'get_disp' -----------------------------------------------------------------
@@ -691,7 +703,7 @@ test_that("'make_draws_components' works - no svd, spline", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) +
+                   length(make_effectfree(mod)) + 4L +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -714,7 +726,7 @@ test_that("'make_draws_components' works - has spline", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + length(unique(data$age)) +
+                   length(make_effectfree(mod)) + length(unique(data$age)) + 3L +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -737,7 +749,7 @@ test_that("'make_draws_components' works - has svd", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + length(unique(data$age)) +
+                   length(make_effectfree(mod)) + length(unique(data$age)) + 3L +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -1159,11 +1171,11 @@ test_that("'make_stored_draws' works with valid inputs", {
                   exposure = popn)
   mod <- set_prior(mod, sex ~ Known(c(0.1, -0.1)))
   mod <- set_n_draw(mod, n = 10)
-  est <- list(effectfree = c(rnorm(11), 0.1, -0.1),
+  est <- list(effectfree = c(rnorm(10), 0.1, -0.1),
               hyper = rnorm(1),
               hyperrand = numeric(),
               disp = runif(1))
-  prec <- crossprod(matrix(rnorm(169), nr = 13))
+  prec <- crossprod(matrix(rnorm(144), nr = 12))
   map <- make_map(mod)
   ans <- make_stored_draws(mod = mod,
                            est = est,
@@ -1303,9 +1315,9 @@ test_that("'make_is_fixed' works when Known prior", {
     map <- make_map(mod)
     ans_obtained <- make_is_fixed(est = est, map = map)
     ans_expected <- rep(c(FALSE, TRUE, FALSE),
-                        times = c(11,
+                        times = c(10,
                                   2,
-                                  6 + 20 + length(est$hyper) + length(est$log_disp)))
+                                  5 + 18 + length(est$hyper) + length(est$log_disp)))
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -1448,8 +1460,9 @@ test_that("'make_linpred_raw' works with valid inputs - point is TRUE", {
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
   ans_obtained <- make_linpred_raw(mod, point = TRUE)
-  m <- make_combined_matrix_effect_outcome(mod)
-  ans_expected <- as.double(m %*% mod$point_effectfree)
+  m1 <- make_combined_matrix_effect_outcome(mod)
+  m2 <- make_combined_matrix_effectfree_effect(mod)
+  ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1469,9 +1482,10 @@ test_that("'make_point_est_effects' works with valid inputs", {
   mod <- fit(mod)
   ans_obtained <- make_point_est_effects(mod)
   int <- unname(mod$point_effectfree[1])
-  age <- unname(mod$point_effectfree[2:11])
-  sex <- unname(mod$point_effectfree[12:13])
-  agesex <- unname(mod$point_effectfree[14:33])
+  age <- c(0, unname(mod$point_effectfree[2:10]))
+  sex <- unname(mod$point_effectfree[11:12])
+  agesex <- c(0, unname(mod$point_effectfree[13:21]),
+              0, unname(mod$point_effectfree[22:30]))
   ans_expected <- list("(Intercept)" = int,
                        age = age,
                        sex = sex,
@@ -1533,7 +1547,7 @@ test_that("'make_spline' works", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_spline(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[24:33,]
+  ans_expected <- effectfree[22:31,]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1578,7 +1592,7 @@ test_that("'make_svd' works", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[24:33,]
+  ans_expected <- effectfree[22:31,]
   expect_equal(ans_obtained, ans_expected)
 })
 

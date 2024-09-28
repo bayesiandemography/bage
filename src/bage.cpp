@@ -215,7 +215,7 @@ Type logpost_rw(vector<Type> effectfree,
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i = matrix_along_by_effectfree(0, i_by);
-    ans += dnorm(effectfree[i], Type(0), Type(1), true);
+    ans += dnorm(effectfree[i], Type(0), sd, true);
     for (int i_along = 1; i_along < n_along; i_along++) {
       int i_curr = matrix_along_by_effectfree(i_along, i_by);
       int i_prev = matrix_along_by_effectfree(i_along - 1, i_by);
@@ -353,7 +353,23 @@ Type logpost_svd_rw(vector<Type> effectfree,
 		    vector<Type> hyper,
 		    vector<Type> consts,
 		    matrix<int> matrix_along_by_effectfree) {
-  return logpost_rw(effectfree, hyper, consts, matrix_along_by_effectfree);
+  Type scale = consts[0];
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by_effectfree(0, i_by);
+    ans += dnorm(effectfree[i], Type(0), Type(1), true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by_effectfree(i_along, i_by);
+      int i_prev = matrix_along_by_effectfree(i_along - 1, i_by);
+      ans += dnorm(effectfree[i_curr], effectfree[i_prev], sd, true);
+    }
+  }
+  return ans;
 }
 
 template <class Type>

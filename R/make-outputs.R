@@ -536,6 +536,39 @@ fit_inner_outer <- function(mod, vars_inner) {
 
 
 ## HAS_TESTS
+#' Helper Function for 'generate' Methods for 'bage_prior'
+#'
+#' @param n Number of elements in term
+#' @param n_draw Number of draws
+#'
+#' @returns A named list
+#'
+#' @noRd
+generate_prior_helper <- function(n, n_draw) {
+  poputils::check_n(n = n,
+                    nm_n = "n",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
+  poputils::check_n(n = n_draw,
+                    nm_n = "n_draw",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
+  levels_effect <- seq_len(n)
+  matrix_along_by <- matrix(seq_len(n) - 1L,
+                            ncol = 1L,
+                            dimnames = list(levels_effect, NULL))
+  x <- rep(seq_len(n), times = n_draw)
+  draw <- rep(seq_len(n_draw), each = n)
+  ans <- tibble::tibble(x = x, draw = draw)
+  list(matrix_along_by = matrix_along_by,
+       levels_effect = levels_effect,
+       ans = ans)
+}
+
+
+## HAS_TESTS
 #' Extract Values for Dispersion
 #'
 #' Works with fitted or unfitted models
