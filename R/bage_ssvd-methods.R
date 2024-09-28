@@ -144,10 +144,6 @@ components.bage_ssvd <- function(object,
 
 ## 'generate' -----------------------------------------------------------------
 
-#' @importFrom generics generate
-#' @export
-generics::generate
-
 #' Generate Random Age or Age-Sex Profiles
 #'
 #' Generate random age or age-sex profiles from

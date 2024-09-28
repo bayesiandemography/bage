@@ -2010,6 +2010,44 @@ test_that("'forecast_term' works with bage_prior_svd_rw2", {
 })
                    
 
+## 'generate' -----------------------------------------------------------------
+
+test_that("'generate' works with bage_prior_norm", {
+  x <- N()
+  set.seed(0)
+  n <- 20
+  n_draw <- 25
+  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  ans_expected <- matrix(rnorm(n * n_draw, sd = rep(sd, each = n)),
+                         nrow = n)
+  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
+                         draw = rep(seq_len(n_draw), each = n),
+                         value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_rw", {
+  x <- RW()
+  set.seed(0)
+  n <- 20
+  n_draw <- 25
+  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  ans_expected <- draw_vals_rw(sd = sd,
+                               matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
+                               levels_effect = seq_len(n))
+  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
+                         draw = rep(seq_len(n_draw), each = n),
+                         value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'has_hyperrand' ------------------------------------------------------------
 
 test_that("'has_hyperrand' returns FALSE with prior without hyperrand", {
@@ -2987,6 +3025,31 @@ test_that("default for 'make_matrix_along_by_effectfree' works - uses along", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw, 1 dimension", {
+  prior <- RW()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:3, nr = 4, dimnames = list(age = 1:4, NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw', 2 dimensions", {
+  prior <- RW()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:17,
+                         nr = 9,
+                         dimnames = list(time = 1:9,
+                                         region = c("a", "b")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_spline'", {
   prior <- Sp()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
@@ -3096,6 +3159,23 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1", {
   ans_expected <- Matrix::.sparseDiagonal(5)
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw", {
+  prior <- RW()
+  dimnames_term <- list(age = 1:10)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- rbind(0, Matrix::.sparseDiagonal(9))
+  rownames(ans_expected) <- 1:10
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n supplied", {
   prior <- Sp(n_comp = 5)

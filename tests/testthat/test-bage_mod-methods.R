@@ -618,7 +618,7 @@ test_that("'fit' works with known intercept and sex effect", {
     mod <- set_prior(mod, sex ~ Known(values = c(-0.1, 0.1)))
     ans_obtained <- fit(mod)
     expect_equal(ans_obtained$draws_effectfree[1,1], -2)
-    expect_equal(ans_obtained$draws_effectfree[12:13,1], c(-0.1, 0.1))
+    expect_equal(ans_obtained$draws_effectfree[11:12,1], c(-0.1, 0.1))
 })
 
 test_that("'fit' works with AR1", {
@@ -704,7 +704,7 @@ test_that("'fit' works when single dimension", {
                     data = data,
                     exposure = 1)
     mod_fitted <- fit(mod)
-    expect_identical(nrow(mod_fitted$draws_effectfree), nrow(data) + 1L)
+    expect_identical(nrow(mod_fitted$draws_effectfree), nrow(data))
 })
 
 test_that("'fit' works with SVD", {
@@ -1740,7 +1740,7 @@ test_that("'make_mod_disp' works with pois - large dataset", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod$point_effectfree <- rnorm(1 + 6000 + 2)
+  mod$point_effectfree <- rnorm(1 + 5999 + 2)
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
 })
@@ -1787,7 +1787,7 @@ test_that("'make_mod_disp' works with binom - large dataset", {
   mod <- mod_binom(formula = formula,
                    data = data,
                    size = popn)
-  mod$point_effectfree <- rnorm(1 + 6000 + 2)
+  mod$point_effectfree <- rnorm(1 + 5999 + 2)
   mod$draws_effectfree  <- 1 ## to fool 'is_fitted'
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
@@ -1820,7 +1820,7 @@ test_that("'make_mod_disp' works with norm - large dataset", {
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = wt)
-  mod$point_effectfree <- rnorm(1 + 6001 + 2)
+  mod$point_effectfree <- rnorm(1 + 6000 + 2)
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
 })

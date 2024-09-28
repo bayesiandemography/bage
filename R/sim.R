@@ -487,7 +487,7 @@ draw_vals_rw <- function(sd, matrix_along_by, levels_effect) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[1L, ] <- stats::rnorm(n = n_by * n_sim)
+  ans[1L, ] <- 0
   sd <- rep(sd, each = n_by)
   for (i_along in seq.int(from = 2L, to = n_along))
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
