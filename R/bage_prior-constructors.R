@@ -85,11 +85,11 @@
 #' AR(along = "cohort")
 #' @export
 AR <- function(n_coef = 2, s = 1, along = NULL) {
-  check_n(n = n_coef,
-          nm_n = "n_coef",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_coef,
+                    nm_n = "n_coef",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_scale(s,
               nm_x = "s",
               zero_ok = FALSE)
@@ -401,11 +401,11 @@ Lin <- function(s = 1, sd = 1, along = NULL) {
 #' Lin_AR(n_coef = 3, s = 0.5, sd = 2)
 #' @export
 Lin_AR <- function(n_coef = 2, s = 1, sd = 1, along = NULL) {
-  check_n(n = n_coef,
-          nm_n = "n_coef",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_coef,
+                    nm_n = "n_coef",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_scale(s,
               nm_x = "s",
               zero_ok = FALSE)
@@ -784,7 +784,7 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, sd_seas = 1, along = NULL) {
                     nm_n = "n_seas",
                     min = 2L,
                     max = NULL,
-                    divide_by = NULL)
+                    divisible_by = NULL)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
   check_scale(sd_seas, nm_x = "sd_seas", zero_ok = FALSE)
@@ -997,11 +997,11 @@ RW2 <- function(s = 1, sd = 1, along = NULL) {
 #' RW2_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
 RW2_Seas <- function(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NULL) {
-  check_n(n = n_seas,
-          nm_n = "n_seas",
-          min = 2L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_seas,
+                    nm_n = "n_seas",
+                    min = 2L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
@@ -1093,13 +1093,14 @@ RW2_Seas <- function(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NUL
 #' Sp(n_comp = 10)
 #' @export
 Sp <- function(n_comp = NULL, s = 1, sd = 1, along = NULL) {
-  check_n(n = n_comp,
-          nm_n = "n_comp",
-          min = 4L,
-          max = NULL,
-          null_ok = TRUE)
-  if (!is.null(n_comp))
+  if (!is.null(n_comp)) {
+    poputils::check_n(n = n_comp,
+                      nm_n = "n_comp",
+                      min = 4L,
+                      max = NULL,
+                      divisible_by = NULL)
     n_comp <- as.integer(n_comp)
+  }
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   scale <- as.double(s)
@@ -1444,11 +1445,11 @@ SVD_AR <- function(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1) {
                        nm_n_comp = "n_comp",
                        ssvd = ssvd)
   check_flag(x = indep, nm_x = "indep")
-  check_n(n = n_coef,
-          nm_n = "n_coef",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_coef,
+                    nm_n = "n_coef",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_scale(x = s,
               nm_x = "s",
               zero_ok = FALSE)

@@ -1945,11 +1945,11 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
     condition_on <- "expected"
   else
     condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
-  check_n(n = n,
-          nm_n = "n",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n,
+                    nm_n = "n",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_is_fitted(x = x, nm_x = "x")
   data <- x$data
   outcome <- x$outcome
@@ -1994,11 +1994,11 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
     condition_on <- "expected"
   else
     condition_on <- match.arg(condition_on, choices = c("expected", "fitted"))
-  check_n(n = n,
-          nm_n = "n",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n,
+                    nm_n = "n",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_is_fitted(x = x, nm_x = "x")
   data <- x$data
   formula <- x$formula
@@ -2047,11 +2047,11 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
     cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
                     i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
                               "when model {.arg x} has a normal likelihood.")))
-  check_n(n = n,
-          nm_n = "n",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n,
+                    nm_n = "n",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   check_is_fitted(x = x, nm_x = "x")
   data <- x$data
   formula <- x$formula

@@ -13,7 +13,7 @@ SVD_AR1(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s = 1)
 
 SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1)
 
-SVD_RW2(ssvd, n_comp = NULL, indep = TRUE, s = 1)
+SVD_RW2(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd = 1)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}

@@ -552,6 +552,7 @@ test_that("'draw_vals_seasfix' works - along dimension is first", {
   matrix_along_by <- matrix(0:29, nc = 3)
   set.seed(0)
   ans <- draw_vals_seasfix(n = 4,
+                           sd_init = 0.2,
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
   expect_identical(dim(ans), c(30L, 10L))
@@ -564,6 +565,7 @@ test_that("'draw_vals_seasfix' works - along dimension is second", {
   matrix_along_by <- t(matrix(0:29, nc = 10))
   set.seed(0)
   ans <- draw_vals_seasfix(n = 4,
+                           sd_init = 0.2,
                            matrix_along_by = matrix_along_by,
                            n_sim = 10)
   expect_identical(dim(ans), c(30L, 10L))
@@ -580,16 +582,17 @@ test_that("'draw_vals_seasvary' works - along dimension is first", {
   set.seed(0)
   n_sim <- 10
   matrix_along_by <- matrix(0:2999, nc = 3)
-  sd <- abs(rnorm(n = 10))
+  sd_innov <- abs(rnorm(n = 10))
   set.seed(0)
   ans <- draw_vals_seasvary(n = 4,
-                            sd = sd,
+                            sd_init = 0.3,
+                            sd_innov = sd_innov,
                             matrix_along_by = matrix_along_by)
   expect_identical(dim(ans), c(3000L, 10L))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
-               rep(sd, each = 3),
+  ans <- ans[seq.int(from = 0, to = nrow(ans) - 1) %% 4 != 0,]
+  expect_equal(unname(apply(ans[-(1:3),], 2, function(x) sd(diff(x, lag = 3)))),
+               rep(sd_innov, each = 3),
                tolerance = 0.05)
 })
 
@@ -597,19 +600,20 @@ test_that("'draw_vals_seasvary' works - along dimension is second", {
   set.seed(0)
   n_sim <- 10
   matrix_along_by <- t(matrix(0:2999, nc = 1000))
-  sd <- abs(rnorm(n = 10))
+  sd_innov <- abs(rnorm(n = 10))
   set.seed(0)
   ans <- draw_vals_seasvary(n = 4,
-                         sd = sd,
-                         matrix_along_by = matrix_along_by)
+                            sd_init = 0.5,
+                            sd_innov = sd_innov,
+                            matrix_along_by = matrix_along_by)
   expect_identical(dim(ans), c(3000L, 10L))
   ans <- array(ans, dim = c(3, 1000, 10))
   ans <- aperm(ans, perm = c(2, 1, 3))
   ans <- matrix(ans, nrow = 1000)
-  expect_equal(colMeans(ans), rep(0, times = ncol(ans)), ignore_attr = "names")
-  expect_equal(unname(apply(ans[-(1:4),], 2, function(x) sd(diff(x, lag = 4)))),
-               rep(sd, each = 3),
-               tolerance = 0.03)
+  ans <- ans[seq.int(from = 0, to = nrow(ans) - 1) %% 4 != 0,]
+  expect_equal(unname(apply(ans[-(1:3),], 2, function(x) sd(diff(x, lag = 3)))),
+               rep(sd_innov, each = 3),
+               tolerance = 0.05)
 })
 
 

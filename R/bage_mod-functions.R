@@ -172,11 +172,11 @@ set_disp <- function(mod, mean) {
 #' @export
 set_n_draw <- function(mod, n_draw = 1000L) {
   check_bage_mod(x = mod, nm_x = "mod")
-  check_n(n = n_draw,
-          nm_n = "n_draw",
-          min = 0L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_draw,
+                    nm_n = "n_draw",
+                    min = 0L,
+                    max = NULL,
+                    divisible_by = NULL)
   n_draw <- as.integer(n_draw)
   n_draw_old <- mod$n_draw
   mod$n_draw <- n_draw

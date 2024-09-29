@@ -56,11 +56,11 @@ components.bage_ssvd <- function(object,
   if (is.null(n_comp))
     n_comp <- ceiling(n_comp_obj / 2)
   else {
-    check_n(n = n_comp,
-            nm_n = "n_comp",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
+    poputils::check_n(n = n_comp,
+                      nm_n = "n_comp",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
     if (n_comp > n_comp_obj)
       cli::cli_abort(c("{.arg n_comp} larger than number of components of {.arg object}.",
                        i = "{.arg n_comp}: {.val {n_comp}}.",
@@ -185,20 +185,20 @@ generate.bage_ssvd <- function(x,
                                indep = NULL,
                                age_labels = NULL,
                                ...) {
-  check_n(n = n_draw,
-          nm_n = "n_draw",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_draw,
+                    nm_n = "n_draw",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   n_comp_x <- get_n_comp(x)
   if (is.null(n_comp))
     n_comp <- ceiling(n_comp_x / 2)
   else {
-    check_n(n = n_comp,
-            nm_n = "n_comp",
-            min = 1L,
-            max = NULL,
-            null_ok = FALSE)
+    poputils::check_n(n = n_comp,
+                      nm_n = "n_comp",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
     if (n_comp > n_comp_x)
       cli::cli_abort(c("{.arg n_comp} larger than number of components of {.arg x}.",
                        i = "{.arg n_comp}: {.val {n_comp}}.",

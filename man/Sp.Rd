@@ -4,7 +4,7 @@
 \alias{Sp}
 \title{P-Spline Prior}
 \usage{
-Sp(n_comp = NULL, s = 1, along = NULL)
+Sp(n_comp = NULL, s = 1, sd = 1, along = NULL)
 }
 \arguments{
 \item{n_comp}{Number of spline basis functions (components)
@@ -16,12 +16,15 @@ Default is \code{1}.}
 \item{along}{Name of the variable to be used
 as the "along" variable. Only used with
 interactions.}
+
+\item{sd_slope}{Standard deviation in prior
+for initial slope of random walk. Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_spline"}.
 }
 \description{
-Use a p-spline (penalised spine) to model main
+Use a p-spline (penalised spline) to model main
 effects or interactions. Typically used with age,
 but can be used with any variable where outcomes are
 expected to vary smoothly from one element to the next.

@@ -540,17 +540,21 @@ draw_vals_rw2 <- function(sd, sd_slope, matrix_along_by, levels_effect) {
 #' Each column is one draw.
 #'
 #' @param n_seas Number of seasons
-#' @param sd Vector of values
+#' @param sd_init Scalar. SD of initial values
 #' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param n_sim Number of draws
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_seasfix <- function(n_seas, matrix_along_by, n_sim) {
+draw_vals_seasfix <- function(n_seas, sd_init, matrix_along_by, n_sim) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[seq_len(n_seas), ] <- stats::rnorm(n = n_seas * n_by * n_sim)
+  ans[1L, ] <- 0
+  rows_init <- seq.int(from = 2L, to = n_seas)
+  n_init <- (n_seas - 1L) * n_by * n_sim
+  ans[rows_init, ] <- stats::rnorm(n = n_init, sd = sd_init)
   for (i_along in seq.int(from = n_seas + 1L, to = n_along))
     ans[i_along, ] <- ans[i_along - n_seas, ]
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
@@ -566,24 +570,29 @@ draw_vals_seasfix <- function(n_seas, matrix_along_by, n_sim) {
 #' Each column is one draw.
 #'
 #' @param n_seas Number of seasons
-#' @param sd_seas Vector of values
+#' @param sd_seas Vector of values. SD of innoviations
+#' @param sd_init Scalar. SD of initial values.
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_seasvary <- function(n_seas, sd_seas, matrix_along_by) {
-  n_sim <- length(sd_seas)
+draw_vals_seasvary <- function(n_seas, sd_init, sd_innov, matrix_along_by) {
+  n_sim <- length(sd_innov)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[seq_len(n_seas), ] <- stats::rnorm(n = n_seas * n_by * n_sim)
-  sd_seas <- rep(sd_seas, each = n_by)
-  for (i_along in seq.int(from = n_seas + 1L, to = n_along))
-    ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
-                                   mean = ans[i_along - n_seas, ],
-                                   sd = sd_seas)
-  ans <- ans - rep(colMeans(ans), each = n_along)
+  ans <- matrix(0, nrow = n_along, ncol = n_by * n_sim)
+  rows_init <- seq.int(from = 2L, to = n_seas)
+  n_init <- (n_seas - 1L) * n_by * n_sim
+  ans[rows_init, ] <- stats::rnorm(n = n_init, sd = sd_init)
+  sd_innov <- rep(sd_innov, each = n_by)
+  for (i_along in seq.int(from = n_seas + 1L, to = n_along)) {
+    is_first_seas <- (i_along - 1L) %% n_seas == 0L
+    if (!is_first_seas)
+      ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
+                                     mean = ans[i_along - n_seas, ],
+                                     sd = sd_innov)
+  }
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
@@ -662,12 +671,12 @@ draw_vals_spline_mod <- function(mod, vals_hyper, n_sim) {
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
-  levels_effectfree <- make_levels_spline(mod, unlist = FALSE)
+  levels_spline <- make_levels_spline(mod, unlist = FALSE)
   ans <- .mapply(draw_vals_spline,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
                              dimnames_term = dimnames_terms,
-                             levels_effectfree = levels_effectfree),
+                             levels_spline = levels_spline),
                  MoreArgs = list(var_time = var_time,
                                  var_age = var_age,
                                  n_sim = n_sim))
@@ -692,12 +701,12 @@ draw_vals_svd_mod <- function(mod, vals_hyper, n_sim) {
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
-  levels_effectfree <- make_levels_svd(mod, unlist = FALSE)
+  levels_svd <- make_levels_svd(mod, unlist = FALSE)
   ans <- .mapply(draw_vals_svd,
                  dots = list(prior = priors,
                              vals_hyper = vals_hyper,
                              dimnames_term = dimnames_terms,
-                             levels_effectfree = levels_effectfree),
+                             levels_svd = levels_svd),
                  MoreArgs = list(var_time = var_time,
                                  var_age = var_age,
                                  var_sexgender = var_sexgender,
@@ -1162,19 +1171,19 @@ report_sim <- function(mod_est,
       cli::cli_alert("Unfitting {.arg mod_sim}.")
     }
   }    
-  check_n(n = n_sim,
-          nm_n = "n_sim",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_sim,
+                    nm_n = "n_sim",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   point_est_fun <- match.arg(point_est_fun)
   check_widths(widths)
   report_type <- match.arg(report_type)
-  check_n(n = n_core,
-          nm_n = "n_core",
-          min = 1L,
-          max = NULL,
-          null_ok = FALSE)
+  poputils::check_n(n = n_core,
+                    nm_n = "n_core",
+                    min = 1L,
+                    max = NULL,
+                    divisible_by = NULL)
   ## use 'mod_sim' to generate 'n_sim' sets of simulation-truth
   mod_sim$n_draw <- n_sim
   comp_sim <- components(mod_sim, standardize = "none", quiet = TRUE)
