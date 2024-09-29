@@ -4,7 +4,7 @@
 \alias{RW2}
 \title{Second-Order Random Walk Prior}
 \usage{
-RW2(s = 1, along = NULL)
+RW2(s = 1, sd = 1, along = NULL)
 }
 \arguments{
 \item{s}{Scale for the prior for the innovations.
@@ -13,6 +13,9 @@ Default is \code{1}.}
 \item{along}{Name of the variable to be used
 as the "along" variable. Only used with
 interactions.}
+
+\item{sd_slope}{Standard deviation in prior
+for initial slope. Default is 1.}
 }
 \value{
 An object of class \code{"bage_prior_rw2"}.
