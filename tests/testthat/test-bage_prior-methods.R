@@ -424,7 +424,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2seasvary", {
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 4", {
+test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 1", {
   prior <- Sp(n_comp = 5)
   n_sim <- 10
   dimnames_term <- list(age = 1:10)
@@ -1076,6 +1076,7 @@ test_that("'draw_vals_spline' works with 'bage_prior_spline'", {
                                                      var_age = var_age,
                                                      var_sexgender = NULL)
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                sd_slope = prior$specific$sd_slope,
                                 matrix_along_by = matrix_along_by,
                                 levels_effect = levels_effectfree)
   expect_identical(ans_obtained, ans_expected)
@@ -1216,6 +1217,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
   set.seed(0)
   matrix_along_by_free <- t(matrix(0:8, nr = 3))
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                sd_slope = prior$specific$sd_slope,
                                 matrix_along_by = matrix_along_by_free,
                                 levels_effect = levels_effectfree)
   expect_identical(ans_obtained, ans_expected)
@@ -2040,6 +2042,26 @@ test_that("'generate' works with bage_prior_rw", {
   ans_expected <- draw_vals_rw(sd = sd,
                                matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                levels_effect = seq_len(n))
+  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
+                         draw = rep(seq_len(n_draw), each = n),
+                         value = as.double(ans_expected))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_rw2", {
+  x <- RW2()
+  set.seed(0)
+  n <- 20
+  n_draw <- 25
+  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  set.seed(0)
+  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd_slope <- x$specific$sd_slope
+  ans_expected <- draw_vals_rw2(sd = sd,
+                                sd_slope = sd_slope,
+                                matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
+                                levels_effect = seq_len(n))
   ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
@@ -3050,6 +3072,31 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw', 2 dimen
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2, 1 dimension", {
+  prior <- RW2()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:3, nr = 4, dimnames = list(age = 1:4, NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2', 2 dimensions", {
+  prior <- RW2()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:17,
+                         nr = 9,
+                         dimnames = list(time = 1:9,
+                                         region = c("a", "b")))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_spline'", {
   prior <- Sp()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
@@ -3176,6 +3223,21 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2", {
+  prior <- RW2()
+  dimnames_term <- list(age = 1:10)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- rbind(0, Matrix::.sparseDiagonal(9))
+  rownames(ans_expected) <- 1:10
+  expect_identical(ans_obtained, ans_expected)
+})
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - n supplied", {
   prior <- Sp(n_comp = 5)
@@ -3536,8 +3598,8 @@ test_that("'str_call_prior' works with bage_prior_rwseasvary", {
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
     expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(along = "a", s = 2)),
-                     "RW2(s=2,along=\"a\")")
+    expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0.5)),
+                     "RW2(s=2,sd=0.5,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2seasfix", {
@@ -3876,6 +3938,8 @@ test_that("'uses_hyperrand' returns TRUE with priors do use hyperrand parameters
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_false(uses_matrix_effectfree_effect(N()))
+  expect_true(uses_matrix_effectfree_effect(RW()))
+  expect_true(uses_matrix_effectfree_effect(RW2()))
   expect_true(uses_matrix_effectfree_effect(Sp()))
   expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
   expect_true(uses_matrix_effectfree_effect(SVD_AR(HMD)))
@@ -3894,9 +3958,6 @@ test_that("'uses_offset_effectfree_effect' works with valid inputs", {
   expect_true(uses_offset_effectfree_effect(SVD_RW(HMD)))
   expect_true(uses_offset_effectfree_effect(SVD_RW2(HMD)))
 })
-
-
-
 
 
 ## values_known ---------------------------------------------------------------

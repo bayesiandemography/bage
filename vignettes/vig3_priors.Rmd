@@ -10,17 +10,108 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  echo = FALSE,
   comment = "#>",
-  fig.width = 7,
-  fig.height = 4
+  fig.width = 6,
+  fig.height = 3
 )
 ```
 
 ```{r setup}
 library(bage)
+library(poputils)
 library(ggplot2)
 library(dplyr, warn.conflicts = FALSE)
 ```
+
+
+# Set-up
+
+
+```{r}
+draws_point <- function(x) {
+  ans <- generate(x, n = 10, n_draw = 18)
+  ans$draw <- paste("Draw", ans$draw)
+  ans$draw <- factor(ans$draw, levels = unique(ans$draw))
+  ans
+}
+```
+
+```{r}
+draws_line <- function(x) {
+  ans <- generate(x, n = 20, n_draw = 18)
+  ans$draw <- paste("Draw", ans$draw)
+  ans$draw <- factor(ans$draw, levels = unique(ans$draw))
+  ans
+}
+```
+
+```{r}
+plot_prior_point <- function(draws) {
+  n <- max(draws$x)
+  ggplot(draws, aes(x = x, y = value)) +
+    facet_wrap(vars(draw), nrow = 3) +
+    geom_point(col = "darkblue",
+               size = 0.7) +
+    scale_x_continuous(n.breaks = n) +
+    xlab("Unit") +
+    ylab("") +
+    theme(text = element_text(size = 8))
+}	       
+```
+
+```{r}
+plot_prior_line <- function(draws) {
+  ggplot(draws, aes(x = x, y = value)) +
+    facet_wrap(vars(draw), nrow = 3) +
+    geom_line(col = "darkblue") +
+    xlab("Unit") +
+    ylab("") +
+    theme(text = element_text(size = 8))
+}	       
+```
+
+```{r}
+mx <- west_lifetab |>
+  filter(sex == "Female",
+         level == 23) |>
+  select(age, sex, mx)
+```
+
+```{r}
+plot_lifeexp_point <- function(draws) {
+  lifeexp <- draws |>
+    cross_join(mx) |>
+    mutate(mx = exp(value) * mx) |>
+    lifeexp(mx = mx, age = age, sex = sex, by = c(x, draw))
+  n <- max(draws$x)
+  ggplot(lifeexp, aes(x = x, y = ex)) +
+    facet_wrap(vars(draw), nrow = 3) +
+    geom_point(col = "darkblue",
+               size = 0.7) +
+    scale_x_continuous(n.breaks = n) +
+    xlab("Unit") +
+    ylab("") +
+    theme(text = element_text(size = 8))
+}	       
+```
+
+```{r}
+plot_lifeexp_line <- function(draws) {
+  lifeexp <- draws |>
+    cross_join(mx) |>
+    mutate(mx = exp(value) * mx) |>
+    lifeexp(mx = mx, age = age, sex = sex, by = c(x, draw))
+  ggplot(lifeexp, aes(x = x, y = ex)) +
+    facet_wrap(vars(draw), nrow = 3) +
+    geom_line(col = "darkblue") +
+    xlab("Unit") +
+    ylab("") +
+    theme(text = element_text(size = 8))
+}	       
+```
+
+
 
 
 
@@ -30,27 +121,24 @@ library(dplyr, warn.conflicts = FALSE)
 
 ```{r}
 x <- N()
-draws <- generate(x, n = 10, n_draw = 18)
-ggplot(draws, aes(x = x, y = value)) +
-  facet_wrap(vars(draw), nrow = 3) +
-  geom_point() +
-  theme(text = element_text(size = 8))
+draws <- draws_point(x)
+plot_prior_point(draws)
+```
+
+
+```{r}
+plot_lifeexp_point(draws)
 ```
 
 ```{r}
 x <- N(s = 0.05)
-draws <- generate(x, n = 10, n_draw = 20)
-ggplot(draws, aes(x = x, y = value)) +
-  facet_wrap(vars(draw)) +
-  geom_point() +
-  scale_x_continuous(n.breaks = 10) +
-  xlab("Unit") +
-  ylab("") +
-  theme(text = element_text(size = 8))
+draws <- draws_point(x)
+plot_prior_point(draws)
 ```
 
-
-
+```{r}
+plot_lifeexp_point(draws)
+```
 
 
 # Priors for Series
@@ -59,20 +147,55 @@ ggplot(draws, aes(x = x, y = value)) +
 
 ```{r}
 x <- RW()
-draws <- generate(x, n = 30, n_draw = 20)
-ggplot(draws, aes(x = x, y = value)) +
-  facet_wrap(vars(draw), nrow = 4) +
-  geom_line() +
-  theme(text = element_text(size = 8))
+draws <- draws_line(x)
+plot_prior_line(draws)
 ```
 
-
+```{r}
+plot_lifeexp_line(draws)
+```
 
 ```{r}
 x <- RW(s = 0.01)
-draws <- generate(x, n = 30, n_draw = 20)
-ggplot(draws, aes(x = x, y = value)) +
-  facet_wrap(vars(draw), nrow = 4) +
-  geom_line() +
-  theme(text = element_text(size = 8))
+draws <- draws_line(x)
+plot_prior_line(draws)
+```
+
+```{r}
+plot_lifeexp_line(draws)
+```
+
+
+## Second-order Random Walk `RW2()`
+
+
+```{r}
+x <- RW2()
+draws <- draws_line(x)
+plot_prior_line(draws)
+```
+
+```{r}
+plot_lifeexp_line(draws)
+```
+
+
+```{r}
+x <- RW2(s = 0.01)
+draws <- draws_line(x)
+plot_prior_line(draws)
+```
+
+```{r}
+plot_lifeexp_line(draws)
+```
+
+```{r}
+x <- RW2(s = 0.01, sd = 0.01)
+draws <- draws_line(x)
+plot_prior_line(draws)
+```
+
+```{r}
+plot_lifeexp_line(draws)
 ```

@@ -3,11 +3,14 @@
 \name{generate.bage_prior_norm}
 \alias{generate.bage_prior_norm}
 \alias{generate.bage_prior_rw}
+\alias{generate.bage_prior_rw2}
 \title{Generate Values from Priors}
 \usage{
 \method{generate}{bage_prior_norm}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
 
 \method{generate}{bage_prior_rw}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+
+\method{generate}{bage_prior_rw2}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}

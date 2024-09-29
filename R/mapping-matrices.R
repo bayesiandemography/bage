@@ -171,6 +171,34 @@ make_matrix_along_by_effect <- function(along, dimnames_term, var_time, var_age)
   make_matrix_along_by_inner(i_along = i_along,
                              dimnames_term = dimnames_term)
 }
+
+
+## HAS_TESTS
+#' Make 'matrix_along_by' for Free Parameters for Term
+#' with RW or RW2 Prior
+#'
+#' The "along" for free parameters has one less element
+#' than the "along" dimension for all parameters.
+#'
+#' @param along Name of "along" dimension, or NULL
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_matrix_along_by_effectfree_rw <- function(along, dimnames_term, var_time, var_age) {
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- length(dimnames_term[[i_along]])
+  dimnames_term[[i_along]] <- dimnames_term[[i_along]][-1L]
+  make_matrix_along_by_inner(i_along = i_along,
+                             dimnames_term = dimnames_term)
+}
   
 
 ## HAS_TESTS
@@ -256,6 +284,38 @@ make_matrix_along_by_inner <- function(i_along, dimnames_term) {
   }
   ans
 }
+
+
+## HAS_TESTS
+#' Make Matrix Mapping Free Parameters to All Parameters
+#' for RW and RW2
+#'
+#' @param along Name of "along" dimension, or NULL
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_effectfree_effect_rw <- function(along,
+                                             dimnames_term,
+                                             var_time,
+                                             var_age) {
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  X <- rbind(0, Matrix::.sparseDiagonal(n_along - 1L))
+  I <- Matrix::.sparseDiagonal(n_by)
+  X_all_by <- Matrix::kronecker(I, X)
+  matrix_alongfirst_to_standard <- make_index_matrix(matrix_along_by_effect)
+  matrix_alongfirst_to_standard %*% X_all_by
+}
+
 
 ## HAS_TESTS
 #' Transform SVD Values Back to Original Scale

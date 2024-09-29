@@ -281,6 +281,25 @@ test_that("'make_matrix_along_by_effect' works with two dimensions", {
 })
 
 
+## 'make_matrix_along_by_effectfree_rw' ----------------------------------------
+
+test_that("'make_matrix_along_by_effectfree_rw' works - reg x time interaction", {
+  dimnames <- list(reg = 1:4,
+                   time = 2001:2010)
+  var_age <- "age"
+  var_time <- "time"
+  ans_obtained <- make_matrix_along_by_effectfree_rw(along = "time",
+                                                      var_time = var_time,
+                                                      var_age = var_age,
+                                                      dimnames_term = dimnames)
+  ans_expected <- t(matrix(0:35,
+                           nr = 4,
+                           dimnames = list(reg = 1:4,
+                                           time = 2002:2010)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_matrix_along_by_effectfree_svd' ----------------------------------------
 
 test_that("'make_matrix_along_by_effectfree_svd' works - age x time interaction", {
@@ -468,6 +487,22 @@ test_that("'make_matrix_along_by_inner' works when 'i_along' is 1:2", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+
+## 'make_matrix_effectfree_effect_rw' -----------------------------------------
+
+test_that("'make_matrix_effectfree_effect_rw' works - age x time interaction", {
+  along <- "time"
+  dimnames <- list(age = 0:4,
+                   time = 2001:2003)
+  var_age <- "age"
+  var_time <- "time"
+  ans <- make_matrix_effectfree_effect_rw(along = along,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          dimnames_term = dimnames)
+  expect_identical(dim(ans), c(15L, 10L))
+  expect_identical(rownames(ans), paste(rep(2001:2003, each = 5), 0:4, sep = "."))
+})
 
 
 ## 'svd_to_effect' ------------------------------------------------------------

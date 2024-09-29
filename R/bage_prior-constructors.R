@@ -761,6 +761,9 @@ RW <- function(s = 1, along = NULL) {
 #' @param s_seas Scale for prior for innovations
 #' in the seasonal effect. Default is `1`.
 #' Can be `0`.
+#' @param sd_seas Standard deviation for
+#' distribution of seasonal effects.
+#' Default is `1`.
 #'
 #' @returns Object of class `"bage_prior_rwseasvary"`
 #' or `"bage_prior_rwseasfix"`.
@@ -776,26 +779,30 @@ RW <- function(s = 1, along = NULL) {
 #' RW_Seas(n_seas = 4)             ## seasonal effects evolve
 #' RW_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
-RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
-  check_n(n = n_seas,
-          nm_n = "n_seas",
-          min = 2L,
-          max = NULL,
-          null_ok = FALSE)
+RW_Seas <- function(n_seas, s = 1, s_seas = 1, sd_seas = 1, along = NULL) {
+  poputils::check_n(n = n_seas,
+                    nm_n = "n_seas",
+                    min = 2L,
+                    max = NULL,
+                    divide_by = NULL)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
+  check_scale(sd_seas, nm_x = "sd_seas", zero_ok = FALSE)
   n_seas <- as.integer(n_seas)
   scale <- as.double(s)
   scale_seas = as.double(s_seas)
+  sd_seas = as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   if (scale_seas > 0)
     new_bage_prior_rwseasvary(n_seas = n_seas,
-                              scale = scale,
                               scale_seas = scale_seas,
+                              sd_seas = sd_seas,
+                              scale = scale,
                               along = along)
   else
     new_bage_prior_rwseasfix(n_seas = n_seas,
+                             sd_seas = sd_seas,
                              scale = scale,
                              along = along)
 }
@@ -859,6 +866,11 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' where `s` is provided by the user.
 #'
 #' @inheritParams AR
+#' @param sd_slope Standard deviation in prior
+#' for initial slope. Default is `1`.
+#' @param sd_seas Standard deviation for
+#' distribution of seasonal effects.
+#' Default is `1`.
 #'
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
@@ -876,12 +888,15 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' RW2()
 #' RW2(s = 0.5)
 #' @export
-RW2 <- function(s = 1, along = NULL) {
+RW2 <- function(s = 1, sd = 1, along = NULL) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   scale <- as.double(s)
+  sd_slope <- as.double(sd)
   new_bage_prior_rw2(scale = scale,
+                     sd_slope = sd_slope,
                      along = along)
 }
 
@@ -963,6 +978,9 @@ RW2 <- function(s = 1, along = NULL) {
 #' @param s_seas Scale for prior for innovations
 #' in the seasonal effect. Default is `1`.
 #' Can be `0`.
+#' @param sd_seas Standard deviation for
+#' distribution of seasonal effects.
+#' Default is `1`.
 #'
 #' @returns Object of class `"bage_prior_rw2seasvary"`
 #' or `"bage_prior_rw2seasfix"`.
@@ -978,27 +996,35 @@ RW2 <- function(s = 1, along = NULL) {
 #' RW2_Seas(n_seas = 4)             ## seasonal effects evolve
 #' RW2_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
 #' @export
-RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
+RW2_Seas <- function(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NULL) {
   check_n(n = n_seas,
           nm_n = "n_seas",
           min = 2L,
           max = NULL,
           null_ok = FALSE)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
+  check_scale(sd_seas, nm_x = "sd_seas", zero_ok = FALSE)
   n_seas <- as.integer(n_seas)
   scale <- as.double(s)
+  sd_slope <- as.double(sd)
   scale_seas = as.double(s_seas)
+  sd_seas = as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   if (scale_seas > 0)
     new_bage_prior_rw2seasvary(n_seas = n_seas,
-                               scale = scale,
                                scale_seas = scale_seas,
+                               sd_seas = sd_seas,
+                               scale = scale,
+                               sd_slope = sd_slope,
                                along = along)
   else
     new_bage_prior_rw2seasfix(n_seas = n_seas,
+                              sd_seas = sd_seas,
                               scale = scale,
+                              sd_slope = sd_slope,
                               along = along)
 }
 
@@ -1006,7 +1032,7 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 ## HAS_TESTS
 #' P-Spline Prior
 #'
-#' Use a p-spline (penalised spine) to model main
+#' Use a p-spline (penalised spline) to model main
 #' effects or interactions. Typically used with age,
 #' but can be used with any variable where outcomes are
 #' expected to vary smoothly from one element to the next.
@@ -1040,6 +1066,8 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' to follow a [second-order random walk][RW2()].
 #'
 #' @inheritParams AR
+#' @param sd_slope Standard deviation in prior
+#' for initial slope of random walk. Default is `1`.
 #' @param n_comp Number of spline basis functions (components)
 #' to use.
 #'
@@ -1064,7 +1092,7 @@ RW2_Seas <- function(n_seas, s = 1, s_seas = 1, along = NULL) {
 #' Sp()
 #' Sp(n_comp = 10)
 #' @export
-Sp <- function(n_comp = NULL, s = 1, along = NULL) {
+Sp <- function(n_comp = NULL, s = 1, sd = 1, along = NULL) {
   check_n(n = n_comp,
           nm_n = "n_comp",
           min = 4L,
@@ -1073,11 +1101,14 @@ Sp <- function(n_comp = NULL, s = 1, along = NULL) {
   if (!is.null(n_comp))
     n_comp <- as.integer(n_comp)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   scale <- as.double(s)
+  sd_slope <- as.double(sd)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   new_bage_prior_spline(n_comp = n_comp,
                         scale = scale,
+                        sd_slope = sd_slope,
                         along = along)
 }
 
@@ -1481,7 +1512,7 @@ SVD_RW <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
 ## HAS_TESTS
 #' @rdname SVD_AR
 #' @export
-SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
+SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd = 1) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
@@ -1489,12 +1520,15 @@ SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
                        ssvd = ssvd)
   check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   scale <- as.double(s)
+  sd_slope <- as.double(sd)
   new_bage_prior_svd_rw2(ssvd = ssvd,
                          nm_ssvd = nm_ssvd,
                          n_comp = n_comp,
                          indep = indep,
-                         scale = scale)
+                         scale = scale,
+                         sd_slope = sd_slope)
 }
 
 
@@ -1613,11 +1647,13 @@ new_bage_prior_rw <- function(scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasfix <- function(n_seas, scale, along) {
+new_bage_prior_rwseasfix <- function(n_seas, sd_seas, scale, along) {
     ans <- list(i_prior = 10L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                          sd_seas = sd_seas,
                           scale = scale),
                 specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                                sd_seas = sd_seas,
                                 scale = scale,
                                 along = along))
     class(ans) <- c("bage_prior_rwseasfix", "bage_prior")
@@ -1625,13 +1661,15 @@ new_bage_prior_rwseasfix <- function(n_seas, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasvary <- function(n_seas, scale_seas, scale, along) {
+new_bage_prior_rwseasvary <- function(n_seas, scale_seas, sd_seas, scale, along) {
     ans <- list(i_prior = 11L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          scale_seas = scale_seas,  
+                          scale_seas = scale_seas,
+                          sd_seas = sd_seas,
                           scale = scale),
                 specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 scale_seas = scale_seas,
+                                sd_seas = sd_seas,
                                 scale = scale,
                                 along = along))
     class(ans) <- c("bage_prior_rwseasvary", "bage_prior")
@@ -1639,47 +1677,59 @@ new_bage_prior_rwseasvary <- function(n_seas, scale_seas, scale, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale, along) {
+new_bage_prior_rw2 <- function(scale, sd_slope, along) {
     ans <- list(i_prior = 7L,
-                const = c(scale = scale),
+                const = c(scale = scale,
+                          sd_slope = sd_slope),
                 specific = list(scale = scale,
+                                sd_slope = sd_slope,
                                 along = along))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasfix <- function(n_seas, scale, along) {
+new_bage_prior_rw2seasfix <- function(n_seas, sd_seas, scale, sd_slope, along) {
     ans <- list(i_prior = 12L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          scale = scale),
+                          sd_seas = sd_seas,
+                          scale = scale,
+                          sd_slope = sd_slope),
                 specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                                sd_seas = sd_seas,
                                 scale = scale,
+                                sd_slope = sd_slope,
                                 along = along))
     class(ans) <- c("bage_prior_rw2seasfix", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasvary <- function(n_seas, scale_seas, scale, along) {
+new_bage_prior_rw2seasvary <- function(n_seas, scale_seas, sd_seas, scale, sd_slope, along) {
     ans <- list(i_prior = 13L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          scale_seas = scale_seas,  
-                          scale = scale),
+                          scale_seas = scale_seas,
+                          sd_seas = sd_seas,
+                          scale = scale,
+                          sd_slope = sd_slope),
                 specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 scale_seas = scale_seas,
+                                sd_seas = sd_seas,
                                 scale = scale,
+                                sd_slope = sd_slope,
                                 along = along))
     class(ans) <- c("bage_prior_rw2seasvary", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_spline <- function(n_comp, scale, along) {
+new_bage_prior_spline <- function(n_comp, scale, sd_slope, along) {
     ans <- list(i_prior = 8L,
-                const = c(scale = scale),
+                const = c(scale = scale,
+                          sd_slope = sd_slope),
                 specific = list(n_comp = n_comp,
                                 scale = scale,
+                                sd_slope = sd_slope,
                                 along = along))
     class(ans) <- c("bage_prior_spline", "bage_prior")
     ans
@@ -1741,14 +1791,16 @@ new_bage_prior_svd_rw <- function(ssvd, nm_ssvd, n_comp, indep,
 
 ## HAS_TESTS
 new_bage_prior_svd_rw2 <- function(ssvd, nm_ssvd, n_comp, indep,
-                                   scale) {
+                                   scale, sd_slope) {
   ans <- list(i_prior = 16L,
-              const = c(scale = scale),
+              const = c(scale = scale,
+                        sd_slope = sd_slope),
               specific = list(ssvd = ssvd,
                               nm_ssvd = nm_ssvd,
                               n_comp = n_comp,
                               indep = indep,
                               scale = scale,
+                              sd_slope = sd_slope,
                               along = NULL))
   class(ans) <- c("bage_prior_svd_rw2", "bage_prior")
   ans

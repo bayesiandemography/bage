@@ -110,10 +110,11 @@ test_that("'RW' works with valid inputs", {
 
 test_that("'RW_Seas' works with valid inputs", {
   expect_identical(RW_Seas(n_seas = 2, s_seas = 0),
-                   new_bage_prior_rwseasfix(n_seas = 2L, scale = 1, along = NULL))
-  expect_identical(RW_Seas(s = 0.3, n_seas = 12, s_seas = 0.1, along = "reg"),
+                   new_bage_prior_rwseasfix(n_seas = 2L, sd_seas = 1, scale = 1, along = NULL))
+  expect_identical(RW_Seas(s = 0.3, sd_seas = 0.15, n_seas = 12, s_seas = 0.1, along = "reg"),
                    new_bage_prior_rwseasvary(n_seas = 12L,
                                              scale_seas = 0.1,
+                                             sd_seas = 0.15,
                                              scale = 0.3,
                                              along = "reg"))
 })
@@ -121,19 +122,25 @@ test_that("'RW_Seas' works with valid inputs", {
 test_that("'RW2' works with valid inputs", {
   expect_identical(RW2(),
                    new_bage_prior_rw2(scale = 1,
+                                      sd_slope = 1,
                                       along = NULL))
-  expect_identical(RW2(s = 0.3, along = "reg"),
+  expect_identical(RW2(sd = 0.1, s = 0.3, along = "reg"),
                    new_bage_prior_rw2(scale = 0.3,
+                                      sd_slope = 0.1,
                                       along = "reg"))
 })
 
 test_that("'RW2_Seas' works with valid inputs", {
   expect_identical(RW2_Seas(n_seas = 2, s_seas = 0),
-                   new_bage_prior_rw2seasfix(n_seas = 2L, scale = 1, along = NULL))
-  expect_identical(RW2_Seas(s = 0.3, n_seas = 12, s_seas = 0.1, along = "reg"),
+                   new_bage_prior_rw2seasfix(n_seas = 2L, sd_seas = 1,
+                                             scale = 1, sd_slope = 1, along = NULL))
+  expect_identical(RW2_Seas(s = 0.3, n_seas = 12, sd_seas = 0.5,
+                            s_seas = 0.1, along = "reg", sd = 0.2),
                    new_bage_prior_rw2seasvary(n_seas = 12L,
                                               scale_seas = 0.1,
+                                              sd_seas = 0.5,
                                               scale = 0.3,
+                                              sd_slope = 0.2,
                                               along = "reg"))
 })
 
@@ -141,12 +148,15 @@ test_that("'Sp' works with valid inputs", {
   expect_identical(Sp(),
                    new_bage_prior_spline(n_comp = NULL,
                                          scale = 1,
+                                         sd_slope = 1,
                                          along = NULL))
   expect_identical(Sp(n_comp = 6,
+                      sd = 0.3,
                       s = 3,
                       along = "time"),
                    new_bage_prior_spline(n_comp = 6L,
                                          scale = 3,
+                                         sd_slope = 0.3,
                                          along = "time"))
 })
 
@@ -240,13 +250,15 @@ test_that("'SVD_RW2' works with valid inputs", {
                                           nm_ssvd = "HMD",
                                           n_comp = 3L,
                                           indep = TRUE,
-                                          scale = 1))
-  expect_identical(SVD_RW2(LFP, n_comp = 2, s = 0.01),
+                                          scale = 1,
+                                          sd_slope = 1))
+  expect_identical(SVD_RW2(LFP, n_comp = 2, sd = 0.2, s = 0.01),
                    new_bage_prior_svd_rw2(LFP,
                                           nm_ssvd = "LFP",
                                           n_comp = 2L,
                                           indep = TRUE,
-                                          scale = 0.01))
+                                          scale = 0.01,
+                                          sd_slope = 0.2))
 })
 
 
@@ -409,13 +421,15 @@ test_that("'new_bage_prior_rw' works", {
 
 test_that("'new_bage_prior_rwseasfix' works", {
   obj <- new_bage_prior_rwseasfix(n_seas = 4,
+                                  sd_seas = 1,
                                   scale = 1,
                                   along = NULL)
   expect_s3_class(obj, "bage_prior_rwseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 10L)
-  expect_identical(obj$const, c(n_seas = 4, scale = 1))
+  expect_identical(obj$const, c(n_seas = 4, sd_seas = 1, scale = 1))
   expect_identical(obj$specific, list(n_seas = 4,
+                                      sd_seas = 1,
                                       scale = 1,
                                       along = NULL))
 })
@@ -424,62 +438,79 @@ test_that("'new_bage_prior_rwseasvary' works", {
   obj <- new_bage_prior_rwseasvary(n_seas = 4,
                                    scale = 1,
                                    scale_seas = 1,
+                                   sd_seas = 1,
                                    along = NULL)
   expect_s3_class(obj, "bage_prior_rwseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 11L)
   expect_identical(obj$const, c(n_seas = 4,
                                 scale_seas = 1,
+                                sd_seas = 1,
                                 scale = 1))
   expect_identical(obj$specific,
                    list(n_seas = 4,
                         scale_seas = 1,
+                        sd_seas = 1,
                         scale = 1,
                         along = NULL))
 })
 
 test_that("'new_bage_prior_rw2' works", {
-  obj <- new_bage_prior_rw2(scale = 1, along = NULL)
+  obj <- new_bage_prior_rw2(scale = 1, sd_slope = 1, along = NULL)
   expect_s3_class(obj, "bage_prior_rw2")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 7L)
-  expect_identical(obj$const, c(scale = 1))
+  expect_identical(obj$const, c(scale = 1, sd_slope = 1))
   expect_identical(obj$specific,
                    list(scale = 1,
+                        sd_slope = 1,
                         along = NULL))
 })
 
 test_that("'new_bage_prior_rw2seasfix' works", {
-  obj <- new_bage_prior_rw2seasfix(n_seas = 4, scale = 1, along = NULL)
+  obj <- new_bage_prior_rw2seasfix(n_seas = 4, sd_seas = 1, scale = 1, sd_slope = 1, along = NULL)
   expect_s3_class(obj, "bage_prior_rw2seasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
-  expect_identical(obj$const, c(n_seas = 4, scale = 1))
+  expect_identical(obj$const, c(n_seas = 4, sd_seas = 1, scale = 1, sd_slope = 1))
   expect_identical(obj$specific, list(n_seas = 4,
+                                      sd_seas = 1,
                                       scale = 1,
+                                      sd_slope = 1,
                                       along = NULL))
 })
 
 test_that("'new_bage_prior_rw2seasvary' works", {
-  obj <- new_bage_prior_rw2seasvary(n_seas = 4, scale = 1, scale_seas = 1, along = NULL)
+  obj <- new_bage_prior_rw2seasvary(n_seas = 4,
+                                    scale = 1,
+                                    sd_slope = 1,
+                                    scale_seas = 1,
+                                    sd_seas = 1,
+                                    along = NULL)
   expect_s3_class(obj, "bage_prior_rw2seasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 13L)
-  expect_identical(obj$const, c(n_seas = 4, scale_seas = 1, scale = 1))
+  expect_identical(obj$const, c(n_seas = 4,
+                                scale_seas = 1,
+                                sd_seas = 1,
+                                scale = 1,
+                                sd_slope = 1))
   expect_identical(obj$specific, list(n_seas = 4,
                                       scale_seas = 1,
+                                      sd_seas = 1,
                                       scale = 1,
+                                      sd_slope = 1,
                                       along = NULL))
 })
 
 test_that("'new_bage_prior_spline' works", {
-  obj <- new_bage_prior_spline(n_comp = 10L, scale = 1, along = NULL)
+  obj <- new_bage_prior_spline(n_comp = 10L, scale = 1, sd_slope = 0.2, along = NULL)
   expect_s3_class(obj, "bage_prior_spline")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 8L)
-  expect_identical(obj$const, c(scale = 1))
+  expect_identical(obj$const, c(scale = 1, sd_slope = 0.2))
   expect_identical(obj$specific,
-                   list(n_comp = 10L, scale = 1, along = NULL))
+                   list(n_comp = 10L, scale = 1, sd_slope = 0.2, along = NULL))
 })
 
 test_that("'new_bage_prior_svd' works", {
@@ -601,18 +632,21 @@ test_that("'new_bage_prior_svd_rw2' works", {
                                 nm_ssvd = "HMD",
                                 n_comp = 3L,
                                 indep = TRUE,
-                                scale = 1)
+                                scale = 1,
+                                sd_slope = 1)
   expect_s3_class(obj, "bage_prior_svd_rw2")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 16L)
   expect_identical(obj$const,
-                   c(scale = 1))
+                   c(scale = 1,
+                     sd_slope = 1))
   expect_identical(obj$specific,
                    list(ssvd = HMD,
                         nm_ssvd = "HMD",
                         n_comp = 3L,
                         indep = TRUE,
                         scale = 1,
+                        sd_slope = 1,
                         along = NULL))
 })
 

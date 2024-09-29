@@ -10,6 +10,7 @@ using namespace tmbutils;
 
 // Helper functions -----------------------------------------------------------
 
+// 'effectfree' omits first element of 'along', within each 'by'.
 template <class Type>
 vector<Type> alpha_seasfix(vector<Type> effectfree,
 			   vector<Type> seas,
@@ -17,16 +18,54 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
 			   matrix<int> matrix_along_by_effectfree) {
   int n_along = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
+  int n_seas_drop1 - n_season - 1;
   vector<Type> ans = effectfree;
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_along; i_along++) {
-      int i_alpha = matrix_along_by_effectfree(i_along, i_by);
-      int i_seas = i_along % n_season + i_by * n_season;
-      ans[i_alpha] -= seas[i_seas];
+      int i_along_effect = i_along + 1;
+      int offset_seas = i_along_effect % n_seas;
+      bool is_first_seas = offset_seas == 0;
+      if (!is_first_seas) {
+	int offset_seas_drop1 = offset_seas - 1;
+	int step_seas = i_along_effect / n_season;
+	int i_seas = offset_seas_drop1 + i_by * n_seas_drop1;
+	int i_alpha = matrix_along_by_effectfree(i_along, i_by);
+	ans[i_alpha] -= seas[i_seas];
+      }
     }
   }
   return ans;
 }
+
+// 'effectfree' omits first element of 'along', within each 'by'.
+//  In 'effect', when i_along % n_season == 0, season effect is 0
+template <class Type>
+vector<Type> alpha_seasvary(vector<Type> effectfree,
+			    vector<Type> seas,
+			    int n_season,
+			    matrix<int> matrix_along_by_effectfree) {
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  int n_along_seas = seas.size() / n_by;
+  int n_seas_drop1 = n_season - 1;
+  vector<Type> ans = effectfree;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i_along_effect = i_along + 1;
+      int offset_seas = i_along_effect % n_season;
+      bool is_first_seas = offset_seas == 0;
+      if (!is_first_seas) {
+	int offset_seas_drop1 = offset_seas - 1;
+	int step_seas = i_along_effect / n_season;
+	int i_seas = offset_seas_drop1 + step_seas * n_seas_drop1 + i_by * n_along_seas;
+	int i_alpha = matrix_along_by_effectfree(i_along, i_by);
+	ans[i_alpha] -= seas[i_seas];
+      }
+    }
+  }
+  return ans;
+}
+
 
 template <class Type>
 Type logpost_betabinom(Type x,
@@ -45,23 +84,23 @@ Type logpost_betabinom(Type x,
 template <class Type>
 Type logpost_seasvary(vector<Type> seas,
 		      int n_season,
-		      Type scale_seas,
-		      Type log_sd_seas,
-		      matrix<int> matrix_along_by_effectfree) {
-  int n_along = matrix_along_by_effectfree.rows();
-  int n_by = matrix_along_by_effectfree.cols();
-  Type sd_seas = exp(log_sd_seas);
+		      int n_by,
+		      Type sd_init,
+		      Type scale_rw,
+		      Type log_sd_rw) {
+  int n_along = seas.size() / n_by;
+  Type sd_rw = exp(log_sd_rw);
   Type ans = 0;
-  ans += dnorm(sd_seas, Type(0), scale_seas, true) + log_sd_seas;
+  ans += dnorm(sd_rw, Type(0), scale_rw, true) + log_sd_rw;
   for (int i_by = 0; i_by < n_by; i_by++) {
-    for (int i_along = 0; i_along < n_season; i_along++) {
-      int i = matrix_along_by_effectfree(i_along, i_by);
-      ans += dnorm(seas[i], Type(0), Type(1), true);
+    for (int i_along = 0; i_along < n_season - 1; i_along++) {
+      int i = i_along + i_by * n_by;
+      ans += dnorm(seas[i], Type(0), sd_init, true);
     }
-    for (int i_along = n_season; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by_effectfree(i_along, i_by);
-      int i_prev = matrix_along_by_effectfree(i_along - n_season, i_by);
-      ans += dnorm(seas[i_curr], seas[i_prev], sd_seas, true);
+    for (int i_along = n_season - 1; i_along < n_along; i_along++) {
+      int i_curr = i_along + i_by * n_by;
+      int i_prev = i_curr - n_season + 1;
+      ans += dnorm(seas[i_curr], seas[i_prev], sd_rw, true);
     }
   }
   return ans;
@@ -232,11 +271,12 @@ Type logpost_rwseasfix(vector<Type> effectfree,
 		       vector<Type> consts,
 		       matrix<int> matrix_along_by_effectfree) {
   int n_season = CppAD::Integer(consts[0]);
+  Type sd_seas = consts[1];
   int n_consts = consts.size();
-  vector<Type> consts_alpha = consts.segment(1, n_consts - 1);
+  vector<Type> consts_alpha = consts.segment(2, n_consts - 2);
   vector<Type> alpha = alpha_seasfix(effectfree, hyperrand, n_season, matrix_along_by_effectfree);
   Type ans = 0;
-  ans += dnorm(hyperrand, Type(0), Type(1), true).sum();
+  ans += dnorm(hyperrand, Type(0), sd_seas, true).sum();
   ans += logpost_rw(alpha, hyper, consts_alpha, matrix_along_by_effectfree);
   return ans;
 }
@@ -249,24 +289,28 @@ Type logpost_rwseasvary(vector<Type> effectfree,
 			matrix<int> matrix_along_by_effectfree) {
   vector<Type> alpha = effectfree - hyperrand;
   int n_season = CppAD::Integer(consts[0]);
-  Type scale_seas = consts[1];
-  Type log_sd_seas = hyper[0];
+  Type scale_rw = consts[1];
+  Type sd_init = consts[2];
+  Type log_sd_rw = hyper[0];
   int n_hyper = hyper.size();
   int n_consts = consts.size();
+  int n_by = matrix_along_by_effectfree.cols();
+  vector<Type> consts_alpha = consts.segment(3, n_consts - 3);
   vector<Type> hyper_alpha = hyper.segment(1, n_hyper - 1);
-  vector<Type> consts_alpha = consts.segment(2, n_consts - 2);
+  vector<Type> alpha = alpha_seasvary(effectfree, hyperrand, n_season, matrix_along_by_effectfree);
   Type ans = 0;
-  ans += logpost_seasvary(hyperrand, n_season, scale_seas, log_sd_seas, matrix_along_by_effectfree);
+  ans += logpost_seasvary(hyperrand, n_season, n_by, sd_init, scale_rw, log_sd_rw)
   ans += logpost_rw(alpha, hyper_alpha, consts_alpha, matrix_along_by_effectfree);
   return ans;
 }
 
 template <class Type>
 Type logpost_rw2(vector<Type> effectfree,
-		  vector<Type> hyper,
-		  vector<Type> consts,
-		  matrix<int> matrix_along_by_effectfree) {
+		 vector<Type> hyper,
+		 vector<Type> consts,
+		 matrix<int> matrix_along_by_effectfree) {
   Type scale = consts[0];
+  Type sd_slope = consts[1];
   Type log_sd = hyper[0];
   Type sd = exp(log_sd);
   int n_along = matrix_along_by_effectfree.rows();
@@ -276,8 +320,9 @@ Type logpost_rw2(vector<Type> effectfree,
   for (int i_by = 0; i_by < n_by; i_by++) {
     int i_0 = matrix_along_by_effectfree(0, i_by);
     int i_1 = matrix_along_by_effectfree(1, i_by);
-    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
-    ans += dnorm(effectfree[i_1], Type(0), Type(1), true);
+    ans += dnorm(effectfree[i_0], Type(0), sd_slope, true);
+    Type diff = effectfree[i_1] - 2 * effectfree[i_0];
+    ans += dnorm(diff, Type(0), sd, true);
     for (int i_along = 2; i_along < n_along; i_along++) {
       int i_2 = matrix_along_by_effectfree(i_along, i_by);
       int i_1 = matrix_along_by_effectfree(i_along - 1, i_by);
@@ -377,7 +422,29 @@ Type logpost_svd_rw2(vector<Type> effectfree,
 		     vector<Type> hyper,
 		     vector<Type> consts,
 		     matrix<int> matrix_along_by_effectfree) {
-  return logpost_rw2(effectfree, hyper, consts, matrix_along_by_effectfree);
+  Type scale = consts[0];
+  Type sd_slope = consts[1];
+  Type log_sd = hyper[0];
+  Type sd = exp(log_sd);
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  Type ans = 0;
+  ans += dnorm(sd, Type(0), scale, true) + log_sd;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by_effectfree(0, i_by);
+    int i_1 = matrix_along_by_effectfree(1, i_by);
+    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
+    Type diff = effectfree[i_1] - effectfree[i_0];
+    ans += dnorm(diff, Type(0), sd_slope, true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by_effectfree(i_along, i_by);
+      int i_1 = matrix_along_by_effectfree(i_along - 1, i_by);
+      int i_0 = matrix_along_by_effectfree(i_along - 2, i_by);
+      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      ans += dnorm(diff, Type(0), sd, true);
+    }
+  }
+  return ans;
 }
 
 
