@@ -15,7 +15,11 @@ as the "along" variable. Only used with
 interactions.}
 
 \item{sd_slope}{Standard deviation in prior
-for initial slope. Default is 1.}
+for initial slope. Default is \code{1}.}
+
+\item{sd_seas}{Standard deviation for
+distribution of seasonal effects.
+Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_rw2"}.

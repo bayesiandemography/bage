@@ -702,11 +702,13 @@ draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
                                                      n_sim) {
   along <- prior$specific$along
   n_seas <- prior$specific$n_seas
+  sd_init <- prior$specific$sd_seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   seas <- draw_vals_seasfix(n_seas = n_seas,
+                            sd_init = sd_init,
                             matrix_along_by = matrix_along_by_effect,
                             n_sim = n_sim)
   list(seas = seas)
@@ -722,13 +724,15 @@ draw_vals_hyperrand.bage_prior_rwseasvary <- function(prior,
                                                       n_sim) {
   along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  sd_seas <- vals_hyper$sd_seas
+  sd_init <- prior$specific$sd_seas
+  sd_innov <- vals_hyper$sd_seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   seas <- draw_vals_seasvary(n_seas = n_seas,
-                             sd_seas = sd_seas,
+                             sd_init = sd_init,
+                             sd_innov = sd_innov,
                              matrix_along_by = matrix_along_by_effect)
   list(seas = seas)
 }
@@ -743,11 +747,13 @@ draw_vals_hyperrand.bage_prior_rw2seasfix <- function(prior,
                                                       n_sim) {
   along <- prior$specific$along
   n_seas <- prior$specific$n_seas
+  sd_init <- prior$specific$sd_seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   seas <- draw_vals_seasfix(n_seas = n_seas,
+                            sd_init = sd_init,
                             matrix_along_by = matrix_along_by_effect,
                             n_sim = n_sim)
   list(seas = seas)
@@ -763,13 +769,15 @@ draw_vals_hyperrand.bage_prior_rw2seasvary <- function(prior,
                                                        n_sim) {
   along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  sd_seas <- vals_hyper$sd_seas
+  sd_init <- prior$specific$sd_seas
+  sd_innov <- vals_hyper$sd_seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   seas <- draw_vals_seasvary(n_seas = n_seas,
-                             sd_seas = sd_seas,
+                             sd_init = sd_init,
+                             sd_innov = sd_innov,
                              matrix_along_by = matrix_along_by_effect)
   list(seas = seas)
 }
@@ -789,7 +797,7 @@ draw_vals_hyperrand.bage_prior_rw2seasvary <- function(prior,
 #' representing term
 #' @param var_time Name of time variable, or NULL
 #' @param var_age Name of age variable, or NULL
-#' @param levels_effectfree Labels for free parameters
+#' @param levels_spline Labels for spline coefficients
 #' @param n_sim Number of simulation draws
 #'
 #' @returns A matrix or NULL
@@ -800,7 +808,7 @@ draw_vals_spline <- function(prior,
                              dimnames_term,
                              var_time,
                              var_age,
-                             levels_effectfree,
+                             levels_spline,
                              n_sim) {
   UseMethod("draw_vals_spline")
 }
@@ -812,7 +820,7 @@ draw_vals_spline.bage_prior <- function(prior,
                                         dimnames_term,
                                         var_time,
                                         var_age,
-                                        levels_effectfree,
+                                        levels_spline,
                                         n_sim) {
   NULL
 }
@@ -824,19 +832,26 @@ draw_vals_spline.bage_prior_spline <- function(prior,
                                                dimnames_term,
                                                var_time,
                                                var_age,
-                                               levels_effectfree,
+                                               levels_spline,
                                                n_sim) {
   sd_slope <- prior$specific$sd_slope
   sd <- vals_hyper$sd
-  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
-                                                                dimnames_term = dimnames_term,
-                                                                var_time = var_time,
-                                                                var_age = var_age,
-                                                                var_sexgender = NULL)
+  along <- prior$specific$along
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- length(dimnames_term[[i_along]])
+  n_comp <- get_n_comp_spline(prior = prior,
+                              n_along = n_along)
+  labels_along <- paste0("comp", seq_len(n_comp))
+  dimnames_term[[i_along]] <- labels_along
+  matrix_along_by <- make_matrix_along_by_inner(i_along = i_along,
+                                                dimnames_term = dimnames_term)
   draw_vals_rw2(sd = sd,
                 sd_slope = sd_slope,
-                matrix_along_by = matrix_along_by_effectfree,
-                levels_effect = levels_effectfree)
+                matrix_along_by = matrix_along_by,
+                levels_effect = levels_spline)
 }
 
 
@@ -855,7 +870,7 @@ draw_vals_spline.bage_prior_spline <- function(prior,
 #' @param var_time Name of time variable, or NULL
 #' @param var_age Name of age variable, or NULL
 #' @param var_sexgender Name of sex/gender variable, or NULL
-#' @param levels_effectfree Labels for free parameters
+#' @param levels_svd Labels for spline coefficients
 #' @param n_sim Number of simulation draws
 #'
 #' @returns A matrix or NULL
@@ -867,7 +882,7 @@ draw_vals_svd <- function(prior,
                           var_time,
                           var_age,
                           var_sexgender,
-                          levels_effectfree,
+                          levels_svd,
                           n_sim) {
   UseMethod("draw_vals_svd")
 }
@@ -880,7 +895,7 @@ draw_vals_svd.bage_prior <- function(prior,
                                      var_time,
                                      var_age,
                                      var_sexgender,
-                                     levels_effectfree,
+                                     levels_svd,
                                      n_sim) {
   NULL
 }
@@ -893,13 +908,13 @@ draw_vals_svd.bage_prior_svd <- function(prior,
                                          var_time,
                                          var_age,
                                          var_sexgender,
-                                         levels_effectfree,
+                                         levels_svd,
                                          n_sim) {
-  n_effectfree <- length(levels_effectfree)
-  matrix(stats::rnorm(n = n_effectfree * n_sim),
-         nrow = n_effectfree,
+  n_svd <- length(levels_svd)
+  matrix(stats::rnorm(n = n_svd * n_sim),
+         nrow = n_svd,
          ncol = n_sim,
-         dimnames = list(levels_effectfree, NULL))
+         dimnames = list(levels_svd, NULL))
 }
 
 ## HAS_TESTS
@@ -910,19 +925,20 @@ draw_vals_svd.bage_prior_svd_ar <- function(prior,
                                             var_time,
                                             var_age,
                                             var_sexgender,
-                                            levels_effectfree,
+                                            levels_svd,
                                             n_sim) {
   coef <- vals_hyper$coef
   sd <- vals_hyper$sd
-  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
-                                                                dimnames_term = dimnames_term,
-                                                                var_time = var_time,
-                                                                var_age = var_age,
-                                                                var_sexgender = var_sexgender)
+  matrix_along_by <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                         dimnames_term = dimnames_term,
+                                                         var_time = var_time,
+                                                         var_age = var_age,
+                                                         var_sexgender = var_sexgender,
+                                                         drop_first_time = FALSE)
   draw_vals_ar(coef = coef,
                sd = sd,
-               matrix_along_by = matrix_along_by_effectfree,
-               levels_effect = levels_effectfree)
+               matrix_along_by = matrix_along_by,
+               levels_effect = levels_svd)
 }
 
 ## HAS_TESTS
@@ -933,17 +949,18 @@ draw_vals_svd.bage_prior_svd_rw <- function(prior,
                                             var_time,
                                             var_age,
                                             var_sexgender,
-                                            levels_effectfree,
+                                            levels_svd,
                                             n_sim) {
   sd <- vals_hyper$sd
-  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
-                                                                dimnames_term = dimnames_term,
-                                                                var_time = var_time,
-                                                                var_age = var_age,
-                                                                var_sexgender = var_sexgender)
+  matrix_along_by <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                         dimnames_term = dimnames_term,
+                                                         var_time = var_time,
+                                                         var_age = var_age,
+                                                         var_sexgender = var_sexgender,
+                                                         drop_first_time = FALSE)
   draw_vals_rw(sd = sd,
-               matrix_along_by = matrix_along_by_effectfree,
-               levels_effect = levels_effectfree)
+               matrix_along_by = matrix_along_by,
+               levels_effect = levels_svd)
 }
 
 ## HAS_TESTS
@@ -954,19 +971,20 @@ draw_vals_svd.bage_prior_svd_rw2 <- function(prior,
                                              var_time,
                                              var_age,
                                              var_sexgender,
-                                             levels_effectfree,
+                                             levels_svd,
                                              n_sim) {
   sd <- vals_hyper$sd
   sd_slope <- prior$specific$sd_slope
-  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
-                                                                dimnames_term = dimnames_term,
-                                                                var_time = var_time,
-                                                                var_age = var_age,
-                                                                var_sexgender = var_sexgender)
+  matrix_along_by <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                         dimnames_term = dimnames_term,
+                                                         var_time = var_time,
+                                                         var_age = var_age,
+                                                         var_sexgender = var_sexgender,
+                                                         drop_first_time = FALSE)
   draw_vals_rw2(sd = sd,
                 sd_slope = sd_slope,
-                matrix_along_by = matrix_along_by_effectfree,
-                levels_effect = levels_effectfree)
+                matrix_along_by = matrix_along_by,
+                levels_effect = levels_svd)
 }
 
 
@@ -1607,6 +1625,54 @@ generics::generate
 #' rw <- RW()
 #' generate(rw)
 #' @export
+generate.bage_prior_ar <- function(x,
+                                   n = 20,
+                                   n_draw = 25,
+                                   standardize = c("terms", "none")) {
+  standardize <- match.arg(standardize)
+  l <- generate_prior_helper(n = n, n_draw = n_draw)
+  ans <- l$ans
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef(prior = x, n_sim = n_draw)
+  value <- draw_vals_ar_inner(n = n, coef = coef, sd = sd)
+  if (standardize == "terms")
+    value <- scale(value, center = TRUE, scale = FALSE)
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_known <- function(x,
+                                      n = 20,
+                                      n_draw = 25,
+                                      standardize = c("terms", "none")) {
+  if (!isTRUE(all.equal(n, 20))) {
+    str <- str_nm_prior(x)
+    cli::cli_alert("Non-default value of {.arg n} ignored with {.val {str}} prior.")
+  }
+  standardize <- match.arg(standardize)
+  value <- x$specific$values
+  n <- length(value)
+  l <- generate_prior_helper(n = n, n_draw = n_draw)
+  value <- rep(value, times = n_draw)
+  ans <- l$ans
+  if (standardize == "terms") {
+    value <- matrix(value, ncol = n_draw)
+    value <- scale(value, center = TRUE, scale = FALSE)
+    value <- as.double(value)
+  }
+  ans$value <- value
+  ans
+}
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
 generate.bage_prior_norm <- function(x,
                                      n = 20,
                                      n_draw = 25,
@@ -1626,8 +1692,31 @@ generate.bage_prior_norm <- function(x,
   ans
 }
 
+
 ## HAS_TESTS
-#' @rdname generate.bage_prior_norm
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_normfixed <- function(x,
+                                          n = 20,
+                                          n_draw = 25,
+                                          standardize = c("terms", "none")) {
+  standardize <- match.arg(standardize)
+  l <- generate_prior_helper(n = n, n_draw = n_draw)
+  ans <- l$ans
+  sd <- x$specific$sd
+  value <- stats::rnorm(n = n * n_draw, sd = sd)
+  if (standardize == "terms") {
+    value <- matrix(value, nrow = n, ncol = n_draw)
+    value <- scale(value, center = TRUE, scale = FALSE)
+    value <- as.double(value)
+  }
+  ans$value <- value
+  ans
+}
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw <- function(x,
                                    n = 20,
@@ -1649,8 +1738,40 @@ generate.bage_prior_rw <- function(x,
   ans
 }
 
+
 ## HAS_TESTS
-#' @rdname generate.bage_prior_norm
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_rwseasfix <- function(x,
+                                          n = 20,
+                                          n_draw = 25,
+                                          standardize = c("terms", "none")) {
+  standardize <- match.arg(standardize)
+  l <- generate_prior_helper(n = n, n_draw = n_draw)
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  ans <- l$ans
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  alpha <- draw_vals_rw(sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  n_seas <- x$specific$n_seas
+  sd_init <- x$specific$sd_seas
+  seas <- draw_vals_seasfix(n_seas = n_seas,
+                            sd_init = sd_init,
+                            matrix_along_by = matrix_along_by,
+                            n_sim = n_draw)
+  value <- alpha + seas
+  if (standardize == "terms")
+    value <- scale(value, center = TRUE, scale = FALSE)
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2 <- function(x,
                                     n = 20,
@@ -2669,12 +2790,12 @@ levels_hyperrand.bage_prior_rwseasfix <- function(prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  s <- seq_len(n_seas)
+  s <- seq.int(from = 2L, to = n_seas)
   n_by <- ncol(matrix_along_by_effect)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by_effect)
     paste(s,
-          rep(nms_by, each = n_seas),
+          rep(nms_by, each = n_seas - 1L),
           sep = ".")
   }
   else
@@ -2688,7 +2809,26 @@ levels_hyperrand.bage_prior_rwseasvary <- function(prior,
                                                    var_time,
                                                    var_age,
                                                    levels_effect) {
-  levels_effect
+  along <- prior$specific$along
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  s_along <- seq_len(n_along)
+  is_first <- (s_along - 1L) %% n_seas == 0L
+  s <- s_along[!is_first]
+  n_along_dropfirst <- length(s)
+  if (n_by > 1L) {
+    nms_by <- colnames(matrix_along_by_effect)
+    paste(s,
+          rep(nms_by, each = n_along_dropfirst),
+          sep = ".")
+  }
+  else
+    as.character(s)
 }
 
 ## HAS_TESTS
@@ -2698,18 +2838,18 @@ levels_hyperrand.bage_prior_rw2seasfix <- function(prior,
                                                    var_time,
                                                    var_age,
                                                    levels_effect) {
-  n_seas <- prior$specific$n_seas
   along <- prior$specific$along
+  n_seas <- prior$specific$n_seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  s <- seq_len(n_seas)
+  s <- seq.int(from = 2L, to = n_seas)
   n_by <- ncol(matrix_along_by_effect)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by_effect)
     paste(s,
-          rep(nms_by, each = n_seas),
+          rep(nms_by, each = n_seas - 1L),
           sep = ".")
   }
   else
@@ -2718,10 +2858,31 @@ levels_hyperrand.bage_prior_rw2seasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_rw2seasvary <- function(prior, dimnames_term,
+levels_hyperrand.bage_prior_rw2seasvary <- function(prior,
+                                                    dimnames_term,
                                                     var_time,
-                                                    var_age, levels_effect) {
-  levels_effect
+                                                    var_age,
+                                                    levels_effect) {
+  along <- prior$specific$along
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  s_along <- seq_len(n_along)
+  is_first <- (s_along - 1L) %% n_seas == 0L
+  s <- s_along[!is_first]
+  n_along_dropfirst <- length(s)
+  if (n_by > 1L) {
+    nms_by <- colnames(matrix_along_by_effect)
+    paste(s,
+          rep(nms_by, each = n_along_dropfirst),
+          sep = ".")
+  }
+  else
+    as.character(s)
 }
 
 
@@ -2791,11 +2952,83 @@ make_matrix_along_by_effectfree.bage_prior_rw <- function(prior,
 
 ## HAS_TESTS
 #' @export
+make_matrix_along_by_effectfree.bage_prior_rw <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  along <- prior$specific$along
+  make_matrix_along_by_effectfree_rw(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rwseasfix <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  along <- prior$specific$along
+  make_matrix_along_by_effectfree_rw(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rwseasvary <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  along <- prior$specific$along
+  make_matrix_along_by_effectfree_rw(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
+}
+
+
+
+## HAS_TESTS
+#' @export
 make_matrix_along_by_effectfree.bage_prior_rw2 <- function(prior,
                                                            dimnames_term,
                                                            var_time,
                                                            var_age,
                                                            var_sexgender) {
+  along <- prior$specific$along
+  make_matrix_along_by_effectfree_rw(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw2seasfix <- function(prior,
+                                                                  dimnames_term,
+                                                                  var_time,
+                                                                  var_age,
+                                                                  var_sexgender) {
+  along <- prior$specific$along
+  make_matrix_along_by_effectfree_rw(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw2seasvary <- function(prior,
+                                                                   dimnames_term,
+                                                                   var_time,
+                                                                   var_age,
+                                                                   var_sexgender) {
   along <- prior$specific$along
   make_matrix_along_by_effectfree_rw(along = along,
                                      dimnames_term = dimnames_term,
@@ -2835,7 +3068,8 @@ make_matrix_along_by_effectfree.bage_prior_svd <- function(prior,
                                       dimnames_term = dimnames_term,
                                       var_time = var_time,
                                       var_age = var_age,
-                                      var_sexgender = var_sexgender)
+                                      var_sexgender = var_sexgender,
+                                      drop_first_time = FALSE)
 }
 
 ## HAS_TESTS
@@ -2849,7 +3083,8 @@ make_matrix_along_by_effectfree.bage_prior_svd_ar <- function(prior,
                                       dimnames_term = dimnames_term,
                                       var_time = var_time,
                                       var_age = var_age,
-                                      var_sexgender = var_sexgender)
+                                      var_sexgender = var_sexgender,
+                                      drop_first_time = FALSE)
 }
 
 ## HAS_TESTS
@@ -2859,12 +3094,12 @@ make_matrix_along_by_effectfree.bage_prior_svd_rw <- function(prior,
                                                               var_time,
                                                               var_age,
                                                               var_sexgender) {
-  dimnames_term[[var_time]] <- dimnames_term[[var_time]][-1L]
   make_matrix_along_by_effectfree_svd(prior = prior,
                                       dimnames_term = dimnames_term,
                                       var_time = var_time,
                                       var_age = var_age,
-                                      var_sexgender = var_sexgender)
+                                      var_sexgender = var_sexgender,
+                                      drop_first_time = TRUE)
 }
 
 ## HAS_TESTS
@@ -2874,12 +3109,12 @@ make_matrix_along_by_effectfree.bage_prior_svd_rw2 <- function(prior,
                                                                var_time,
                                                                var_age,
                                                                var_sexgender) {
-  dimnames_term[[var_time]] <- dimnames_term[[var_time]][-1L]
   make_matrix_along_by_effectfree_svd(prior = prior,
                                       dimnames_term = dimnames_term,
                                       var_time = var_time,
                                       var_age = var_age,
-                                      var_sexgender = var_sexgender)
+                                      var_sexgender = var_sexgender,
+                                      drop_first_time = TRUE)
 }
 
 
