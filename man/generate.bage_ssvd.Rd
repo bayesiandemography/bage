@@ -26,7 +26,7 @@ desired age or age-sex profile.
 If no labels are supplied, the
 most detailed profile available is used.}
 
-\item{...}{Not currently used.}
+\item{...}{Unused. Included for generic consistency only.}
 }
 \value{
 A tibble

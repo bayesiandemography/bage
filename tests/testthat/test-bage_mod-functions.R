@@ -125,7 +125,7 @@ test_that("'set_n_draw' works with valid inputs", {
 ## 'set_prior' ----------------------------------------------------------------
 
 test_that("'set_prior' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+    data <- expand.grid(age = 0:3, time = 2000:2004, sex = 1:2)
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
     formula <- deaths ~ age*sex + time

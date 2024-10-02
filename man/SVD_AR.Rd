@@ -36,6 +36,9 @@ See below for details.}
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient in \code{SVD_AR()}.
 Defaults are \code{0.8} and \code{0.98}.}
+
+\item{sd}{Standard deviation in prior
+for initial slope. Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_svd_ar"},

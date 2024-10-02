@@ -1403,25 +1403,25 @@ test_that("'vals_spline_to_dataframe' works", {
 ## 'vals_spline_to_dataframe_one' ---------------------------------------------
 
 test_that("'vals_spline_to_dataframe_one' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age * time + sex
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, age ~ Sp(n_comp = 4))
-    vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
-    vals_spline <- draw_vals_spline_mod(mod, vals_hyper = vals_hyper, n_sim = 10)$age
-    ans_obtained <- vals_spline_to_dataframe_one(vals_spline = vals_spline,
-                                                 nm = "age",
-                                                 n_sim = 10)
-    ans_expected <- tibble::tibble(term = "age",
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * time + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age ~ Sp(n_comp = 4))
+  vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
+  vals_spline <- draw_vals_spline_mod(mod, vals_hyper = vals_hyper, n_sim = 10)$age
+  ans_obtained <- vals_spline_to_dataframe_one(vals_spline = vals_spline,
+                                               nm = "age",
+                                               n_sim = 10)
+  ans_expected <- tibble::tibble(term = "age",
                                  component = "spline",
                                  level = paste0("comp", 1:4),
                                  .fitted = rvec::rvec(unname(vals_spline)))
-    expect_identical(ans_obtained, ans_expected)                                                 
+  expect_identical(ans_obtained, ans_expected)                                                 
 })
 
 

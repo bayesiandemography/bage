@@ -119,18 +119,18 @@ forecast_ar_svd <- function(prior,
                             var_sexgender,
                             components,
                             labels_forecast) {
-  matrix_along_by_est <- make_matrix_along_by_effectfree_svd(prior = prior,
+  matrix_along_by_est <- make_matrix_along_by_svd(prior = prior,
                                                              dimnames_term = dimnames_term,
                                                              var_time = var_time,
                                                              var_age = var_age,
                                                              var_sexgender = var_sexgender,
-                                                             drop_first_time = FALSE)
-  matrix_along_by_forecast <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                             drop_first_along = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_svd(prior = prior,
                                                                   dimnames_term = dimnames_forecast,
                                                                   var_time = var_time,
                                                                   var_age = var_age,
                                                                   var_sexgender = var_sexgender,
-                                                                  drop_first_time = FALSE)
+                                                                  drop_first_along = FALSE)
   nm <- dimnames_to_nm(dimnames_term)
   is_svd <- with(components, term == nm & component == "svd")
   is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
@@ -305,18 +305,18 @@ forecast_rw_svd <- function(prior,
                             components,
                             labels_forecast) {
   nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_est <- make_matrix_along_by_effectfree_svd(prior = prior,
+  matrix_along_by_est <- make_matrix_along_by_svd(prior = prior,
                                                              dimnames_term = dimnames_term,
                                                              var_time = var_time,
                                                              var_age = var_age,
                                                              var_sexgender = var_sexgender,
-                                                             drop_first_time = FALSE)
-  matrix_along_by_forecast <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                             drop_first_along = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_svd(prior = prior,
                                                                   dimnames_term = dimnames_forecast,
                                                                   var_time = var_time,
                                                                   var_age = var_age,
                                                                   var_sexgender = var_sexgender,
-                                                                  drop_first_time = FALSE)
+                                                                  drop_first_along = FALSE)
   is_svd <- with(components, term == nm & component == "svd")
   is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   svd <- components$.fitted[is_svd]
@@ -392,18 +392,18 @@ forecast_rw2_svd <- function(prior,
                              components,
                              labels_forecast) {
   nm <- dimnames_to_nm(dimnames_term)
-  matrix_along_by_est <- make_matrix_along_by_effectfree_svd(prior = prior,
+  matrix_along_by_est <- make_matrix_along_by_svd(prior = prior,
                                                              dimnames_term = dimnames_term,
                                                              var_time = var_time,
                                                              var_age = var_age,
                                                              var_sexgender = var_sexgender,
-                                                             drop_first_time = FALSE)
-  matrix_along_by_forecast <- make_matrix_along_by_effectfree_svd(prior = prior,
+                                                             drop_first_along = FALSE)
+  matrix_along_by_forecast <- make_matrix_along_by_svd(prior = prior,
                                                                   dimnames_term = dimnames_forecast,
                                                                   var_time = var_time,
                                                                   var_age = var_age,
                                                                   var_sexgender = var_sexgender,
-                                                                  drop_first_time = FALSE)
+                                                                  drop_first_along = FALSE)
   is_svd <- with(components, term == nm & component == "svd")
   is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   svd <- components$.fitted[is_svd]

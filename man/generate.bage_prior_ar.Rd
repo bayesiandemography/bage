@@ -10,19 +10,19 @@
 \alias{generate.bage_prior_rw2}
 \title{Generate Values from Priors}
 \usage{
-\method{generate}{bage_prior_ar}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_ar}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 
-\method{generate}{bage_prior_known}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_known}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 
-\method{generate}{bage_prior_norm}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_norm}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 
-\method{generate}{bage_prior_normfixed}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_normfixed}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 
-\method{generate}{bage_prior_rw}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_rw}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 
-\method{generate}{bage_prior_rwseasfix}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_rwseasfix}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 
-\method{generate}{bage_prior_rw2}(x, n = 20, n_draw = 25, standardize = c("terms", "none"))
+\method{generate}{bage_prior_rw2}(x, n = 20, n_draw = 25, standardize = c("terms", "none"), ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}
@@ -33,9 +33,11 @@ Default is \code{20}.}
 \item{n_draw}{Number of draws. Default
 is \code{25}.}
 
-\item{standardize.}{Whether to standardize
+\item{standardize}{Whether to standardize
 the values for the effect. If \code{"terms"} (the default),
 values are centered.}
+
+\item{...}{Unused. Included for generic consistency only.}
 }
 \value{
 A \link[tibble:tibble]{tibble}
@@ -54,7 +56,7 @@ generate(rw)
 \seealso{
 \itemize{
 \item \link{priors} Overview of priors implemented in \strong{bage}
-\item \code{\link[=augment]{augment()}}, \code{\link[=compose]{compose()}} Draw from posterior or prior
+\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}} Draw from posterior or prior
 distribution for whole model
 }
 }

@@ -12,6 +12,9 @@ RW2_Seas(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NULL)
 \item{s}{Scale for prior for innovations in
 the random walk. Default is \code{1}.}
 
+\item{sd}{Standard deviation in prior
+for initial slope. Default is \code{1}.}
+
 \item{s_seas}{Scale for prior for innovations
 in the seasonal effect. Default is \code{1}.
 Can be \code{0}.}

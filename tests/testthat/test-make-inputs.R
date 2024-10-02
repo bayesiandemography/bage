@@ -1933,6 +1933,40 @@ test_that("'str_call_args_scale' works - scale not 1", {
 })
 
 
+## 'str_call_args_sd_seas' -----------------------------------------------------
+
+test_that("'str_call_args_sd_seas' works - sd_seas = 1", {
+  prior <- RW_Seas(n=3)
+  ans_obtained <- str_call_args_sd_seas(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_sd_seas' works - sd_seas not 1", {
+  prior <- RW_Seas(n=2,sd_seas = 0.3)
+  ans_obtained <- str_call_args_sd_seas(prior)
+  ans_expected <- "sd_seas=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_sd_slope' ---------------------------------------------------
+
+test_that("'str_call_args_sd_slope' works - sd_slope = 1", {
+  prior <- RW2()
+  ans_obtained <- str_call_args_sd_slope(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_sd_slope' works - sd_slope not 1", {
+  prior <- RW2(sd = 0.3)
+  ans_obtained <- str_call_args_sd_slope(prior)
+  ans_expected <- "sd=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'str_call_args_svd' --------------------------------------------------------
 
 test_that("'str_call_args_svd' works - total", {

@@ -866,11 +866,8 @@ RW_Seas <- function(n_seas, s = 1, s_seas = 1, sd_seas = 1, along = NULL) {
 #' where `s` is provided by the user.
 #'
 #' @inheritParams AR
-#' @param sd_slope Standard deviation in prior
+#' @param sd Standard deviation in prior
 #' for initial slope. Default is `1`.
-#' @param sd_seas Standard deviation for
-#' distribution of seasonal effects.
-#' Default is `1`.
 #'
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
@@ -975,6 +972,8 @@ RW2 <- function(s = 1, sd = 1, along = NULL) {
 #' @param n_seas Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
+#' @param sd Standard deviation in prior
+#' for initial slope. Default is `1`.
 #' @param s_seas Scale for prior for innovations
 #' in the seasonal effect. Default is `1`.
 #' Can be `0`.
@@ -1066,7 +1065,7 @@ RW2_Seas <- function(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NUL
 #' to follow a [second-order random walk][RW2()].
 #'
 #' @inheritParams AR
-#' @param sd_slope Standard deviation in prior
+#' @param sd Standard deviation in prior
 #' for initial slope of random walk. Default is `1`.
 #' @param n_comp Number of spline basis functions (components)
 #' to use.
@@ -1411,6 +1410,8 @@ SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
 #' @inheritParams SVD
 #' @param n_coef Number of AR coefficients in `SVD_RW()`.
 #' @param s Scale for standard deviations terms.
+#' @param sd Standard deviation in prior
+#' for initial slope. Default is `1`.
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient in `SVD_AR()`.
 #' Defaults are `0.8` and `0.98`.
