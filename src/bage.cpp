@@ -95,11 +95,11 @@ Type logpost_seasvary(vector<Type> seas,
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_season - 1; i_along++) {
-      int i = i_along + i_by * n_by;
+      int i = i_along + i_by * n_along;
       ans += dnorm(seas[i], Type(0), sd_init, true);
     }
     for (int i_along = n_season - 1; i_along < n_along; i_along++) {
-      int i_curr = i_along + i_by * n_by;
+      int i_curr = i_along + i_by * n_along;
       int i_prev = i_curr - n_season + 1;
       ans += dnorm(seas[i_curr], seas[i_prev], sd_innov, true);
     }

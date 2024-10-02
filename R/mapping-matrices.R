@@ -258,18 +258,18 @@ make_matrix_along_by_effectfree_rw <- function(along, dimnames_term, var_time, v
 #' @param var_time Name of time dimension, or NULL
 #' @param var_age Name of age dimension, or NULL
 #' @param var_sexgender Name of sex/gender dimension, or NULL
-#' @param drop_first_time Whether to omit the first
-#' element of the 'time' dimension.
+#' @param drop_first_along Whether to omit the first
+#' element of the 'along' dimension.
 #'
 #' @returns A matrix
 #'
 #' @noRd
-make_matrix_along_by_effectfree_svd <- function(prior,
-                                                dimnames_term,
-                                                var_time,
-                                                var_age,
-                                                var_sexgender,
-                                                drop_first_time) {
+make_matrix_along_by_svd <- function(prior,
+                                     dimnames_term,
+                                     var_time,
+                                     var_age,
+                                     var_sexgender,
+                                     drop_first_along) {
   labels_svd <- get_labels_svd(prior = prior,
                                dimnames_term = dimnames_term,
                                var_sexgender = var_sexgender)
@@ -282,7 +282,7 @@ make_matrix_along_by_effectfree_svd <- function(prior,
   if (has_var_time) {
     i_time <- match(var_time, nms_nonagesex, nomatch = 0L)
     i_along <- i_along + i_time
-    if (drop_first_time)
+    if (drop_first_along)
       dimnames_new[[i_along]] <- dimnames_new[[i_along]][-1L]
   }
   make_matrix_along_by_inner(i_along = i_along,
@@ -327,6 +327,47 @@ make_matrix_along_by_inner <- function(i_along, dimnames_term) {
     names(dimnames(ans))[[2L]] <- ""
   }
   ans
+}
+
+
+## HAS_TESTS
+#' Make Mapping Matrix for Spline Components
+#'
+#' Spline components consist of
+#' free parameters, plus a zero at the start
+#' of each subseries
+#'
+#' @param prior Object of class 'bage_prior_spline'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#' @param drop_first_along Whether to drop first value
+#' of 'along' (as required to create effectfree)
+#'
+#' @returns A matrix
+#'
+#' @noRd
+make_matrix_along_by_spline <- function(prior,
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        drop_first_along) {
+  along <- prior$specific$along
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- length(dimnames_term[[i_along]])
+  n_comp <- get_n_comp_spline(prior = prior,
+                              n_along = n_along)
+  s <- seq_len(n_comp)
+  if (drop_first_along)
+    s <- s[-1L]
+  labels_along <- paste0("comp", s)
+  dimnames_term[[i_along]] <- labels_along
+  make_matrix_along_by_inner(i_along = i_along,
+                             dimnames_term = dimnames_term)
 }
 
 
@@ -422,6 +463,35 @@ make_matrix_effectfree_effect_svd <- function(prior,
 }
 
 
+## HAS_TESTS
+#' Make Matrix from Free Parameters for Spline to the
+#' Spline
+#'
+#' Involves adding 0 at the start of each 'by'
+#'
+#' @param prior Object of class 'bage_prior_spline'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#'
+#' @returns A sparse matrix
+#' 
+#' @noRd
+make_matrix_effectfree_spline <- function(prior,
+                                          dimnames_term,
+                                          var_time,
+                                          var_age) {
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age)
+  n_along <- nrow(matrix_along_by_effectfree)
+  n_by <- ncol(matrix_along_by_effectfree)
+  X <- rbind(0, Matrix::.sparseDiagonal(n_along))
+  I <- Matrix::.sparseDiagonal(n_by)
+  Matrix::kronecker(I, X)
+}
 
 
 ## HAS_TESTS

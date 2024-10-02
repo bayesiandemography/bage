@@ -157,7 +157,8 @@ components.bage_ssvd <- function(object,
 #' @inheritParams components.bage_ssvd
 #' @param x An object of class `"bage_ssvd"`.
 #' @param n_draw Number of random draws to generate.
-#'
+#' @param ... Unused. Included for generic consistency only.
+#' 
 #' @returns A tibble
 #'
 #' @seealso
@@ -190,6 +191,7 @@ generate.bage_ssvd <- function(x,
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
+  check_has_no_dots(...)
   n_comp_x <- get_n_comp(x)
   if (is.null(n_comp))
     n_comp <- ceiling(n_comp_x / 2)

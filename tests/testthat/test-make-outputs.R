@@ -170,7 +170,7 @@ test_that("'center_svd_spline' works - center_along is FALSE", {
   expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"]))
               < 0.000001)
   expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"]))
-              < 0.000001)
+              > 0.000001)
   expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
               < 0.000001)
   expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
@@ -726,7 +726,7 @@ test_that("'make_draws_components' works - has spline", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + length(unique(data$age)) + 3L +
+                   length(make_effectfree(mod)) + 1L + 1L + 2L + length(unique(data$age)) +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -1547,7 +1547,10 @@ test_that("'make_spline' works", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_spline(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[22:31,]
+  ans_expected <- rbind(0,
+                        effectfree[22:25,],
+                        0,
+                        effectfree[26:29,])
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1868,7 +1871,7 @@ test_that("'infer_trend_cyc_seas_err_seasfix' works", {
                                                    components = components)
   ans_expected <- components
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- seas[c(1,4,2,5,3,6,1,4,2,5,3,6)]
+  seas <- vctrs::vec_c(0, 0, seas[c(1,3,2,4)], 0, 0, seas[c(1,3,2,4)])
   level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
@@ -1881,12 +1884,12 @@ test_that("'infer_trend_cyc_seas_err_seasfix' works", {
                           level = level,
                           .fitted = trend)
   ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
-  ans_expected <- vctrs::vec_rbind(ans_expected, seasonal, trend)
+  ans_expected <- vctrs::vec_rbind(ans_expected, trend, seasonal)
   expect_equal(ans_obtained, ans_expected)
 })
 
 
-## 'infer_trend_cyc_seas_err_seasfix' -----------------------------------------------
+## 'infer_trend_cyc_seas_err_seasfix_forecast' --------------------------------
 
 test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
   set.seed(0)
@@ -1946,18 +1949,34 @@ test_that("'infer_trend_cyc_seas_err_seasvary' works", {
                                                     var_time = mod$var_time,
                                                     var_age = mod$var_age,
                                                     components = components)
-  ans_expected <- components
-  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- seas
-  ans_expected$component[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"] <- "seasonal"
-  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
-  trend <- effect - seas
-  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  level <- components$level[components$component == "effect" & components$term == "sex:time"]
+  seas <- components$.fitted[components$component == "hyperrand" & components$term == "sex:time"]
+  seasonal <- tibble::tibble(term = "sex:time",
+                             component = "seasonal",
+                             level = level,
+                             .fitted = vctrs::vec_c(0, 0,
+                                                    seas[c(1,15,2,16)],
+                                                    0, 0,
+                                                    seas[c(3,17,4,18)],
+                                                    0, 0,
+                                                    seas[c(5,19,6,20)],
+                                                    0, 0,
+                                                    seas[c(7,21,8,22)],
+                                                    0, 0,
+                                                    seas[c(9,23,10,24)],
+                                                    0, 0,
+                                                    seas[c(11,25,12,26)],
+                                                    0, 0,
+                                                    seas[c(13,27,14,28)]))
+  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
   trend <- tibble::tibble(term = "sex:time",
                           component = "trend",
                           level = level,
-                          .fitted = trend)
-  ans_expected <- vctrs::vec_rbind(ans_expected, trend)
+                          .fitted = effect - seasonal$.fitted)
+  ans_expected <- vctrs::vec_rbind(components[!(components$component == "hyperrand" &
+                                                  components$term == "sex:time"),],
+                                   trend,
+                                   seasonal)
   expect_equal(ans_obtained, ans_expected)
 })
 

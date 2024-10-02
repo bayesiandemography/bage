@@ -139,6 +139,12 @@ center_svd_spline <- function(components,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
         key_term <- "svd"
+        matrix_along_by <- make_matrix_along_by_svd(prior = prior,
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender,
+                                                    drop_first_along = FALSE)
       }
       else {
         levels <- make_levels_spline_term(prior = prior,
@@ -146,15 +152,15 @@ center_svd_spline <- function(components,
                                           var_time = var_time,
                                           var_age = var_age)
         key_term <- "spline"
+        matrix_along_by <- make_matrix_along_by_spline(prior = prior,
+                                                       dimnames_term = dimnames_term,
+                                                       var_time = var_time,
+                                                       var_age = var_age,
+                                                       drop_first_along = FALSE)
       }
       key_term <- paste(nm, key_term, levels)
       indices_comp <- match(key_term, key_components)
       val_term <- components$.fitted[indices_comp]
-      matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                         dimnames_term = dimnames_term,
-                                                         var_time = var_time,
-                                                         var_age = var_age,
-                                                         var_sexgender = var_sexgender)
       val_term <- center_within_along_by(x = val_term, 
                                          matrix_along_by = matrix_along_by,
                                          center_along)
@@ -1102,6 +1108,7 @@ make_levels_spline <- function(mod, unlist) {
 }
 
 
+## HAS_TESTS
 #' Make Levels for Spline
 #'
 #' @param prior Object of class 'bage_prior_spline'
@@ -1344,10 +1351,33 @@ make_scaled_eigen <- function(prec) {
 #' @noRd
 make_spline <- function(mod, effectfree) {
   priors <- mod$priors
-  is_spline <- vapply(priors, is_spline, FALSE)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  n_term <- length(priors)
+  ans <- vector(mode = "list", length = n_term)
   lengths_effectfree <- make_lengths_effectfree(mod)
-  is_spline <- rep(is_spline, times = lengths_effectfree)
-  effectfree[is_spline, , drop = FALSE]
+  to <- 0L
+  for (i_term in seq_len(n_term)) {
+    length_effectfree <- lengths_effectfree[[i_term]]
+    to <- to + length_effectfree
+    prior <- priors[[i_term]]
+    if (is_spline(prior)) {
+      s <- seq.int(to = to, length.out = length_effectfree)
+      vals <- effectfree[s, , drop = FALSE]
+      along <- prior$specific$along
+      dimnames_term <- dimnames_terms[[i_term]]
+      m <- make_matrix_effectfree_spline(prior = prior,
+                                         dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age)
+      vals <- m %*% vals
+      vals <- as.matrix(vals)
+      ans[[i_term]] <- vals
+    }
+  }
+  ans <- do.call(rbind, ans)
+  ans
 }
 
 
@@ -1413,10 +1443,10 @@ make_svd <- function(mod, effectfree) {
 make_term_spline <- function(mod) {
   priors <- mod$priors
   nms_terms <- names(priors)
-  lengths_effectfree <- make_lengths_effectfree(mod)
   is_spline <- vapply(priors, is_spline, FALSE)
   nms_terms_spline <- nms_terms[is_spline]
-  lengths_spline <- lengths_effectfree[is_spline]
+  levels_spline <- make_levels_spline(mod, unlist = FALSE)
+  lengths_spline <- lengths(levels_spline[is_spline])
   ans <- rep(nms_terms_spline, times = lengths_spline)
   ans <- factor(ans, levels = nms_terms_spline)
   ans
@@ -1746,13 +1776,17 @@ infer_trend_cyc_seas_err_seasfix <- function(prior,
                                                         var_age = var_age)
   n_along <- nrow(matrix_along_by_effect)
   n_by <- ncol(matrix_along_by_effect)
-  matrix_along_by_seas <- matrix(seq_along(seas) - 1L, nrow = n_seas, ncol = n_by)
-  seasonal <- rep(seas[[1L]], times = n_along * n_by)
+  n_draw <- rvec::n_draw(seas)
+  seasonal <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  seasonal[] <- 0
   for (i_by in seq_len(n_by)) {
     for (i_along in seq_len(n_along)) {
-      i_seas <- ((i_along - 1L) %% n_seas) + (i_by - 1L) * n_seas + 1L
-      i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
-      seasonal[i_seasonal] <- seas[i_seas]
+      offset_seas <- (i_along - 1L) %% n_seas
+      if (offset_seas > 0L) {
+        i_seas <- offset_seas + (i_by - 1L) * (n_seas - 1L)
+        i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
+        seasonal[i_seasonal] <- seas[i_seas]
+      }
     }
   }
   trend <- effect - seasonal
@@ -1766,7 +1800,7 @@ infer_trend_cyc_seas_err_seasfix <- function(prior,
                           level = level,
                           .fitted = trend)
   ans <- components[!is_seasonal, , drop = FALSE]
-  ans <- vctrs::vec_rbind(ans, seasonal, trend)
+  ans <- vctrs::vec_rbind(ans, trend, seasonal)
   ans
 }
 
@@ -1823,20 +1857,47 @@ infer_trend_cyc_seas_err_seasvary <- function(prior,
                                               var_time,
                                               var_age,
                                               components) {
+  n_seas <- prior$specific$n_seas
+  along <- prior$specific$along
   nm <- dimnames_to_nm(dimnames_term)
   is_seasonal <- with(components, (term == nm) & (component == "hyperrand"))
   is_effect <- with(components, (term == nm) & (component == "effect"))
-  seasonal <- components$.fitted[is_seasonal]
+  seas <- components$.fitted[is_seasonal]
   effect <- components$.fitted[is_effect]
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  n_draw <- rvec::n_draw(seas)
+  seasonal <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  seasonal[] <- 0
+  n_along_seas <- length(seas) %/% n_by
+  for (i_by in seq_len(n_by)) {
+    for (i_along in seq_len(n_along)) {
+      offset_seas <- (i_along - 1L) %% n_seas
+      if (offset_seas > 0L) {
+        step_seas <- (i_along - 1L) %/% n_seas
+        i_seas <- offset_seas + step_seas * (n_seas - 1L) + (i_by - 1L) * n_along_seas
+        i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
+        seasonal[i_seasonal] <- seas[i_seas]
+      }
+    }
+  }
   trend <- effect - seasonal
-  components$component[is_seasonal] <- "seasonal"
   level <- components$level[is_effect]
+  seasonal <- tibble::tibble(term = nm,
+                             component = "seasonal",
+                             level = level,
+                             .fitted = seasonal)
   trend <- tibble::tibble(term = nm,
                           component = "trend",
                           level = level,
                           .fitted = trend)
-  ## combine
-  vctrs::vec_rbind(components, trend)
+  ans <- components[!is_seasonal, , drop = FALSE]
+  ans <- vctrs::vec_rbind(ans, trend, seasonal)
+  ans
 }
 
 

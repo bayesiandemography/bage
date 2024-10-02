@@ -1722,6 +1722,7 @@ str_call_args_s_seas <- function(prior) {
     sprintf("s_seas=%s", scale_seas)
 }
 
+
 ## HAS_TESTS
 #' Compile Args for 'scale' Part of Prior for 'str_call_prior'
 #'
@@ -1737,6 +1738,41 @@ str_call_args_scale <- function(prior) {
   else
     sprintf("s=%s", scale)
 }
+
+
+## HAS_TESTS
+#' Compile Args for 'sd_seas' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'sd_seas' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_sd_seas <- function(prior) {
+  sd_seas <- prior$specific$sd_seas
+  if (identical(sd_seas, 1))
+    ""
+  else
+    sprintf("sd_seas=%s", sd_seas)
+}
+
+
+## HAS_TESTS
+#' Compile Args for sd_slope Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with sd_slope'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_sd_slope <- function(prior) {
+  sd_slope <- prior$specific$sd_slope
+  if (identical(sd_slope, 1))
+    ""
+  else
+    sprintf("sd=%s", sd_slope)
+}
+
 
 ## HAS_TESTS
 #' Compile Args for SVD Part of Prior for 'str_call_prior'

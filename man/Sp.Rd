@@ -13,12 +13,12 @@ to use.}
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
+\item{sd}{Standard deviation in prior
+for initial slope of random walk. Default is \code{1}.}
+
 \item{along}{Name of the variable to be used
 as the "along" variable. Only used with
 interactions.}
-
-\item{sd_slope}{Standard deviation in prior
-for initial slope of random walk. Default is \code{1}.}
 }
 \value{
 An object of class \code{"bage_prior_spline"}.
