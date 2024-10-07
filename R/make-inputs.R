@@ -716,37 +716,6 @@ make_map_effectfree_fixed <- function(mod) {
 
 
 ## HAS_TESTS
-#' Convert 'matrix_agesex' or 'matrix_along_by'
-#' to Sparse Index Matrix
-#'
-#' @param m Matrix produced by
-#' 'make_matrix_agesex' or 'make_matrix_along_by'
-#'
-#' @returns A sparse matrix consisting of
-#' 1s and 0s
-#'
-#' @noRd
-make_index_matrix <- function(m) {
-  n <- length(m)
-  i <- as.integer(m) + 1L
-  j <- seq_len(n)
-  x <- rep.int(1L, times = n)
-  ans <- Matrix::sparseMatrix(i = i,
-                              j = j,
-                              x = x)
-  rn_old <- rownames(m)
-  cn_old <- colnames(m)
-  if (is.null(cn_old))
-    cn_new <- rep(rn_old, times = ncol(m))
-  else
-    cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
-  rn_new <- cn_new[match(seq_len(n), m + 1L)]
-  dimnames(ans) <- list(rn_new, cn_new)
-  ans
-}
-
-
-## HAS_TESTS
 #' Make Matrices Mapping Free Parameters to Along and By Dimensions
 #'
 #' Similar to 'matrix_along_by', but only to free parameters

@@ -4,7 +4,15 @@
 \alias{RW2_Seas}
 \title{Second-Order Random Walk Prior with Seasonal Effect}
 \usage{
-RW2_Seas(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NULL)
+RW2_Seas(
+  n_seas,
+  s = 1,
+  sd = 1,
+  sd_slope = 1,
+  s_seas = 1,
+  sd_seas = 1,
+  along = NULL
+)
 }
 \arguments{
 \item{n_seas}{Number of seasons}
@@ -12,20 +20,20 @@ RW2_Seas(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NULL)
 \item{s}{Scale for prior for innovations in
 the random walk. Default is \code{1}.}
 
-\item{sd}{Standard deviation in prior
-for initial slope. Default is \code{1}.}
+\item{sd}{Standard deviation for
+initial value of random walk.
+Default is \code{1}.}
 
-\item{s_seas}{Scale for prior for innovations
-in the seasonal effect. Default is \code{1}.
+\item{sd_slope}{Standard deviation
+for initial slope or random walk. Default is \code{1}.}
+
+\item{s_seas}{Scale for innovations
+in seasonal effects. Default is \code{1}.
 Can be \code{0}.}
 
 \item{sd_seas}{Standard deviation for
-distribution of seasonal effects.
+initial values of seasonal effects.
 Default is \code{1}.}
-
-\item{along}{Name of the variable to be used
-as the "along" variable. Only used with
-interactions.}
 }
 \value{
 Object of class \code{"bage_prior_rw2seasvary"}

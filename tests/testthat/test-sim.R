@@ -413,7 +413,7 @@ test_that("'draw_vals_linar' works - along dimension is first", {
 
 ## 'draw_vals_rw' ----------------------------------------------------------
 
-test_that("'draw_vals_rw' works - n_by = 1", {
+test_that("'draw_vals_rw' works - n_by = 1, sd_init 0", {
     set.seed(0)
     prior <- RW()
     n_sim <- 1000
@@ -422,6 +422,7 @@ test_that("'draw_vals_rw' works - n_by = 1", {
     matrix_along_by <- matrix(0:199, 200)
     set.seed(0)
     ans <- draw_vals_rw(sd = sd,
+                        sd_init = 0,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
     expect_equal(unname(apply(ans, 2, function(x) sd(diff(x)))),
@@ -432,7 +433,7 @@ test_that("'draw_vals_rw' works - n_by = 1", {
                      list(as.character(seq_len(200)), NULL))
 })
 
-test_that("'draw_vals_rw' works - along dimension is first", {
+test_that("'draw_vals_rw' works - along dimension is first, sd_init 0.2", {
   set.seed(0)
   prior <- RW()
   n_sim <- 10
@@ -442,6 +443,7 @@ test_that("'draw_vals_rw' works - along dimension is first", {
   levels_effect <- 1:3000
   set.seed(0)
   ans <- draw_vals_rw(sd = sd,
+                      sd_init = 0.2,
                       matrix_along_by = matrix_along_by,
                       levels_effect = levels_effect)
   expect_identical(dim(ans), c(3000L, 10L))
@@ -462,6 +464,7 @@ test_that("'draw_vals_rw' works - along dimension is second", {
   levels_effect <- 1:3000
   set.seed(0)
   ans <- draw_vals_rw(sd = sd,
+                      sd_init = 0.2,
                       matrix_along_by = matrix_along_by,
                       levels_effect = levels_effect)
   expect_identical(dim(ans), c(3000L, 10L))
@@ -486,6 +489,7 @@ test_that("'draw_vals_rw2' works", {
   levels_effect <- 1:100
   set.seed(0)
   ans <- draw_vals_rw2(sd = sd,
+                       sd_init = 0,
                        sd_slope = 0.5,
                        matrix_along_by = matrix(0:99, nr = 100),
                        levels_effect = levels_effect)
@@ -506,6 +510,7 @@ test_that("'draw_vals_rw2' works - along dimension is first", {
   levels_effect <- 1:3000
   set.seed(0)
   ans <- draw_vals_rw2(sd = sd,
+                       sd_init = 0.5,
                        sd_slope = 0.1,
                        matrix_along_by = matrix_along_by,
                        levels_effect = levels_effect)

@@ -4,7 +4,7 @@
 \alias{Lin_AR}
 \title{Linear Prior with Autoregressive Errors}
 \usage{
-Lin_AR(n_coef = 2, s = 1, sd = 1, along = NULL)
+Lin_AR(n_coef = 2, s = 1, sd_slope = 1, along = NULL)
 }
 \arguments{
 \item{n_coef}{Number of lagged terms in the
@@ -13,7 +13,7 @@ model, ie the order of the model. Default is \code{2}.}
 \item{s}{Scale for the innovations in the
 AR process. Default is \code{1}.}
 
-\item{sd}{Standard deviation in the prior for
+\item{sd_slope}{Standard deviation in the prior for
 the slope of the line. Larger values imply
 steeper slopes. Default is 1.}
 
@@ -42,7 +42,7 @@ default is 2.
 Argument \code{s} controls the size of the innovations.
 Smaller values tend to give smoother estimates.
 
-Argument \code{sd} controls the size of the slopes of
+Argument \code{sd_slope} controls the size of the slopes of
 the lines. Larger values can give more steeply
 sloped lines.
 }
@@ -75,9 +75,9 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(0, \text{sd}^2)}
+\deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+\deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
 
 Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -96,7 +96,7 @@ boundary-avoiding prior
 
 \examples{
 Lin_AR()
-Lin_AR(n_coef = 3, s = 0.5, sd = 2)
+Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
 }
 \seealso{
 \itemize{

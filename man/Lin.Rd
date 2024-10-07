@@ -4,13 +4,13 @@
 \alias{Lin}
 \title{Linear Prior with Independent Normal Errors}
 \usage{
-Lin(s = 1, sd = 1, along = NULL)
+Lin(s = 1, sd_slope = 1, along = NULL)
 }
 \arguments{
 \item{s}{Scale for the prior for the errors.
 Default is \code{1}.}
 
-\item{sd}{Standard deviation in prior for slope
+\item{sd_slope}{Standard deviation in prior for slope
 of line. Default is 1.}
 
 \item{along}{Name of the variable to be used
@@ -34,7 +34,7 @@ of the "by" variables.
 Argument \code{s} controls the size of the errors.
 Smaller values tend to give smoother estimates.
 
-Argument \code{sd} controls the size of the slopes of
+Argument \code{sd_slope} controls the size of the slopes of
 the lines. Larger values can give more steeply
 sloped lines.
 }
@@ -62,9 +62,9 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(0, \text{sd}^2)}
+\deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(0, \text{sd}^2).}
+\deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
 
 Parameter \eqn{\tau} has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
@@ -72,7 +72,7 @@ Parameter \eqn{\tau} has a half-normal prior
 
 \examples{
 Lin()
-Lin(s = 0.5, sd = 2)
+Lin(s = 0.5, sd_slope = 2)
 Lin(along = "cohort")
 }
 \seealso{

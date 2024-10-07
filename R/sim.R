@@ -476,18 +476,19 @@ draw_vals_linar <- function(intercept, slope, sd, coef, matrix_along_by, labels)
 #' Each column is one draw.
 #'
 #' @param sd Vector of values
+#' @param sd_init Standard deviation of initial values. 
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #' @param levels_effect Names of elements
 #'
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw <- function(sd, matrix_along_by, levels_effect) {
+draw_vals_rw <- function(sd, sd_init, matrix_along_by, levels_effect) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[1L, ] <- 0
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_init)
   sd <- rep(sd, each = n_by)
   for (i_along in seq.int(from = 2L, to = n_along))
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
@@ -514,14 +515,14 @@ draw_vals_rw <- function(sd, matrix_along_by, levels_effect) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_rw2 <- function(sd, sd_slope, matrix_along_by, levels_effect) {
+draw_vals_rw2 <- function(sd, sd_init, sd_slope, matrix_along_by, levels_effect) {
   n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   sd <- rep(sd, each = n_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[1L, ] <- 0
-  ans[2L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_slope)
+  ans[1L, ] <- stats::rnorm(n = n_by * n_sim, sd = sd_init)
+  ans[2L, ] <- stats::rnorm(n = n_by * n_sim, mean = ans[1L, ], sd = sd_slope)
   for (i_along in seq.int(from = 3L, to = n_along))
     ans[i_along, ] <- stats::rnorm(n = n_by * n_sim,
                                    mean = 2 * ans[i_along - 1L, ] - ans[i_along - 2L, ],
@@ -570,8 +571,8 @@ draw_vals_seasfix <- function(n_seas, sd_init, matrix_along_by, n_sim) {
 #' Each column is one draw.
 #'
 #' @param n_seas Number of seasons
-#' @param sd_seas Vector of values. SD of innoviations
 #' @param sd_init Scalar. SD of initial values.
+#' @param sd_innov Vector of values. SD of innoviations
 #' @param matrix_along_by Matrix with map for along and by dimensions
 #'
 #' @returns A matrix, with dimnames.

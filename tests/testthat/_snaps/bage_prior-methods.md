@@ -35,7 +35,7 @@
     Output
         Lin() 
              s: 1
-            sd: 1
+      sd_slope: 1
          along: NULL
 
 ---
@@ -46,7 +46,7 @@
         Lin_AR() 
         n_coef: 2
              s: 1
-            sd: 1
+      sd_slope: 1
            min: -1
            max: 1
          along: NULL
@@ -107,7 +107,7 @@
     Output
         RW2() 
              s: 1
-            sd: 1
+      sd_slope: 1
          along: NULL
 
 ---
@@ -118,7 +118,7 @@
         RW2_Seas(n_seas=2,s_seas=0) 
         n_seas: 2
              s: 1
-            sd: 1
+      sd_slope: 1
         s_seas: 0
        sd_seas: 1
          along: NULL
@@ -143,7 +143,7 @@
         Sp() 
         n_comp: NULL
              s: 1
-            sd: 1
+      sd_slope: 1
          along: NULL
 
 ---
@@ -251,7 +251,7 @@
           ssvd: HMD
         n_comp: 3
              s: 1
-            sd: 1
+      sd_slope: 1
 
 ---
 
@@ -263,5 +263,5 @@
         n_comp: 3
          indep: FALSE
              s: 1
-            sd: 1
+      sd_slope: 1
 
