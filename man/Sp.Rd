@@ -4,7 +4,7 @@
 \alias{Sp}
 \title{P-Spline Prior}
 \usage{
-Sp(n_comp = NULL, s = 1, sd = 1, along = NULL)
+Sp(n_comp = NULL, s = 1, sd_slope = 1, along = NULL)
 }
 \arguments{
 \item{n_comp}{Number of spline basis functions (components)
@@ -13,7 +13,7 @@ to use.}
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
-\item{sd}{Standard deviation in prior
+\item{sd_slope}{Standard deviation in prior
 for initial slope of random walk. Default is \code{1}.}
 
 \item{along}{Name of the variable to be used

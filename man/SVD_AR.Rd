@@ -13,7 +13,7 @@ SVD_AR1(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s = 1)
 
 SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1)
 
-SVD_RW2(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd = 1)
+SVD_RW2(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd_slope = 1)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
@@ -37,7 +37,7 @@ See below for details.}
 for autocorrelation coefficient in \code{SVD_AR()}.
 Defaults are \code{0.8} and \code{0.98}.}
 
-\item{sd}{Standard deviation in prior
+\item{sd_slope}{Standard deviation in prior
 for initial slope. Default is \code{1}.}
 }
 \value{

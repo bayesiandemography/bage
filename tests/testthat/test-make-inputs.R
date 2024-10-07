@@ -1109,33 +1109,6 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 })
 
 
-## 'make_index_matrix' -------------------------------------------------
-
-test_that("'make_index_matrix' works with valid inputs", {
-  set.seed(0)
-  data <- expand.grid(sex = c("F", "M"),
-                      age = 0:3,
-                      reg = c("A", "B"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(deaths ~ reg * age * sex,
-                  data = data,
-                  exposure = popn)
-  matrix_agesex <- make_matrix_agesex(dimnames_term = mod$dimnames_terms[["reg:age:sex"]],
-                                      var_age = mod$var_age,
-                                      var_sexgender = mod$var_sexgender)
-  ans_obtained <- make_index_matrix(matrix_agesex)
-  cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
-  rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
-  ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
-                                             2L, 4L, 6L, 8L, 10L, 12L, 14L, 16L),
-                                       j = 1:16,
-                                       x = rep(1L, 16),
-                                       dimnames = list(rn, cn))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_offset' --------------------------------------------------------------
 
 test_that("'make_offset' works with valid inputs - no NA", {

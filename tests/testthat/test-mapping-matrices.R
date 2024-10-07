@@ -174,6 +174,33 @@ test_that("'make_i_time' gives correct error when 'var_time' is NULL", {
 })
 
 
+## 'make_index_matrix' -------------------------------------------------
+
+test_that("'make_index_matrix' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(sex = c("F", "M"),
+                      age = 0:3,
+                      reg = c("A", "B"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ reg * age * sex,
+                  data = data,
+                  exposure = popn)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = mod$dimnames_terms[["reg:age:sex"]],
+                                      var_age = mod$var_age,
+                                      var_sexgender = mod$var_sexgender)
+  ans_obtained <- make_index_matrix(matrix_agesex)
+  cn <- paste(0:3, rep(c("F", "M"), each = 4), rep(c("A", "B"), each = 8), sep = ".")
+  rn <- paste(rep(0:3, each = 2), rep(c("F", "M"), each = 8), c("A", "B"), sep = ".")
+  ans_expected <- Matrix::sparseMatrix(i = c(1L, 3L, 5L, 7L, 9L, 11L, 13L, 15L,
+                                             2L, 4L, 6L, 8L, 10L, 12L, 14L, 16L),
+                                       j = 1:16,
+                                       x = rep(1L, 16),
+                                       dimnames = list(rn, cn))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_matrix_agesex' -------------------------------------------------------
 
 test_that("'make_matrix_agesex' works - single age dimension", {
@@ -359,6 +386,25 @@ test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
 })
 
 
+## 'make_matrix_along_by_drop_first_along' ------------------------------------
+
+test_that("'make_matrix_along_by_drop_first_along' works - reg x time interaction", {
+  dimnames <- list(reg = 1:4,
+                   time = 2001:2010)
+  var_age <- "age"
+  var_time <- "time"
+  ans_obtained <- make_matrix_along_by_drop_first_along(along = "time",
+                                                        var_time = var_time,
+                                                        var_age = var_age,
+                                                        dimnames_term = dimnames)
+  ans_expected <- t(matrix(0:35,
+                           nr = 4,
+                           dimnames = list(reg = 1:4,
+                                           time = 2002:2010)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_matrix_along_by_effect' ----------------------------------------------
 
 test_that("'make_matrix_along_by_effect' works with single dimension", {
@@ -390,25 +436,6 @@ test_that("'make_matrix_along_by_effect' works with two dimensions", {
   ans_expected <- t(matrix(0:19, nr = 10))
   dimnames(ans_expected) <- list(time = 2001:2002,
                                  age = 0:9)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_matrix_along_by_effectfree_rw' ----------------------------------------
-
-test_that("'make_matrix_along_by_effectfree_rw' works - reg x time interaction", {
-  dimnames <- list(reg = 1:4,
-                   time = 2001:2010)
-  var_age <- "age"
-  var_time <- "time"
-  ans_obtained <- make_matrix_along_by_effectfree_rw(along = "time",
-                                                      var_time = var_time,
-                                                      var_age = var_age,
-                                                      dimnames_term = dimnames)
-  ans_expected <- t(matrix(0:35,
-                           nr = 4,
-                           dimnames = list(reg = 1:4,
-                                           time = 2002:2010)))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -641,37 +668,61 @@ test_that("'make_matrix_along_by_spline' works - sex x age reg interaction, drop
 })
 
 
-## 'make_matrix_effectfree_effect_rw' -----------------------------------------
+## 'make_matrix_along_first' --------------------------------------------------
 
-test_that("'make_matrix_effectfree_effect_rw' works - age x time interaction", {
-  along <- "time"
-  dimnames <- list(age = 0:4,
-                   time = 2001:2003)
-  var_age <- "age"
-  var_time <- "time"
-  ans <- make_matrix_effectfree_effect_rw(along = along,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          dimnames_term = dimnames)
-  expect_identical(dim(ans), c(15L, 10L))
-  expect_identical(rownames(ans), paste(rep(2001:2003, each = 5), 0:4, sep = "."))
+test_that("'make_matrix_along_first' works - original vector has along first", {
+  m_along_by <- matrix(0:11, nrow = 2)
+  m <- make_matrix_along_first(m_along_by)
+  expect_identical(1:12, as.integer(m %*% 1:12))
+})
+
+test_that("'make_matrix_along_first' works - original vector has along second", {
+  m_along_by <- t(matrix(0:11, nrow = 4))
+  m <- make_matrix_along_first(m_along_by)
+  expect_identical(as.integer(m %*% 1:12),
+                   c(1L, 5L, 9L, 2L, 6L, 10L, 3L, 7L, 11L, 4L, 8L, 12L))
 })
 
 
-## 'make_matrix_effectfree_effect_svd' ----------------------------------------
+## 'make_matrix_append_zero' --------------------------------------------------
 
-test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age main effect", {
+test_that("'make_matrix_append_zero' works - along first", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(time = 2001:2003, age = 0:4))
+  matrix_along_by <- matrix(0:14, nr = 3)
+  m <- make_matrix_append_zero(matrix_along_by)
+  ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 4)
+  ans_expected <- unname(rbind(0L, v))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_append_zero' works - along second", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(age = 0:2, time = 2001:2005))
+  matrix_along_by <- t(matrix(0:14, nr = 3))
+  m <- make_matrix_append_zero(matrix_along_by)
+  ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 3)
+  ans_expected <- unname(cbind(0L, v))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_matrix_expand_svd' ---------------------------------------------------
+
+test_that("'make_matrix_expand_svd' works with bage_prior_svd - age main effect", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 3)
   dimnames_term <- list(age = c("0-4", "5-9"))
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                    dimnames_term = dimnames_term,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender)
+  ans_obtained <- make_matrix_expand_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
   ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
@@ -680,7 +731,7 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age m
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age-sex interaction, joint", {
+test_that("'make_matrix_expand_svd' works with bage_prior_svd - age-sex interaction, joint", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 3, indep = FALSE)
   dimnames_term <- list(sex = c("Female", "Male"),
@@ -688,11 +739,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age-s
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                    dimnames_term = dimnames_term,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender)
+  ans_obtained <- make_matrix_expand_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
   ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][c(1,3,2,4),1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
@@ -701,7 +752,7 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age-s
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x reg interaction", {
+test_that("'make_matrix_expand_svd' works with bage_prior_svd - age x reg interaction", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 3)
   dimnames_term <- list(age = c("0-4", "5-9"),
@@ -709,11 +760,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                    dimnames_term = dimnames_term,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender)
+  ans_obtained <- make_matrix_expand_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
   m2 <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
@@ -724,7 +775,7 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - age x
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x reg x age interaction", {
+test_that("'make_matrix_expand_svd' works with bage_prior_svd - sex x reg x age interaction", {
   prior <- SVD(HMD)
   dimnames_term = list(sex = c("F", "M"),
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"),
@@ -732,11 +783,11 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_effectfree_effect_svd(prior = prior,
-                                                    dimnames_term = dimnames_term,
-                                                    var_time = var_time,
-                                                    var_age = var_age,
-                                                    var_sexgender = var_sexgender)
+  ans_obtained <- make_matrix_expand_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
   m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
   matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
@@ -748,36 +799,75 @@ test_that("'make_matrix_effectfree_effect_svd' works with bage_prior_svd - sex x
 })
 
 
-## 'make_matrix_effectfree_spline' --------------------------------------------
+## 'make_matrix_spline_effect' ------------------------------------------------
 
-test_that("'make_matrix_effectfree_splien' works with main effect", {
+test_that("'make_matrix_spline_effect' works with main effect, drop_first_along = TRUE", {
   prior <- Sp(n = 4)
   dimnames_term <- list(age = 0:10)
   var_time <- "time"
   var_age <- "age"
-  ans_obtained <- make_matrix_effectfree_spline(prior = prior,
-                                                dimnames_term = dimnames_term,
-                                                var_time = var_time,
-                                                var_age = var_age)
-  ans_expected <- rbind(0, Matrix::.sparseDiagonal(3))
+  ans_obtained <- make_matrix_spline_effect(prior = prior,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age,
+                                            drop_first_along = TRUE)
+  ans_expected <- make_spline_matrix(n_comp = 4, n_along = 11)[,-1]
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_spline' works with interaction", {
+test_that("'make_matrix_spline_effect' works with interaction, drop_first_along = FALSE", {
   prior <- Sp(n = 4)
   dimnames_term <- list(sex = c("f", "m"),
                         age = 0:10)
   var_time <- "time"
   var_age <- "age"
-  ans_obtained <- make_matrix_effectfree_spline(prior = prior,
-                                                dimnames_term = dimnames_term,
-                                                var_time = var_time,
-                                                var_age = var_age)
-  ans_expected <- rbind(cbind(rbind(0, Matrix::.sparseDiagonal(3)), matrix(0, nr = 4, nc = 3)),
-                        cbind(matrix(0, nr = 4, nc = 3), rbind(0, Matrix::.sparseDiagonal(3))))
-  expect_identical(ans_obtained, ans_expected)
+  ans_obtained <- make_matrix_spline_effect(prior = prior,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age,
+                                            drop_first_along = FALSE)
+  m <- make_spline_matrix(n_comp = 4, n_along = 11)
+  ans_expected <- rbind(cbind(m, matrix(0, nr = 11, nc = 4)),
+                        cbind(matrix(0, nr = 11, nc = 4), m))[c(1, 12, 2, 13, 3, 14, 4, 15, 5, 16,
+                                                                6, 17, 7, 18, 8, 19, 9, 20, 10, 21,
+                                                                11, 22),c(1,5,2,6,3,7,4,8)]
+  expect_identical(unname(as.matrix(ans_obtained)), as.matrix(ans_expected))
 })
 
+
+## 'make_matrix_svddynamic_effect' --------------------------------------------
+
+test_that("'make_matrix_svddynamic_effect' works with bage_prior_svd_ar - age x time interaction, drop_first_along is TRUE", {
+  prior <- SVD_RW(HMD)
+  dimnames_term = list(age = poputils::age_labels(type = "five", max = 60),
+                       time = 2001:2005)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_matrix_svddynamic_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       drop_first_along = TRUE)
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 4 * 3))
+})
+
+test_that("'make_matrix_svddynamic_effect' works with bage_prior_svd_ar - time x time interaction, drop_first_along is FALSE", {
+  prior <- SVD_RW(HMD)
+  dimnames_term = list(time = 2001:2005,
+                       age = poputils::age_labels(type = "five", max = 60))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_matrix_svddynamic_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       drop_first_along = FALSE)
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 5 * 3))
+})
 
 
 ## 'make_offset_effectfree_effect_svd' ----------------------------------------
@@ -899,8 +989,6 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - sex x
   names(ans_expected) <- levels_effect
   expect_identical(ans_obtained, ans_expected)
 })
-
-
 
 
 ## 'svd_to_effect' ------------------------------------------------------------
