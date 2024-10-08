@@ -1133,8 +1133,7 @@ make_levels_spline_term <- function(prior,
   n_comp <- get_n_comp_spline(prior = prior,
                               n_along = n_along)
   levels_along <- paste0("comp", seq_len(n_comp))
-  dimnames_term <- c(list(.spline = levels_along),
-                     dimnames_term[-i_along])
+  dimnames_term[[i_along]] <- levels_along
   dimnames_to_levels(dimnames_term)
 }
 
@@ -1354,6 +1353,7 @@ make_spline <- function(mod, effectfree) {
   dimnames_terms <- mod$dimnames_terms
   var_time <- mod$var_time
   var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   n_term <- length(priors)
   ans <- vector(mode = "list", length = n_term)
   lengths_effectfree <- make_lengths_effectfree(mod)
@@ -1362,16 +1362,17 @@ make_spline <- function(mod, effectfree) {
     length_effectfree <- lengths_effectfree[[i_term]]
     to <- to + length_effectfree
     prior <- priors[[i_term]]
+    dimnames_term <- dimnames_terms[[i_term]]
     if (is_spline(prior)) {
       s <- seq.int(to = to, length.out = length_effectfree)
       vals <- effectfree[s, , drop = FALSE]
-      along <- prior$specific$along
-      dimnames_term <- dimnames_terms[[i_term]]
-      m <- make_matrix_effectfree_spline(prior = prior,
-                                         dimnames_term = dimnames_term,
-                              var_time = var_time,
-                              var_age = var_age)
-      vals <- m %*% vals
+      m_along_by <- make_matrix_along_by_effectfree(prior = prior,
+                                                    dimnames_term = dimnames_term,
+                                                    var_time = var_time,
+                                                    var_age = var_age,
+                                                    var_sexgender = var_sexgender)
+      m_append_zero <- make_matrix_append_zero(m_along_by)
+      vals <- m_append_zero %*% vals
       vals <- as.matrix(vals)
       ans[[i_term]] <- vals
     }
@@ -1407,7 +1408,6 @@ make_standardized_effect <- function(linpred, indices_linpred) {
 }
 
 
-
 ## HAS_TESTS
 #' Extract Posterior Draws for Free Parameters used in SVD Priors
 #'
@@ -1419,10 +1419,37 @@ make_standardized_effect <- function(linpred, indices_linpred) {
 #' @noRd
 make_svd <- function(mod, effectfree) {
   priors <- mod$priors
-  is_svd <- vapply(priors, is_svd, FALSE)
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
+  n_term <- length(priors)
+  ans <- vector(mode = "list", length = n_term)
   lengths_effectfree <- make_lengths_effectfree(mod)
-  is_svd <- rep(is_svd, times = lengths_effectfree)
-  effectfree[is_svd, , drop = FALSE]
+  to <- 0L
+  for (i_term in seq_len(n_term)) {
+    length_effectfree <- lengths_effectfree[[i_term]]
+    to <- to + length_effectfree
+    prior <- priors[[i_term]]
+    dimnames_term <- dimnames_terms[[i_term]]
+    if (is_svd(prior)) {
+      s <- seq.int(to = to, length.out = length_effectfree)
+      vals <- effectfree[s, , drop = FALSE]
+      if (is_svddynamic(prior)) {
+        m_along_by <- make_matrix_along_by_effectfree(prior = prior,
+                                                      dimnames_term = dimnames_term,
+                                                      var_time = var_time,
+                                                      var_age = var_age,
+                                                      var_sexgender = var_sexgender)
+        m_append_zero <- make_matrix_append_zero(m_along_by)
+        vals <- m_append_zero %*% vals
+      }
+      vals <- as.matrix(vals)
+      ans[[i_term]] <- vals
+    }
+  }
+  ans <- do.call(rbind, ans)
+  ans
 }
 
 
@@ -1469,13 +1496,14 @@ make_term_spline <- function(mod) {
 #' @noRd
 make_term_svd <- function(mod) {
   priors <- mod$priors
+  levels <- make_levels_svd(mod, unlist = FALSE)
+  lengths_levels <- lengths(levels)
   nms_terms <- names(priors)
-  lengths_effectfree <- make_lengths_effectfree(mod)
   is_svd <- vapply(priors, is_svd, FALSE)
-  nms_terms_svd <- nms_terms[is_svd]
-  lengths_svd <- lengths_effectfree[is_svd]
-  ans <- rep(nms_terms_svd, times = lengths_svd)
-  ans <- factor(ans, levels = nms_terms_svd)
+  lengths_svd <- lengths_levels[is_svd]
+  nms_svd <- nms_terms[is_svd]
+  ans <- rep(nms_svd, times = lengths_svd)
+  ans <- factor(ans, levels = nms_svd)
   ans
 }
 

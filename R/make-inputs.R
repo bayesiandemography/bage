@@ -1710,6 +1710,23 @@ str_call_args_scale <- function(prior) {
 
 
 ## HAS_TESTS
+#' Compile Args for 'sd' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'sd' parameter
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_sd <- function(prior) {
+  sd <- prior$specific$sd
+  if (identical(sd, 1))
+    ""
+  else
+    sprintf("sd=%s", sd)
+}
+
+
+## HAS_TESTS
 #' Compile Args for 'sd_seas' Part of Prior for 'str_call_prior'
 #'
 #' @param prior Prior with 'sd_seas' parameter

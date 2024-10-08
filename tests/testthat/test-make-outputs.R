@@ -167,13 +167,13 @@ test_that("'center_svd_spline' works - center_along is FALSE", {
                            var_age = mod$var_age,
                            var_sexgender = mod$var_sexgender,
                            center_along = FALSE)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"]))
-              < 0.000001)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"]))
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"])))
               > 0.000001)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"])))
+              > 0.000001)
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"])))
               < 0.000001)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
+  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"])))
               < 0.000001)
   expect_true(all(abs(as.numeric(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd" & startsWith(ans$level, "comp1")])))
                   > 0.000001))
@@ -989,7 +989,7 @@ test_that("'make_levels_spline' works - unlist is FALSE", {
                        sex = NULL,
                        age = paste0("comp", 1:5),
                        time = NULL,
-                       "sex:age" = paste(paste0("comp", 1:5), rep(c("F", "M"), each = 5), sep = "."),
+                       "sex:age" = paste(c("F", "M"), rep(paste0("comp", 1:5), each = 2), sep = "."),
                        "age:time" = paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1012,8 +1012,8 @@ test_that("'make_levels_spline' works - unlist is TRUE", {
   set.seed(0)
   ans_obtained <- make_levels_spline(mod, unlist = TRUE)
   ans_expected <- c(paste0("comp", 1:5),
-                    paste(paste0("comp", 1:5), rep(c("F", "M"), each = 5), sep = "."),
-                    paste0("comp", 1:5, ".", rep(2000:2005, each = 5)))
+                    paste(c("F", "M"), rep(paste0("comp", 1:5), each = 2), sep = "."),
+                    paste(paste0("comp", 1:5), rep(2000:2005, each = 5), sep = "."))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1028,7 +1028,7 @@ test_that("'make_levels_spline_term' works", {
                                           dimnames_term = dimnames_term,
                                           var_time = "time",
                                           var_age = "age")
-  ans_expected <- paste(paste0("comp", 1:5), rep(1:2, each = 5), sep = ".")
+  ans_expected <- paste(1:2, rep(paste0("comp", 1:5), each = 2), sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1586,17 +1586,20 @@ test_that("'make_svd' works", {
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
+  formula <- deaths ~ age * sex + age * time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, age:sex ~ SVD(HMD, n_comp = 5))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD, n_comp = 5))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[22:31,]
-  expect_equal(ans_obtained, ans_expected)
+  ans_expected <- rbind(effectfree[22:31,],
+                        matrix(0, nrow = 5, ncol = 5),
+                        effectfree[32:56,])
+  expect_equal(unname(ans_obtained), ans_expected)
 })
 
 
@@ -1720,14 +1723,16 @@ test_that("'make_term_svd' works - has svd", {
                       sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
+  formula <- deaths ~ age * sex + age * time
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
   mod <- set_prior(mod, age ~ SVD(HMD))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
   ans_obtained <- make_term_svd(mod)
-  ans_expected <- factor(rep("age", times = 3))
+  ans_expected <- factor(c(rep("age", times = 3),
+                           rep("age:time", times = 3 * 6)))
   expect_identical(ans_obtained, ans_expected)
 })
 

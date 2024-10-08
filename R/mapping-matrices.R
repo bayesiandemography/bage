@@ -222,10 +222,7 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 
 ## HAS_TESTS
 #' Make 'matrix_along_by' for Free Parameters for Term
-#' with RW or RW2 Prior
-#'
-#' The "along" for free parameters has one less element
-#' than the "along" dimension for all parameters.
+#' that Drops First Element of Along
 #'
 #' @param along Name of "along" dimension, or NULL
 #' @param dimnames_term Dimnames for array
