@@ -1100,7 +1100,6 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
                     exposure = popn)
     ans_obtained <- make_matrices_effectfree_effect(mod)
     agegp <- rbind(0,Matrix::.sparseDiagonal(9))
-    rownames(agegp) <- 0:9
     ans_expected <- list("(Intercept)" = Matrix::.sparseDiagonal(1),
                          agegp = agegp,
                          SEX = Matrix::.sparseDiagonal(2),
@@ -1902,6 +1901,23 @@ test_that("'str_call_args_scale' works - scale not 1", {
   prior <- N(s = 0.3)
   ans_obtained <- str_call_args_scale(prior)
   ans_expected <- "s=0.3"
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'str_call_args_sd' -----------------------------------------------------
+
+test_that("'str_call_args_sd' works - sd = 1", {
+  prior <- RW_Seas(n=3)
+  ans_obtained <- str_call_args_sd(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_sd' works - sd not 1", {
+  prior <- RW_Seas(n=2,sd = 0.3)
+  ans_obtained <- str_call_args_sd(prior)
+  ans_expected <- "sd=0.3"
   expect_identical(ans_obtained, ans_expected)
 })
 

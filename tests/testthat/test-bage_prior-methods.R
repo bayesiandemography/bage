@@ -1187,6 +1187,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw'", {
   set.seed(0)
   matrix_along_by_free <- t(matrix(0:8, nr = 3))
   ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
+                               sd_init = 0,
                                matrix_along_by = matrix_along_by_free,
                                levels_effect = levels_svd)
   expect_identical(ans_obtained, ans_expected)
@@ -1218,6 +1219,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
   set.seed(0)
   matrix_along_by_free <- t(matrix(0:8, nr = 3))
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                sd_init = 0,
                                 sd_slope = prior$specific$sd_slope,
                                 matrix_along_by = matrix_along_by_free,
                                 levels_effect = levels_svd)
@@ -2090,6 +2092,7 @@ test_that("'generate' works with bage_prior_rw", {
   set.seed(0)
   sd <- draw_vals_sd(x, n_sim = n_draw)
   ans_expected <- draw_vals_rw(sd = sd,
+                               sd_init = 0,
                                matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                levels_effect = seq_len(n))
   ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
@@ -2109,6 +2112,7 @@ test_that("'generate' works with bage_prior_rwseasfix", {
   sd <- draw_vals_sd(x, n_sim = n_draw)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   alpha <- draw_vals_rw(sd = sd,
+                        sd_init = 1,
                         matrix_along_by = matrix_along_by,
                         levels_effect = seq_len(n))
   seas <- draw_vals_seasfix(n_seas = 3, sd_init = 0.2, matrix_along_by = matrix_along_by,
@@ -2121,7 +2125,6 @@ test_that("'generate' works with bage_prior_rwseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-
 test_that("'generate' works with bage_prior_rw2", {
   x <- RW2()
   set.seed(0)
@@ -2132,6 +2135,7 @@ test_that("'generate' works with bage_prior_rw2", {
   sd <- draw_vals_sd(x, n_sim = n_draw)
   sd_slope <- x$specific$sd_slope
   ans_expected <- draw_vals_rw2(sd = sd,
+                                sd_init = 0,
                                 sd_slope = sd_slope,
                                 matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                 levels_effect = seq_len(n))
@@ -2870,6 +2874,17 @@ test_that("'is_svd' works with valid inputs", {
 })
 
 
+## is_svddynamic --------------------------------------------------------------
+
+test_that("'is_svddynamic' works with valid inputs", {
+    expect_false(is_svddynamic(N()))
+    expect_false(is_svddynamic(SVD(HMD)))
+    expect_true(is_svddynamic(SVD_AR(HMD)))
+    expect_true(is_svddynamic(SVD_RW(HMD)))
+    expect_true(is_svddynamic(SVD_RW2(HMD)))
+})
+
+
 ## levels_hyper ---------------------------------------------------------------
 
 test_that("'levels_hyper' works with 'bage_prior_ar'", {
@@ -3538,7 +3553,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_ar - age-ti
   expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 8))
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_ar - age-time interaction", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rw - age-time interaction", {
   prior <- SVD_RW(HMD, n_comp = 2)
   dimnames_term = list(time = 2001:2005,
                        age = poputils::age_labels(type = "lt", max = 60))
