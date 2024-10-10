@@ -530,13 +530,9 @@ make_lengths_hyperrand <- function(mod) {
   var_time <- mod$var_time
   var_age <- mod$var_age
   dimnames_terms <- mod$dimnames_terms
-  levels_effects <- make_levels_effects(dimnames_terms)
-  terms_effects <- make_terms_effects(dimnames_terms)
-  levels_effects <- split(levels_effects, terms_effects)
   levels <- .mapply(levels_hyperrand,
                     dots = list(prior = priors,
-                                dimnames_term = dimnames_terms,
-                                levels_effect = levels_effects),
+                                dimnames_term = dimnames_terms),
                     MoreArgs = list(var_time = var_time,
                                     var_age = var_age))
   ans <- lengths(levels)

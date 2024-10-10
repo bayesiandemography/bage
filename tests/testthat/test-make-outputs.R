@@ -1875,14 +1875,17 @@ test_that("'infer_trend_cyc_seas_err_seasfix' works", {
                                                    var_age = mod$var_age,
                                                    components = components)
   ans_expected <- components
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- vctrs::vec_c(0, 0, seas[c(1,3,2,4)], 0, 0, seas[c(1,3,2,4)])
+  seas <- vctrs::vec_c(effect[1:2],
+                       seas,
+                       -1 * (effect[1:2] + seas))
+  seas <- seas[c(1:6, 1:6)]
   level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
                              level = level,
                              .fitted = seas)
-  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   trend <- effect - seas
   trend <- tibble::tibble(term = "sex:time",
                           component = "trend",
@@ -1956,24 +1959,31 @@ test_that("'infer_trend_cyc_seas_err_seasvary' works", {
                                                     components = components)
   level <- components$level[components$component == "effect" & components$term == "sex:time"]
   seas <- components$.fitted[components$component == "hyperrand" & components$term == "sex:time"]
+  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
                              level = level,
-                             .fitted = vctrs::vec_c(0, 0,
-                                                    seas[c(1,15,2,16)],
-                                                    0, 0,
-                                                    seas[c(3,17,4,18)],
-                                                    0, 0,
-                                                    seas[c(5,19,6,20)],
-                                                    0, 0,
-                                                    seas[c(7,21,8,22)],
-                                                    0, 0,
-                                                    seas[c(9,23,10,24)],
-                                                    0, 0,
-                                                    seas[c(11,25,12,26)],
-                                                    0, 0,
-                                                    seas[c(13,27,14,28)]))
-  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
+                             .fitted = vctrs::vec_c(effect[1:2],
+                                                    seas[c(1, 14)],
+                                                    -(effect[1:2] + seas[c(1, 14)]),
+                                                    seas[c(2, 15)],
+                                                    seas[c(3, 16)],
+                                                    -(seas[c(2, 15)] + seas[c(3, 16)]),
+                                                    seas[c(4, 17)],
+                                                    seas[c(5, 18)],
+                                                    -(seas[c(4, 17)] + seas[c(5, 18)]),
+                                                    seas[c(6, 19)],
+                                                    seas[c(7, 20)],
+                                                    -(seas[c(6, 19)] + seas[c(7, 20)]),
+                                                    seas[c(8, 21)],
+                                                    seas[c(9, 22)],
+                                                    -(seas[c(8, 21)] + seas[c(9, 22)]),
+                                                    seas[c(10, 23)],
+                                                    seas[c(11, 24)],
+                                                    -(seas[c(10, 23)] + seas[c(11, 24)]),
+                                                    seas[c(12, 25)],
+                                                    seas[c(13, 26)],
+                                                    -(seas[c(12, 25)] + seas[c(13, 26)])))
   trend <- tibble::tibble(term = "sex:time",
                           component = "trend",
                           level = level,

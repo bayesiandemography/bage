@@ -2787,7 +2787,6 @@ levels_hyper.bage_prior_svd_rw2 <- function(prior)
 #' @param dimnames_term Dimnames for array representation of term
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
-#' @param levels_effect Labels made from classifying dimensions
 #'
 #' @returns A character vector.
 #'
@@ -2795,8 +2794,7 @@ levels_hyper.bage_prior_svd_rw2 <- function(prior)
 levels_hyperrand <- function(prior,
                              dimnames_term,
                              var_time,
-                             var_age,
-                             levels_effect) {
+                             var_age) {
   UseMethod("levels_hyperrand")
 }
 
@@ -2805,8 +2803,7 @@ levels_hyperrand <- function(prior,
 levels_hyperrand.bage_prior <- function(prior,
                                         dimnames_term,
                                         var_time,
-                                        var_age,
-                                        levels_effect) {
+                                        var_age) {
   character()
 }
 
@@ -2815,8 +2812,7 @@ levels_hyperrand.bage_prior <- function(prior,
 levels_hyperrand.bage_prior_lin <- function(prior,
                                             dimnames_term,
                                             var_time,
-                                            var_age,
-                                            levels_effect) {
+                                            var_age) {
   along <- prior$specific$along
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
@@ -2837,8 +2833,7 @@ levels_hyperrand.bage_prior_lin <- function(prior,
 levels_hyperrand.bage_prior_linar <- function(prior,
                                               dimnames_term,
                                               var_time,
-                                              var_age,
-                                              levels_effect) {
+                                              var_age) {
   along <- prior$specific$along
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
@@ -2859,24 +2854,22 @@ levels_hyperrand.bage_prior_linar <- function(prior,
 levels_hyperrand.bage_prior_rwseasfix <- function(prior,
                                                   dimnames_term,
                                                   var_time,
-                                                  var_age,
-                                                  levels_effect) {
-  along <- prior$specific$along
+                                                  var_age) {
   n_seas <- prior$specific$n_seas
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  s <- seq.int(from = 2L, to = n_seas)
-  n_by <- ncol(matrix_along_by_effect)
-  if (n_by > 1L) {
-    nms_by <- colnames(matrix_along_by_effect)
-    paste(s,
-          rep(nms_by, each = n_seas - 1L),
-          sep = ".")
+  if (n_seas > 2L) {
+    along <- prior$specific$along
+    i_along <- make_i_along(along = along,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    s <- seq.int(from = 2L, to = n_seas - 1L)
+    levels_seas <- paste0("seas", s)
+    dimnames <- c(list(levels_seas),
+                  dimnames_term[-i_along])
+    dimnames_to_levels(dimnames)
   }
   else
-    as.character(s)
+    character()
 }
 
 ## HAS_TESTS
@@ -2884,28 +2877,21 @@ levels_hyperrand.bage_prior_rwseasfix <- function(prior,
 levels_hyperrand.bage_prior_rwseasvary <- function(prior,
                                                    dimnames_term,
                                                    var_time,
-                                                   var_age,
-                                                   levels_effect) {
+                                                   var_age) {
   along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  s_along <- seq_len(n_along)
-  is_first <- (s_along - 1L) %% n_seas == 0L
-  s <- s_along[!is_first]
-  n_along_dropfirst <- length(s)
-  if (n_by > 1L) {
-    nms_by <- colnames(matrix_along_by_effect)
-    paste(s,
-          rep(nms_by, each = n_along_dropfirst),
-          sep = ".")
-  }
-  else
-    as.character(s)
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  levels_along <- dimnames_term[[i_along]]
+  s <- seq_along(levels_along) - 1L
+  is_first_period <- s == 0L
+  is_last_season <- (s %% n_seas) == n_seas - 1L
+  levels_seas <- levels_along[!is_first_period & !is_last_season]
+  dimnames <- c(list(levels_seas),
+                dimnames_term[-i_along])
+  dimnames_to_levels(dimnames)
 }
 
 ## HAS_TESTS
@@ -2913,24 +2899,22 @@ levels_hyperrand.bage_prior_rwseasvary <- function(prior,
 levels_hyperrand.bage_prior_rw2seasfix <- function(prior,
                                                    dimnames_term,
                                                    var_time,
-                                                   var_age,
-                                                   levels_effect) {
-  along <- prior$specific$along
+                                                   var_age) {
   n_seas <- prior$specific$n_seas
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  s <- seq.int(from = 2L, to = n_seas)
-  n_by <- ncol(matrix_along_by_effect)
-  if (n_by > 1L) {
-    nms_by <- colnames(matrix_along_by_effect)
-    paste(s,
-          rep(nms_by, each = n_seas - 1L),
-          sep = ".")
+  if (n_seas > 2L) {
+    along <- prior$specific$along
+    i_along <- make_i_along(along = along,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    s <- seq.int(from = 2L, to = n_seas - 1L)
+    levels_seas <- paste0("seas", s)
+    dimnames <- c(list(levels_seas),
+                  dimnames_term[-i_along])
+    dimnames_to_levels(dimnames)
   }
   else
-    as.character(s)
+    character()
 }
 
 ## HAS_TESTS
@@ -2938,28 +2922,21 @@ levels_hyperrand.bage_prior_rw2seasfix <- function(prior,
 levels_hyperrand.bage_prior_rw2seasvary <- function(prior,
                                                     dimnames_term,
                                                     var_time,
-                                                    var_age,
-                                                    levels_effect) {
+                                                    var_age) {
   along <- prior$specific$along
   n_seas <- prior$specific$n_seas
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                        dimnames_term = dimnames_term,
-                                                        var_time = var_time,
-                                                        var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
-  n_by <- ncol(matrix_along_by_effect)
-  s_along <- seq_len(n_along)
-  is_first <- (s_along - 1L) %% n_seas == 0L
-  s <- s_along[!is_first]
-  n_along_dropfirst <- length(s)
-  if (n_by > 1L) {
-    nms_by <- colnames(matrix_along_by_effect)
-    paste(s,
-          rep(nms_by, each = n_along_dropfirst),
-          sep = ".")
-  }
-  else
-    as.character(s)
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  levels_along <- dimnames_term[[i_along]]
+  s <- seq_along(levels_along) - 1L
+  is_first_period <- s == 0L
+  is_last_season <- (s %% n_seas) == n_seas - 1L
+  levels_seas <- levels_along[!is_first_period & !is_last_season]
+  dimnames <- c(list(levels_seas),
+                dimnames_term[-i_along])
+  dimnames_to_levels(dimnames)
 }
 
 
