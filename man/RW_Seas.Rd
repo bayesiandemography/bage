@@ -4,17 +4,13 @@
 \alias{RW_Seas}
 \title{Random Walk Prior with Seasonal Effect}
 \usage{
-RW_Seas(n_seas, s = 1, sd = 1, s_seas = 1, sd_seas = 1, along = NULL)
+RW_Seas(n_seas, s = 1, s_seas = 1, sd_seas = 1, along = NULL)
 }
 \arguments{
 \item{n_seas}{Number of seasons}
 
 \item{s}{Scale for prior for innovations in
 the random walk. Default is \code{1}.}
-
-\item{sd}{Standard deviation for
-initial value of random walk.
-Default is \code{1}.}
 
 \item{s_seas}{Scale for innovations
 in seasonal effects. Default is \code{1}.

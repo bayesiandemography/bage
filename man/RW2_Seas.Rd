@@ -4,25 +4,13 @@
 \alias{RW2_Seas}
 \title{Second-Order Random Walk Prior with Seasonal Effect}
 \usage{
-RW2_Seas(
-  n_seas,
-  s = 1,
-  sd = 1,
-  sd_slope = 1,
-  s_seas = 1,
-  sd_seas = 1,
-  along = NULL
-)
+RW2_Seas(n_seas, s = 1, sd_slope = 1, s_seas = 1, sd_seas = 1, along = NULL)
 }
 \arguments{
 \item{n_seas}{Number of seasons}
 
 \item{s}{Scale for prior for innovations in
 the random walk. Default is \code{1}.}
-
-\item{sd}{Standard deviation for
-initial value of random walk.
-Default is \code{1}.}
 
 \item{sd_slope}{Standard deviation
 for initial slope or random walk. Default is \code{1}.}

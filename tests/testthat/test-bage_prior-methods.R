@@ -2993,49 +2993,42 @@ test_that("'levels_hyper' works with 'bage_prior_svd_rw2'", {
 ## levels_hyperrand ---------------------------------------------------------------
 
 test_that("'levels_hyperrand' works with 'bage_prior_ar'", {
-  levels_effect <- 2001:2010
   dimnames_term <- list(time = 2001:2010)
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = AR(n_coef = 2),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
+                                   var_age = var_age)
   ans_expected <- character()
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_lin'", {
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
   dimnames_term <- list(x = letters[1:13], y = c("a", "b"))
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = Lin(along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
+                                   var_age = var_age)
   ans_expected <- c("intercept.a", "intercept.b", "slope.a", "slope.b")
   expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_lin' - n_by = 1", {
-  levels_effect <- letters[1:13]
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = Lin(along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
+                                   var_age = var_age)
   ans_expected <- c("intercept", "slope")
   expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_linar'", {
-  levels_effect <- paste(letters[1:13], rep(c("a", "b"), each = 2), sep = ".")
   dimnames_term <- list(x = letters[1:13],
                         y = c("a", "b"))
   var_time <- "time"
@@ -3043,79 +3036,84 @@ test_that("'levels_hyperrand' works with 'bage_prior_linar'", {
   ans_obtained <- levels_hyperrand(prior = Lin_AR(along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
+                                   var_age = var_age)
   ans_expected <- c("intercept.a", "intercept.b", "slope.a", "slope.b")
   expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_linar' - n_by = 1", {
-  levels_effect <- letters[1:13]
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = Lin_AR(along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
+                                   var_age = var_age)
   ans_expected <- c("intercept", "slope")
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix'", {
-  levels_effect <- letters[1:13]
+test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix' - main effect", {
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 0, along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
-  ans_expected <- c("2", "3")
+                                   var_age = var_age)
+  ans_expected <- "seas2"
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix'", {
-  levels_effect <- letters[1:13]
-  dimnames_term <- list(time = 2001:2013)
+test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix' - interaction", {
+  dimnames_term <- list(sex = c("f", "m"),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 0),
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age)
+  ans_expected <- c("seas2.f", "seas2.m")
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'levels_hyperrand' works with 'bage_prior_rwseasvary' - interaction", {
+  dimnames_term <- list(time = 2001:2013,
+                        sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
-  ans_expected <- as.character(c(2, 3, 5, 6, 8, 9, 11, 12))
+                                   var_age = var_age)
+  ans_expected <- paste(c(2002, 2004:2005, 2007:2008, 2010:2011, 2013),
+                        rep(c("f", "m"), each = 8),
+                        sep = ".")                        
   expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
-  levels_effect <- letters[1:13]
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
-  ans_expected <- c("2", "3")
+                                   var_age = var_age)
+  ans_expected <- "seas2"
   expect_identical(ans_obtained, ans_expected)                   
 })
 
 test_that("'levels_hyperrand' works with 'bage_prior_rw2seasvary'", {
-  levels_effect <- letters[1:13]
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
-                                   var_age = var_age,
-                                   levels_effect = levels_effect)
-  ans_expected <- as.character(c(2, 3, 5, 6, 8, 9, 11, 12))
+                                   var_age = var_age)
+  ans_expected <- letters[c(2, 4:5, 7:8, 10:11, 13)]
   expect_identical(ans_obtained, ans_expected)                   
 })
 
