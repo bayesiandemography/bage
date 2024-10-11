@@ -1803,7 +1803,7 @@ infer_trend_cyc_seas_err_seasfix <- function(prior,
   n_draw <- rvec::n_draw(seas)
   seasonal <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
   for (i_by in seq_len(n_by)) {
-    seas_last <- 0
+    seas_sum <- 0
     for (i_along in seq_len(n_along)) {
       i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
       if (i_along == 1L) {
@@ -1813,10 +1813,10 @@ infer_trend_cyc_seas_err_seasfix <- function(prior,
       else if (i_along < n_seas) {
         i_seas <- i_along - 1L + (i_by - 1L) * (n_seas - 2L)
         seasonal[[i_seasonal]] <- seas[[i_seas]] + trend_first
-        seas_last <- seas_last - seas[[i_seas]]
+        seas_sum <- seas_sum + seas[[i_seas]]
       }
       else if (i_along == n_seas) {
-        seasonal[[i_seasonal]] <- seas_last + trend_first
+        seasonal[[i_seasonal]] <- -seas_sum - (n_seas - 1) * trend_first
       }
       else {
         i_prev <- matrix_along_by_effect[i_along - n_seas, i_by] + 1L

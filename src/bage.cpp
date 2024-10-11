@@ -21,13 +21,15 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
   int n_along = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
   vector<Type> ans = effectfree;
-  vector<Type> seas_first(n_by);
-  vector<Type> seas_last(n_by);
+  vector<Type> effectfree_first(n_by);
+  vector<Type> seas_sum(n_by);
   for (int i_by = 0; i_by < n_by; i_by++) {
-    seas_last[i_by] = 0;
+    int i_effectfree = matrix_along_by_effectfree(0, i_by);
+    effectfree_first[i_by] = effectfree[i_effectfree];
+    seas_sum[i_by] = 0;
     for (int i_along = 0; i_along < n_seas - 2; i_along++) {
       int i_seas = i_along + i_by * (n_seas - 2);
-      seas_last[i_by] -= seas[i_seas];
+      seas_sum[i_by] += seas[i_seas];
     }
   }
   for (int i_by = 0; i_by < n_by; i_by++) {
@@ -41,7 +43,7 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
 	ans[i_alpha] -= seas[i_seas];
       }
       if (is_last_seas) {
-	ans[i_alpha] -= seas_last[i_by];
+	ans[i_alpha] += seas_sum[i_by] + n_seas * effectfree_first[i_by];
       }
     }
   }
