@@ -19,6 +19,10 @@ Can be \code{0}.}
 \item{sd_seas}{Standard deviation for
 initial values of seasonal effects.
 Default is \code{1}.}
+
+\item{along}{Name of the variable to be used
+as the "along" variable. Only used with
+interactions.}
 }
 \value{
 Object of class \code{"bage_prior_rwseasvary"}

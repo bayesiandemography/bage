@@ -852,13 +852,13 @@ test_that("'fit' and 'forecast' work with SVD_AR", {
   data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
                       time = 2001:2010)
   data$population <- runif(n = nrow(data), min = 100, max = 300)
-  data$deaths <- NA
-  data$deaths[1] <- 100
+  data$deaths <- rpois(n = nrow(data), lambda = 0.05 * data$population)
+  data$deaths[1] <- NA
   mod <- mod_pois(deaths ~ age:time,
                   data = data,
                   exposure = population) |>
                   set_prior(age:time ~ SVD_AR(LFP))
-  mod <- fit(mod)
+  mod <- suppressWarnings(fit(mod))
   expect_true(is_fitted(mod))
   f <- forecast(mod, labels = 2011:2012)
   expect_setequal(c(names(f), ".deaths"),

@@ -552,10 +552,11 @@ draw_vals_seasfix <- function(n_seas, sd_init, matrix_along_by, n_sim) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
-  ans[1L, ] <- 0
-  rows_init <- seq.int(from = 2L, to = n_seas)
-  n_init <- (n_seas - 1L) * n_by * n_sim
-  ans[rows_init, ] <- stats::rnorm(n = n_init, sd = sd_init)
+  m <- diag(n_seas - 1L)
+  m[, 1L] <- 1
+  m <- rbind(m, -1 * colSums(m))
+  z <- matrix(stats::rnorm(n = (n_seas - 1L) * n_by * n_sim), nrow = n_seas - 1L)
+  ans[seq_len(n_seas), ] <- m %*% z
   for (i_along in seq.int(from = n_seas + 1L, to = n_along))
     ans[i_along, ] <- ans[i_along - n_seas, ]
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
@@ -582,10 +583,12 @@ draw_vals_seasvary <- function(n_seas, sd_init, sd_innov, matrix_along_by) {
   n_sim <- length(sd_innov)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  ans <- matrix(0, nrow = n_along, ncol = n_by * n_sim)
-  rows_init <- seq.int(from = 2L, to = n_seas)
-  n_init <- (n_seas - 1L) * n_by * n_sim
-  ans[rows_init, ] <- stats::rnorm(n = n_init, sd = sd_init)
+  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  m <- diag(n_seas - 1L)
+  m[, 1L] <- 1
+  m <- rbind(m, -1 * colSums(m))
+  z <- matrix(stats::rnorm(n = (n_seas - 1L) * n_by * n_sim), nrow = n_seas - 1L)
+  ans[seq_len(n_seas), ] <- m %*% z
   sd_innov <- rep(sd_innov, each = n_by)
   for (i_along in seq.int(from = n_seas + 1L, to = n_along)) {
     is_first_seas <- (i_along - 1L) %% n_seas == 0L

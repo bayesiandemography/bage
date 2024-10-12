@@ -2276,14 +2276,15 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasfix", {
                                                var_age = mod$var_age,
                                                components = components)
   ans_expected <- components
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- vctrs::vec_c(0, 0, seas[c(1,3,2,4)], 0, 0, seas[c(1,3,2,4)])
+  seas <- vctrs::vec_c(effect[1:2], effect[1:2] + seas, -2 * effect[1:2] - seas,
+                       effect[1:2], effect[1:2] + seas, -2 * effect[1:2] - seas)
   level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
                              level = level,
                              .fitted = seas)
-  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   trend <- effect - seas
   trend <- tibble::tibble(term = "sex:time",
                           component = "trend",
@@ -2291,13 +2292,12 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasfix", {
                           .fitted = trend)
   ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
   ans_expected <- vctrs::vec_rbind(ans_expected, trend, seasonal)
-  ## ans_expected <- sort_components(ans_expected, mod = mod)
   expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
   set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
+  data <- expand.grid(age = 0:4, time = 2000:2010, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ sex * time + age
@@ -2323,24 +2323,21 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
                                                components = components)
   level <- components$level[components$component == "effect" & components$term == "sex:time"]
   seas <- components$.fitted[components$component == "hyperrand" & components$term == "sex:time"]
+  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
                              level = level,
-                             .fitted = vctrs::vec_c(0, 0,
-                                                    seas[c(1,15,2,16)],
-                                                    0, 0,
-                                                    seas[c(3,17,4,18)],
-                                                    0, 0,
-                                                    seas[c(5,19,6,20)],
-                                                    0, 0,
-                                                    seas[c(7,21,8,22)],
-                                                    0, 0,
-                                                    seas[c(9,23,10,24)],
-                                                    0, 0,
-                                                    seas[c(11,25,12,26)],
-                                                    0, 0,
-                                                    seas[c(13,27,14,28)]))
-  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
+                             .fitted = vctrs::vec_c(effect[1:2],
+                                                    effect[1:2] + seas[c(1,8)],
+                                                    -2 * effect[1:2] - seas[c(1,8)],
+                                                    effect[1:2] + seas[c(2,9)],
+                                                    effect[1:2] + seas[c(3,10)],
+                                                    -2 * effect[1:2] - seas[c(2,9)] - seas[c(3,10)],
+                                                    effect[1:2] + seas[c(4,11)],
+                                                    effect[1:2] + seas[c(5,12)],
+                                                    -2 * effect[1:2] - seas[c(4,11)] - seas[c(5,12)],
+                                                    effect[1:2] + seas[c(6,13)],
+                                                    effect[1:2] + seas[c(7,14)]))
   trend <- tibble::tibble(term = "sex:time",
                           component = "trend",
                           level = level,
@@ -2351,6 +2348,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rwseasvary", {
                                    seasonal)
   expect_equal(ans_obtained, ans_expected)
 })
+
 
 test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasfix", {
   set.seed(0)
@@ -2375,24 +2373,25 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasfix", {
                                level = level,
                                .fitted = .fitted)
   ans_obtained <- infer_trend_cyc_seas_err_one(prior = mod$priors[["sex:time"]],
-                                         dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                         var_time = mod$var_time,
-                                         var_age = mod$var_age,
-                                         components = components)
+                                               dimnames_term = mod$dimnames_terms[["sex:time"]],
+                                               var_time = mod$var_time,
+                                               var_age = mod$var_age,
+                                               components = components)
   ans_expected <- components
+  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- vctrs::vec_c(0, 0, seas[c(1,3,2,4)], 0, 0, seas[c(1,3,2,4)])
+  seas <- vctrs::vec_c(effect[1:2], effect[1:2] + seas, -2 * effect[1:2] - seas,
+                       effect[1:2], effect[1:2] + seas, -2 * effect[1:2] - seas)
   level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
                              level = level,
                              .fitted = seas)
-  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
   trend <- effect - seas
   trend <- tibble::tibble(term = "sex:time",
-                         component = "trend",
-                         level = level,
-                         .fitted = trend)
+                          component = "trend",
+                          level = level,
+                          .fitted = trend)
   ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
   ans_expected <- vctrs::vec_rbind(ans_expected, trend, seasonal)
   expect_equal(ans_obtained, ans_expected)
@@ -2400,7 +2399,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasfix", {
 
 test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
   set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
+  data <- expand.grid(age = 0:4, time = 2000:2010, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ sex * time + age
@@ -2408,7 +2407,6 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
                   data = data,
                   exposure = popn) |>
                   set_prior(sex:time ~ RW2_Seas(n_seas = 3)) |>
-                  set_n_draw(n_draw = 10) |>
                   fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
@@ -2425,30 +2423,31 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
                                                var_time = mod$var_time,
                                                var_age = mod$var_age,
                                                components = components)
-  ans_expected <- components
-  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
+  level <- components$level[components$component == "effect" & components$term == "sex:time"]
+  seas <- components$.fitted[components$component == "hyperrand" & components$term == "sex:time"]
+  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
   seasonal <- tibble::tibble(term = "sex:time",
                              component = "seasonal",
                              level = level,
-                             .fitted = vctrs::vec_c(0, 0, seas[c(1,15,2,16)],
-                                                    0, 0, seas[c(3,17,4,18)],
-                                                    0, 0, seas[c(5,19,6,20)],
-                                                    0, 0, seas[c(7,21,8,22)],
-                                                    0, 0, seas[c(9,23,10,24)],
-                                                    0, 0, seas[c(11,25,12,26)],
-                                                    0, 0, seas[c(13,27,14,28)]))
-  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
-  trend <- effect - seasonal$.fitted
+                             .fitted = vctrs::vec_c(effect[1:2],
+                                                    effect[1:2] + seas[c(1,8)],
+                                                    -2 * effect[1:2] - seas[c(1,8)],
+                                                    effect[1:2] + seas[c(2,9)],
+                                                    effect[1:2] + seas[c(3,10)],
+                                                    -2 * effect[1:2] - seas[c(2,9)] - seas[c(3,10)],
+                                                    effect[1:2] + seas[c(4,11)],
+                                                    effect[1:2] + seas[c(5,12)],
+                                                    -2 * effect[1:2] - seas[c(4,11)] - seas[c(5,12)],
+                                                    effect[1:2] + seas[c(6,13)],
+                                                    effect[1:2] + seas[c(7,14)]))
   trend <- tibble::tibble(term = "sex:time",
                           component = "trend",
                           level = level,
-                          .fitted = trend)
-  ans_expected <- vctrs::vec_rbind(
-    ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),],
-    trend,
-    seasonal
-  )
+                          .fitted = effect - seasonal$.fitted)
+  ans_expected <- vctrs::vec_rbind(components[!(components$component == "hyperrand" &
+                                                  components$term == "sex:time"),],
+                                   trend,
+                                   seasonal)
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2642,6 +2641,19 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
   trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
   seasonal <- ans$.fitted[ans$term == "sex:time" & ans$component == "seasonal"]
   expect_equal(effect, trend + seasonal)
+})
+
+
+## is_drop_first_along --------------------------------------------------------
+
+test_that("'is_drop_first_along' works with valid inputs", {
+  expect_false(is_drop_first_along(N()))
+  expect_true(is_drop_first_along(RW()))
+  expect_true(is_drop_first_along(RW2()))
+  expect_false(is_drop_first_along(SVD(HMD)))
+  expect_false(is_drop_first_along(SVD_AR(HMD)))
+  expect_true(is_drop_first_along(SVD_RW(HMD)))
+  expect_true(is_drop_first_along(SVD_RW2(HMD)))
 })
 
 
@@ -2871,17 +2883,6 @@ test_that("'is_svd' works with valid inputs", {
     expect_true(is_svd(SVD_AR(HMD)))
     expect_true(is_svd(SVD_RW(HMD)))
     expect_true(is_svd(SVD_RW2(HMD)))
-})
-
-
-## is_svddynamic --------------------------------------------------------------
-
-test_that("'is_svddynamic' works with valid inputs", {
-    expect_false(is_svddynamic(N()))
-    expect_false(is_svddynamic(SVD(HMD)))
-    expect_true(is_svddynamic(SVD_AR(HMD)))
-    expect_true(is_svddynamic(SVD_RW(HMD)))
-    expect_true(is_svddynamic(SVD_RW2(HMD)))
 })
 
 
@@ -3285,12 +3286,12 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar' - in
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = "sex")
-  ans_expected <- t(matrix(0:23,
+  ans_expected <- t(matrix(0:29,
                            nr = 6,
                            dimnames = list(.svd = paste(rep(c("f", "m"), each = 3),
                                                         paste0("comp", 1:3),
                                                         sep = "."),
-                                           time = 2002:2005)))
+                                           time = 2001:2005)))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3302,10 +3303,10 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar'", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- t(matrix(0:11,
+  ans_expected <- t(matrix(0:14,
                            nr = 3,
                            dimnames = list(.svd = paste0("comp", 1:3),
-                                           time = 2002:2005)))
+                                           time = 2001:2005)))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3548,7 +3549,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_ar - age-ti
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 8))
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 10))
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rw - age-time interaction", {
@@ -3748,15 +3749,15 @@ test_that("'str_call_prior' works with bage_prior_rw2", {
 test_that("'str_call_prior' works with bage_prior_rw2seasfix", {
   expect_identical(str_call_prior(RW2_Seas(n_seas=2, s_seas = 0)),
                    "RW2_Seas(n_seas=2,s_seas=0)")
-    expect_identical(str_call_prior(RW2_Seas(sd=0.2,along = "a", sd_seas = 3, s = 2, n = 5, s_seas=0)),
-                     "RW2_Seas(n_seas=5,s=2,sd=0.2,s_seas=0,sd_seas=3,along=\"a\")")
+    expect_identical(str_call_prior(RW2_Seas(along = "a", sd_seas = 3, s = 2, n = 5, s_seas=0)),
+                     "RW2_Seas(n_seas=5,s=2,s_seas=0,sd_seas=3,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2seasvary", {
     expect_identical(str_call_prior(RW2_Seas(n_seas=2)), "RW2_Seas(n_seas=2)")
-    expect_identical(str_call_prior(RW2_Seas(along = "a", sd = 0.5,
+    expect_identical(str_call_prior(RW2_Seas(along = "a",
                                              s = 2, n = 5, s_seas=0.1, sd_seas = 0.2)),
-                     "RW2_Seas(n_seas=5,s=2,sd=0.5,s_seas=0.1,sd_seas=0.2,along=\"a\")")
+                     "RW2_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=0.2,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {

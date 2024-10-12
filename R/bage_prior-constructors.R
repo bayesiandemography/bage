@@ -753,6 +753,7 @@ RW <- function(s = 1, along = NULL) {
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
 #' where `s` is provided by the user.
 #' 
+#' @inheritParams AR
 #' @param n_seas Number of seasons
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
