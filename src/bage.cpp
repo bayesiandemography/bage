@@ -24,8 +24,6 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
   vector<Type> effectfree_first(n_by);
   vector<Type> seas_sum(n_by);
   for (int i_by = 0; i_by < n_by; i_by++) {
-    int i_effectfree = matrix_along_by_effectfree(0, i_by);
-    effectfree_first[i_by] = effectfree[i_effectfree];
     seas_sum[i_by] = 0;
     for (int i_along = 0; i_along < n_seas - 2; i_along++) {
       int i_seas = i_along + i_by * (n_seas - 2);
@@ -33,13 +31,17 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
     }
   }
   for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_effectfree_first = matrix_along_by_effectfree(0, i_by);
+    effectfree_first[i_by] = effectfree[i_effectfree_first];
+  }
+  for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_along; i_along++) {
-      int offset_seas = i_along % n_seas;
-      bool is_first_seas = offset_seas == 0;
-      bool is_last_seas = offset_seas == n_seas - 1;
+      int index_seas = i_along % n_seas;
+      bool is_first_seas = index_seas == 0;
+      bool is_last_seas = index_seas == n_seas - 1;
       int i_alpha = matrix_along_by_effectfree(i_along, i_by);
       if (!is_first_seas && !is_last_seas) {
-	int i_seas = offset_seas - 1 + i_by * (n_seas - 2);
+	int i_seas = index_seas - 1 + i_by * (n_seas - 2);
 	ans[i_alpha] -= seas[i_seas];
       }
       if (is_last_seas) {
@@ -57,28 +59,29 @@ vector<Type> alpha_seasvary(vector<Type> effectfree,
 			    vector<Type> consts,
 			    matrix<int> matrix_along_by_effectfree) {
   int n_seas = CppAD::Integer(consts[0]);
-  int n_along = matrix_along_by_effectfree.rows();
+  int n_along_alpha = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
   int n_along_seas = seas.size() / n_by;
   vector<Type> ans = effectfree;
   for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_along_seas = 0;
+    Type seas_sum = 0;
     int i_effectfree_first = matrix_along_by_effectfree(0, i_by);
-    Type seas_first = effectfree[i_effectfree_first];
-    Type seas_last = -seas_first;
-    for (int i_along = 1; i_along < n_along; i_along++) { // skip first value
-      int offset_seas = i_along % n_seas;
-      bool is_first_seas = offset_seas == 0;
-      bool is_last_seas = offset_seas == n_seas - 1;
-      int step_seas = i_along / n_seas;
-      int i_alpha = matrix_along_by_effectfree(i_along, i_by);
-      if (!is_first_seas && !is_last_seas) {
-	int i_seas = offset_seas - 1 + step_seas * (n_seas - 2) + i_by * n_along_seas;
+    Type effectfree_first = effectfree[i_effectfree_first];
+    for (int i_along_alpha = 0; i_along_alpha < n_along_alpha; i_along_alpha++) {
+      int index_seas = i_along_alpha % n_seas;
+      bool is_first_element = i_along_alpha == 0;
+      bool is_last_seas = index_seas == n_seas - 1;
+      int i_alpha = matrix_along_by_effectfree(i_along_alpha, i_by);
+      if (!is_first_element && !is_last_seas) {
+	int i_seas = i_along_seas + i_by * n_along_seas;
+	i_along_seas++;
 	ans[i_alpha] -= seas[i_seas];
-	seas_last -= seas[i_seas];
+	seas_sum += seas[i_seas];
       }
       if (is_last_seas) {
-	ans[i_alpha] -= seas_last;
-	seas_last = 0;
+	ans[i_alpha] += seas_sum + n_seas * effectfree_first;
+	seas_sum = 0;
       }
     }
   }
@@ -275,19 +278,20 @@ Type logpost_seasvary(vector<Type> seas,
   Type ans = 0;
   ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
   for (int i_by = 0; i_by < n_by; i_by++) {
-    // initial values for seasonal effects 2, ..., n_seas - 1 (last equals negative sum of others)
-    for (int i_along = 0; i_along < n_seas - 2; i_along++) {
-      int i_seas = i_along + i_by * n_along_seas;
-      ans += dnorm(seas[i_seas], Type(0), sd_init, true);
-    }
-    // second element of seasonal effect 1 (first element has value 0) // INCORRECT!!!!!!
-    int i_seas = n_seas - 2 + i_by * n_along_seas;
-    ans += dnorm(seas[i_seas], Type(0), sd_innov, true);
-    // remaining seasonal effects
-    for (int i_along = n_seas - 1; i_along < n_along_seas; i_along++) {
-      int i_curr = i_along + i_by * n_along_seas;
-      int i_prev = i_curr - n_seas + 1;
-      ans += dnorm(seas[i_curr], seas[i_prev], sd_innov, true);
+    for (int i_along_seas = 0; i_along_seas < n_along_seas; i_along_seas++) {
+      int i_seas = i_along_seas + i_by * n_along_seas;
+      int is_initial_season = i_along_seas < n_seas - 2;
+      int is_second_element_first_season = i_along_seas == n_seas - 2;
+      if (is_initial_season) {
+	ans += dnorm(seas[i_seas], Type(0), sd_init, true);
+      }
+      else if (is_second_element_first_season) {
+	ans += dnorm(seas[i_seas], Type(0), sd_innov, true);
+      }
+      else {
+	int i_seas_prev = i_seas - n_seas + 1;
+	ans += dnorm(seas[i_seas], seas[i_seas_prev], sd_innov, true);
+      }
     }
   }
   return ans;

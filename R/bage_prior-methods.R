@@ -251,7 +251,6 @@ draw_vals_effect.bage_prior_rwseasfix <- function(prior,
                                                   var_sexgender,
                                                   n_sim) {
   along <- prior$specific$along
-  sd_init <- prior$specific$sd
   sd <- vals_hyper$sd
   seas <- vals_hyperrand$seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
@@ -260,7 +259,7 @@ draw_vals_effect.bage_prior_rwseasfix <- function(prior,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
   alpha <- draw_vals_rw(sd = sd,
-                        sd_init = sd_init,
+                        sd_init = 0,
                         matrix_along_by = matrix_along_by_effect,
                         levels_effect = levels_effect)
   alpha + seas  
@@ -279,7 +278,6 @@ draw_vals_effect.bage_prior_rwseasvary <- function(prior,
                                                    var_sexgender,
                                                    n_sim) {
   along <- prior$specific$along
-  sd_init <- prior$specific$sd
   sd <- vals_hyper$sd
   seas <- vals_hyperrand$seas
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
@@ -288,7 +286,7 @@ draw_vals_effect.bage_prior_rwseasvary <- function(prior,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
   alpha <- draw_vals_rw(sd = sd,
-                        sd_init = sd_init,
+                        sd_init = 0,
                         matrix_along_by = matrix_along_by_effect,
                         levels_effect = levels_effect)
   alpha + seas  
@@ -334,7 +332,6 @@ draw_vals_effect.bage_prior_rw2seasfix <- function(prior,
                                                    var_sexgender,
                                                    n_sim) {
   along <- prior$specific$along
-  sd_init <- prior$specific$sd
   sd_slope <- prior$specific$sd_slope
   sd <- vals_hyper$sd
   seas <- vals_hyperrand$seas
@@ -344,7 +341,7 @@ draw_vals_effect.bage_prior_rw2seasfix <- function(prior,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
   alpha <- draw_vals_rw2(sd = sd,
-                         sd_init = sd_init,
+                         sd_init = 0,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by_effect,
                          levels_effect = levels_effect)
@@ -364,7 +361,6 @@ draw_vals_effect.bage_prior_rw2seasvary <- function(prior,
                                                     var_sexgender,
                                                     n_sim) {
   along <- prior$specific$along
-  sd_init <- prior$specific$sd
   sd_slope <- prior$specific$sd_slope
   sd <- vals_hyper$sd
   seas <- vals_hyperrand$seas
@@ -374,7 +370,7 @@ draw_vals_effect.bage_prior_rw2seasvary <- function(prior,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
   alpha <- draw_vals_rw2(sd = sd,
-                         sd_init = sd_init,
+                         sd_init = 0,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by_effect,
                          levels_effect = levels_effect)
@@ -2143,6 +2139,44 @@ infer_trend_cyc_seas_err_forecast_one.bage_prior_rw2seasvary <- function(prior,
                                              components = components)
 
 
+## 'is_drop_first_along' -------------------------------------------------------------------
+
+#' Test Whether Prior Drops First Element of Along to Construct Effectfree
+#'
+#' @param prior An object of class 'bage_prior'.
+#'
+#' @returns TRUE or FALSE
+#'
+#' @noRd
+is_drop_first_along <- function(prior) {
+  UseMethod("is_drop_first_along")
+}
+
+## HAS_TESTS
+#' @export
+is_drop_first_along.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+is_drop_first_along.bage_prior_rw <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_drop_first_along.bage_prior_rw2 <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_drop_first_along.bage_prior_spline <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_drop_first_along.bage_prior_svd_rw <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+is_drop_first_along.bage_prior_svd_rw2 <- function(prior) TRUE
+
+
 ## 'is_known' -----------------------------------------------------------------
 
 #' Test whether a prior treats an intercept,
@@ -2627,36 +2661,6 @@ is_svd.bage_prior_svd_rw <- function(prior) TRUE
 is_svd.bage_prior_svd_rw2 <- function(prior) TRUE
 
 
-## 'is_svddynamci' -------------------------------------------------------------------
-
-#' Test Whether Prior is Dynamic SVD Prior
-#'
-#' @param prior An object of class 'bage_prior'.
-#'
-#' @returns TRUE or FALSE
-#'
-#' @noRd
-is_svddynamic <- function(prior) {
-  UseMethod("is_svddynamic")
-}
-
-## HAS_TESTS
-#' @export
-is_svddynamic.bage_prior <- function(prior) FALSE
-
-## HAS_TESTS
-#' @export
-is_svddynamic.bage_prior_svd_ar <- function(prior) TRUE
-
-## HAS_TESTS
-#' @export
-is_svddynamic.bage_prior_svd_rw <- function(prior) TRUE
-
-## HAS_TESTS
-#' @export
-is_svddynamic.bage_prior_svd_rw2 <- function(prior) TRUE
-
-
 ## 'levels_hyper' -------------------------------------------------------------
 
 #' Names of hyper-parameters
@@ -3059,7 +3063,7 @@ make_matrix_along_by_effectfree.bage_prior_svd_ar <- function(prior,
                            var_time = var_time,
                            var_age = var_age,
                            var_sexgender = var_sexgender,
-                           drop_first_along = TRUE)
+                           drop_first_along = FALSE)
 }
 
 ## HAS_TESTS
@@ -3200,7 +3204,7 @@ make_matrix_effectfree_effect.bage_prior_svd_ar <- function(prior,
                                 var_time = var_time,
                                 var_age = var_age,
                                 var_sexgender = var_sexgender,
-                                drop_first_along = TRUE)
+                                drop_first_along = FALSE)
 }
 
 ## HAS_TESTS
@@ -3614,11 +3618,10 @@ str_call_prior.bage_prior_rw <- function(prior) {
 str_call_prior.bage_prior_rwseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
-  args_sd <- str_call_args_sd(prior)
   args_s_seas <- "s_seas=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_sd, args_s_seas, args_sd_seas, args_along)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -3629,11 +3632,10 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
 str_call_prior.bage_prior_rwseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
-  args_sd <- str_call_args_sd(prior)
   args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_sd, args_s_seas, args_sd_seas, args_along)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -3656,12 +3658,11 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
 str_call_prior.bage_prior_rw2seasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
-  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_s_seas <- "s_seas=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_sd, args_sd_slope, args_s_seas, args_sd_seas, args_along)
+  args <- c(args_n_seas, args_scale, args_sd_slope, args_s_seas, args_sd_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2_Seas(%s)", args)
@@ -3672,12 +3673,11 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
 str_call_prior.bage_prior_rw2seasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
-  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_sd, args_sd_slope, args_s_seas, args_sd_seas, args_along)
+  args <- c(args_n_seas, args_scale, args_sd_slope, args_s_seas, args_sd_seas, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2_Seas(%s)", args)

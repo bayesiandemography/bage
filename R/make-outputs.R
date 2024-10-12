@@ -1427,11 +1427,11 @@ make_svd <- function(mod, effectfree) {
     length_effectfree <- lengths_effectfree[[i_term]]
     to <- to + length_effectfree
     prior <- priors[[i_term]]
-    dimnames_term <- dimnames_terms[[i_term]]
     if (is_svd(prior)) {
       s <- seq.int(to = to, length.out = length_effectfree)
       vals <- effectfree[s, , drop = FALSE]
-      if (is_svddynamic(prior)) {
+      if (is_drop_first_along(prior)) {
+        dimnames_term <- dimnames_terms[[i_term]]
         m_along_by <- make_matrix_along_by_effectfree(prior = prior,
                                                       dimnames_term = dimnames_term,
                                                       var_time = var_time,
@@ -1807,16 +1807,16 @@ infer_trend_cyc_seas_err_seasfix <- function(prior,
     for (i_along in seq_len(n_along)) {
       i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
       if (i_along == 1L) {
-        trend_first <- effect[[i_seasonal]]
-        seasonal[[i_seasonal]] <- trend_first
+        effect_first <- effect[[i_seasonal]]
+        seasonal[[i_seasonal]] <- effect_first
       }
       else if (i_along < n_seas) {
         i_seas <- i_along - 1L + (i_by - 1L) * (n_seas - 2L)
-        seasonal[[i_seasonal]] <- seas[[i_seas]] + trend_first
+        seasonal[[i_seasonal]] <- seas[[i_seas]] + effect_first
         seas_sum <- seas_sum + seas[[i_seas]]
       }
       else if (i_along == n_seas) {
-        seasonal[[i_seasonal]] <- -seas_sum - (n_seas - 1) * trend_first
+        seasonal[[i_seasonal]] <- -seas_sum - (n_seas - 1) * effect_first
       }
       else {
         i_prev <- matrix_along_by_effect[i_along - n_seas, i_by] + 1L
@@ -1903,29 +1903,32 @@ infer_trend_cyc_seas_err_seasvary <- function(prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  n_along <- nrow(matrix_along_by_effect)
+  n_along_effect <- nrow(matrix_along_by_effect)
   n_by <- ncol(matrix_along_by_effect)
   n_draw <- rvec::n_draw(seas)
-  seasonal <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  seasonal <- rvec::new_rvec(length = n_along_effect * n_by, n_draw = n_draw)
   n_along_seas <- length(seas) %/% n_by
   for (i_by in seq_len(n_by)) {
-    seas_last <- 0
-    offset_seas <- 1L
-    for (i_along in seq_len(n_along)) {
-      i_seasonal <- matrix_along_by_effect[i_along, i_by] + 1L
-      if (i_along == 1L) {
-        seasonal[[i_seasonal]] <- effect[[i_seasonal]]
-        seas_last <- seas_last - effect[[i_seasonal]]
+    i_effect_first <- matrix_along_by_effect[1L, i_by] + 1L
+    effect_first <- effect[[i_effect_first]]
+    i_along_seas <- 1L
+    seas_sum <- 0
+    for (i_along_effect in seq_len(n_along_effect)) {
+      is_first_element <- i_along_effect == 1L
+      index_seas <- (i_along_effect - 1L) %% n_seas
+      is_last_seas <- index_seas == n_seas - 1L
+      i_seasonal <- matrix_along_by_effect[i_along_effect, i_by] + 1L
+      if (is_first_element)
+        seasonal[[i_seasonal]] <- effect_first
+      if (!is_first_element && !is_last_seas) {
+        i_seas <- i_along_seas + (i_by - 1L) * n_along_seas
+        i_along_seas <- i_along_seas + 1L
+        seasonal[[i_seasonal]] <- seas[[i_seas]] + effect_first
+        seas_sum <- seas_sum + seas[[i_seas]]
       }
-      else if (i_along %% n_seas == 0L) {
-        seasonal[[i_seasonal]] <- seas_last
-        seas_last <- 0
-      }
-      else {
-        i_seas <- offset_seas + (i_by - 1L) * n_along_seas
-        offset_seas <- offset_seas + 1L
-        seasonal[[i_seasonal]] <- seas[[i_seas]]
-        seas_last <- seas_last - seas[[i_seas]]
+      if (is_last_seas) {
+        seasonal[[i_seasonal]] <- -seas_sum - (n_seas - 1) * effect_first
+        seas_sum <- 0
       }
     }
   }
