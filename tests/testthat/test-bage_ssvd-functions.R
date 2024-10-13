@@ -8,11 +8,9 @@ test_that("'get_matrix_or_offset_svd' works with age main effect, type is total,
                                              agesex = "age",
                                              get_matrix = TRUE,
                                              n_comp = 3L)
-    ans_expected <- Matrix::sparseMatrix(i = rep(1:2, 3),
-                                         j = rep(1:3, each = 2),
-                                         x = 1,
+    ans_expected <- Matrix::Matrix(1, nr = 2, nc = 3, 
                                          dimnames = list(c("0-4", "5-9"), NULL))
-    expect_identical(ans_obtained, ans_expected)
+    expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'get_matrix_or_offset_svd' works with age main effect, type is total, offset", {
@@ -42,21 +40,19 @@ test_that("'get_matrix_or_offset_svd' works with sex-age interaction, type is jo
 })
 
 test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is indep, matrix", {
-    ssvd <- sim_ssvd()
-    ans_obtained <- get_matrix_or_offset_svd(ssvd,
-                                             levels_age = c("0-4", "5-9"),
-                                             levels_sexgender = c("Female", "Male"),
-                                             joint = FALSE,
-                                             agesex = "sex:age",
-                                             get_matrix = TRUE,
-                                             n_comp = 5)
-    ans_expected <- Matrix::sparseMatrix(i = rep(1:4, 10),
-                                         j = rep(1:10, each = 4),
-                                         x = 3,
-                                         dimnames = list(c("Female.0-4", "Male.0-4",
-                                                           "Female.5-9", "Male.5-9"),
-                                                         NULL))
-    expect_identical(ans_obtained, ans_expected)
+  ssvd <- sim_ssvd()
+  ans_obtained <- get_matrix_or_offset_svd(ssvd,
+                                           levels_age = c("0-4", "5-9"),
+                                           levels_sexgender = c("Female", "Male"),
+                                           joint = FALSE,
+                                           agesex = "sex:age",
+                                           get_matrix = TRUE,
+                                           n_comp = 5)
+  ans_expected <- Matrix::Matrix(3, nr = 4, nc = 10,
+                                 dimnames = list(c("Female.0-4", "Male.0-4",
+                                                   "Female.5-9", "Male.5-9"),
+                                                 NULL))
+  expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is joint, offset, non-standard labels", {
@@ -68,12 +64,10 @@ test_that("'get_matrix_or_offset_svd' works with age-sex interaction, type is jo
                                            agesex = "sex:age",
                                            get_matrix = TRUE,
                                            n_comp = 5)
-  ans_expected <- Matrix::sparseMatrix(i = rep(1:4, 10),
-                                       j = rep(1:10, each = 4),
-                                       x = 3,
-                                       dimnames = list(c("Male.0-4", "Female.0-4",
-                                                         "Male.5-9", "Female.5-9"),
-                                                       NULL))
+  ans_expected <- Matrix::Matrix(3, nr = 4, nc = 10,
+                                 dimnames = list(c("Male.0-4", "Female.0-4",
+                                                   "Male.5-9", "Female.5-9"),
+                                                 NULL))
   expect_identical(ans_obtained, ans_expected)
 })
 

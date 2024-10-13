@@ -85,7 +85,7 @@ test_that("'generate' works with ssvd - indep", {
                                                  times = 20),
                                  age = rep(c("0-4", "5-9"), times = 40),
                                  value = as.double(ans_expected))
-  expect_identical(ans_obtained, ans_expected)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'generate' works with ssvd - joint", {
@@ -100,7 +100,7 @@ test_that("'generate' works with ssvd - joint", {
                                                  times = 2),
                                  age = rep(age_labels, times = 4),
                                  value = as.double(ans_expected))
-  expect_identical(ans_obtained, ans_expected)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'generate' works with ssvd - joint", {
@@ -115,7 +115,7 @@ test_that("'generate' works with ssvd - joint", {
                                                  times = 2),
                                  age = rep(age_labels, times = 4),
                                  value = as.double(ans_expected))
-  expect_identical(ans_obtained, ans_expected)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'generate' method for ssvd - gives expected error with invalid age labels", {

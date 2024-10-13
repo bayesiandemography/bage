@@ -492,10 +492,7 @@ make_lengths_effect <- function(dimnames_terms) {
 make_lengths_effectfree <- function(mod) {
   priors <- mod$priors
   matrices <- make_matrices_effectfree_effect(mod)
-  matrices <- lapply(matrices, Matrix::as.matrix)
-  ans <- vapply(matrices, ncol, 1L)
-  names(ans) <- names(priors)
-  ans
+  vapply(matrices, n_col, 1L)
 }
 
 
@@ -1138,8 +1135,7 @@ make_terms_effects <- function(dimnames_terms) {
 make_terms_effectfree <- function(mod) {
     priors <- mod$priors
     matrices <- make_matrices_effectfree_effect(mod)
-    matrices <- lapply(matrices, Matrix::as.matrix)
-    lengths <- vapply(matrices, ncol, 1L)
+    lengths <- vapply(matrices, n_col, 1L)
     nms <- names(priors)
     ans <- rep(nms, times = lengths)
     ans <- factor(ans, levels = nms)
@@ -1427,6 +1423,29 @@ make_vars_inner <- function(mod) {
   if (length(ans) < 3L)
     cli::cli_alert("Setting {.arg vars_inner} to {.val {ans}}.")
   ans
+}
+
+
+## HAS_TESTS
+#' Number of Columns of Matrix
+#'
+#' Alternative to 'ncol' that works on sparse
+#' matrices, and does not require converting
+#' to a dense matrix, or loading the Matrix
+#' package. Note that 'Matrix' does not export
+#' a method for 'ncol' or 'dim', hence the
+#' need to explicitly access the 'Dim' slot.
+#'
+#' @param x A matrix, possibly sparse
+#'
+#' @returns An integer
+#'
+#' @noRd
+n_col <- function(x) {
+  if (methods::.hasSlot(x, "Dim"))
+    x@Dim[[2L]]
+  else
+    ncol(x)
 }
 
 
