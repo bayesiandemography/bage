@@ -1662,6 +1662,20 @@ test_that("'make_vars_inner' throws correct error with age, sex, time not presen
 })
 
 
+## 'n_col' --------------------------------------------------------------------
+
+test_that("'n_col' works with ordinary matrix", {
+  m <- matrix(1:6, nr = 2)
+  expect_identical(n_col(m), 3L)
+})
+
+test_that("'n_col' works with Matrix matrix", {
+  m <- Matrix::Matrix(1:6, nr = 2)
+  expect_identical(n_col(m), 3L)
+})
+
+
+
 ## 'n_comp_svd' ---------------------------------------------------------------
 
 test_that("'n_comp_svd' works when no 'n' supplied", {

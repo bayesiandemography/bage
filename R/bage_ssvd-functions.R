@@ -87,6 +87,7 @@ get_matrix_or_offset_svd <- function(ssvd,
   ## extract matrix or offset
   if (get_matrix) {
     ans <- data$matrix[is_type_req][[i_matched]]
+    ans <- Matrix::as.matrix(ans)
     cols <- seq_len(n_comp)
     if (type_req == "indep") {
       cols_extra <- seq.int(from = 0,
@@ -120,8 +121,10 @@ get_matrix_or_offset_svd <- function(ssvd,
     i <- match(labels_clean, nms_ans)
   }
   ## return result
-  if (get_matrix)
-    ans[i, , drop = FALSE]
+  if (get_matrix) {
+    ans <- ans[i, , drop = FALSE]
+    ans <- Matrix::Matrix(ans)
+  }
   else
     ans[i]
 }  
@@ -141,8 +144,7 @@ get_n_comp <- function(ssvd) {
   matrix <- data$matrix
   i_total <- match("total", type)
   matrix_total <- matrix[[i_total]]
-  matrix_total <- Matrix::as.matrix(matrix_total)
-  ncol(matrix_total)
+  n_col(matrix_total)
 }
 
 
