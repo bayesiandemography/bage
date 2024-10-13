@@ -4,7 +4,14 @@
 \alias{Lin_AR1}
 \title{Linear Prior with Autoregressive Errors of Order 1}
 \usage{
-Lin_AR1(min = 0.8, max = 0.98, s = 1, sd_slope = 1, along = NULL)
+Lin_AR1(
+  min = 0.8,
+  max = 0.98,
+  s = 1,
+  mean_slope = 0,
+  sd_slope = 1,
+  along = NULL
+)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
@@ -13,6 +20,9 @@ Defaults are \code{0.8} and \code{0.98}.}
 
 \item{s}{Scale for the innovations in the
 AR process. Default is \code{1}.}
+
+\item{mean_slope}{Mean in prior for slope
+of line. Default is 0.}
 
 \item{sd_slope}{Standard deviation in the prior for
 the slope of the line. Larger values imply

@@ -500,6 +500,36 @@ test_that("'check_min_max_ar' returns correct error with max <= min", {
 })
 
 
+## 'check_number' ------------------------------------------------------------------
+
+test_that("'check_number' returns TRUE with valid inputs", {
+    expect_true(check_number(x = 1L, nm_x = "x"))
+    expect_true(check_number(x = -1, nm_x = "x"))
+})
+
+test_that("'check_number' throws correct error with non-numeric", {
+    expect_error(check_number(x = "4", nm_x = "x"),
+                 "`x` is non-numeric.")
+})
+
+test_that("'check_number' throws correct error with length not equal to 1", {
+    expect_error(check_number(x = integer(), nm_x = "x"), 
+                 "`x` has length 0.")
+    expect_error(check_number(x = 1:2, nm_x = "x"), 
+                 "`x` has length 2.")
+})
+
+test_that("'check_number' throws correct error with NA", {
+    expect_error(check_number(x = NA_real_, nm_x = "x"),
+                 "`x` is NA.")
+})
+
+test_that("'check_number' throws correct error with Inf", {
+    expect_error(check_number(x = Inf, nm_x = "x"),
+                 "`x` is non-finite.")
+})
+
+
 ## 'check_numeric' ------------------------------------------------------------------
 
 test_that("'check_numeric' returns TRUE with valid inputs", {

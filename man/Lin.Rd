@@ -4,11 +4,14 @@
 \alias{Lin}
 \title{Linear Prior with Independent Normal Errors}
 \usage{
-Lin(s = 1, sd_slope = 1, along = NULL)
+Lin(s = 1, mean_slope = 0, sd_slope = 1, along = NULL)
 }
 \arguments{
 \item{s}{Scale for the prior for the errors.
 Default is \code{1}.}
+
+\item{mean_slope}{Mean in prior for slope
+of line. Default is 0.}
 
 \item{sd_slope}{Standard deviation in prior for slope
 of line. Default is 1.}
@@ -62,9 +65,9 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
+\deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
 
 Parameter \eqn{\tau} has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}

@@ -3688,24 +3688,26 @@ test_that("'str_call_prior' works with bage_prior_known", {
 
 test_that("'str_call_prior' works with bage_prior_lin", {
     expect_identical(str_call_prior(Lin()), "Lin()")
-    expect_identical(str_call_prior(Lin(sd = 0.5, s = 2, along = "a")),
-                     "Lin(s=2,sd=0.5,along=\"a\")")
+    expect_identical(str_call_prior(Lin(sd_slope = 0.5, mean_slope = -0.2, s = 2, along = "a")),
+                     "Lin(s=2,mean_slope=-0.2,sd_slope=0.5,along=\"a\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR format", {
     expect_identical(str_call_prior(Lin_AR()), "Lin_AR()")
-    expect_identical(str_call_prior(Lin_AR(sd = 0.5)), "Lin_AR(sd=0.5)")
-    expect_identical(str_call_prior(Lin_AR(sd=2L,s = 0.95)), "Lin_AR(s=0.95,sd=2)")
+    expect_identical(str_call_prior(Lin_AR(sd = 0.5)), "Lin_AR(sd_slope=0.5)")
+    expect_identical(str_call_prior(Lin_AR(sd=2L,mean_slope=0.1,s = 0.95)),
+                     "Lin_AR(s=0.95,mean_slope=0.1,sd_slope=2)")
     expect_identical(str_call_prior(Lin_AR(sd = 0.1, along = "cohort", s = 0.95,n=3)),
-                     "Lin_AR(n_coef=3,s=0.95,sd=0.1,along=\"cohort\")")
+                     "Lin_AR(n_coef=3,s=0.95,sd_slope=0.1,along=\"cohort\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
     expect_identical(str_call_prior(Lin_AR1()), "Lin_AR1()")
-    expect_identical(str_call_prior(Lin_AR1(along="age",sd = 0.5)), "Lin_AR1(sd=0.5,along=\"age\")")
-    expect_identical(str_call_prior(Lin_AR1(sd=2L,s = 0.95)), "Lin_AR1(s=0.95,sd=2)")
-    expect_identical(str_call_prior(Lin_AR1(sd = 0.1, max=1,s = 0.95, min = 0.5)),
-                     "Lin_AR1(min=0.5,max=1,s=0.95,sd=0.1)")
+    expect_identical(str_call_prior(Lin_AR1(along="age",sd = 0.5)),
+                     "Lin_AR1(sd_slope=0.5,along=\"age\")")
+    expect_identical(str_call_prior(Lin_AR1(sd=2L,s = 0.95)), "Lin_AR1(s=0.95,sd_slope=2)")
+    expect_identical(str_call_prior(Lin_AR1(sd = 0.1, mean_slope = 0.2, max=1,s = 0.95, min = 0.5)),
+                     "Lin_AR1(min=0.5,max=1,s=0.95,mean_slope=0.2,sd_slope=0.1)")
 })
 
 test_that("'str_call_prior' works with bage_prior_norm", {

@@ -319,7 +319,8 @@ Type logpost_lin(vector<Type> effectfree,
 		 vector<Type> consts,
 		 matrix<int> matrix_along_by_effectfree) {
   Type scale = consts[0];
-  Type sd_slope = consts[1];
+  Type mean_slope = consts[1];
+  Type sd_slope = consts[2];
   int n_along = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
   Type log_sd = hyper[0];
@@ -327,7 +328,7 @@ Type logpost_lin(vector<Type> effectfree,
   Type sd = exp(log_sd);
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(hyperrand, Type(0), sd_slope, true).sum();
+  ans += dnorm(hyperrand, mean_slope, sd_slope, true).sum();
   for (int i_by = 0; i_by < n_by; i_by++) {
     for (int i_along = 0; i_along < n_along; i_along++) {
       int i = matrix_along_by_effectfree(i_along, i_by);
@@ -344,11 +345,12 @@ Type logpost_linar(vector<Type> effectfree,
 		   vector<Type> consts,
 		   matrix<int> matrix_along_by_effectfree) {
   Type scale = consts[0];
-  Type sd_slope = consts[1];
-  Type shape1 = consts[2];
-  Type shape2 = consts[3];
-  Type min = consts[4];
-  Type max = consts[5];
+  Type mean_slope = consts[1];
+  Type sd_slope = consts[2];
+  Type shape1 = consts[3];
+  Type shape2 = consts[4];
+  Type min = consts[5];
+  Type max = consts[6];
   Type log_sd = hyper[0];
   int n_coef = hyper.size() - 1;
   int n_along = matrix_along_by_effectfree.rows();
@@ -360,7 +362,7 @@ Type logpost_linar(vector<Type> effectfree,
   vector<Type> coef = (max - min) * coef_raw + min;
   Type ans = 0;
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(hyperrand, Type(0), sd_slope, true).sum();
+  ans += dnorm(hyperrand, mean_slope, sd_slope, true).sum();
   Type radius = sqrt((coef_raw * coef_raw).sum());
   ans += dbeta(radius, shape1, shape2, true)
     + log(coef_raw).sum()

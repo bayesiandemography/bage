@@ -41,12 +41,15 @@ test_that("'Known' works with valid inputs", {
 test_that("'Lin' works with valid inputs", {
   expect_identical(Lin(),
                    new_bage_prior_lin(scale = 1,
+                                      mean_slope = 0,
                                       sd_slope = 1,
                                       along = NULL))
   expect_identical(Lin(s = 0.3,
                        sd_slope = 0.1,
+                       mean = 0.2,
                        along = "reg"),
                    new_bage_prior_lin(scale = 0.3,
+                                      mean_slope = 0.2,
                                       sd_slope = 0.1,
                                       along = "reg"))
 })
@@ -55,14 +58,16 @@ test_that("'Lin_AR' works with valid inputs", {
   expect_identical(Lin_AR(),
                    new_bage_prior_linar(n_coef = 2L,
                                         scale = 1,
+                                        mean_slope = 0,
                                         sd_slope = 1,
                                         min = -1,
                                         max = 1,
                                         along = NULL,
                                         nm = "Lin_AR"))
-  expect_identical(Lin_AR(s = 0.3, sd_slope = 0.1),
+  expect_identical(Lin_AR(s = 0.3, mean_slope = -0.02, sd_slope = 0.1),
                    new_bage_prior_linar(n_coef = 2L,
                                         scale = 0.3,
+                                        mean_slope = -0.02,
                                         sd_slope = 0.1,
                                         min = -1,
                                         max = 1,
@@ -74,14 +79,16 @@ test_that("'Lin_AR1' works with valid inputs", {
   expect_identical(Lin_AR1(),
                    new_bage_prior_linar(n_coef = 1L,
                                         scale = 1,
+                                        mean_slope = 0,
                                         sd_slope = 1,
                                         min = 0.8,
                                         max = 0.98,
                                         along = NULL,
                                         nm = "Lin_AR1"))
-  expect_identical(Lin_AR1(s = 0.3, sd_slope = 0.1),
+  expect_identical(Lin_AR1(s = 0.3, sd_slope = 0.1, mean_slope = 2L),
                    new_bage_prior_linar(n_coef = 1L,
                                         scale = 0.3,
+                                        mean_slope = 2,
                                         sd_slope = 0.1,
                                         min = 0.8,
                                         max = 0.98,
@@ -329,18 +336,19 @@ test_that("'new_bage_prior_known' works", {
 })
 
 test_that("'new_bage_prior_lin' works", {
-  obj <- new_bage_prior_lin(scale = 1, sd_slope = 1, along = NULL)
+  obj <- new_bage_prior_lin(scale = 1, mean_slope = 0, sd_slope = 1, along = NULL)
   expect_s3_class(obj, "bage_prior_lin")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 2L)
-  expect_identical(obj$const, c(scale = 1, sd_slope = 1))
-  expect_identical(obj$specific, list(scale = 1, sd_slope = 1,
+  expect_identical(obj$const, c(scale = 1, mean_slope = 0, sd_slope = 1))
+  expect_identical(obj$specific, list(scale = 1, mean_slope = 0, sd_slope = 1,
                                       along = NULL))
 })
 
 test_that("'new_bage_prior_linar' works - AR interface", {
   obj <- new_bage_prior_linar(n_coef = 2L,
                               scale = 1,
+                              mean_slope = 0,
                               sd_slope = 1,
                               min = -1,
                               max = 1,
@@ -351,6 +359,7 @@ test_that("'new_bage_prior_linar' works - AR interface", {
   expect_identical(obj$i_prior, 3L)
   expect_identical(obj$const,
                    c(scale = 1,
+                     mean_slope = 0,
                      sd_slope = 1,
                      shape1 = 2,
                      shape2 = 2,
@@ -359,6 +368,7 @@ test_that("'new_bage_prior_linar' works - AR interface", {
   expect_identical(obj$specific,
                    list(n_coef = 2L,
                         scale = 1,
+                        mean_slope = 0,
                         sd_slope = 1,
                         shape1 = 2,
                         shape2 = 2,
@@ -371,6 +381,7 @@ test_that("'new_bage_prior_linar' works - AR interface", {
 test_that("'new_bage_prior_linar' works - AR1 interface", {
   obj <- new_bage_prior_linar(n_coef = 1L,
                               scale = 1,
+                              mean_slope = 0,
                               sd_slope = 1,
                               min = 0.8,
                               max = 0.98,
@@ -380,6 +391,7 @@ test_that("'new_bage_prior_linar' works - AR1 interface", {
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 3L)
   expect_identical(obj$const, c(scale = 1,
+                                mean_slope = 0,
                                 sd_slope = 1,
                                 shape1 = 2,
                                 shape2 = 2,
@@ -388,6 +400,7 @@ test_that("'new_bage_prior_linar' works - AR1 interface", {
   expect_identical(obj$specific,
                    list(n_coef = 1L,
                         scale = 1,
+                        mean_slope = 0,
                         sd_slope = 1,
                         shape1 = 2,
                         shape2 = 2,

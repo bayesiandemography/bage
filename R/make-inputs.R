@@ -134,7 +134,7 @@ get_n_comp_spline <- function(prior, n_along) {
 #' @returns An integer
 #'
 #' @noRd
-get_print_prior_n_offset <- function() 8L
+get_print_prior_n_offset <- function() 10L
 
 
 
@@ -1626,17 +1626,20 @@ str_call_args_ar <- function(prior) {
 #'
 #' Does not include 'along'.
 #'
-#' @param prior Prior with AR components
+#' @param prior Prior with linear components
 #'
 #' @returns A character vector
 #'
 #' @noRd
 str_call_args_lin <- function(prior) {
+  mean_slope <- prior$specific$mean_slope
   sd_slope <- prior$specific$sd_slope
-  if (identical(sd_slope, 1))
-    ""
-  else
-    sprintf("sd=%s", sd_slope)
+  args <- character(2L)
+  if (!identical(mean_slope, 0))
+    args[[1L]] <- sprintf("mean_slope=%s", mean_slope)
+  if (!identical(sd_slope, 1))
+    args[[2L]] <- sprintf("sd_slope=%s", sd_slope)
+  args
 }
 
 ## HAS_TESTS
