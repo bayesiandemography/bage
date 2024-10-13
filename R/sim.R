@@ -376,34 +376,10 @@ draw_vals_hyperrand_mod <- function(mod, vals_hyper, n_sim) {
 
 
 ## HAS_TESTS
-#' Draw Values for the 'intercept' Hyper-Parameters of a Prior
-#'
-#' @param matrix_along_by Matrix with mapping for along and by dimensions
-#' @param n_sim Number of draws
-#'
-#' @returns A matrix
-#'
-#' @noRd
-draw_vals_intercept <- function(matrix_along_by, n_sim) {
-  n_by <- ncol(matrix_along_by)
-  ans <- stats::rnorm(n = n_by * n_sim)
-  ans <- matrix(ans, nrow = n_by, ncol = n_sim)
-  nms_by <- colnames(matrix_along_by)
-  if (n_by > 1L)
-    rownames <- paste("intercept", nms_by, sep = ".")
-  else
-    rownames <- "intercept"
-  rownames(ans) <- rownames
-  ans
-}
-
-
-## HAS_TESTS
 #' Generate Draws from Lin
 #'
 #' Each column is one draw.
 #'
-#' @param intercept Matrix of values
 #' @param slope Matrix of values
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
@@ -412,12 +388,12 @@ draw_vals_intercept <- function(matrix_along_by, n_sim) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_lin <- function(intercept, slope, sd, matrix_along_by, labels) {
-  n_sim <- ncol(intercept)
+draw_vals_lin <- function(slope, sd, matrix_along_by, labels) {
+  n_sim <- length(sd)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  intercept <- rep(intercept, each = n_along)
   slope <- rep(slope, each = n_along)
+  intercept <- -0.5 * (n_along + 1) * slope
   sd <- rep(sd, each = n_along * n_by)
   s <- seq_len(n_along)
   ans <- stats::rnorm(n = n_along * n_by * n_sim,
@@ -436,9 +412,6 @@ draw_vals_lin <- function(intercept, slope, sd, matrix_along_by, labels) {
 #'
 #' Each column is one draw.
 #'
-#' Results are standardized
-#'
-#' @param intercept Matrix of values
 #' @param slope Matrix of values
 #' @param sd Vector of values
 #' @param matrix_along_by Matrix with map for along and by dimensions
@@ -447,13 +420,13 @@ draw_vals_lin <- function(intercept, slope, sd, matrix_along_by, labels) {
 #' @returns A matrix, with dimnames.
 #'
 #' @noRd
-draw_vals_linar <- function(intercept, slope, sd, coef, matrix_along_by, labels) {
+draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
   n_sim <- ncol(slope)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
   n_coef <- nrow(coef)
-  intercept <- as.numeric(intercept)
   slope <- as.numeric(slope)
+  intercept <- -0.5 * (n_along + 1) * slope
   s <- seq_len(n_along)
   mean <- outer(s, slope) + rep(intercept, each = n_along)
   coef <- array(coef, dim = c(n_coef, n_sim, n_by))

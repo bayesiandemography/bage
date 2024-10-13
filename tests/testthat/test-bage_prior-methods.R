@@ -896,9 +896,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin", {
                              var_age = var_age,
                              var_time = var_time,
                              n_sim = n_sim)
-  expect_identical(names(ans), c("intercept", "slope"))
+  expect_identical(names(ans), "slope")
   expect_identical(lengths(ans),
-                   c(intercept = 40L, slope = 40L))
+                   c(slope = 40L))
 })
 
 test_that("'draw_vals_hyperrand' works with bage_prior_linar", {
@@ -916,9 +916,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar", {
                              var_age = var_age,
                              var_time = var_time,
                              n_sim = n_sim)
-  expect_identical(names(ans), c("intercept", "slope"))
+  expect_identical(names(ans), "slope")
   expect_identical(lengths(ans),
-                   c(intercept = 10L, slope = 10L))
+                   c(slope = 10L))
 })
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix", {
@@ -1315,10 +1315,9 @@ test_that("'forecast_term' works with bage_prior_lin", {
   var_sexgender <- "sex"
   components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
                                                 component = "hyper",
-                                                level = c("intercept", "intercept",
-                                                          "slope", "slope",
+                                                level = c("slope", "slope",
                                                           "sd"),
-                                                .fitted = rvec::runif_rvec(n = 5, n_draw = 10)),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
                                  tibble::tibble(term = "year:reg",
                                                 component = "effect",
                                                 level = paste(2001:2005,
@@ -1339,10 +1338,10 @@ test_that("'forecast_term' works with bage_prior_lin", {
                                  level = paste(2006:2011,
                                                rep(1:2, each = 6),
                                                sep = "."))
-  intercept <- components$.fitted[components$level == "intercept"]
   slope <- components$.fitted[components$level == "slope"]
   sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
+  intercept <- -0.5 * 6 * slope
   ans_expected$.fitted <- c(rvec::rnorm_rvec(n = 6,
                                              mean = intercept[1] + (6:11) * slope[1],
                                              sd = sd),
@@ -1361,8 +1360,8 @@ test_that("'forecast_term' works with bage_prior_linar - n_by = 1", {
   var_sexgender <- "sex"
   components <- vctrs::vec_rbind(tibble::tibble(term = "year",
                                                 component = "hyper",
-                                                level = c("intercept", "slope", "sd", "coef1", "coef2"),
-                                                .fitted = rvec::runif_rvec(n = 5, n_draw = 10)),
+                                                level = c("slope", "sd", "coef1", "coef2"),
+                                                .fitted = rvec::runif_rvec(n = 4, n_draw = 10)),
                                  tibble::tibble(term = "year",
                                                 component = "effect",
                                                 level = as.character(2001:2005),
@@ -1377,19 +1376,19 @@ test_that("'forecast_term' works with bage_prior_linar - n_by = 1", {
                                 components = components,
                                 labels_forecast = labels_forecast)
   effect <- components$.fitted[components$component == "effect"]
-  intercept <- components$.fitted[components$level == "intercept"]
   slope <- components$.fitted[components$level == "slope"]
+  intercept <- -0.5 * 6 * slope
   sd <- components$.fitted[components$level == "sd"]
   coef <- components$.fitted[components$level %in% c("coef1", "coef2")]
   error_forecast <- rep(effect[[1]], 6)
   set.seed(1)
   trend_forecast <- intercept + slope * (6:11)
   error_forecast[1] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (components$.fitted[5 + 4:5] -
+                               mean = sum(coef * (components$.fitted[4 + 4:5] -
                                                     (intercept + slope * (4:5)))),
                                sd = sd)
   error_forecast[2] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * c(components$.fitted[5 + 5] - (intercept + slope * 5),
+                               mean = sum(coef * c(components$.fitted[4 + 5] - (intercept + slope * 5),
                                                    error_forecast[1])),
                                sd = sd)
   error_forecast[3] <- rvec::rnorm_rvec(n = 1,
@@ -2206,8 +2205,8 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_lin", {
   ans_expected <- comp
   ans_expected$component[ans_expected$component == "hyperrand" &
                            ans_expected$term == "sex:time"] <- "hyper"
-  expect_identical(subset(ans_obtained, !startsWith(level, "intercept")),
-                   subset(ans_expected, !startsWith(level, "intercept")))
+  expect_identical(subset(ans_obtained, !startsWith(level, "slope")),
+                   subset(ans_expected, !startsWith(level, "slope")))
 })
 
 test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_linar", {
@@ -2240,9 +2239,6 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_linar", {
   cyclical <- ans_obtained$.fitted[ans_obtained$component == "cyclical"]
   effect <- ans_obtained$.fitted[ans_obtained$component == "effect" & ans_obtained$term == "sex:time"]
   expect_equal(effect, trend + cyclical)
-  expect_identical(ans_obtained$component[ans_obtained$term == "sex:time"
-                                          & grepl("intercept", ans_obtained$level)],
-                   c("hyper", "hyper"))
   expect_identical(ans_obtained$component[ans_obtained$term == "sex:time"
                                           & grepl("slope", ans_obtained$level)],
                    c("hyper", "hyper"))
@@ -3013,7 +3009,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_lin'", {
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
                                    var_age = var_age)
-  ans_expected <- c("intercept.a", "intercept.b", "slope.a", "slope.b")
+  ans_expected <- c("slope.a", "slope.b")
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -3025,7 +3021,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_lin' - n_by = 1", {
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
                                    var_age = var_age)
-  ans_expected <- c("intercept", "slope")
+  ans_expected <- "slope"
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -3038,7 +3034,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_linar'", {
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
                                    var_age = var_age)
-  ans_expected <- c("intercept.a", "intercept.b", "slope.a", "slope.b")
+  ans_expected <- c("slope.a", "slope.b")
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -3050,7 +3046,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_linar' - n_by = 1", {
                                    dimnames_term = dimnames_term,
                                    var_time = var_time,
                                    var_age = var_age)
-  ans_expected <- c("intercept", "slope")
+  ans_expected <- "slope"
   expect_identical(ans_obtained, ans_expected)                   
 })
 

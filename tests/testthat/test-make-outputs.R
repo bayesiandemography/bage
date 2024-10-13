@@ -1132,31 +1132,27 @@ test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
 ## 'make_lin_trend' -----------------------------------------------------------
 
 test_that("'make_lin_trend' works with valid inputs - n_by = 1", {
-  intercept <- rvec::rvec(matrix(as.numeric(2:6), nr = 1))
   slope <- rvec::rvec(matrix(as.numeric(1:5), nr = 1))
   matrix_along_by <- matrix(0:9, nr = 10)
-  ans_obtained <- make_lin_trend(intercept = intercept,
-                                 slope = slope,
+  ans_obtained <- make_lin_trend(slope = slope,
                                  matrix_along_by = matrix_along_by)
   ones <- rep(1, times = 10)
   s <- 1:10
-  ans_expected <- rvec::rvec(outer(ones, 2:6) + outer(s, 1:5))
+  ans_expected <- rvec::rvec(outer(ones, -0.5 * 11 * (1:5)) + outer(s, 1:5))
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_lin_trend' works with valid inputs - n_by = 2, transposed", {
-  intercept <- rvec::rvec(matrix(rnorm(10), nr = 2))
   slope <- rvec::rvec(matrix(rnorm(10), nr = 2))
+  intercept <- -0.5 * 6 * slope
   matrix_along_by <- t(matrix(0:9, nr = 2))
-  ans_obtained <- make_lin_trend(intercept = intercept,
-                                 slope = slope,
+  ans_obtained <- make_lin_trend(slope = slope,
                                  matrix_along_by = matrix_along_by)
   s <- 1:5
   ans_expected <- c(intercept[1] + slope[1] * s, intercept[2] + slope[2] * s)
   ans_expected <- ans_expected[c(1, 6, 2, 7, 3, 8, 4, 9, 5, 10)]
   expect_identical(ans_obtained, ans_expected)
 })
-
 
 ## 'make_stored_draws' --------------------------------------------------------
 
@@ -1391,7 +1387,7 @@ test_that("'make_levels_hyperrand' works", {
     mod <- set_prior(mod, sex:time ~ Lin())
     mod <- fit(mod)
     ans_obtained <- make_levels_hyperrand(mod)
-    ans_expected <- c("intercept.F", "intercept.M", "slope.F", "slope.M")
+    ans_expected <- c("slope.F", "slope.M")
     expect_identical(ans_obtained, ans_expected)                      
 })
 

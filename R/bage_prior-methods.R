@@ -121,7 +121,6 @@ draw_vals_effect.bage_prior_lin <- function(prior,
                                             var_sexgender,
                                             n_sim) {
   along <- prior$specific$along
-  intercept <- vals_hyperrand$intercept
   slope <- vals_hyperrand$slope
   sd <- vals_hyper$sd
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
@@ -129,8 +128,7 @@ draw_vals_effect.bage_prior_lin <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
-  draw_vals_lin(intercept = intercept,
-                slope = slope,
+  draw_vals_lin(slope = slope,
                 sd = sd,
                 matrix_along_by = matrix_along_by_effect,
                 labels = levels_effect)
@@ -149,7 +147,6 @@ draw_vals_effect.bage_prior_linar <- function(prior,
                                               var_sexgender,
                                               n_sim) {
   along <- prior$specific$along
-  intercept <- vals_hyperrand$intercept
   slope <- vals_hyperrand$slope
   coef <- vals_hyper$coef
   sd <- vals_hyper$sd
@@ -158,8 +155,7 @@ draw_vals_effect.bage_prior_linar <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   levels_effect <- dimnames_to_levels(dimnames_term)
-  draw_vals_linar(intercept = intercept,
-                  slope = slope,
+  draw_vals_linar(slope = slope,
                   sd = sd,
                   coef = coef,
                   matrix_along_by = matrix_along_by_effect,
@@ -679,13 +675,10 @@ draw_vals_hyperrand.bage_prior_lin <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_by <- ncol(matrix_along_by_effect)
-  intercept <- draw_vals_intercept(matrix_along_by = matrix_along_by_effect,
-                                   n_sim = n_sim)
   slope <- draw_vals_slope(sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
-  list(intercept = intercept,
-       slope = slope)
+  list(slope = slope)
 }
 
 ## HAS_TESTS
@@ -703,13 +696,10 @@ draw_vals_hyperrand.bage_prior_linar <- function(prior,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_by <- ncol(matrix_along_by_effect)
-  intercept <- draw_vals_intercept(matrix_along_by = matrix_along_by_effect,
-                                   n_sim = n_sim)
   slope <- draw_vals_slope(sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
-  list(intercept = intercept,
-       slope = slope)
+  list(slope = slope)
 }
 
 ## HAS_TESTS
@@ -1124,14 +1114,11 @@ forecast_term.bage_prior_lin <- function(prior,
                                                           dimnames_term = dimnames_forecast,
                                                           var_time = var_time,
                                                           var_age = var_age)
-  is_intercept <- with(components, term == nm & component == "hyper" & startsWith(level, "intercept"))
   is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
   is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
-  intercept <- components$.fitted[is_intercept]
   slope <- components$.fitted[is_slope]
   sd <- components$.fitted[is_sd]
-  lin_forecast <- forecast_lin(intercept = intercept,
-                               slope = slope,
+  lin_forecast <- forecast_lin(slope = slope,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
@@ -1164,19 +1151,15 @@ forecast_term.bage_prior_linar <- function(prior,
                                                           var_age = var_age)
   is_effect <- with(components, term == nm & component == "effect")
   is_coef <- with(components, term == nm & component == "hyper" & startsWith(level, "coef"))
-  is_intercept <- with(components, term == nm & component == "hyper" & startsWith(level, "intercept"))
   is_slope <- with(components, term == nm & component == "hyper" & startsWith(level, "slope"))
   is_sd <- with(components, term == nm & component == "hyper" & level == "sd")
   effect_est <- components$.fitted[is_effect]
   coef <- components$.fitted[is_coef]
-  intercept <- components$.fitted[is_intercept]
   slope <- components$.fitted[is_slope]
   sd <- components$.fitted[is_sd]
-  trend_est <- make_lin_trend(intercept = intercept,
-                              slope = slope,
+  trend_est <- make_lin_trend(slope = slope,
                               matrix_along_by = matrix_along_by_est)
-  trend_forecast <- forecast_lin_trend(intercept = intercept,
-                                       slope = slope,
+  trend_forecast <- forecast_lin_trend(slope = slope,
                                        matrix_along_by_est = matrix_along_by_est,
                                        matrix_along_by_forecast = matrix_along_by_forecast)
   cyclical_est <- effect_est - trend_est
@@ -1927,11 +1910,8 @@ infer_trend_cyc_seas_err_one.bage_prior_lin <- function(prior,
                                                         var_age,
                                                         components) {
   nm <- dimnames_to_nm(dimnames_term)
-  is_intercept <- with(components,
-  (term == nm) & startsWith(component, "hyper") & startsWith(level, "intercept"))
   is_slope <- with(components,
   (term == nm) & startsWith(component, "hyper") & startsWith(level, "slope"))
-  components$component[is_intercept] <- "hyper"
   components$component[is_slope] <- "hyper"
   components
 }
@@ -1944,26 +1924,21 @@ infer_trend_cyc_seas_err_one.bage_prior_linar <- function(prior,
                                                           var_age,
                                                           components) {
   nm <- dimnames_to_nm(dimnames_term)
-  is_intercept <- with(components,
-  (term == nm) & startsWith(component, "hyper") & startsWith(level, "intercept"))
   is_slope <- with(components,
   (term == nm) & startsWith(component, "hyper") & startsWith(level, "slope"))
   is_effect <- with(components, (term == nm) & (component == "effect"))
   is_trend <- with(components, (term == nm) & (component == "trend"))
   is_cyclical <- with(components, (term == nm) & (component == "cyclical"))
   effect <- components$.fitted[is_effect]
-  intercept <- components$.fitted[is_intercept]
   slope <- components$.fitted[is_slope]
   along <- prior$specific$along
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  trend <- make_lin_trend(intercept = intercept,
-                          slope = slope,
+  trend <- make_lin_trend(slope = slope,
                           matrix_along_by = matrix_along_by_effect)
   cyclical <- effect - trend
-  components$component[is_intercept] <- "hyper"
   components$component[is_slope] <- "hyper"
   level <- components$level[is_effect]
   trend <- tibble::tibble(term = nm,
@@ -2825,11 +2800,10 @@ levels_hyperrand.bage_prior_lin <- function(prior,
   n_by <- ncol(matrix_along_by_effect)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by_effect)
-    c(paste("intercept", nms_by, sep = "."),
-      paste("slope", nms_by, sep = "."))
+    paste("slope", nms_by, sep = ".")
   }
   else
-    c("intercept", "slope")
+    "slope"
 }
 
 ## HAS_TESTS
@@ -2846,11 +2820,10 @@ levels_hyperrand.bage_prior_linar <- function(prior,
   n_by <- ncol(matrix_along_by_effect)
   if (n_by > 1L) {
     nms_by <- colnames(matrix_along_by_effect)
-    c(paste("intercept", nms_by, sep = "."),
-      paste("slope", nms_by, sep = "."))
+    paste("slope", nms_by, sep = ".")
   }
   else
-    c("intercept", "slope")
+    "slope"
 }
 
 ## HAS_TESTS
