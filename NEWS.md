@@ -1,4 +1,13 @@
 
+# bage 0.8.0
+
+## Changes to internal calculations
+
+* Removed some unnecessary coercion of sparse matrices to dense
+  matrices (which could sometimes cause memory problems)
+
+
+
 # bage 0.7.8
 
 ## Datasets
