@@ -490,6 +490,30 @@ check_mod_has_obs <- function(mod) {
 
 
 ## HAS_TESTS
+#' Check that Object is Numeric, Length 1, Non-NA, Finite
+#'
+#' @param x An object
+#' @param nm_x Name to be used in error messages
+#'
+#' @returns TRUE, invisibly
+#' 
+#' @noRd
+check_number <- function(x, nm_x) {
+  if (!is.numeric(x))
+    cli::cli_abort(c("{.arg {nm_x}} is non-numeric.",
+                     i = "{.arg {nm_x}} has class {.cls {class(x)}}."))
+  if (length(x) != 1L)
+    cli::cli_abort(c("{.arg {nm_x}} has length {length(x)}.",
+                     i = "Should have length 1."))
+  if (is.na(x))
+    cli::cli_abort("{.arg {nm_x}} is {.val {NA}}.")
+  if (any(is.infinite(x)))
+    cli::cli_abort("{.arg {nm_x}} is non-finite.")
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that Vector is Numeric, Non-NA, Finite, Non-Zero Length
 #'
 #' @param x A vector

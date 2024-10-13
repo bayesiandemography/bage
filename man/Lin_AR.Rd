@@ -4,7 +4,7 @@
 \alias{Lin_AR}
 \title{Linear Prior with Autoregressive Errors}
 \usage{
-Lin_AR(n_coef = 2, s = 1, sd_slope = 1, along = NULL)
+Lin_AR(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL)
 }
 \arguments{
 \item{n_coef}{Number of lagged terms in the
@@ -12,6 +12,9 @@ model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the innovations in the
 AR process. Default is \code{1}.}
+
+\item{mean_slope}{Mean in prior for slope
+of line. Default is 0.}
 
 \item{sd_slope}{Standard deviation in the prior for
 the slope of the line. Larger values imply
@@ -75,9 +78,9 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
+\deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
 
 Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal

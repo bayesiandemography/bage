@@ -580,16 +580,17 @@ draw_vals_seasvary <- function(n_seas, sd_init, sd_innov, matrix_along_by) {
 ## HAS_TESTS
 #' Draw Values for the 'slope' Hyper-Parameters of a Prior
 #'
-#' @param sd_slope Standard deviation of slope. A positive scalar.
+#' @param mean_slope Prior mean of slope. A scalar.
+#' @param sd_slope Prior standard deviation of slope. A positive scalar.
 #' @param matrix_along_by Matrix with mapping for along and by dimensions
 #' @param n_sim Number of draws
 #'
 #' @returns A matrix
 #'
 #' @noRd
-draw_vals_slope <- function(sd_slope, matrix_along_by, n_sim) {
+draw_vals_slope <- function(mean_slope, sd_slope, matrix_along_by, n_sim) {
   n_by <- ncol(matrix_along_by)
-  ans <- stats::rnorm(n = n_by * n_sim, sd = sd_slope)
+  ans <- stats::rnorm(n = n_by * n_sim, mean = mean_slope, sd = sd_slope)
   ans <- matrix(ans, nrow = n_by, ncol = n_sim)
   nms_by <- colnames(matrix_along_by)
   if (n_by > 1L)

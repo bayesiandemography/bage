@@ -198,7 +198,7 @@ test_that("'get_n_comp_spline' works with n_comp supplied", {
 ## 'get_print_prior_n_offset' -------------------------------------------------
 
 test_that("'get_print_prior_n_offset' works", {
-  expect_identical(get_print_prior_n_offset(), 8L)
+  expect_identical(get_print_prior_n_offset(), 10L)
 })
 
   
@@ -1829,17 +1829,17 @@ test_that("'str_call_args_svd' works - AR", {
 
 ## 'str_call_args_lin' --------------------------------------------------------
 
-test_that("'str_call_args_lin' works - sd_slope = 1", {
+test_that("'str_call_args_lin' works - mean_slope = 0, sd_slope = 1", {
   prior <- Lin()
   ans_obtained <- str_call_args_lin(prior)
-  ans_expected <- ""
+  ans_expected <- c("", "")
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'str_call_args_lin' works - sd_slope not 1", {
-  prior <- Lin(sd = 0.3)
+  prior <- Lin(sd = 0.3, mean_slope = -0.02)
   ans_obtained <- str_call_args_lin(prior)
-  ans_expected <- "sd=0.3"
+  ans_expected <- c("mean_slope=-0.02", "sd_slope=0.3")
   expect_identical(ans_obtained, ans_expected)
 })
 

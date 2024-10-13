@@ -669,13 +669,15 @@ draw_vals_hyperrand.bage_prior_lin <- function(prior,
                                                var_age,
                                                n_sim) {
   along <- prior$specific$along
+  mean_slope <- prior$const[["mean_slope"]]
   sd_slope <- prior$const[["sd_slope"]]
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_by <- ncol(matrix_along_by_effect)
-  slope <- draw_vals_slope(sd_slope = sd_slope,
+  slope <- draw_vals_slope(mean_slope = mean_slope,
+                           sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
   list(slope = slope)
@@ -690,13 +692,15 @@ draw_vals_hyperrand.bage_prior_linar <- function(prior,
                                                  var_age,
                                                  n_sim) {
   along <- prior$specific$along
+  mean_slope <- prior$const[["mean_slope"]]
   sd_slope <- prior$const[["sd_slope"]]
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
   n_by <- ncol(matrix_along_by_effect)
-  slope <- draw_vals_slope(sd_slope = sd_slope,
+  slope <- draw_vals_slope(mean_slope = mean_slope,
+                           sd_slope = sd_slope,
                            matrix_along_by = matrix_along_by_effect,
                            n_sim = n_sim)
   list(slope = slope)
@@ -3327,15 +3331,15 @@ print.bage_prior_known <- function(x, ...) {
 #' @export
 print.bage_prior_lin <- function(x, ...) {
   print_prior(x,
-              nms = c("s", "sd_slope", "along"),
-              slots = c("scale", "sd_slope", "along"))
+              nms = c("s", "mean_slope", "sd_slope", "along"),
+              slots = c("scale", "mean_slope", "sd_slope", "along"))
 }
 
 ## HAS_TESTS
 #' @export
 print.bage_prior_linar <- function(x, ...) {
-  nms <- c("s", "sd_slope", "min", "max", "along")
-  slots <- c("scale", "sd_slope", "min", "max", "along")
+  nms <- c("s", "mean_slope", "sd_slope", "min", "max", "along")
+  slots <- c("scale", "mean_slope", "sd_slope", "min", "max", "along")
   nm <- x$specific$nm
   if (identical(nm, "Lin_AR")) {
     nms <- c("n_coef", nms)

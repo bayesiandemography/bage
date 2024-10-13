@@ -271,9 +271,9 @@ Known <- function(values) {
 #' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
 #' 
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
+#' \deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
@@ -281,6 +281,8 @@ Known <- function(values) {
 #' @inheritParams AR
 #' @param s Scale for the prior for the errors.
 #' Default is `1`.
+#' @param mean_slope Mean in prior for slope
+#' of line. Default is 0.
 #' @param sd_slope Standard deviation in prior for slope
 #' of line. Default is 1.
 #'
@@ -299,14 +301,17 @@ Known <- function(values) {
 #' Lin(s = 0.5, sd_slope = 2)
 #' Lin(along = "cohort")
 #' @export
-Lin <- function(s = 1, sd_slope = 1, along = NULL) {
+Lin <- function(s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   scale <- as.double(s)
+  mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_lin(scale = scale,
+                     mean_slope,
                      sd_slope = sd_slope,
                      along = along)
 }
@@ -361,9 +366,9 @@ Lin <- function(s = 1, sd_slope = 1, along = NULL) {
 #' - \eqn{n} is `n_coef`.
 #'
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
+#' \deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
 #'
 #' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -382,6 +387,8 @@ Lin <- function(s = 1, sd_slope = 1, along = NULL) {
 #' @inheritParams AR
 #' @param s Scale for the innovations in the
 #' AR process. Default is `1`.
+#' @param mean_slope Mean in prior for slope
+#' of line. Default is 0.
 #' @param sd_slope Standard deviation in the prior for
 #' the slope of the line. Larger values imply
 #' steeper slopes. Default is 1.
@@ -400,7 +407,7 @@ Lin <- function(s = 1, sd_slope = 1, along = NULL) {
 #' Lin_AR()
 #' Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
 #' @export
-Lin_AR <- function(n_coef = 2, s = 1, sd_slope = 1, along = NULL) {
+Lin_AR <- function(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
   poputils::check_n(n = n_coef,
                     nm_n = "n_coef",
                     min = 1L,
@@ -409,14 +416,17 @@ Lin_AR <- function(n_coef = 2, s = 1, sd_slope = 1, along = NULL) {
   check_scale(s,
               nm_x = "s",
               zero_ok = FALSE)
+  check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   n_coef <- as.integer(n_coef)
   scale <- as.double(s)
+  mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_linar(n_coef = n_coef,
                        scale = scale,
+                       mean_slope = mean_slope,
                        sd_slope = sd_slope,
                        min = -1,
                        max = 1,
@@ -512,20 +522,23 @@ Lin_AR <- function(n_coef = 2, s = 1, sd_slope = 1, along = NULL) {
 #' Lin_AR1()
 #' Lin_AR1(min = 0, s = 0.5, sd_slope = 2)
 #' @export
-Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, sd_slope = 1, along = NULL) {
+Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
   check_min_max_ar(min = min, max = max)
   check_scale(s,
               nm_x = "s",
               zero_ok = FALSE)
+  check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   scale <- as.double(s)
+  mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
   min <- as.double(min)
   max <- as.double(max)
   new_bage_prior_linar(n_coef = 1L,
                        scale = scale,
+                       mean_slope = mean_slope,
                        sd_slope = sd_slope,
                        min = min,
                        max = max,
@@ -1584,11 +1597,13 @@ new_bage_prior_known <- function(values) {
 }
 
 ## HAS_TESTS
-new_bage_prior_lin <- function(scale, sd_slope, along) {
+new_bage_prior_lin <- function(scale, mean_slope, sd_slope, along) {
     ans <- list(i_prior = 2L,
                 const = c(scale = scale,
+                          mean_slope = mean_slope,
                           sd_slope = sd_slope),
                 specific = list(scale = scale,
+                                mean_slope = mean_slope,
                                 sd_slope = sd_slope,
                                 along = along))
     class(ans) <- c("bage_prior_lin", "bage_prior")
@@ -1596,11 +1611,12 @@ new_bage_prior_lin <- function(scale, sd_slope, along) {
 }
 
 ## HAS_TESTS
-new_bage_prior_linar <- function(n_coef, scale, sd_slope, min, max, along, nm) {
+new_bage_prior_linar <- function(n_coef, scale, mean_slope, sd_slope, min, max, along, nm) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 3L,
               const = c(scale = scale,
+                        mean_slope = mean_slope,
                         sd_slope = sd_slope,
                         shape1 = shape1,
                         shape2 = shape2,
@@ -1608,6 +1624,7 @@ new_bage_prior_linar <- function(n_coef, scale, sd_slope, min, max, along, nm) {
                         max = max),
               specific = list(n_coef = n_coef,
                               scale = scale,
+                              mean_slope = mean_slope,
                               sd_slope = sd_slope,
                               shape1 = shape1,
                               shape2 = shape2,

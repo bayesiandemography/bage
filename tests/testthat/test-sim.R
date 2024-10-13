@@ -290,7 +290,8 @@ test_that("'draw_vals_lin' works - along dimension is first", {
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 11:14
-  slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
+  slope <- draw_vals_slope(mean_slope = prior$const[["mean_slope"]],
+                           sd_slope = prior$const[["sd_slope"]],
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
@@ -319,7 +320,8 @@ test_that("'draw_vals_lin' works - along dimension is second", {
   colnames(matrix_along_by) <- 1:3
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
+  slope <- draw_vals_slope(mean_slope = prior$const[["mean_slope"]],
+                           sd_slope = prior$const[["sd_slope"]],
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
   labels <- 1:12
@@ -347,7 +349,8 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 11:14
-  slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
+  slope <- draw_vals_slope(mean_slope = prior$const[["mean_slope"]],
+                           sd_slope = prior$const[["sd_slope"]],
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior,
@@ -591,14 +594,16 @@ test_that("'draw_vals_seasvary' works - along dimension is second", {
 test_that("'draw_vals_slope' works - has 'by' variables", {
   set.seed(0)
   n_sim <- 1000
+  mean_slope <- -0.1
   sd_slope <- 0.5
   matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(1:5, c("a", "b")))
-  ans_obtained <- draw_vals_slope(sd_slope = 0.5,
+  ans_obtained <- draw_vals_slope(mean_slope = mean_slope,
+                                  sd_slope = sd_slope,
                                   matrix_along_by = matrix_along_by,
                                   n_sim = n_sim)
   set.seed(0)
   ans_expected <- matrix(rnorm(n = 2000,
-                               mean = rep(0, each = 2),
+                               mean = rep(-0.1, each = 2),
                                sd = rep(0.5, each = 2)),
                          nr = 2)
   rownames(ans_expected) <- paste("slope", c("a", "b"), sep = ".")
@@ -608,13 +613,15 @@ test_that("'draw_vals_slope' works - has 'by' variables", {
 test_that("'draw_vals_slope' works - no 'by' variables", {
   set.seed(0)
   n_sim <- 1000
+  mean_slope <- 0.1
   sd_slope <- 0.5
   matrix_along_by <- matrix(0:9, nr = 10, dimnames = list(1:10))
-  ans_obtained <- draw_vals_slope(sd_slope = 0.5,
+  ans_obtained <- draw_vals_slope(mean_slope = mean_slope,
+                                  sd_slope = sd_slope,
                                   matrix_along_by = matrix_along_by,
                                   n_sim = n_sim)
   set.seed(0)
-  ans_expected <- matrix(rnorm(n = 1000, 0, 0.5),
+  ans_expected <- matrix(rnorm(n = 1000, 0.1, 0.5),
                          nr = 1)
   rownames(ans_expected) <- "slope"
   expect_identical(ans_obtained, ans_expected)
