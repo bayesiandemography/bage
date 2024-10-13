@@ -6,6 +6,12 @@
 * Removed some unnecessary coercion of sparse matrices to dense
   matrices (which could sometimes cause memory problems)
 
+## Changes to interface
+
+* Added 'along' column to tidy and print methods for `"bage_mod"`
+  objects. (Thank you to Andrew Taylor for suggesting this.)
+  
+
 
 
 # bage 0.7.8

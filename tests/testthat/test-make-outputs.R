@@ -966,6 +966,31 @@ test_that("'fit_inner_outer' works with with norm", {
 })
 
 
+## 'make_along_mod' -----------------------------------------------------------
+
+test_that("'make_along_mod' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * age + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:time ~ Sp(n_comp = 5, along = "age"))
+  ans_obtained <- make_along_mod(mod)
+  ans_expected <- c("(Intercept)" = NA,
+                    sex = NA,
+                    age = "age",
+                    time = "time",
+                    "sex:age" = "age",
+                    "age:time" = "age")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_levels_spline' ----------------------------------------------------------
 
 test_that("'make_levels_spline' works - unlist is FALSE", {
@@ -1153,6 +1178,7 @@ test_that("'make_lin_trend' works with valid inputs - n_by = 2, transposed", {
   ans_expected <- ans_expected[c(1, 6, 2, 7, 3, 8, 4, 9, 5, 10)]
   expect_identical(ans_obtained, ans_expected)
 })
+
 
 ## 'make_stored_draws' --------------------------------------------------------
 

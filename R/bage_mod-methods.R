@@ -1761,9 +1761,8 @@ print.bage_mod <- function(x, ...) {
     terms <- terms[-i_intercept, ]
     i_spec <- match("spec", names(terms), nomatch = 0L)
     terms <- terms[, -i_spec]
-    if (is_fitted)
-      terms$std_dev <- signif(terms$std_dev, digits = 2)
     terms <- as.data.frame(terms)
+    terms$along[is.na(terms$along)] <- "-"
     str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
@@ -1786,7 +1785,7 @@ print.bage_mod <- function(x, ...) {
                     str_call_datamod(datamod_outcome)))
         cat("\n\n")
     }
-    print(terms, row.names = FALSE)
+    print(terms, row.names = FALSE, digits = 2L)
     cat("\n")
     cat(str_disp)
     cat("\n")
@@ -2143,11 +2142,12 @@ tidy.bage_mod <- function(x, ...) {
   check_has_no_dots(...)
   priors <- x$priors
   dimnames_terms <- x$dimnames_terms
+  along <- make_along_mod(x)
   n_par <- make_lengths_effect(dimnames_terms)
   n_par_free <- make_lengths_effectfree(x)
   term <- names(priors)
   spec <- vapply(priors, str_call_prior, "")
-  ans <- tibble::tibble(term, spec, n_par, n_par_free)
+  ans <- tibble::tibble(term, spec, along, n_par, n_par_free)
   is_fitted <- is_fitted(x)
   if (is_fitted) {
     effectfree <- x$point_effectfree

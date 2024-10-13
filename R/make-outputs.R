@@ -637,6 +637,7 @@ insert_after <- function(df, nm_after, x, nm_x) {
 }
   
 
+## HAS_TESTS
 #' Test Whether Two Objects Have the Same Class
 #'
 #' @param x,y Objects
@@ -646,6 +647,44 @@ insert_after <- function(df, nm_after, x, nm_x) {
 #' @noRd
 is_same_class <- function(x, y)
   identical(class(x)[[1L]], class(y)[[1L]])
+
+
+## HAS_TESTS
+#' Derive the Name of the 'along' Dimension for Terms in Model
+#'
+#' Returns NA for terms that do not have an "along" dimension
+#' 
+#' @param mod An object of class 'bage_mod'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_along_mod <- function(mod) {
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  var_time <- mod$var_time
+  var_age <- mod$var_age
+  n_term <- length(priors)
+  ans <- character(length = n_term)
+  nms <- names(priors)
+  names(ans) <- nms
+  for (i_term in seq_len(n_term)) {
+    prior <- priors[[i_term]]
+    dimnames_term <- dimnames_terms[[i_term]]
+    if (uses_along(prior)) {
+      along <- prior$specific$along
+      i_along <- make_i_along(along = along,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age)
+      nm_split <- dimnames_to_nm_split(dimnames_term)
+      ans[[i_term]] <- nm_split[[i_along]]
+    }
+    else
+      ans[[i_term]] <- NA_character_
+  }
+  ans
+}
 
 
 ## HAS_TESTS
