@@ -1198,7 +1198,6 @@ make_levels_svd_term <- function(prior,
 ## HAS_TESTS
 #' Calculate Trend Values for a Line or Lines
 #'
-#' @param intercept Intercept(s) of line(s). An rvec.
 #' @param slope Slope(s) of line(s). An rvec.
 #' @param matrix_along_by Matrix mapping
 #' along and by dimensions to position in estimates
@@ -1206,13 +1205,12 @@ make_levels_svd_term <- function(prior,
 #' @returns An rvec
 #'
 #' @noRd
-make_lin_trend <- function(intercept,
-                           slope,
+make_lin_trend <- function(slope,
                            matrix_along_by) {
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  intercept <- rep(intercept, each = n_along)
   slope <- rep(slope, each = n_along)
+  intercept <- -0.5 * (n_along + 1) * slope
   s <- rep(seq_len(n_along), times = n_by)
   ans <- intercept + slope * s
   i <- match(sort(matrix_along_by), matrix_along_by)

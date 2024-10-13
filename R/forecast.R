@@ -184,7 +184,6 @@ forecast_components <- function(mod,
 ## HAS_TESTS
 #' Forecast Line or Lines
 #'
-#' @param intercept Intercepts of line(s). An rvec.
 #' @param slope Slope of line(s). An rvec.
 #' @param sd Standard devation of errors. An rvec.
 #' @param matrix_along_by_est Matrix mapping
@@ -195,8 +194,7 @@ forecast_components <- function(mod,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_lin <- function(intercept,
-                         slope,
+forecast_lin <- function(slope,
                          sd,
                          matrix_along_by_est,
                          matrix_along_by_forecast) {
@@ -204,7 +202,8 @@ forecast_lin <- function(intercept,
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   s <- seq.int(from = n_along_est + 1L, length.out = n_along_forecast)
-  ans <- rep(intercept[[1L]], times = n_along_forecast * n_by)
+  ans <- rvec::new_rvec(length = n_along_forecast * n_by, n_draw = rvec::n_draw(sd))
+  intercept <- -0.5 * (n_along_est + 1) * slope
   for (i_by in seq_len(n_by)) {
     i_ans <- matrix_along_by_forecast[, i_by] + 1L
     ans[i_ans] <- rvec::rnorm_rvec(n = n_along_forecast,
@@ -218,7 +217,6 @@ forecast_lin <- function(intercept,
 ## HAS_TESTS
 #' Forecast Trend Component of Line or Lines
 #'
-#' @param intercept Intercepts of line(s). An rvec.
 #' @param slope Slope of line(s). An rvec.
 #' @param matrix_along_by_est Matrix mapping
 #' along and by dimensions to position in estimates
@@ -228,14 +226,14 @@ forecast_lin <- function(intercept,
 #' @returns An rvec
 #'
 #' @noRd
-forecast_lin_trend <- function(intercept,
-                               slope,
+forecast_lin_trend <- function(slope,
                                matrix_along_by_est,
                                matrix_along_by_forecast) {
   n_along_est <- nrow(matrix_along_by_est)
   n_along_forecast <- nrow(matrix_along_by_forecast)
   n_by <- ncol(matrix_along_by_est)
   s <- seq.int(from = n_along_est + 1L, length.out = n_along_forecast)
+  intercept <- -0.5 * (n_along_est + 1) * slope
   ans <- rep(intercept[[1L]], times = n_along_forecast * n_by)
   for (i_by in seq_len(n_by)) {
     i_ans <- matrix_along_by_forecast[, i_by] + 1L

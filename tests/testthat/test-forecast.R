@@ -212,18 +212,17 @@ test_that("'forecast_components' works", {
 
 test_that("'forecast_lin' works with n_by = 1", {
   set.seed(0)
-  intercept <- rvec::rnorm_rvec(n = 1, n_draw = 10)
   slope <- rvec::rnorm_rvec(n = 1, n_draw = 10)
   sd <- rvec::runif_rvec(n = 1, n_draw = 10)
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   set.seed(1)
-  ans_obtained <- forecast_lin(intercept = intercept,
-                               slope = slope,
+  ans_obtained <- forecast_lin(slope = slope,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
   set.seed(1)
+  intercept <- -1 * (5 + 1) * slope / 2
   ans_expected <- rvec::rnorm_rvec(n = 6,
                                    mean = intercept + 6:11 * slope,
                                    sd = sd)
@@ -232,18 +231,17 @@ test_that("'forecast_lin' works with n_by = 1", {
 
 test_that("'forecast_lin' works with  n_by = 2", {
   set.seed(0)
-  intercept <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   slope <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   sd <- rvec::runif_rvec(n = 1, n_draw = 10)
   matrix_along_by_est <- t(matrix(0:9, nr = 2))
   matrix_along_by_forecast <- t(matrix(0:11, nr = 2))
   set.seed(1)
-  ans_obtained <- forecast_lin(intercept = intercept,
-                               slope = slope,
+  ans_obtained <- forecast_lin(slope = slope,
                                sd = sd,
                                matrix_along_by_est = matrix_along_by_est,
                                matrix_along_by_forecast = matrix_along_by_forecast)
   set.seed(1)
+  intercept <- -0.5 * (5 + 1) * slope
   ans_expected <- c(rvec::rnorm_rvec(n = 6, mean = intercept[1] + 6:11 * slope[1], sd = sd),
                     rvec::rnorm_rvec(n = 6, mean = intercept[2] + 6:11 * slope[2], sd = sd))
   ans_expected <- ans_expected[c(1, 7, 2, 8, 3, 9, 4, 10, 5, 11, 6, 12)]
@@ -255,32 +253,30 @@ test_that("'forecast_lin' works with  n_by = 2", {
 
 test_that("'forecast_lin_trend' works with n_by = 1", {
   set.seed(0)
-  intercept <- rvec::rnorm_rvec(n = 1, n_draw = 10)
   slope <- rvec::rnorm_rvec(n = 1, n_draw = 10)
   matrix_along_by_est <- matrix(0:4, nr = 5)
   matrix_along_by_forecast <- matrix(0:5, nr = 6)
   set.seed(1)
-  ans_obtained <- forecast_lin_trend(intercept = intercept,
-                                     slope = slope,
+  ans_obtained <- forecast_lin_trend(slope = slope,
                                      matrix_along_by_est = matrix_along_by_est,
                                      matrix_along_by_forecast = matrix_along_by_forecast)
   set.seed(1)
+  intercept <- -0.5 * 6 * slope
   ans_expected <- intercept + 6:11 * slope
   expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'forecast_lin_trend' works with  n_by = 2, transposed", {
   set.seed(0)
-  intercept <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   slope <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   matrix_along_by_est <- t(matrix(0:9, nr = 2))
   matrix_along_by_forecast <- t(matrix(0:11, nr = 2))
   set.seed(1)
-  ans_obtained <- forecast_lin_trend(intercept = intercept,
-                                     slope = slope,
+  ans_obtained <- forecast_lin_trend(slope = slope,
                                      matrix_along_by_est = matrix_along_by_est,
                                      matrix_along_by_forecast = matrix_along_by_forecast)
   set.seed(1)
+  intercept <- -0.5 * 6 * slope
   ans_expected <- c(intercept[1] + 6:11 * slope[1], intercept[2] + 6:11 * slope[2])
   ans_expected <- ans_expected[c(1, 7, 2, 8, 3, 9, 4, 10, 5, 11, 6, 12)]
   expect_equal(ans_obtained, ans_expected)

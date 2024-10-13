@@ -278,39 +278,7 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
     expect_identical(nrow(ans[["age:time"]]$slope), 10L)
     expect_identical(sapply(ans, length),
-                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 2L))
-})
-
-
-## draw_vals_intercept ------------------------------------------------------------
-
-test_that("'draw_vals_intercept' works - has 'by' variables", {
-  set.seed(0)
-  n_sim <- 1000
-  matrix_along_by <- matrix(0:9, nr = 5, dimnames = list(1:5, c("a", "b")))
-  ans_obtained <- draw_vals_intercept(matrix_along_by = matrix_along_by,
-                                  n_sim = n_sim)
-  set.seed(0)
-  ans_expected <- matrix(rnorm(n = 2000,
-                               mean = rep(0, each = 2),
-                               sd = 1),
-                         nr = 2)
-  rownames(ans_expected) <- paste("intercept", c("a", "b"), sep = ".")
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_intercept' works - no 'by' variables", {
-  set.seed(0)
-  n_sim <- 1000
-  sd_slope <- 0.5
-  matrix_along_by <- matrix(0:9, nr = 10, dimnames = list(1:10))
-  ans_obtained <- draw_vals_intercept(matrix_along_by = matrix_along_by,
-                                      n_sim = n_sim)
-  set.seed(0)
-  ans_expected <- matrix(rnorm(n = 1000, sd = 1),
-                         nr = 1)
-  rownames(ans_expected) <- "intercept"
-  expect_identical(ans_obtained, ans_expected)
+                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 1L))
 })
 
 
@@ -322,7 +290,6 @@ test_that("'draw_vals_lin' works - along dimension is first", {
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 11:14
-  intercept <- matrix(rnorm(n = 4 * n_sim), nrow = 4)
   slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
@@ -330,14 +297,13 @@ test_that("'draw_vals_lin' works - along dimension is first", {
                      n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_lin(intercept = intercept,
-                                slope,
+  ans_obtained <- draw_vals_lin(slope,
                                 sd = sd,
                                 matrix_along_by = matrix_along_by,
                                 labels = labels)
   set.seed(0)
-  intercept1 <- rep(intercept, each = 3)
   slope1 <- rep(slope, each = 3)
+  intercept1 <- -((3 + 1)/2) * slope1
   sd1 <- rep(sd, each = 12)
   ans_expected <- rnorm(12 * n_sim, mean = intercept1 + (1:3) * slope1, sd = sd1)
   ans_expected <- matrix(ans_expected, ncol = n_sim)
@@ -353,20 +319,18 @@ test_that("'draw_vals_lin' works - along dimension is second", {
   colnames(matrix_along_by) <- 1:3
   sd <- draw_vals_sd(prior = prior,
                      n_sim = n_sim)
-  intercept <- matrix(rnorm(n = 3 * n_sim), nrow = 3)
   slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_lin(intercept = intercept,
-                                slope = slope,
+  ans_obtained <- draw_vals_lin(slope = slope,
                                 sd = sd,
                                 matrix_along_by = matrix_along_by,
                                 labels = labels)
   set.seed(0)
-  intercept1 <- rep(intercept, each = 4)
   slope1 <- rep(slope, each = 4)
+  intercept1 <- -0.5 * (4 + 1) * slope1
   sd1 <- rep(sd, each = 12)
   ans_expected <- rnorm(12 * n_sim, mean = intercept1 + (1:4) * slope1, sd = sd1)
   ans_expected <- matrix(ans_expected, nrow = 12)
@@ -383,7 +347,6 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   n_sim <- 10
   matrix_along_by <- matrix(0:11, nr = 3)
   colnames(matrix_along_by) <- 11:14
-  intercept <- matrix(rnorm(n = 4 * n_sim), nrow = 4)
   slope <- draw_vals_slope(sd_slope = prior$const[["sd_slope"]],
                            matrix_along_by = matrix_along_by,
                            n_sim = n_sim)
@@ -392,12 +355,12 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
   labels <- 1:12
   set.seed(0)
-  ans_obtained <- draw_vals_linar(intercept = intercept,
-                                  slope = slope,
+  ans_obtained <- draw_vals_linar(slope = slope,
                                   sd = sd,
                                   coef = coef,
                                   matrix_along_by = matrix_along_by,
                                   labels = labels)
+  intercept <- -(3 + 1) * slope / 2
   mean <- matrix(1:3, nrow = 3, ncol = 4 * n_sim) *
     rep(slope, each = 3) + rep(intercept, each = 3)
   sd <- rep(sd, each = 4)
