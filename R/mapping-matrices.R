@@ -145,6 +145,58 @@ make_index_matrix <- function(m) {
 
 
 ## HAS_TESTS
+#' Make a Matrix that Adds a 'Column' to a
+#' Vector that Can Be Represented as a Matrix
+#'
+#' The rowsums of the new matrix are all 0.
+#' The vector in nr*nc-space is projected
+#' into nr*(nr+1)-space.
+#'
+#' Note that this matrix does not deal
+#' with along-by dimensions. See
+#' 'make_matrix_append' for that.
+#'
+#' @param nr,nc Dimensions of matrix before
+#' expansion
+#'
+#' @returns A sparse matrix with dimensions
+#' (nr * (nc + 1)) x (nr * nc)
+#'
+#' @noRd
+make_matrix_add_column <- function(nr, nc) {
+  m_transpose_pre <- make_matrix_transpose(nr = nr, nc = nc)
+  m_add_element_one <- make_matrix_add_element(nc)
+  I <- diag(nr)
+  m_add_element <- kronecker(I, m_add_element_one)
+  m_transpose_post <- make_matrix_transpose(nr = nc + 1L, nc = nr)
+  ans <- m_transpose_post %*% m_add_element %*% m_transpose_pre
+  ans <- Matrix::Matrix(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make a Matrix that Adds an Element to a Vector
+#'
+#' The tcrossprod of the resulting matrix have elements
+#' n / (n+1) on the diagnoal, and -1/(n+1) on the off-diagonal.
+#'
+#' @param n Number of elements of the vector *before*
+#' adding an extra one
+#'
+#' @returns A (n+1) x n matrix
+#'
+#' @noRd
+make_matrix_add_element <- function(n) {
+  m <- matrix(1, nrow = n + 1L)
+  qr <- qr(m)
+  ans <- qr.Q(qr, complete = TRUE)
+  ans <- ans[, -1L, drop = FALSE]
+  ans
+}  
+
+  
+## HAS_TESTS
 #' Make Matrix Giving Mapping between Position Along Age
 #' or Age-Sex Dimension and Position in Matrix
 #'
@@ -453,6 +505,55 @@ make_matrix_append_zero <- function(matrix_along_by) {
 }
 
 
+
+## HAS_TESTS
+#' Make a Matrix that Appends an Extra 'along'
+#' Series and/or Appends a Zero at the
+#' Start of Each 'along' Series
+#'
+#' @param matrix_along_by Mapping matrix for the original matrix
+#' @param append_column Whether to append an extra
+#' 'along' series
+#' @param append_zero Whether to append zeros
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_append <- function(matrix_along_by, append_column, append_zero) {
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  is_along_first <- all(matrix_along_by[, 1L] == seq.int(from = 0L, length.out = n_along))
+  ans <- Matrix::.sparseDiagonal(n_along * n_by)
+  ## assume that 'along' is first dimension
+  if (append_column) {
+    m <- make_matrix_add_column(nr = n_along, nc = n_by)
+    ans <- m %*% ans
+    n_by <- n_by + 1L
+    if (!is_along_first) {
+      s <- seq.int(from = 0L, length.out = n_along * n_by)
+      matrix_along_by_new <- matrix(s, nrow = n_along, byrow = TRUE)
+    }
+  }
+  if (append_zero) {
+    m_append_zero_one <- rbind(0, Matrix::.sparseDiagonal(n_along))
+    I <- Matrix::.sparseDiagonal(n_by)
+    m <- Matrix::kronecker(I, m_append_zero_one)
+    ans <- m %*% ans
+    n_along <- n_along + 1L
+    if (!is_along_first) {
+      s <- seq.int(from = 0L, length.out = n_along * n_by)
+      matrix_along_by_new <- matrix(s, nrow = n_along, byrow = TRUE)
+    }
+  }
+  if (!is_along_first) {
+    m_to_alongfirst <- make_matrix_along_first(matrix_along_by)
+    m_from_alongfirst <- make_index_matrix(matrix_along_by_new)
+    ans <- m_from_alongfirst %*% ans %*% m_to_alongfirst
+  }
+  ans
+}
+
+
 ## HAS_TESTS
 #' Make Matrix to Expand Age or Age-Sex Dimension Modelled with SVD,
 #' and Return to Original Order of Dimensions
@@ -598,10 +699,32 @@ make_matrix_svddynamic_effect <- function(prior,
     m_along_by <- make_matrix_along_by(i_along = i_along,
                                        dim = dim_agesex,
                                        dimnames = dimnames_agesex)
-    m_append_zero <- make_matrix_append_zero(m_along_by)
+    m_append_zero <- make_matrix_append(m_along_by,
+                                        append_column = FALSE,
+                                        append_zero = TRUE)
     ans <- m_append_zero %*% ans
   }
   dimnames(ans) <- NULL
+  ans
+}
+
+
+## HAS_TESTS
+#' Make a Matrix that Transposes a Vector that Can Be
+#' Represented as a Matrix
+#'
+#' @param nr,nc Dimensions of matrix before tranposing
+#'
+#' @returns An (nr*nc) x (nr*nc) matrix
+#'
+#' @noRd
+make_matrix_transpose <- function(nr, nc) {
+  n <- nr * nc
+  ans <- matrix(0, nrow = n, ncol = n)
+  for (i in seq_len(n)) {
+    j <- ((i - 1L) %/% nc) + ((i - 1L) %% nc) * nr + 1L
+    ans[i, j] <- 1
+  }
   ans
 }
 

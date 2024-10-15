@@ -201,6 +201,44 @@ test_that("'make_index_matrix' works with valid inputs", {
 })
 
 
+## 'make_matrix_add_column' --------------------------------------------------
+
+test_that("'make_matrix_add_column' works when original matrix has dimension 3 x 2", {
+  m <- make_matrix_add_column(nr = 3, nc = 2)
+  x <- 1:6
+  y <- matrix(m %*% x, nr = 3)
+  expect_equal(dim(y), c(3L, 3L))
+  expect_equal(rowSums(y), rep(0, 3))
+})
+
+test_that("'make_matrix_add_column' works when original matrix has dimension 3 x 1", {
+  m <- make_matrix_add_column(nr = 3, nc = 1)
+  x <- 1:3
+  y <- matrix(m %*% x, nr = 3)
+  expect_equal(dim(y), c(3L, 2L))
+  expect_equal(rowSums(y), rep(0, 3))
+})
+
+test_that("'make_matrix_add_column' works when original matrix has dimension 1 x 3", {
+  m <- make_matrix_add_column(nr = 1, nc = 3)
+  x <- 1:3
+  y <- matrix(m %*% x, nr = 1)
+  expect_equal(dim(y), c(1L, 4L))
+  expect_equal(rowSums(y), 0)
+})
+
+
+## 'make_matrix_add_element' --------------------------------------------------
+
+test_that("'make_matrix_add_element' works with valid inputs", {
+  ans <- make_matrix_add_element(9L)
+  expect_identical(dim(ans), c(10L, 9L))
+  v <- tcrossprod(ans)
+  expect_equal(diag(v), rep(9/10, times = 10))
+  expect_equal(v[10,1], -1/10)
+})
+
+
 ## 'make_matrix_agesex' -------------------------------------------------------
 
 test_that("'make_matrix_agesex' works - single age dimension", {
@@ -684,28 +722,76 @@ test_that("'make_matrix_along_first' works - original vector has along second", 
 })
 
 
-## 'make_matrix_append_zero' --------------------------------------------------
+## 'make_matrix_append' --------------------------------------------------
 
-test_that("'make_matrix_append_zero' works - along first", {
+test_that("'make_matrix_append' works - append column, along first", {
   v <- array(11:25,
              dim = c(3, 5),
              dimnames = list(time = 2001:2003, age = 0:4))
   matrix_along_by <- matrix(0:14, nr = 3)
-  m <- make_matrix_append_zero(matrix_along_by)
+  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = FALSE)
+  ans_obtained <- rowSums(matrix(m %*% as.integer(v), nrow = 3))
+  ans_expected <- rep(0, 3)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_append' works - append column, along second", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(age = 0:2, time = 2001:2005))
+  matrix_along_by <- t(matrix(0:14, nr = 3))
+  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = FALSE)
+  ans_obtained <- colSums(matrix(m %*% as.integer(v), nrow = 4))
+  ans_expected <- rep(0, 5)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_append' works - append zero, along first", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(time = 2001:2003, age = 0:4))
+  matrix_along_by <- matrix(0:14, nr = 3)
+  m <- make_matrix_append(matrix_along_by, append_column = FALSE, append_zero = TRUE)
   ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 4)
   ans_expected <- unname(rbind(0L, v))
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_append_zero' works - along second", {
+test_that("'make_matrix_append' works - append zero, along second", {
   v <- array(11:25,
              dim = c(3, 5),
              dimnames = list(age = 0:2, time = 2001:2005))
   matrix_along_by <- t(matrix(0:14, nr = 3))
-  m <- make_matrix_append_zero(matrix_along_by)
+  m <- make_matrix_append(matrix_along_by, append_column = FALSE, append_zero = TRUE)
   ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 3)
   ans_expected <- unname(cbind(0L, v))
   expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_append' works - append column and append zero, along first", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(time = 2001:2003, age = 0:4))
+  matrix_along_by <- matrix(0:14, nr = 3)
+  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = TRUE)
+  expect_identical(dim(m), c(24L, 15L))
+  v <- m %*% as.integer(v)
+  v <- matrix(v, nrow = 4)
+  expect_true(all(v[1,] == 0))
+  expect_equal(rowSums(v), rep(0, 4))
+})
+
+test_that("'make_matrix_append' works - append column and append zero, along second", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(age = 0:2, time = 2001:2005))
+  matrix_along_by <- t(matrix(0:14, nr = 3))
+  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = TRUE)
+  expect_identical(dim(m), c(24L, 15L))
+  v <- m %*% as.integer(v)
+  v <- matrix(v, nrow = 4)
+  expect_true(all(v[,1] == 0))
+  expect_equal(colSums(v), rep(0, 6))
 })
 
 
@@ -867,6 +953,25 @@ test_that("'make_matrix_svddynamic_effect' works with bage_prior_svd_ar - time x
                                        var_sexgender = var_sexgender,
                                        drop_first_along = FALSE)
   expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 5 * 3))
+})
+
+
+## 'make_matrix_transpose' ----------------------------------------------------
+
+test_that("'make_matrix_transpose' works with square matrix", {
+  m <- make_matrix_transpose(nr = 3, nc = 3)
+  x <- 1:9
+  ans_obtained <- as.numeric(m %*% x)
+  ans_expected <- as.numeric(t(matrix(x, nr = 3)))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_transpose' works with rectangular matrix", {
+  m <- make_matrix_transpose(nr = 3, nc = 4)
+  x <- 1:12
+  ans_obtained <- as.numeric(m %*% x)
+  ans_expected <- as.numeric(t(matrix(x, nr = 3)))
+  expect_equal(ans_obtained, ans_expected)
 })
 
 
