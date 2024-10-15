@@ -163,7 +163,7 @@ make_index_matrix <- function(m) {
 #' (nr * (nc + 1)) x (nr * nc)
 #'
 #' @noRd
-make_matrix_add_column <- function(nr, nc) {
+make_matrix_add_columns <- function(nr, nc) {
   m_transpose_pre <- make_matrix_transpose(nr = nr, nc = nc)
   m_add_element_one <- make_matrix_add_element(nc)
   I <- diag(nr)
@@ -173,6 +173,35 @@ make_matrix_add_column <- function(nr, nc) {
   ans <- Matrix::Matrix(ans)
   ans
 }
+
+
+#' @noRd
+make_matrix_add_columns <- function(along, dimnames_term, var_time, var_age) {
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  is_last_element_by <- dimnames_term
+  for (i_dim in seq_along(dimnames_term)) {
+    is_last_element[[i_dim]][] <- FALSE
+    if (i_dim != i_along)
+      is_last_element[[i_dim]][[length(is_last_element[[i_dim]]]]] <- TRUE
+  }
+  length_dim <- length(dimnames_term[[i_dim]])
+      is_last_element_by <- 
+      
+  is_last_element <- 
+  
+  m_transpose_pre <- make_matrix_transpose(nr = nr, nc = nc)
+  m_add_element_one <- make_matrix_add_element(nc)
+  I <- diag(nr)
+  m_add_element <- kronecker(I, m_add_element_one)
+  m_transpose_post <- make_matrix_transpose(nr = nc + 1L, nc = nr)
+  ans <- m_transpose_post %*% m_add_element %*% m_transpose_pre
+  ans <- Matrix::Matrix(ans)
+  ans
+}
+
 
 
 ## HAS_TESTS
