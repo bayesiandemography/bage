@@ -884,6 +884,9 @@ RW_Seas <- function(n_seas,
 #' @inheritParams AR
 #' @param sd_slope Standard deviation
 #' for initial slope. Default is `1`.
+#' @param zero_sum If `TRUE`, values must
+#' sum to 0 within each combination
+#' of the `"by"` variables. Default is `FALSE`.
 #'
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
@@ -901,15 +904,17 @@ RW_Seas <- function(n_seas,
 #' RW2()
 #' RW2(s = 0.5)
 #' @export
-RW2 <- function(s = 1, sd_slope = 1, along = NULL) {
+RW2 <- function(s = 1, sd_slope = 1, along = NULL, zero_sum = FALSE) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   if (!is.null(along))
     check_string(along, nm_x = "along")
   scale <- as.double(s)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_rw2(scale = scale,
                      sd_slope = sd_slope,
+                     zero_sum = zero_sum,
                      along = along)
 }
 
@@ -1695,12 +1700,14 @@ new_bage_prior_rwseasvary <- function(n_seas, scale_seas, sd_seas, scale, along)
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale, sd_slope, along) {
+new_bage_prior_rw2 <- function(scale, sd_slope, zero_sum, along) {
     ans <- list(i_prior = 7L,
                 const = c(scale = scale,
-                          sd_slope = sd_slope),
+                          sd_slope = sd_slope,
+                          zero_sum = zero_sum),
                 specific = list(scale = scale,
                                 sd_slope = sd_slope,
+                                zero_sum = zero_sum,
                                 along = along))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans

@@ -1404,7 +1404,9 @@ make_spline <- function(mod, effectfree) {
                                                     var_time = var_time,
                                                     var_age = var_age,
                                                     var_sexgender = var_sexgender)
-      m_append_zero <- make_matrix_append_zero(m_along_by)
+      m_append_zero <- make_matrix_append(m_along_by,
+                                          append_column = FALSE,
+                                          append_zero = TRUE)
       vals <- m_append_zero %*% vals
       vals <- as.matrix(vals)
       ans[[i_term]] <- vals
@@ -1474,7 +1476,9 @@ make_svd <- function(mod, effectfree) {
                                                       var_time = var_time,
                                                       var_age = var_age,
                                                       var_sexgender = var_sexgender)
-        m_append_zero <- make_matrix_append_zero(m_along_by)
+        m_append_zero <- make_matrix_append(m_along_by,
+                                            append_column = FALSE,
+                                            append_zero = TRUE)
         vals <- m_append_zero %*% vals
       }
       vals <- as.matrix(vals)

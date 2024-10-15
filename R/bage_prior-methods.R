@@ -3123,7 +3123,9 @@ make_matrix_effectfree_effect.bage_prior_rw <- function(prior,
                                                      var_time = var_time,
                                                      var_age = var_age,
                                                      var_sexgender = var_sexgender)
-  make_matrix_append_zero(matrix_along_by)
+  make_matrix_append(matrix_along_by,
+                     append_column = FALSE,
+                     append_zero = TRUE)
 }
 
 ## HAS_TESTS
@@ -3133,12 +3135,15 @@ make_matrix_effectfree_effect.bage_prior_rw2 <- function(prior,
                                                          var_time,
                                                          var_age,
                                                          var_sexgender) {
+  zero_sum <- prior$specific$zero_sum
   matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
                                                      dimnames_term = dimnames_term,
                                                      var_time = var_time,
                                                      var_age = var_age,
                                                      var_sexgender = var_sexgender)
-  make_matrix_append_zero(matrix_along_by)
+  make_matrix_append(matrix_along_by,
+                     append_column = zero_sum,
+                     append_zero = TRUE)
 }
 
 ## HAS_TESTS
