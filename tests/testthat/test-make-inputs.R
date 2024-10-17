@@ -184,6 +184,70 @@ test_that("'eval_offset_formula' works with valid inputs - ifelse", {
 })
 
 
+
+
+
+test_that("'get_matrix_or_offset_svd_prior' works with age main effect, type is total, matrix", {
+  ssvd <- sim_ssvd()
+  prior <- SVD(ssvd, n_comp = 3)
+  ans_obtained <- get_matrix_or_offset_svd_prior(prior = prior,
+                                                 dimnames_term = list(age = c("0-4", "5-9")),
+                                                 var_time = "time",
+                                                 var_age = "age",
+                                                 var_sexgender = "sex",
+                                                 get_matrix = TRUE)
+  ans_expected <- Matrix::Matrix(1, nr = 2, nc = 3, 
+                                 dimnames = list(c("0-4", "5-9"), NULL))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'get_matrix_or_offset_svd_prior' works with age main effect, type is total, offset", {
+  ssvd <- sim_ssvd()
+  prior <- SVD(ssvd, n_comp = 3)
+  ans_obtained <- get_matrix_or_offset_svd_prior(prior = prior,
+                                                 dimnames_term = list(age = c("0-4", "5-9")),
+                                                 var_time = "time",
+                                                 var_age = "age",
+                                                 var_sexgender = "sex",
+                                                 get_matrix = FALSE)
+  ans_expected <- c("0-4" = 1, "5-9" = 2)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_matrix_or_offset_svd_prior' works with sex-age interaction, type is joint, offset", {
+  ssvd <- sim_ssvd()
+  prior <- SVD(ssvd, indep = FALSE)
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        sex = c("Male", "Female"))
+  ans_obtained <- get_matrix_or_offset_svd_prior(prior = prior,
+                                                 dimnames_term = dimnames_term,
+                                                 var_time = "time",
+                                                 var_age = "age",
+                                                 var_sexgender = "sex",
+                                                 get_matrix = FALSE)
+  ans_expected <- c("Male.0-4" = 3, "Male.5-9" = 4, "Female.0-4" = 1, "Female.5-9" = 2)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'get_matrix_or_offset_svd_prior' works with age-sex interaction, type is indep, matrix", {
+  ssvd <- sim_ssvd()
+  prior <- SVD(ssvd)
+  dimnames_term <- list(sex = c("Female", "Male"),
+                        age = c("0-4", "5-9"))
+  ans_obtained <- get_matrix_or_offset_svd_prior(prior,
+                                                 dimnames_term = dimnames_term,
+                                                 var_time = "time",
+                                                 var_age = "age",
+                                                 var_sexgender = "sex",
+                                                 get_matrix = TRUE)
+  ans_expected <- Matrix::Matrix(3, nr = 4, nc = 10,
+                                 dimnames = list(c("Female.0-4", "Male.0-4",
+                                                   "Female.5-9", "Male.5-9"),
+                                                 NULL))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'get_n_comp_spline' --------------------------------------------------------
 
 test_that("'get_n_comp_spline' works with n_comp supplied", {
