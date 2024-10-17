@@ -3135,15 +3135,26 @@ make_matrix_effectfree_effect.bage_prior_rw2 <- function(prior,
                                                          var_time,
                                                          var_age,
                                                          var_sexgender) {
+  along <- prior$specific$along
   zero_sum <- prior$specific$zero_sum
-  matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                     dimnames_term = dimnames_term,
-                                                     var_time = var_time,
-                                                     var_age = var_age,
-                                                     var_sexgender = var_sexgender)
-  make_matrix_append(matrix_along_by,
-                     append_column = zero_sum,
-                     append_zero = TRUE)
+  ## convert to along-first
+  m_perm <- make_matrix_perm_along_to_front(along = along,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age)
+  ans <- m_perm
+  ## expand to constrained
+  if (zero_sum) {
+    m_constr <- make_matrix_unconstr_to_constr(dimnames_term)
+    ans <- m_constr %*% ans
+  }
+  ## add zeros
+  m_zero <- make_matrix_append_zero(dimnames_term)
+  ans <- m_zero %*% ans
+  ## convert from along-first
+  ans <- Matrix::crossprod(m_perm, ans)
+  ## return
+  ans
 }
 
 ## HAS_TESTS

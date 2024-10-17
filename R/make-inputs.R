@@ -105,6 +105,54 @@ eval_offset_formula <- function(vname_offset, data) {
 
 
 ## HAS_TESTS
+#' Get a Matrix or Offset from an SVD Prior
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames of array representation of term
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns A sparse matrix.
+#'
+#' @noRd
+get_matrix_or_offset_svd_prior <- function(prior,
+                                           dimnames_term,
+                                           var_age,
+                                           var_sexgender,
+                                           get_matrix) {
+  ssvd <- prior$specific$ssvd
+  indep <- prior$specific$indep
+  n_comp <- prior$specific$n_comp
+  levels_age <- dimnames_term[[var_age]]
+  has_sexgender <- !is.null(var_sexgender)
+  if (has_sexgender) {
+    levels_sexgender <- dimnames_term[[var_sexgender]]
+    nm_split <- dimnames_to_nm_split(dimnames_term)
+    term_has_sexgender <- var_sexgender %in% nm_split
+    if (term_has_sexgender)
+      joint <- !indep
+    else
+      joint <- NULL
+  }
+  else {
+    levels_sexgender <- NULL
+    joint <- NULL
+  }
+  nm <- dimnames_to_nm(dimnames_term)
+  agesex <- make_agesex(nm = nm,
+                        var_age = var_age,
+                        var_sexgender = var_sexgender)
+  get_matrix_or_offset_svd(ssvd = ssvd,
+                           levels_age = levels_age,
+                           levels_sexgender = levels_sexgender,
+                           joint = joint,
+                           agesex = agesex,
+                           get_matrix = get_matrix,
+                           n_comp = n_comp)
+}
+
+
+## HAS_TESTS
 #' Get Number of Components of Spline Prior
 #'
 #' If user did not supply number, derive one

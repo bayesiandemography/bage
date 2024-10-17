@@ -201,44 +201,6 @@ test_that("'make_index_matrix' works with valid inputs", {
 })
 
 
-## 'make_matrix_add_column' --------------------------------------------------
-
-test_that("'make_matrix_add_column' works when original matrix has dimension 3 x 2", {
-  m <- make_matrix_add_column(nr = 3, nc = 2)
-  x <- 1:6
-  y <- matrix(m %*% x, nr = 3)
-  expect_equal(dim(y), c(3L, 3L))
-  expect_equal(rowSums(y), rep(0, 3))
-})
-
-test_that("'make_matrix_add_column' works when original matrix has dimension 3 x 1", {
-  m <- make_matrix_add_column(nr = 3, nc = 1)
-  x <- 1:3
-  y <- matrix(m %*% x, nr = 3)
-  expect_equal(dim(y), c(3L, 2L))
-  expect_equal(rowSums(y), rep(0, 3))
-})
-
-test_that("'make_matrix_add_column' works when original matrix has dimension 1 x 3", {
-  m <- make_matrix_add_column(nr = 1, nc = 3)
-  x <- 1:3
-  y <- matrix(m %*% x, nr = 1)
-  expect_equal(dim(y), c(1L, 4L))
-  expect_equal(rowSums(y), 0)
-})
-
-
-## 'make_matrix_add_element' --------------------------------------------------
-
-test_that("'make_matrix_add_element' works with valid inputs", {
-  ans <- make_matrix_add_element(9L)
-  expect_identical(dim(ans), c(10L, 9L))
-  v <- tcrossprod(ans)
-  expect_equal(diag(v), rep(9/10, times = 10))
-  expect_equal(v[10,1], -1/10)
-})
-
-
 ## 'make_matrix_agesex' -------------------------------------------------------
 
 test_that("'make_matrix_agesex' works - single age dimension", {
@@ -673,7 +635,7 @@ test_that("'make_matrix_along_by_inner' works when 'i_along' is 1:2", {
 
 ## 'make_matrix_along_by_spline' ----------------------------------------------
 
-test_that("'make_matrix_along_by_spline' works - age x reg interaction, drop_first_along is FALSE", {
+test_that("'make_matrix_along_by_spline' works - age x reg interaction", {
   prior <- Sp(n = 8)
   dimnames <- list(age = c(0:79, "80+"),
                    reg = 1:3)
@@ -682,26 +644,8 @@ test_that("'make_matrix_along_by_spline' works - age x reg interaction, drop_fir
   ans_obtained <- make_matrix_along_by_spline(prior = prior,
                                               dimnames_term = dimnames,
                                               var_time = var_time,
-                                              var_age = var_age,
-                                              drop_first_along = FALSE)
+                                              var_age = var_age)
   ans_expected <- matrix(0:23, nr = 8, dimnames = list(age = paste0("comp", 1:8), reg = 1:3))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_spline' works - sex x age reg interaction, drop_first_along is TRUE", {
-  prior <- Sp(n = 8)
-  dimnames <- list(sex = c("F", "M"),
-                   age = c(0:79, "80+"))
-  var_age <- "age"
-  var_time <- "time"
-  ans_obtained <- make_matrix_along_by_spline(prior = prior,
-                                              dimnames_term = dimnames,
-                                              var_time = var_time,
-                                              var_age = var_age,
-                                              drop_first_along = TRUE)
-  ans_expected <- t(matrix(0:13,
-                           nr = 2,
-                           dimnames = list(sex = c("F", "M"), age = paste0("comp", 2:8))))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -722,58 +666,23 @@ test_that("'make_matrix_along_first' works - original vector has along second", 
 })
 
 
-## 'make_matrix_append' --------------------------------------------------
+## 'make_matrix_append_zero' --------------------------------------------------
 
-test_that("'make_matrix_append' works - append column, along first", {
-  v <- array(11:25,
-             dim = c(3, 5),
-             dimnames = list(time = 2001:2003, age = 0:4))
-  matrix_along_by <- matrix(0:14, nr = 3)
-  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = FALSE)
-  ans_obtained <- rowSums(matrix(m %*% as.integer(v), nrow = 3))
-  ans_expected <- rep(0, 3)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_append' works - append column, along second", {
+test_that("'make_matrix_append_zero' works - along second", {
   v <- array(11:25,
              dim = c(3, 5),
              dimnames = list(age = 0:2, time = 2001:2005))
-  matrix_along_by <- t(matrix(0:14, nr = 3))
-  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = FALSE)
-  ans_obtained <- colSums(matrix(m %*% as.integer(v), nrow = 4))
-  ans_expected <- rep(0, 5)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_append' works - append zero, along first", {
-  v <- array(11:25,
-             dim = c(3, 5),
-             dimnames = list(time = 2001:2003, age = 0:4))
-  matrix_along_by <- matrix(0:14, nr = 3)
-  m <- make_matrix_append(matrix_along_by, append_column = FALSE, append_zero = TRUE)
-  ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 4)
-  ans_expected <- unname(rbind(0L, v))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_append' works - append zero, along second", {
-  v <- array(11:25,
-             dim = c(3, 5),
-             dimnames = list(age = 0:2, time = 2001:2005))
-  matrix_along_by <- t(matrix(0:14, nr = 3))
-  m <- make_matrix_append(matrix_along_by, append_column = FALSE, append_zero = TRUE)
+  m <- make_matrix_append_zero(dimnames(v))
   ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 3)
   ans_expected <- unname(cbind(0L, v))
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_append' works - append column and append zero, along first", {
+test_that("'make_matrix_append_zero' works - append column and append zero, along first", {
   v <- array(11:25,
              dim = c(3, 5),
              dimnames = list(time = 2001:2003, age = 0:4))
-  matrix_along_by <- matrix(0:14, nr = 3)
-  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = TRUE)
+  m <- make_matrix_append_zero(dimnames(v))
   expect_identical(dim(m), c(24L, 15L))
   v <- m %*% as.integer(v)
   v <- matrix(v, nrow = 4)
@@ -781,12 +690,72 @@ test_that("'make_matrix_append' works - append column and append zero, along fir
   expect_equal(rowSums(v), rep(0, 4))
 })
 
-test_that("'make_matrix_append' works - append column and append zero, along second", {
+
+## 'make_matrix_effectfree_effect_inner' --------------------------------------------------
+
+test_that("'make_matrix_effectfree_effect_inner' works - append column, along first", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(time = 2001:2003, age = 0:4))
+  matrix_along_by <- matrix(0:14, nr = 3)
+  m <- make_matrix_effectfree_effect_inner(matrix_along_by, append_column = TRUE, append_zero = FALSE)
+  ans_obtained <- rowSums(matrix(m %*% as.integer(v), nrow = 3))
+  ans_expected <- rep(0, 3)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect_inner' works - append column, along second", {
   v <- array(11:25,
              dim = c(3, 5),
              dimnames = list(age = 0:2, time = 2001:2005))
   matrix_along_by <- t(matrix(0:14, nr = 3))
-  m <- make_matrix_append(matrix_along_by, append_column = TRUE, append_zero = TRUE)
+  m <- make_matrix_effectfree_effect_inner(matrix_along_by, append_column = TRUE, append_zero = FALSE)
+  ans_obtained <- colSums(matrix(m %*% as.integer(v), nrow = 4))
+  ans_expected <- rep(0, 5)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect_inner' works - append zero, along first", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(time = 2001:2003, age = 0:4))
+  matrix_along_by <- matrix(0:14, nr = 3)
+  m <- make_matrix_effectfree_effect_inner(matrix_along_by, append_column = FALSE, append_zero = TRUE)
+  ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 4)
+  ans_expected <- unname(rbind(0L, v))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect_inner' works - append zero, along second", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(age = 0:2, time = 2001:2005))
+  matrix_along_by <- t(matrix(0:14, nr = 3))
+  m <- make_matrix_effectfree_effect_inner(matrix_along_by, append_column = FALSE, append_zero = TRUE)
+  ans_obtained <- matrix(as.integer(m %*% as.integer(v)), nr = 3)
+  ans_expected <- unname(cbind(0L, v))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect_inner' works - append column and append zero, along first", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(time = 2001:2003, age = 0:4))
+  matrix_along_by <- matrix(0:14, nr = 3)
+  m <- make_matrix_effectfree_effect_inner(matrix_along_by, append_column = TRUE, append_zero = TRUE)
+  expect_identical(dim(m), c(24L, 15L))
+  v <- m %*% as.integer(v)
+  v <- matrix(v, nrow = 4)
+  expect_true(all(v[1,] == 0))
+  expect_equal(rowSums(v), rep(0, 4))
+})
+
+test_that("'make_matrix_effectfree_effect_inner' works - append column and append zero, along second", {
+  v <- array(11:25,
+             dim = c(3, 5),
+             dimnames = list(age = 0:2, time = 2001:2005))
+  matrix_along_by <- t(matrix(0:14, nr = 3))
+  m <- make_matrix_effectfree_effect_inner(matrix_along_by, append_column = TRUE, append_zero = TRUE)
   expect_identical(dim(m), c(24L, 15L))
   v <- m %*% as.integer(v)
   v <- matrix(v, nrow = 4)
@@ -885,39 +854,166 @@ test_that("'make_matrix_expand_svd' works with bage_prior_svd - sex x reg x age 
 })
 
 
-## 'make_matrix_spline_effect' ------------------------------------------------
+## 'make_matrix_perm_along_to_front' ------------------------------------------
 
-test_that("'make_matrix_spline_effect' works with main effect, drop_first_along = TRUE", {
+test_that("'make_matrix_perm_along_to_front' works with 2 dimensions, along first", {
+  along <- NULL
+  dimnames_term <- list(age = 1:3, sex = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_matrix_perm_along_to_front(along = along,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age)
+  ans_expected <- Matrix::.sparseDiagonal(6)
+  expect_identical(ans_obtained, ans_expected)
+  expect_identical(as.matrix(crossprod(m)), diag(6))
+})
+
+test_that("'make_matrix_perm_along_to_front' works with 2 dimensions, along second", {
+  along <- NULL
+  dimnames_term <- list(sex = 1:2, age = 1:3)
+  var_time <- "time"
+  var_age <- "age"
+  m <- make_matrix_perm_along_to_front(along = along,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age)
+  x <- matrix(1:6, nr = 2)
+  expect_identical(matrix(m %*% as.integer(x), nr = 3),
+                   1 * t(x))
+  expect_identical(as.matrix(crossprod(m)), diag(6))
+})
+
+test_that("'make_matrix_perm_along_to_front' works with 3 dimensions, along second", {
+  along <- NULL
+  dimnames_term <- list(sex = 1:2, age = 1:3, reg = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  m <- make_matrix_perm_along_to_front(along = along,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age)
+  x <- array(1:12, dim = c(2, 3, 2))
+  expect_identical(array(m %*% as.integer(x), dim = c(3, 2, 2)),
+                   1 * aperm(x, perm = c(2, 1, 3)))
+  expect_identical(as.matrix(crossprod(m)), diag(12))
+})
+
+
+## 'make_matrix_sub_orig_spline' ----------------------------------------------
+
+test_that("'make_matrix_sub_orig_spline' works with main effect", {
   prior <- Sp(n = 4)
   dimnames_term <- list(age = 0:10)
   var_time <- "time"
   var_age <- "age"
-  ans_obtained <- make_matrix_spline_effect(prior = prior,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age,
-                                            drop_first_along = TRUE)
-  ans_expected <- make_spline_matrix(n_comp = 4, n_along = 11)[,-1]
+  ans_obtained <- make_matrix_sub_orig_spline(prior = prior,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age)
+  ans_expected <- make_spline_matrix(n_comp = 4, n_along = 11)
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_spline_effect' works with interaction, drop_first_along = FALSE", {
+test_that("'make_matrix_sub_orig_spline' works with interaction", {
   prior <- Sp(n = 4)
   dimnames_term <- list(sex = c("f", "m"),
                         age = 0:10)
   var_time <- "time"
   var_age <- "age"
-  ans_obtained <- make_matrix_spline_effect(prior = prior,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age,
-                                            drop_first_along = FALSE)
+  ans_obtained <- make_matrix_sub_orig_spline(prior = prior,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age)
   m <- make_spline_matrix(n_comp = 4, n_along = 11)
   ans_expected <- rbind(cbind(m, matrix(0, nr = 11, nc = 4)),
                         cbind(matrix(0, nr = 11, nc = 4), m))[c(1, 12, 2, 13, 3, 14, 4, 15, 5, 16,
                                                                 6, 17, 7, 18, 8, 19, 9, 20, 10, 21,
                                                                 11, 22),c(1,5,2,6,3,7,4,8)]
   expect_identical(unname(as.matrix(ans_obtained)), as.matrix(ans_expected))
+})
+
+
+## 'make_matrix_sub_orig_svd' ---------------------------------------------------
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - age main effect", {
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n_comp = 3)
+  dimnames_term <- list(age = c("0-4", "5-9"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
+                                           dimnames_term = dimnames_term,
+                                           var_age = var_age,
+                                           var_sexgender = var_sexgender)
+  ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
+  ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
+                                       j = col(ans_expected),
+                                       x = as.double(ans_expected),
+                                       dimnames = dimnames(ans_expected))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - age-sex interaction, joint", {
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n_comp = 3, indep = FALSE)
+  dimnames_term <- list(sex = c("Female", "Male"),
+                        age = c("0-4", "5-9"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
+                                           dimnames_term = dimnames_term,
+                                           var_age = var_age,
+                                           var_sexgender = var_sexgender)
+  ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][c(1,3,2,4),1:3]
+  ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
+                                       j = col(ans_expected),
+                                       x = as.double(ans_expected))
+  rownames(ans_expected) <- c("Female.0-4", "Male.0-4", "Female.5-9", "Male.5-9")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - age x reg interaction", {
+  s <- sim_ssvd()
+  prior <- SVD(ssvd = s, n_comp = 3)
+  dimnames_term <- list(age = c("0-4", "5-9"),
+                        x = 1:2)
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
+  m2 <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  m1 <- make_index_matrix(matrix_agesex)
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - sex x reg x age interaction", {
+  prior <- SVD(HMD)
+  dimnames_term = list(sex = c("F", "M"),
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"),
+                       reg <- c("A", "B"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
+                                         dimnames_term = dimnames_term,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
+  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender)
+  m1 <- make_index_matrix(matrix_agesex)
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -972,6 +1068,65 @@ test_that("'make_matrix_transpose' works with rectangular matrix", {
   ans_obtained <- as.numeric(m %*% x)
   ans_expected <- as.numeric(t(matrix(x, nr = 3)))
   expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_matrix_unconstr_to_constr' -------------------------------------------
+
+test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 3 x 2", {
+  set.seed(0)
+  dimnames_term <- list(age = 1:3, sex = 1:2)
+  m <- make_matrix_unconstr_to_constr(dimnames_term)
+  x <- rnorm(3)
+  y <- matrix(m %*% x, nr = 3)
+  expect_equal(dim(y), c(3L, 2L))
+  expect_equal(rowSums(y), rep(0, 3))
+})
+
+test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 4 x 3", {
+  set.seed(0)
+  dimnames_term <- list(age = 1:4, sex = 1:3)
+  m <- make_matrix_unconstr_to_constr(dimnames_term)
+  x <- rnorm(8)
+  y <- matrix(m %*% x, nr = 4)
+  expect_equal(dim(y), c(4L, 3L))
+  expect_equal(rowSums(y), rep(0, 4))
+})
+
+test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 1 x 3", {
+  set.seed(0)
+  dimnames_term <- list(age = 1, sex = 1:3)
+  m <- make_matrix_unconstr_to_constr(dimnames_term)
+  x <- rnorm(2)
+  y <- matrix(m %*% x, nr = 1)
+  expect_equal(dim(y), c(1L, 3L))
+  expect_equal(rowSums(y), 0)
+})
+
+test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 2 x 3 x 4", {
+  set.seed(0)
+  dimnames_term <- list(time = 1:2, age = 1:3, sex = 1:4)
+  m <- make_matrix_unconstr_to_constr(dimnames_term)
+  x <- rnorm(12)
+  y <- array(m %*% x, dim = 2:4)
+  expect_equal(rowSums(y[1,,]), rep(0, 3))
+  expect_equal(colSums(y[1,,]), rep(0, 4))
+  expect_equal(rowSums(y[2,,]), rep(0, 3))
+  expect_equal(colSums(y[2,,]), rep(0, 4))
+})
+
+test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 3 x 4 x 5 x 6", {
+  set.seed(0)
+  dimnames_term <- list(time = 1:3, age = 1:4, sex = 1:5, reg = 1:6)
+  m <- make_matrix_unconstr_to_constr(dimnames_term)
+  x <- rnorm(3 * prod(3:5))
+  y <- array(m %*% x, dim = 3:6)
+  expect_equal(rowSums(y[1,,,1]), rep(0, 4))
+  expect_equal(rowSums(y[1,1,,]), rep(0, 5))
+  expect_equal(colSums(y[1,1,,]), rep(0, 6))
+  expect_equal(rowSums(y[2,,,1]), rep(0, 4))
+  expect_equal(rowSums(y[2,1,,]), rep(0, 5))
+  expect_equal(colSums(y[2,1,,]), rep(0, 6))
 })
 
 
