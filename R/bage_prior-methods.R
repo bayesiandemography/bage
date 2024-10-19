@@ -3231,6 +3231,107 @@ make_matrix_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
 }
 
 
+## 'make_matrix_sub_orig' -----------------------------------------------------
+
+#' Make Matrix from Subspace to Original Space
+#'
+#' Used with spline and SVD priors
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames of array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#' @param dim_target Dimension after applying the
+#' transform (which is not necessarily the same as the dimension
+#' implied by 'dimnames_term')
+#'
+#' @returns A sparse matrix or NULL
+#'
+#' @noRd
+make_matrix_sub_orig <- function(prior,
+                                 dimnames_term,
+                                 var_time,
+                                 var_age,
+                                 var_sexgender,
+                                 dim_after) {
+  UseMethod("make_matrix_sub_orig")
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior <- function(prior,
+                                            dimnames_term,
+                                            var_time,
+                                            var_age,
+                                            var_sexgender,
+                                            dim_after) {
+  NULL
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_spline <- function(prior,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender,
+                                                   dim_after) {
+  along <- prior$specific$along
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  n_along <- dim_after[[i_along]]
+  n_by <- prod(dim_after[-i_along])
+  n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
+  m_spline <- make_matrix_spline(n_comp = n_comp, n_along = n_along)
+  I <- Matrix::.sparseDiagonal(n_by)
+  ans <- Matrix::kronecker(I, m_spline)
+  is_along_first <- i_along == 1L
+  if (!is_along_first) {
+    m_from <- make_matrix_perm_along_from_front(i_along = i_along,
+                                                dim_after = dim_after)
+    dim_after <- c(n_comp, dim_after[-i_along])
+    m_to <- make_matrix_perm_along_to_front(i_along = i_along,
+                                            dim_after = dim_after)
+    ans <- m_from %*% ans %*% m_to
+  }
+  ans
+}
+
+
+#' @export
+make_matrix_sub_orig.bage_prior_svd <- function(prior,
+                                                dimnames_term,
+                                                var_time,
+                                                var_age,
+                                                var_sexgender,
+                                                dim_after) {
+  m_svd <- get_matrix_or_offset_svd_prior(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender,
+                                          get_matrix = TRUE)
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  i_age <- match(var_age, nm_split)
+  i_sex <- match(var_sexgender, nm_split, nomatch = 0L)
+  m_agesex <- make_matrix_perm_agesex_from_front(i_age = i_age,
+                                                 i_sexgender = i_sexgender,
+                                                 dim = dim_after)
+  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
+  I <- Matrix::.sparseDiagonal(n_by)
+  ans <- Matrix::kronecker(I, m_svd)
+  ans <- m_agesex %*% ans
+  ans
+}
+
+
+
+
+
+
+
 ## 'make_offset_effectfree_effect' --------------------------------------------------
 
 #' Make offset used in converting effectfree to effect
@@ -3681,9 +3782,10 @@ str_call_prior.bage_prior_rw2seasvary <- function(prior) {
 str_call_prior.bage_prior_spline <- function(prior) {
   args_n_comp <- str_call_args_n_comp(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_comp, args_scale, args_sd_slope, args_along)
+  args <- c(args_n_comp, args_scale, args_sd, args_sd_slope, args_along)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("Sp(%s)", args)

@@ -497,7 +497,7 @@ Type logpost_spline(vector<Type> effectfree,
    		    vector<Type> hyper,
 		    vector<Type> consts,
 		    matrix<int> matrix_along_by_effectfree) {
-  return logpost_rw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
+  return logpost_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
 template <class Type>

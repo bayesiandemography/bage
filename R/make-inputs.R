@@ -1081,37 +1081,6 @@ make_seed <- function()
 
 
 ## HAS_TESTS
-#' Make a matrix of B-spline basis functions
-#'
-#' Based on Eilers and Marx (1996). Flexible Smoothing
-#' with B-splines and Penalties.
-#' Statistical Science, 11(2), 89-121.
-#'
-#' @param n_along Number of elements of dimension being modelled
-#' @param n_comp Number of columns in spline matrix
-#'
-#' @returns Matrix with 'n_along' rows and 'n_comp' columns
-#'
-#' @noRd
-make_spline_matrix <- function(n_along, n_comp) {
-  n_interval <- n_comp - 3L
-  interval_length <- (n_along - 1L) / n_interval
-  start <- 1 - 3 * interval_length
-  end <- n_along + 3 * interval_length
-  x <- seq(from = start, to = end, by = 0.001)
-  base <- splines::bs(x = x, df = n_comp + 5L)
-  i_keep <- findInterval(seq_len(n_along), x)
-  j_keep <- seq.int(from = 3L, length.out = n_comp)
-  ans <- base[i_keep, j_keep]
-  colmeans <- colMeans(ans)
-  ans <- ans - rep(colmeans, each = nrow(ans))
-  Matrix::sparseMatrix(i = row(ans),
-                       j = col(ans),
-                       x = as.double(ans))
-}
-
-
-## HAS_TESTS
 #' Make factor identifying components of 'const'
 #'
 #' Make factor the same length as 'const',
