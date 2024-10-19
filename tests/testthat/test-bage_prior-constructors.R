@@ -161,14 +161,17 @@ test_that("'Sp' works with valid inputs", {
   expect_identical(Sp(),
                    new_bage_prior_spline(n_comp = NULL,
                                          scale = 1,
+                                         sd = 1,
                                          sd_slope = 1,
                                          along = NULL))
   expect_identical(Sp(n_comp = 6,
+                      sd = 0.2,
                       sd_slope = 0.3,
                       s = 3,
                       along = "time"),
                    new_bage_prior_spline(n_comp = 6L,
                                          scale = 3,
+                                         sd = 0.2,
                                          sd_slope = 0.3,
                                          along = "time"))
 })
@@ -523,13 +526,13 @@ test_that("'new_bage_prior_rw2seasvary' works", {
 })
 
 test_that("'new_bage_prior_spline' works", {
-  obj <- new_bage_prior_spline(n_comp = 10L, scale = 1, sd_slope = 0.2, along = NULL)
+  obj <- new_bage_prior_spline(n_comp = 10L, scale = 1, sd = 0.1, sd_slope = 0.2, along = NULL)
   expect_s3_class(obj, "bage_prior_spline")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 8L)
-  expect_identical(obj$const, c(scale = 1, sd_slope = 0.2))
+  expect_identical(obj$const, c(scale = 1, sd = 0.1, sd_slope = 0.2))
   expect_identical(obj$specific,
-                   list(n_comp = 10L, scale = 1, sd_slope = 0.2, along = NULL))
+                   list(n_comp = 10L, scale = 1, sd = 0.1, sd_zslope = 0.2, along = NULL))
 })
 
 test_that("'new_bage_prior_svd' works", {

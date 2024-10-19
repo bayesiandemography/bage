@@ -403,26 +403,59 @@ make_matrix_along_by_svd <- function(prior,
 
 ## HAS_TESTS
 #' Make a Matrix that Appends a Zero at the Start
-#' of Each 'along' Series
+#' of Each 'along' Series, Assuming 'along' is First Dimension
 #'
-#' Assumes that the first dimension is 'along'
-#'
-#' @param along Name of "along" dimension, or NULL
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
+#' @param dim_after Dimensions of array representing term,
+#' after zeros have been added
 #'
 #' @returns A sparse matrix
 #'
 #' @noRd
-make_matrix_append_zero <- function(dimnames_term) {
-  dim <- lengths(dimnames_term)
-  n_along <- dim[[1L]]
-  n_by <- prod(dim[-1L])
-  m <- rbind(0, Matrix::.sparseDiagonal(n_along))
+make_matrix_append_zero <- function(dim_after) {
+  n_along_after <- dim_after[[1L]]
+  n_along_before <- n_along_after - 1L
+  n_by <- prod(dim_after[-1L])
+  m <- rbind(0, Matrix::.sparseDiagonal(n_along_before))
   I <- Matrix::.sparseDiagonal(n_by)
   Matrix::kronecker(I, m)
+}
+
+
+## HAS_TESTS
+#' Make a Matrix of Summation Constraints for an Array
+#'
+#' Contains redundant constraints
+#'
+#' @param dim The dimension of the array
+#'
+#' @returns A dense matrix of 0s and 1s.
+#'
+#' @noRd
+make_matrix_constraints <- function(dim) {
+  diags <- lapply(dim, diag)
+  ones <- lapply(dim, function(d) matrix(1, nrow = 1L, ncol = d))
+  s <- seq_along(dim)
+  ans <- lapply(s, function(i) replace(diags, i, ones[i]))
+  ans <- lapply(ans, rev)
+  ans <- lapply(ans, function(x) Reduce(kronecker, x))
+  ans <- do.call(rbind, ans)
+  ans
+}
+
+
+#' Make a Sparse Row Matrix Consisting of Ones
+#'
+#' @param n Number of columns
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_ones <- function(n) {
+  ones <- rep(1, times = n)
+  s <- seq_len(n)
+  Matrix::sparseMatrix(i = ones,
+                       j = s,
+                       x = ones)
 }
 
 
@@ -451,32 +484,99 @@ make_matrix_effectfree_effect_inner <- function(along,
                                                 matrix_sub_orig,
                                                 zero_sum,
                                                 append_zero) {
-  m_along <- make_matrix_perm_along_to_front(along = along,
-                                             dimnames_term = dimnames_term,
-                                             var_time = var_time,
-                                             var_age = var_age)
   dim <- lengths(dimnames_term)
-  n <- prod(dim)
-  ans <- Matrix::.sparseDiagonal(n)
-  ## transform back to original space
-  if (!is.null(matrix_sub_orig))
-    ans <- matrix_sub_orig %*% ans
-  ## convert to along-first
-  ans <- m_along %*% ans
-  ## expand to constrained
-  if (zero_sum) {
-    m_constr <- make_matrix_unconstr_to_constr(dimnames_term)
-    ans <- m_constr %*% ans
-  }
+  s <- seq_along(dim)
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  ## we don't know the dimensions of 'effectfree',
+  ## so we work backwards from 'effect', at each step,
+  ## calculating the dimensions before the transformation
+  ans <- vector(mod = "list", length = 5L)
+  ## transform from along-first to original order
+  ans[[1L]] <- make_matrix_perm_along_from_front(i_along = i_along, dim_after = dim)
+  dim <- dim[c(i_along, s[-i_along])]
   ## append zeros
   if (append_zero) {
-    m_zero <- make_matrix_append_zero(dimnames_term)
-    ans <- m_zero %*% ans
+    ans[[2L]] <- make_matrix_append_zero(dim)
+    dim[[1L]] <- dim[[1L]] - 1L
   }
-  ## convert from along-first
-  ans <- Matrix::crossprod(m_along, ans)
-  ## return
+  ## transform from unconstrained space to constrained space
+  if (zero_sum) {
+    ans[[3L]] <- make_matrix_unconstr_to_constr(dim)
+    dim[-1L] <- dim[-1L] - 1L
+  }
+  ## transform to along-first from original order
+  s_along_standard <- match(s_dim, s_along_first)
+  dim <- dim[s_along_standard]
+  ans[[4L]] <- make_matrix_perm_along_to_front(i_along = i_along, dim_before = dim)
+  ## transform from subspace to original space
+  matrix_sub_orig <- make_matrix_sub_orig(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          dim = dim)
+    ans[[5L]] <- matrix_sub_orig
+  ## combine
+  ans <- Filter(Negate(is.null), ans)
+  ans <- Reduce('%*%', ans)
   ans
+}
+
+
+## HAS_TESTS
+#' Make a Matrix that Permutes the Dimensions of the Array Representation
+#' of a Term so that the 'age' and Possibly 'sex'/'gender' Dimensions Move
+#' from First to Standard Positions
+#'
+#' Note that in the pre-transform matrix, age comes before
+#' sex if i_age < i_sexgender, otherwise sex/gender comes before age.
+#'
+#' @param i_age Original index of 'age' dimension
+#' @param i_sexgender Original index of 'sex' dimension, or 0L
+#' @param dim Dimension of array after tranformation
+#' (ie with 'age' and 'sex'/'gender' in their original positions)
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_perm_agesex_from_front <- function(i_age, i_sexgender, dim_after) {
+  has_sex <- i_sexgender > 0L
+  if (has_sex) {
+    i_agesex <- c(i_age, i_sexgender)
+    i_agesex <- sort(i_agesex)
+  }
+  else
+    i_agesex <- i_age
+  n <- prod(dim_after)
+  a_standard <- array(seq_len(n), dim = dim_after)
+  s <- seq_along(dim_after)
+  perm <- c(i_agesex, s[-i_agesex])
+  a_front <- aperm(a_standard, perm = perm)
+  j <- match(a_standard, a_front)
+  Matrix::sparseMatrix(i = seq_len(n),
+                       j = j,
+                       x = rep(1, times = n))
+}
+  
+
+## HAS_TESTS
+#' Make a Matrix that Permutes the Dimensions of the Array Representation
+#' of a Term so that the 'along' Dimension Moves from First to its
+#' Standard Position
+#'
+#' @param i_along Original index of 'along' dimension
+#' @param dim_after Dimension of array after tranformation
+#' (ie with 'along' dimension in original position)
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_perm_along_from_front <- function(i_along, dim_after) {
+  s <- seq_along(dim_after)
+  perm <- c(i_along, s[-i_along])
+  dim_before <- dim_after[match(s, perm)]
+  m <- make_matrix_perm_along_to_front(i_along = i_along, dim = dim_before)
+  Matrix::t(m)
 }
 
 
@@ -484,35 +584,60 @@ make_matrix_effectfree_effect_inner <- function(along,
 #' Make a Matrix that Permutes the Dimensions of the Array Representation
 #' of a Term so that the 'along' Dimension Comes First
 #'
-#' @param along Name of the 'along' dimension, or NULL
-#' @param dimnames_term Dimnames of array representation of term
-#' @param var_time Name of time variable or NULL
-#' @param var_age Name of age variable or NULL
+#' @param i_along Original index of 'along' dimension
+#' @param dim_after Dimension of array after transformation
+#' (ie with 'along' dimension at front)
 #'
 #' @returns A sparse matrix
 #'
 #' @noRd
-make_matrix_perm_along_to_front <- function(along, dimnames_term, var_time, var_age) {
-  i_along <- make_i_along(along = along,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  dim <- lengths(dimnames_term)
-  n <- prod(dim)
+make_matrix_perm_along_to_front <- function(i_along, dim_after) {
+  n <- prod(dim_after)
   if (i_along == 1L) {
     Matrix::.sparseDiagonal(n)
   }
   else {
-    s <- seq_len(n)
-    a0 <- array(s, dim = dim)
-    perm <- c(i_along, seq_along(dim)[-i_along])
+    s <- seq_along(dim_after)
+    perm <- c(i_along, s[-i_along])
+    dim_before <- dim_after[match(s, perm)]
+    a0 <- array(seq_len(n), dim = dim_before)
     a1 <- aperm(a0, perm = perm)
-    Matrix::sparseMatrix(i = s,
+    Matrix::sparseMatrix(i = seq_len(n),
                          j = a1,
                          x = rep(1, times = n))
   }
 }
 
+
+## HAS_TESTS
+#' Make a matrix of B-spline basis functions
+#'
+#' Based on Eilers and Marx (1996). Flexible Smoothing
+#' with B-splines and Penalties.
+#' Statistical Science, 11(2), 89-121.
+#'
+#' @param n_along Number of elements of dimension being modelled
+#' @param n_comp Number of columns in spline matrix
+#'
+#' @returns Matrix with 'n_along' rows and 'n_comp' columns
+#'
+#' @noRd
+make_matrix_spline <- function(n_along, n_comp) {
+  n_interval <- n_comp - 3L
+  interval_length <- (n_along - 1L) / n_interval
+  start <- 1 - 3 * interval_length
+  end <- n_along + 3 * interval_length
+  x <- seq(from = start, to = end, by = 0.001)
+  base <- splines::bs(x = x, df = n_comp + 5L)
+  i_keep <- findInterval(seq_len(n_along), x)
+  j_keep <- seq.int(from = 3L, length.out = n_comp)
+  ans <- base[i_keep, j_keep]
+  colmeans <- colMeans(ans)
+  ans <- ans - rep(colmeans, each = nrow(ans))
+  Matrix::sparseMatrix(i = row(ans),
+                       j = col(ans),
+                       x = as.double(ans))
+}
 
 
 ## HAS_TESTS
@@ -542,7 +667,7 @@ make_matrix_spline_effect <- function(prior,
   n_along <- nrow(m_along_by_effect)
   n_by <- ncol(m_along_by_effect)
   n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
-  X <- make_spline_matrix(n_comp = n_comp, n_along = n_along)
+  X <- make_matrix_spline(n_comp = n_comp, n_along = n_along)
   if (drop_first_along)
     X <- X[, -1L]
   I <- Matrix::.sparseDiagonal(n_by)
@@ -562,91 +687,7 @@ make_matrix_spline_effect <- function(prior,
 }
 
 
-## HAS_TESTS
-#' Make Matrix from Spline Subspace to Original Space
-#'
-#' @param prior Object of class 'bage_prior_spline'
-#' @param dimnames_term Dimnames of array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#' @param drop_first_along Whether first value for each 'along' has
-#' been dropped from spline values
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_matrix_sub_orig_spline <- function(prior,
-                                        dimnames_term,
-                                        var_time,
-                                        var_age) {
-  along <- prior$specific$along
-  i_along <- make_i_along(along = along,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  dim <- lengths(dimnames_term)
-  n_along <- dim[[i_along]]
-  n_by <- prod(dim[-i_along])
-  n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
-  m_spline <- make_spline_matrix(n_comp = n_comp, n_along = n_along)
-  I <- Matrix::.sparseDiagonal(n_by)
-  ans <- Matrix::kronecker(I, m_spline)
-  is_along_first <- i_along == 1L
-  if (!is_along_first) {
-    dimnames_spline <- replace(dimnames_term,
-                               list = i_along,
-                               values = list(seq_len(n_comp)))
-    m_perm_spline <- make_matrix_perm_along_to_front(along = along,
-                                                     dimnames_term = dimnames_spline,
-                                                     var_time = var_time,
-                                                     var_age = var_age)
-    m_perm_orig <- make_matrix_perm_along_to_front(along = along,
-                                                   dimnames_term = dimnames_term,
-                                                   var_time = var_time,
-                                                   var_age = var_age)
-    ans <- Matrix::crossprod(m_perm_orig, ans %*% m_perm_spline)
-  }
-  ans
-}
 
-
-## HAS_TESTS
-#' Make Matrix from SVD Subspace to Original Space
-#'
-#' Includes converting from age-sex first to standard
-#' arrangement of dimensions
-#'
-#' @param prior Object of class 'bage_prior_spline'
-#' @param dimnames_term Dimnames of array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#' @param drop_first_along Whether first value for each 'along' has
-#' been dropped from spline values
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_matrix_sub_orig_svd <- function(prior,
-                                     dimnames_term,
-                                     var_age,
-                                     var_sexgender) {
-  m_svd <- get_matrix_or_offset_svd_prior(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender,
-                                          get_matrix = TRUE)
-  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  I <- Matrix::.sparseDiagonal(n_by)
-  ans <- Matrix::kronecker(I, m_svd)
-  agesex_to_standard <- make_index_matrix(matrix_agesex)
-  ans <- agesex_to_standard %*% ans
-  ans
-}
 
 
 ## HAS_TESTS
@@ -721,48 +762,32 @@ make_matrix_transpose <- function(nr, nc) {
 
 ## HAS_TESTS
 #' Make Matrix Mapping Unconstrained Parameter Vector
-#' to Constrained Parameter Vector
-#'
-#' Assumes that first dimension is 'along'
-#' dimension.
+#' to Constrained Parameter Vector, Assuming 'along' is First Dimension
 #'
 #' Constraints apply within each category of the 'along' variable.
 #'
-#' @param dimnames_term Dimnames for array representation of term
+#' @param dim_after Dimension of for array representation of term
+#' after transformation (ie with unconstrained parameters)
 #'
 #' @returns A sparse matrix
 #'
 #' @noRd
-make_matrix_unconstr_to_constr <- function(dimnames_term) {
-  dim <- lengths(dimnames_term)
-  n_dim <- length(dim)
+make_matrix_unconstr_to_constr <- function(dim_after) {
+  n_dim <- length(dim_after)
   if (n_dim < 2L)
     cli::abort("Internal error: Term has less than 2 dimensions.")
-  m_constraint <- vector(mode = "list", length = n_dim - 1L)
-  for (i in seq.int(from = 2L, to = n_dim)) {
-    val <- vector(mode = "list", length = n_dim - 1L)
-    for (j in seq.int(from = 2L, to = n_dim)) {
-      d <- dim[[j]]
-      if (j == i)
-        val[[j - 1L]] <- matrix(1, nrow = 1L, ncol = d)
-      else
-        val[[j - 1L]] <- diag(d)
-    }
-    val <- rev(val)
-    val <- Reduce(kronecker, val)
-    m_constraint[[i - 1L]] <- val
-  }
-  m_constraint <- do.call(rbind, m_constraint)
-  qr_constraint <- qr(t(m_constraint))
-  m_constraint <- qr.Q(qr_constraint, complete = TRUE)
-  n_free <- prod(dim[-1L] - 1L)
-  s_free <- seq(to = ncol(m_constraint), length.out = n_free)
-  m_constraint <- m_constraint[, s_free, drop = FALSE]
-  I <- Matrix::.sparseDiagonal(dim[[1L]])
-  Matrix::kronecker(m_constraint, I)
+  dim_by <- dim_after[-1L]
+  m_constr_all <- make_matrix_constraints(dim_by)
+  qr <- qr(t(m_constr_all))
+  Q <- qr.Q(qr, complete = TRUE)
+  n_constr <- qr$rank
+  m_constr <- Q[, -seq_len(n_constr), drop = FALSE]
+  n_along <- dim_after[[1L]]
+  I <- Matrix::.sparseDiagonal(n_along)
+  Matrix::kronecker(m_constr, I)
 }
-
-
+           
+    
 ## HAS_TESTS
 #' Make Offset used in converting effectfree to effect for SVD Priors
 #'

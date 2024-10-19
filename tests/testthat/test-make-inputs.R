@@ -1298,16 +1298,6 @@ test_that("'make_seed' returns a single unique integer", {
 })
 
 
-## 'make_spline_matrix' -------------------------------------------------------
-
-test_that("'make_spline_matrix' works", {
-    set.seed(0)
-    m <- make_spline_matrix(n_along = 10, n_comp = 5)
-    expect_equal(dim(m), c(10L, 5L))
-    expect_equal(colSums(as.matrix(m)), rep(0, times = 5))
-})        
-
-
 ## 'make_terms_const' ---------------------------------------------------------
 
 test_that("'make_terms_const' works with valid inputs", {

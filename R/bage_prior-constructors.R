@@ -1082,6 +1082,8 @@ RW2_Seas <- function(n_seas,
 #' to follow a [second-order random walk][RW2()].
 #'
 #' @inheritParams AR
+#' @param sd Standard deviation in prior for first
+#' element of random walk.
 #' @param sd_slope Standard deviation in prior
 #' for initial slope of random walk. Default is `1`.
 #' @param n_comp Number of spline basis functions (components)
@@ -1108,7 +1110,7 @@ RW2_Seas <- function(n_seas,
 #' Sp()
 #' Sp(n_comp = 10)
 #' @export
-Sp <- function(n_comp = NULL, s = 1, sd_slope = 1, along = NULL) {
+Sp <- function(n_comp = NULL, s = 1, sd = 1, sd_slope = 1, along = NULL) {
   if (!is.null(n_comp)) {
     poputils::check_n(n = n_comp,
                       nm_n = "n_comp",
@@ -1118,13 +1120,16 @@ Sp <- function(n_comp = NULL, s = 1, sd_slope = 1, along = NULL) {
     n_comp <- as.integer(n_comp)
   }
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = FALSE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   scale <- as.double(s)
+  sd <- as.double(sd)
   sd_slope <- as.double(sd_slope)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   new_bage_prior_spline(n_comp = n_comp,
                         scale = scale,
+                        sd = sd, 
                         sd_slope = sd_slope,
                         along = along)
 }
@@ -1748,12 +1753,14 @@ new_bage_prior_rw2seasvary <- function(n_seas, scale_seas, sd_seas, scale, sd_sl
 }
 
 ## HAS_TESTS
-new_bage_prior_spline <- function(n_comp, scale, sd_slope, along) {
+new_bage_prior_spline <- function(n_comp, scale, sd, sd_slope, along) {
     ans <- list(i_prior = 8L,
                 const = c(scale = scale,
+                          sd = sd,
                           sd_slope = sd_slope),
                 specific = list(n_comp = n_comp,
                                 scale = scale,
+                                sd = sd,
                                 sd_slope = sd_slope,
                                 along = along))
     class(ans) <- c("bage_prior_spline", "bage_prior")
