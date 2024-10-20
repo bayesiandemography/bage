@@ -2213,15 +2213,19 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
                                                var_sexgender) {
   along <- prior$specific$along
   n_coef <- prior$specific$n_coef
+  zero_sum <- prior$specific$zero_sum
   matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
-  length_along <- nrow(matrix_along_by_effect)
-  check_length_along_ge(length_along = length_along,
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  check_length_along_ge(length_along = n_along,
                         min = n_coef + 1L,
                         nm = nm,
                         prior = prior)
+  check_zero_sum_n_by(zero_sum = zero_sum,
+                      n_by = n_by)
   invisible(TRUE)
 }
 
@@ -3242,7 +3246,7 @@ make_matrix_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
-#' @param dim_target Dimension after applying the
+#' @param dim_after Dimension after applying the
 #' transform (which is not necessarily the same as the dimension
 #' implied by 'dimnames_term')
 #'
@@ -3270,6 +3274,8 @@ make_matrix_sub_orig.bage_prior <- function(prior,
 }
 
 ## HAS_TESTS
+## Note that the spline is always along the "along"
+## dimension, so is never subject to the zero_sum constraint
 #' @export
 make_matrix_sub_orig.bage_prior_spline <- function(prior,
                                                    dimnames_term,
@@ -3285,9 +3291,9 @@ make_matrix_sub_orig.bage_prior_spline <- function(prior,
   n_along <- dim_after[[i_along]]
   n_by <- prod(dim_after[-i_along])
   n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
-  m_spline <- make_matrix_spline(n_comp = n_comp, n_along = n_along)
+  ans <- make_matrix_spline(n_comp = n_comp, n_along = n_along)
   I <- Matrix::.sparseDiagonal(n_by)
-  ans <- Matrix::kronecker(I, m_spline)
+  ans <- Matrix::kronecker(I, ans)
   is_along_first <- i_along == 1L
   if (!is_along_first) {
     m_from <- make_matrix_perm_along_from_front(i_along = i_along,
@@ -3300,7 +3306,7 @@ make_matrix_sub_orig.bage_prior_spline <- function(prior,
   ans
 }
 
-
+## HAS_TESTS
 #' @export
 make_matrix_sub_orig.bage_prior_svd <- function(prior,
                                                 dimnames_term,
@@ -3308,27 +3314,64 @@ make_matrix_sub_orig.bage_prior_svd <- function(prior,
                                                 var_age,
                                                 var_sexgender,
                                                 dim_after) {
-  m_svd <- get_matrix_or_offset_svd_prior(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender,
-                                          get_matrix = TRUE)
-  nm_split <- dimnames_to_nm_split(dimnames_term)
-  i_age <- match(var_age, nm_split)
-  i_sex <- match(var_sexgender, nm_split, nomatch = 0L)
-  m_agesex <- make_matrix_perm_agesex_from_front(i_age = i_age,
-                                                 i_sexgender = i_sexgender,
-                                                 dim = dim_after)
-  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  I <- Matrix::.sparseDiagonal(n_by)
-  ans <- Matrix::kronecker(I, m_svd)
-  ans <- m_agesex %*% ans
-  ans
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           zero_sum = FALSE)
 }
 
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_svd_ar <- function(prior,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender,
+                                                   dim_after) {
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           zero_sum = zero_sum)
+}
 
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_svd_rw <- function(prior,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                                   var_sexgender,
+                                                   dim_after) {
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           zero_sum = zero_sum)
+}
 
-
+## HAS_TESTS
+#' @export
+make_matrix_sub_orig.bage_prior_svd_rw2 <- function(prior,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender,
+                                                    dim_after) {
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_sub_orig_svd(prior = prior,
+                           dimnames_term = dimnames_term,
+                           var_age = var_age,
+                           var_sexgender = var_sexgender,
+                           dim_after = dim_after,
+                           zero_sum = zero_sum)
+}
 
 
 
@@ -3635,7 +3678,8 @@ str_call_prior.bage_prior_ar <- function(prior) {
   nm <- prior$specific$nm
   args_ar <- str_call_args_ar(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_ar, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_ar, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -3661,7 +3705,8 @@ str_call_prior.bage_prior_lin <- function(prior) {
   args_scale <- str_call_args_scale(prior)
   args_lin <- str_call_args_lin(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_scale, args_lin, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_scale, args_lin, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("Lin(%s)", args)
@@ -3674,7 +3719,8 @@ str_call_prior.bage_prior_linar <- function(prior) {
   args_ar <- str_call_args_ar(prior)
   args_lin <- str_call_args_lin(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_ar, args_lin, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_ar, args_lin, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -3701,7 +3747,8 @@ str_call_prior.bage_prior_normfixed <- function(prior) {
 str_call_prior.bage_prior_rw <- function(prior) {
   args_scale <- str_call_args_scale(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_scale, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_scale, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW(%s)", args)
@@ -3715,7 +3762,8 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
   args_s_seas <- "s_seas=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -3729,7 +3777,8 @@ str_call_prior.bage_prior_rwseasvary <- function(prior) {
   args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -3741,7 +3790,8 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
   args_scale <- str_call_args_scale(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_scale, args_sd_slope, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_scale, args_sd_slope, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2(%s)", args)
@@ -3756,7 +3806,14 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
   args_s_seas <- "s_seas=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_sd_slope, args_s_seas, args_sd_seas, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas,
+            args_scale,
+            args_sd_slope,
+            args_s_seas,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2_Seas(%s)", args)
@@ -3771,7 +3828,14 @@ str_call_prior.bage_prior_rw2seasvary <- function(prior) {
   args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_seas, args_scale, args_sd_slope, args_s_seas, args_sd_seas, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas,
+            args_scale,
+            args_sd_slope,
+            args_s_seas,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2_Seas(%s)", args)
@@ -3785,7 +3849,13 @@ str_call_prior.bage_prior_spline <- function(prior) {
   args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_n_comp, args_scale, args_sd, args_sd_slope, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_comp,
+            args_scale,
+            args_sd,
+            args_sd_slope,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("Sp(%s)", args)
@@ -3807,7 +3877,11 @@ str_call_prior.bage_prior_svd_ar <- function(prior) {
   args_svd <- str_call_args_svd(prior)
   args_ar <- str_call_args_ar(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_svd, args_ar, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_svd,
+            args_ar,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
@@ -3819,7 +3893,11 @@ str_call_prior.bage_prior_svd_rw <- function(prior) {
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_svd, args_scale, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_svd,
+            args_scale,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("SVD_RW(%s)", args)
@@ -3832,7 +3910,12 @@ str_call_prior.bage_prior_svd_rw2 <- function(prior) {
   args_scale <- str_call_args_scale(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
-  args <- c(args_svd, args_scale, args_sd_slope, args_along)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_svd,
+            args_scale,
+            args_sd_slope,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("SVD_RW2(%s)", args)

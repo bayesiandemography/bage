@@ -4,7 +4,7 @@
 \alias{AR1}
 \title{Autoregressive Prior of Order 1}
 \usage{
-AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
+AR1(min = 0.8, max = 0.98, s = 1, along = NULL, zero_sum = FALSE)
 }
 \arguments{
 \item{min, max}{Minimum and maximum values
@@ -17,6 +17,10 @@ Default is \code{1}.}
 \item{along}{Name of the variable to be used
 as the "along" variable. Only used with
 interactions.}
+
+\item{zero_sum}{If \code{TRUE}, values must
+sum to 0 within each combination
+of the \code{"by"} variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.

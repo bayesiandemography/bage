@@ -4,7 +4,14 @@
 \alias{Lin_AR}
 \title{Linear Prior with Autoregressive Errors}
 \usage{
-Lin_AR(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL)
+Lin_AR(
+  n_coef = 2,
+  s = 1,
+  mean_slope = 0,
+  sd_slope = 1,
+  along = NULL,
+  zero_sum = FALSE
+)
 }
 \arguments{
 \item{n_coef}{Number of lagged terms in the
@@ -23,6 +30,10 @@ steeper slopes. Default is 1.}
 \item{along}{Name of the variable to be used
 as the "along" variable. Only used with
 interactions.}
+
+\item{zero_sum}{If \code{TRUE}, values must
+sum to 0 within each combination
+of the \code{"by"} variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_linar"}.

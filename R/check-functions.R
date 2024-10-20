@@ -331,7 +331,7 @@ check_is_ssvd <- function(x, nm_x) {
 ## HAS_TESTS
 #' Check that Along Dimension of Interaction has at Least 'min' Elements
 #'
-#' @param length_along Number of elements
+#' @param n_along Number of elements
 #' @param min Minimum number of elements
 #' @param nm Name of term
 #' @param prior Object of class 'bage_prior'
@@ -339,13 +339,13 @@ check_is_ssvd <- function(x, nm_x) {
 #' @returns TRUE, invisibly
 #'
 #' @noRd
-check_length_along_ge <- function(length_along, min, nm, prior) {
-    if (length_along < min)
+check_n_along_ge <- function(n_along, min, nm, prior) {
+    if (n_along < min)
         cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
                                "used for {.var {nm}} term."),
                          i = paste("{.var {str_call_prior(prior)}} prior can only be",
                                    "used with interactions where the 'along' dimension has at least {min} element{?s}."),
-                         i = "The 'along' dimension of {.var {nm}} has {length_along} element{?s}."))
+                         i = "The 'along' dimension of {.var {nm}} has {n_along} element{?s}."))
     invisible(TRUE)
 }
 

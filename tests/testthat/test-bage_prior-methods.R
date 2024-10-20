@@ -3639,7 +3639,6 @@ test_that("'make_matrix_sub_orig' works with 'bage_prior_spline' - interaction",
   expect_identical(as.matrix(ans_obtained), as.matrix(ans_expected))
 })
 
-
 test_that("'make_matrix_sub_orig' works with bage_prior_svd - age main effect", {
   s <- sim_ssvd()
   prior <- SVD(ssvd = s, n_comp = 3)
@@ -3656,8 +3655,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd - age main effect", 
   ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
-                                       x = as.double(ans_expected),
-                                       dimnames = dimnames(ans_expected))
+                                       x = as.double(ans_expected))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3666,17 +3664,19 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - age-sex intera
   prior <- SVD(ssvd = s, n_comp = 3, indep = FALSE)
   dimnames_term <- list(sex = c("Female", "Male"),
                         age = c("0-4", "5-9"))
+  var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
-                                           dimnames_term = dimnames_term,
-                                           var_age = var_age,
-                                           var_sexgender = var_sexgender)
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = c(2L, 2L))
   ans_expected <- s$data$matrix[s$data$type == "joint"][[1L]][c(1,3,2,4),1:3]
   ans_expected <- Matrix::sparseMatrix(i = row(ans_expected),
                                        j = col(ans_expected),
                                        x = as.double(ans_expected))
-  rownames(ans_expected) <- c("Female.0-4", "Male.0-4", "Female.5-9", "Male.5-9")
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3685,19 +3685,17 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - age x reg inte
   prior <- SVD(ssvd = s, n_comp = 3)
   dimnames_term <- list(age = c("0-4", "5-9"),
                         x = 1:2)
+  var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
-                                         dimnames_term = dimnames_term,
-                                         var_age = var_age,
-                                         var_sexgender = var_sexgender)
-  m2 <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
-  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
-  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-  m1 <- make_index_matrix(matrix_agesex)
-  ans_expected <- m1 %*% m2
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = c(2L, 2L))
+  ans_expected <- s$data$matrix[s$data$type == "total"][[1L]][,1:3]
+  ans_expected <- Matrix::kronecker(Matrix::.sparseDiagonal(2), ans_expected)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3705,28 +3703,116 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - sex x reg x ag
   prior <- SVD(HMD)
   dimnames_term = list(sex = c("F", "M"),
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"),
-                       reg <- c("A", "B"))
+                       reg = c("A", "B"))
+  var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_matrix_sub_orig_svd(prior = prior,
-                                         dimnames_term = dimnames_term,
-                                         var_age = var_age,
-                                         var_sexgender = var_sexgender)
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
   m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
   m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(2), m2)
-  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-  m1 <- make_index_matrix(matrix_agesex)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 2L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
   ans_expected <- m1 %*% m2
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, zero_sum is FALSE", {
+  prior <- SVD_AR(HMD)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
 
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, zero_sum is TRUE", {
+  prior <- SVD_AR(HMD, zero_sum = TRUE)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = c(1L, 10L, 13L))
+  m <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m <- t(make_matrix_unconstr_constr(c(2, 14))) %*% m
+  m <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m)
+  ans_expected <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                                     i_sexgender = 1L,
+                                                     dim_after = c(1, 10, 13)) %*% m
+  expect_equal(ans_obtained, ans_expected)
+})
 
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_rw - sex x time x age interaction", {
+  prior <- SVD_RW(HMD)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
 
-
-
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_rw2 - sex x time x age interaction", {
+  prior <- SVD_RW2(HMD)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## 'make_offset_effectfree_effect' --------------------------------------------------
@@ -3817,15 +3903,16 @@ test_that("'str_call_prior' works with bage_prior_ar - AR1", {
     expect_identical(str_call_prior(AR1(min = 0.5)), "AR1(min=0.5)")
     expect_identical(str_call_prior(AR1(max = 0.95)),"AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
-    expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, along = "age", s = 0.3)),
-                     "AR1(min=0.5,max=0.95,s=0.3,along=\"age\")")
+    expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, along = "age",
+                                        s = 0.3, zero_sum = TRUE)),
+                     "AR1(min=0.5,max=0.95,s=0.3,along=\"age\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n_coef = 1)), "AR(n_coef=1)")
     expect_identical(str_call_prior(AR(n_coef = 3, s = 0.3)), "AR(n_coef=3,s=0.3)")
-    expect_identical(str_call_prior(AR(s = 0.3, along = "cohort", n = 2)),
-                     "AR(s=0.3,along=\"cohort\")")
+    expect_identical(str_call_prior(AR(s = 0.3, zero_sum = T, along = "cohort", n = 2)),
+                     "AR(s=0.3,along=\"cohort\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -3838,8 +3925,9 @@ test_that("'str_call_prior' works with bage_prior_known", {
 
 test_that("'str_call_prior' works with bage_prior_lin", {
     expect_identical(str_call_prior(Lin()), "Lin()")
-    expect_identical(str_call_prior(Lin(sd_slope = 0.5, mean_slope = -0.2, s = 2, along = "a")),
-                     "Lin(s=2,mean_slope=-0.2,sd_slope=0.5,along=\"a\")")
+    expect_identical(str_call_prior(Lin(sd_slope = 0.5, mean_slope = -0.2, s = 2,
+                                        zero_sum = TRUE, along = "a")),
+                     "Lin(s=2,mean_slope=-0.2,sd_slope=0.5,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR format", {
@@ -3847,8 +3935,9 @@ test_that("'str_call_prior' works with bage_prior_linar - AR format", {
     expect_identical(str_call_prior(Lin_AR(sd = 0.5)), "Lin_AR(sd_slope=0.5)")
     expect_identical(str_call_prior(Lin_AR(sd=2L,mean_slope=0.1,s = 0.95)),
                      "Lin_AR(s=0.95,mean_slope=0.1,sd_slope=2)")
-    expect_identical(str_call_prior(Lin_AR(sd = 0.1, along = "cohort", s = 0.95,n=3)),
-                     "Lin_AR(n_coef=3,s=0.95,sd_slope=0.1,along=\"cohort\")")
+    expect_identical(str_call_prior(Lin_AR(sd = 0.1, along = "cohort", zero_sum = T,
+                                           s = 0.95,n=3)),
+                     "Lin_AR(n_coef=3,s=0.95,sd_slope=0.1,along=\"cohort\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
@@ -3856,8 +3945,9 @@ test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
     expect_identical(str_call_prior(Lin_AR1(along="age",sd = 0.5)),
                      "Lin_AR1(sd_slope=0.5,along=\"age\")")
     expect_identical(str_call_prior(Lin_AR1(sd=2L,s = 0.95)), "Lin_AR1(s=0.95,sd_slope=2)")
-    expect_identical(str_call_prior(Lin_AR1(sd = 0.1, mean_slope = 0.2, max=1,s = 0.95, min = 0.5)),
-                     "Lin_AR1(min=0.5,max=1,s=0.95,mean_slope=0.2,sd_slope=0.1)")
+    expect_identical(str_call_prior(Lin_AR1(sd = 0.1, mean_slope = 0.2,
+                                            zero_sum = T, max=1,s = 0.95, min = 0.5)),
+                     "Lin_AR1(min=0.5,max=1,s=0.95,mean_slope=0.2,sd_slope=0.1,zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_norm", {
@@ -3872,48 +3962,53 @@ test_that("'str_call_prior' works with bage_prior_normfixed", {
 
 test_that("'str_call_prior' works with bage_prior_rw", {
     expect_identical(str_call_prior(RW()), "RW()")
-    expect_identical(str_call_prior(RW(along = "a", s = 2)),
-                     "RW(s=2,along=\"a\")")
+    expect_identical(str_call_prior(RW(along = "a", s = 2), zero_sum=T),
+                     "RW(s=2,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwseasfix", {
     expect_identical(str_call_prior(RW_Seas(n_seas=2, s_seas = 0)), "RW_Seas(n_seas=2,s_seas=0)")
-    expect_identical(str_call_prior(RW_Seas(along = "a", s = 2, n = 5, sd_seas = 2.0, s_seas=0)),
-                     "RW_Seas(n_seas=5,s=2,s_seas=0,sd_seas=2,along=\"a\")")
+    expect_identical(str_call_prior(RW_Seas(along = "a", s = 2, n = 5, sd_seas = 2.0,
+                                            zero_sum=T,s_seas=0)),
+                     "RW_Seas(n_seas=5,s=2,s_seas=0,sd_seas=2,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwseasvary", {
     expect_identical(str_call_prior(RW_Seas(n_seas=2)), "RW_Seas(n_seas=2)")
-    expect_identical(str_call_prior(RW_Seas(along = "a", sd_seas = 3.00, s = 2, n = 5, s_seas=0.1)),
-                     "RW_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=3,along=\"a\")")
+    expect_identical(str_call_prior(RW_Seas(along = "a", sd_seas = 3.00, s = 2,
+                                            zero_sum = T, n = 5, s_seas=0.1)),
+                     "RW_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=3,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2", {
-    expect_identical(str_call_prior(RW2()), "RW2()")
-    expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0.5)),
-                     "RW2(s=2,sd=0.5,along=\"a\")")
+  expect_identical(str_call_prior(RW2()), "RW2()")
+  expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0.5, zero_sum = TRUE)),
+                   "RW2(s=2,sd=0.5,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2seasfix", {
   expect_identical(str_call_prior(RW2_Seas(n_seas=2, s_seas = 0)),
                    "RW2_Seas(n_seas=2,s_seas=0)")
-    expect_identical(str_call_prior(RW2_Seas(along = "a", sd_seas = 3, s = 2, n = 5, s_seas=0)),
-                     "RW2_Seas(n_seas=5,s=2,s_seas=0,sd_seas=3,along=\"a\")")
+  expect_identical(str_call_prior(RW2_Seas(along = "a", sd_seas = 3, s = 2,
+                                           zero_sum = TRUE, n = 5, s_seas=0)),
+                     "RW2_Seas(n_seas=5,s=2,s_seas=0,sd_seas=3,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2seasvary", {
     expect_identical(str_call_prior(RW2_Seas(n_seas=2)), "RW2_Seas(n_seas=2)")
     expect_identical(str_call_prior(RW2_Seas(along = "a",
-                                             s = 2, n = 5, s_seas=0.1, sd_seas = 0.2)),
-                     "RW2_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=0.2,along=\"a\")")
+                                             s = 2, n = 5, s_seas=0.1,
+                                             zero_sum=T,sd_seas = 0.2)),
+                     "RW2_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=0.2,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {
     expect_identical(str_call_prior(Sp()), "Sp()")
     expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n_comp=5)")
     expect_identical(str_call_prior(Sp(s = 0.1, sd = 0.5)), "Sp(s=0.1,sd=0.5)")
-    expect_identical(str_call_prior(Sp(s = 3,along = "cohort", n = 5L,sd=2.0000)),
-                     "Sp(n_comp=5,s=3,sd=2,along=\"cohort\")")
+    expect_identical(str_call_prior(Sp(s = 3,along = "cohort", n = 5L,
+                                       zero_sum=T,sd=2.0000)),
+                     "Sp(n_comp=5,s=3,sd=2,along=\"cohort\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
@@ -3930,24 +4025,25 @@ test_that("'str_call_prior' works with bage_prior_svd_ar", {
     expect_identical(str_call_prior(SVD_AR1(s)), "SVD_AR1(s)")
     expect_identical(str_call_prior(SVD_AR1(s,indep = FALSE)), "SVD_AR1(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_AR1(s,min = 0.2, n = 6L)), "SVD_AR1(s,n_comp=6,min=0.2)")
-    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 3L,n_coef=3)),
-                     "SVD_AR(s,n_comp=3,n_coef=3)")
+    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 3L,n_coef=3,zero_sum=T)),
+                     "SVD_AR(s,n_comp=3,n_coef=3,zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rw", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW(s)), "SVD_RW(s)")
     expect_identical(str_call_prior(SVD_RW(s,indep = FALSE)), "SVD_RW(s,indep=FALSE)")
-    expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,n_comp = 3L,s=0.3)),
-                     "SVD_RW(s,n_comp=3,s=0.3)")
+    expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,zero_sum=T,
+                                           n_comp = 3L,s=0.3)),
+                     "SVD_RW(s,n_comp=3,s=0.3,zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd_rw2", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW2(s)), "SVD_RW2(s)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=F)), "SVD_RW2(s,indep=FALSE)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd=0.2,n_comp = 3L,s=0.3)),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0.2)")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd=0.2,n_comp = 3L,s=0.3,zero_sum=T)),
+                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0.2,zero_sum=TRUE)")
 })
 
 

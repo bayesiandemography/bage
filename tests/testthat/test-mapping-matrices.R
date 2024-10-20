@@ -623,11 +623,12 @@ test_that("'make_matrix_constraints' works", {
 
 test_that("'make_matrix_effectfree_effect_inner' works - zero_sum, along first", {
   dimnames_term <- list(time = 2001:2003, age = 0:4)
+  prior <- RW(zero_sum = TRUE)
   m <- make_matrix_effectfree_effect_inner(along = "time",
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
                                            var_age = "age",
-                                           matrix_sub_orig = NULL,
+                                           var_sexgender = "sex",
                                            zero_sum = TRUE,
                                            append_zero = FALSE)
   expect_equal(rowSums(matrix(m %*% (1:12), nrow = 3)), rep(0, 3))
@@ -639,7 +640,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - zero_sum, along second"
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
                                            var_age = "age",
-                                           matrix_sub_orig = NULL,
+                                           var_sexgender = "sex",
                                            zero_sum = TRUE,
                                            append_zero = FALSE)
   ans_obtained <- colSums(matrix(m %*% rnorm(10), nrow = 3))
@@ -654,7 +655,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append zero, along firs
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
                                            var_age = "age",
-                                           matrix_sub_orig = NULL,
+                                           var_sexgender = var_sexgender,
                                            zero_sum = FALSE,
                                            append_zero = TRUE)
   x <- rnorm(10)
@@ -670,7 +671,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append zero, along seco
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
                                            var_age = "age",
-                                           matrix_sub_orig = NULL,
+                                           var_sexgender = "sex",
                                            zero_sum = FALSE,
                                            append_zero = TRUE)
   x <- rnorm(10)
@@ -686,7 +687,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append column and appen
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
                                            var_age = "age",
-                                           matrix_sub_orig = NULL,
+                                           var_sexgender = var_sexgender,
                                            zero_sum = TRUE,
                                            append_zero = TRUE)
   expect_identical(dim(m), c(15L, 8L))
@@ -703,7 +704,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append column and appen
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
                                            var_age = "age",
-                                           matrix_sub_orig = NULL,
+                                           var_sexgender = "sex",
                                            zero_sum = TRUE,
                                            append_zero = TRUE)
   expect_identical(dim(m), c(15L, 8L))
@@ -720,34 +721,43 @@ test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig"
   var_age <- "age"
   var_sexgender <- "sex"
   prior <- SVD_RW(HMD)
-  matrix_sub_orig <- make_matrix_sub_orig_svd(prior = prior,
-                                              dimnames_term = dimnames_term,
-                                              var_age = var_age,
-                                              var_sexgender = var_sexgender)
-  ans <- make_matrix_effectfree_effect(along = NULL,
-                                       dimnames_term = dimnames_term,
-                                       var_time = var_time,
-                                       var_age = var_age,
-                                       matrix_sub_orig = matrix_sub_orig,
-                                       zero_sum = FALSE,
-                                       append_zero = TRUE)
-  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 4 * 3))
+  matrix_sub_orig <- make_matrix_sub_orig(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender,
+                                          dim_after = c(13L, 4L))
+  ans <- make_matrix_effectfree_effect_inner(along = NULL,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender,
+                                             zero_sum = FALSE,
+                                             append_zero = TRUE)
+  expect_equal(dim(ans), c(5 * 13, 4 * 3))
 })
 
-test_that("'make_matrix_svddynamic_effect' works with bage_prior_svd_ar - time x time interaction, drop_first_along is FALSE", {
-  prior <- SVD_RW(HMD)
-  dimnames_term = list(time = 2001:2005,
-                       age = poputils::age_labels(type = "five", max = 60))
+test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig, zero_sum is TRUE", {
+  dimnames_term <- list(age = poputils::age_labels(type = "five", max = 60),
+                        time = 2001:2005)
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans <- make_matrix_svddynamic_effect(prior = prior,
-                                       dimnames_term = dimnames_term,
-                                       var_time = var_time,
-                                       var_age = var_age,
-                                       var_sexgender = var_sexgender,
-                                       drop_first_along = FALSE)
-  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 5 * 3))
+  prior <- SVD_RW(HMD, zero_sum = TRUE)
+  matrix_sub_orig <- make_matrix_sub_orig(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender,
+                                          dim_after = c(12L, 4L))
+  ans <- make_matrix_effectfree_effect_inner(along = NULL,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender,
+                                             zero_sum = TRUE,
+                                             append_zero = TRUE)
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 4L * 3L))
 })
 
 
@@ -937,6 +947,57 @@ test_that("'make_matrix_spline' works", {
 })
 
 
+## 'make_matrix_sub_orig_svd' -------------------------------------------------
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, zero_sum is FALSE", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(time = 2001:2005,
+                        age = poputils::age_labels(type = "five", max = 60))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  dim_after <- c(4L, 13L)
+  ans <- make_matrix_sub_orig_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim_after = dim_after,
+                                  zero_sum = FALSE)
+  expect_equal(dim(ans), c(prod(dim_after), 12L))
+})
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, zero_sum is TRUE", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(time = 2001:2005,
+                        age = poputils::age_labels(type = "five", max = 60))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  dim_after <- c(4L, 12L)
+  ans <- make_matrix_sub_orig_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim_after = dim_after,
+                                  zero_sum = TRUE)
+  expect_equal(dim(ans), c(prod(dim_after), 12L))
+})
+
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, zero_sum is TRUE", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(sex = c("f", "m"),
+                        time = 2001:2005,
+                        age = poputils::age_labels(type = "five", max = 60))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  dim_after <- c(1L, 4L, 12L)
+  ans <- make_matrix_sub_orig_svd(prior = prior,
+                                  dimnames_term = dimnames_term,
+                                  var_age = var_age,
+                                  var_sexgender = var_sexgender,
+                                  dim_after = dim_after,
+                                  zero_sum = TRUE)
+  expect_equal(dim(ans), c(prod(dim_after), 24L))
+})
+
 
 ## 'make_matrix_transpose' ----------------------------------------------------
 
@@ -957,38 +1018,50 @@ test_that("'make_matrix_transpose' works with rectangular matrix", {
 })
 
 
-## 'make_matrix_unconstr_to_constr' -------------------------------------------
+## 'make_matrix_unconstr_constr' ----------------------------------------------
 
-test_that("'make_matrix_unconstr_to_constr' works when array representation of unconstrained vector has dimension 3 x 2", {
+test_that("'make_matrix_unconstr_constr' works when array representation of constrained vector has dimension 4", {
   set.seed(0)
-  m <- make_matrix_unconstr_to_constr(c(3L, 2L))
+  m <- make_matrix_unconstr_constr(4)
+  x <- rnorm(3)
+  y <- m %*% x
+  expect_identical(length(y), 4L)
+  expect_equal(sum(y), 0)
+})
+
+
+## 'make_matrix_unconstr_constr_along' ----------------------------------------
+
+test_that("'make_matrix_unconstr_constr_along' works when array representation of unconstrained vector has dimension 3 x 2", {
+  set.seed(0)
+  m <- make_matrix_unconstr_constr_along(c(3L, 2L))
   x <- rnorm(3)
   y <- matrix(m %*% x, nr = 3)
   expect_equal(dim(y), c(3L, 2L))
   expect_equal(rowSums(y), rep(0, 3))
 })
 
-test_that("'make_matrix_unconstr_to_constr' works when array representation of unconstrained vector has dimension 4 x 3", {
+test_that("'make_matrix_unconstr_constr_along' works when array representation of unconstrained vector has dimension 4 x 3", {
   set.seed(0)
-  m <- make_matrix_unconstr_to_constr(c(4L, 3L))
+  m <- make_matrix_unconstr_constr_along(c(4L, 3L))
   x <- rnorm(8)
   y <- matrix(m %*% x, nr = 4)
   expect_equal(dim(y), c(4L, 3L))
   expect_equal(rowSums(y), rep(0, 4))
 })
 
-test_that("'make_matrix_unconstr_to_constr' works when array representation of unconstrained vector has dimension 1 x 3", {
+test_that("'make_matrix_unconstr_constr_along' works when array representation of unconstrained vector has dimension 1 x 3", {
   set.seed(0)
-  m <- make_matrix_unconstr_to_constr(c(1L, 3L))
+  m <- make_matrix_unconstr_constr_along(c(1L, 3L))
   x <- rnorm(2)
   y <- matrix(m %*% x, nr = 1)
   expect_equal(dim(y), c(1L, 3L))
   expect_equal(rowSums(y), 0)
 })
 
-test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 2 x 3 x 4", {
+test_that("'make_matrix_unconstr_constr_along' works when array representation of constrained vector has dimension 2 x 3 x 4", {
   set.seed(0)
-  m <- make_matrix_unconstr_to_constr(2:4)
+  m <- make_matrix_unconstr_constr_along(2:4)
   x <- rnorm(12)
   y <- array(m %*% x, dim = 2:4)
   expect_equal(rowSums(y[1,,]), rep(0, 3))
@@ -997,9 +1070,9 @@ test_that("'make_matrix_unconstr_to_constr' works when array representation of c
   expect_equal(colSums(y[2,,]), rep(0, 4))
 })
 
-test_that("'make_matrix_unconstr_to_constr' works when array representation of constrained vector has dimension 3 x 4 x 5 x 6", {
+test_that("'make_matrix_unconstr_constr_along' works when array representation of constrained vector has dimension 3 x 4 x 5 x 6", {
   set.seed(0)
-  m <- make_matrix_unconstr_to_constr(3:6)
+  m <- make_matrix_unconstr_constr_along(3:6)
   x <- rnorm(3 * prod(3:5))
   y <- array(m %*% x, dim = 3:6)
   expect_equal(rowSums(y[1,,,1]), rep(0, 4))

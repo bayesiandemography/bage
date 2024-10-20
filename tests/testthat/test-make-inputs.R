@@ -2047,6 +2047,22 @@ test_that("'str_call_args_svd' works - joint", {
   expect_identical(ans_obtained, ans_expected)
 })
 
+## 'str_call_args_zero_sum' ---------------------------------------------------
+
+test_that("'str_call_args_zero_sum' works - zero_sum is FALSE", {
+  prior <- RW()
+  ans_obtained <- str_call_args_zero_sum(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_zero_sum' works - zero_sum is TRUE", {
+  prior <- RW(zero_sum = TRUE)
+  ans_obtained <- str_call_args_zero_sum(prior)
+  ans_expected <- "zero_sum=TRUE"
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 ## 'to_factor' ----------------------------------------------------------------
 

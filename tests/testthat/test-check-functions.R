@@ -276,7 +276,7 @@ test_that("'check_is_matrix' throws correct error with non-matrix", {
 })
 
 
-## 'check_is_ssvd' ------------------------------------------------------
+## 'check_is_ssvd' ------------------------------------------------------------
 
 test_that("'check_is_ssvd' works with valid inputs", {
   expect_true(check_is_ssvd(x = HMD, nm_x = "ssvd"))
@@ -285,20 +285,20 @@ test_that("'check_is_ssvd' works with valid inputs", {
 })
 
 
-## 'check_length_along_ge' ----------------------------------------------------
+## 'check_n_along_ge' ---------------------------------------------------------
 
-test_that("'check_length_along_ge' returns TRUE with valid inputs", {
-  expect_true(check_length_along_ge(length_along = 10L,
-                                    min = 3L,
-                                    nm = "age:sex",
-                                    prior = Lin()))
+test_that("'check_n_along_ge' returns TRUE with valid inputs", {
+  expect_true(check_n_along_ge(n_along = 10L,
+                               min = 3L,
+                               nm = "age:sex",
+                               prior = Lin()))
 })
 
-test_that("'check_length_along_ge' throws correct error with length less than min", {
-  expect_error(check_length_along_ge(length_along = 1L,
-                                     min = 2L,
-                                     nm = "age:sex",
-                                     prior = Lin()),
+test_that("'check_n_along_ge' throws correct error with length less than min", {
+  expect_error(check_n_along_ge(n_along = 1L,
+                                min = 2L,
+                                nm = "age:sex",
+                                prior = Lin()),
                "`Lin\\(\\)` prior cannot be used for `age:sex` term.")                
 })
 

@@ -7,13 +7,28 @@
 \alias{SVD_RW2}
 \title{Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles}
 \usage{
-SVD_AR(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1)
+SVD_AR(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1, zero_sum = FALSE)
 
-SVD_AR1(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s = 1)
+SVD_AR1(
+  ssvd,
+  n_comp = NULL,
+  indep = TRUE,
+  min = 0.8,
+  max = 0.98,
+  s = 1,
+  zero_sum = FALSE
+)
 
-SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1)
+SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1, zero_sum = FALSE)
 
-SVD_RW2(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd_slope = 1)
+SVD_RW2(
+  ssvd,
+  n_comp = NULL,
+  indep = TRUE,
+  s = 1,
+  sd_slope = 1,
+  zero_sum = FALSE
+)
 }
 \arguments{
 \item{ssvd}{Object of class \code{"bage_ssvd"}
