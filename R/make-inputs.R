@@ -1824,6 +1824,23 @@ str_call_args_svd <- function(prior) {
 
 
 ## HAS_TESTS
+#' Compile Args for 'zero_sum' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'zero_sum' 
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_zero_sum <- function(prior) {
+  zero_sum <- prior$specific$zero_sum
+  if (zero_sum)
+    sprintf("zero_sum=%s", zero_sum)
+  else
+    ""
+}
+
+
+## HAS_TESTS
 #' Function Used to Convert Variables in Data to Factors
 #'
 #' If a variable is already a factor, leave it unchanged.

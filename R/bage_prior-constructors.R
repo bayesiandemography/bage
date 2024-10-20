@@ -65,6 +65,9 @@
 #' @param along Name of the variable to be used
 #' as the "along" variable. Only used with
 #' interactions.
+#' @param zero_sum If `TRUE`, values must
+#' sum to 0 within each combination
+#' of the `"by"` variables. Default is `FALSE`.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
@@ -84,7 +87,10 @@
 #' AR(n_coef = 3, s = 2.4)
 #' AR(along = "cohort")
 #' @export
-AR <- function(n_coef = 2, s = 1, along = NULL) {
+AR <- function(n_coef = 2,
+               s = 1,
+               along = NULL,
+               zero_sum = FALSE) {
   poputils::check_n(n = n_coef,
                     nm_n = "n_coef",
                     min = 1L,
@@ -97,11 +103,13 @@ AR <- function(n_coef = 2, s = 1, along = NULL) {
   scale <- as.double(s)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_ar(n_coef = n_coef,
                     min = -1,
                     max = 1,
                     scale = scale,
                     along = along,
+                    zero_sum = zero_sum,
                     nm = "AR")
 }
 
@@ -187,7 +195,11 @@ AR <- function(n_coef = 2, s = 1, along = NULL) {
 #' AR1(min = 0, max = 1, s = 2.4)
 #' AR1(along = "cohort")
 #' @export
-AR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
+AR1 <- function(min = 0.8,
+                max = 0.98,
+                s = 1,
+                along = NULL,
+                zero_sum = FALSE) {
   check_min_max_ar(min = min, max = max)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
@@ -195,11 +207,13 @@ AR1 <- function(min = 0.8, max = 0.98, s = 1, along = NULL) {
   max <- as.double(max)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_ar(n_coef = 1L,
                     min = min,
                     max = max,
                     scale = scale,
                     along = along,
+                    zero_sum = zero_sum,
                     nm = "AR1")
 }
 
@@ -301,19 +315,25 @@ Known <- function(values) {
 #' Lin(s = 0.5, sd_slope = 2)
 #' Lin(along = "cohort")
 #' @export
-Lin <- function(s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
+Lin <- function(s = 1,
+                mean_slope = 0,
+                sd_slope = 1,
+                along = NULL,
+                zero_sum = FALSE) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
   mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_lin(scale = scale,
                      mean_slope,
                      sd_slope = sd_slope,
-                     along = along)
+                     along = along,
+                     zero_sum = zero_sum)
 }
 
 
@@ -407,7 +427,12 @@ Lin <- function(s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
 #' Lin_AR()
 #' Lin_AR(n_coef = 3, s = 0.5, sd_slope = 2)
 #' @export
-Lin_AR <- function(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
+Lin_AR <- function(n_coef = 2,
+                   s = 1,
+                   mean_slope = 0,
+                   sd_slope = 1,
+                   along = NULL,
+                   zero_sum = FALSE) {
   poputils::check_n(n = n_coef,
                     nm_n = "n_coef",
                     min = 1L,
@@ -420,6 +445,7 @@ Lin_AR <- function(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   n_coef <- as.integer(n_coef)
   scale <- as.double(s)
   mean_slope <- as.double(mean_slope)
@@ -431,6 +457,7 @@ Lin_AR <- function(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL
                        min = -1,
                        max = 1,
                        along = along,
+                       zero_sum = zero_sum,
                        nm = "Lin_AR")
 }
 
@@ -522,7 +549,13 @@ Lin_AR <- function(n_coef = 2, s = 1, mean_slope = 0, sd_slope = 1, along = NULL
 #' Lin_AR1()
 #' Lin_AR1(min = 0, s = 0.5, sd_slope = 2)
 #' @export
-Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, mean_slope = 0, sd_slope = 1, along = NULL) {
+Lin_AR1 <- function(min = 0.8,
+                    max = 0.98,
+                    s = 1,
+                    mean_slope = 0,
+                    sd_slope = 1,
+                    along = NULL,
+                    zero_sum = FALSE) {
   check_min_max_ar(min = min, max = max)
   check_scale(s,
               nm_x = "s",
@@ -531,6 +564,7 @@ Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, mean_slope = 0, sd_slope = 1, 
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
   mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
@@ -543,6 +577,7 @@ Lin_AR1 <- function(min = 0.8, max = 0.98, s = 1, mean_slope = 0, sd_slope = 1, 
                        min = min,
                        max = max,
                        along = along,
+                       zero_sum = zero_sum,
                        nm = "Lin_AR1")
 }
 
@@ -693,13 +728,17 @@ NFix <- function(sd = 1) {
 #' RW(s = 0.5)
 #' RW(along = "cohort")
 #' @export
-RW <- function(s = 1, along = NULL) {
+RW <- function(s = 1,
+               along = NULL,
+               zero_sum = FALSE) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   scale <- as.double(s)
   if (!is.null(along))
     check_string(along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_rw(scale = scale,
-                    along = along)
+                    along = along,
+                    zero_sum = zero_sum)
 }
 
 
@@ -795,7 +834,8 @@ RW_Seas <- function(n_seas,
                     s = 1,
                     s_seas = 1,
                     sd_seas = 1,
-                    along = NULL) {
+                    along = NULL,
+                    zero_sum = FALSE) {
   poputils::check_n(n = n_seas,
                     nm_n = "n_seas",
                     min = 2L,
@@ -810,17 +850,20 @@ RW_Seas <- function(n_seas,
   sd_seas <- as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   if (scale_seas > 0)
     new_bage_prior_rwseasvary(n_seas = n_seas,
                               scale_seas = scale_seas,
                               sd_seas = sd_seas,
                               scale = scale,
-                              along = along)
+                              along = along,
+                              zero_sum = zero_sum)
   else
     new_bage_prior_rwseasfix(n_seas = n_seas,
                              sd_seas = sd_seas,
                              scale = scale,
-                             along = along)
+                             along = along,
+                             zero_sum = zero_sum)
 }
 
 
@@ -884,9 +927,6 @@ RW_Seas <- function(n_seas,
 #' @inheritParams AR
 #' @param sd_slope Standard deviation
 #' for initial slope. Default is `1`.
-#' @param zero_sum If `TRUE`, values must
-#' sum to 0 within each combination
-#' of the `"by"` variables. Default is `FALSE`.
 #'
 #' @returns An object of class `"bage_prior_rw2"`.
 #'
@@ -904,18 +944,21 @@ RW_Seas <- function(n_seas,
 #' RW2()
 #' RW2(s = 0.5)
 #' @export
-RW2 <- function(s = 1, sd_slope = 1, along = NULL, zero_sum = FALSE) {
+RW2 <- function(s = 1,
+                sd_slope = 1,
+                along = NULL,
+                zero_sum = FALSE) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
-  check_flag(x = zero_sum, nm_x = "zero_sum")
   if (!is.null(along))
     check_string(along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_rw2(scale = scale,
                      sd_slope = sd_slope,
-                     zero_sum = zero_sum,
-                     along = along)
+                     along = along,
+                     zero_sum = zero_sum)
 }
 
 
@@ -1012,7 +1055,8 @@ RW2_Seas <- function(n_seas,
                      sd_slope = 1,
                      s_seas = 1,
                      sd_seas = 1,
-                     along = NULL) {
+                     along = NULL,
+                     zero_sum = FALSE) {
   poputils::check_n(n = n_seas,
                     nm_n = "n_seas",
                     min = 2L,
@@ -1029,19 +1073,22 @@ RW2_Seas <- function(n_seas,
   sd_seas = as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   if (scale_seas > 0)
     new_bage_prior_rw2seasvary(n_seas = n_seas,
                                scale_seas = scale_seas,
                                sd_seas = sd_seas,
                                scale = scale,
                                sd_slope = sd_slope,
-                               along = along)
+                               along = along,
+                               zero_sum = zero_sum)
   else
     new_bage_prior_rw2seasfix(n_seas = n_seas,
                               sd_seas = sd_seas,
                               scale = scale,
                               sd_slope = sd_slope,
-                              along = along)
+                              along = along,
+                              zero_sum = zero_sum)
 }
 
 
@@ -1070,7 +1117,7 @@ RW2_Seas <- function(n_seas,
 #'
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction, with \eqn{J} elements;
-#' - \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+#' - \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
 #'   values for the  \eqn{u}th combination of the "by" variables;
 #' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
 #' - \eqn{U} is the number of elements of \eqn{\pmb{\beta}_u};
@@ -1078,7 +1125,7 @@ RW2_Seas <- function(n_seas,
 #'   spline basis functions; and
 #' - \eqn{n} is `n_comp`.
 #'
-#' The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
+#' The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{\alpha}_u} are assumed
 #' to follow a [second-order random walk][RW2()].
 #'
 #' @inheritParams AR
@@ -1098,7 +1145,7 @@ RW2_Seas <- function(n_seas,
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
-#' - **bage** uses function [splines::bs()] to construct
+#' - [splines::bs()] Function used by **bage** to construct
 #'   spline basis functions
 #'
 #' @references
@@ -1110,7 +1157,12 @@ RW2_Seas <- function(n_seas,
 #' Sp()
 #' Sp(n_comp = 10)
 #' @export
-Sp <- function(n_comp = NULL, s = 1, sd = 1, sd_slope = 1, along = NULL) {
+Sp <- function(n_comp = NULL,
+               s = 1,
+               sd = 1,
+               sd_slope = 1,
+               along = NULL,
+               zero_sum = FALSE) {
   if (!is.null(n_comp)) {
     poputils::check_n(n = n_comp,
                       nm_n = "n_comp",
@@ -1127,11 +1179,13 @@ Sp <- function(n_comp = NULL, s = 1, sd = 1, sd_slope = 1, along = NULL) {
   sd_slope <- as.double(sd_slope)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_spline(n_comp = n_comp,
                         scale = scale,
                         sd = sd, 
                         sd_slope = sd_slope,
-                        along = along)
+                        along = along,
+                        zero_sum = zero_sum)
 }
 
 
@@ -1327,7 +1381,9 @@ Sp <- function(n_comp = NULL, s = 1, sd = 1, sd_slope = 1, along = NULL) {
 #' SVD(HMD) 
 #' SVD(HMD, n_comp = 3)
 #' @export
-SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
+SVD <- function(ssvd,
+                n_comp = NULL,
+                indep = TRUE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp, nm_n_comp = "n_comp", ssvd = ssvd)
@@ -1461,7 +1517,12 @@ SVD <- function(ssvd, n_comp = NULL, indep = TRUE) {
 #' SVD_RW(HMD, n_comp = 3)
 #' SVD_RW2(HMD, indep = FALSE)
 #' @export
-SVD_AR <- function(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1) {
+SVD_AR <- function(ssvd,
+                   n_comp = NULL,
+                   indep = TRUE,
+                   n_coef = 2,
+                   s = 1,
+                   zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
@@ -1478,6 +1539,7 @@ SVD_AR <- function(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1) {
               zero_ok = FALSE)
   n_coef <- as.integer(n_coef)
   scale <- as.double(s)
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_svd_ar(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
@@ -1486,13 +1548,20 @@ SVD_AR <- function(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1) {
                         min = -1,
                         max = 1,
                         scale = scale,
+                        zero_sum = zero_sum,
                         nm = "SVD_AR")
 }
 
 ## HAS_TESTS
 #' @rdname SVD_AR
 #' @export
-SVD_AR1 <- function(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s = 1) {
+SVD_AR1 <- function(ssvd,
+                    n_comp = NULL,
+                    indep = TRUE,
+                    min = 0.8,
+                    max = 0.98,
+                    s = 1,
+                    zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
@@ -1501,6 +1570,7 @@ SVD_AR1 <- function(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s 
   check_flag(x = indep, nm_x = "indep")
   check_min_max_ar(min = min, max = max)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   min <- as.double(min)
   max <- as.double(max)
   scale <- as.double(s)
@@ -1512,12 +1582,17 @@ SVD_AR1 <- function(ssvd, n_comp = NULL, indep = TRUE, min = 0.8, max = 0.98, s 
                         min = min,
                         max = max,
                         scale = scale,
+                        zero_sum = zero_sum,
                         nm = "SVD_AR1")
 }
 
 #' @rdname SVD_AR
 #' @export
-SVD_RW <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
+SVD_RW <- function(ssvd,
+                   n_comp = NULL,
+                   indep = TRUE,
+                   s = 1,
+                   zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
@@ -1525,18 +1600,25 @@ SVD_RW <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1) {
                        ssvd = ssvd)
   check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
   new_bage_prior_svd_rw(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
                         indep = indep,
-                        scale = scale)
+                        scale = scale,
+                        zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
 #' @rdname SVD_AR
 #' @export
-SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd_slope = 1) {
+SVD_RW2 <- function(ssvd,
+                    n_comp = NULL,
+                    indep = TRUE,
+                    s = 1,
+                    sd_slope = 1,
+                    zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
   n_comp <- n_comp_svd(n_comp = n_comp,
@@ -1545,6 +1627,7 @@ SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd_slope = 1) {
   check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_svd_rw2(ssvd = ssvd,
@@ -1552,7 +1635,8 @@ SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd_slope = 1) {
                          n_comp = n_comp,
                          indep = indep,
                          scale = scale,
-                         sd_slope = sd_slope)
+                         sd_slope = sd_slope,
+                         zero_sum = zero_sum)
 }
 
 
@@ -1576,7 +1660,13 @@ SVD_RW2 <- function(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd_slope = 1) {
 
 
 ## HAS_TESTS
-new_bage_prior_ar <- function(n_coef, scale, min, max, nm, along) {
+new_bage_prior_ar <- function(n_coef,
+                              scale,
+                              min,
+                              max,
+                              nm,
+                              along,
+                              zero_sum) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 1L,
@@ -1592,6 +1682,7 @@ new_bage_prior_ar <- function(n_coef, scale, min, max, nm, along) {
                               max = max,
                               scale = scale,
                               along = along,
+                              zero_sum = zero_sum,
                               nm = nm))
   class(ans) <- c("bage_prior_ar", "bage_prior")
   ans
@@ -1607,7 +1698,11 @@ new_bage_prior_known <- function(values) {
 }
 
 ## HAS_TESTS
-new_bage_prior_lin <- function(scale, mean_slope, sd_slope, along) {
+new_bage_prior_lin <- function(scale,
+                               mean_slope,
+                               sd_slope,
+                               along,
+                               zero_sum) {
     ans <- list(i_prior = 2L,
                 const = c(scale = scale,
                           mean_slope = mean_slope,
@@ -1615,13 +1710,22 @@ new_bage_prior_lin <- function(scale, mean_slope, sd_slope, along) {
                 specific = list(scale = scale,
                                 mean_slope = mean_slope,
                                 sd_slope = sd_slope,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_lin", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_linar <- function(n_coef, scale, mean_slope, sd_slope, min, max, along, nm) {
+new_bage_prior_linar <- function(n_coef,
+                                 scale,
+                                 mean_slope,
+                                 sd_slope,
+                                 min,
+                                 max,
+                                 along,
+                                 zero_sum,
+                                 nm) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 3L,
@@ -1641,6 +1745,7 @@ new_bage_prior_linar <- function(n_coef, scale, mean_slope, sd_slope, min, max, 
                               min = min,
                               max = max,
                               along = along,
+                              zero_sum = zero_sum,
                               nm = nm))
   class(ans) <- c("bage_prior_linar", "bage_prior")
   ans
@@ -1665,17 +1770,24 @@ new_bage_prior_normfixed <- function(sd) {
 }
 
 ## HAS_TESTS
-new_bage_prior_rw <- function(scale, along) {
+new_bage_prior_rw <- function(scale,
+                              along,
+                              zero_sum) {
     ans <- list(i_prior = 6L,
                 const = c(scale = scale),
                 specific = list(scale = scale,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rw", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasfix <- function(n_seas, sd_seas, scale, along) {
+new_bage_prior_rwseasfix <- function(n_seas,
+                                     sd_seas,
+                                     scale,
+                                     along,
+                                     zero_sum) {
     ans <- list(i_prior = 10L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           sd_seas = sd_seas,
@@ -1683,13 +1795,19 @@ new_bage_prior_rwseasfix <- function(n_seas, sd_seas, scale, along) {
                 specific = list(n_seas = n_seas, ## put season-related quantities at beginning
                                 sd_seas = sd_seas,
                                 scale = scale,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rwseasfix", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasvary <- function(n_seas, scale_seas, sd_seas, scale, along) {
+new_bage_prior_rwseasvary <- function(n_seas,
+                                      scale_seas,
+                                      sd_seas,
+                                      scale,
+                                      along,
+                                      zero_sum) {
     ans <- list(i_prior = 11L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           scale_seas = scale_seas,
@@ -1699,27 +1817,35 @@ new_bage_prior_rwseasvary <- function(n_seas, scale_seas, sd_seas, scale, along)
                                 scale_seas = scale_seas,
                                 sd_seas = sd_seas,
                                 scale = scale,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rwseasvary", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale, sd_slope, zero_sum, along) {
+new_bage_prior_rw2 <- function(scale,
+                               sd_slope,
+                               along,
+                               zero_sum) {
     ans <- list(i_prior = 7L,
                 const = c(scale = scale,
-                          sd_slope = sd_slope,
-                          zero_sum = zero_sum),
+                          sd_slope = sd_slope),
                 specific = list(scale = scale,
                                 sd_slope = sd_slope,
-                                zero_sum = zero_sum,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasfix <- function(n_seas, sd_seas, scale, sd_slope, along) {
+new_bage_prior_rw2seasfix <- function(n_seas,
+                                      sd_seas,
+                                      scale,
+                                      sd_slope,
+                                      along,
+                                      zero_sum) {
     ans <- list(i_prior = 12L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           sd_seas = sd_seas,
@@ -1729,13 +1855,20 @@ new_bage_prior_rw2seasfix <- function(n_seas, sd_seas, scale, sd_slope, along) {
                                 sd_seas = sd_seas,
                                 scale = scale,
                                 sd_slope = sd_slope,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rw2seasfix", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasvary <- function(n_seas, scale_seas, sd_seas, scale, sd_slope, along) {
+new_bage_prior_rw2seasvary <- function(n_seas,
+                                       scale_seas,
+                                       sd_seas,
+                                       scale,
+                                       sd_slope,
+                                       along,
+                                       zero_sum) {
     ans <- list(i_prior = 13L,
                 const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                           scale_seas = scale_seas,
@@ -1747,13 +1880,19 @@ new_bage_prior_rw2seasvary <- function(n_seas, scale_seas, sd_seas, scale, sd_sl
                                 sd_seas = sd_seas,
                                 scale = scale,
                                 sd_slope = sd_slope,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rw2seasvary", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_spline <- function(n_comp, scale, sd, sd_slope, along) {
+new_bage_prior_spline <- function(n_comp,
+                                  scale,
+                                  sd,
+                                  sd_slope,
+                                  along,
+                                  zero_sum) {
     ans <- list(i_prior = 8L,
                 const = c(scale = scale,
                           sd = sd,
@@ -1762,13 +1901,17 @@ new_bage_prior_spline <- function(n_comp, scale, sd, sd_slope, along) {
                                 scale = scale,
                                 sd = sd,
                                 sd_slope = sd_slope,
-                                along = along))
+                                along = along,
+                                zero_sum = zero_sum))
     class(ans) <- c("bage_prior_spline", "bage_prior")
     ans
 }
 
 ## HAS_TESTS
-new_bage_prior_svd <- function(ssvd, nm_ssvd, n_comp, indep) {
+new_bage_prior_svd <- function(ssvd,
+                               nm_ssvd,
+                               n_comp,
+                               indep) {
     ans <- list(i_prior = 9L,
                 const = 0, ## not used
                 specific = list(ssvd = ssvd,
@@ -1780,8 +1923,16 @@ new_bage_prior_svd <- function(ssvd, nm_ssvd, n_comp, indep) {
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, indep,
-                                  n_coef, scale, min, max, nm) {
+new_bage_prior_svd_ar <- function(ssvd,
+                                  nm_ssvd,
+                                  n_comp,
+                                  indep,
+                                  n_coef,
+                                  scale,
+                                  min,
+                                  max,
+                                  zero_sum,
+                                  nm) {
   shape1 <- 2.0
   shape2 <- 2.0
   ans <- list(i_prior = 14L,
@@ -1800,15 +1951,20 @@ new_bage_prior_svd_ar <- function(ssvd, nm_ssvd, n_comp, indep,
                               min = min,
                               max = max,
                               scale = scale,
-                              nm = nm,
-                              along = NULL))
+                              along = NULL,
+                              zero_sum = zero_sum,
+                              nm = nm))
   class(ans) <- c("bage_prior_svd_ar", "bage_prior")
   ans
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_rw <- function(ssvd, nm_ssvd, n_comp, indep,
-                                  scale) {
+new_bage_prior_svd_rw <- function(ssvd,
+                                  nm_ssvd,
+                                  n_comp,
+                                  indep,
+                                  scale,
+                                  zero_sum) {
   ans <- list(i_prior = 15L,
               const = c(scale = scale),
               specific = list(ssvd = ssvd,
@@ -1816,14 +1972,20 @@ new_bage_prior_svd_rw <- function(ssvd, nm_ssvd, n_comp, indep,
                               n_comp = n_comp,
                               indep = indep,
                               scale = scale,
-                              along = NULL))
+                              along = NULL,
+                              zero_sum = zero_sum))
   class(ans) <- c("bage_prior_svd_rw", "bage_prior")
   ans
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_rw2 <- function(ssvd, nm_ssvd, n_comp, indep,
-                                   scale, sd_slope) {
+new_bage_prior_svd_rw2 <- function(ssvd,
+                                   nm_ssvd,
+                                   n_comp,
+                                   indep,
+                                   scale,
+                                   sd_slope,
+                                   zero_sum) {
   ans <- list(i_prior = 16L,
               const = c(scale = scale,
                         sd_slope = sd_slope),
@@ -1833,8 +1995,8 @@ new_bage_prior_svd_rw2 <- function(ssvd, nm_ssvd, n_comp, indep,
                               indep = indep,
                               scale = scale,
                               sd_slope = sd_slope,
-                              along = NULL))
+                              along = NULL,
+                              zero_sum = zero_sum))
   class(ans) <- c("bage_prior_svd_rw2", "bage_prior")
   ans
 }
-

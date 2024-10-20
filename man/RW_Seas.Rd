@@ -4,7 +4,7 @@
 \alias{RW_Seas}
 \title{Random Walk Prior with Seasonal Effect}
 \usage{
-RW_Seas(n_seas, s = 1, s_seas = 1, sd_seas = 1, along = NULL)
+RW_Seas(n_seas, s = 1, s_seas = 1, sd_seas = 1, along = NULL, zero_sum = FALSE)
 }
 \arguments{
 \item{n_seas}{Number of seasons}
@@ -23,6 +23,10 @@ Default is \code{1}.}
 \item{along}{Name of the variable to be used
 as the "along" variable. Only used with
 interactions.}
+
+\item{zero_sum}{If \code{TRUE}, values must
+sum to 0 within each combination
+of the \code{"by"} variables. Default is \code{FALSE}.}
 }
 \value{
 Object of class \code{"bage_prior_rwseasvary"}
