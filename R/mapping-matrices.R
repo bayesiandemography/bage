@@ -574,11 +574,21 @@ make_matrix_perm_agesex_from_front <- function(i_age, i_sexgender, dim_after) {
 #'
 #' @noRd
 make_matrix_perm_along_from_front <- function(i_along, dim_after) {
-  s <- seq_along(dim_after)
-  perm <- c(i_along, s[-i_along])
-  dim_before <- dim_after[match(s, perm)]
-  m <- make_matrix_perm_along_to_front(i_along = i_along, dim = dim_before)
-  Matrix::t(m)
+  n <- prod(dim_after)
+  if (i_along == 1L) {
+    Matrix::.sparseDiagonal(n)
+  }
+  else {
+    s <- seq_along(dim_after)
+    perm_before <- c(i_along, s[-i_along])
+    dim_before <- dim_after[perm_before]
+    perm_after <- match(s, perm_before)
+    a0 <- array(seq_len(n), dim = dim_before)
+    a1 <- aperm(a0, perm = perm_after)
+    Matrix::sparseMatrix(i = seq_len(n),
+                         j = a1,
+                         x = rep(1, times = n))
+  }
 }
 
 

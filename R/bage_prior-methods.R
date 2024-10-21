@@ -3114,6 +3114,59 @@ make_matrix_effectfree_effect.bage_prior <- function(prior,
   Matrix::.sparseDiagonal(n)
 }
 
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_ar <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_lin <- function(prior,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_linar <- function(prior,
+                                                           dimnames_term,
+                                                           var_time,
+                                                           var_age,
+                                                           var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
+}
 
 ## HAS_TESTS
 #' @export
@@ -3122,43 +3175,105 @@ make_matrix_effectfree_effect.bage_prior_rw <- function(prior,
                                                         var_time,
                                                         var_age,
                                                         var_sexgender) {
-  matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                     dimnames_term = dimnames_term,
-                                                     var_time = var_time,
-                                                     var_age = var_age,
-                                                     var_sexgender = var_sexgender)
-  make_matrix_append(matrix_along_by,
-                     append_column = FALSE,
-                     append_zero = TRUE)
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE,
+                                      zero_sum = zero_sum)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rwseasfix <- function(prior,
+                                                               dimnames_term,
+                                                               var_time,
+                                                               var_age,
+                                                               var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rwseasvary <- function(prior,
+                                                                dimnames_term,
+                                                                var_time,
+                                                                var_age,
+                                                                var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
 #' @export
 make_matrix_effectfree_effect.bage_prior_rw2 <- function(prior,
-                                                         dimnames_term,
-                                                         var_time,
-                                                         var_age,
-                                                         var_sexgender) {
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
   along <- prior$specific$along
   zero_sum <- prior$specific$zero_sum
-  ## convert to along-first
-  m_perm <- make_matrix_perm_along_to_front(along = along,
-                                            dimnames_term = dimnames_term,
-                                            var_time = var_time,
-                                            var_age = var_age)
-  ans <- m_perm
-  ## expand to constrained
-  if (zero_sum) {
-    m_constr <- make_matrix_unconstr_to_constr(dimnames_term)
-    ans <- m_constr %*% ans
-  }
-  ## add zeros
-  m_zero <- make_matrix_append_zero(dimnames_term)
-  ans <- m_zero %*% ans
-  ## convert from along-first
-  ans <- Matrix::crossprod(m_perm, ans)
-  ## return
-  ans
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE,
+                                      zero_sum = zero_sum)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw2seasfix <- function(prior,
+                                                               dimnames_term,
+                                                               var_time,
+                                                               var_age,
+                                                               var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw2seasvary <- function(prior,
+                                                                dimnames_term,
+                                                                var_time,
+                                                                var_age,
+                                                                var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
@@ -3168,11 +3283,15 @@ make_matrix_effectfree_effect.bage_prior_spline <- function(prior,
                                                             var_time,
                                                             var_age,
                                                             var_sexgender) {
-  make_matrix_spline_effect(prior = prior,
-                            dimnames_term = dimnames_term,
-                            var_time = var_time,
-                            var_age = var_age,
-                            drop_first_along = TRUE)
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
@@ -3182,11 +3301,13 @@ make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
                                                          var_time,
                                                          var_age,
                                                          var_sexgender) {
-  make_matrix_expand_svd(prior = prior,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age,
-                         var_sexgender = var_sexgender)
+  make_matrix_effectfree_effect_inner(along = NULL,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = FALSE)
 }
 
 ## HAS_TESTS
@@ -3196,12 +3317,15 @@ make_matrix_effectfree_effect.bage_prior_svd_ar <- function(prior,
                                                             var_time,
                                                             var_age,
                                                             var_sexgender) {
-  make_matrix_svddynamic_effect(prior = prior,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                drop_first_along = FALSE)
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE,
+                                      zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
@@ -3211,12 +3335,15 @@ make_matrix_effectfree_effect.bage_prior_svd_rw <- function(prior,
                                                             var_time,
                                                             var_age,
                                                             var_sexgender) {
-  make_matrix_svddynamic_effect(prior = prior,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                drop_first_along = TRUE)
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE,
+                                      zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
@@ -3226,12 +3353,15 @@ make_matrix_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
                                                              var_time,
                                                              var_age,
                                                              var_sexgender) {
-  make_matrix_svddynamic_effect(prior = prior,
-                                dimnames_term = dimnames_term,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender,
-                                drop_first_along = TRUE)
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  make_matrix_effectfree_effect_inner(along = along,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE,
+                                      zero_sum = zero_sum)
 }
 
 
