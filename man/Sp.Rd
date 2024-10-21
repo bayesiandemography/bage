@@ -56,7 +56,7 @@ and when it is used with an interaction,
 where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction, with \eqn{J} elements;
-\item \eqn{\pmb{beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
+\item \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
 values for the  \eqn{u}th combination of the "by" variables;
 \item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
 \item \eqn{U} is the number of elements of \eqn{\pmb{\beta}_u};
@@ -65,7 +65,7 @@ spline basis functions; and
 \item \eqn{n} is \code{n_comp}.
 }
 
-The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{alpha}_u} are assumed
+The elements of \eqn{\pmb{\alpha}} or \eqn{\pmb{\alpha}_u} are assumed
 to follow a \link[=RW2]{second-order random walk}.
 }
 
@@ -88,7 +88,7 @@ Statistical Science. 11 (2): 89–121.
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
-\item \strong{bage} uses function \code{\link[splines:bs]{splines::bs()}} to construct
+\item \code{\link[splines:bs]{splines::bs()}} Function used by \strong{bage} to construct
 spline basis functions
 }
 }

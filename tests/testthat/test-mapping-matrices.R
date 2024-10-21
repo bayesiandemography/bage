@@ -900,11 +900,11 @@ test_that("'make_matrix_perm_agesex_from_front' works - just age, age first", {
 ## 'make_matrix_perm_along_from_front' ----------------------------------------
 
 test_that("'make_matrix_perm_along_from_front' reverses effects of 'make_matrix_perm_along_to_front'", {
-  m1 <- make_matrix_perm_along_to_front(dim_after = 2:4, i_along = 3L)
-  m2 <- make_matrix_perm_along_from_front(dim_after = c(4L, 2:3), i_along = 3L)
+  m1 <- make_matrix_perm_along_to_front(dim_after = c(4L, 2:3), i_along = 3L)
+  m2 <- make_matrix_perm_along_from_front(dim_after = 2:4, i_along = 3L)
   expect_identical(as.matrix(m2 %*% m1), diag(24L))
-  m1 <- make_matrix_perm_along_to_front(dim_after = 2:4, i_along = 2L)
-  m2 <- make_matrix_perm_along_from_front(dim_after = c(3L, 2L, 4L), i_along = 2L)
+  m1 <- make_matrix_perm_along_to_front(dim_after = c(3L, 2L, 4L), i_along = 2L)
+  m2 <- make_matrix_perm_along_from_front(dim_after = 2:4, i_along = 2L)
   expect_identical(as.matrix(m2 %*% m1), diag(24L))
   m1 <- make_matrix_perm_along_to_front(dim_after = 2:4, i_along = 1L)
   m2 <- make_matrix_perm_along_from_front(dim_after = 2:4, i_along = 1L)
