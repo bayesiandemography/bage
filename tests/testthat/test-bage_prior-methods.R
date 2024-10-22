@@ -3128,47 +3128,70 @@ test_that("default for 'make_matrix_along_by_effectfree' works - intercept", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("default for 'make_matrix_along_by_effectfree' works - not uses along", {
+test_that("default for 'make_matrix_along_by_effectfree' works", {
   prior <- N()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(reg = 1:3),
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:2, nrow = 3L, dimnames = list(reg = 1:3, NULL))
+  ans_expected <- matrix(0:2, nrow = 3L)
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("default for 'make_matrix_along_by_effectfree' works - uses along", {
+test_that("'make_matrix_along_by_effectfree' works with bage_prior_ar", {
   prior <- AR1()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
-                                                  dimnames_term = list(age = 0:4),
+                                                  dimnames_term = list(time = 2001:2010),
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:4, nr = 5, dimnames = list(age = 0:4, NULL))
+  ans_expected <- matrix(0:9, nr = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw, 1 dimension, zero_sum is FALSE", {
+test_that("'make_matrix_along_by_effectfree' works with bage_prior_ar = zero_sum is TRUE", {
+  prior <- AR1(zero_sum = TRUE)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 2001:2010,
+                                                                       sex = c("f", "m")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:9, nr = 10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_lin", {
+  prior <- Lin()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:4, nr = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_linar", {
+  prior <- Lin_AR1()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:4, nr = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw", {
   prior <- RW()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = 0:4),
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:3, nr = 4, dimnames = list(age = 1:4, NULL))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw, 1 dimension", {
-  prior <- RW()
-  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
-                                                  dimnames_term = list(age = 0:4),
-                                                  var_time = "time",
-                                                  var_age = "age",
-                                                  var_sexgender = NULL)
-  ans_expected <- matrix(0:3, nr = 4, dimnames = list(age = 1:4, NULL))
+  ans_expected <- matrix(0:3, nr = 4)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3180,9 +3203,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw', 2 dimen
                                                   var_age = "age",
                                                   var_sexgender = NULL)
   ans_expected <- matrix(0:17,
-                         nr = 9,
-                         dimnames = list(time = 1:9,
-                                         region = c("a", "b")))
+                         nr = 9)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3193,7 +3214,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwseasfix", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:9, nr = 10, dimnames = list(time = 2001:2010, NULL))
+  ans_expected <- matrix(0:9, nr = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3204,7 +3225,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwseasvary", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:9, nr = 10, dimnames = list(time = 2001:2010, NULL))
+  ans_expected <- matrix(0:9, nr = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3215,7 +3236,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2, 1 dimension
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:3, nr = 4, dimnames = list(age = 1:4, NULL))
+  ans_expected <- matrix(0:3, nr = 4)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3227,9 +3248,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2', 2 dime
                                                   var_age = "age",
                                                   var_sexgender = NULL)
   ans_expected <- matrix(0:17,
-                         nr = 9,
-                         dimnames = list(time = 1:9,
-                                         region = c("a", "b")))
+                         nr = 9)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3240,7 +3259,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasfix", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:9, nr = 10, dimnames = list(time = 2001:2010, NULL))
+  ans_expected <- matrix(0:9, nr = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3251,21 +3270,19 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasvary", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:9, nr = 10, dimnames = list(time = 2001:2010, NULL))
+  ans_expected <- matrix(0:9, nr = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_spline'", {
-  prior <- Sp()
+  prior <- Sp(n_comp = 6)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = 0:9, region = c("a", "b")),
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
   ans_expected <- matrix(0:11,
-                         nr = 6,
-                         dimnames = list(age = paste0("comp", 2:7),
-                                         region = c("a", "b")))
+                         nr = 6)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3277,10 +3294,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd' - total
                                                   var_time = NULL,
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- matrix(0:5,
-                         nr = 3,
-                         dimnames = list(.svd = paste0("comp", 1:3),
-                                         region = c("a", "b")))
+  ans_expected <- matrix(0:5, nr = 3)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3293,12 +3307,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar' - in
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = "sex")
-  ans_expected <- t(matrix(0:29,
-                           nr = 6,
-                           dimnames = list(.svd = paste(rep(c("f", "m"), each = 3),
-                                                        paste0("comp", 1:3),
-                                                        sep = "."),
-                                           time = 2001:2005)))
+  ans_expected <- t(matrix(0:29, nr = 6))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3310,10 +3319,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar'", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- t(matrix(0:14,
-                           nr = 3,
-                           dimnames = list(.svd = paste0("comp", 1:3),
-                                           time = 2001:2005)))
+  ans_expected <- t(matrix(0:14, nr = 3))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3325,10 +3331,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw'", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- t(matrix(0:11,
-                           nr = 3,
-                           dimnames = list(.svd = paste0("comp", 1:3),
-                                           time = c(2002:2005))))
+  ans_expected <- t(matrix(0:11, nr = 3))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -3340,10 +3343,109 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2'", {
                                                   var_time = "time",
                                                   var_age = "age",
                                                   var_sexgender = NULL)
-  ans_expected <- t(matrix(0:11,
-                           nr = 3,
-                           dimnames = list(.svd = paste0("comp", 1:3),
-                                           time = 2002:2005)))
+  ans_expected <- t(matrix(0:11, nr = 3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_matrix_along_by_effectfree_innermost' --------------------------------
+
+test_that("default for 'make_matrix_along_by_effectfree_innermost' works", {
+  prior <- RW()
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = NULL,
+                                                            dim = 9L)
+  ans_expected <- make_matrix_along_by_inner(1L, 9L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_spline works", {
+  prior <- Sp(n_comp = 5)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = 1:2,
+                                                                                 age = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(2L, 5L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd works - age, sex", {
+  prior <- SVD(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+")),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L))
+  ans_expected <- make_matrix_along_by_inner(1L, 8L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd works, - age, sex, reg", {
+  prior <- SVD(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 region = 1:3),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 3L))
+  ans_expected <- make_matrix_along_by_inner(1L, c(8L, 3L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_ar works, - age, sex, time", {
+  prior <- SVD_AR(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rw works, - age, sex, time", {
+  prior <- SVD_RW(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rw2 works, - age, sex, time", {
+  prior <- SVD_RW2(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
   expect_identical(ans_obtained, ans_expected)
 })
 

@@ -314,21 +314,39 @@ test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
 })
 
 
-## 'make_matrix_along_by_drop_first_along' ------------------------------------
+## 'make_matrix_along_by_effectfree_inner' ------------------------------------
 
-test_that("'make_matrix_along_by_drop_first_along' works - reg x time interaction", {
-  dimnames <- list(reg = 1:4,
-                   time = 2001:2010)
+test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interaction, append_zero is TRUE, zero_sum is TRUE", {
+  prior <- RW(zero_sum = TRUE)
+  dimnames_term <- list(reg = 1:4,
+                        time = 2001:2010)
   var_age <- "age"
   var_time <- "time"
-  ans_obtained <- make_matrix_along_by_drop_first_along(along = "time",
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                        dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age,
-                                                        dimnames_term = dimnames)
-  ans_expected <- t(matrix(0:35,
-                           nr = 4,
-                           dimnames = list(reg = 1:4,
-                                           time = 2002:2010)))
+                                                        var_sexgender = var_sexgender,
+                                                        append_zero = TRUE)
+  ans_expected <- make_matrix_along_by_inner(i_along = 2L, dim = c(3L, 9L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interaction, append_zero is FALSE, zero_sum is FALSE", {
+  prior <- RW()
+  dimnames_term <- list(reg = 1:4,
+                        time = 2001:2010)
+  var_age <- "age"
+  var_time <- "time"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age,
+                                                        var_sexgender = var_sexgender,
+                                                        append_zero = FALSE)
+  ans_expected <- make_matrix_along_by_inner(i_along = 2L, dim = c(4L, 10L))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -464,22 +482,15 @@ test_that("'make_matrix_along_by_svd' works -  time x sex x age interaction - jo
 test_that("'make_matrix_along_by_inner' works when 'i_along' is 1", {
   i_along <- 1L
   dim <- 2:4
-  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                             dimnames = dimnames)
-  ans_expected <- matrix(0:23,
-                         nr = 2,
-                         dimnames = list(a = 1:2,
-                                         "b:c" = paste(1:3, rep(1:4, each = 3), sep = ".")))
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
+  ans_expected <- matrix(0:23, nr = 2)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_inner' works when 'i_along' is 2", {
   i_along <- 2L
   dim <- 2:4
-  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                             dimnames = dimnames)
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
   ans_expected <- matrix(c(0L, 2L, 4L,
                            1L, 3L, 5L,
                            6L, 8L, 10L,
@@ -488,94 +499,92 @@ test_that("'make_matrix_along_by_inner' works when 'i_along' is 2", {
                            13L, 15L, 17L,
                            18L, 20L, 22L,
                            19L, 21L, 23L),
-                         nr = 3,
-                         dimnames = list(b = 1:3,
-                                         "a:c" = paste(1:2, rep(1:4, each = 2), sep = ".")))
+                         nr = 3)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_inner' works when 'i_along' is 3", {
   i_along <- 3L
   dim <- 2:4
-  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                             dimnames = dimnames)
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
   ans_expected <- matrix(c(0L, 6L, 12L, 18L,
                            1L, 7L, 13L, 19L,
                            2L, 8L, 14L, 20L,
                            3L, 9L, 15L, 21L,
                            4L, 10L, 16L, 22L,
                            5L, 11L, 17L, 23L),
-                         nrow = 4,
-                         dimnames = list(c = 1:4,
-                                         "a:b" = paste(1:2, rep(1:3, each = 2), sep = ".")))
+                         nrow = 4)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_inner' works when only one dimension", {
   i_along <- 1L
   dim <- 3L
-  dimnames <- list(a = 1:3)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                       dimnames = dimnames)
-  ans_expected <- matrix(0:2, nr = 3, dimnames = list(a = 1:3, NULL))
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
+  ans_expected <- matrix(0:2, nr = 3)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_inner' works when only one element", {
   i_along <- 1L
   dim <- 1L
-  dimnames <- list(a = 1)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                             dimnames = dimnames)
-  ans_expected <- matrix(0L, nr = 1, dimnames = list(a = 1, NULL))
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
+  ans_expected <- matrix(0L, nr = 1)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_inner' works when 'i_along' is 1:2", {
   i_along <- 1:2
   dim <- 2:4
-  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                             dimnames = dimnames)
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
   ans_expected <- matrix(0:23,
-                         nr = 6,
-                         dimnames = list("a:b" = paste(1:2, rep(1:3, each = 2), sep = "."),
-                                         c = 1:4))
+                         nr = 6)
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'make_matrix_along_by_inner' works when 'i_along' is 1:2", {
   i_along <- c(1L, 3L)
   dim <- 2:4
-  dimnames <- list(a = 1:2, b = 1:3, c = 1:4)
-  ans_obtained <- make_matrix_along_by_inner(i_along = i_along,
-                                             dimnames = dimnames)
+  ans_obtained <- make_matrix_along_by_inner(i_along = i_along, dim = dim)
   ans_expected <- matrix(c(0L, 1L, 6L, 7L, 12L, 13L, 18L, 19L,
                            2L, 3L, 8L, 9L, 14L, 15L, 20L, 21L,
                            4L, 5L, 10L, 11L, 16L, 17L, 22L, 23L),
-                         nr = 8,
-                         dimnames = list("a:c" = paste(1:2, rep(1:4, each = 2), sep = "."),
-                                         b = 1:3))
+                         nr = 8)
   expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'make_matrix_along_by_spline' ----------------------------------------------
+## 'make_matrix_along_by_svddynamic' ------------------------------------------
 
-test_that("'make_matrix_along_by_spline' works - age x reg interaction", {
-  prior <- Sp(n = 8)
-  dimnames <- list(age = c(0:79, "80+"),
-                   reg = 1:3)
-  var_age <- "age"
-  var_time <- "time"
-  ans_obtained <- make_matrix_along_by_spline(prior = prior,
-                                              dimnames_term = dimnames,
-                                              var_time = var_time,
-                                              var_age = var_age)
-  ans_expected <- matrix(0:23, nr = 8, dimnames = list(age = paste0("comp", 1:8), reg = 1:3))
+test_that("'make_matrix_along_by_svddynamic' works - age, sex, time", {
+  prior <- SVD_AR(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_svddynamic(prior = prior,
+                                                  dimnames_term = list(sex = c("f", "m"),
+                                                                       age = c(0:99,
+                                                                               "100+"),
+                                                                       time = 1:10),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = "sex",
+                                                  dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'make_matrix_along_by_svddynamic' works - time, age", {
+  prior <- SVD_AR(HMD, n_comp = 4)
+  ans_obtained <- make_matrix_along_by_svddynamic(prior = prior,
+                                                  dimnames_term = list(time = 1:10,
+                                                                       age = c(0:99,
+                                                                               "100+")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = "sex",
+                                                  dim = c(10L, 101L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(4L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
 
 
 ## 'make_matrix_along_first' --------------------------------------------------

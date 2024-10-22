@@ -973,3 +973,20 @@ test_that("'check_widths' throws expected error too high", {
     expect_error(check_widths(c(1.2, 1.3)),
                  "`widths` has values not in interval \\(0, 1\\].")
 })
+
+
+## 'check_zero_sum_n_by' ------------------------------------------------------
+
+test_that("'check_zero_sum_n_by' returns TRUE with valid inputs", {
+  expect_true(check_zero_sum_n_by(zero_sum = TRUE, n_by = 2L, nm = "x"))
+  expect_true(check_zero_sum_n_by(zero_sum = FALSE, n_by = 2L, nm = "x"))
+  expect_true(check_zero_sum_n_by(zero_sum = FALSE, n_by = 1L, nm = "x"))
+})
+
+test_that("'check_zero_sum_n_by' throws correct error with invalid inputs", {
+  expect_error(check_zero_sum_n_by(zero_sum = TRUE, n_by = 1L, nm = "x"),
+               "`zero_sum` is TRUE but `x` term is a main effect.")                                   
+})
+
+
+  
