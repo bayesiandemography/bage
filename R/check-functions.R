@@ -340,13 +340,13 @@ check_is_ssvd <- function(x, nm_x) {
 #'
 #' @noRd
 check_n_along_ge <- function(n_along, min, nm, prior) {
-    if (n_along < min)
-        cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
-                               "used for {.var {nm}} term."),
-                         i = paste("{.var {str_call_prior(prior)}} prior can only be",
-                                   "used with interactions where the 'along' dimension has at least {min} element{?s}."),
-                         i = "The 'along' dimension of {.var {nm}} has {n_along} element{?s}."))
-    invisible(TRUE)
+  if (n_along < min)
+    cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
+                           "used for {.var {nm}} term."),
+                     i = paste("{.var {str_call_prior(prior)}} prior can only be",
+                               "used with interactions where the 'along' dimension has at least {min} element{?s}."),
+                     i = "The 'along' dimension of {.var {nm}} has {n_along} element{?s}."))
+  invisible(TRUE)
 }
 
 
@@ -923,4 +923,23 @@ check_widths <- function(widths) {
         cli::cli_abort(c("{.arg widths} has {cli::qty(n_out)} value{?s} not in interval (0, 1]",
                          i = "{.arg widths}: {.val {widths}}"))
     invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that 'zero_sum' is Only TRUE When 'n_by' is Greater Than 1
+#'
+#' @param zero_sum Whether values constrained to sum to zero,
+#' within each value of along
+#' @param n_by Number of 'by' dimensions.
+#'
+#' @returns TRUE, invisibly.
+#'
+#' @noRd
+check_zero_sum_n_by <- function(zero_sum, n_by, nm) {
+  if (zero_sum & (n_by == 1L))
+    cli::cli_abort(c("{.arg zero_sum} is {.val {zero_sum}} but {.var {nm}} term is a main effect.",
+                     i = paste("{.arg zero_sum} should only be {.val {zero_sum}}",
+                               "in a prior for an interaction.")))
+  invisible(TRUE)
 }

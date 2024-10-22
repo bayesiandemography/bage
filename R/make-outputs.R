@@ -89,8 +89,9 @@ center_effects <- function(components,
         }
         else {
           i_along <- 1L
+          dim <- lengths(dimnames_term)
           matrix_along_by <- make_matrix_along_by_inner(i_along = i_along,
-                                                        dimnames_term = dimnames_term)
+                                                        dim = dim)
           effect <- center_within_along_by(x = effect,
                                            matrix_along_by = matrix_along_by,
                                            center_along = TRUE)

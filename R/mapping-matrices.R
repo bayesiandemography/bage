@@ -268,136 +268,117 @@ make_matrix_along_by_effect <- function(along, dimnames_term, var_time, var_age)
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)
+  dim <- lengths(dimnames_term)
   make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
+                             dim = dim)
 }
 
-  
+
+## HAS_TESTS
+#' Helper function for 'make_matrix_along_by_effectfree'
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sexgender variable, or NULL
+#' @param dim Dimension of the term, once arguments
+#' such as 'zero_sum' and 'append_zero' have been applied.
+#'
+#' @returns A matrix.
+#'
+#' @noRd
+make_matrix_along_by_effectfree_inner <- function(prior,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  var_sexgender,
+                                                  append_zero) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  if (append_zero)
+    dim[[i_along]] <- dim[[i_along]] - 1L
+  if (zero_sum)
+    dim[-i_along] <- dim[-i_along] - 1L
+  make_matrix_along_by_effectfree_innermost(prior = prior,
+                                            dimnames_term = dimnames_term,
+                                            var_time = var_time,
+                                            var_age = var_age,
+                                            var_sexgender = var_sexgender,
+                                            dim = dim)
+}
+
 
 ## HAS_TESTS
 #' Basic Function for Making 'matrix_along_by'
 #'
 #' Unlike 'along', 'i_along' can have length > 1.
 #' 
-#' @param i_along Index for the 'along' dimension
-#' @param dimnames_terms Named list of character vectors
-#' giving categories within each dimension of term
+#' @param i_along Index for the 'along' dimension(s)
+#' @param dim Dimension of the array
 #'
-#' @returns A matrix
+#' @returns A dense matrix
 #'
 #' @noRd
-make_matrix_along_by_inner <- function(i_along, dimnames_term) {
-  dim <- lengths(dimnames_term)
-  nms <- names(dimnames_term)
-  n_dim <- length(dim)
-  s_dim <- seq_len(n_dim)
-  length_effect <- prod(dim)
-  i <- seq.int(from = 0L, length.out = length_effect)
+make_matrix_along_by_inner <- function(i_along, dim) {
+  s <- seq_along(dim)
+  n <- prod(dim)
+  i <- seq.int(from = 0L, length.out = n)
+  n_along <- prod(dim[i_along])
   a <- array(i, dim = dim)
-  perm <- c(i_along, s_dim[-i_along])
+  perm <- c(i_along, s[-i_along])
   ans <- aperm(a, perm = perm)
-  ans <- matrix(ans, nrow = prod(dim[i_along]))
-  rownames <- expand.grid(dimnames_term[i_along])
-  rownames <- Reduce(paste_dot, rownames)
-  rownames(ans) <- rownames
-  names(dimnames(ans))[[1L]] <- paste(nms[i_along], collapse = ":")
-  if (n_dim > 1L) {
-    colnames <- expand.grid(dimnames_term[-i_along])
-    colnames <- Reduce(paste_dot, colnames)
-    colnames(ans) <- colnames
-    names(dimnames(ans))[[2L]] <- paste(nms[-i_along], collapse = ":")
-  }
-  else {
-    colnames(ans) <- NULL
-    names(dimnames(ans))[[2L]] <- ""
-  }
+  ans <- matrix(ans, nrow = n_along)
   ans
 }
 
 
 ## HAS_TESTS
-#' Make Mapping Matrix for Spline Components
-#'
-#' Spline components consist of
-#' free parameters, plus a zero at the start
-#' of each subseries
-#'
-#' @param prior Object of class 'bage_prior_spline'
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_along_by_spline <- function(prior,
-                                        dimnames_term,
-                                        var_time,
-                                        var_age) {
-  along <- prior$specific$along
-  i_along <- make_i_along(along = along,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  n_along <- length(dimnames_term[[i_along]])
-  n_comp <- get_n_comp_spline(prior = prior,
-                              n_along = n_along)
-  s <- seq_len(n_comp)
-  labels_along <- paste0("comp", s)
-  dimnames_term[[i_along]] <- labels_along
-  make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
-}
-
-
-## HAS_TESTS
 #' Make 'matrix_along_by' for Free Parameters for Term
-#' with SVD Prior
+#' with Dynamic SVD Prior
 #'
-#' The svd dimension representing age or age-sex is
-#' assumed to come first. The term may or may not
-#' include a time dimension If it does, then
-#' that is the 'along' dimension; if it does not, then the
-#' svd dimension is treated as the along dimension
-#' (for the purposes of standardization, not for
-#' calculating the log-posterior.)
-#'
+#' Helper function for 'make_matrix_along_by_effectfree_innermost'
+#' 
 #' @param prior Object of class 'bage_mod'
 #' @param dimnames_term Dimnames for array
 #' representing term
 #' @param var_time Name of time dimension, or NULL
 #' @param var_age Name of age dimension, or NULL
 #' @param var_sexgender Name of sex/gender dimension, or NULL
-#' @param drop_first_along Whether to omit the first
-#' element of the 'along' dimension.
+#' @param dim Dimension of term, once arguments
+#' such as 'zero_sum' and 'append_zero' have been applied.
 #'
 #' @returns A matrix
 #'
 #' @noRd
-make_matrix_along_by_svd <- function(prior,
-                                     dimnames_term,
-                                     var_time,
-                                     var_age,
-                                     var_sexgender,
-                                     drop_first_along) {
+make_matrix_along_by_svddynamic <- function(prior,
+                                            dimnames_term,
+                                            var_time,
+                                            var_age,
+                                            var_sexgender,
+                                            dim) {
   labels_svd <- get_labels_svd(prior = prior,
                                dimnames_term = dimnames_term,
                                var_sexgender = var_sexgender)
-  non_agesex <- setdiff(names(dimnames_term), c(var_age, var_sexgender))
-  dimnames_nonagesex <- dimnames_term[non_agesex]
-  nms_nonagesex <- names(dimnames_nonagesex)
-  dimnames_new <- c(list(.svd = labels_svd), dimnames_nonagesex)
-  i_along <- 1L
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  i_age <- match(var_age, nm_split)
+  i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+  i_agesex <- c(i_age, i_sexgender)
+  dim <- c(length(labels_svd), dim[-i_agesex])
   has_var_time <- !is.null(var_time)
+  i_along <- 1L
   if (has_var_time) {
-    i_time <- match(var_time, nms_nonagesex, nomatch = 0L)
-    i_along <- i_along + i_time
-    if (drop_first_along)
-      dimnames_new[[i_along]] <- dimnames_new[[i_along]][-1L]
+    offset_time <- match(var_time, nm_split[-i_agesex], nomatch = 0L)
+    i_along <- i_along + offset_time
   }
   make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_new)
+                             dim = dim)
 }
 
 
