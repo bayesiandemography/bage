@@ -982,8 +982,8 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw - age x time", {
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
   vals_hyperrand <- list()
-  matrix_along_by_free <- matrix(0:24, nr = 5)
-  levels_svd <- paste(paste0("comp", 1:3), rep(2001:2004, each = 3), sep = ".")
+  matrix_along_by_free <- matrix(0:29, nr = 5)
+  levels_svd <- paste(paste0("comp", 1:3), rep(2000:2004, each = 3), sep = ".")
   vals_spline <- NULL
   vals_svd <- draw_vals_svd(prior = prior,
                             vals_hyper = vals_hyper,
@@ -1020,7 +1020,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw2 - age and sex", {
   vals_hyperrand <- list()
   levels_svd <- paste(rep(c("F", "M"), each = 3),
                              paste0("comp", 1:3),
-                             rep(2001:2004, each = 6),
+                             rep(2000:2004, each = 6),
                              sep = ".")
   vals_spline <- NULL
   vals_svd <- draw_vals_svd(prior = prior,
@@ -1552,7 +1552,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw'", {
   var_age <- "age"
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
-                             rep(2002:2005, each = 3),
+                             rep(2001:2005, each = 3),
                              sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
@@ -1564,7 +1564,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw'", {
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- t(matrix(0:11, nr = 3))
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
   ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
                                sd_init = 0,
                                matrix_along_by = matrix_along_by_free,
@@ -1586,7 +1586,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is FALSE", 
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
                       rep(1:3, each = 3),
-                      rep(2002:2005, each = 9),
+                      rep(2001:2005, each = 9),
                              sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
@@ -1598,7 +1598,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is FALSE", 
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:35, c(3, 3, 4)), c(3, 1, 2)), nr = 4)
+  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
                                sd_init = 0,
                                matrix_along_by = matrix_along_by_free,
@@ -1620,7 +1620,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is TRUE", {
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
                       rep(c("reg1", "reg2"), each = 3),
-                      rep(2002:2005, each = 6),
+                      rep(2001:2005, each = 6),
                              sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
@@ -1632,7 +1632,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is TRUE", {
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:23, c(3, 2, 4)), c(3, 1, 2)), nr = 4)
+  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
                                sd_init = 0,
                                matrix_along_by = matrix_along_by_free,
@@ -1652,7 +1652,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
   var_age <- "age"
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
-                             rep(2002:2005, each = 3),
+                             rep(2001:2005, each = 3),
                              sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
@@ -1664,7 +1664,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- t(matrix(0:11, nr = 3))
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
                                 sd_init = 0,
                                 sd_slope = prior$specific$sd_slope,
@@ -1687,7 +1687,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is FALSE",
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
                       rep(1:3, each = 3),
-                      rep(2002:2005, each = 9),
+                      rep(2001:2005, each = 9),
                       sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
@@ -1699,7 +1699,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is FALSE",
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:35, c(3, 3, 4)), c(3, 1, 2)), nr = 4)
+  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
                                 sd_init = 0,
                                 sd_slope = prior$specific$sd_slope,
@@ -1722,7 +1722,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is TRUE", 
   var_sexgender <- "sex"
   levels_svd <- paste(paste0("comp", 1:3),
                       rep(c("reg1", "reg2"), each = 3),
-                      rep(2002:2005, each = 6),
+                      rep(2001:2005, each = 6),
                       sep = ".")
   set.seed(0)
   ans_obtained <- draw_vals_svd(prior = prior,
@@ -1734,7 +1734,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is TRUE", 
                                 levels_svd = levels_svd,
                                 n_sim = n_sim)
   set.seed(0)
-  matrix_along_by_free <- matrix(aperm(array(0:23, c(3, 2, 4)), c(3, 1, 2)), nr = 4)
+  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
   ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
                                 sd_init = 0,
                                 sd_slope = prior$specific$sd_slope,
@@ -2976,7 +2976,6 @@ test_that("'generate' works with bage_prior_ar", {
   sd <- draw_vals_sd(x, n_sim = n_draw)
   coef <- draw_vals_coef(x, n_sim = n_draw)
   ans_expected <- draw_vals_ar_inner(n = n, coef = coef, sd = sd)
-  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
                          value = as.double(ans_expected))
@@ -2990,7 +2989,7 @@ test_that("'generate' works with bage_prior_known", {
   n_draw <- 25
   ans_obtained <- generate(x, n = n, n_draw = n_draw)
   set.seed(0)
-  ans_expected <- rep(c(-2, -1, 0, 1, 2), times = 25)
+  ans_expected <- rep(1:5, times = 25)
   ans_expected <- tibble(x = rep(seq_len(5), times = n_draw),
                          draw = rep(seq_len(n_draw), each = 5),
                          value = as.double(ans_expected))
@@ -3009,7 +3008,6 @@ test_that("'generate' works with bage_prior_norm", {
   sd <- draw_vals_sd(x, n_sim = n_draw)
   ans_expected <- matrix(rnorm(n * n_draw, sd = rep(sd, each = n)),
                          nrow = n)
-  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
                          value = as.double(ans_expected))
@@ -3025,7 +3023,6 @@ test_that("'generate' works with bage_prior_normfixed", {
   set.seed(0)
   ans_expected <- matrix(rnorm(n * n_draw, sd = 0.3),
                          nrow = n)
-  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
                          value = as.double(ans_expected))
@@ -3044,7 +3041,6 @@ test_that("'generate' works with bage_prior_rw", {
                                sd_init = 0,
                                matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                levels_effect = seq_len(n))
-  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
                          value = as.double(ans_expected))
@@ -3061,13 +3057,12 @@ test_that("'generate' works with bage_prior_rwseasfix", {
   sd <- draw_vals_sd(x, n_sim = n_draw)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   alpha <- draw_vals_rw(sd = sd,
-                        sd_init = 1,
+                        sd_init = 0.2,
                         matrix_along_by = matrix_along_by,
                         levels_effect = seq_len(n))
   seas <- draw_vals_seasfix(n_seas = 3, sd_init = 0.2, matrix_along_by = matrix_along_by,
                             n_sim = n_draw)
   ans_expected <- alpha + seas
-  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
                          value = as.double(ans_expected))
@@ -3088,7 +3083,6 @@ test_that("'generate' works with bage_prior_rw2", {
                                 sd_slope = sd_slope,
                                 matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                 levels_effect = seq_len(n))
-  ans_expected <- apply(ans_expected, 2, function(x) x - mean(x))
   ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
                          draw = rep(seq_len(n_draw), each = n),
                          value = as.double(ans_expected))

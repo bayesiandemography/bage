@@ -12,8 +12,7 @@ test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
                   data = data,
                   exposure = 1)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                          data = mod$data,
@@ -48,8 +47,7 @@ test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
                   data = data,
                   exposure = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                          data = mod$data,
@@ -81,8 +79,7 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, data complete", {
                    data = data,
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
   vals_expected <- invlogit(make_linpred_comp(components = vals_components,
@@ -116,8 +113,7 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, has offset has na", 
                    data = data,
                    size = popn)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
   vals_expected <- invlogit(make_linpred_comp(components = vals_components,
@@ -153,8 +149,7 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
                   data = data,
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
   vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
@@ -188,8 +183,7 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
                   data = data,
                   weights = wt)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
   scale_outcome <- get_fun_scale_outcome(mod)
@@ -220,8 +214,7 @@ test_that("'draw_vals_outcome_true' method for NULL throws correct error with in
                   data = data,
                   exposure = 1)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                          data = mod$data,

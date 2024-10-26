@@ -156,7 +156,7 @@ test_that("'draw_vals_coef' works with n = 10", {
 
 ## 'draw_vals_components_unfitted' --------------------------------------------
 
-test_that("'draw_vals_components_unfitted' works, standardize = 'terms'", {
+test_that("'draw_vals_components_unfitted' works", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -168,27 +168,11 @@ test_that("'draw_vals_components_unfitted' works, standardize = 'terms'", {
   mod <- set_prior(mod, age ~ Sp())
   mod <- set_prior(mod, age:time ~ Sp())
   n_sim <- 2
-  ans <- draw_vals_components_unfitted(mod = mod,
-                                       n_sim = n_sim,
-                                       standardize = "terms")
+  ans <- draw_vals_components_unfitted(mod = mod, n_sim = n_sim)
   ans_est <- components(fit(mod))
   comb <- merge(ans, ans_est, by = c("component", "term", "level"), all.x = TRUE,
                 all.y = TRUE)
   expect_true(identical(nrow(comb), nrow(ans)))
-})
-
-test_that("'draw_vals_components_unfitted' gives correct error with invalid standardize", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * time + sex
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  expect_error(draw_vals_components_unfitted(mod = mod, n_sim = 5,
-                                             standardize = "wrong"),
-               "Internal error: Invalid value for `standardize`.")
 })
 
 

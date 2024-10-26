@@ -381,8 +381,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
                   exposure = 1)
   mod <- set_n_draw(mod, 10)
   ans_obtained <- draw_vals_augment_unfitted(mod)
-  vals_components <- draw_vals_components_unfitted(mod, n_sim = 10,
-                                                   standardize = "anova")
+  vals_components <- draw_vals_components_unfitted(mod, n_sim = 10)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                          data = mod$data,
@@ -420,8 +419,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
   mod <- set_n_draw(mod, 10)
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   vals_fitted <- exp(make_linpred_comp(components = vals_components,
                                        data = mod$data,
                                        dimnames_term = mod$dimnames_terms))
@@ -454,8 +452,7 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   set.seed(1)
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "none")
+                                                   n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
   scale_outcome <- get_fun_scale_outcome(mod)
@@ -491,8 +488,7 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
                   exposure = popn)
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "none")
+                                                   n_sim = n_sim)
   vals_expected <- exp(make_linpred_comp(components = vals_components,
                                            data = mod$data,
                                            dimnames_term = mod$dimnames_terms))
@@ -519,8 +515,7 @@ test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
                    size = popn)
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_sim,
-                                                   standardize = "anova")
+                                                   n_sim = n_sim)
   invlogit <- function(x) exp(x) / (1 + exp(x))
   vals_expected <- invlogit(make_linpred_comp(components = vals_components,
                                               data = mod$data,
@@ -1011,24 +1006,6 @@ test_that("'forecast' works with fitted model - output is 'components'", {
                       output = "comp",
                       include_estimates = TRUE)
   expect_identical(names(ans_est), names(ans_no_est))
-  ans_unstand_est <- forecast(mod,
-                              labels = 2005:2006,
-                              output = "comp",
-                              standardize = "none",
-                              include_estimates = TRUE)
-  expect_identical(names(ans_est), names(ans_unstand_est))
-  ans_unstand_no_est <- forecast(mod,
-                                 labels = 2005:2006,
-                                 output = "comp",
-                                 standardize = "none",
-                                 include_estimates = FALSE)
-  expect_identical(names(ans_no_est), names(ans_unstand_no_est))
-  ans_anova <- forecast(mod,
-                        labels = 2005:2006,
-                        output = "comp",
-                        standardize = "anova",
-                        include_estimates = TRUE)
-  expect_identical(names(ans_anova), names(ans_unstand_est))
 })
 
 test_that("'forecast' gives same answer when run twice - output is 'components'", {
