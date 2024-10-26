@@ -1045,7 +1045,7 @@ test_that("'make_levels_spline' works - unlist is TRUE", {
 
 ## 'make_levels_spline_term' --------------------------------------------------
 
-test_that("'make_levels_spline_term' works", {
+test_that("'make_levels_spline_term' works - zero_sum is FALSE", {
   prior <- Sp(n = 5)
   dimnames_term <- list(reg = 1:2,
                         age = 1:20)
@@ -1054,6 +1054,34 @@ test_that("'make_levels_spline_term' works", {
                                           var_time = "time",
                                           var_age = "age")
   ans_expected <- paste(1:2, rep(paste0("comp", 1:5), each = 2), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_spline_term' works - zero_sum is TRUE", {
+  prior <- Sp(n = 5, zero_sum = TRUE)
+  dimnames_term <- list(reg = 1:2,
+                        age = 1:20)
+  ans_obtained <- make_levels_spline_term(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = "time",
+                                          var_age = "age")
+  ans_expected <- paste("reg1", paste0("comp", 1:5), sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_spline_term' works - zero_sum is TRUE, more dimensions", {
+  prior <- Sp(n = 5, zero_sum = TRUE)
+  dimnames_term <- list(reg = 1:4,
+                        age = 1:20,
+                        sex = c("f", "m"))
+  ans_obtained <- make_levels_spline_term(prior = prior,
+                                          dimnames_term = dimnames_term,
+                                          var_time = "time",
+                                          var_age = "age")
+  ans_expected <- paste(paste0("reg", 1:3),
+                        rep(paste0("comp", 1:5), each = 3),
+                        rep("sex1", times = 15),
+                        sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1152,6 +1180,41 @@ test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
                         sep = ".")
   expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'make_levels_svd_term' works - indep, age:sex:time, zero_sum is FALSE", {
+  prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5)
+  dimnames_term <- list(time = 2001:2010, age = c(0:59, "60+"), sex = c("M", "F"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  ans_expected <- paste(paste0("comp", 1:5),
+                        rep(2001:2010, each = 5),
+                        sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_levels_svd_term' works - indep, age:time:reg, zero_sum is TRUE", {
+  prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5, zero_sum = TRUE)
+  dimnames_term <- list(time = 2001:2010, age = c(0:59, "60+"), reg = c("a", "b", "c"))
+  var_age <- "age"
+  var_sexgender <- "sex"
+  var_time <- "time"
+  ans_obtained <- make_levels_svd_term(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  ans_expected <- paste(paste0("comp", 1:5),
+                        rep(2001:2010, each = 5),
+                        rep(c("reg1", "reg2"), each = 50),
+                        sep = ".")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 
 
 ## 'make_lin_trend' -----------------------------------------------------------
@@ -1601,7 +1664,7 @@ test_that("'make_standardized_effect' works - ordinary term", {
 
 ## 'make_svd' -----------------------------------------------------------------
 
-test_that("'make_svd' works", {
+test_that("'make_svd' works - SVD_RW", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
@@ -1623,6 +1686,27 @@ test_that("'make_svd' works", {
                         effectfree[32:56,])
   expect_equal(unname(ans_obtained), ans_expected)
 })
+
+test_that("'make_svd' works - SVD_AR", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 20)
+  formula <- deaths ~ age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:time ~ SVD_AR1(HMD, n_comp = 1))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  effectfree <- mod$draws_effectfree
+  ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
+  ans_expected <- effectfree[20:25,]
+  expect_equal(unname(ans_obtained), ans_expected)
+})
+
 
 
 ## 'make_term_components' -----------------------------------------------------
@@ -1755,6 +1839,17 @@ test_that("'make_term_svd' works - has svd", {
   ans_obtained <- make_term_svd(mod)
   ans_expected <- factor(c(rep("age", times = 3),
                            rep("age:time", times = 3 * 6)))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_unconstr_dimnames_by' ------------------------------------------------
+
+test_that("'make_unconstr_dimnames_by' works", {
+  dimnames_term <- list(age = 1:5, time = 1:6, reg = 1:3)
+  ans_obtained <- make_unconstr_dimnames_by(i_along = 2L,
+                                            dimnames_term = dimnames_term)
+  ans_expected <- list(age = paste0("age", 1:4), reg = paste0("reg", 1:2))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -2162,3 +2257,24 @@ test_that("'transform_hyper_ar' works with 'bage_prior_svd_ar - AR'", {
   expect_equal(l[[3]](0.35), exp(0.35))
 })
 
+
+## 'zero_sum_fitted' ----------------------------------------------------------
+
+test_that("'zero_sum' works", {
+  set.seed(0)
+  fitted <- rvec::rnorm_rvec(n = 100, n_draw = 10)
+  along <- "time"
+  dimnames_term <- list(time = 2001:2010,
+                        age = 0:4,
+                        sex = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- zero_sum_fitted(fitted = fitted,
+                         along = "time",
+                         dimnames_term = dimnames_term,
+                         var_time = var_time,
+                         var_age = var_age)
+  expect_equal(sum(ans[c(3, 13, 23, 33, 43)]),
+               sum(ans[c(4, 14, 24, 34, 44)]))
+  expect_equal(ans[10], -ans[60])
+})

@@ -171,51 +171,10 @@ generics::components
 #' model priors, and by any `exposure`, `size`, or `weights`
 #' argument in the model, but not by the observed outcomes.
 #'
-#' @section Standardizing estimates:
-#'
-#' Often the sum of the intercept, main effect,
-#' and interaction terms is well-identified by the data, but
-#' the values for individual terms is not. This indeterminancy
-#' does not affect the ultimate estimation of rates,
-#' probabilities, and means, but does complicate the
-#' interpretation of the higher-level terms.
-#'
-#' One way of dealing with poorly-
-#' identified terms is to post-process the estimates,
-#' imposing some sort of standardization. There are
-#' three options, specified through the `standardize`
-#' argument:
-#'
-#' - `"terms"` Each main effect or interaction,
-#'   and any component terms such as trend or
-#'   seasonal effects, are independently scaled
-#'   so that they sum to 0. 
-#' - `"anova"` An ANOVA-style decomposition is
-#'   carried out so that all variation associated
-#'   with age is attributed to the age term,
-#'   all variation associated with the interaction
-#'   between age and sex is attributed to the
-#'   age-sex term, and so on. Components terms
-#'   such as trend and seasonal effects are left untouched.
-#' - `"none"` No standardization is done.
-#'
-#' `"terms"` standardization is helpful for understanding
-#' model dynamics. `"anova"` standardization is helpful
-#' for understanding the contribution of each variable
-#' to overall patterns.
-#' 
-#' For a description of the standardization
-#' algorithms used by **bage**,
-#' see `vignette("vig2_math")`.
-#'
 #' @inheritParams augment.bage_mod
 #' @param object Object of class `"bage_mod"`,
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param standardize Standardization method:
-#' one of `"terms"`, `"anova"`, or "none".
-#' The default is `"terms"`.
-#' See below for details.
 #'
 #' @returns
 #' A [tibble][tibble::tibble-package]
@@ -261,23 +220,18 @@ generics::components
 #'   components()
 #' @export
 components.bage_mod <- function(object,
-                                standardize = c("terms", "anova", "none"),
                                 quiet = FALSE,
                                 ...) {
-  standardize <- match.arg(standardize)
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
   check_has_no_dots(...)
   if (is_fitted)
-    ans <- draw_vals_components_fitted(mod = object,
-                                       standardize = standardize)
+    ans <- draw_vals_components_fitted(object)
   else {
     if (!quiet)
       cli::cli_alert_info("Model not fitted, so values drawn straight from prior distribution.")
     n_draw <- object$n_draw
-    ans <- draw_vals_components_unfitted(mod = object,
-                                         n_sim = n_draw,
-                                         standardize = standardize)
+    ans <- draw_vals_components_unfitted(mod = object, n_sim = n_draw)
   }
   ans <- sort_components(components = ans, mod = object)
   ans
@@ -410,8 +364,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   offset <- mod$offset
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_draw,
-                                                   standardize = "none")
+                                                   n_sim = n_draw)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   nm_outcome <- get_nm_outcome(mod)
@@ -470,8 +423,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   offset <- mod$offset
   nm_distn <- nm_distn(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
-                                                   n_sim = n_draw,
-                                                   standardize = "none")
+                                                   n_sim = n_draw)
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome <- get_nm_outcome(mod)
   vals_linpred <- make_linpred_comp(components = vals_components,
@@ -686,15 +638,6 @@ generics::forecast
 #' Setting `include_estimates` to `TRUE` can be helpful
 #' when creating graphs that combine estimates and forecasts.
 #'
-#' @section Standardization:
-#'
-#' The standardization used by `forecast()`
-#' is equivalent to the standardization
-#' applied by [components()][components.bage_mod()],
-#' except that values for forecasted terms are 
-#' are shifted so that they
-#' line up with the values for estimates.
-#'
 #' @section Fitted and unfitted models:
 #'
 #' `forecast()` is typically used with a
@@ -722,10 +665,6 @@ generics::forecast
 #' @param include_estimates Whether to
 #' include historical estimates along
 #' with the forecasts. Default is `FALSE`.
-#' @param standardize Standardization method:
-#' one of `"terms"`, `"anova"`, or "none".
-#' The default is `"terms"`.
-#' See below for details.
 #' @param labels Labels for future values.
 #' @param ... Not currently used.
 #'
@@ -782,7 +721,6 @@ forecast.bage_mod <- function(object,
                               newdata = NULL,
                               output = c("augment", "components"),
                               include_estimates = FALSE,
-                              standardize = c("terms", "anova", "none"),
                               labels = NULL,
                               ...) {
   data_est <- object$data
@@ -793,13 +731,12 @@ forecast.bage_mod <- function(object,
   var_sexgender <- object$var_sexgender
   output <- match.arg(output)
   check_flag(x = include_estimates, nm_x = "include_estimates")
-  standardize <- match.arg(standardize)
   var_time <- object$var_time
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
-  comp_est_unst <- components(object, standardize = "none")
+  comp_est <- components(object)
   has_newdata <- !is.null(newdata)
   has_labels <- !is.null(labels)
   if (has_newdata && has_labels)
@@ -817,8 +754,8 @@ forecast.bage_mod <- function(object,
   seed_forecast_components <- object$seed_forecast_components
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
-  comp_forecast_unst <- forecast_components(mod = object,
-                                            components_est = comp_est_unst,
+  comp_forecast <- forecast_components(mod = object,
+                                            components_est = comp_est,
                                             labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   dn_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
@@ -826,8 +763,8 @@ forecast.bage_mod <- function(object,
                                                     labels_forecast = labels,
                                                     time_only = FALSE)
   if (output == "augment") {
-    comp_comb_unst <- vctrs::vec_rbind(comp_est_unst, comp_forecast_unst)
-    linpred_forecast <- make_linpred_comp(components = comp_comb_unst,
+    comp_comb <- vctrs::vec_rbind(comp_est, comp_forecast)
+    linpred_forecast <- make_linpred_comp(components = comp_comb,
                                           data = data_forecast,
                                           dimnames_terms = dn_terms_forecast)
     seed_forecast_augment <- object$seed_forecast_augment
@@ -847,60 +784,11 @@ forecast.bage_mod <- function(object,
                                                            var_time = var_time,
                                                            labels_forecast = labels,
                                                            time_only = TRUE)
-    ans <- infer_trend_cyc_seas_err_forecast(components = comp_forecast_unst,
+    ans <- infer_trend_cyc_seas_err_forecast(components = comp_forecast,
                                              priors = priors,
                                              dimnames_terms = dn_terms_forecast_time,
                                              var_time = var_time,
                                              var_age = var_age)
-    if (standardize == "terms") {
-      comp_est <- center_all(components = comp_est_unst,
-                             priors = priors,
-                             dimnames_terms = dn_terms_est,
-                             var_time = var_time,
-                             var_age = var_age,
-                             var_sexgender = var_sexgender,
-                             center_along = TRUE)
-      ans <- align_forecast(mod = object,
-                            comp_forecast = ans,
-                            comp_est_st = comp_est,
-                            comp_est_unst = comp_est_unst,
-                            labels_forecast = labels)
-      ans <- center_all(components = ans,
-                        priors = priors,
-                        dimnames_terms = dn_terms_forecast,
-                        var_time = var_time,
-                        var_age = var_age,
-                        var_sexgender = var_sexgender,
-                        center_along = FALSE)
-    }
-    else if (standardize == "anova") {
-      linpred_est <- make_linpred_raw(mod = object, point = FALSE)
-      comp_est <- standardize_anova(components = comp_est_unst,
-                                    data = data_est,
-                                    linpred = linpred_est,
-                                    dimnames_terms = dn_terms_est)
-      ans <- align_forecast(mod = object,
-                            comp_forecast = ans,
-                            comp_est_st = comp_est,
-                            comp_est_unst = comp_est_unst,
-                            labels_forecast = labels)
-      dn_terms_forecast_time <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
-                                                             var_time = var_time,
-                                                             labels_forecast = labels,
-                                                             time_only = TRUE)
-      linpred_forecast_time <- make_linpred_comp(components = ans,
-                                                 data = data_forecast,
-                                                 dimnames_terms = dn_terms_forecast_time)
-      ans <- standardize_anova(components = ans,
-                               data = data_forecast,
-                               linpred = linpred_forecast_time,
-                               dimnames_terms = dn_terms_forecast_time)
-    }
-    else if (standardize == "none") {
-      comp_est <- comp_est_unst
-    }
-    else
-      cli::cli_abort("Internal error: Invalid value for {.arg standardize}.")  ## nocov
     if (include_estimates) {
       ans <- vctrs::vec_rbind(comp_est, ans)
       ans <- sort_components(components = ans, mod = object)

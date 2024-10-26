@@ -184,7 +184,7 @@ test_that("'eval_offset_formula' works with valid inputs - ifelse", {
 })
 
 
-
+## 'get_matrix_offset_svd_prior' ----------------------------------------------
 
 
 test_that("'get_matrix_or_offset_svd_prior' works with age main effect, type is total, matrix", {
@@ -192,7 +192,6 @@ test_that("'get_matrix_or_offset_svd_prior' works with age main effect, type is 
   prior <- SVD(ssvd, n_comp = 3)
   ans_obtained <- get_matrix_or_offset_svd_prior(prior = prior,
                                                  dimnames_term = list(age = c("0-4", "5-9")),
-                                                 var_time = "time",
                                                  var_age = "age",
                                                  var_sexgender = "sex",
                                                  get_matrix = TRUE)
@@ -206,7 +205,6 @@ test_that("'get_matrix_or_offset_svd_prior' works with age main effect, type is 
   prior <- SVD(ssvd, n_comp = 3)
   ans_obtained <- get_matrix_or_offset_svd_prior(prior = prior,
                                                  dimnames_term = list(age = c("0-4", "5-9")),
-                                                 var_time = "time",
                                                  var_age = "age",
                                                  var_sexgender = "sex",
                                                  get_matrix = FALSE)
@@ -221,7 +219,6 @@ test_that("'get_matrix_or_offset_svd_prior' works with sex-age interaction, type
                         sex = c("Male", "Female"))
   ans_obtained <- get_matrix_or_offset_svd_prior(prior = prior,
                                                  dimnames_term = dimnames_term,
-                                                 var_time = "time",
                                                  var_age = "age",
                                                  var_sexgender = "sex",
                                                  get_matrix = FALSE)
@@ -236,7 +233,6 @@ test_that("'get_matrix_or_offset_svd_prior' works with age-sex interaction, type
                         age = c("0-4", "5-9"))
   ans_obtained <- get_matrix_or_offset_svd_prior(prior,
                                                  dimnames_term = dimnames_term,
-                                                 var_time = "time",
                                                  var_age = "age",
                                                  var_sexgender = "sex",
                                                  get_matrix = TRUE)
