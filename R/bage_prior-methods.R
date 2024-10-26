@@ -561,16 +561,20 @@ draw_vals_effect.bage_prior_svd_rw <- function(prior,
                                                var_age,
                                                var_sexgender,
                                                n_sim) {
-  matrix <- make_matrix_effectfree_effect(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
-  offset <- make_offset_effectfree_effect(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
+  zero_sum <- prior$specific$zero_sum
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                zero_sum = zero_sum)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender,
+                                              append_zero = FALSE)
   ans <- matrix %*% vals_svd + offset
   ans <- Matrix::as.matrix(ans)
   rownames(ans) <- dimnames_to_levels(dimnames_term)
@@ -589,16 +593,20 @@ draw_vals_effect.bage_prior_svd_rw2 <- function(prior,
                                                 var_age,
                                                 var_sexgender,
                                                 n_sim) {
-  matrix <- make_matrix_effectfree_effect(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
-  offset <- make_offset_effectfree_effect(prior = prior,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
+  zero_sum <- prior$specific$zero_sum
+  matrix <- make_matrix_effectfree_effect_inner(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender,
+                                                append_zero = FALSE,
+                                                zero_sum = zero_sum)
+  offset <- make_offset_effectfree_effect_svd(prior = prior,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender,
+                                              append_zero = FALSE)
   ans <- matrix %*% vals_svd + offset
   ans <- Matrix::as.matrix(ans)
   rownames(ans) <- dimnames_to_levels(dimnames_term)
@@ -1088,11 +1096,12 @@ draw_vals_svd.bage_prior_svd_rw <- function(prior,
                                             levels_svd,
                                             n_sim) {
   sd <- vals_hyper$sd
-  matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                     dimnames_term = dimnames_term,
-                                                     var_time = var_time,
-                                                     var_age = var_age,
-                                                     var_sexgender = var_sexgender)
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
   draw_vals_rw(sd = sd,
                sd_init = 0,
                matrix_along_by = matrix_along_by,
@@ -1111,11 +1120,12 @@ draw_vals_svd.bage_prior_svd_rw2 <- function(prior,
                                              n_sim) {
   sd <- vals_hyper$sd
   sd_slope <- prior$specific$sd_slope
-  matrix_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                     dimnames_term = dimnames_term,
-                                                     var_time = var_time,
-                                                     var_age = var_age,
-                                                     var_sexgender = var_sexgender)
+  matrix_along_by <- make_matrix_along_by_effectfree_inner(prior = prior,
+                                                           dimnames_term = dimnames_term,
+                                                           var_time = var_time,
+                                                           var_age = var_age,
+                                                           var_sexgender = var_sexgender,
+                                                           append_zero = FALSE)
   draw_vals_rw2(sd = sd,
                 sd_init = 0,
                 sd_slope = sd_slope,
@@ -2012,7 +2022,6 @@ generate.bage_prior_rwseasfix <- function(x,
 generate.bage_prior_rw2 <- function(x,
                                     n = 20,
                                     n_draw = 25,
-                                    standardize = c("terms", "none"),
                                     ...) {
   check_has_no_dots(...)
   l <- generate_prior_helper(n = n, n_draw = n_draw)

@@ -1,329 +1,4 @@
 
-## 'center_all' ---------------------------------------------------------------
-
-test_that("'center_all' works - along = TRUE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_all(components = components,
-                    priors = mod$priors,
-                    dimnames_terms = mod$dimnames_terms,
-                    var_time = mod$var_time,
-                    var_age = mod$var_age,
-                    var_sexgender = mod$var_sexgender,
-                    center_along = TRUE)
-  i <- ans$term == "(Intercept)" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "time" & ans$component == "seasonal"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "cyclical"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-})
-
-
-## 'center_effects' -----------------------------------------------------------
-
-test_that("'center_effects' works - center_along is TRUE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_effects(components = components,
-                        priors = mod$priors,
-                        dimnames_terms = mod$dimnames_terms,
-                        var_time = mod$var_time,
-                        var_age = mod$var_age,
-                        center_along = TRUE)
-  i <- ans$term == "(Intercept)" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-})
-
-test_that("'center_effects' works - center_along is FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age ~ SVD(HMD))
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_effects(components = components,
-                        priors = mod$priors,
-                        dimnames_terms = mod$dimnames_terms,
-                        var_time = mod$var_time,
-                        var_age = mod$var_age,
-                        center_along = FALSE)
-  i <- ans$term == "(Intercept)" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "age" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "effect"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "effect" & startsWith(ans$level, "M")
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-})
-
-
-## 'center_svd_spline' --------------------------------------------------------
-
-test_that("'center_svd_spline' works - center_along is TRUE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVD(HMD))
-  mod <- set_prior(mod, age ~ Sp(n = 5))
-  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_svd_spline(components = components,
-                           priors = mod$priors,
-                           dimnames_terms = mod$dimnames_terms,
-                           var_time = mod$var_time,
-                           var_age = mod$var_age,
-                           var_sexgender = mod$var_sexgender,
-                           center_along = TRUE)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"]))
-              < 0.000001)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"]))
-              < 0.000001)
-  expect_true(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"]))
-              < 0.000001)
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd" & startsWith(ans$level, "comp1")])))
-                  < 0.000001))
-})
-
-test_that("'center_svd_spline' works - center_along is FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age:sex ~ SVD(HMD))
-  mod <- set_prior(mod, age ~ Sp(n = 5))
-  mod <- set_prior(mod, age:time ~ SVD_RW(HMD))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_svd_spline(components = components,
-                           priors = mod$priors,
-                           dimnames_terms = mod$dimnames_terms,
-                           var_time = mod$var_time,
-                           var_age = mod$var_age,
-                           var_sexgender = mod$var_sexgender,
-                           center_along = FALSE)
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:sex" & ans$component == "svd"])))
-              > 0.000001)
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age" & ans$component == "spline"])))
-              > 0.000001)
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"])))
-              < 0.000001)
-  expect_true(abs(rvec::draws_mean(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd"])))
-              < 0.000001)
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[ans$term == "age:time" & ans$component == "svd" & startsWith(ans$level, "comp1")])))
-                  > 0.000001))
-})
-
-
-## 'center_trend_cyc_seas_err' ------------------------------------------------
-
-test_that("'center_trend_cyc_seas_err' works - along = TRUE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_trend_cyc_seas_err(components = components,
-                                   priors = mod$priors,
-                                   dimnames_terms = mod$dimnames_terms,
-                                   var_time = mod$var_time,
-                                   var_age = mod$var_age,
-                                   center_along = TRUE)
-  i <- ans$term == "time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "time" & ans$component == "seasonal"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "cyclical"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-})
-
-test_that("'center_trend_cyc_seas_err' works - along = FALSE", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  ans <- center_trend_cyc_seas_err(components = components,
-                                   priors = mod$priors,
-                                   dimnames_terms = mod$dimnames_terms,
-                                   var_time = mod$var_time,
-                                   var_age = mod$var_age,
-                                   center_along = FALSE)
-  i <- ans$term == "time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "time" & ans$component == "seasonal"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) > 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "trend"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-  i <- ans$term == "sex:time" & ans$component == "cyclical"
-  expect_true(all(abs(as.numeric(mean(ans$.fitted[i]))) < 0.000001))
-})
-
-test_that("'center_trend_cyc_seas_err' throws appropriate error when prior does not have along", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2010,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, sex:time ~ Lin_AR())
-  mod <- set_prior(mod, time ~ RW_Seas(n = 2))
-  mod <- set_n_draw(mod, n = 5)
-  mod <- fit(mod)
-  components <- components(mod, standardize = "none")
-  mod$priors$time <- N()
-  expect_error(center_trend_cyc_seas_err(components = components,
-                                         priors = mod$priors,
-                                         dimnames_terms = mod$dimnames_terms,
-                                         var_time = mod$var_time,
-                                         var_age = mod$var_age,
-                                         center_along = FALSE),
-               "Internal error: Prior for term \"time\" does not use along.")               
-})
-
-
-## 'center_within_along_by' --------------------------------------------------
-
-test_that("'center_within_along_by' works with numeric vector - center_along = TRUE", {
-  x <- matrix(rnorm(12), nr = 4)
-  matrix_along_by <- t(matrix(0:11, nrow = 4))
-  ans_obtained <- center_within_along_by(as.numeric(x), matrix_along_by, center_along = TRUE)
-  ans_expected <- x - rowMeans(x)
-  ans_expected <- ans_expected - rep(colMeans(ans_expected), each = 4)
-  ans_expected <- as.numeric(ans_expected)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'center_within_along_by' works with numeric vector - center_along = FALSE", {
-  x <- matrix(rnorm(12), nr = 4)
-  matrix_along_by <- t(matrix(0:11, nrow = 4))
-  ans_obtained <- center_within_along_by(as.numeric(x), matrix_along_by, center_along = FALSE)
-  ans_expected <- x - rep(colMeans(x), each = 4)
-  ans_expected <- as.numeric(ans_expected)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'center_within_along_by' works with rvec - center_along = TRUE", {
-  x <- rvec::rvec(matrix(rnorm(120), nr = 12))
-  matrix_along_by <- matrix(0:11, nrow = 4)
-  ans_obtained <- center_within_along_by(x, matrix_along_by, center_along = TRUE)
-  ans_expected <- c(x[1:4] - mean(x[1:4]),
-                    x[5:8] - mean(x[5:8]),
-                    x[9:12] - mean(x[9:12]))
-  ans_expected <- c(ans_expected[c(1, 5, 9)] - mean(ans_expected[c(1, 5, 9)]),
-                    ans_expected[c(2, 6, 10)] - mean(ans_expected[c(2, 6, 10)]),
-                    ans_expected[c(3, 7, 11)] - mean(ans_expected[c(3, 7, 11)]),
-                    ans_expected[c(4, 8, 12)] - mean(ans_expected[c(4, 8, 12)]))[c(1,4,7,10,
-                                                                                   2,5,8,11,
-                                                                                   3,6,9,12)]
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'center_within_along_by' works with rvec - center_along = FALSE", {
-  x <- rvec::rvec(matrix(rnorm(120), nr = 12))
-  matrix_along_by <- matrix(0:11, nrow = 4)
-  ans_obtained <- center_within_along_by(x, matrix_along_by, center_along = FALSE)
-  ans_expected <- c(x[c(1, 5, 9)] - mean(x[c(1, 5, 9)]),
-                    x[c(2, 6, 10)] - mean(x[c(2, 6, 10)]),
-                    x[c(3, 7, 11)] - mean(x[c(3, 7, 11)]),
-                    x[c(4, 8, 12)] - mean(x[c(4, 8, 12)]))[c(1,4,7,10,
-                                                             2,5,8,11,
-                                                             3,6,9,12)]
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
 ## 'combine_stored_draws_point_inner_outer' -----------------------------------------
 
 test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
@@ -370,7 +45,7 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
 
 ## 'draw_vals_components_fitted' ----------------------------------------------
 
-test_that("'draw_vals_components_fitted' works - standardize = 'terms'", {
+test_that("'draw_vals_components_fitted' works", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
@@ -386,70 +61,10 @@ test_that("'draw_vals_components_fitted' works - standardize = 'terms'", {
   mod <- set_prior(mod, age:sex ~ SVD(HMD))
   mod <- fit(mod)
   set.seed(0)
-  ans <- draw_vals_components_fitted(mod, standardize = "terms")
-  expect_identical(names(ans), c("term", "component", "level", ".fitted"))
-  i <- ans$term == "age:sex" & ans$component == "effect"
-  expect_equal(mean(as.numeric(sum(ans$.fitted[i]))), 0)
-})
-
-test_that("'draw_vals_components_fitted' works - standardize = 'anova'", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, n = 5)
-  mod <- set_prior(mod, age ~ Sp())
-  mod <- set_prior(mod, age:sex ~ SVD(HMD))
-  mod <- fit(mod)
-  set.seed(0)
-  ans <- draw_vals_components_fitted(mod, standardize = "anova")
-  expect_identical(names(ans), c("term", "component", "level", ".fitted"))
-  i <- ans$term == "age:sex" & ans$component == "effect"
-  expect_equal(mean(as.numeric(sum(ans$.fitted[i]))), 0)
-})
-
-test_that("'draw_vals_components_fitted' works - standardize = 'none'", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, n = 5)
-  mod <- set_prior(mod, age ~ Sp())
-  mod <- set_prior(mod, age:sex ~ SVD(HMD))
-  mod <- fit(mod)
-  set.seed(0)
-  ans <- draw_vals_components_fitted(mod, standardize = "none")
+  ans <- draw_vals_components_fitted(mod)
   expect_identical(names(ans), c("term", "component", "level", ".fitted"))
   i <- ans$term == "age:sex" & ans$component == "effect"
   expect_true(mean(abs(as.numeric(sum(ans$.fitted[i])))) > 0)
-})
-
-test_that("'draw_vals_components_fitted' gives correct error with invalid standarize", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- fit(mod)
-  expect_error(draw_vals_components_fitted(mod, standardize = "wrong"),
-               "Internal error: Invalid value for `standardize`.")
 })
 
 
@@ -726,7 +341,7 @@ test_that("'make_draws_components' works - has spline", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + 1L + 1L + 2L + length(unique(data$age)) +
+                   length(make_effectfree(mod)) + 1L + 2L + length(unique(data$age)) +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -1504,7 +1119,7 @@ test_that("'make_linpred_comp' works with valid inputs", {
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n_draw = 10L)
-  comp <- components(mod, standardize = "none", quiet = TRUE)
+  comp <- components(mod, quiet = TRUE)
   ans <- make_linpred_comp(components = comp,
                            data = mod$data,
                            dimnames_terms = mod$dimnames_terms)
@@ -1526,7 +1141,7 @@ test_that("'make_linpred_raw' works with valid inputs - point is FALSE", {
   mod <- set_n_draw(mod, n_draw = 10L)
   mod <- fit(mod)
   ans_obtained <- make_linpred_raw(mod, point = FALSE)
-  comp <- components(mod, standardize = "none", quiet = TRUE)
+  comp <- components(mod, quiet = TRUE)
   ans_expected <- make_linpred_comp(components = comp,
                                     data = mod$data,
                                     dimnames_terms = mod$dimnames_terms)
@@ -1632,32 +1247,7 @@ test_that("'make_spline' works", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_spline(mod = mod, effectfree = effectfree)
-  ans_expected <- rbind(0,
-                        effectfree[22:25,],
-                        0,
-                        effectfree[26:29,])
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
-## 'make_standardized_effect' -------------------------------------------------
-
-test_that("'make_standardized_effect' works - Intercept", {
-  linpred <- rvec::rnorm_rvec(n = 10, n_draw = 20)
-  indices_linpred <- rep(1L, 10)
-  ans_obtained <- make_standardized_effect(linpred = linpred,
-                                           indices_linpred = indices_linpred)
-  ans_expected <- mean(linpred)
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_standardized_effect' works - ordinary term", {
-  linpred <- rvec::rnorm_rvec(n = 10, n_draw = 20)
-  indices_linpred <- rep(1:2, 5)
-  ans_obtained <- make_standardized_effect(linpred = linpred,
-                                           indices_linpred = indices_linpred)
-  ans_expected <- c(mean(linpred[c(1, 3, 5, 7, 9)]),
-                    mean(linpred[c(2, 4, 6, 8, 10)]))                         
+  ans_expected <- effectfree[22:31,]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1948,7 +1538,7 @@ test_that("'infer_trend_cyc_seas_err_forecast' works", {
   mod <- set_n_draw(mod, 5)
   mod <- fit(mod)
   comp_est <- components(mod)
-  comp_forecast <- forecast(mod, labels = 2006:2007, standardize = "none", output = "components")
+  comp_forecast <- forecast(mod, labels = 2006:2007, output = "components")
   dimnames_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = mod$dimnames_terms,
                                                           var_time = mod$var_time,
                                                           labels_forecast = 2006:2007,
@@ -2202,35 +1792,6 @@ test_that("'sort_components' raises correct effor with invalid component", {
                                 "sex",          "wrong",    "sd")
   expect_error(sort_components(components, mod = list(formula = deaths ~ age)),
                "Internal error: \"wrong\" not a valid value for `component`.")
-})
-
-
-## 'standardize_anova' --------------------------------------------------------
-
-test_that("'standardize_anova' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_n_draw(mod, 5)
-  mod <- fit(mod)
-  comp <- components(mod, standardize = "none", quiet = TRUE)
-  data <- mod$data
-  dimnames_terms <- mod$dimnames_terms
-  linpred <- make_linpred_comp(components = comp,
-                               data = data,
-                               dimnames_terms = dimnames_terms)
-  ans <- standardize_anova(components = comp,
-                           data = data,
-                           linpred = linpred,
-                           dimnames_terms = dimnames_terms)
-  effect <- comp$.fitted[comp$component == "effect"]
-  m <- as.matrix(make_combined_matrix_effect_outcome(mod))
-  expect_equal(m %*% ans$.fitted[ans$component == "effect"], m %*% effect)
 })
 
 

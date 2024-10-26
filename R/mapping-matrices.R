@@ -114,40 +114,6 @@ make_i_time <- function(var_time, dimnames_term) {
 
 
 ## HAS_TESTS
-#' Convert 'matrix_agesex' or 'matrix_along_by'
-#' to Sparse Index Matrix
-#'
-#' @param m Matrix produced by
-#' 'make_matrix_agesex' or 'make_matrix_along_by'
-#'
-#' @returns A sparse matrix consisting of
-#' 1s and 0s
-#'
-#' @noRd
-make_index_matrix <- function(m) {
-  n <- length(m)
-  i <- as.integer(m) + 1L
-  j <- seq_len(n)
-  x <- rep.int(1L, times = n)
-  ans <- Matrix::sparseMatrix(i = i,
-                              j = j,
-                              x = x)
-  rn_old <- rownames(m)
-  cn_old <- colnames(m)
-  if (is.null(cn_old))
-    cn_new <- rep(rn_old, times = ncol(m))
-  else
-    cn_new <- paste(rn_old, rep(cn_old, each = length(rn_old)), sep = ".")
-  rn_new <- cn_new[match(seq_len(n), m + 1L)]
-  dimnames(ans) <- list(rn_new, cn_new)
-  ans
-}
-
-  
-    
-                          
-
-## HAS_TESTS
 #' Make Matrix Giving Mapping between Position Along Age
 #' or Age-Sex Dimension and Position in Matrix
 #'
@@ -220,34 +186,6 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
     names(dimnames(ans))[[2L]] <- paste(names(dimnames)[-i_along], collapse = ".")
   }
   ans
-}
-
-
-## HAS_TESTS
-#' Make 'matrix_along_by' for Free Parameters for Term
-#' that Drops First Element of Along
-#'
-#' @param along Name of "along" dimension, or NULL
-#' @param dimnames_term Dimnames for array
-#' representing term
-#' @param var_time Name of time dimension, or NULL
-#' @param var_age Name of age dimension, or NULL
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_along_by_drop_first_along <- function(along,
-                                                  dimnames_term,
-                                                  var_time,
-                                                  var_age) {
-  i_along <- make_i_along(along = along,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  n_along <- length(dimnames_term[[i_along]])
-  dimnames_term[[i_along]] <- dimnames_term[[i_along]][-1L]
-  make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
 }
 
 
@@ -434,22 +372,6 @@ make_matrix_constraints <- function(dim) {
   ans <- lapply(ans, function(x) Reduce(kronecker, x))
   ans <- do.call(rbind, ans)
   ans
-}
-
-
-#' Make a Sparse Row Matrix Consisting of Ones
-#'
-#' @param n Number of columns
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_matrix_ones <- function(n) {
-  ones <- rep(1, times = n)
-  s <- seq_len(n)
-  Matrix::sparseMatrix(i = ones,
-                       j = s,
-                       x = ones)
 }
 
 
@@ -655,53 +577,6 @@ make_matrix_spline <- function(n_along, n_comp) {
 
 
 ## HAS_TESTS
-#' Make Matrix from Spline (With or Without First Along) to Effect
-#'
-#' @param prior Object of class 'bage_prior_spline'
-#' @param dimnames_term Dimnames of array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#' @param drop_first_along Whether first value for each 'along' has
-#' been dropped from spline values
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_matrix_spline_effect <- function(prior,
-                                      dimnames_term,
-                                      var_time,
-                                      var_age,
-                                      drop_first_along) {
-  along <- prior$specific$along
-  m_along_by_effect <- make_matrix_along_by_effect(along = along,
-                                                   dimnames_term = dimnames_term,
-                                                   var_time = var_time,
-                                                   var_age = var_age)
-  n_along <- nrow(m_along_by_effect)
-  n_by <- ncol(m_along_by_effect)
-  n_comp <- get_n_comp_spline(prior = prior, n_along = n_along)
-  X <- make_matrix_spline(n_comp = n_comp, n_along = n_along)
-  if (drop_first_along)
-    X <- X[, -1L]
-  I <- Matrix::.sparseDiagonal(n_by)
-  ans <- Matrix::kronecker(I, X)
-  is_along_first <- all(m_along_by_effect[, 1L] == seq.int(from = 0L, length.out = n_along))
-  if (!is_along_first) {
-    m_along_by_spline <- make_matrix_along_by_spline(prior = prior,
-                                                     dimnames_term = dimnames_term,
-                                                     var_time = var_time,
-                                                     var_age = var_age,
-                                                     drop_first_along = drop_first_along)
-    m_standard_to_alongfirst <- make_matrix_along_first(m_along_by_spline)
-    m_alongfirst_to_standard <- make_index_matrix(m_along_by_effect)
-    ans <- m_alongfirst_to_standard %*% ans %*% m_standard_to_alongfirst
-  }
-  ans
-}
-
-
-## HAS_TESTS
 #' Make Matrix from SVD Subspace to Original Space
 #'
 #' Workhorse for SVD methods for 'make_matrix_sub_orig'
@@ -754,76 +629,6 @@ make_matrix_sub_orig_svd <- function(prior,
                                                  i_sexgender = i_sexgender,
                                                  dim = dim_after)
   ans <- m_agesex %*% ans
-  ans
-}
-
-
-## HAS_TESTS
-#' Make Matrix from Dynamic SVD (With or Without First Along) to Effect
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param dimnames_term Dimnames of array representation of term
-#' @param var_time Name of time variable
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#' @param drop_first_along Whether first value for each 'along' (time) has
-#' been dropped from svd values
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_matrix_svddynamic_effect <- function(prior,
-                                          dimnames_term,
-                                          var_time,
-                                          var_age,
-                                          var_sexgender,
-                                          drop_first_along) {
-  ## expand svd dimension
-  dimnames_agesex <- dimnames_term
-  if (drop_first_along)
-    dimnames_agesex[[var_time]] <- dimnames_agesex[[var_time]][-1L]
-  ans <- make_matrix_expand_svd(prior = prior,
-                                dimnames_term = dimnames_agesex,
-                                var_time = var_time,
-                                var_age = var_age,
-                                var_sexgender = var_sexgender)
-  if (drop_first_along) {
-    ## add extra time period
-    along <- prior$specific$along
-    i_along <- make_i_along(along = along,
-                            dimnames_term = dimnames_agesex,
-                            var_time = var_time,
-                            var_age = var_age)
-    dim_agesex <- lengths(dimnames_agesex)
-    m_along_by <- make_matrix_along_by(i_along = i_along,
-                                       dim = dim_agesex,
-                                       dimnames = dimnames_agesex)
-    m_append_zero <- make_matrix_append(m_along_by,
-                                        append_column = FALSE,
-                                        append_zero = TRUE)
-    ans <- m_append_zero %*% ans
-  }
-  dimnames(ans) <- NULL
-  ans
-}
-
-
-## HAS_TESTS
-#' Make a Matrix that Transposes a Vector that Can Be
-#' Represented as a Matrix
-#'
-#' @param nr,nc Dimensions of matrix before tranposing
-#'
-#' @returns An (nr*nc) x (nr*nc) matrix
-#'
-#' @noRd
-make_matrix_transpose <- function(nr, nc) {
-  n <- nr * nc
-  ans <- matrix(0, nrow = n, ncol = n)
-  for (i in seq_len(n)) {
-    j <- ((i - 1L) %/% nc) + ((i - 1L) %% nc) * nr + 1L
-    ans[i, j] <- 1
-  }
   ans
 }
 
@@ -1023,89 +828,5 @@ make_offset_sub_orig_svd <- function(prior,
   ans <- as.double(ans)
   ans
 }
-
-
-## HAS_TESTS
-#' Transform SVD Values Back to Original Scale
-#'
-#' @param svd Draws for SVD Coefficients. A matrix
-#' or an rvec.
-#' @param prior Object of class 'bage_prior'
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_age Name of age variable
-#' @param var_sexgender Name of sex/gender variable
-#'
-#' @returns A matrix or an rvec
-#'
-#' @noRd
-svd_to_effect <- function(svd,
-                          prior,
-                          dimnames_term,
-                          var_age,
-                          var_sexgender) {
-  is_svd_rvec <- rvec::is_rvec(svd)
-  if (is_svd_rvec)
-    svd <- as.matrix(svd)
-  ssvd <- prior$specific$ssvd
-  indep <- prior$specific$indep
-  n_comp <- prior$specific$n_comp
-  levels_age <- dimnames_term[[var_age]]
-  nm <- dimnames_to_nm(dimnames_term)
-  agesex <- make_agesex(nm = nm,
-                        var_age = var_age,
-                        var_sexgender = var_sexgender)
-  has_sexgender <- !is.null(var_sexgender)
-  if (has_sexgender) {
-    levels_sexgender <- dimnames_term[[var_sexgender]]
-    nm_split <- dimnames_to_nm_split(dimnames_term)
-    term_has_sexgender <- var_sexgender %in% nm_split
-    if (term_has_sexgender)
-      joint <- !indep
-    else
-      joint <- NULL
-  }
-  else {
-    levels_sexgender <- NULL
-    joint <- NULL
-  }
-  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-  levels_effect <- dimnames_to_levels(dimnames_term)
-  n_by <- ncol(matrix_agesex) ## special meaning of 'by': excludes age and sex
-  m <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = TRUE,
-                                n_comp = n_comp)
-  b <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age = levels_age,
-                                levels_sexgender = levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = FALSE,
-                                n_comp = n_comp)
-  I <- Matrix::.sparseDiagonal(n_by)
-  ones <- Matrix::sparseMatrix(i = seq_len(n_by),
-                               j = rep.int(1L, times = n_by),
-                               x = rep.int(1L, times = n_by))
-  agesex_to_standard <- make_index_matrix(matrix_agesex)
-  m_all_by <- Matrix::kronecker(I, m)
-  b_all_by <- Matrix::kronecker(ones, b)
-  b_all_by <- Matrix::drop(b_all_by)
-  ans <- m_all_by %*% svd + b_all_by
-  ans <- agesex_to_standard %*% ans
-  ans <- Matrix::as.matrix(ans)
-  if (is_svd_rvec)
-    ans <- rvec::rvec_dbl(ans)
-  else {
-    levels_effect <- dimnames_to_levels(dimnames_term)
-    dimnames(ans) <- list(levels_effect, NULL)
-  }
-  ans
-}
-
 
   

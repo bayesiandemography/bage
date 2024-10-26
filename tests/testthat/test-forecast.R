@@ -1,41 +1,4 @@
 
-## 'align_forecast' -----------------------------------------------------
-
-test_that("'align_forecast' works", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$deaths <- rpois(n = nrow(data), lambda = 100)
-  data$exposure <- 100
-  formula <- deaths ~ age * sex + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = exposure) |>
-                  set_prior(age:time ~ SVD_RW(HMD))
-  mod <- set_n_draw(mod, n = 10)
-  mod <- fit(mod)
-  components_est_unst <- components(mod, standardize = "none")
-  components_est_st <- components(mod, standardize = "terms")
-  components_forecast <- forecast_components(mod = mod,
-                                             components_est = components_est_unst,
-                                             labels_forecast = 2006:2007)
-  ans_obtained <- align_forecast(mod = mod,
-                                       comp_forecast = components_forecast,
-                                       comp_est_st = components_est_st,
-                                       comp_est_unst = components_est_unst,
-                                       labels_forecast = 2006:2007)
-  ans_expected <- components_forecast
-  ans_expected$.fitted[1:2] <- ans_expected$.fitted[1:2] +
-    (components_est_st$.fitted[24] - components_est_unst$.fitted[24])
-  ans_expected$.fitted[3:30] <- ans_expected$.fitted[3:30] +
-    rep(components_est_st$.fitted[125:138] - components_est_unst$.fitted[125:138], 2)
-  ans_expected$.fitted[31:36] <- ans_expected$.fitted[31:36] +
-    rep(components_est_st$.fitted[154:156] - components_est_unst$.fitted[154:156], 2)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'forecast_ar' --------------------------------------------------------------
 
 test_that("'forecast_ar' works, n_by = 1", {
