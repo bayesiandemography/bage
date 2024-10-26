@@ -556,11 +556,12 @@ draw_vals_seasvary <- function(n_seas, sd_init, sd_innov, matrix_along_by) {
   n_sim <- length(sd_innov)
   n_along <- nrow(matrix_along_by)
   n_by <- ncol(matrix_along_by)
-  ans <- matrix(nrow = n_along, ncol = n_by * n_sim)
+  ans <- matrix(0, nrow = n_along, ncol = n_by * n_sim)
   m <- diag(n_seas - 1L)
   m[, 1L] <- 1
   m <- rbind(m, -1 * colSums(m))
-  z <- matrix(stats::rnorm(n = (n_seas - 1L) * n_by * n_sim), nrow = n_seas - 1L)
+  z <- matrix(stats::rnorm(n = (n_seas - 1L) * n_by * n_sim, sd = sd_init),
+              nrow = n_seas - 1L)
   ans[seq_len(n_seas), ] <- m %*% z
   sd_innov <- rep(sd_innov, each = n_by)
   for (i_along in seq.int(from = n_seas + 1L, to = n_along)) {

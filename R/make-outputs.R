@@ -1161,6 +1161,7 @@ make_levels_spline_term <- function(prior,
                                     var_time,
                                     var_age) {
   along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
   i_along <- make_i_along(along = along,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
@@ -1170,6 +1171,10 @@ make_levels_spline_term <- function(prior,
                               n_along = n_along)
   levels_along <- paste0("comp", seq_len(n_comp))
   dimnames_term[[i_along]] <- levels_along
+  if (zero_sum) {
+    dimnames_term[-i_along] <- make_unconstr_dimnames_by(i_along = i_along,
+                                                         dimnames_term = dimnames_term)
+  }
   dimnames_to_levels(dimnames_term)
 }
 
@@ -1222,6 +1227,7 @@ make_levels_svd <- function(mod, unlist) {
 #' @noRd
 make_levels_svd_term <- function(prior,
                                  dimnames_term,
+                                 var_time,
                                  var_age,
                                  var_sexgender) {
   labels_svd <- get_labels_svd(prior = prior,
@@ -1230,6 +1236,14 @@ make_levels_svd_term <- function(prior,
   nms <- names(dimnames_term)
   nms_noagesex <- setdiff(nms, c(var_age, var_sexgender))
   dimnames_noagesex <- dimnames_term[nms_noagesex]
+  if (uses_along(prior)) {
+    zero_sum <- prior$specific$zero_sum
+    if (zero_sum) {
+      i_along <- match(var_time, names(dimnames_noagesex))
+      dimnames_noagesex[-i_along] <- make_unconstr_dimnames_by(i_along = i_along,
+                                                               dimnames_term = dimnames_noagesex)
+    }
+  }
   dimnames_svd <- c(list(.svd = labels_svd), dimnames_noagesex)
   dimnames_to_levels(dimnames_svd)
 }
@@ -1470,19 +1484,37 @@ make_svd <- function(mod, effectfree) {
     if (is_svd(prior)) {
       s <- seq.int(to = to, length.out = length_effectfree)
       vals <- effectfree[s, , drop = FALSE]
-      if (is_drop_first_along(prior)) {
+      is_dynamic <- uses_along(prior)
+      if (is_dynamic) {
         dimnames_term <- dimnames_terms[[i_term]]
-        m_along_by <- make_matrix_along_by_effectfree(prior = prior,
-                                                      dimnames_term = dimnames_term,
-                                                      var_time = var_time,
-                                                      var_age = var_age,
-                                                      var_sexgender = var_sexgender)
-        m_append_zero <- make_matrix_append(m_along_by,
-                                            append_column = FALSE,
-                                            append_zero = TRUE)
-        vals <- m_append_zero %*% vals
+        labels_svd <- get_labels_svd(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_sexgender = var_sexgender)
+        nm_split <- dimnames_to_nm_split(dimnames_term)
+        i_age <- match(var_age, nm_split)
+        i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+        i_agesex <- c(i_age, i_sexgender)
+        dim <- lengths(dimnames_term)
+        dim <- c(length(labels_svd), dim[-i_agesex])
+        append_zero <- nrow(vals) < prod(dim)
+        if (append_zero) {
+          along <- prior$specific$along
+          i_along <- make_i_along(along = along,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age)
+          dim_nozero <- replace(dim, i_along, dim[i_along] - 1L)
+          s <- seq_along(dim)
+          perm <- c(i_along, s[-i_along])
+          m_to <- make_matrix_perm_along_to_front(i_along = i_along,
+                                                  dim_after = dim_nozero[perm])
+          m_append <- make_matrix_append_zero(dim[perm])
+          m_from <- make_matrix_perm_along_from_front(i_along = i_along,
+                                                      dim_after = dim)
+          vals <- m_from %*% m_append %*% m_to %*% vals
+          vals <- Matrix::as.matrix(vals)
+        }
       }
-      vals <- as.matrix(vals)
       ans[[i_term]] <- vals
     }
   }
@@ -1542,6 +1574,24 @@ make_term_svd <- function(mod) {
   nms_svd <- nms_terms[is_svd]
   ans <- rep(nms_svd, times = lengths_svd)
   ans <- factor(ans, levels = nms_svd)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Dimnames for Unconstrainted Version of By Dimensions
+#'
+#' @param i_along Index of 'along' dimension
+#' @param dimnames_term Dimnames for array representation of term
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_unconstr_dimnames_by <- function(i_along, dimnames_term) {
+  ans <- dimnames_term[-i_along]
+  nms <- names(ans)
+  for (i in seq_along(ans))
+    ans[[i]] <- paste0(nms[[i]], seq_along(ans[[i]][-1L]))
   ans
 }
 
@@ -2150,3 +2200,30 @@ transform_hyper_ar <- function(prior) {
 }
 
   
+
+#' Standardize 'fitted' So It Conforms to 'zero_sum' Constraints
+#'
+#' @param fitted A vector, possibly an rvec
+#' @param along Name of the along vector
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time dimension
+#' @param var_age Name of age dimension
+#'
+#' @returns A standardized version of 'fitted'
+#'
+#' @noRd
+zero_sum_fitted <- function(fitted,
+                            along,
+                            dimnames_term,
+                            var_time,
+                            var_age) {
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  m <- make_matrix_zero_sum(i_along = i_along,
+                            dim = dim)
+  m <- as.matrix(m)
+  fitted <- m %*% fitted
+}

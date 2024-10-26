@@ -269,8 +269,18 @@ make_matrix_along_by_effect <- function(along, dimnames_term, var_time, var_age)
                           var_time = var_time,
                           var_age = var_age)
   dim <- lengths(dimnames_term)
-  make_matrix_along_by_inner(i_along = i_along,
-                             dim = dim)
+  ans <- make_matrix_along_by_inner(i_along = i_along,
+                                    dim = dim)
+  rownames <- list(dimnames_term[[i_along]])
+  names(rownames) <- names(dimnames_term)[[i_along]]
+  if (ncol(ans) > 1L) {
+    colnames <- list(dimnames_to_levels(dimnames_term[-i_along]))
+    names(colnames) <- dimnames_to_nm(dimnames_term[-i_along])
+  }
+  else
+    colnames <- list(NULL)
+  dimnames(ans) <- c(rownames, colnames)
+  ans
 }
 
 
@@ -368,7 +378,10 @@ make_matrix_along_by_svddynamic <- function(prior,
                                var_sexgender = var_sexgender)
   nm_split <- dimnames_to_nm_split(dimnames_term)
   i_age <- match(var_age, nm_split)
-  i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+  if (is.null(var_sexgender))
+      i_sexgender <- 0L
+  else
+    i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
   i_agesex <- c(i_age, i_sexgender)
   dim <- c(length(labels_svd), dim[-i_agesex])
   has_var_time <- !is.null(var_time)
@@ -457,13 +470,21 @@ make_matrix_ones <- function(n) {
 #' @returns A sparse matrix
 #'
 #' @noRd
-make_matrix_effectfree_effect_inner <- function(along,
+make_matrix_effectfree_effect_inner <- function(prior,
                                                 dimnames_term,
                                                 var_time,
                                                 var_age,
                                                 var_sexgender,
                                                 append_zero,
                                                 zero_sum) {
+  if (uses_along(prior)) {
+    along <- prior$specific$along
+    zero_sum <- prior$specific$zero_sum
+  }
+  else {
+    along <- NULL
+    zero_sum <- FALSE
+  }
   dim <- lengths(dimnames_term)
   s <- seq_along(dim)
   i_along <- make_i_along(along = along,
@@ -710,7 +731,10 @@ make_matrix_sub_orig_svd <- function(prior,
                                      zero_sum) {
   nm_split <- dimnames_to_nm_split(dimnames_term)
   i_age <- match(var_age, nm_split)
-  i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+  if (is.null(var_sexgender))
+    i_sexgender <- 0L
+  else
+    i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
   n_by <- prod(dim_after[-c(i_age, i_sexgender)])
   ans <- get_matrix_or_offset_svd_prior(prior = prior,
                                         dimnames_term = dimnames_term,
@@ -718,6 +742,7 @@ make_matrix_sub_orig_svd <- function(prior,
                                         var_sexgender = var_sexgender,
                                         get_matrix = TRUE)
   if (zero_sum) {
+    ## make matrix that projects unconstrained age-sex into lower dimension
     dim_agesex_constr <- dim_after[sort(c(i_age, i_sexgender))]
     dim_agesex_unconstr <- dim_agesex_constr + 1L
     m_constr <- make_matrix_unconstr_constr(dim_agesex_unconstr)
@@ -844,66 +869,158 @@ make_matrix_unconstr_constr_along <- function(dim_after) {
   I <- Matrix::.sparseDiagonal(n_along)
   Matrix::kronecker(m_constr, I)
 }
-           
-    
+
+
+
+#' Make Matrix That Centers An Array Within Each Element of Along Dimension
+#'
+#' @param i_along Index for along dimension
+#' @param dim Dimensions of array
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_zero_sum <- function(i_along, dim) {
+  s <- seq_along(dim)
+  perm <- c(i_along, s[-i_along])
+  dim_after <- dim[perm]
+  m_perm <- make_matrix_perm_along_to_front(i_along = i_along,
+                                            dim_after = dim_after)
+  dim_by <- dim[-i_along]
+  Z <- make_matrix_unconstr_constr(dim_by)
+  H <- tcrossprod(Z)
+  n_along <- dim[[i_along]]
+  I <- Matrix::.sparseDiagonal(n_along)
+  ans <- Matrix::kronecker(H, I)
+  ans <- Matrix::crossprod(m_perm, ans %*% m_perm)
+  ans
+}
+
+
 ## HAS_TESTS
-#' Make Offset used in converting effectfree to effect for SVD Priors
+#' Make Offset used in Converting 'effectfree' to 'effect' for SVD Priors
 #'
 #' @param prior Object of class 'bage_prior'
 #' @param dimnames_term Dimnames of array representation of term
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
+#' @param append_zero Whether to append a zero to the start
+#' of each 'along' series.
+#' @param zero_sum Whether elements should sum to zero
+#' within each element of 'along'
 #'
-#' @returns A vector.
+#' @returns A vector of doubles
 #'
 #' @noRd
 make_offset_effectfree_effect_svd <- function(prior,
                                               dimnames_term,
                                               var_time,
                                               var_age,
-                                              var_sexgender) {
-  ssvd <- prior$specific$ssvd
-  indep <- prior$specific$indep
-  n_comp <- prior$specific$n_comp
-  nm <- dimnames_to_nm(dimnames_term)
-  nm_split <- dimnames_to_nm_split(dimnames_term)
-  has_age <- !is.null(var_age)
-  has_sexgender <- !is.null(var_sexgender)
-  agesex <- make_agesex(nm = nm,
-                        var_age = var_age,
-                        var_sexgender = var_sexgender)
-  matrix_agesex <- make_matrix_agesex(dimnames_term = dimnames_term,
-                                      var_age = var_age,
-                                      var_sexgender = var_sexgender)
-  n_by <- ncol(matrix_agesex)  ## special meaning of 'n_by': excludes age and sex
-  levels_age <- if (has_age) dimnames_term[[var_age]] else NULL
-  levels_sexgender <- if (has_sexgender) dimnames_term[[var_sexgender]] else NULL
-  levels_effect <- dimnames_to_levels(dimnames_term)
-  if (has_sexgender) {
-    term_has_sexgender <- var_sexgender %in% nm_split
-    if (term_has_sexgender)
-      joint <- !indep
-    else
-      joint <- NULL
+                                              var_sexgender,
+                                              append_zero) {
+  if (uses_along(prior)) {
+    along <- prior$specific$along
+    zero_sum <- prior$specific$zero_sum
   }
+  else {
+    along <- NULL
+    zero_sum <- FALSE
+  }
+  dim <- lengths(dimnames_term)
+  s <- seq_along(dim)
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  ## we don't know the dimensions of 'effectfree',
+  ## so we work backwards from 'effect', at each step,
+  ## calculating the dimensions before the transformation
+  ans <- vector(mod = "list", length = 5L)
+  ## transform from along-first to original order
+  ans[[1L]] <- make_matrix_perm_along_from_front(i_along = i_along, dim_after = dim)
+  s_along_first <- c(i_along, s[-i_along])
+  dim <- dim[s_along_first]
+  ## append zeros
+  if (append_zero) {
+    ans[[2L]] <- make_matrix_append_zero(dim)
+    dim[[1L]] <- dim[[1L]] - 1L
+  }
+  ## transform from unconstrained space to constrained space
+  if (zero_sum) {
+    ans[[3L]] <- make_matrix_unconstr_constr_along(dim)
+    dim[-1L] <- dim[-1L] - 1L
+  }
+  ## transform to along-first from original order
+  ans[[4L]] <- make_matrix_perm_along_to_front(i_along = i_along, dim_after = dim)
+  dim <- dim[match(s, s_along_first)]
+  ## transform from subspace to original space
+  offset <- make_offset_sub_orig_svd(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender,
+                                     dim_after = dim,
+                                     zero_sum = zero_sum)
+  ans[[5L]] <- offset
+  ## combine
+  ans <- Filter(Negate(is.null), ans)
+  ans <- Reduce('%*%', ans)
+  ans <- as.double(ans)
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Offset for Transformation from SVD Subspace to Original Space
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames of array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#' @param dim_after Dimension after applying the
+#' transform (which is not necessarily the same as the dimension
+#' implied by 'dimnames_term')
+#' @param zero_sum Whether values for age/sex/gender are
+#' constained to sum to zero.
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_offset_sub_orig_svd <- function(prior,
+                                     dimnames_term,
+                                     var_age,
+                                     var_sexgender,
+                                     dim_after,
+                                     zero_sum) {
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  i_age <- match(var_age, nm_split)
+  if (is.null(var_sexgender))
+    i_sexgender <- 0L
   else
-    joint <- NULL
-  b <- get_matrix_or_offset_svd(ssvd = ssvd,
-                                levels_age,
-                                levels_sexgender,
-                                joint = joint,
-                                agesex = agesex,
-                                get_matrix = FALSE,
-                                n_comp = n_comp)
+    i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+  n_by <- prod(dim_after[-c(i_age, i_sexgender)])
+  ans <- get_matrix_or_offset_svd_prior(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        get_matrix = FALSE)
+  if (zero_sum) {
+    ## make matrix that projects unconstrained age-sex into lower dimension
+    dim_agesex_constr <- dim_after[sort(c(i_age, i_sexgender))]
+    dim_agesex_unconstr <- dim_agesex_constr + 1L
+    m_constr <- make_matrix_unconstr_constr(dim_agesex_unconstr)
+    ans <- crossprod(m_constr, ans)
+  }
   ones <- Matrix::sparseMatrix(i = seq_len(n_by),
                                j = rep.int(1L, times = n_by),
                                x = rep.int(1L, times = n_by))
-  b_all_by <- Matrix::kronecker(ones, b)
-  agesex_to_standard <- make_index_matrix(matrix_agesex)
-  ans <- agesex_to_standard %*% b_all_by
-  ans <- Matrix::drop(ans)
-  names(ans) <- levels_effect
+  ans <- Matrix::kronecker(ones, ans)
+  m_agesex <- make_matrix_perm_agesex_from_front(i_age = i_age,
+                                                 i_sexgender = i_sexgender,
+                                                 dim = dim_after)
+  ans <- m_agesex %*% ans
+  ans <- as.double(ans)
   ans
 }
 
@@ -990,70 +1107,5 @@ svd_to_effect <- function(svd,
   ans
 }
 
-
-
-
-  ##   make_matrix_effectfree_effect.bage_prior_rw2 <- function(prior,
-  ##                                                             dimnames_term,
-  ##                                                             var_time,
-  ##                                                             var_age,
-  ##                                                             var_sexgender) {
-  ##   along <- prior$specific$along
-  ##   zero_sum <- prior$specific$zero_sum
-  ##   make_matrix_effectfree_effect_inner(along = along,
-  ##                                       dimnames_term = dimnames_term,
-  ##                                       var_time = var_time,
-  ##                                       var_age = var_age,
-  ##                                       matrix_proj_orig = NULL,
-  ##                                       zero_sum = zero_sum,
-  ##                                       append_zeros = TRUE)
-  ## }
-
-  
-
-
-
-  ## make_matrix_effectfree_effect.bage_prior_svd <- function(prior,
-  ##                                                          dimnames_term,
-  ##                                                          var_time,
-  ##                                                          var_age,
-  ##                                                          var_sexgender) {
-  ##   along <- prior$specific$along
-  ##   matrix_proj_orig <- make_matrix_proj_orig_svd(prior = prior,
-  ##                                                 dimnames_term = dimnames_term,
-  ##                                                 var_time = var_time,
-  ##                                                 var_age = var_age,
-  ##                                                 var_sexgender = var_sexgender)
-  ##   make_matrix_effectfree_effect_inner(along = along,
-  ##                                       dimnames_term = dimnames_term,
-  ##                                       var_time = var_time,
-  ##                                       var_age = var_age,
-  ##                                       matrix_proj_orig = matrix_proj_orig,
-  ##                                       zero_sum = FALSE,
-  ##                                       append_zeros = FALSE)
-  ## }
-
-
-  
-  ## make_matrix_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
-  ##                                                             dimnames_term,
-  ##                                                             var_time,
-  ##                                                             var_age,
-  ##                                                             var_sexgender) {
-  ##   along <- prior$specific$along
-  ##   ## zero_sum <- prior$specific$zero_sum
-  ##   matrix_proj_orig <- make_matrix_proj_orig_svd(prior = prior,
-  ##                                                 dimnames_term = dimnames_term,
-  ##                                                 var_time = var_time,
-  ##                                                 var_age = var_age,
-  ##                                                 var_sexgender = var_sexgender)
-  ##   make_matrix_effectfree_effect_inner(along = along,
-  ##                                       dimnames_term = dimnames_term,
-  ##                                       var_time = var_time,
-  ##                                       var_age = var_age,
-  ##                                       matrix_proj_orig = matrix_proj_orig,
-  ##                                       zero_sum = FALSE ## zero_sum,
-  ##                                       append_zeros = TRUE)
-  ## }
 
   
