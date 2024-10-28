@@ -9,7 +9,6 @@
   newdata = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
-  standardize = c("terms", "anova", "none"),
   labels = NULL,
   ...
 )
@@ -27,11 +26,6 @@ future periods.}
 \item{include_estimates}{Whether to
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
-
-\item{standardize}{Standardization method:
-one of \code{"terms"}, \code{"anova"}, or "none".
-The default is \code{"terms"}.
-See below for details.}
 
 \item{labels}{Labels for future values.}
 
@@ -80,17 +74,6 @@ When \code{include_estimates} is \code{TRUE}, the output
 includes these values.
 Setting \code{include_estimates} to \code{TRUE} can be helpful
 when creating graphs that combine estimates and forecasts.
-}
-
-\section{Standardization}{
-
-
-The standardization used by \code{forecast()}
-is equivalent to the standardization
-applied by \link[=components.bage_mod]{components()},
-except that values for forecasted terms are
-are shifted so that they
-line up with the values for estimates.
 }
 
 \section{Fitted and unfitted models}{

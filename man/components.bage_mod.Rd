@@ -4,22 +4,12 @@
 \alias{components.bage_mod}
 \title{Extract Values for Hyper-Parameters}
 \usage{
-\method{components}{bage_mod}(
-  object,
-  standardize = c("terms", "anova", "none"),
-  quiet = FALSE,
-  ...
-)
+\method{components}{bage_mod}(object, quiet = FALSE, ...)
 }
 \arguments{
 \item{object}{Object of class \code{"bage_mod"},
 typically created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
-
-\item{standardize}{Standardization method:
-one of \code{"terms"}, \code{"anova"}, or "none".
-The default is \code{"terms"}.
-See below for details.}
 
 \item{quiet}{Whether to suppress messages.
 Default is \code{FALSE}.}
@@ -60,46 +50,6 @@ are draws from the joint prior distribution.
 In other words, the modelled values are informed by
 model priors, and by any \code{exposure}, \code{size}, or \code{weights}
 argument in the model, but not by the observed outcomes.
-}
-
-\section{Standardizing estimates}{
-
-
-Often the sum of the intercept, main effect,
-and interaction terms is well-identified by the data, but
-the values for individual terms is not. This indeterminancy
-does not affect the ultimate estimation of rates,
-probabilities, and means, but does complicate the
-interpretation of the higher-level terms.
-
-One way of dealing with poorly-
-identified terms is to post-process the estimates,
-imposing some sort of standardization. There are
-three options, specified through the \code{standardize}
-argument:
-\itemize{
-\item \code{"terms"} Each main effect or interaction,
-and any component terms such as trend or
-seasonal effects, are independently scaled
-so that they sum to 0.
-\item \code{"anova"} An ANOVA-style decomposition is
-carried out so that all variation associated
-with age is attributed to the age term,
-all variation associated with the interaction
-between age and sex is attributed to the
-age-sex term, and so on. Components terms
-such as trend and seasonal effects are left untouched.
-\item \code{"none"} No standardization is done.
-}
-
-\code{"terms"} standardization is helpful for understanding
-model dynamics. \code{"anova"} standardization is helpful
-for understanding the contribution of each variable
-to overall patterns.
-
-For a description of the standardization
-algorithms used by \strong{bage},
-see \code{vignette("vig2_math")}.
 }
 
 \examples{

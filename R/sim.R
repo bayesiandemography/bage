@@ -228,14 +228,6 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
                           vals_effect,
                           vals_spline,
                           vals_svd)
-  ## this step is currently needed to get names right, but should be dropped
-  ## when we refactor to using 'draw_vals_term', since we already
-  ## have all the quantities needed, and don't need to infer them  
-  ans <- infer_trend_cyc_seas_err(components = ans,
-                                  priors = priors,
-                                  dimnames_terms = dimnames_terms,
-                                  var_time = var_time,
-                                  var_age = var_age)
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,
                                 n_sim = n_sim)
@@ -414,6 +406,55 @@ draw_vals_linar <- function(slope, sd, coef, matrix_along_by, labels) {
   ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
   i <- match(sort(matrix_along_by), matrix_along_by)
   ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, NULL)
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from a Linear Trend
+#'
+#' Each column is one draw.
+#'
+#' @param slope Matrix of values
+#' @param matrix_along_by Matrix with map for along and by dimensions
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_lintrend <- function(slope, matrix_along_by, labels) {
+  n_sim <- ncol(slope)
+  n_along <- nrow(matrix_along_by)
+  n_by <- ncol(matrix_along_by)
+  slope <- rep(slope, each = n_along)
+  intercept <- -0.5 * (n_along + 1) * slope
+  s <- seq_len(n_along)
+  ans <- intercept + slope * s
+  ans <- matrix(ans, nrow = n_along * n_by, ncol = n_sim)
+  i <- match(sort(matrix_along_by), matrix_along_by)
+  ans <- ans[i, , drop = FALSE]
+  dimnames(ans) <- list(labels, NULL)
+  ans
+}
+
+
+## HAS_TESTS
+#' Generate Draws from Normal Distribution
+#'
+#' @param sd Vector of values
+#' @param labels Names of elements
+#'
+#' @returns A matrix, with dimnames.
+#'
+#' @noRd
+draw_vals_norm <- function(sd, labels) {
+  n_sim <- length(sd)
+  n_effect <- length(labels)
+  n <- n_effect * n_sim
+  sd <- rep(sd, each = n_effect)
+  ans <- stats::rnorm(n = n, sd = sd)
+  ans <- matrix(ans, nrow = n_effect, ncol = n_sim)
   dimnames(ans) <- list(labels, NULL)
   ans
 }
@@ -669,7 +710,6 @@ draw_vals_svd_mod <- function(mod, vals_hyper, n_sim) {
   names(ans) <- names(priors)
   ans
 }
-
 
 ## HAS_TESTS
 #' Calculate Errors from Using Point Estimates from Posterior Distribution

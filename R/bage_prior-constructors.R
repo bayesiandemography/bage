@@ -1493,6 +1493,9 @@ SVD <- function(ssvd,
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient in `SVD_AR()`.
 #' Defaults are `0.8` and `0.98`.
+#' @param zero_sum If `TRUE`, values must
+#' sum to 0 within each combination
+#' of the `"by"` variables. Default is `FALSE`.
 #'
 #' @returns An object of class `"bage_prior_svd_ar"`,
 #' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.

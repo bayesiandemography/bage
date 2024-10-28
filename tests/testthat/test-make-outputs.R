@@ -256,7 +256,7 @@ test_that("'make_comp_components' works - has hyperrand", {
     draws <- make_draws_components(mod)
     ans <- make_comp_components(mod)
     expect_identical(length(draws), length(ans))
-    expect_setequal(ans, c("effect", "hyper", "hyperrand", "disp"))
+    expect_setequal(ans, c("effect", "hyper", "trend", "error", "disp"))
 })
 
 test_that("'make_comp_components' works - has svd", {
@@ -279,6 +279,24 @@ test_that("'make_comp_components' works - has svd", {
   ans <- make_comp_components(mod)
   expect_identical(length(term), length(ans))
   expect_setequal(ans, c("effect", "hyper", "svd", "spline", "disp"))
+})
+
+
+## 'make_comp_hyperrand' ------------------------------------------------------
+
+test_that("'make_comp_hyperrand' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex:time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin())
+  ans_obtained <- make_comp_hyperrand(mod)
+  ans_expected <- c("hyper", "hyper", rep(c("trend", "error"), each = 12))
+  expect_identical(ans_obtained, ans_expected)                      
 })
 
 
@@ -369,6 +387,25 @@ test_that("'make_draws_components' works - has svd", {
                      length(make_hyperrand(mod)) + 1L)
 })
 
+test_that("'make_draws_components' works - has hyperrand", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n = 5)
+  mod <- set_prior(mod, age:sex ~ Lin())
+  mod <- fit(mod)
+  set.seed(0)
+  ans_obtained <- make_draws_components(mod)
+  expect_true(rvec::is_rvec(ans_obtained))
+})
+
 
 ## 'make_draws_disp' ----------------------------------------------------
 
@@ -415,30 +452,30 @@ test_that("'make_draws_hyper' works", {
 })
 
 
-## 'make_draws_hyperrand' -----------------------------------------------------
+## 'make_draws_hyperrandfree' -------------------------------------------------
 
-test_that("'make_draws_hyperrand' works - has hyperrand", {
+test_that("'make_draws_hyperrandfree' works - has hyperrandfree", {
   set.seed(0)
   est <- list(effectfree = rnorm(10),
               hyper = runif(4),
-              hyperrand = rnorm(5),
+              hyperrandfree = rnorm(5),
               log_disp = 0.5)
   draws_post <- matrix(rnorm(20 * 5), nrow = 20)
-  ans_obtained <- make_draws_hyperrand(est = est,
-                                       draws_post = draws_post)
+  ans_obtained <- make_draws_hyperrandfree(est = est,
+                                           draws_post = draws_post)
   ans_expected <- draws_post[15:19, ]
   expect_identical(unname(ans_obtained), ans_expected)
 })
 
-test_that("'make_draws_hyperrand' works - no hyperrand", {
+test_that("'make_draws_hyperrandfree' works - no hyperrandfree", {
   set.seed(0)
   est <- list(effectfree = rnorm(10),
               hyper = runif(4),
-              hyperrand = numeric(),
+              hyperrandfree = numeric(),
               log_disp = 0.5)
   draws_post <- matrix(rnorm(15 * 5), nrow = 15)
-  ans_obtained <- make_draws_hyperrand(est = est,
-                                   draws_post = draws_post)
+  ans_obtained <- make_draws_hyperrandfree(est = est,
+                                           draws_post = draws_post)
   ans_expected <- matrix(0, nrow = 0, ncol = 5)
   expect_identical(unname(ans_obtained), ans_expected)
 })
@@ -606,7 +643,291 @@ test_that("'make_along_mod' works", {
 })
 
 
-## 'make_levels_spline' ----------------------------------------------------------
+## 'make_hyperrand' -----------------------------------------------------------
+
+test_that("'make_hyperrand' works - has hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(sex:time ~ Lin())
+    mod <- set_n_draw(mod, n = 1)
+    mod <- fit(mod)
+    ans <- make_hyperrand(mod)
+    expect_identical(length(ans), 26L)
+})
+
+test_that("'make_hyperrand' works - no hyperrand", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex * time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+                    set_prior(sex:time ~ AR())
+    mod <- set_n_draw(mod, n = 1)
+    mod <- fit(mod)
+    ans <- make_hyperrand(mod)
+    expect_identical(length(ans), 0L)
+})
+
+
+## 'make_hyperrand_lin' -------------------------------------------------------
+
+test_that("'make_hyperrand_lin' works with main effect", {
+  prior <- Lin()
+  hyperrandfree <- rvec::rnorm_rvec(n = 1, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_lin(prior = prior,
+                                     hyperrandfree = hyperrandfree,
+                                     effectfree = effectfree,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  trend <- hyperrandfree * (1:10 - mean(1:10))
+  error <- effectfree - trend
+  slope <- trend[2] - trend[1]
+  ans_expected <- c(slope, trend, error)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_lin' works with interaction, zero_sum is FALSE", {
+  prior <- Lin_AR()
+  hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_lin(prior = prior,
+                                     hyperrandfree = hyperrandfree,
+                                     effectfree = effectfree,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  trend <- c(hyperrandfree[1] * (1:10 - mean(1:10)),
+             hyperrandfree[2] * (1:10 - mean(1:10)))
+  error <- effectfree - trend
+  slope <- c(trend[2] - trend[1], trend[12] - trend[11])
+  ans_expected <- c(slope, trend, error)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_lin' works with interaction, zero_sum is TRUE", {
+  prior <- Lin_AR(zero_sum = TRUE)
+  hyperrandfree <- rvec::rnorm_rvec(n = 1, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_lin(prior = prior,
+                                     hyperrandfree = hyperrandfree,
+                                     effectfree = effectfree,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  trend <- c(-sqrt(0.5) * hyperrandfree * (1:10 - mean(1:10)),
+             sqrt(0.5) * hyperrandfree * (1:10 - mean(1:10)))
+  error <- c(-sqrt(0.5) * effectfree, sqrt(0.5) * effectfree) - trend
+  slope <- c(trend[2] - trend[1], trend[12] - trend[11])
+  ans_expected <- c(slope, trend, error)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_hyperrand_seasfix' ---------------------------------------------------
+
+test_that("'make_hyperrand_seasfix' works with main effect", {
+  prior <- RW_Seas(n = 4, s_seas = 0)
+  hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_seasfix(prior = prior,
+                                         hyperrandfree = hyperrandfree,
+                                         effectfree = effectfree,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
+  season <- c(effectfree[1],
+              effectfree[1] + hyperrandfree[1],
+              effectfree[1] + hyperrandfree[2],
+              -3 * effectfree[1] - sum(hyperrandfree))[c(1:4, 1:4, 1:2)]
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_seasfix' works with interaction, zero_sum is FALSE", {
+  set.seed(0)
+  prior <- RW2_Seas(n = 4, s_seas = 0)
+  hyperrandfree <- rvec::rnorm_rvec(n = 4, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_seasfix(prior = prior,
+                                         hyperrandfree = hyperrandfree,
+                                         effectfree = effectfree,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
+  season1 <- c(effectfree[1],
+               effectfree[1] + hyperrandfree[1],
+               effectfree[1] + hyperrandfree[2],
+               -3 * effectfree[1] - sum(hyperrandfree[1:2]))[c(1:4, 1:4, 1:2)]
+  season2 <- c(effectfree[11],
+               effectfree[11] + hyperrandfree[3],
+               effectfree[11] + hyperrandfree[4],
+               -3 * effectfree[11] - sum(hyperrandfree[3:4]))[c(1:4, 1:4, 1:2)]
+  season <- c(season1, season2)
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_seasfix' works with interaction, zero_sum is TRUE", {
+  prior <- RW_Seas(n = 4, s_seas = 0, zero_sum = TRUE)
+  hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_seasfix(prior = prior,
+                                         hyperrandfree = hyperrandfree,
+                                         effectfree = effectfree,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
+  season <- vctrs::vec_c(effectfree[1],
+                         effectfree[1] + hyperrandfree[1],
+                         effectfree[1] + hyperrandfree[2],
+                         -3 * effectfree[1] - sum(hyperrandfree[1:2]))[c(1:4, 1:4, 1:2)]
+  season <- c(-sqrt(0.5) * season,
+              sqrt(0.5) * season)
+  trend <- c(-sqrt(0.5) * effectfree, sqrt(0.5) * effectfree) - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_hyperrand_seasvary' --------------------------------------------------
+
+test_that("'make_hyperrand_seasvary' works with main effect", {
+  prior <- RW_Seas(n = 4)
+  hyperrandfree <- rvec::rnorm_rvec(n = 7, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_seasvary(prior = prior,
+                                          hyperrandfree = hyperrandfree,
+                                          effectfree = effectfree,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender)
+  season <- c(effectfree[1],
+              effectfree[1] + hyperrandfree[1],
+              effectfree[1] + hyperrandfree[2],
+              -3 * effectfree[1] - sum(hyperrandfree[1:2]),
+              effectfree[1] + hyperrandfree[3:5],
+              -3 * effectfree[1] - sum(hyperrandfree[3:5]),
+              effectfree[1] + hyperrandfree[6:7])
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_seasvary' works with interaction, zero_sum is FALSE", {
+  set.seed(0)
+  prior <- RW2_Seas(n = 4)
+  hyperrandfree <- rvec::rnorm_rvec(n = 14, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_seasvary(prior = prior,
+                                         hyperrandfree = hyperrandfree,
+                                         effectfree = effectfree,
+                                         dimnames_term = dimnames_term,
+                                         var_time = var_time,
+                                         var_age = var_age,
+                                         var_sexgender = var_sexgender)
+  season1 <- c(effectfree[1],
+              effectfree[1] + hyperrandfree[1],
+              effectfree[1] + hyperrandfree[2],
+              -3 * effectfree[1] - sum(hyperrandfree[1:2]),
+              effectfree[1] + hyperrandfree[3:5],
+              -3 * effectfree[1] - sum(hyperrandfree[3:5]),
+              effectfree[1] + hyperrandfree[6:7])
+  season2 <- c(effectfree[11],
+              effectfree[11] + hyperrandfree[8],
+              effectfree[11] + hyperrandfree[9],
+              -3 * effectfree[11] - sum(hyperrandfree[8:9]),
+              effectfree[11] + hyperrandfree[10:12],
+              -3 * effectfree[11] - sum(hyperrandfree[10:12]),
+              effectfree[11] + hyperrandfree[13:14])
+  season <- c(season1, season2)
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_seasvary' works with interaction, zero_sum is TRUE", {
+  prior <- RW_Seas(n = 4, zero_sum = TRUE)
+  hyperrandfree <- rvec::rnorm_rvec(n = 7, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_seasvary(prior = prior,
+                                          hyperrandfree = hyperrandfree,
+                                          effectfree = effectfree,
+                                          dimnames_term = dimnames_term,
+                                          var_time = var_time,
+                                          var_age = var_age,
+                                          var_sexgender = var_sexgender)
+  season <- vctrs::vec_c(effectfree[1],
+                         effectfree[1] + hyperrandfree[1],
+                         effectfree[1] + hyperrandfree[2],
+                         -3 * effectfree[1] - sum(hyperrandfree[1:2]),
+                         effectfree[1] + hyperrandfree[3:5],
+                         -3 * effectfree[1] - sum(hyperrandfree[3:5]),
+                         effectfree[1] + hyperrandfree[6:7])
+  season <- c(-sqrt(0.5) * season,
+              sqrt(0.5) * season)
+  trend <- c(-sqrt(0.5) * effectfree, sqrt(0.5) * effectfree) - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_levels_spline' -------------------------------------------------------
 
 test_that("'make_levels_spline' works - unlist is FALSE", {
   set.seed(0)
@@ -873,7 +1194,7 @@ test_that("'make_stored_draws' works with valid inputs", {
   mod <- set_n_draw(mod, n = 10)
   est <- list(effectfree = c(rnorm(10), 0.1, -0.1),
               hyper = rnorm(1),
-              hyperrand = numeric(),
+              hyperrandfree = numeric(),
               disp = runif(1))
   prec <- crossprod(matrix(rnorm(144), nr = 12))
   map <- make_map(mod)
@@ -906,13 +1227,13 @@ test_that("'make_stored_draws' works with valid inputs", {
   mod <- set_prior(mod, sex ~ Known(c(0.1, -0.1)))
   est <- list(effectfree = c(rnorm(11), 0.1, -0.1),
               hyper = rnorm(1),
-              hyperrand = numeric(),
+              hyperrandfree = numeric(),
               log_disp = runif(1))
   ans <- make_stored_point(mod = mod,
                            est = est)
   expect_identical(ans$point_effectfree, est$effectfree)
   expect_identical(ans$point_hyper, exp(est$hyper))
-  expect_identical(ans$point_hyperrand, double())
+  expect_identical(ans$point_hyperrandfree, double())
   expect_identical(ans$point_disp, exp(est$log_disp))
 })
 
@@ -1069,7 +1390,6 @@ test_that("'make_levels_hyper' works", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- fit(mod)
     ans_obtained <- make_levels_hyper(mod)
     ans_expected <- c(age = "sd",
                       time = "sd",
@@ -1077,22 +1397,29 @@ test_that("'make_levels_hyper' works", {
     expect_identical(ans_obtained, ans_expected)                      
 })
 
+
 ## 'make_levels_hyperrand' ----------------------------------------------------
 
 test_that("'make_levels_hyperrand' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex:time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, sex:time ~ Lin())
-    mod <- fit(mod)
-    ans_obtained <- make_levels_hyperrand(mod)
-    ans_expected <- c("slope.F", "slope.M")
-    expect_identical(ans_obtained, ans_expected)                      
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex:time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin())
+  ans_obtained <- make_levels_hyperrand(mod, unlist = TRUE)
+  ans_expected <- c("slope.F", "slope.M",
+                    rep(paste(c("F", "M"), rep(2000:2005, each = 2), sep = "."), 2))
+  expect_identical(ans_obtained, ans_expected)                      
+  ans_obtained <- make_levels_hyperrand(mod, unlist = FALSE)
+  ans_expected <- list(character(),
+                       character(),
+                       c("slope.F", "slope.M",
+                         rep(paste(c("F", "M"), rep(2000:2005, each = 2), sep = "."), 2)))
+  expect_identical(ans_obtained, ans_expected)                      
 })
 
 
@@ -1433,6 +1760,25 @@ test_that("'make_term_svd' works - has svd", {
 })
 
 
+## 'make_terms_hyperrand' ----------------------------------------------------
+
+test_that("'make_terms_hyperrand' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex:time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin())
+  ans_obtained <- make_terms_hyperrand(mod)
+  ans_expected <- factor(rep("sex:time", 26),
+                         levels = c("(Intercept)", "age", "sex:time"))
+  expect_identical(ans_obtained, ans_expected)                      
+})
+
+
 ## 'make_unconstr_dimnames_by' ------------------------------------------------
 
 test_that("'make_unconstr_dimnames_by' works", {
@@ -1487,41 +1833,7 @@ test_that("'make_transforms_hyper' works", {
 })
 
 
-## 'infer_trend_cyc_seas_err' -------------------------------------------------------
-
-test_that("'infer_trend_cyc_seas_err' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(time ~ RW2()) |>
-                  set_prior(sex:time ~ Lin()) |>
-                  fit()
-  mod <- set_n_draw(mod, 5)
-  comp <- make_comp_components(mod)
-  term <- make_term_components(mod)
-  level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
-  draws <- as.matrix(draws)
-  .fitted <- rvec::rvec_dbl(draws)
-  components <- tibble::tibble(component = comp,
-                               term = term,
-                               level = level,
-                               .fitted = .fitted)
-  ans_obtained <- infer_trend_cyc_seas_err(components = components,
-                                           priors = mod$priors,
-                                           dimnames_terms = mod$dimnames_terms,
-                                           var_time = mod$var_time,
-                                           var_age = mod$var_age)
-  expect_setequal(ans_obtained$component, c("effect", "hyper", "disp"))
-})
-
-
-## 'infer_trend_seas_err_forecast' --------------------------------------------
+## 'infer_trend_cyc_seas_err_forecast' --------------------------------------------
 
 test_that("'infer_trend_cyc_seas_err_forecast' works", {
   set.seed(0)
@@ -1532,9 +1844,9 @@ test_that("'infer_trend_cyc_seas_err_forecast' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(time ~ RW2()) |>
-                  set_prior(sex:time ~ Lin()) |>
-                  fit()
+    set_prior(time ~ RW2()) |>
+    set_prior(sex:time ~ Lin()) |>
+    fit()
   mod <- set_n_draw(mod, 5)
   mod <- fit(mod)
   comp_est <- components(mod)
@@ -1549,58 +1861,6 @@ test_that("'infer_trend_cyc_seas_err_forecast' works", {
                                                     var_time = mod$var_time,
                                                     var_age = mod$var_age)
   expect_equal(ans_obtained[1:3], comp_forecast[1:3])
-})
-
-
-## 'infer_trend_cyc_seas_err_seasfix' -----------------------------------------------
-
-test_that("'infer_trend_cyc_seas_err_seasfix' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3, s_seas = 0)) |>
-                  set_n_draw(n = 10) |>
-                  fit()
-  term <- make_term_components(mod)
-  comp <- make_comp_components(mod)
-  level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
-  draws <- as.matrix(draws)
-  .fitted <- rvec::rvec_dbl(draws)
-  components <- tibble::tibble(term = term,
-                               component = comp,
-                               level = level,
-                               .fitted = .fitted)
-  ans_obtained <- infer_trend_cyc_seas_err_seasfix(prior = mod$priors[["sex:time"]],
-                                                   dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                   var_time = mod$var_time,
-                                                   var_age = mod$var_age,
-                                                   components = components)
-  ans_expected <- components
-  effect <- ans_expected$.fitted[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
-  seas <- ans_expected$.fitted[ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"]
-  seas <- vctrs::vec_c(effect[1:2],
-                       seas + effect[1:2],
-                       -1 * (2 * effect[1:2] + seas))
-  seas <- seas[c(1:6, 1:6)]
-  level <- ans_expected$level[ans_expected$component == "effect" & ans_expected$term == "sex:time"]
-  seasonal <- tibble::tibble(term = "sex:time",
-                             component = "seasonal",
-                             level = level,
-                             .fitted = seas)
-  trend <- effect - seas
-  trend <- tibble::tibble(term = "sex:time",
-                          component = "trend",
-                          level = level,
-                          .fitted = trend)
-  ans_expected <- ans_expected[!(ans_expected$component == "hyperrand" & ans_expected$term == "sex:time"),]
-  ans_expected <- vctrs::vec_rbind(ans_expected, trend, seasonal)
-  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -1624,82 +1884,10 @@ test_that("'infer_trend_cyc_seas_err_seasfix_forecast' works", {
                                                    var_time = mod$var_time,
                                                    var_age = mod$var_age,
                                                    components = components)
-  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "seasonal"]
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
   trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
   effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
   expect_equal(effect, season + trend)
-})
-
-
-## 'infer_trend_cyc_seas_err_seasvary' ----------------------------------------------
-
-test_that("'infer_trend_cyc_seas_err_seasvary' works", {
-  set.seed(0)
-  data <- expand.grid(age = 0:4, time = 2000:2020, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * time + age
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n = 3)) |>
-                  set_n_draw(n_draw = 10) |>
-                  fit()
-  term <- make_term_components(mod)
-  comp <- make_comp_components(mod)
-  level <- make_level_components(mod)
-  draws <- make_draws_components(mod)
-  draws <- as.matrix(draws)
-  .fitted <- rvec::rvec_dbl(draws)
-  components <- tibble::tibble(term = term,
-                               component = comp,
-                               level = level,
-                               .fitted = .fitted)
-  matrix_along_by <- make_matrix_along_by_effect(along = mod$priors[["sex:time"]]$specific$along,
-                                                 dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                 var_time = mod$var_time,
-                                                 var_age = mod$var_age)
-  ans_obtained <- infer_trend_cyc_seas_err_seasvary(prior = mod$priors[["sex:time"]],
-                                                    dimnames_term = mod$dimnames_terms[["sex:time"]],
-                                                    var_time = mod$var_time,
-                                                    var_age = mod$var_age,
-                                                    components = components)
-  level <- components$level[components$component == "effect" & components$term == "sex:time"]
-  seas <- components$.fitted[components$component == "hyperrand" & components$term == "sex:time"]
-  effect <- components$.fitted[components$component == "effect" & components$term == "sex:time"]
-  seasonal <- tibble::tibble(term = "sex:time",
-                             component = "seasonal",
-                             level = level,
-                             .fitted = vctrs::vec_c(effect[1:2],
-                                                    seas[c(1, 14)] + effect[1:2],
-                                                    -(2 * effect[1:2] + seas[c(1, 14)]),
-                                                    seas[c(2, 15)] + effect[1:2],
-                                                    seas[c(3, 16)] + effect[1:2],
-                                                    -(seas[c(2, 15)] + seas[c(3, 16)] + 2*effect[1:2]),
-                                                    seas[c(4, 17)] + effect[1:2],
-                                                    seas[c(5, 18)] + effect[1:2],
-                                                    -(seas[c(4, 17)] + seas[c(5, 18)] + 2*effect[1:2]),
-                                                    seas[c(6, 19)] + effect[1:2],
-                                                    seas[c(7, 20)] + effect[1:2],
-                                                    -(seas[c(6, 19)] + seas[c(7, 20)] + 2*effect[1:2]),
-                                                    seas[c(8, 21)] + effect[1:2],
-                                                    seas[c(9, 22)] + effect[1:2],
-                                                    -(seas[c(8, 21)] + seas[c(9, 22)] + 2*effect[1:2]),
-                                                    seas[c(10, 23)] + effect[1:2],
-                                                    seas[c(11, 24)] + effect[1:2],
-                                                    -(seas[c(10, 23)] + seas[c(11, 24)]+2*effect[1:2]),
-                                                    seas[c(12, 25)] + effect[1:2],
-                                                    seas[c(13, 26)] + effect[1:2],
-                                                    -(seas[c(12, 25)]+seas[c(13, 26)]+2*effect[1:2])))
-  trend <- tibble::tibble(term = "sex:time",
-                          component = "trend",
-                          level = level,
-                          .fitted = effect - seasonal$.fitted)
-  ans_expected <- vctrs::vec_rbind(components[!(components$component == "hyperrand" &
-                                                  components$term == "sex:time"),],
-                                   trend,
-                                   seasonal)
-  expect_equal(ans_obtained, ans_expected)
 })
 
 
@@ -1723,7 +1911,7 @@ test_that("'infer_trend_cyc_seas_err_seasvary_forecast' works", {
                                                     var_time = mod$var_time,
                                                     var_age = mod$var_age,
                                                     components = components)
-  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "seasonal"]
+  season <- ans$.fitted[ans$term == "sex:time" & ans$component == "season"]
   trend <- ans$.fitted[ans$term == "sex:time" & ans$component == "trend"]
   effect <- ans$.fitted[ans$term == "sex:time" & ans$component == "effect"]
   expect_equal(effect, season + trend)
@@ -1766,19 +1954,17 @@ test_that("'rmvnorm_chol' and 'rmvnorm_eigen' give the same answer", {
 test_that("'sort_components' works with valid inputs", {
   components <- tibble::tribble(~term,         ~component, ~level,
                                 "sex",          "effect",   "m",
-                                "time",         "seasonal", "2000",
+                                "time",         "season", "2000",
                                 "sex",          "hyper",    "sd",
-                                "time",         "effect",   "2000",
                                 "sex",          "effect",   "f",
                                 "(Intercept)", "effect",   "(Intercept)",
-                                "time",         "cyclical", "2000")
+                                "time",         "effect", "2000")
   mod <- list(formula = deaths ~ time + sex)
   ans_obtained <- sort_components(components = components, mod = mod)
   ans_expected <- tibble::tribble(~term,         ~component, ~level,
                                   "(Intercept)", "effect",   "(Intercept)",
                                   "time",         "effect",   "2000",
-                                  "time",         "cyclical", "2000",
-                                  "time",         "seasonal", "2000",
+                                  "time",         "season",   "2000",
                                   "sex",          "effect",   "m",
                                   "sex",          "effect",   "f",
                                   "sex",          "hyper",    "sd")
@@ -1788,7 +1974,7 @@ test_that("'sort_components' works with valid inputs", {
 test_that("'sort_components' raises correct effor with invalid component", {
   components <- tibble::tribble(~term,         ~component, ~level,
                                 "(Intercept)", "effect",   "(Intercept)",
-                                "time",         "seasonal", "2000",
+                                "time",         "season", "2000",
                                 "sex",          "wrong",    "sd")
   expect_error(sort_components(components, mod = list(formula = deaths ~ age)),
                "Internal error: \"wrong\" not a valid value for `component`.")

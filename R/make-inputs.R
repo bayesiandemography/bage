@@ -444,7 +444,7 @@ make_hyper <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make 'hyperrand'
+#' Make 'hyperrandfree'
 #'
 #' Make Vector to Hold Hyper-Parameters
 #' for Priors that can be Treated as Random Effects.
@@ -459,11 +459,11 @@ make_hyper <- function(mod) {
 #' @returns A vector of zeros, of type 'double'.
 #'
 #' @noRd
-make_hyperrand <- function(mod) {
+make_hyperrandfree <- function(mod) {
   priors <- mod$priors
   ans <- rep(0, times = length(priors))
   names(ans) <- names(priors)
-  lengths <- make_lengths_hyperrand(mod)
+  lengths <- make_lengths_hyperrandfree(mod)
   ans <- rep(ans, times = lengths)
   ans
 }
@@ -570,37 +570,21 @@ make_lengths_hyper <- function(mod) {
 #' @returns A named integer vector
 #'
 #' @noRd
-make_lengths_hyperrand <- function(mod) {
+make_lengths_hyperrandfree <- function(mod) {
   priors <- mod$priors
   var_time <- mod$var_time
   var_age <- mod$var_age
+  var_sexgender <- mod$var_sexgender
   dimnames_terms <- mod$dimnames_terms
-  levels <- .mapply(levels_hyperrand,
-                    dots = list(prior = priors,
-                                dimnames_term = dimnames_terms),
-                    MoreArgs = list(var_time = var_time,
-                                    var_age = var_age))
-  ans <- lengths(levels)
+  ans <- .mapply(length_hyperrandfree,
+                 dots = list(prior = priors,
+                             dimnames_term = dimnames_terms),
+                 MoreArgs = list(var_time = var_time,
+                                 var_age = var_age,
+                                 var_sexgender = var_sexgender))
+  ans <- unlist(ans)
   names(ans) <- names(priors)
   ans
-}
-
-
-## HAS_TESTS
-#' Extract Age Labels
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A character vector or NULL
-#'
-#' @noRd
-make_levels_age <- function(mod) {
-  data <- mod$data
-  var_age <- mod$var_age
-  if (is.null(var_age))
-    NULL
-  else
-    unique(data[[var_age]])
 }
 
 
@@ -676,24 +660,6 @@ make_levels_forecast_all <- function(mod, labels_forecast) {
     ans <- c(ans, ans_terms)
   }
   ans
-}
-
-
-## HAS_TESTS
-#' Extract Sex/Gender Labels
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A character vector or NULL
-#'
-#' @noRd
-make_levels_sexgender <- function(mod) {
-  data <- mod$data
-  var_sexgender <- mod$var_sexgender
-  if (is.null(var_sexgender))
-    NULL
-  else
-    unique(data[[var_sexgender]])
 }
 
 
@@ -1057,13 +1023,13 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 make_random <- function(mod) {
   priors <- mod$priors
   has_hyper <- any(make_lengths_hyper(mod) > 0L)
-  has_hyperrand <- any(vapply(priors, has_hyperrand, FALSE))
-  if (!has_hyper && !has_hyperrand)
+  has_hyperrandfree <- any(vapply(priors, has_hyperrandfree, FALSE))
+  if (!has_hyper && !has_hyperrandfree)
     ans <- NULL
   else {
     ans <- "effectfree"
-    if (has_hyperrand)
-      ans <- c(ans, "hyperrand")
+    if (has_hyperrandfree)
+      ans <- c(ans, "hyperrandfree")
   }
   ans
 }
@@ -1191,17 +1157,18 @@ make_terms_hyper <- function(mod) {
 }
 
 
+
 ## HAS_TESTS
-#' Make Factor Identifying Components of 'hyperrand'
+#' Make Factor Identifying Components of 'hyperrandfree'
 #'
-#' Make factor the same length as 'hyperrand',
+#' Make factor the same length as 'hyperrandfree',
 #' giving the name of the term
 #' that the each element belongs to.
 #' Note that the levels of the factor
 #' includes all priors, not just those
-#' with hyperrand.
+#' with hyperrandfree.
 #'
-#' We generate 'terms_hyperrand' when function 'fit'
+#' We generate 'terms_hyperrandfree' when function 'fit'
 #' is called, rather than storing it in the
 #' 'bage_mod' object, to avoid having to update
 #' it when priors change  via 'set_prior'.
@@ -1209,13 +1176,13 @@ make_terms_hyper <- function(mod) {
 #' @param mod Object of class "bage_mod"
 #'
 #' @returns A factor, the same length
-#' as 'hyperrand'.
+#' as 'hyperrandfree'.
 #'
 #' @noRd
-make_terms_hyperrand <- function(mod) {
+make_terms_hyperrandfree <- function(mod) {
   priors <- mod$priors
   nms_terms <- names(priors)
-  lengths <- make_lengths_hyperrand(mod)
+  lengths <- make_lengths_hyperrandfree(mod)
   ans <- rep(nms_terms, times = lengths)
   ans <- factor(ans, levels = nms_terms)
   ans
@@ -1296,9 +1263,9 @@ make_uses_hyper <- function(mod) {
 #' @returns An integer vector
 #'
 #' @noRd
-make_uses_hyperrand <- function(mod) {
+make_uses_hyperrandfree <- function(mod) {
   priors <- mod$priors
-  1L * vapply(priors, uses_hyperrand, FALSE)
+  1L * vapply(priors, uses_hyperrandfree, FALSE)
 }
 
 

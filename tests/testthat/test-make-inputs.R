@@ -531,9 +531,9 @@ test_that("'make_hyper' works with valid inputs", {
 })
 
 
-## 'make_hyperrand' ---------------------------------------------------------------
+## 'make_hyperrandfree' -------------------------------------------------------
 
-test_that("'make_hyperrand' works with valid inputs - no hyperrand", {
+test_that("'make_hyperrandfree' works with valid inputs - no hyperrandfree", {
   set.seed(0)
   data <- expand.grid(agegp = 0:2,
                       SEX = c("F", "M"))
@@ -543,13 +543,13 @@ test_that("'make_hyperrand' works with valid inputs - no hyperrand", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  ans_obtained <- make_hyperrand(mod)
+  ans_obtained <- make_hyperrandfree(mod)
   ans_expected <- numeric()
   names(ans_expected) <- character()
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
+test_that("'make_hyperrandfree' works with valid inputs - has hyperrandfree", {
   set.seed(0)
   data <- expand.grid(agegp = 0:2,
                       SEX = c("F", "M"),
@@ -561,7 +561,7 @@ test_that("'make_hyperrand' works with valid inputs - has hyperrand", {
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, SEX:time ~ Lin())
-  ans_obtained <- make_hyperrand(mod)
+  ans_obtained <- make_hyperrandfree(mod)
   ans_expected <- rep(c("SEX:time" = 0), 2)
   expect_identical(ans_obtained, ans_expected)
 })
@@ -682,9 +682,9 @@ test_that("'make_lengths_hyper' works with valid inputs", {
 })
 
 
-## 'make_lengths_hyperrand' -------------------------------------------------------
+## 'make_lengths_hyperrandfree' -----------------------------------------------
 
-test_that("'make_lengths_hyperrand' works with valid inputs", {
+test_that("'make_lengths_hyperrandfree' works with valid inputs", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = 1:2,
@@ -697,45 +697,12 @@ test_that("'make_lengths_hyperrand' works with valid inputs", {
                   exposure = popn)
   mod <- set_prior(mod, age:sex ~ Lin())
   mod <- set_prior(mod, sex ~ NFix())
-  ans_obtained <- make_lengths_hyperrand(mod)
+  ans_obtained <- make_lengths_hyperrandfree(mod)
   ans_expected <- c("(Intercept)" = 0L,
                     age = 0L,
                     sex = 0L,
                     region = 0L,
                     "age:sex" = 2L)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_levels_age' ----------------------------------------------------------
-
-test_that("'make_levels_age' works when data has age variable", {
-  set.seed(0)
-  data <- expand.grid(age = c("infant", "1 to 4", "5-9", "10 plus"),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(deaths ~ age * sex + time,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_levels_age(mod)
-  ans_expected <- unique(data$age)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_levels_age' works when data has no age variable", {
-  set.seed(0)
-  data <- expand.grid(bla = c("infant", "1 to 4", "5-9", "10 plus"),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(deaths ~ bla * sex + time,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_levels_age(mod)
-  ans_expected <- NULL
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -858,39 +825,6 @@ test_that("'make_levels_forecast_all' works with no intercept", {
   ans_expected <- list(age = NULL,
                        sex = NULL,
                        time = as.character(2006:2007))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_levels_sexgender' ----------------------------------------------------------
-
-test_that("'make_levels_sexgender' works when data has sexgender variable", {
-  set.seed(0)
-  data <- expand.grid(age = c("infant", "1 to 4", "5-9", "10 plus"),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(deaths ~ age * sex + time,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_levels_sexgender(mod)
-  ans_expected <- unique(data$sex)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_levels_sexgender' works when data has no sexgender variable", {
-  set.seed(0)
-  data <- expand.grid(age = c("infant", "1 to 4", "5-9", "10 plus"),
-                      time = 2000:2005,
-                      bla = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(deaths ~ age * bla + time,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_levels_sexgender(mod)
-  ans_expected <- NULL
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -1266,19 +1200,19 @@ test_that("'make_priors' works with valid inputs - has intercept", {
 
 ## 'make_random' --------------------------------------------------------------
 
-test_that("'make_random' works when no hyper, no hyperrand", {
+test_that("'make_random' works when no hyper, no hyperrandfree", {
     mod <- structure(.Data = list(priors = list(NFix(), Known(c(2, 3)))))
     expect_identical(make_random(mod), NULL)
 })
 
-test_that("'make_random' works when hyper, no hyperrand", {
+test_that("'make_random' works when hyper, no hyperrandfree", {
     mod <- structure(.Data = list(priors = list(N(), RW2())))
     expect_identical(make_random(mod), "effectfree")
 })
 
 test_that("'make_random' works when hyper, hyperrand", {
     mod <- structure(.Data = list(priors = list(N(), RW2(), Lin())))
-    expect_identical(make_random(mod), c("effectfree", "hyperrand"))
+    expect_identical(make_random(mod), c("effectfree", "hyperrandfree"))
 })
 
 
@@ -1385,26 +1319,26 @@ test_that("'make_terms_hyper' works with valid inputs", {
 })
 
 
-## 'make_terms_hyperrand' ---------------------------------------------------------
+## 'make_terms_hyperrandfree' -------------------------------------------------
 
-test_that("'make_terms_hyperrand' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ age + sex*time
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, sex:time ~ Lin())
-    ans_obtained <- make_terms_hyperrand(mod)
-    ans_expected <- factor(rep("sex:time", 2),
-                           levels = c("(Intercept)",
-                                      "age",
-                                      "sex",
-                                      "time",
-                                      "sex:time"))
-    expect_identical(ans_obtained, ans_expected)                      
+test_that("'make_terms_hyperrandfree' works", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex*time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex:time ~ Lin())
+  ans_obtained <- make_terms_hyperrandfree(mod)
+  ans_expected <- factor(rep("sex:time", 2),
+                         levels = c("(Intercept)",
+                                    "age",
+                                    "sex",
+                                    "time",
+                                    "sex:time"))
+  expect_identical(ans_obtained, ans_expected)                      
 })
 
 
@@ -1497,9 +1431,9 @@ test_that("'make_uses_hyper' works with valid inputs", {
 })
 
 
-## 'make_uses_hyperrand' ------------------------------------------------------
+## 'make_uses_hyperrandfree' --------------------------------------------------
 
-test_that("'make_uses_hyperrand' works", {
+test_that("'make_uses_hyperrandfree' works", {
     set.seed(0)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -1509,7 +1443,7 @@ test_that("'make_uses_hyperrand' works", {
                     data = data,
                     exposure = popn)
     mod <- set_prior(mod, sex:time ~ Lin())
-    ans_obtained <- make_uses_hyperrand(mod)
+    ans_obtained <- make_uses_hyperrandfree(mod)
     ans_expected <- c("(Intercept)" = 0L,
                       age = 0L,
                       sex = 0L,

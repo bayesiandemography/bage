@@ -143,37 +143,6 @@ test_that("'make_i_along' throws correct error when 'along' not found", {
 })
 
 
-## 'make_i_time' --------------------------------------------------------------
-
-test_that("'make_i_time' works with valid inputs", {
-  var_time <- "period"
-  dimnames_term <- list(reg = letters,
-                        period = 2001:2020)
-  ans_obtained <- make_i_time(var_time = var_time,
-                              dimnames_term = dimnames_term)
-  ans_expected <- 2L
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_i_time' gives correct error when 'var_time' is NULL", {
-  var_time <- NULL
-  dimnames_term <- list(reg = letters,
-                        period = 2001:2020)
-  expect_error(make_i_time(var_time = var_time,
-                           dimnames_term = dimnames_term),
-               "Internal error: `var_time` is NULL.")
-})
-
-test_that("'make_i_time' gives correct error when 'var_time' is NULL", {
-  var_time <- "wrong"
-  dimnames_term <- list(reg = letters,
-                        period = 2001:2020)
-  expect_error(make_i_time(var_time = var_time,
-                           dimnames_term = dimnames_term),
-               "Internal error: Term `reg:period` does not include time variable.")
-})
-
-
 ## 'make_matrix_along_by' -----------------------------------------------------
 
 test_that("'make_matrix_along_by' works when 'i_along' is 1", {
