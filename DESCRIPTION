@@ -24,7 +24,6 @@ Imports:
     cli,
     generics,
     Matrix,
-    matrixStats,
     methods,
     parallel,
     poputils (>= 0.3.3),

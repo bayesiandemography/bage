@@ -190,7 +190,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
       s <- seq_len(n_draw)
       mod$draws_effectfree <- mod$draws_effectfree[, s, drop = FALSE] 
       mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
-      mod$draws_hyperrand <- mod$draws_hyperrand[, s, drop = FALSE]
+      mod$draws_hyperrandfree <- mod$draws_hyperrandfree[, s, drop = FALSE]
       if (has_disp(mod))
         mod$draws_disp <- mod$draws_disp[s]
     }
@@ -492,11 +492,11 @@ unfit <- function(mod) {
   check_bage_mod(x = mod, nm_x = "mod")
   mod["draws_effectfree"] <- list(NULL)
   mod["draws_hyper"] <- list(NULL)
-  mod["draws_hyperrand"] <- list(NULL)
+  mod["draws_hyperrandfree"] <- list(NULL)
   mod["draws_disp"] <- list(NULL)
   mod["point_effectfree"] <- list(NULL)
   mod["point_hyper"] <- list(NULL)
-  mod["point_hyperrand"] <- list(NULL)
+  mod["point_hyperrandfree"] <- list(NULL)
   mod["point_disp"] <- list(NULL)
   mod
 }

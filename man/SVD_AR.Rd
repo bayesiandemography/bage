@@ -48,6 +48,10 @@ See below for details.}
 
 \item{s}{Scale for standard deviations terms.}
 
+\item{zero_sum}{If \code{TRUE}, values must
+sum to 0 within each combination
+of the \code{"by"} variables. Default is \code{FALSE}.}
+
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient in \code{SVD_AR()}.
 Defaults are \code{0.8} and \code{0.98}.}

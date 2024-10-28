@@ -256,13 +256,13 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:time ~ Lin())
+    mod <- set_prior(mod, age:time ~ Lin(zero_sum = TRUE))
     vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
     ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
     expect_identical(nrow(ans[["age:time"]]$slope), 10L)
     expect_identical(sapply(ans, length),
-                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 1L))
+                     c("(Intercept)" = 0L, age = 0L, time = 0L, sex = 0L, "age:time" = 3L))
 })
 
 
@@ -357,6 +357,73 @@ test_that("'draw_vals_linar' works - along dimension is first", {
   ans_expected <- mean + error
   ans_expected <- matrix(ans_expected, ncol = n_sim)
   dimnames(ans_expected) <- list(1:12, NULL)
+  expect_equal(ans_obtained, ans_expected)  
+})
+
+## 'draw_vals_lintrend' -------------------------------------------------------
+
+test_that("'draw_vals_lintrend' works - along dimension is first", {
+  set.seed(0)
+  prior <- Lin()
+  n_sim <- 10
+  matrix_along_by <- matrix(0:11, nr = 3)
+  colnames(matrix_along_by) <- 11:14
+  slope <- draw_vals_slope(mean_slope = prior$const[["mean_slope"]],
+                           sd_slope = prior$const[["sd_slope"]],
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
+  labels <- 1:12
+  set.seed(0)
+  ans_obtained <- draw_vals_lintrend(slope,
+                                     matrix_along_by = matrix_along_by,
+                                     labels = labels)
+  set.seed(0)
+  slope1 <- rep(slope, each = 3)
+  intercept1 <- -((3 + 1)/2) * slope1
+  ans_expected <- intercept1 + (1:3) * slope1
+  ans_expected <- matrix(ans_expected, ncol = n_sim)
+  dimnames(ans_expected) <- list(1:12, NULL)
+  expect_equal(ans_obtained, ans_expected)  
+})
+
+test_that("'draw_vals_lintrend' works - along dimension is second", {
+  set.seed(0)
+  prior <- Lin()
+  n_sim <- 10
+  matrix_along_by <- t(matrix(0:11, nr = 3))
+  colnames(matrix_along_by) <- 1:3
+  slope <- draw_vals_slope(mean_slope = prior$const[["mean_slope"]],
+                           sd_slope = prior$const[["sd_slope"]],
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
+  labels <- 1:12
+  set.seed(0)
+  ans_obtained <- draw_vals_lintrend(slope = slope,
+                                     matrix_along_by = matrix_along_by,
+                                     labels = labels)
+  set.seed(0)
+  slope1 <- rep(slope, each = 4)
+  intercept1 <- -0.5 * (4 + 1) * slope1
+  ans_expected <- intercept1 + (1:4) * slope1
+  ans_expected <- matrix(ans_expected, nrow = 12)
+  ans_expected <- ans_expected[c(1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12),]
+  dimnames(ans_expected) <- list(1:12, NULL)
+  expect_equal(ans_obtained, ans_expected)  
+})
+
+
+## 'draw_vals_norm' -------------------------------------------------------
+
+test_that("'draw_vals_norm' works", {
+  set.seed(0)
+  sd <- runif(10)
+  labels <- letters
+  set.seed(0)
+  ans_obtained <- draw_vals_norm(sd = sd, labels = labels)
+  set.seed(0)
+  ans_expected <- rnorm(n = 26 * 10, sd = rep(sd, each = 26))
+  ans_expected <- matrix(ans_expected, nc = 10)
+  dimnames(ans_expected) <- list(letters, NULL)
   expect_equal(ans_obtained, ans_expected)  
 })
 

@@ -91,68 +91,6 @@ make_i_along <- function(along, dimnames_term, var_time, var_age) {
 
 
 ## HAS_TESTS
-#' Find the Index of the Time Dimension, Throwing an Error if
-#' No Time Dimension is Present
-#'
-#' @param var_time Name of time dimension, or NULL
-#' @param dimnames_term Dimnames for array
-#' representing term
-#'
-#' @returns An integer
-#'
-#' @noRd
-make_i_time <- function(var_time, dimnames_term) {
-  nms <- names(dimnames_term)
-  nm_term <- paste(nms, collapse = ":")
-  if (is.null(var_time))
-    cli::cli_abort("Internal error: {.arg var_time} is NULL.")
-  ans <- match(var_time, nms, nomatch = 0L)
-  if (ans == 0L)
-    cli::cli_abort("Internal error: Term {.var {nm_term}} does not include time variable.")
-  ans
-}
-
-
-## HAS_TESTS
-#' Make Matrix Giving Mapping between Position Along Age
-#' or Age-Sex Dimension and Position in Matrix
-#'
-#' Make matrix giving mapping between (i) row and column
-#' within a matrix formed by bringing age, or age and sex, dimensions
-#' to the front, and (ii) the (zero-base) offset within
-#' within the original effect term.
-#'
-#' Note that matrix (i) is what we get when we multiply
-#' the effectfree matrix by the SVD matrix where columns
-#' are SVD components and rows are age or age-sex.
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A matrix
-#'
-#' @noRd
-make_matrix_agesex <- function(dimnames_term, var_age, var_sexgender) {
-  nms <- names(dimnames_term)
-  nm_term <- paste(nms, collapse = ":")
-  has_age <- !is.null(var_age)
-  has_var_sexgender <- !is.null(var_sexgender)
-  if (!has_age)
-    cli::cli_abort("Internal error: {.arg var_age} not specified.")
-  i_along <- match(var_age, nms, nomatch = 0L)
-  if (i_along == 0L)
-    cli::cli_abort("Internal error: Term {.var {nm_term}} does not have an age dimension.")
-  if (has_var_sexgender) {
-    i_sex <- match(var_sexgender, nms, nomatch = 0L)
-    if (i_sex > 0L)
-      i_along <- c(i_along, i_sex)
-  }
-  i_along <- sort(i_along)
-  make_matrix_along_by_inner(i_along = i_along,
-                             dimnames_term = dimnames_term)
-}
-
-
-## HAS_TESTS
 #' Create along-by Matrix for a Single Dimension
 #' of a Main Effect or Interaction
 #'
@@ -416,7 +354,7 @@ make_matrix_effectfree_effect_inner <- function(prior,
   ## we don't know the dimensions of 'effectfree',
   ## so we work backwards from 'effect', at each step,
   ## calculating the dimensions before the transformation
-  ans <- vector(mod = "list", length = 5L)
+  ans <- vector(mode = "list", length = 5L)
   ## transform from along-first to original order
   ans[[1L]] <- make_matrix_perm_along_from_front(i_along = i_along, dim_after = dim)
   s_along_first <- c(i_along, s[-i_along])
@@ -627,7 +565,7 @@ make_matrix_sub_orig_svd <- function(prior,
   ans <- Matrix::kronecker(I, ans)
   m_agesex <- make_matrix_perm_agesex_from_front(i_age = i_age,
                                                  i_sexgender = i_sexgender,
-                                                 dim = dim_after)
+                                                 dim_after = dim_after)
   ans <- m_agesex %*% ans
   ans
 }
@@ -741,9 +679,10 @@ make_offset_effectfree_effect_svd <- function(prior,
   ## we don't know the dimensions of 'effectfree',
   ## so we work backwards from 'effect', at each step,
   ## calculating the dimensions before the transformation
-  ans <- vector(mod = "list", length = 5L)
+  ans <- vector(mode = "list", length = 5L)
   ## transform from along-first to original order
-  ans[[1L]] <- make_matrix_perm_along_from_front(i_along = i_along, dim_after = dim)
+  ans[[1L]] <- make_matrix_perm_along_from_front(i_along = i_along,
+                                                 dim_after = dim)
   s_along_first <- c(i_along, s[-i_along])
   dim <- dim[s_along_first]
   ## append zeros
@@ -757,7 +696,8 @@ make_offset_effectfree_effect_svd <- function(prior,
     dim[-1L] <- dim[-1L] - 1L
   }
   ## transform to along-first from original order
-  ans[[4L]] <- make_matrix_perm_along_to_front(i_along = i_along, dim_after = dim)
+  ans[[4L]] <- make_matrix_perm_along_to_front(i_along = i_along,
+                                               dim_after = dim)
   dim <- dim[match(s, s_along_first)]
   ## transform from subspace to original space
   offset <- make_offset_sub_orig_svd(prior = prior,
@@ -823,7 +763,7 @@ make_offset_sub_orig_svd <- function(prior,
   ans <- Matrix::kronecker(ones, ans)
   m_agesex <- make_matrix_perm_agesex_from_front(i_age = i_age,
                                                  i_sexgender = i_sexgender,
-                                                 dim = dim_after)
+                                                 dim_after = dim_after)
   ans <- m_agesex %*% ans
   ans <- as.double(ans)
   ans
