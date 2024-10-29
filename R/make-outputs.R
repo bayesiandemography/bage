@@ -1173,6 +1173,7 @@ make_levels_spline_term <- function(prior,
 make_levels_svd <- function(mod, unlist) {
   priors <- mod$priors
   nms_priors <- names(priors)
+  var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
   dimnames_terms <- mod$dimnames_terms
@@ -1183,6 +1184,7 @@ make_levels_svd <- function(mod, unlist) {
       dimnames_term <- dimnames_terms[[i]]
       ans[[i]] <- make_levels_svd_term(prior = prior,
                                        dimnames_term = dimnames_term,
+                                       var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
     }
