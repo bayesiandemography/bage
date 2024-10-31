@@ -104,34 +104,23 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 
 ### Normal {#sec:norm}
 
+The normal model is 
 \begin{equation}
-  y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2)
+  \tilde{y}_i \sim \text{N}(\mu_i, \tilde{w}_i^{-1}\xi^2).
 \end{equation}
-where the $w_i$ are weights.
-
-Response $y_i$ is standardized to have mean 0 and standard deviation 1. We set
-\begin{equation}
-  y_i = \frac{y_i^{*} - \bar{y}^*}{s^*}
-\end{equation}
-where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*$ and $s^*$ are the mean and standard deviation of the $y_i^*$.
-
-Let $y_i$ be the outcome, and $w_i$ a weight, for cell $i$. We set
-\begin{align}
-  \bar{y} & = \frac{\sum_{i=1}^n y_i}{n} \\
-  s & = \sqrt{\frac{\sum_{i=1}^n (y_i - \bar{y})^2}{n-1}} \\
-  \bar{w} & = \frac{\sum_{i=1}^n w_i}{n}
-\end{align}
-and obtained standardized versions of $y_i$ and $w_i$
+where $\tilde{y}_i$ is a standardized version of outcome $y_i$, and $\tilde{w}_i$ is a standardized version of weight $w_i$. The standardization is carried out using
 \begin{align}
   \tilde{y}_i & = \frac{y_i - \bar{y}}{s} \\
   \tilde{w}_i & = \frac{w_i}{\bar{w}}.
 \end{align}
+where
+\begin{align}
+  \bar{y} & = \frac{\sum_{i=1}^n y_i}{n} \\
+  s & = \sqrt{\frac{\sum_{i=1}^n (y_i - \bar{y})^2}{n-1}} \\
+  \bar{w} & = \frac{\sum_{i=1}^n w_i}{n}.
+\end{align}
 
-
-The normal model is then
-\begin{equation}
-  \tilde{y}_i \sim \text{N}(\mu_i, \tilde{w}_i^{-1}\xi^2).
-\end{equation}
+Standardizing allows us to apply the same priors as we use for the Poisson and binomial models.
 
 
 # Model for means

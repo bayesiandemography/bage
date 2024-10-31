@@ -394,6 +394,8 @@ mod_norm <- function(formula, data, weights) {
   }
   else
     offset <- make_offset_ones(data)
+  offset_mean <- mean(offset, na.rm = TRUE)
+  offset <- offset / offset_mean
   ## process outcome
   outcome <- args[["outcome"]]
   n_obs <- sum(!is.na(outcome))

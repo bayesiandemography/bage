@@ -5,6 +5,17 @@
 
 * Removed some unnecessary coercion of sparse matrices to dense
   matrices (which could sometimes cause memory problems)
+* In the normal model, we now rescale the weights so that they have a
+  mean of 1. This allows us to use the same default prior
+  for dispersion (an exponential prior with mean 1), regardless of the
+  original weights. The rescaling of the weights affects the estimated
+  value for dispersion, but does not affect the estimates for any
+  other parameters.
+  
+
+
+
+
 
 ## Changes to interface
 
