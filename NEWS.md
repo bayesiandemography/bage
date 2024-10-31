@@ -10,6 +10,7 @@
 
 * Added 'along' column to tidy and print methods for `"bage_mod"`
   objects. (Thank you to Andrew Taylor for suggesting this.)
+
   
 
 

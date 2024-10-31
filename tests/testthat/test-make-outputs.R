@@ -1601,7 +1601,7 @@ test_that("'make_svd' works - SVD_RW", {
   ans_expected <- rbind(effectfree[22:31,],
                         matrix(0, nrow = 5, ncol = 5),
                         effectfree[32:56,])
-  expect_equal(unname(ans_obtained), ans_expected)
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_svd' works - SVD_AR", {
@@ -1621,9 +1621,8 @@ test_that("'make_svd' works - SVD_AR", {
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
   ans_expected <- effectfree[20:25,]
-  expect_equal(unname(ans_obtained), ans_expected)
+  expect_equal(ans_obtained, ans_expected)
 })
-
 
 
 ## 'make_term_components' -----------------------------------------------------

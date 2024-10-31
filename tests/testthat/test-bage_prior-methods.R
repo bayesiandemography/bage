@@ -4555,6 +4555,98 @@ test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd
 })
 
 
+## 'make_matrix_draws_svd_nonzero' --------------------------------------------
+
+test_that("'make_matrix_draws_svd' works with bage_prior_norm", {
+  set.seed(0)
+  prior <- N()
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- NULL
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd", {
+  set.seed(0)
+  prior <- SVD(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(30)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_ar", {
+  set.seed(0)
+  prior <- SVD_AR(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(30)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw", {
+  set.seed(0)
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  m <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                             var_sexgender = var_sexgender)
+  x <- matrix(rnorm(3 * 9), nr = 3)
+  ans_obtained <- as.numeric(m %*% as.numeric(x))
+  ans_expected <- as.numeric(cbind(0, x))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  m <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                             var_sexgender = var_sexgender)
+  x <- matrix(rnorm(3 * 9), nr = 3)
+  ans_obtained <- as.numeric(m %*% as.numeric(x))
+  ans_expected <- as.numeric(cbind(0, x))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - zero_sum is FALSE", {

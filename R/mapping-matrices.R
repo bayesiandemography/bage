@@ -34,6 +34,39 @@ get_labels_svd <- function(prior, dimnames_term, var_sexgender) {
 
 
 ## HAS_TESTS
+#' Generate Labels for the SVD Dimension of an SVD Prior
+#'
+#' @param prior Object of class 'bag_prior'
+#' @param along Name of 'along' dimension, or NULL
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_sexgender Name of time dimension, or NULL
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_dim_svd <- function(prior,
+                         dimnames_term,
+                         var_age,
+                         var_sexgender) {
+  labels_svd <- get_labels_svd(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_sexgender = var_sexgender)
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  i_age <- match(var_age, nm_split)
+  if (is.null(var_sexgender))
+      i_sexgender <- 0L
+  else
+    i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+  i_agesex <- c(i_age, i_sexgender)
+  dim <- lengths(dimnames_term)
+  dim_noagesex <- dim[-i_agesex]
+  c(length(labels_svd), dim_noagesex)
+}
+
+
+
+## HAS_TESTS
 #' Find the Index of the Along Dimension,
 #' Throwing an Error If Cannot be Found
 #'
@@ -255,15 +288,16 @@ make_matrix_along_by_svddynamic <- function(prior,
   nm_split <- dimnames_to_nm_split(dimnames_term)
   i_age <- match(var_age, nm_split)
   if (is.null(var_sexgender))
-      i_sexgender <- 0L
+    i_sexgender <- 0L
   else
     i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
   i_agesex <- c(i_age, i_sexgender)
-  dim <- c(length(labels_svd), dim[-i_agesex])
-  has_var_time <- !is.null(var_time)
+  dim_noagesex <- dim[-i_agesex]
+  dim <- c(length(labels_svd), dim_noagesex)
   i_along <- 1L
+  has_var_time <- !is.null(var_time)
   if (has_var_time) {
-    offset_time <- match(var_time, nm_split[-i_agesex], nomatch = 0L)
+    offset_time <- match(var_time, nm_split[-i_agesex])
     i_along <- i_along + offset_time
   }
   make_matrix_along_by_inner(i_along = i_along,
@@ -310,6 +344,82 @@ make_matrix_constraints <- function(dim) {
   ans <- lapply(ans, function(x) Reduce(kronecker, x))
   ans <- do.call(rbind, ans)
   ans
+}
+
+
+## HAS_TESTS
+#' Make Matrix for Post-Processing SVD Draws When
+#' 'append_zero' is TRUE
+#'
+#' Note that the age/sexgender dimension is always
+#' first in the inputs and outputs. We need to
+#' temporariliy shift the time dimension
+#' to first place to add the rows of zeros.
+#'
+#' @param prior Object of class 'bage_mod'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#' @param var_sexgender Name of sex/gender dimension, or NULL
+#' @param dim Dimension of term, once arguments
+#' such as 'zero_sum' and 'append_zero' have been applied.
+#' 
+#' @returns A sparse diagonal matrix
+#'
+#' @noRd
+make_matrix_draws_svd_appendzero <- function(prior,
+                                             dimnames_term,
+                                             var_time,
+                                             var_age,
+                                             var_sexgender) {
+  dim_svd <- make_dim_svd(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_age = var_age,
+                          var_sexgender)
+  i_time <- match(var_time, names(dim_svd))
+  dim_nozero <- dim_svd
+  dim_nozero[[i_time]] <- dim_nozero[[i_time]] - 1L
+  s <- seq_along(dim_svd)
+  perm <- c(i_time, s[-i_time])
+  dim_nozero_timefirst <- dim_nozero[perm]
+  m_to <- make_matrix_perm_along_to_front(i_along = i_time,
+                                          dim_after = dim_nozero_timefirst)
+  dim_haszero_timefirst <- dim_svd[perm]
+  m_append <- make_matrix_append_zero(dim_haszero_timefirst)
+  m_from <- make_matrix_perm_along_from_front(i_along = i_time,
+                                              dim_after = dim_svd)
+  m_from %*% m_append %*% m_to
+}
+
+
+## HAS_TESTS
+#' Make Matrix for Post-Processing SVD Draws When
+#' 'append_zero' is FALSE
+#'
+#' @param prior Object of class 'bage_mod'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#' @param var_sexgender Name of sex/gender dimension, or NULL
+#' @param dim Dimension of term, once arguments
+#' such as 'zero_sum' and 'append_zero' have been applied.
+#' 
+#' @returns A sparse diagonal matrix
+#'
+#' @noRd
+make_matrix_draws_svd_nozero <- function(prior,
+                                         dimnames_term,
+                                         var_time,
+                                         var_age,
+                                         var_sexgender) {
+  dim_svd <- make_dim_svd(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_age = var_age,
+                          var_sexgender)
+  n <- prod(dim_svd)
+  Matrix::.sparseDiagonal(n)
 }
 
 
