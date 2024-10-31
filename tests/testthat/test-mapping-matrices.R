@@ -41,6 +41,53 @@ test_that("'get_labels_svd' works - joint", {
 })
 
 
+## 'make_dim_svd' -------------------------------------------------------------
+
+test_that("'make_dim_svd' works - total", {
+  prior <- SVD(LFP)
+  dimnames_term <- list(region = c("A", "B"),
+                        age = poputils::age_labels(type = "five", min = 15, max = 60))
+  var_sexgender <- NULL
+  var_age <- "age"
+  ans_obtained <- make_dim_svd(prior,
+                               dimnames_term = dimnames_term,
+                               var_sexgender = var_sexgender,
+                               var_age = var_age)
+  ans_expected <- c(3L, region = 2L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_dim_svd' works - indep", {
+  prior <- SVD(LFP)
+  dimnames_term <- list(region = c("A", "B"),
+                        sex = c("M", "F"),
+                        age = poputils::age_labels(type = "five", min = 15, max = 60))
+  var_sexgender <- "sex"
+  var_age <- "age"
+  ans_obtained <- make_dim_svd(prior,
+                               dimnames_term = dimnames_term,
+                               var_sexgender = var_sexgender,
+                               var_age = var_age)
+  ans_expected <- c(6L, region = 2L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_dim_svd' works - joint", {
+  prior <- SVD(LFP, indep = FALSE)
+  dimnames_term <- list(region = c("A", "B"),
+                        sex = c("M", "F"),
+                        age = poputils::age_labels(type = "five", min = 15, max = 60))
+  var_sexgender <- "sex"
+  var_age <- "age"
+  ans_obtained <- make_dim_svd(prior,
+                               dimnames_term = dimnames_term,
+                               var_sexgender = var_sexgender,
+                               var_age = var_age)
+  ans_expected <- c(3L, region = 2L)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_i_along' -------------------------------------------------------------
 
 test_that("'make_i_along' works when 'along' is NULL but 'var_time' supplied", {
@@ -458,6 +505,73 @@ test_that("'make_matrix_constraints' works", {
                            0, 1, 0, 1, 0, 1),
                          byrow = TRUE,
                          nrow = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_matrix_draws_svd_appendzero' ---------------------------------------------
+
+test_that("'make_matrix_draws_svd_appendzero' works - age and time", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2005)
+  ans_obtained <- make_matrix_draws_svd_appendzero(prior = prior,
+                                                   dimnames_term = dimnames_term,
+                                                   var_time = "time",
+                                                   var_age = "age",
+                                                   var_sexgender = "sex")
+  ans_expected <- Matrix::kronecker(rbind(0, Matrix::.sparseDiagonal(4)),
+                                    Matrix::.sparseDiagonal(3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd_appendzero' works - time and age", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(time = 2001:2005,
+                        age = poputils::age_labels(type = "lt", max = 60))
+  ans_obtained <- make_matrix_draws_svd_appendzero(prior = prior,
+                                                   dimnames_term = dimnames_term,
+                                                   var_time = "time",
+                                                   var_age = "age",
+                                                   var_sexgender = "sex")
+  ans_expected <- Matrix::kronecker(rbind(0, Matrix::.sparseDiagonal(4)),
+                                    Matrix::.sparseDiagonal(3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+test_that("'make_matrix_draws_svd_appendzero' works - region, time, sex and age", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(reg = 1:2,
+                        time = 2001:2005,
+                        sex = c("f", "m"),
+                        age = poputils::age_labels(type = "lt", max = 60))
+  m <- make_matrix_draws_svd_appendzero(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = "time",
+                                        var_age = "age",
+                                        var_sexgender = "sex")
+  x <- array(1:48, dim = c(6, 2, 4))
+  ans_obtained <- array(m %*% as.integer(x), dim = c(6, 2, 5))
+  ans_expected <- array(0L, dim = c(6, 2, 5))
+  ans_expected[,,2:5] <- 1 * x
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+
+
+## 'make_matrix_draws_svd_nozero' ---------------------------------------------
+
+test_that("'make_matrix_draws_svd_nozero' works", {
+  prior <- SVD(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60))
+  ans_obtained <- make_matrix_draws_svd_nozero(prior = prior,
+                                               dimnames_term = dimnames_term,
+                                               var_time = "time",
+                                               var_age = "age",
+                                               var_sexgender = "sex")
+  ans_expected <- Matrix::.sparseDiagonal(3)
   expect_identical(ans_obtained, ans_expected)
 })
 

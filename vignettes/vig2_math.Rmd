@@ -115,6 +115,24 @@ Response $y_i$ is standardized to have mean 0 and standard deviation 1. We set
 \end{equation}
 where the $y_i^*$ are the values originally supplied by the user, and $\bar{y}^*$ and $s^*$ are the mean and standard deviation of the $y_i^*$.
 
+Let $y_i$ be the outcome, and $w_i$ a weight, for cell $i$. We set
+\begin{align}
+  \bar{y} & = \frac{\sum_{i=1}^n y_i}{n} \\
+  s & = \sqrt{\frac{\sum_{i=1}^n (y_i - \bar{y})^2}{n-1}} \\
+  \bar{w} & = \frac{\sum_{i=1}^n w_i}{n}
+\end{align}
+and obtained standardized versions of $y_i$ and $w_i$
+\begin{align}
+  \tilde{y}_i & = \frac{y_i - \bar{y}}{s} \\
+  \tilde{w}_i & = \frac{w_i}{\bar{w}}.
+\end{align}
+
+
+The normal model is then
+\begin{equation}
+  \tilde{y}_i \sim \text{N}(\mu_i, \tilde{w}_i^{-1}\xi^2).
+\end{equation}
+
 
 # Model for means
 

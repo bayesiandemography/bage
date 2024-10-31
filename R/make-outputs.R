@@ -1407,8 +1407,9 @@ make_spline <- function(mod, effectfree) {
 }
 
 
-## HAS_TESTS
 #' Extract Posterior Draws for Free Parameters used in SVD Priors
+#'
+#' Where necessary, append zeros to start of time dimension.
 #'
 #' @param mod Fitted object of class 'bage_mod'
 #' @param mod effectfree Matrix with posterior draws of free parameters
@@ -1430,46 +1431,87 @@ make_svd <- function(mod, effectfree) {
     length_effectfree <- lengths_effectfree[[i_term]]
     to <- to + length_effectfree
     prior <- priors[[i_term]]
-    if (is_svd(prior)) {
+    dimnames_term <- dimnames_terms[[i_term]]
+    m <- make_matrix_draws_svd(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+    if (!is.null(m)) {
       s <- seq.int(to = to, length.out = length_effectfree)
       vals <- effectfree[s, , drop = FALSE]
-      is_dynamic <- uses_along(prior)
-      if (is_dynamic) {
-        dimnames_term <- dimnames_terms[[i_term]]
-        labels_svd <- get_labels_svd(prior = prior,
-                                     dimnames_term = dimnames_term,
-                                     var_sexgender = var_sexgender)
-        nm_split <- dimnames_to_nm_split(dimnames_term)
-        i_age <- match(var_age, nm_split)
-        i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
-        i_agesex <- c(i_age, i_sexgender)
-        dim <- lengths(dimnames_term)
-        dim <- c(length(labels_svd), dim[-i_agesex])
-        append_zero <- nrow(vals) < prod(dim)
-        if (append_zero) {
-          along <- prior$specific$along
-          i_along <- make_i_along(along = along,
-                                  dimnames_term = dimnames_term,
-                                  var_time = var_time,
-                                  var_age = var_age)
-          dim_nozero <- replace(dim, i_along, dim[i_along] - 1L)
-          s <- seq_along(dim)
-          perm <- c(i_along, s[-i_along])
-          m_to <- make_matrix_perm_along_to_front(i_along = i_along,
-                                                  dim_after = dim_nozero[perm])
-          m_append <- make_matrix_append_zero(dim[perm])
-          m_from <- make_matrix_perm_along_from_front(i_along = i_along,
-                                                      dim_after = dim)
-          vals <- m_from %*% m_append %*% m_to %*% vals
-          vals <- Matrix::as.matrix(vals)
-        }
-      }
+      vals <- m %*% vals
+      vals <- Matrix::as.matrix(vals)
       ans[[i_term]] <- vals
     }
   }
   ans <- do.call(rbind, ans)
   ans
 }
+
+
+ 
+## HAS_TESTS
+#' Extract Posterior Draws for Free Parameters used in SVD Priors
+#'
+#' @param mod Fitted object of class 'bage_mod'
+#' @param mod effectfree Matrix with posterior draws of free parameters
+#'
+#' @returns A matrix
+#'
+## #' @noRd
+## make_svd <- function(mod, effectfree) {
+##   priors <- mod$priors
+##   dimnames_terms <- mod$dimnames_terms
+##   var_time <- mod$var_time
+##   var_age <- mod$var_age
+##   var_sexgender <- mod$var_sexgender
+##   n_term <- length(priors)
+##   ans <- vector(mode = "list", length = n_term)
+##   lengths_effectfree <- make_lengths_effectfree(mod)
+##   to <- 0L
+##   for (i_term in seq_len(n_term)) {
+##     length_effectfree <- lengths_effectfree[[i_term]]
+##     to <- to + length_effectfree
+##     prior <- priors[[i_term]]
+##     if (is_svd(prior)) {
+##       s <- seq.int(to = to, length.out = length_effectfree)
+##       vals <- effectfree[s, , drop = FALSE]
+##       is_dynamic <- uses_along(prior)
+##       if (is_dynamic) {
+##         dimnames_term <- dimnames_terms[[i_term]]
+##         labels_svd <- get_labels_svd(prior = prior,
+##                                      dimnames_term = dimnames_term,
+##                                      var_sexgender = var_sexgender)
+##         nm_split <- dimnames_to_nm_split(dimnames_term)
+##         i_age <- match(var_age, nm_split)
+##         i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
+##         i_agesex <- c(i_age, i_sexgender)
+##         dim <- lengths(dimnames_term)
+##         dim_noagesex <- dim[-i_agesex]
+##         dim <- c(length(labels_svd), dim_noagesex)
+##         append_zero <- nrow(vals) < prod(dim)
+##         if (append_zero) {
+##           i_time <- match(var_time, names(dim_noagesex))
+##           dim_noagesex[[i_time]] <- dim_noagesex[[i_time]] - 1L
+##           dim_nozero <- c(length(labels_svd), dim_noagesex)
+##           s <- seq_along(dim_nozero)
+##           perm <- c(i_time + 1L, s[-(i_along + 1L)])
+##           m_to <- make_matrix_perm_along_to_front(i_along = i_along,
+##                                                   dim_after = dim_nozero[perm])
+##           m_append <- make_matrix_append_zero(dim[perm])
+##           m_from <- make_matrix_perm_along_from_front(i_along = i_along,
+##                                                       dim_after = dim)
+##           vals <- m_from %*% m_append %*% m_to %*% vals
+##           vals <- Matrix::as.matrix(vals)
+##         }
+##       }
+##       ans[[i_term]] <- vals
+##     }
+##   }
+##   ans <- do.call(rbind, ans)
+##   ans
+## }
 
 
 ## HAS_TESTS

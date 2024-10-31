@@ -3644,14 +3644,10 @@ make_matrix_along_by_effectfree_innermost.bage_prior_svd <- function(prior,
                                                                      var_age,
                                                                      var_sexgender,
                                                                      dim) {
-  labels_svd <- get_labels_svd(prior = prior,
-                               dimnames_term = dimnames_term,
-                               var_sexgender = var_sexgender)
-  nm_split <- dimnames_to_nm_split(dimnames_term)
-  i_age <- match(var_age, nm_split)
-  i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
-  i_agesex <- c(i_age, i_sexgender)
-  dim <- c(length(labels_svd), dim[-i_agesex])
+  dim <- make_dim_svd(prior = prior,
+                      dimnames_term = dimnames_term,
+                      var_sexgender = var_sexgender,
+                      var_age = var_age)
   make_matrix_along_by_inner(i_along = 1L,
                              dim = dim)
 }
@@ -3703,6 +3699,101 @@ make_matrix_along_by_effectfree_innermost.bage_prior_svd_rw2 <- function(prior,
                                   var_sexgender = var_sexgender,
                                   dim = dim)
 }
+
+
+## 'make_matrix_draws_svd' ----------------------------------------------------
+
+#' Make Matrix to Transform Draws for SVD
+#'
+#' The transform is to add zeros to the
+#' start of the time dimension, which is
+#' only done with some dynamic SVD priors.
+#'
+#' Return NULL with non-SVD priors
+#' 
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time variable, or NULL
+#' @param var_age Name of age variable, or NULL
+#' @param var_sexgender Name of sexgender variable, or NULL
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_draws_svd <- function(prior,
+                                  dimnames_term,
+                                  var_time,
+                                  var_age,
+                                  var_sexgender) {
+  UseMethod("make_matrix_draws_svd")
+}
+
+#' @export
+make_matrix_draws_svd.bage_prior <- function(prior,
+                                             dimnames_term,
+                                             var_time,
+                                             var_age,
+                                             var_sexgender) {
+  NULL
+}
+
+#' @export
+make_matrix_draws_svd.bage_prior_svd <- function(prior,
+                                                 dimnames_term,
+                                                 var_time,
+                                                 var_age,
+                                                 var_sexgender) {
+  make_matrix_draws_svd_nozero(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+#' @export
+make_matrix_draws_svd.bage_prior_svd_ar <- function(prior,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender) {
+  make_matrix_draws_svd_nozero(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
+}
+
+#' @export
+make_matrix_draws_svd.bage_prior_svd_rw <- function(prior,
+                                                    dimnames_term,
+                                                    var_time,
+                                                    var_age,
+                                                    var_sexgender) {
+  make_matrix_draws_svd_appendzero(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender)
+}
+
+#' @export
+make_matrix_draws_svd.bage_prior_svd_rw2 <- function(prior,
+                                                     dimnames_term,
+                                                     var_time,
+                                                     var_age,
+                                                     var_sexgender) {
+  make_matrix_draws_svd_appendzero(prior = prior,
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender)
+}
+
+
+
+
+
 
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------
