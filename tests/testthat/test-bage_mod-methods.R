@@ -232,6 +232,30 @@ test_that("'components' gives message when used unfitted and quiet is FALSE", {
                    "Model not fitted, so values drawn straight from prior distribution.")
 })
 
+test_that("'disp' estimates not affected by weights in normal model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$income <- rnorm(n = nrow(data), mean = 10, sd = 3)
+    data$wt1 <- runif(n = nrow(data), max = 5)
+    data$wt2 <- 20 * data$wt1 
+    formula <- income ~ age + sex + time
+    mod1 <- mod_norm(formula = formula,
+                    data = data,
+                    weights = wt1)
+    mod1_fitted <- fit(mod1)
+    comp1 <- components(mod1_fitted)
+    disp1 <- comp1$.fitted[comp1$term == "disp"]
+    mod2 <- mod_norm(formula = formula,
+                    data = data,
+                    weights = wt2)
+    mod2_fitted <- fit(mod2)
+    comp2 <- components(mod1_fitted)
+    disp2 <- comp2$.fitted[comp1$term == "disp"]
+    expect_equal(rvec::draws_mean(disp1), rvec::draws_mean(disp2))
+})
+
+
 
 ## 'draw_vals_augment_fitted' ---------------------------------------------------------------
 

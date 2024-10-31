@@ -562,9 +562,7 @@ make_draws_components <- function(mod) {
   ans <- c(ans_effects, ans_hyper, ans_hyperrand, ans_spline, ans_svd)
   ## disp
   if (has_disp(mod)) {
-    disp <- mod$draws_disp
-    disp <- matrix(disp, nrow = 1L)
-    ans_disp <- rvec::rvec_dbl(disp)
+    ans_disp <- get_disp(mod)
     ans <- c(ans, ans_disp)
   }
   ## return
