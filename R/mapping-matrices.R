@@ -789,24 +789,19 @@ make_offset_effectfree_effect_svd <- function(prior,
   ## we don't know the dimensions of 'effectfree',
   ## so we work backwards from 'effect', at each step,
   ## calculating the dimensions before the transformation
-  ans <- vector(mode = "list", length = 5L)
+  ans <- vector(mode = "list", length = 4L)
   ## transform from along-first to original order
   ans[[1L]] <- make_matrix_perm_along_from_front(i_along = i_along,
                                                  dim_after = dim)
   s_along_first <- c(i_along, s[-i_along])
   dim <- dim[s_along_first]
-  ## append zeros
-  if (append_zero) {
-    ans[[2L]] <- make_matrix_append_zero(dim)
-    dim[[1L]] <- dim[[1L]] - 1L
-  }
   ## transform from unconstrained space to constrained space
   if (zero_sum) {
-    ans[[3L]] <- make_matrix_unconstr_constr_along(dim)
+    ans[[2L]] <- make_matrix_unconstr_constr_along(dim)
     dim[-1L] <- dim[-1L] - 1L
   }
   ## transform to along-first from original order
-  ans[[4L]] <- make_matrix_perm_along_to_front(i_along = i_along,
+  ans[[3L]] <- make_matrix_perm_along_to_front(i_along = i_along,
                                                dim_after = dim)
   dim <- dim[match(s, s_along_first)]
   ## transform from subspace to original space
@@ -816,7 +811,7 @@ make_offset_effectfree_effect_svd <- function(prior,
                                      var_sexgender = var_sexgender,
                                      dim_after = dim,
                                      zero_sum = zero_sum)
-  ans[[5L]] <- offset
+  ans[[4L]] <- offset
   ## combine
   ans <- Filter(Negate(is.null), ans)
   ans <- Reduce('%*%', ans)
