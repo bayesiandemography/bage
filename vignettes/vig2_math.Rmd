@@ -141,14 +141,37 @@ where
 
 # Priors for Intercept, Main Effects, and Interactions {#sec:priors}
 
+## General features
 
-The algorithm for assigning default priors:
+### 'Along' and 'by' dimensions
+
+Each $\pmb{\beta}^{(m)}$, $m > 0$, can be a main effect, involving a single dimension, or an interaction, involving two dimensions. Some priors, when applied to an interaction, treat one dimension, referred to as the 'along' dimension, differently from the remaining dimensions, referred to as 'by' dimensions. A random walk prior (Section \@ref(sec:pr-rw)), for instance, consists of an independent random walk along the 'along' dimension, within each combination of the 'by' dimensions.
+
+We use $v = 1, \cdots, V_m$ to denote position within the 'along' dimension, and $u = 1, \cdots, V_m$ to denote position within a classification formed by the 'by' dimensions. When there are no sum-to-zero constraints (see below), $U_m = \prod_k d_k$ where $d_k$ is the number of elements in the $k$th 'by' variable. When there are sum-to-zero constraints, $U_m = \prod_k (d_k - 1)$.
+
+If a prior involves an 'along' dimension but the user does not specify one, the procedure for choosing a dimension is as follows:
+
+- if the term involves time, use the time dimension;
+- otherwise, if the term involves age, use the age dimension;
+- otherwise, raise an error asking the user to explicitly specify a dimension. 
+
+
+### Sum-to-zero constraints {#sec:sum-to-zero}
+
+Priors that involve 'along' dimensions can optionally include sum-to-zero constraints. If these constrains are applied, then within each element $v$ of the 'along' dimension, the sum of the $\beta_j^{(m)}$ across each 'by' dimension is zero. For instance, if $\pmb{\beta}^{(m)}$ is an interaction between time, region, and sex, with time as the 'along' variable, then within each combination of time and region, the values for females and males sum to zero, and within each combination of time and sex, the values for regions sum to zero.
+
+Except in the case of dynamic SVD-based priors (eg Sections \@ref(sec:pr-svd-rw)), the sum-to-zero constraints are implemented internally by drawing values within an unrestricted lower-dimensional space, and then transforming to the restricted higher-dimensional space. For instance, a random walk prior for a time-region interaction with $R$ regions consists of $R-1$ unrestricted random walks along time, which are converted into $R$ random walks that sum to zero across region. Matrices for transforming between the unrestricted and restricted spaces are constructed using the QR decomposition, as described in Section 1.8.1 of @wood2017generalized. With dynamic SVD-based priors, we draw values for the SVD coefficients with no constraints, convert these to unconstrained values for $\pmb{\beta}^{(m)}$, and then subtract means.
+
+
+### Algorithm for assigning default priors
 
 - If $\pmb{\beta}^{(m)}$ has one or two elements, assign $\pmb{\beta}^{(m)}$ a fixed-normal prior (Section \@ref(sec:pr-fnorm));
-- otherwise, if $\pmb{\beta}^{(m)}$ is an age or time main effect, assign $\pmb{\beta}^{(m)}$ a random walk prior (Section \@ref(sec:pr-rw));
+- otherwise, if $\pmb{\beta}^{(m)}$ involves time, assign $\pmb{\beta}^{(m)}$ a random walk prior (Section \@ref(sec:pr-rw)) along the time dimension;
+- otherwise, if $\pmb{\beta}^{(m)}$ involves age, assign $\pmb{\beta}^{(m)}$ a random walk prior (Section \@ref(sec:pr-rw)) along the age dimension;
 - otherwise, assign $\pmb{\beta}^{(m)}$ a normal prior (Section \@ref(sec:pr-norm))
 
 The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (Section \@ref(sec:pr-fnorm)) or a Known prior (Section \@ref(sec:pr-known)).
+
 
 
 ## Normal {#sec:pr-norm}
@@ -232,28 +255,19 @@ NFix(sd = 1)
 
 ### Model
 
-**Existing version**
-
-\begin{align}
-  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
-\end{align}
-
-**Suggested new version**
 \begin{align}
   \beta_{u,1}^{(m)} & = 0, \quad u = 1, \cdots, U_m \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; v = 2, \cdots, V_m \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
-(Keeps mean closer to 0.)
+When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u1}^{(m)} \mid 0, 1)  \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, \tau_m^2)  \prod_{v=3}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -265,6 +279,8 @@ NFix(sd = 1)
   \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m
 \end{align}
 
+If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
+
 
 ### Forecasting
 
@@ -272,31 +288,23 @@ NFix(sd = 1)
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
 \end{equation}
 
+If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
+
 
 ### Code
 
 ```
-RW(s = 1, along = NULL)
+RW(s = 1, along = NULL, zero_sum = TRUE)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- `along` used to identify "along" and "by" dimensions
+- `along` used to identify 'along' and 'by' dimensions.
+- if `zero_sum` is `TRUE`, sum-to-zero constraints are applied.
 
 
 ## Second-order random walk {#sec:pr-rw2}
 
 ### Model
-
-**Existing version**
-
-
-\begin{align}
-  \beta_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots, U_m, \quad v = 1,2 \\
-  \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
-  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
-\end{align}
-
-**Suggested new version**
 
 \begin{align}
   \beta_{u,1}^{(m)} & = 0, \quad u = 1,\cdots,U_m  \\
@@ -306,11 +314,12 @@ RW(s = 1, along = NULL)
 \end{align}
 
 
+When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^2 \text{N}(\beta_{u,v}^{(m)} \mid 0, 1) \prod_{u=1}^{U_m}\prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} - 2 \beta_{u,v-1}^{(m)} + \beta_{u,v-2}^{(m)} \mid 0, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2) \text{N}(\beta_{u,3}^{(m)} \mid 2 \beta_{u,2}^{(m)}, \tau_m^2) \prod_{v=4}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
 
@@ -318,9 +327,13 @@ RW(s = 1, along = NULL)
 
 \begin{align}
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1,2 \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3,\cdots,V_m
+  \beta_{u,2}^{(m)} & \sim \text{N}(0, (A_{\eta}^{(m)})^2), \quad u = 1, \cdots, U_m \\
+  \beta_{u,3}^{(m)} & \sim \text{N}(2 \beta_{u,2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3,\cdots,V_m
+  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 4,\cdots,V_m
 \end{align}
+
+If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
+
 
 ### Forecasting
 
@@ -328,16 +341,19 @@ RW(s = 1, along = NULL)
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(2 \beta_{u,V_m+h-1}^{(m)} - \beta_{u,V_m+h-2}^{(m)}, \tau_m^2)
 \end{equation}
 
+If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
+
 
 ### Code
 
 ```
-RW2(s = 1, sd = 1, along = NULL)
+RW2(s = 1, sd = 1, along = NULL, zero_sum = TRUE)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
-- `along` used to identify "along" and "by" dimensions
+- `along` used to identify 'along' and 'by' dimensions
+- if `zero_sum` is `TRUE`, sum-to-zero constraints are applied.
 
 
 
@@ -387,7 +403,7 @@ RWSeas(n, s = 1, s_seas = 1, along = NULL)
 - `n` is $S_m$
 - `s` is $A_{\tau}^{(m)}$
 - `s_seas` is $A_{\omega}^{(m)}$
-- `along` used to identify "along" and "by" dimensions
+- `along` used to identify 'along' and 'by' dimensions
 
 
 
@@ -437,7 +453,7 @@ RW2Seas(n, s = 1, s_seas = 1, along = NULL)
 - `n` is $S_m$
 - `s` is $A_{\tau}^{(m)}$
 - `s_seas` is $A_{\omega}^{(m)}$
-- `along` used to identify "along" and "by" dimensions
+- `along` used to identify 'along' and 'by' dimensions
 
 
 ## Autoregressive {#sec:pr-ar}
@@ -483,7 +499,7 @@ AR(n = 2, s = 1, along = NULL)
 
 - `n` is $K_m$
 - `s` is $A_{\tau}^{(m)}$
-- `along` is used to indentify the "along" and "by" dimensions
+- `along` is used to indentify the 'along' and 'by' dimensions
 
 
 ## AR1 {#sec:pr-ar1}
@@ -526,7 +542,7 @@ AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 - `min` is $a_{0m}$
 - `max` is $a_{1m}$
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
-- `along` is used to identify "along" and "by" dimensions
+- `along` is used to identify 'along' and 'by' dimensions
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
@@ -586,7 +602,7 @@ Lin(s = 1, sd = 1, along = NULL)
 
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
-- `along` is used to indentify "along" and "by" dimensions
+- `along` is used to indentify 'along' and 'by' dimensions
 
 
 ## Linear-AR {#sec:pr-lin-ar}
@@ -638,7 +654,7 @@ Lin_AR(s = 1, sd = 1, along = NULL)
 
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
-- `along` is used to indentify "along" and "by" variables
+- `along` is used to indentify 'along' and 'by' variables
 
 
 ## P-Spline {#sec:pr-spline}
@@ -648,7 +664,7 @@ Lin_AR(s = 1, sd = 1, along = NULL)
 \begin{equation}
   \pmb{\beta}_u^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}_u^{(m)}, \quad u = 1, \cdots, U_m
 \end{equation}
-where $\pmb{\beta}_u^{(m)}$ is the subvector of $\pmb{\beta}^{(m)}$ composed of elements from the $u$th combination of the "by" variables, $\pmb{B}^{(m)}$ is a $V_m \times K_m$ matrix of B-splines, and $\pmb{\alpha}_u^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
+where $\pmb{\beta}_u^{(m)}$ is the subvector of $\pmb{\beta}^{(m)}$ composed of elements from the $u$th combination of the 'by' variables, $\pmb{B}^{(m)}$ is a $V_m \times K_m$ matrix of B-splines, and $\pmb{\alpha}_u^{(m)}$ has a second-order random walk prior (Section \@ref(sec:pr-rw2)).
 
 
 $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{v}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{v}))$, with $\pmb{v} = (1, \cdots, V_m)^{\top}$. The B-splines are centered, so that $\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{v}) = 0$, $k = 1, \cdots, K_m$.
@@ -674,7 +690,7 @@ Sp(n = NULL, s = 1)
 
 - `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$.
 - `s` is the $A_{\tau}^{(m)}$ from the second-order random walk prior. Defaults to 1.
-- `along` is used to identify "along" and "by" variables
+- `along` is used to identify 'along' and 'by' variables
 
 
 ## SVD {#sec:pr-svd}
@@ -1092,7 +1108,7 @@ For $m = 0, \cdots, M$:
 
 #### Term-level standardization
 
-Term-level standardization aims to clarify the behaviour of the terms making up the model, including trend, cyclical, and seasonal effects. The intercept term is left untouched. All other $\pmb{\beta}^{(m)}$ are centered across the "along" dimension, and each of the "by" dimensions. 
+Term-level standardization aims to clarify the behaviour of the terms making up the model, including trend, cyclical, and seasonal effects. The intercept term is left untouched. All other $\pmb{\beta}^{(m)}$ are centered across the 'along' dimension, and each of the 'by' dimensions. 
 
 
 ### Standardization of forecasts

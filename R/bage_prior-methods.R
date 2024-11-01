@@ -3791,11 +3791,6 @@ make_matrix_draws_svd.bage_prior_svd_rw2 <- function(prior,
 }
 
 
-
-
-
-
-
 ## 'make_matrix_effectfree_effect' --------------------------------------------
 
 #' Make matrix mapping effectfree to effect
