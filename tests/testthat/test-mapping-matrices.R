@@ -993,11 +993,6 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - ag
 })
 
 
-  
-                        
-
-
-
 ## 'make_offset_sub_orig_svd' ----------------------------------------
 
 test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - age x time interaction", {
