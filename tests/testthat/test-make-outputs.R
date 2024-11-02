@@ -1769,6 +1769,32 @@ test_that("'make_unconstr_dimnames_by' works", {
 })
 
 
+## 'make_zero_sum_mod' -----------------------------------------------------------
+
+test_that("'make_zero_sum_mod' works", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ sex * age + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:time ~ Sp(n_comp = 5, along = "age", zero_sum = TRUE))
+  mod <- set_prior(mod, sex:age ~ RW())
+  ans_obtained <- make_zero_sum_mod(mod)
+  ans_expected <- c("(Intercept)" = NA,
+                    sex = NA,
+                    age = NA,
+                    time = NA,
+                    "sex:age" = FALSE,
+                    "age:time" = TRUE)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'paste_dot' ----------------------------------------------------------------
 
 test_that("'paste_dot' works with valid inputs", {
