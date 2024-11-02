@@ -2276,9 +2276,9 @@ test_that("'forecast_term' works with bage_prior_linex - zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_lin - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_linex - zero_sum is TRUE", {
   set.seed(0)
-  prior <- Lin(zero_sum = TRUE)
+  prior <- Lin(zero_sum = TRUE, s = 0)
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
