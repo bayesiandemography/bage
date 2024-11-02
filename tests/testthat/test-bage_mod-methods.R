@@ -862,7 +862,7 @@ test_that("'fit' works with Lin_AR", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, time ~ Lin_AR())
+    mod <- set_prior(mod, time ~ Lin_AR(s = 0.2))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -2242,15 +2242,18 @@ test_that("'tidy' works with valid inputs", {
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-    formula <- deaths ~ age + sex
+    formula <- deaths ~ age * sex
     mod <- mod_binom(formula = formula,
                     data = data,
                     size = popn)
     ans_unfit <- tidy(mod)
     expect_true(is.data.frame(ans_unfit))
-    expect_identical(names(ans_unfit), c("term", "spec", "along", "n_par", "n_par_free"))
+    expect_identical(names(ans_unfit), c("term", "prior", "along", "zero_sum",
+                                         "n_par", "n_par_free"))
     mod_fitted <- fit(mod)
     ans_fitted <- tidy(mod_fitted)
     expect_true(is.data.frame(ans_fitted))
-    expect_identical(names(ans_fitted), c("term", "spec", "along", "n_par", "n_par_free", "std_dev"))
+    expect_identical(names(ans_fitted), c("term", "prior", "along", "zero_sum",
+                                          "n_par", "n_par_free",
+                                          "std_dev"))
 })

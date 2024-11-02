@@ -5,19 +5,15 @@
     Output
       -- Unfitted Poisson model --
       
-           deaths ~ age + sex + time
-      
-      (Intercept) ~ NFix()
-              age ~ RW()
-              sex ~ NFix()
-             time ~ RW()
+        deaths ~ age + sex + time
       
       data model for outcome: rr3()
       
-       term along n_par n_par_free
-        age   age    10          9
-        sex     -     2          2
-       time  time     6          5
+              term  prior along zero_sum n_par n_par_free
+       (Intercept) NFix()     -        -     1          1
+               age   RW()   age        -    10          9
+               sex NFix()     -        -     2          2
+              time   RW()  time        -     6          5
       
            dispersion: mean=1
              exposure: popn
@@ -33,19 +29,15 @@
     Output
       -- Fitted Poisson model --
       
-           deaths ~ age + sex + time
-      
-      (Intercept) ~ NFix()
-              age ~ RW()
-              sex ~ NFix()
-             time ~ RW()
+        deaths ~ age + sex + time
       
       data model for outcome: rr3()
       
-       term along n_par n_par_free std_dev
-        age   age    10          9  0.0471
-        sex     -     2          2  0.0028
-       time  time     6          5  0.0142
+              term  prior along zero_sum n_par n_par_free std_dev
+       (Intercept) NFix()     -        -     1          1      NA
+               age   RW()   age        -    10          9  0.0471
+               sex NFix()     -        -     2          2  0.0028
+              time   RW()  time        -     6          5  0.0142
       
            dispersion: mean=1
              exposure: popn
