@@ -21,8 +21,13 @@
 
 * Added 'along' column to tidy and print methods for `"bage_mod"`
   objects. (Thank you to Andrew Taylor for suggesting this.)
-
-  
+* Allow `s = 0` in `Lin()` priors
+* Added `zero_sum` argument to priors with an `along` dimension. When
+  `zero_sum` is `TRUE`, values for each combination of a `by` variable
+  and the `along` variable are constrained to sum to zero. This can
+  allow better identification of higher-level terms in complicated
+  models. It can also slow computations, and has virtually no effect on
+  estimates of the lowest-level rates, probabilities, and means.
 
 
 
