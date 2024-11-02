@@ -42,6 +42,18 @@
 ---
 
     Code
+      print(Lin(s = 0))
+    Output
+        Lin(s=0) 
+               s: 0
+      mean_slope: 0
+        sd_slope: 1
+           along: NULL
+        zero_sum: FALSE
+
+---
+
+    Code
       print(Lin_AR())
     Output
         Lin_AR() 
