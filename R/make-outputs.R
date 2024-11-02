@@ -702,16 +702,20 @@ make_draws_post <- function(est, prec, map, n_draw) {
   is_fixed <- make_is_fixed(est = est, map = map)
   est_unlist <- unlist(est)
   mean <- est_unlist[!is_fixed]
-  R_prec <- tryCatch(chol(prec), error = function(e) NULL)
-  if (is.matrix(R_prec))
+  CH <- Matrix::Cholesky(prec)
+  is_sparse <- methods::is(CH, "dCHMsimpl") || methods::is(CH, "dCHMsuper")
+  if (is_sparse) {
+    t_draws_nonfixed <- sparseMVN::rmvn.sparse(n = n_draw,
+                                               mu = mean,
+                                               CH = CH,
+                                               prec = TRUE)
+    draws_nonfixed <- t(t_draws_nonfixed)
+  }
+  else {
+    R_prec <- Matrix::expand1(CH, which = "L")
     draws_nonfixed <- rmvnorm_chol(n = n_draw,
                                    mean = mean,
                                    R_prec = R_prec)
-  else {
-    scaled_eigen <- make_scaled_eigen(prec)
-    draws_nonfixed <- rmvnorm_eigen(n = n_draw,
-                                    mean = mean,
-                                    scaled_eigen = scaled_eigen)
   }
   ans <- matrix(nrow = length(is_fixed), ncol = n_draw)
   ans[!is_fixed, ] <- draws_nonfixed
