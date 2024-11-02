@@ -29,19 +29,17 @@ Specification document - a mathematical description of models used by bage.
 
 Note: some features described here have not been implemented yet.
 
-# Likelihood {#sec:lik}
 
-## Input data
+# Input data {#sec:data}
 
 - outcome variable: events, numbers of people, or some sort of measure on a continuous variable such as income or expenditure
 - exposure/size/weights
 - disagg by one or more variables. Almost always includes age, sex/gender, and time. May include other variables eg region, ethnicity, education.
 - not all combinations of variables present; may be some missing values
 
+# Models 
 
-## Models
-
-### Poisson {#sec:pois}
+## Poisson likelihood {#sec:pois}
 
 Let $y_i$ be a count of events in cell $i = 1, \cdots, n$ and let $w_i$ be the corresponding exposure measure, with the possibility that $w_i \equiv 1$. The likelihood under the Poisson model is then
 \begin{align}
@@ -72,7 +70,7 @@ This is the format we use internally for estimation. When values for $\gamma_i$ 
 \end{equation}
 
 
-### Binomial {#sec:binom}
+## Binomial likelihood {#sec:binom}
 
 The likelihood under the binomial model is
 \begin{align}
@@ -102,7 +100,7 @@ which is what we use internally. Values for $\gamma_i$ can be generated using
 \end{equation}
 
 
-### Normal {#sec:norm}
+## Normal likelihood {#sec:norm}
 
 The normal model is 
 \begin{equation}
@@ -123,7 +121,7 @@ where
 Standardizing allows us to apply the same priors as we use for the Poisson and binomial models.
 
 
-# Model for means
+# Model for prior means
 
 Let $\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}$. Our model for $\pmb{\mu}$ is
 \begin{equation}
@@ -174,9 +172,11 @@ The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (S
 
 
 
-## Normal {#sec:pr-norm}
+## N() {#sec:pr-norm}
 
 ### Model
+
+Exchangeable normal
 
 \begin{align}
   \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right) \\
@@ -188,14 +188,6 @@ The intercept term $\pmb{\beta}^{(0)}$ can only be given a fixed-normal prior (S
 \begin{equation}
   \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, \tau_m^2) 
 \end{equation}
-
-
-### Simulation
-
-\begin{align}
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_j^{(m)} & \sim \text{N}\left(0, \tau_m^2 \right)
-\end{align}
 
 
 ### Forecasting
@@ -213,9 +205,11 @@ N(s = 1)
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 
-## Fixed normal {#sec:pr-fnorm}
+## NFix() {#sec:pr-fnorm}
 
 ### Model
+
+Exchangeable normal, with fixed standard deviation
 
 \begin{equation}
   \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
@@ -225,13 +219,6 @@ N(s = 1)
 
 \begin{equation}
   \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, A_{\beta}^{(m)2}) 
-\end{equation}
-
-
-### Simulation
-
-\begin{equation}
-  \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}
 
 
@@ -251,13 +238,15 @@ NFix(sd = 1)
 - `sd` is $A_{\tau}^{(m)}$. Defaults to 1.
 
 
-## First-order random walk {#sec:pr-rw}
+## RW() {#sec:pr-rw}
 
 ### Model
 
+Random walk
+
 \begin{align}
-  \beta_{u,1}^{(m)} & = 0, \quad u = 1, \cdots, U_m \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; v = 2, \cdots, V_m \\
+  \beta_{u,1}^{(m)} & = 0 \\
+  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}
 
@@ -271,24 +260,14 @@ When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be 
 \end{equation}
 
 
-### Simulation
-
-\begin{align}
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \\
-  \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m
-\end{align}
-
-If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
-
 
 ### Forecasting
 
 \begin{equation}
-  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2)
 \end{equation}
 
-If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
+If the prior includes sum-to-zero constraints, means are subtracted from the forecasted values within each combination of 'along' and 'by' variables. 
 
 
 ### Code
@@ -302,14 +281,16 @@ RW(s = 1, along = NULL, zero_sum = TRUE)
 - if `zero_sum` is `TRUE`, sum-to-zero constraints are applied.
 
 
-## Second-order random walk {#sec:pr-rw2}
+## RW2() {#sec:pr-rw2}
 
 ### Model
 
+Second-order random walk
+
 \begin{align}
-  \beta_{u,1}^{(m)} & = 0, \quad u = 1,\cdots,U_m  \\
-  \beta_{u,2}^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right), \quad u = 1,\cdots, U_m \\
-  \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
+  \beta_{u,1}^{(m)} & = 0  \\
+  \beta_{u,2}^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 3, \cdots, V_m \\
   \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
 
@@ -323,17 +304,6 @@ When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be 
 \end{equation}
 
 
-### Simulation
-
-\begin{align}
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_{u,2}^{(m)} & \sim \text{N}(0, (A_{\eta}^{(m)})^2), \quad u = 1, \cdots, U_m \\
-  \beta_{u,3}^{(m)} & \sim \text{N}(2 \beta_{u,2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3,\cdots,V_m
-  \beta_{u,v}^{(m)} & \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 4,\cdots,V_m
-\end{align}
-
-If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
-
 
 ### Forecasting
 
@@ -341,7 +311,7 @@ If sum-to-zero constraints are being used, extract means for each of the 'by' va
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(2 \beta_{u,V_m+h-1}^{(m)} - \beta_{u,V_m+h-2}^{(m)}, \tau_m^2)
 \end{equation}
 
-If sum-to-zero constraints are being used, extract means for each of the 'by' variables, within each category of the 'along' variable.
+If the prior includes sum-to-zero constraints, means are subtracted from the forecasted values within each combination of 'along' and 'by' variables. 
 
 
 ### Code
@@ -353,36 +323,39 @@ RW2(s = 1, sd = 1, along = NULL, zero_sum = TRUE)
 - `s` is $A_{\tau}^{(m)}$
 - `sd` is $A_{\eta}^{(m)}$
 - `along` used to identify 'along' and 'by' dimensions
-- if `zero_sum` is `TRUE`, sum-to-zero constraints are applied.
+- if `zero_sum` is `TRUE`, sum-to-zero constraints are applied
 
 
 
-## Random walk with seasonal effect {#sec:rwseas}
+## RW_Seas() {#sec:rwseas}
 
 ### Model
 
+Random walk with seasonal effect
+
 \begin{align}
-  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_{u,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
-  \alpha_{u,v}^{(m)} & \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 2, \cdots, V_m \\
-  \lambda_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
-  \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m (\#eq:lambda-rwseas) \\ \\
+  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v} \\
+  \alpha_{u,1}^{(m)} & = 0 \\
+  \alpha_{u,v}^{(m)} & \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
+  \lambda_{u,v}^{(m)} & = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}
 
-We allow $A_{\omega}^{(m)2}$ to be set to zero, in which case \@ref(eq:lambda-rwseas) reduces to
-\begin{equation}
-  \lambda_{u,v}^{(m)} = \lambda_{u,v-S_m}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m,
-\end{equation}
-implying that seasonal effects are constant across years.
+Scale parameter $A_{\omega}^{(m)2}$ can be set to zero, implying that seasonal effect for each season does not change over time.
+
+When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
+
 
 ### Contribution to posterior density
 
 \begin{equation}
 \begin{split}
   & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, 1 ) \prod_{v=2}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m} \text{N}(\lambda_{u,v}^{(m)} \mid 0, 1) \prod_{v=S_m+1}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, \tau_m^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
+  \prod_{v > S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
 \end{split}
 \end{equation}
 
@@ -397,43 +370,47 @@ implying that seasonal effects are constant across years.
 ### Code
 
 ```
-RWSeas(n, s = 1, s_seas = 1, along = NULL)
+RW_Seas(n, s = 1, s_seas = 1, sd_seas, along = NULL, zero_sum = FALSE)
 ```
 
-- `n` is $S_m$
+- `n_seas` is $S_m$
 - `s` is $A_{\tau}^{(m)}$
 - `s_seas` is $A_{\omega}^{(m)}$
+- `sd_seas` is $A_{\lambda}^{(m)}$
 - `along` used to identify 'along' and 'by' dimensions
+- if `zero_sum` is `TRUE`, sum-to-zero constraints are applied
 
 
-
-## Second-order random walk, with seasonal effect {#sec:rw2seas}
+## RW2_Seas() {#sec:rw2seas}
 
 ### Model
 
+Second-order random work, with seasonal effect
+
 \begin{align}
-  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad \quad v = 1,2,  \\
-  \alpha_{u,v}^{(m)} & \sim \text{N}(2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
-  \lambda_{u,v}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
-  \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m (\#eq:lambda-rwseas) \\ \\
+  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v} \\
+  \alpha_{u,1}^{(m)} & = 0 \\
+  \alpha_{u,2}^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \alpha_{u,v}^{(m)} & \sim \text{N}(2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2), \quad v = 3, \cdots, V_m \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
+  \lambda_{u,v}^{(m)} & = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}
 
-We allow $A_{\omega}^{(m)2}$ to be set to zero, in which case \@ref(eq:lambda-rwseas) reduces to
-\begin{equation}
-  \lambda_{u,v}^{(m)} = \lambda_{u,v-S_m}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m,
-\end{equation}
-implying that seasonal effects are constant across years.
+Scale parameter $A_{\omega}^{(m)2}$ can be set to zero, implying that seasonal effect for each season does not change over time.
+
+When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
 
 ### Contribution to posterior density
 
 \begin{equation}
 \begin{split}
   & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, 1 ) \prod_{v=2}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m} \text{N}(\lambda_{u,v}^{(m)} \mid 0, 1) \prod_{v=S_m+1}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
-\end{split}
+  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
+  \prod_{v > S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  \end{split}
 \end{equation}
 
 ### Forecasting
@@ -447,7 +424,7 @@ implying that seasonal effects are constant across years.
 ### Code
 
 ```
-RW2Seas(n, s = 1, s_seas = 1, along = NULL)
+RW2_Seas(n, s = 1, s_seas = 1, along = NULL)
 ```
 
 - `n` is $S_m$
@@ -456,7 +433,7 @@ RW2Seas(n, s = 1, s_seas = 1, along = NULL)
 - `along` used to identify 'along' and 'by' dimensions
 
 
-## Autoregressive {#sec:pr-ar}
+## AR() {#sec:pr-ar}
 
 ### Model
 
@@ -502,7 +479,7 @@ AR(n = 2, s = 1, along = NULL)
 - `along` is used to indentify the 'along' and 'by' dimensions
 
 
-## AR1 {#sec:pr-ar1}
+## AR1() {#sec:pr-ar1}
 
 Special case or AR, but with extra options for autocorrelation coefficient.
 
@@ -547,7 +524,7 @@ AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
 
 
-## Linear {#sec:pr-lin}
+## Lin() {#sec:pr-lin}
 
 ### Model
 
@@ -578,8 +555,6 @@ Note that with the new version
 \end{equation}
 
 
-
-
 ### Contribution to posterior density
 
 \begin{equation}
@@ -605,7 +580,7 @@ Lin(s = 1, sd = 1, along = NULL)
 - `along` is used to indentify 'along' and 'by' dimensions
 
 
-## Linear-AR {#sec:pr-lin-ar}
+## Lin_AR() {#sec:pr-lin-ar}
 
 ### Model
 
@@ -657,9 +632,15 @@ Lin_AR(s = 1, sd = 1, along = NULL)
 - `along` is used to indentify 'along' and 'by' variables
 
 
-## P-Spline {#sec:pr-spline}
+## Lin_AR() {#sec:pr-lin-ar}
+
+TODO - WRITE DETAILS
+
+## Sp() {#sec:pr-spline}
 
 ### Model
+
+Penalised spline (P-spline)
 
 \begin{equation}
   \pmb{\beta}_u^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}_u^{(m)}, \quad u = 1, \cdots, U_m
@@ -693,7 +674,7 @@ Sp(n = NULL, s = 1)
 - `along` is used to identify 'along' and 'by' variables
 
 
-## SVD {#sec:pr-svd}
+## SVD() {#sec:pr-svd}
 
 ### Model
 
@@ -752,7 +733,7 @@ where
 - `indep` determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.
 
 
-## SVD_RW {#sec:pr-svd-rw}
+## SVD_RW() {#sec:pr-svd-rw}
 
 ### Model
 
@@ -804,16 +785,16 @@ where
 - `indep` determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.
 
 
-## SVD_RW2 {#sec:pr-svd-rw2}
+## SVD_RW2() {#sec:pr-svd-rw2}
 
 Same structure as `SVD_RW()`. TODO - write details.
 
 
-## SVD_AR {#sec:pr-svd-ar}
+## SVD_AR() {#sec:pr-svd-ar}
 
 Same structure as `SVD_RW()`. TODO - write details.
 
-## SVD_AR1 {#sec:pr-svd-ar1}
+## SVD_AR1() {#sec:pr-svd-ar1}
 
 Same structure as `SVD_RW()`. TODO - write details.
 
@@ -1075,51 +1056,8 @@ and setting
 
 Next we convert any transformed hyper-parameters back to the original units, and insert values for $\pmb{\beta}^{(m)}$ for terms that have Known priors. We denote the resulting vector $\pmb{\theta}$.
 
-Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Section \@ref(sec:lik).
+Finally we draw from the distribution of $\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}$ using the methods described in Sections \@ref(sec:pois)-\@ref(sec:norm).
 
-
-## Standardization {#sec:standard}
-
-### The need for standardization
-
-NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from $\pmb{\mu}$ and then proceed as before.
-
-Although the sum $\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}$ is well identified by the data, the individual $\pmb{\beta}^{(m)}$ are not. For instance, adding $\Delta$ to $\pmb{\beta}^{(0)}$ and subtracting it from every term in $\pmb{\beta}^{(m)}$ for some $m > 0$ leaves the likelihood unchanged. The use of proper priors for the $\pmb{\beta}^{(m)}$ mean that posterior distributions for the $\pmb{\beta}^{(m)}$, and for related terms such as trend, cyclical, and seasonal effects, are proper. However, they can be diffuse and hard to interpret.
-
-To help with interpretation of the $\pmb{\beta}^{(m)}$ and related terms, we standardize. We in fact appy two forms of standardization, each designed for a different purpose.
-
-### Standardization of estimates
-
-#### ANOVA-style standardization
-
-The first type of standardization is applied only to the $\pmb{\beta}^{(m)}$. The aim is to partition the total variation in $\mu_i$ into variation associated with each main effect or interaction, in the style, for instance, of Section 15.6 of @gelman2014bayesian. Let $\tilde{\pmb{\beta}}^{(m)}$ be the standardized version of $\pmb{\beta}^{(m)}$. We obtain the $\tilde{\pmb{\beta}}^{(m)}$ through the following algorithm:
-
-
-Set
-\begin{equation}
-  \pmb{r}^{(0)} = \pmb{\mu}
-\end{equation}
-
-For $m = 0, \cdots, M$:
-
-- Set $\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}$
-- Set $\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}$
-
-
-#### Term-level standardization
-
-Term-level standardization aims to clarify the behaviour of the terms making up the model, including trend, cyclical, and seasonal effects. The intercept term is left untouched. All other $\pmb{\beta}^{(m)}$ are centered across the 'along' dimension, and each of the 'by' dimensions. 
-
-
-### Standardization of forecasts
-
-#### ANOVA-style standardization
-
-The forecasted values for the time-varying $\pmb{\beta}^{(m)}$ are shifted up or down so that they line up with the estimated values. The standardization algorithm is then applied to these shifted values.
-
-#### Term-level standardization
-
-The forecasted values for the time-varying $\pmb{\beta}^{(m)}$, and for SVD coefficients, and trend, cyclical, and seasonal components, are shifted up or down so that they line up with the estimated values. All terms are then centered along all dimensions other than time.
 
 # Simulation
 
