@@ -60,6 +60,23 @@ test_that("'Lin' works with valid inputs", {
                                       zero_sum = TRUE))
 })
 
+test_that("'Lin' works with s = 0", {
+  expect_identical(Lin(s = 0),
+                   new_bage_prior_linex(mean_slope = 0,
+                                        sd_slope = 1,
+                                        along = NULL,
+                                        zero_sum = FALSE))
+  expect_identical(Lin(s = 0,
+                       sd_slope = 0.1,
+                       mean = 0.2,
+                       along = "reg",
+                       zero_sum = TRUE),
+                   new_bage_prior_linex(mean_slope = 0.2,
+                                        sd_slope = 0.1,
+                                        along = "reg",
+                                        zero_sum = TRUE))
+})
+
 test_that("'Lin_AR' works with valid inputs", {
   expect_identical(Lin_AR(),
                    new_bage_prior_linar(n_coef = 2L,
@@ -456,6 +473,19 @@ test_that("'new_bage_prior_linar' works - AR1 interface", {
                         along = NULL,
                         zero_sum = FALSE,
                         nm = "Lin_AR1"))
+})
+
+test_that("'new_bage_prior_linex' works", {
+  obj <- new_bage_prior_linex(mean_slope = 0,
+                              sd_slope = 1,
+                              along = NULL,
+                              zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_linex")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 17L)
+  expect_identical(obj$const, c(mean_slope = 0, sd_slope = 1))
+  expect_identical(obj$specific, list(mean_slope = 0, sd_slope = 1,
+                                      along = NULL, zero_sum = FALSE))
 })
 
 test_that("'new_bage_prior_norm' works", {
