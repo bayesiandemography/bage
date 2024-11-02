@@ -346,6 +346,56 @@ test_that("'draw_vals_effect' works with bage_prior_linar, zero_sum is TRUE", {
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, zero_sum is FALSE", {
+  prior <- Lin(along = "x", s = 0)
+  dimnames_term <- list(x = 1:13, y = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  n_sim <- 10
+  vals_hyper <- NULL
+  vals_hyperrand <- NULL
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(26L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, zero_sum is TRUE", {
+  prior <- Lin(along = "x", zero_sum = TRUE, s = 0)
+  dimnames_term <- list(x = 1:13, y = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  n_sim <- 10
+  vals_hyper <- NULL
+  vals_hyperrand <- NULL
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(26L, 10L))
+  a <- array(ans, dim = c(13, 2, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 130))
+})
+
 test_that("'draw_vals_effect' works with bage_prior_norm", {
   prior <- N()
   n_sim <- 10
@@ -2190,6 +2240,73 @@ test_that("'forecast_term' works with bage_prior_linar - zero_sum is TRUE", {
 })
 
 
+test_that("'forecast_term' works with bage_prior_linex - zero_sum is FALSE", {
+  set.seed(0)
+  prior <- Lin(s = 0)
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
+  labels_forecast <- 2006:2011
+  set.seed(1)
+  ans_obtained <- forecast_term(prior = prior,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                components = components,
+                                labels_forecast = labels_forecast)
+  ans_expected <- tibble::tibble(term = "year:reg",
+                                 component = "effect",
+                                 level = paste(2006:2011,
+                                               rep(1:2, each = 6),
+                                               sep = "."))
+  effect <- components$.fitted
+  slope <- c(effect[2] - effect[1], effect[7] - effect[6])
+  intercept <- -0.5 * 6 * slope
+  ans_expected$.fitted <- c(intercept[1] + (6:11) * slope[1],
+                            intercept[2] + (6:11) * slope[2])
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'forecast_term' works with bage_prior_linex - zero_sum is TRUE", {
+  set.seed(0)
+  prior <- Lin(zero_sum = TRUE, s = 0)
+  dimnames_term <- list(year = 2001:2005,
+                        reg = 1:2)
+  var_time <- "year"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  components <- vctrs::vec_rbind(tibble::tibble(term = "year:reg",
+                                                component = "hyper",
+                                                level = c("slope", "slope",
+                                                          "sd"),
+                                                .fitted = rvec::runif_rvec(n = 3, n_draw = 10)),
+                                 tibble::tibble(term = "year:reg",
+                                                component = "effect",
+                                                level = paste(2001:2005,
+                                                              rep(1:2, each = 5),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 10, n_draw = 10)))
+  labels_forecast <- 2006:2011
+  set.seed(1)
+  ans <- forecast_term(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender,
+                       components = components,
+                       labels_forecast = labels_forecast)
+  expect_equal(ans$.fitted[4], -ans$.fitted[10])
+})
+
 test_that("'forecast_term' works with bage_prior_norm", {
   set.seed(0)
   prior <- N()
@@ -3648,6 +3765,15 @@ test_that("'is_prior_ok_for_term' works with bage_prior_linar - n_by = 1", {
                                    var_sexgender = "sex"))
 })
 
+test_that("'is_prior_ok_for_term' works with bage_prior_linex - n_by = 1", {
+  expect_true(is_prior_ok_for_term(prior = Lin(s = 0),
+                                   nm = "time",
+                                   dimnames_term = list(time = 1:2),
+                                   var_time = "time",
+                                   var_age = "age",
+                                   var_sexgender = "sex"))
+})
+
 test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
     expect_true(is_prior_ok_for_term(prior = N(),
                                      nm = "sex",
@@ -4039,7 +4165,6 @@ test_that("'levels_hyper' works with 'bage_prior_ar'", {
 })
 
 test_that("'levels_hyper' works with 'bage_prior_known'", {
-  matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = Known(1)),
                    character())
 })
@@ -4056,6 +4181,11 @@ test_that("'levels_hyper' works with 'bage_prior_linar'", {
                    c("sd", "coef1", "coef2"))
   expect_identical(levels_hyper(prior = Lin_AR1()),
                    c("sd", "coef"))
+})
+
+test_that("'levels_hyper' works with 'bage_prior_linex'", {
+  expect_identical(levels_hyper(prior = Lin(s = 0)),
+                   character())
 })
 
 test_that("'levels_hyper' works with 'bage_prior_norm'", {
@@ -4280,6 +4410,17 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_lin", {
 
 test_that("'make_matrix_along_by_effectfree' works - bage_prior_linar", {
   prior <- Lin_AR1()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(time = 0:4),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:4, nr = 5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_linex", {
+  prior <- Lin(s = 0)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 0:4),
                                                   var_time = "time",
@@ -4707,6 +4848,68 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_linar - interac
                                                 var_sexgender = var_sexgender)
   ans_expected <- make_matrix_unconstr_constr_along(c(5, 2))
   expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, zero_sum is FALSE", {
+  prior <- Lin(s = 0)
+  dimnames_term <- list(time = 2001:2005, reg = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- Matrix::kronecker(Matrix::.sparseDiagonal(2),
+                                    matrix(1:5 - 3, nc = 1))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along second, zero_sum is FALSE", {
+  prior <- Lin(s = 0)
+  dimnames_term <- list(reg = 1:2, time = 2001:2005)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- Matrix::kronecker(matrix(1:5 - 3, nr = 5),
+                                    Matrix::.sparseDiagonal(2))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, zero_sum is TRUE", {
+  prior <- Lin(s = 0, zero_sum = TRUE)
+  dimnames_term <- list(time = 2001:2005, reg = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  expect_equal(as.matrix(ans_obtained)[1:5], -as.matrix(ans_obtained)[6:10])
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along second, zero_sum is TRUE", {
+  prior <- Lin(s = 0, zero_sum = TRUE)
+  dimnames_term <- list(reg = 1:3, time = 2001:2005)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  m <- make_matrix_effectfree_effect(prior = prior,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age,
+                                     var_sexgender = var_sexgender)
+  x <- rnorm(2)
+  v <- matrix(as.numeric(m %*% x), nr = 3)
+  expect_equal(colSums(v), rep(0, 5))
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_rw - main effect", {
@@ -5324,6 +5527,7 @@ test_that("'print' works", {
   expect_snapshot(print(AR1(min = 0.2)))
   expect_snapshot(print(Known(c(0.2, -0.2))))
   expect_snapshot(print(Lin()))
+  expect_snapshot(print(Lin(s = 0)))
   expect_snapshot(print(Lin_AR()))
   expect_snapshot(print(N()))
   expect_snapshot(print(NFix()))
@@ -5399,6 +5603,13 @@ test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
     expect_identical(str_call_prior(Lin_AR1(sd = 0.1, mean_slope = 0.2,
                                             zero_sum = T, max=1,s = 0.95, min = 0.5)),
                      "Lin_AR1(min=0.5,max=1,s=0.95,mean_slope=0.2,sd_slope=0.1,zero_sum=TRUE)")
+})
+
+test_that("'str_call_prior' works with bage_prior_linex", {
+    expect_identical(str_call_prior(Lin(s = 0)), "Lin(s=0)")
+    expect_identical(str_call_prior(Lin(sd_slope = 0.5, mean_slope = -0.2, s = 0,
+                                        zero_sum = TRUE, along = "a")),
+                     "Lin(s=0,mean_slope=-0.2,sd_slope=0.5,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_norm", {
@@ -5529,6 +5740,11 @@ test_that("'str_nm_prior' works with bage_prior_linar - AR1", {
    expect_identical(str_nm_prior(Lin_AR1(sd = 3, s = 0.3)), "Lin_AR1()")
 })
 
+test_that("'str_nm_prior' works with bage_prior_linex", {
+   expect_identical(str_nm_prior(Lin(s = 0)), "Lin()")
+   expect_identical(str_nm_prior(Lin(s = 0, sd_slope = 3)), "Lin()")
+})
+
 test_that("'str_nm_prior' works with bage_prior_norm", {
     expect_identical(str_nm_prior(N()), "N()")
     expect_identical(str_nm_prior(N(s = 0.95)), "N()")
@@ -5653,6 +5869,11 @@ test_that("'transform_hyper' works with 'bage_prior_linar - AR1'", {
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_linex'", {
+  l <- transform_hyper(prior = Lin(s = 0))
+  expect_equal(l, list())
+})
+
 test_that("'transform_hyper' works with 'bage_prior_norm'", {
   l <- transform_hyper(prior = N())
   expect_equal(0.35, l[[1]](log(0.35)))
@@ -5733,6 +5954,7 @@ test_that("'uses_along' works with valid inputs", {
   expect_false(uses_along(Known(c(a = 1))))
   expect_true(uses_along(Lin()))
   expect_true(uses_along(Lin_AR()))
+  expect_true(uses_along(Lin(s = 0)))
   expect_false(uses_along(N()))
   expect_false(uses_along(NFix()))
   expect_true(uses_along(RW()))
@@ -5754,6 +5976,7 @@ test_that("'uses_along' works with valid inputs", {
 test_that("'uses_hyperrandfree' returns FALSE with priors that do not use hyperrandfree parameters", {
   expect_false(uses_hyperrandfree(AR1()))
   expect_false(uses_hyperrandfree(Known(c(a = 1, b = -1))))
+  expect_false(uses_hyperrandfree(Lin(s = 0)))
   expect_false(uses_hyperrandfree(N()))
   expect_false(uses_hyperrandfree(NFix()))
   expect_false(uses_hyperrandfree(RW()))
@@ -5779,6 +6002,8 @@ test_that("'uses_hyperrandfree' returns TRUE with priors do use hyperrandfree pa
 
 test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_false(uses_matrix_effectfree_effect(N()))
+  expect_false(uses_matrix_effectfree_effect(Lin()))
+  expect_true(uses_matrix_effectfree_effect(Lin(s=0)))
   expect_true(uses_matrix_effectfree_effect(RW()))
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2, s_seas = 0)))
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2)))

@@ -8,7 +8,7 @@ Lin(s = 1, mean_slope = 0, sd_slope = 1, along = NULL, zero_sum = FALSE)
 }
 \arguments{
 \item{s}{Scale for the prior for the errors.
-Default is \code{1}.}
+Default is \code{1}. Can be \code{0}.}
 
 \item{mean_slope}{Mean in prior for slope
 of line. Default is 0.}
@@ -40,6 +40,7 @@ of the "by" variables.
 
 Argument \code{s} controls the size of the errors.
 Smaller values tend to give smoother estimates.
+\code{s} can be zero.
 
 Argument \code{sd_slope} controls the size of the slopes of
 the lines. Larger values can give more steeply
@@ -80,6 +81,7 @@ Parameter \eqn{\tau} has a half-normal prior
 \examples{
 Lin()
 Lin(s = 0.5, sd_slope = 2)
+Lin(s = 0)
 Lin(along = "cohort")
 }
 \seealso{
