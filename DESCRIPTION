@@ -28,6 +28,7 @@ Imports:
     parallel,
     poputils (>= 0.3.3),
     rvec (>= 0.0.7),
+    sparseMVN,
     stats,
     tibble,
     TMB,
