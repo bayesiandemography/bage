@@ -1452,70 +1452,6 @@ make_svd <- function(mod, effectfree) {
 }
 
 
- 
-## HAS_TESTS
-#' Extract Posterior Draws for Free Parameters used in SVD Priors
-#'
-#' @param mod Fitted object of class 'bage_mod'
-#' @param mod effectfree Matrix with posterior draws of free parameters
-#'
-#' @returns A matrix
-#'
-## #' @noRd
-## make_svd <- function(mod, effectfree) {
-##   priors <- mod$priors
-##   dimnames_terms <- mod$dimnames_terms
-##   var_time <- mod$var_time
-##   var_age <- mod$var_age
-##   var_sexgender <- mod$var_sexgender
-##   n_term <- length(priors)
-##   ans <- vector(mode = "list", length = n_term)
-##   lengths_effectfree <- make_lengths_effectfree(mod)
-##   to <- 0L
-##   for (i_term in seq_len(n_term)) {
-##     length_effectfree <- lengths_effectfree[[i_term]]
-##     to <- to + length_effectfree
-##     prior <- priors[[i_term]]
-##     if (is_svd(prior)) {
-##       s <- seq.int(to = to, length.out = length_effectfree)
-##       vals <- effectfree[s, , drop = FALSE]
-##       is_dynamic <- uses_along(prior)
-##       if (is_dynamic) {
-##         dimnames_term <- dimnames_terms[[i_term]]
-##         labels_svd <- get_labels_svd(prior = prior,
-##                                      dimnames_term = dimnames_term,
-##                                      var_sexgender = var_sexgender)
-##         nm_split <- dimnames_to_nm_split(dimnames_term)
-##         i_age <- match(var_age, nm_split)
-##         i_sexgender <- match(var_sexgender, nm_split, nomatch = 0L)
-##         i_agesex <- c(i_age, i_sexgender)
-##         dim <- lengths(dimnames_term)
-##         dim_noagesex <- dim[-i_agesex]
-##         dim <- c(length(labels_svd), dim_noagesex)
-##         append_zero <- nrow(vals) < prod(dim)
-##         if (append_zero) {
-##           i_time <- match(var_time, names(dim_noagesex))
-##           dim_noagesex[[i_time]] <- dim_noagesex[[i_time]] - 1L
-##           dim_nozero <- c(length(labels_svd), dim_noagesex)
-##           s <- seq_along(dim_nozero)
-##           perm <- c(i_time + 1L, s[-(i_along + 1L)])
-##           m_to <- make_matrix_perm_along_to_front(i_along = i_along,
-##                                                   dim_after = dim_nozero[perm])
-##           m_append <- make_matrix_append_zero(dim[perm])
-##           m_from <- make_matrix_perm_along_from_front(i_along = i_along,
-##                                                       dim_after = dim)
-##           vals <- m_from %*% m_append %*% m_to %*% vals
-##           vals <- Matrix::as.matrix(vals)
-##         }
-##       }
-##       ans[[i_term]] <- vals
-##     }
-##   }
-##   ans <- do.call(rbind, ans)
-##   ans
-## }
-
-
 ## HAS_TESTS
 #' Make Factor Identifying Components
 #' of Spline Parameter Vector
@@ -1605,6 +1541,36 @@ make_unconstr_dimnames_by <- function(i_along, dimnames_term) {
   nms <- names(ans)
   for (i in seq_along(ans))
     ans[[i]] <- paste0(nms[[i]], seq_along(ans[[i]][-1L]))
+  ans
+}
+
+
+## HAS_TESTS
+#' Obtain the Value for 'zero_sum' for Terms in Model
+#'
+#' Returns NA for terms that do not have a 'zero_sum' attribute
+#' 
+#' @param mod An object of class 'bage_mod'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_zero_sum_mod <- function(mod) {
+  priors <- mod$priors
+  dimnames_terms <- mod$dimnames_terms
+  n_term <- length(priors)
+  ans <- rep(NA, times = n_term)
+  names(ans) <- names(priors)
+  for (i_term in seq_len(n_term)) {
+    prior <- priors[[i_term]]
+    dimnames_term <- dimnames_terms[[i_term]]
+    is_interaction <- length(dimnames_term) >= 2L
+    uses_along <- uses_along(prior)
+    if (is_interaction && uses_along) {
+      val <- prior$specific$zero_sum
+      ans[[i_term]] <- val
+    }
+  }
   ans
 }
 

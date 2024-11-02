@@ -9,6 +9,7 @@
              max: 1
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -20,6 +21,7 @@
              max: 0.98
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -38,6 +40,7 @@
       mean_slope: 0
         sd_slope: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -64,6 +67,7 @@
              min: -1
              max: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -89,6 +93,7 @@
         RW() 
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -101,6 +106,7 @@
           s_seas: 0
          sd_seas: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -113,6 +119,7 @@
           s_seas: 1
          sd_seas: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -123,6 +130,7 @@
                s: 1
         sd_slope: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -136,6 +144,7 @@
           s_seas: 0
          sd_seas: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -148,6 +157,7 @@
           s_seas: 1
          sd_seas: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -159,6 +169,7 @@
                s: 1
         sd_slope: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -192,6 +203,7 @@
              max: 1
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -207,6 +219,7 @@
              max: 1
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -220,6 +233,7 @@
              max: 0.98
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -234,6 +248,7 @@
              max: 0.98
                s: 1
            along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -244,6 +259,8 @@
             ssvd: HMD
           n_comp: 3
                s: 1
+           along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -255,6 +272,8 @@
           n_comp: 3
            indep: FALSE
                s: 1
+           along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -266,6 +285,8 @@
           n_comp: 3
                s: 1
         sd_slope: 1
+           along: NULL
+        zero_sum: FALSE
 
 ---
 
@@ -278,4 +299,6 @@
            indep: FALSE
                s: 1
         sd_slope: 1
+           along: NULL
+        zero_sum: FALSE
 

@@ -4467,8 +4467,8 @@ make_offset_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
 ## HAS_TESTS
 #' @export
 print.bage_prior_ar <- function(x, ...) {
-  nms <- c("min", "max", "s", "along")
-  slots <- c("min", "max", "scale", "along")
+  nms <- c("min", "max", "s", "along", "zero_sum")
+  slots <- c("min", "max", "scale", "along", "zero_sum")
   nm <- x$specific$nm
   if (identical(nm, "AR")) {
     nms <- c("n_coef", nms)
@@ -4487,15 +4487,15 @@ print.bage_prior_known <- function(x, ...) {
 #' @export
 print.bage_prior_lin <- function(x, ...) {
   print_prior(x,
-              nms = c("s", "mean_slope", "sd_slope", "along"),
-              slots = c("scale", "mean_slope", "sd_slope", "along"))
+              nms = c("s", "mean_slope", "sd_slope", "along", "zero_sum"),
+              slots = c("scale", "mean_slope", "sd_slope", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
 #' @export
 print.bage_prior_linar <- function(x, ...) {
-  nms <- c("s", "mean_slope", "sd_slope", "min", "max", "along")
-  slots <- c("scale", "mean_slope", "sd_slope", "min", "max", "along")
+  nms <- c("s", "mean_slope", "sd_slope", "min", "max", "along", "zero_sum")
+  slots <- c("scale", "mean_slope", "sd_slope", "min", "max", "along", "zero_sum")
   nm <- x$specific$nm
   if (identical(nm, "Lin_AR")) {
     nms <- c("n_coef", nms)
@@ -4539,8 +4539,8 @@ print.bage_prior_normfixed <- function(x, ...) {
 #' @export
 print.bage_prior_rw <- function(x, ...) {
   print_prior(x,
-              nms = c("s", "along"),
-              slots = c("scale", "along"))
+              nms = c("s", "along", "zero_sum"),
+              slots = c("scale", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
@@ -4553,6 +4553,7 @@ print.bage_prior_rwseasfix <- function(x, ...) {
   cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
   invisible(x)
 }
 
@@ -4560,16 +4561,16 @@ print.bage_prior_rwseasfix <- function(x, ...) {
 #' @export
 print.bage_prior_rwseasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n", "s", "s_seas", "sd_seas", "along"),
-              slots = c("n", "scale", "scale_seas", "sd_seas", "along"))
+              nms = c("n", "s", "s_seas", "sd_seas", "along", "zero_sum"),
+              slots = c("n", "scale", "scale_seas", "sd_seas", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
 #' @export
 print.bage_prior_rw2 <- function(x, ...) {
   print_prior(x,
-              nms = c("s", "sd_slope", "along"),
-              slots = c("scale", "sd_slope", "along"))
+              nms = c("s", "sd_slope", "along", "zero_sum"),
+              slots = c("scale", "sd_slope", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
@@ -4583,6 +4584,7 @@ print.bage_prior_rw2seasfix <- function(x, ...) {
   cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
   invisible(x)
 }
 
@@ -4590,16 +4592,16 @@ print.bage_prior_rw2seasfix <- function(x, ...) {
 #' @export
 print.bage_prior_rw2seasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n_seas", "s", "s_seas", "sd_seas", "along"),
-              slots = c("n_seas", "scale", "scale_seas", "sd_seas", "along"))
+              nms = c("n_seas", "s", "s_seas", "sd_seas", "along", "zero_sum"),
+              slots = c("n_seas", "scale", "scale_seas", "sd_seas", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
 #' @export
 print.bage_prior_spline <- function(x, ...) {
   print_prior(x,
-              nms = c("n_comp", "s", "sd_slope", "along"),
-              slots = c("n_comp", "scale", "sd_slope", "along"))
+              nms = c("n_comp", "s", "sd_slope", "along", "zero_sum"),
+              slots = c("n_comp", "scale", "sd_slope", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
@@ -4633,6 +4635,7 @@ print.bage_prior_svd_ar <- function(x, ...) {
   print_prior_slot(prior = x, nm = "max", slot = "max")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
   invisible(x)
 }
 
@@ -4647,6 +4650,8 @@ print.bage_prior_svd_rw <- function(x, ...) {
   if (!indep)
     print_prior_slot(prior = x, nm = "indep", slot = "indep")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
   invisible(x)
 }
 
@@ -4662,6 +4667,8 @@ print.bage_prior_svd_rw2 <- function(x, ...) {
     print_prior_slot(prior = x, nm = "indep", slot = "indep")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
   print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
   invisible(x)
 }
 
@@ -4787,7 +4794,12 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
-  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along, args_zero_sum)
+  args <- c(args_n_seas,
+            args_scale,
+            args_s_seas,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -4802,7 +4814,12 @@ str_call_prior.bage_prior_rwseasvary <- function(prior) {
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
-  args <- c(args_n_seas, args_scale, args_s_seas, args_sd_seas, args_along, args_zero_sum)
+  args <- c(args_n_seas,
+            args_scale,
+            args_s_seas,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW_Seas(%s)", args)
@@ -4815,7 +4832,10 @@ str_call_prior.bage_prior_rw2 <- function(prior) {
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
-  args <- c(args_scale, args_sd_slope, args_along, args_zero_sum)
+  args <- c(args_scale,
+            args_sd_slope,
+            args_along,
+            args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW2(%s)", args)
