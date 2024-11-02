@@ -259,6 +259,7 @@ Known <- function(values) {
 #' 
 #' Argument `s` controls the size of the errors.
 #' Smaller values tend to give smoother estimates.
+#' `s` can be zero.
 #'
 #' Argument `sd_slope` controls the size of the slopes of
 #' the lines. Larger values can give more steeply
@@ -294,7 +295,7 @@ Known <- function(values) {
 #'
 #' @inheritParams AR
 #' @param s Scale for the prior for the errors.
-#' Default is `1`.
+#' Default is `1`. Can be `0`.
 #' @param mean_slope Mean in prior for slope
 #' of line. Default is 0.
 #' @param sd_slope Standard deviation in prior for slope
@@ -313,6 +314,7 @@ Known <- function(values) {
 #' @examples
 #' Lin()
 #' Lin(s = 0.5, sd_slope = 2)
+#' Lin(s = 0)
 #' Lin(along = "cohort")
 #' @export
 Lin <- function(s = 1,
@@ -320,7 +322,7 @@ Lin <- function(s = 1,
                 sd_slope = 1,
                 along = NULL,
                 zero_sum = FALSE) {
-  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = TRUE)
   check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
@@ -329,11 +331,17 @@ Lin <- function(s = 1,
   scale <- as.double(s)
   mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
-  new_bage_prior_lin(scale = scale,
-                     mean_slope,
-                     sd_slope = sd_slope,
-                     along = along,
-                     zero_sum = zero_sum)
+  if (isTRUE(all.equal(scale, 0)))
+    new_bage_prior_linex(mean_slope,
+                         sd_slope = sd_slope,
+                         along = along,
+                         zero_sum = zero_sum)
+  else
+    new_bage_prior_lin(scale = scale,
+                       mean_slope,
+                       sd_slope = sd_slope,
+                       along = along,
+                       zero_sum = zero_sum)
 }
 
 
@@ -1751,6 +1759,22 @@ new_bage_prior_linar <- function(n_coef,
                               zero_sum = zero_sum,
                               nm = nm))
   class(ans) <- c("bage_prior_linar", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_linex <- function(mean_slope,
+                                 sd_slope,
+                                 along,
+                                 zero_sum) {
+  ans <- list(i_prior = 17L,
+              const = c(mean_slope = mean_slope,
+                        sd_slope = sd_slope),
+              specific = list(mean_slope = mean_slope,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_linex", "bage_prior")
   ans
 }
 

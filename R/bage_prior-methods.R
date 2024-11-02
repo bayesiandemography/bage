@@ -235,6 +235,47 @@ draw_vals_effect.bage_prior_linar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+draw_vals_effect.bage_prior_linex <- function(prior,
+                                              vals_hyper,
+                                              vals_hyperrand,
+                                              vals_spline,
+                                              vals_svd,
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              var_sexgender,
+                                              n_sim) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  sd_slope <- prior$specific$sd_slope
+  mean_slope <- prior$specific$mean_slope
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  matrix_along_by <- make_matrix_along_by(i_along = i_along,
+                                          dim = dim,
+                                          dimnames = dimnames_term)
+  slope <- draw_vals_slope(mean_slope = mean_slope,
+                           sd_slope = sd_slope,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_sim)
+  levels_effect <- dimnames_to_levels(dimnames_term)
+  ans <- draw_vals_lintrend(slope = slope,
+                            matrix_along_by = matrix_along_by,
+                            labels = levels_effect)
+  if (zero_sum) {
+    m <- make_matrix_zero_sum(i_along = i_along,
+                              dim = dim)
+    ans <- m %*% ans
+    ans <- Matrix::as.matrix(ans)
+  }
+  ans  
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_effect.bage_prior_norm <- function(prior,
                                              vals_hyper,
                                              vals_hyperrand,
@@ -1432,6 +1473,53 @@ forecast_term.bage_prior_linar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+forecast_term.bage_prior_linex <- function(prior,
+                                           dimnames_term,
+                                           var_time,
+                                           var_age,
+                                           var_sexgender,
+                                           components,
+                                           labels_forecast) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  nm <- dimnames_to_nm(dimnames_term)
+  dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
+  levels_forecast <- dimnames_to_levels(dimnames_forecast)
+  matrix_along_by_est <- make_matrix_along_by_effect(along = along,
+                                                     dimnames_term = dimnames_term,
+                                                     var_time = var_time,
+                                                     var_age = var_age)
+  matrix_along_by_forecast <- make_matrix_along_by_effect(along = along,
+                                                          dimnames_term = dimnames_forecast,
+                                                          var_time = var_time,
+                                                          var_age = var_age)
+  is_effect <- with(components, term == nm & component == "effect")
+  effect <- components$.fitted[is_effect]
+  n_by <- ncol(matrix_along_by_est)
+  n_draw <- rvec::n_draw(effect)
+  slope <- rvec::new_rvec(length = n_by, n_draw = n_draw)
+  for (i_by in seq_len(n_by)) {
+    i1 <- matrix_along_by_est[1L, i_by] + 1L
+    i2 <- matrix_along_by_est[2L, i_by] + 1L
+    slope[[i_by]] <- effect[[i2]] - effect[[i1]]
+  }
+  .fitted <- forecast_lin_trend(slope = slope,
+                                matrix_along_by_est = matrix_along_by_est,
+                                matrix_along_by_forecast = matrix_along_by_forecast)
+  if (zero_sum)
+    .fitted <- zero_sum_fitted(fitted = .fitted,
+                               along = along,
+                               dimnames_term = dimnames_forecast,
+                               var_time = var_time,
+                               var_age = var_age)
+  tibble::tibble(term = nm,
+                 component = "effect",
+                 level = levels_forecast,
+                 .fitted = .fitted)
+}
+
+## HAS_TESTS
+#' @export
 forecast_term.bage_prior_norm <- function(prior,
                                         dimnames_term,
                                         var_time,
@@ -2573,6 +2661,31 @@ is_prior_ok_for_term.bage_prior_linar <- function(prior,
 
 ## HAS_TESTS
 #' @export
+is_prior_ok_for_term.bage_prior_linex <- function(prior,
+                                                  nm,
+                                                  dimnames_term,
+                                                  var_time,
+                                                  var_age,
+                                                  var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum  
+  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  n_along <- nrow(matrix_along_by_effect)
+  n_by <- ncol(matrix_along_by_effect)
+  check_n_along_ge(n_along = n_along,
+                   min = 2L,
+                   nm = nm,
+                   prior = prior)
+  check_zero_sum_n_by(zero_sum = zero_sum,
+                      n_by = n_by)
+  invisible(TRUE)
+}
+
+## HAS_TESTS
+#' @export
 is_prior_ok_for_term.bage_prior_norm <- function(prior,
                                                  nm,
                                                  dimnames_term,
@@ -3156,6 +3269,12 @@ levels_hyper.bage_prior_linar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+levels_hyper.bage_prior_linex <- function(prior) {
+  character()
+}
+
+## HAS_TESTS
+#' @export
 levels_hyper.bage_prior_norm <- function(prior)
   "sd"
 
@@ -3390,6 +3509,21 @@ make_matrix_along_by_effectfree.bage_prior_lin <- function(prior,
 ## HAS_TESTS
 #' @export
 make_matrix_along_by_effectfree.bage_prior_linar <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_linex <- function(prior,
                                                           dimnames_term,
                                                           var_time,
                                                           var_age,
@@ -3738,6 +3872,7 @@ make_matrix_draws_svd.bage_prior <- function(prior,
   NULL
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_draws_svd.bage_prior_svd <- function(prior,
                                                  dimnames_term,
@@ -3751,6 +3886,7 @@ make_matrix_draws_svd.bage_prior_svd <- function(prior,
                                var_sexgender = var_sexgender)
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_draws_svd.bage_prior_svd_ar <- function(prior,
                                                     dimnames_term,
@@ -3764,6 +3900,7 @@ make_matrix_draws_svd.bage_prior_svd_ar <- function(prior,
                                var_sexgender = var_sexgender)
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_draws_svd.bage_prior_svd_rw <- function(prior,
                                                     dimnames_term,
@@ -3777,6 +3914,7 @@ make_matrix_draws_svd.bage_prior_svd_rw <- function(prior,
                                    var_sexgender = var_sexgender)
 }
 
+## HAS_TESTS
 #' @export
 make_matrix_draws_svd.bage_prior_svd_rw2 <- function(prior,
                                                      dimnames_term,
@@ -3789,11 +3927,6 @@ make_matrix_draws_svd.bage_prior_svd_rw2 <- function(prior,
                                    var_age = var_age,
                                    var_sexgender = var_sexgender)
 }
-
-
-
-
-
 
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------
@@ -3875,6 +4008,56 @@ make_matrix_effectfree_effect.bage_prior_linar <- function(prior,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender,
                                       append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_linex <- function(prior,
+                                                           dimnames_term,
+                                                           var_time,
+                                                           var_age,
+                                                           var_sexgender) {
+  along <- prior$specific$along
+  zero_sum <- prior$specific$zero_sum
+  i_along <- make_i_along(along = along,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  is_along_first <- i_along == 1L
+  dim <- lengths(dimnames_term)
+  s <- seq_along(dim)
+  n_along <- dim[[i_along]]
+  ans <- matrix(seq_len(n_along) - 0.5 * (n_along + 1),
+                nrow = n_along,
+                ncol = 1L)
+  if (zero_sum) {
+    I <- Matrix::.sparseDiagonal(prod(dim[-i_along] - 1L))
+    ans <- Matrix::kronecker(I, ans)
+    dim_after <- dim[c(i_along, s[-i_along])]
+    m_zero <- make_matrix_unconstr_constr_along(dim_after)
+    ans <- m_zero %*% ans
+    if (!is_along_first) {
+      dim_after <- c(1L, dim[-i_along] - 1L)
+      m_to <- make_matrix_perm_along_to_front(i_along = i_along,
+                                              dim_after = dim_after)
+      m_from <- make_matrix_perm_along_from_front(i_along = i_along,
+                                                  dim_after = dim)
+      ans <- m_from %*% ans %*% m_to
+    }
+  }
+  else {
+    I <- Matrix::.sparseDiagonal(prod(dim[-i_along]))
+    ans <- Matrix::kronecker(I, ans)
+    if (!is_along_first) {
+      dim_after <- c(1L, dim[-i_along])
+      m_to <- make_matrix_perm_along_to_front(i_along = i_along,
+                                              dim_after = dim_after)
+      m_from <- make_matrix_perm_along_from_front(i_along = i_along,
+                                                  dim_after = dim)
+      ans <- m_from %*% ans %*% m_to
+    }
+  }
+  ans
 }
 
 ## HAS_TESTS
@@ -4281,7 +4464,6 @@ make_offset_effectfree_effect.bage_prior_svd_rw2 <- function(prior,
 
 ## 'print' --------------------------------------------------------------------
 
-
 ## HAS_TESTS
 #' @export
 print.bage_prior_ar <- function(x, ...) {
@@ -4321,6 +4503,21 @@ print.bage_prior_linar <- function(x, ...) {
   }
   print_prior(x, nms = nms, slots = slots)
 }
+
+
+## HAS_TESTS
+#' @export
+print.bage_prior_linex <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  cat(sprintf("% *s: %s\n", n_offset, "s", 0))
+  print_prior_slot(prior = x, nm = "mean_slope", slot = "mean_slope")
+  print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
+}
+
 
 ## HAS_TESTS
 #' @export
@@ -4538,6 +4735,19 @@ str_call_prior.bage_prior_linar <- function(prior) {
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("%s(%s)", nm, args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_linex <- function(prior) {
+  args_scale <- "s=0"
+  args_lin <- str_call_args_lin(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_scale, args_lin, args_along, args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("Lin(%s)", args)
 }
 
 ## HAS_TESTS
@@ -4780,6 +4990,12 @@ str_nm_prior.bage_prior_linar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+str_nm_prior.bage_prior_linex <- function(prior) {
+  "Lin()"
+}
+
+## HAS_TESTS
+#' @export
 str_nm_prior.bage_prior_norm <- function(prior) {
   "N()"
 }
@@ -4906,6 +5122,11 @@ transform_hyper.bage_prior_linar <- function(prior) {
 
 ## HAS_TESTS
 #' @export
+transform_hyper.bage_prior_linex <- function(prior)
+  list()
+
+## HAS_TESTS
+#' @export
 transform_hyper.bage_prior_norm <- function(prior)
   list(sd = exp)
 
@@ -5001,6 +5222,10 @@ uses_along.bage_prior_lin <- function(prior) TRUE
 ## HAS_TESTS
 #' @export
 uses_along.bage_prior_linar <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_linex <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -5114,6 +5339,10 @@ uses_matrix_effectfree_effect <- function(prior) {
 ## HAS_TESTS
 #' @export
 uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_linex <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export

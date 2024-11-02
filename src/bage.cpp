@@ -379,6 +379,15 @@ Type logpost_linar(vector<Type> effectfree,
 }
 
 template <class Type>
+Type logpost_linex(vector<Type> effectfree, // slope
+		   vector<Type> consts,
+		   matrix<int> matrix_along_by_effectfree) {
+  Type mean_slope = consts[0];
+  Type sd_slope = consts[1];
+  return dnorm(effectfree, mean_slope, sd_slope, true).sum();
+}
+
+template <class Type>
 Type logpost_norm(vector<Type> effectfree,
 		  vector<Type> hyper,
 		  vector<Type> consts,
@@ -546,6 +555,9 @@ Type logpost_not_uses_hyper(vector<Type> effectfree,
     break;
   case 9:
     ans = logpost_svd(effectfree, consts, matrix_along_by_effectfree);
+    break;
+  case 17:
+    ans = logpost_linex(effectfree, consts, matrix_along_by_effectfree);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_not_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
