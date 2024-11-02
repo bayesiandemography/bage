@@ -1619,7 +1619,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 #' mod
 #' @export
 print.bage_mod <- function(x, ...) {
-    nchar_offset <- 15L
+    nchar_offset <- 20L
     ## calculations
     formula <- x$formula
     priors <- x$priors
@@ -1632,25 +1632,13 @@ print.bage_mod <- function(x, ...) {
     mean_disp <- x$mean_disp
     datamod_outcome <- x$datamod_outcome
     is_fitted <- is_fitted(x)
-    str_title <- sprintf("-- %s %s model --",
+    str_title <- sprintf("  ---- %s %s model ----",
                          if (is_fitted) "Fitted" else "Unfitted",
                          model_descr(x))
-    nms_priors <- names(priors)
-    nchar_response <- nchar(as.character(formula[[2L]]))
-    nchar_max <- max(nchar(nms_priors), nchar_response)
-    padding_formula <- paste(rep(" ", nchar_max - nchar_response),
-                             collapse = "")
-    nms_priors <- sprintf("% *s", nchar_max, nms_priors)
-    calls_priors <- vapply(priors, str_call_prior, "")
-    str_priors <- paste(nms_priors, calls_priors, sep = " ~ ")
-    str_priors <- paste(str_priors, collapse = "\n")
     terms <- tidy(x)
-    i_intercept <- match("(Intercept)", terms$term, nomatch = 0L)
-    terms <- terms[-i_intercept, ]
-    i_spec <- match("spec", names(terms), nomatch = 0L)
-    terms <- terms[, -i_spec]
     terms <- as.data.frame(terms)
     terms$along[is.na(terms$along)] <- "-"
+    terms$zero_sum[is.na(terms$zero_sum)] <- "-"
     str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
     has_offset <- !is.null(vname_offset)
     if (has_offset) {
@@ -1661,20 +1649,22 @@ print.bage_mod <- function(x, ...) {
     ## printing
     cat(str_title)
     cat("\n\n")
-    cat(padding_formula)
-    cat(paste(deparse(formula), collapse = "\n"))
-    cat("\n\n")
-    cat(str_priors)
-    cat("\n\n")
+    nchar_response <- nchar(as.character(formula[[2L]]))
+    formula_text <- strwrap(deparse1(formula),
+                            width = 55L,
+                            indent = 3L,
+                            exdent = nchar_response + 7L)
+    cat(paste(formula_text, collapse = "\n"))
+    cat("\n\n\n")
     if (!is.null(datamod_outcome)) {
         cat(sprintf("% *s: %s",
                     nchar_offset + 6,
                     "data model for outcome",
                     str_call_datamod(datamod_outcome)))
-        cat("\n\n")
+        cat("\n\n\n")
     }
     print(terms, row.names = FALSE, digits = 2L)
-    cat("\n")
+    cat("\n\n")
     cat(str_disp)
     cat("\n")
     if (has_offset) {
@@ -1981,7 +1971,7 @@ generics::tidy
 #' contains the following columns:
 #'
 #' - `term` Name of the intercept, main effect, or interaction
-#' - `spec` Specification for prior
+#' - `prior` Specification for prior
 #' - `n_par` Number of parameters
 #' - `n_par_free` Number of free parameters
 #' - `std_dev` Standard deviation for point estimates.
@@ -2031,11 +2021,12 @@ tidy.bage_mod <- function(x, ...) {
   priors <- x$priors
   dimnames_terms <- x$dimnames_terms
   along <- make_along_mod(x)
+  zero_sum <- make_zero_sum_mod(x)
   n_par <- make_lengths_effect(dimnames_terms)
   n_par_free <- make_lengths_effectfree(x)
   term <- names(priors)
-  spec <- vapply(priors, str_call_prior, "")
-  ans <- tibble::tibble(term, spec, along, n_par, n_par_free)
+  prior <- vapply(priors, str_call_prior, "")
+  ans <- tibble::tibble(term, prior, along, zero_sum, n_par, n_par_free)
   is_fitted <- is_fitted(x)
   if (is_fitted) {
     effectfree <- x$point_effectfree
