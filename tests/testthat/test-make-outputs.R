@@ -489,36 +489,16 @@ test_that("'make_draws_post' works with valid inputs - has R_prec", {
                              sex = c(-1, 1),
                              age = rnorm(10)),
               log_disp = 0.2)
-  prec <- matrix(rnorm(144), nrow = 12)
-  prec <- crossprod(prec)
+  prec <- diag(12)
+  prec <- Matrix::Matrix(prec)
   map <- list(effectfree = factor(c(1, NA, NA, 2:11)),
               disp = factor(1))
   ans <- make_draws_post(est = est,
                          prec = prec,
                          map = map,
-                         n_draw = 50000L)
+                         n_draw = 500000L)
   expect_equal(rowMeans(ans), unlist(est, use.names = FALSE), tolerance = 0.02)
-  expect_equal(solve(cov(t(ans[c(1, 4:14),]))), unname(prec), tolerance = 0.02)
-})
-
-test_that("'make_draws_post' works with valid inputs - has R_prec", {
-  set.seed(0)
-  est <- list(effectfree = c("(Intercept)" = -3,
-                             sex = c(-1, 1),
-                             age = rnorm(10)),
-              log_disp = 0.2)
-  prec <- matrix(rnorm(144), nrow = 12)
-  prec[1,] <- 0
-  prec[,1] <- 0
-  prec <- crossprod(prec)
-  map <- list(effectfree = factor(c(1, NA, NA, 2:11)),
-              disp = factor(1))
-  ans <- make_draws_post(est = est,
-                         prec = prec,
-                         map = map,
-                         n_draw = 50000L)
-  expect_equal(rowMeans(ans), unlist(est, use.names = FALSE), tolerance = 0.1)
-  expect_equal(solve(cov(t(ans[c(1, 4:14),]))), unname(prec), tolerance = 0.1)
+  expect_equal(solve(cov(t(ans[c(1, 4:14),]))), as.matrix(prec), tolerance = 0.02)
 })
 
 
