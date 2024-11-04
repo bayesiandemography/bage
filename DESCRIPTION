@@ -19,7 +19,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Depends:
-    R (>= 4.3.0)
+    R (>= 4.3.0),
+    rvec (>= 0.0.7)
 Imports:
     cli,
     generics,
@@ -27,7 +28,6 @@ Imports:
     methods,
     parallel,
     poputils (>= 0.3.3),
-    rvec (>= 0.0.7),
     sparseMVN,
     stats,
     tibble,
