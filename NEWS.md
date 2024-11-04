@@ -14,6 +14,10 @@
   estimates of the lowest-level rates, probabilities, and means.
 * Added `RW2_Infant()` prior for modelling age-patterns of mortality
   rates.
+* The `s_seas` parameter in `RW_Seas()` and `RW2_Seas()` now defaults
+  to 0, rather than 1, so that seasonal effects are by default fixed
+  over time rather than varying. Using varying seasonal effects can
+  greatly increase computation times.
   
 
 
@@ -28,6 +32,8 @@
   original weights. The rescaling of the weights affects the estimated
   value for dispersion, but does not affect the estimates for any
   other parameters.
+* Generation of posterior sample now using fast methods from package
+  **sparseMVN** where possible.
   
 
 

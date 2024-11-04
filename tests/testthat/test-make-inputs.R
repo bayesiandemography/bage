@@ -1871,14 +1871,7 @@ test_that("'str_call_args_n_seas' works", {
 
 ## 'str_call_args_s_seas' ------------------------------------------------------
 
-test_that("'str_call_args_s_seas' works - s_seas = 1", {
-  prior <- RW_Seas(n=3)
-  ans_obtained <- str_call_args_s_seas(prior)
-  ans_expected <- ""
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'str_call_args_s_seas' works - s_seas not 1", {
+test_that("'str_call_args_s_seas' works", {
   prior <- RW_Seas(n=2,s_seas = 0.3)
   ans_obtained <- str_call_args_s_seas(prior)
   ans_expected <- "s_seas=0.3"

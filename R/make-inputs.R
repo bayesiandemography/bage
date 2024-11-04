@@ -1687,10 +1687,7 @@ str_call_args_n_seas <- function(prior) {
 #' @noRd
 str_call_args_s_seas <- function(prior) {
   scale_seas <- prior$specific$scale_seas
-  if (identical(scale_seas, 1))
-    ""
-  else
-    sprintf("s_seas=%s", scale_seas)
+  sprintf("s_seas=%s", scale_seas)
 }
 
 

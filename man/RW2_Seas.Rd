@@ -8,7 +8,7 @@ RW2_Seas(
   n_seas,
   s = 1,
   sd_slope = 1,
-  s_seas = 1,
+  s_seas = 0,
   sd_seas = 1,
   along = NULL,
   zero_sum = FALSE
@@ -24,8 +24,7 @@ the random walk. Default is \code{1}.}
 for initial slope or random walk. Default is \code{1}.}
 
 \item{s_seas}{Scale for innovations
-in seasonal effects. Default is \code{1}.
-Can be \code{0}.}
+in seasonal effects. Default is \code{0}.}
 
 \item{sd_seas}{Standard deviation for
 initial values of seasonal effects.
@@ -72,10 +71,9 @@ When using quarterly data, for instance,
 monthly data, \code{n_seas} should be \code{12}.
 
 By default, the magnitude of seasonal effects
-can change over time. However, setting \code{s_seas}
-to \code{0} produces seasonal effects that are fixed,
-eg where "January" effect is the same every year,
-the "Feburary" effect is the same every year, and so on.
+is fixed. However, setting \code{s_seas} to a value
+greater than zero produces seasonal effects
+that evolve over time.
 }
 \section{Mathematical details}{
 
@@ -115,8 +113,8 @@ where \code{s} is provided by the user.
 }
 
 \examples{
-RW2_Seas(n_seas = 4)             ## seasonal effects evolve
-RW2_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
+RW2_Seas(n_seas = 4)               ## seasonal effects fixed
+RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
 }
 \seealso{
 \itemize{

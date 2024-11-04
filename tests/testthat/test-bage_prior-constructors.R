@@ -145,7 +145,7 @@ test_that("'RW' works with valid inputs", {
 
 
 test_that("'RW_Seas' works with valid inputs", {
-  expect_identical(RW_Seas(n_seas = 2, s_seas = 0),
+  expect_identical(RW_Seas(n_seas = 2),
                    new_bage_prior_rwseasfix(n_seas = 2L,
                                             sd_seas = 1,
                                             scale = 1,
@@ -186,7 +186,7 @@ test_that("'RW2_Infant' works with valid inputs", {
 })
 
 test_that("'RW2_Seas' works with valid inputs", {
-  expect_identical(RW2_Seas(n_seas = 2, s_seas = 0),
+  expect_identical(RW2_Seas(n_seas = 2),
                    new_bage_prior_rw2seasfix(n_seas = 2L,
                                              sd_seas = 1,
                                              scale = 1,

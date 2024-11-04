@@ -775,10 +775,9 @@ RW <- function(s = 1,
 #' monthly data, `n_seas` should be `12`.
 #'
 #' By default, the magnitude of seasonal effects
-#' can change over time. However, setting `s_seas`
-#' to `0` produces seasonal effects that are fixed,
-#' eg where "January" effect is the same every year,
-#'  the "Feburary" effect is the same every year, and so on.
+#' is fixed. However, setting `s_seas` to a value
+#' greater than zero produces seasonal effects
+#' that evolve over time.
 #'
 #' @section Mathematical details:
 #'
@@ -818,8 +817,7 @@ RW <- function(s = 1,
 #' @param s Scale for prior for innovations in
 #' the random walk. Default is `1`.
 #' @param s_seas Scale for innovations
-#' in seasonal effects. Default is `1`.
-#' Can be `0`.
+#' in seasonal effects. Default is `0`.
 #' @param sd_seas Standard deviation for
 #' initial values of seasonal effects.
 #' Default is `1`.
@@ -835,12 +833,12 @@ RW <- function(s = 1,
 #'   main effect, or interaction
 #'
 #' @examples
-#' RW_Seas(n_seas = 4)             ## seasonal effects evolve
-#' RW_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
+#' RW_Seas(n_seas = 4)               ## seasonal effects fixed
+#' RW_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
 #' @export
 RW_Seas <- function(n_seas,
                     s = 1,
-                    s_seas = 1,
+                    s_seas = 0,
                     sd_seas = 1,
                     along = NULL,
                     zero_sum = FALSE) {
@@ -1090,11 +1088,9 @@ RW2_Infant <- function(s = 1,
 #' monthly data, `n_seas` should be `12`.
 #'
 #' By default, the magnitude of seasonal effects
-#' can change over time. However, setting `s_seas`
-#' to `0` produces seasonal effects that are fixed,
-#' eg where "January" effect is the same every year,
-#'  the "Feburary" effect is the same every year, and so on.
-#'
+#' is fixed. However, setting `s_seas` to a value
+#' greater than zero produces seasonal effects
+#' that evolve over time.
 #'
 #' @section Mathematical details:
 #'
@@ -1145,13 +1141,13 @@ RW2_Infant <- function(s = 1,
 #'   main effect, or interaction
 #'
 #' @examples
-#' RW2_Seas(n_seas = 4)             ## seasonal effects evolve
-#' RW2_Seas(n_seas = 4, s_seas = 0) ## seasonal effects fixed
+#' RW2_Seas(n_seas = 4)               ## seasonal effects fixed
+#' RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
 #' @export
 RW2_Seas <- function(n_seas,
                      s = 1,
                      sd_slope = 1,
-                     s_seas = 1,
+                     s_seas = 0,
                      sd_seas = 1,
                      along = NULL,
                      zero_sum = FALSE) {
