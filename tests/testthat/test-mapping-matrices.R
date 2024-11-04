@@ -88,104 +88,168 @@ test_that("'make_dim_svd' works - joint", {
 })
 
 
-## 'make_i_along' -------------------------------------------------------------
+## 'make_i_along_agetime' -----------------------------------------------------
 
-test_that("'make_i_along' works when 'along' is NULL but 'var_time' supplied", {
+test_that("'make_i_along_agetime' works when age required", {
+  prior <- RW2_Infant()
+  dimnames_term <- list(age = 1:3,
+                        period = 2001:2020)
+  var_time <- "period"
+  var_age <- "age"
+  ans_obtained <- make_i_along_agetime(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       agetime = "age")
+  ans_expected <- 1L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along_agetime' works when time required", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(age = 1:3,
+                        period = 2001:2020)
+  var_time <- "period"
+  var_age <- "age"
+  ans_obtained <- make_i_along_agetime(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       agetime = "time")
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along_agetime' throws correct error when age/time variable not yet identified", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(age = 1:3,
+                        epoch = 2001:2020)
+  var_time <- NULL
+  var_age <- "age"
+  expect_error(make_i_along_agetime(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    agetime = "time"),
+               "Using `SVD_RW\\(\\)` prior when time variable not identified.")
+})
+
+test_that("'make_i_along_agetime' throws correct error when age/time variable not yet identified", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(age = 1:3,
+                        cohort = 2001:2020)
+  var_time <- "time"
+  var_age <- "age"
+  expect_error(make_i_along_agetime(prior = prior,
+                                    dimnames_term = dimnames_term,
+                                    var_time = var_time,
+                                    var_age = var_age,
+                                    agetime = "time"),
+               "Using `SVD_RW\\(\\)` prior with a term that does not involve time.")
+})
+
+
+
+
+
+## 'make_i_along_inner' -------------------------------------------------------
+
+test_that("'make_i_along_inner' works when 'along' is NULL but 'var_time' supplied", {
   along <- NULL
   dimnames_term <- list(reg = letters,
                         period = 2001:2020)
   var_time <- "period"
   var_age <- "age"
-  ans_obtained <- make_i_along(along = along,
-                               dimnames_term = dimnames_term,
-                               var_time = var_time,
-                               var_age = var_age)
+  ans_obtained <- make_i_along_inner(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
   ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_i_along' works when 'along' is NULL but 'var_age' supplied", {
+test_that("'make_i_along_inner' works when 'along' is NULL but 'var_age' supplied", {
   along <- NULL
   dimnames_term <- list(reg = letters,
                         age = 0:3)
   var_time <- "period"
   var_age <- "age"
-  ans_obtained <- make_i_along(along = along,
-                               dimnames_term = dimnames_term,
-                               var_time = var_time,
-                               var_age = var_age)
+  ans_obtained <- make_i_along_inner(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
   ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_i_along' throws correct error when 'along' is NULL and 'var_time' nor 'var_age' supplied", {
+test_that("'make_i_along_inner' throws correct error when 'along' is NULL and 'var_time' nor 'var_age' supplied", {
   along <- NULL
   dimnames_term <- list(reg = letters,
                         sex = c("F", "M"),
                         oldness = 0:3)
   var_time <- NULL
   var_age <- NULL
-  expect_error(make_i_along(along = along,
-                            dimnames_term = dimnames_term,
-                            var_time = var_time,
-                            var_age = var_age),
+  expect_error(make_i_along_inner(along = along,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age),
                "Prior for term `reg:sex:oldness` does not have a value for `along`.")
 })
 
-test_that("'make_i_along' throws correct error when 'along' has length 2", {
+test_that("'make_i_along_inner' throws correct error when 'along' has length 2", {
   along <- c("age", "oldness")
   dimnames_term <- list(reg = letters,
                         sex = c("F", "M"),
                         oldness = 0:3)
   var_time <- NULL
   var_age <- NULL
-  expect_error(make_i_along(along = along,
-                            dimnames_term = dimnames_term,
-                            var_time = var_time,
-                            var_age = var_age),
+  expect_error(make_i_along_inner(along = along,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age),
                "Internal error: `along` does not have length 1.")
 })
 
-test_that("'make_i_along' throws correct error when 'along' has length 2", {
+test_that("'make_i_along_inner' throws correct error when 'along' has length 2", {
   along <- c("age", "oldness")
   dimnames_term <- list(reg = letters,
                         sex = c("F", "M"),
                         oldness = 0:3)
   var_time <- NULL
   var_age <- NULL
-  expect_error(make_i_along(along = along,
-                            dimnames_term = dimnames_term,
-                            var_time = var_time,
-                            var_age = var_age),
+  expect_error(make_i_along_inner(along = along,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age),
                "Internal error: `along` does not have length 1.")
 })
 
-test_that("'make_i_along' works when 'along' supplied", {
+test_that("'make_i_along_inner' works when 'along' supplied", {
   along <- "oldness"
   dimnames_term <- list(reg = letters,
                         sex = c("F", "M"),
                         oldness = 0:3)
   var_time <- NULL
   var_age <- NULL
-  ans_obtained <- make_i_along(along = along,
-                               dimnames_term = dimnames_term,
-                               var_time = var_time,
-                               var_age = var_age)
+  ans_obtained <- make_i_along_inner(along = along,
+                                     dimnames_term = dimnames_term,
+                                     var_time = var_time,
+                                     var_age = var_age)
   ans_expected <- 3L
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_i_along' throws correct error when 'along' not found", {
+test_that("'make_i_along_inner' throws correct error when 'along' not found", {
   along <- "wrong"
   dimnames_term <- list(reg = letters,
                         sex = c("F", "M"),
                         oldness = 0:3)
   var_time <- "time"
   var_age <- "oldness"
-  expect_error(make_i_along(along = along,
-                            dimnames_term = dimnames_term,
-                            var_time = var_time,
-                            var_age = var_age),
+  expect_error(make_i_along_inner(along = along,
+                                  dimnames_term = dimnames_term,
+                                  var_time = var_time,
+                                  var_age = var_age),
                "Prior for `reg:sex:oldness` has invalid value for `along`.")
 })
 
@@ -343,11 +407,11 @@ test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interactio
 ## 'make_matrix_along_by_effect' ----------------------------------------------
 
 test_that("'make_matrix_along_by_effect' works with single dimension", {
-  along <- "age"
+  prior = RW()
   dimnames_term <- list(age = 0:9)
   var_time <- "time"
   var_age <- "age"
-  ans_obtained <- make_matrix_along_by_effect(along = along,
+  ans_obtained <- make_matrix_along_by_effect(prior = prior,
                                               dimnames_term = dimnames_term,
                                               var_time = var_time,
                                               var_age = var_age)
@@ -359,12 +423,12 @@ test_that("'make_matrix_along_by_effect' works with single dimension", {
 })
 
 test_that("'make_matrix_along_by_effect' works with two dimensions", {
-  along <- NULL
+  prior <- RW()
   dimnames_term <- list(age = 0:9,
                         time = 2001:2002)
   var_time <- "time"
   var_age <- "age"
-  ans_obtained <- make_matrix_along_by_effect(along = along,
+  ans_obtained <- make_matrix_along_by_effect(prior = prior,
                                               dimnames_term = dimnames_term,
                                               var_time = var_time,
                                               var_age = var_age)

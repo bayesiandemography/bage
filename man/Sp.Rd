@@ -20,12 +20,12 @@ element of random walk.}
 for initial slope of random walk. Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_spline"}.
@@ -38,9 +38,9 @@ expected to vary smoothly from one element to the next.
 }
 \details{
 If \code{Sp()} is used with an interaction,
-separate splines are used for the "along" variable within
+separate splines are used for the 'along' variable within
 each combination of the
-"by" variables.
+'by' variables.
 }
 \section{Mathematical details}{
 
@@ -57,7 +57,7 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction, with \eqn{J} elements;
 \item \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
-values for the  \eqn{u}th combination of the "by" variables;
+values for the  \eqn{u}th combination of the 'by' variables;
 \item \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
 \item \eqn{U} is the number of elements of \eqn{\pmb{\beta}_u};
 \item \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of

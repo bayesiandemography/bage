@@ -875,26 +875,52 @@ test_that("'check_svd_agesex'  throws correct error when agesex is 'other'", {
 })
 
 
-## 'check_svd_time' ---------------------------------------------------------
+## 'check_prior_age' ---------------------------------------------------------
 
-test_that("'check_svd_time' works with bage_prior_svd_ar, correct inputs", {
+test_that("'check_prior_age' works with bage_prior_rw2infant, correct inputs", {
+  prior <- RW2_Infant()
+  expect_true(check_prior_age(prior = prior,
+                              nm = "age:year:gender",
+                              var_age = "year"))
+})
+
+test_that("'check_prior_age'  throws correct error when age variable not identified", {
+  prior <- RW2_Infant()
+  expect_error(check_prior_age(prior = prior,
+                               nm = "reg:time:age",
+                               var_age = NULL),
+               "Problem with `RW2_Infant\\(\\)` prior for term `reg:time:age`.")
+})
+
+test_that("'check_prior_age'  throws correct error when age variable not present", {
+  prior <- RW2_Infant()
+  expect_error(check_prior_age(prior = prior,
+                               nm = "reg:time:sex",
+                               var_age = "age"),
+               "Problem with `RW2_Infant\\(\\)` prior for term `reg:time:sex`.")
+})
+
+
+## 'check_prior_time' ---------------------------------------------------------
+
+test_that("'check_prior_time' works with bage_prior_svd_ar, correct inputs", {
   prior <- SVD_AR1(HMD)
-  expect_true(check_svd_time(prior = prior,
+  expect_true(check_prior_time(prior = prior,
                              nm = "age:year:gender",
                              var_time = "year"))
 })
 
-test_that("'check_svd_time'  throws correct error when time variable not identified", {
+test_that("'check_prior_time'  throws correct error when time variable not identified", {
   prior <- SVD_RW(HMD)
-  expect_error(check_svd_time(prior = prior,
+  expect_error(check_prior_time(prior = prior,
                                 nm = "reg:age:time",
                                 var_time = NULL),
                "Problem with `SVD_RW\\(\\)` prior for term `reg:age:time`.")
 })
 
-test_that("'check_svd_time'  throws correct error when time variable not identified", {
+test_that("'check_prior_time'  throws correct error when time variable not present", {
   prior <- SVD_RW2(HMD)
-  expect_error(check_svd_time(prior = prior,
+  expect_error(check_prior_time(prior = prior,
                               nm = "reg:age:sex",
                               var_time = "time"),
                "Problem with `SVD_RW2\\(\\)` prior for term `reg:age:sex`.")
