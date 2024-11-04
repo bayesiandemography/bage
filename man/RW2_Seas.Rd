@@ -32,12 +32,12 @@ initial values of seasonal effects.
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 Object of class \code{"bage_prior_rw2seasvary"}
@@ -59,9 +59,9 @@ trends upward or downward.
 \details{
 If \code{RW2_Seas()} is used with an interaction,
 separate series are used for
-the "along" variable within
+the 'along' variable within
 each combination of the
-"by" variables.
+'by' variables.
 
 Argument \code{s} controls the size of innovations in the random walk.
 Smaller values for \code{s} tend to give smoother series.
@@ -98,8 +98,8 @@ where
 \item \eqn{\alpha_j} or \eqn{\alpha_{u,v}} is an element of the random walk;
 \item \eqn{\lambda_j} or \eqn{\lambda_{u,v}} is an element of the seasonal effect;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the "along" variable of the interaction;
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+\item \eqn{v} denotes position within the 'along' variable of the interaction;
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
 \item \eqn{n} is \code{n_seas}.
 }
 

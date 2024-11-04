@@ -464,6 +464,38 @@ Type logpost_rw2(vector<Type> effectfree,
 }
 
 template <class Type>
+Type logpost_rw2infant(vector<Type> effectfree,
+		       vector<Type> hyper,
+		       vector<Type> consts,
+		       matrix<int> matrix_along_by_effectfree) {
+  Type scale_innov = consts[0];
+  Type sd_slope = consts[1];
+  Type log_sd_innov = hyper[0];
+  Type sd_innov = exp(log_sd_innov);
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  Type ans = 0;
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by_effectfree(0, i_by);
+    ans += dnorm(effectfree[i_0], Type(0), Type(1), true);
+    int i_1 = matrix_along_by_effectfree(1, i_by);
+    ans += dnorm(effectfree[i_1], Type(0), sd_slope, true);
+    int i_2 = matrix_along_by_effectfree(2, i_by);
+    Type diff = effectfree[i_2] - 2 * effectfree[i_1];
+    ans += dnorm(diff, Type(0), sd_innov, true);
+    for (int i_along = 3; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by_effectfree(i_along, i_by);
+      int i_1 = matrix_along_by_effectfree(i_along - 1, i_by);
+      int i_0 = matrix_along_by_effectfree(i_along - 2, i_by);
+      Type diff = effectfree[i_2] - 2 * effectfree[i_1] + effectfree[i_0];
+      ans += dnorm(diff, Type(0), sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
 Type logpost_rw2seasfix(vector<Type> effectfree,
 			vector<Type> hyper,
 			vector<Type> hyperrandfree, // seasonal effect
@@ -596,6 +628,9 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 16:
     ans = logpost_svd_rw2(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 18:
+    ans = logpost_rw2infant(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov

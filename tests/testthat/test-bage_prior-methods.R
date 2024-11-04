@@ -710,6 +710,82 @@ test_that("'draw_vals_effect' works with bage_prior_rw2 - n_by = 4, zero_sum = T
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
+test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_sum = FALSE", {
+  prior <- RW2_Infant()
+  n_sim <- 10
+  dimnames_term <- list(age = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
+  set.seed(0)
+  ans_obtained <- draw_vals_effect(prior = prior,
+                                   vals_hyper = vals_hyper,
+                                   vals_hyperrand = vals_hyperrand,
+                                   vals_spline = vals_spline,
+                                   vals_svd = vals_svd,
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender,
+                                   n_sim = n_sim)
+  set.seed(0)
+  ans_expected <- draw_vals_effect(prior = RW2(along = "age"),
+                                   vals_hyper = vals_hyper,
+                                   vals_hyperrand = vals_hyperrand,
+                                   vals_spline = vals_spline,
+                                   vals_svd = vals_svd,
+                                   dimnames_term = dimnames_term,
+                                   var_time = var_time,
+                                   var_age = var_age,
+                                   var_sexgender = var_sexgender,
+                                   n_sim = n_sim)
+  ans_expected[c(1, 11, 21, 31)] <- rnorm(4)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_sum = TRUE", {
+  prior <- RW2_Infant(zero_sum = TRUE)
+  n_sim <- 10
+  dimnames_term <- list(age = 1:10, reg = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  vals_spline <- NULL
+  vals_svd <- NULL
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(40L, 10L))
+  a <- array(ans, dim = c(10, 4, 10))
+  expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
+})
+
+
 test_that("'draw_vals_effect' works with bage_prior_rw2seasfix - zero_sum is FALSE", {
   prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0)
   n_sim <- 10
@@ -1249,6 +1325,14 @@ test_that("'draw_vals_hyper' works with bage_prior_rwseasvary", {
 
 test_that("'draw_vals_hyper' works with bage_prior_rw2", {
   prior <- RW2()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2infant", {
+  prior <- RW2_Infant()
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
@@ -3710,7 +3794,6 @@ test_that("'is_known' works with valid inputs", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_ar1 - n_by = 1", {
     expect_true(is_prior_ok_for_term(prior = AR1(),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2004),
                                      var_time = "time",
                                      var_age = "age",
@@ -3719,7 +3802,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar1 - n_by = 1", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_ar - n_by = 3", {
     expect_true(is_prior_ok_for_term(prior = AR(n_coef = 3),
-                                     nm = "time:region",
                                      dimnames_term = list(time = 2001:2010,
                                                           reg = 1:3),
                                      var_time = "time",
@@ -3729,7 +3811,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_ar - n_by = 3", {
 
 test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", {
   expect_error(is_prior_ok_for_term(prior = Known(c(0.1, -0.1)),
-                                    nm = "sex",
                                     dimnames_term = list(sex = c("f", "m", "d")),
                                     var_time = "time",
                                     var_age = "age",
@@ -3739,7 +3820,6 @@ test_that("'is_prior_ok_for_term' throws expected error with bage_prior_known", 
 
 test_that("'is_prior_ok_for_term' works with bage_prior_lin - n_by = 2", {
     expect_true(is_prior_ok_for_term(prior = Lin(),
-                                     nm = "sex:time",
                                      dimnames_term = list(sex = c("f", "m"),
                                                           time = 1:6),
                                      var_time = "time",
@@ -3749,7 +3829,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_lin - n_by = 2", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_lin - n_by = 1", {
   expect_true(is_prior_ok_for_term(prior = Lin(),
-                                   nm = "time",
                                    dimnames_term = list(time = 1:2),
                                    var_time = "time",
                                    var_age = "age",
@@ -3758,7 +3837,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_lin - n_by = 1", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_linar - n_by = 1", {
   expect_true(is_prior_ok_for_term(prior = Lin_AR(),
-                                   nm = "time",
                                    dimnames_term = list(time = 1:3),
                                    var_time = "time",
                                    var_age = "age",
@@ -3767,7 +3845,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_linar - n_by = 1", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_linex - n_by = 1", {
   expect_true(is_prior_ok_for_term(prior = Lin(s = 0),
-                                   nm = "time",
                                    dimnames_term = list(time = 1:2),
                                    var_time = "time",
                                    var_age = "age",
@@ -3776,7 +3853,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_linex - n_by = 1", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
     expect_true(is_prior_ok_for_term(prior = N(),
-                                     nm = "sex",
                                      dimnames_term = list(sex = c("f", "m")),
                                      var_time = "time",
                                      var_age = "age",
@@ -3785,7 +3861,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_norm", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
     expect_true(is_prior_ok_for_term(prior = NFix(),
-                                     nm = "sex",
                                      dimnames_term = list(sex = c("f", "m")),
                                      var_time = "time",
                                      var_age = "age",
@@ -3794,7 +3869,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_normfixed", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw - n_by = 1", {
     expect_true(is_prior_ok_for_term(prior = RW(),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3803,7 +3877,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw - n_by = 1", {
 
 test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw - n_by = 3", {
   expect_true(is_prior_ok_for_term(prior = RW(),
-                                   nm = "age:time",
                                    dimnames_term = list(age = 1:3,
                                                         time = 2001:2010),
                                    var_time = "time",
@@ -3813,7 +3886,6 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw - n_by
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rwseasfix", {
     expect_true(is_prior_ok_for_term(prior = RW_Seas(n_seas = 2, s_seas = 0),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2003),
                                      var_time = "time",
                                      var_age = "age",
@@ -3822,7 +3894,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rwseasfix", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rwseasvary", {
     expect_true(is_prior_ok_for_term(prior = RW_Seas(n_seas = 2),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3831,7 +3902,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rwseasvary", {
 
 test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw2 - n_by = 3", {
   expect_true(is_prior_ok_for_term(prior = RW2(),
-                                   nm = "age:time",
                                    dimnames_term = list(age = 1:3, time = 2001:2010),
                                    var_time = "time",
                                    var_age = "age",
@@ -3840,15 +3910,20 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw2 - n_b
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2 - n_by = 1", {
     expect_true(is_prior_ok_for_term(prior = RW2(),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2010),
+                                     var_time = "time",
+                                     var_age = "age"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_rw2infant", {
+    expect_true(is_prior_ok_for_term(prior = RW2_Infant(),
+                                     dimnames_term = list(age = 0:4),
                                      var_time = "time",
                                      var_age = "age"))
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasfix", {
     expect_true(is_prior_ok_for_term(prior = RW2_Seas(n_seas = 2, s_seas = 0),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3857,7 +3932,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasfix", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasvary", {
     expect_true(is_prior_ok_for_term(prior = RW2_Seas(n_seas = 2),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3866,7 +3940,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasvary", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_spline - n_by = 1", {
     expect_true(is_prior_ok_for_term(prior = Sp(),
-                                     nm = "time",
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3875,7 +3948,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_spline - n_by = 1", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD(HMD),
-                                   nm = "age:year",
                                    dimnames_term = list(age = c(0:59, "60+"),
                                                         year = 1:5),
                                    var_time = "year",
@@ -3885,7 +3957,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd, correct inputs", {
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd_ar, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD_AR(HMD),
-                                   nm = "age:sex:year",
                                    dimnames_term = list(age = c(0:59, "60+"),
                                                         sex = 1:2,
                                                         year = 1:5),
@@ -3896,7 +3967,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd_ar, correct inputs",
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD_RW(HMD),
-                                   nm = "age:sex:year",
                                    dimnames_term = list(age = c(0:59, "60+"),
                                                         sex = 1:2,
                                                         year = 1:5),
@@ -3907,7 +3977,6 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw, correct inputs",
 
 test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw2, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD_RW2(HMD),
-                                   nm = "age:sex:year",
                                    dimnames_term = list(age = c(0:59, "60+"),
                                                         sex = 1:2,
                                                         year = 1:5),
@@ -4224,6 +4293,12 @@ test_that("'levels_hyper' works with 'bage_prior_rw2'", {
                    "sd")
 })
 
+test_that("'levels_hyper' works with 'bage_prior_rw2infant'", {
+  matrix_along_by <- matrix(0:9, ncol = 2L)
+  expect_identical(levels_hyper(prior = RW2_Infant()),
+                   "sd")
+})
+
 test_that("'levels_hyper' works with 'bage_prior_rw2seasfix'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
   expect_identical(levels_hyper(prior = RW2_Seas(n_seas = 3, s_seas = 0)),
@@ -4347,6 +4422,234 @@ test_that("'levels_hyperrand' works with 'bage_prior_rw2seasvary'", {
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
   expect_identical(ans_obtained, ans_expected)                   
+})
+
+
+## 'make_i_along' -------------------------------------------------------------
+
+test_that("'make_i_along' works with bage_prior_ar", {
+  prior <- AR()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_lin", {
+  prior <- Lin()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_linar", {
+  prior <- Lin_AR1()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_linex", {
+  prior <- Lin(s = 0)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rw", {
+  prior <- RW()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rwseasfix", {
+  prior <- RW_Seas(n_seas = 2, s_seas = 0)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rwseasvary", {
+  prior <- RW_Seas(n_seas = 2, s_seas = 1)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rw2", {
+  prior <- RW2()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rw2infant", {
+  prior <- RW2_Infant()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 1L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rw2seasfix", {
+  prior <- RW2_Seas(n = 2, s_seas = 0)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_rw2seasvary", {
+  prior <- RW2_Seas(n = 2, s = 1)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_sp", {
+  prior <- Sp()
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_svd_ar", {
+  prior <- SVD_AR(HMD)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_svd_rw", {
+  prior <- SVD_RW(HMD)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_svd_rw2", {
+  prior <- SVD_RW2(HMD)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
 })
 
 
@@ -4495,6 +4798,41 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2', 2 dime
                                                   var_sexgender = NULL)
   ans_expected <- matrix(0:17,
                          nr = 9)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 2 dimensions, zero_sum is FALSE", {
+  prior <- RW2_Infant()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:19,
+                         nr = 10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 2 dimensions, zero_sum is TRUE", {
+  prior <- RW2_Infant(zero_sum = TRUE)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:9, region = c("a", "b")),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:9,
+                         nr = 10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasfix", {
+  prior <- RW2_Infant()
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = 0:9),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- matrix(0:9, nr = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -5000,6 +5338,21 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2", {
                                                 var_age = var_age,
                                                 var_sexgender = var_sexgender)
   ans_expected <- rbind(0, Matrix::.sparseDiagonal(9))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2infant - interaction, zero_sum is TRUE", {
+  prior <- RW2_Infant(zero_sum = TRUE)
+  dimnames_term <- list(age = 0:9, reg = 1:3)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_effectfree_effect(prior = prior,
+                                                dimnames_term = dimnames_term,
+                                                var_time = var_time,
+                                                var_age = var_age,
+                                                var_sexgender = var_sexgender)
+  ans_expected <- make_matrix_unconstr_constr_along(c(10, 3))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -5535,6 +5888,7 @@ test_that("'print' works", {
   expect_snapshot(print(RW_Seas(n_seas = 2, s_seas = 0)))
   expect_snapshot(print(RW_Seas(n_seas = 2)))
   expect_snapshot(print(RW2()))
+  expect_snapshot(print(RW2_Infant()))
   expect_snapshot(print(RW2_Seas(n_seas = 2, s_seas = 0)))
   expect_snapshot(print(RW2_Seas(n_seas = 2)))
   expect_snapshot(print(Sp()))
@@ -5646,6 +6000,12 @@ test_that("'str_call_prior' works with bage_prior_rw2", {
   expect_identical(str_call_prior(RW2()), "RW2()")
   expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0.5, zero_sum = TRUE)),
                    "RW2(s=2,sd=0.5,along=\"a\",zero_sum=TRUE)")
+})
+
+test_that("'str_call_prior' works with bage_prior_rw2infant", {
+  expect_identical(str_call_prior(RW2_Infant()), "RW2_Infant()")
+  expect_identical(str_call_prior(RW2_Infant(s = 2, sd = 0.5, zero_sum = TRUE)),
+                   "RW2_Infant(s=2,sd=0.5,zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2seasfix", {
@@ -5773,6 +6133,11 @@ test_that("'str_nm_prior' works with bage_prior_rwseasvary", {
 test_that("'str_nm_prior' works with bage_prior_rw2", {
     expect_identical(str_nm_prior(RW2()), "RW2()")
     expect_identical(str_nm_prior(RW2(s = 0.95)), "RW2()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_rw2infant", {
+    expect_identical(str_nm_prior(RW2_Infant()), "RW2_Infant()")
+    expect_identical(str_nm_prior(RW2_Infant(s = 0.95)), "RW2_Infant()")
 })
 
 test_that("'str_nm_prior' works with bage_prior_rw2seasfix", {
@@ -5905,6 +6270,11 @@ test_that("'transform_hyper' works with 'bage_prior_rw2'", {
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
+test_that("'transform_hyper' works with 'bage_prior_rw2infant'", {
+  l <- transform_hyper(prior = RW2_Infant())
+  expect_equal(0.35, l[[1]](log(0.35)))
+})
+
 test_that("'transform_hyper' works with 'bage_prior_rw2seasfix'", {
   l <- transform_hyper(prior = RW2_Seas(n_seas = 3, s_seas=0))
   expect_equal(0.35, l[[1]](log(0.35)))
@@ -5961,6 +6331,7 @@ test_that("'uses_along' works with valid inputs", {
   expect_true(uses_along(RW_Seas(n_seas = 3, s_seas = 0)))
   expect_true(uses_along(RW_Seas(n_seas = 3)))
   expect_true(uses_along(RW2()))
+  expect_true(uses_along(RW2_Infant()))
   expect_true(uses_along(RW2_Seas(n_seas = 3, s_seas = 0)))
   expect_true(uses_along(RW2_Seas(n_seas = 3)))
   expect_true(uses_along(Sp()))
@@ -6008,6 +6379,7 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2, s_seas = 0)))
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2)))
   expect_true(uses_matrix_effectfree_effect(RW2()))
+  expect_true(uses_matrix_effectfree_effect(RW2_Infant()))
   expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2, s_seas = 0)))
   expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2)))
   expect_true(uses_matrix_effectfree_effect(Sp()))

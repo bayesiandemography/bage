@@ -17,12 +17,12 @@ of line. Default is 0.}
 of line. Default is 1.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_lin"}.
@@ -35,8 +35,8 @@ or interaction. Typically used with time.
 \details{
 If \code{Lin()} is used with an interaction,
 then separate lines are constructed along
-the "along" variable, within each combination
-of the "by" variables.
+the 'along' variable, within each combination
+of the 'by' variables.
 
 Argument \code{s} controls the size of the errors.
 Smaller values tend to give smoother estimates.
@@ -65,8 +65,8 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the "along" variable of the interaction; and
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+\item \eqn{v} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 The slopes have priors

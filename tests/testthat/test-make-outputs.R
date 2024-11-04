@@ -2014,6 +2014,7 @@ test_that("'transform_hyper_ar' works with 'bage_prior_svd_ar - AR'", {
 
 test_that("'zero_sum' works", {
   set.seed(0)
+  prior <- RW()
   fitted <- rvec::rnorm_rvec(n = 100, n_draw = 10)
   along <- "time"
   dimnames_term <- list(time = 2001:2010,
@@ -2021,8 +2022,8 @@ test_that("'zero_sum' works", {
                         sex = 1:2)
   var_time <- "time"
   var_age <- "age"
-  ans <- zero_sum_fitted(fitted = fitted,
-                         along = "time",
+  ans <- zero_sum_fitted(prior = prior,
+                         fitted = fitted,
                          dimnames_term = dimnames_term,
                          var_time = var_time,
                          var_age = var_age)
