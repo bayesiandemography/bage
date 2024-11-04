@@ -5045,13 +5045,11 @@ str_call_prior.bage_prior_rw <- function(prior) {
 str_call_prior.bage_prior_rwseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
-  args_s_seas <- "s_seas=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_n_seas,
             args_scale,
-            args_s_seas,
             args_sd_seas,
             args_along,
             args_zero_sum)
@@ -5117,14 +5115,12 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
-  args_s_seas <- "s_seas=0"
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_n_seas,
             args_scale,
             args_sd_slope,
-            args_s_seas,
             args_sd_seas,
             args_along,
             args_zero_sum)

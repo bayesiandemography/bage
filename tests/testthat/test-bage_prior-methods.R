@@ -36,7 +36,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_linar' - n_by = 1", {
 
 test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - main effect", {
   dimnames_term <- list(x = letters[1:13])
-  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 0, along = "x"),
+  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 13)
   expect_identical(ans_obtained, ans_expected)                   
@@ -45,7 +45,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - main effect", {
 test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - interaction", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
-  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 0),
+  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 20)
   expect_identical(ans_obtained, ans_expected)                   
@@ -54,7 +54,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - interaction", {
 test_that("'comp_hyperrand' works with 'bage_prior_rwseasvary' - interaction", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
-  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3),
+  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 1),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 26)
   expect_identical(ans_obtained, ans_expected)                   
@@ -62,7 +62,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwseasvary' - interaction", {
 
 test_that("'comp_hyperrand' works with 'bage_prior_rw2seasfix'", {
   dimnames_term <- list(x = letters[1:13])
-  ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
+  ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 13)
   expect_identical(ans_obtained, ans_expected)                   
@@ -70,7 +70,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_rw2seasfix'", {
 
 test_that("'comp_hyperrand' works with 'bage_prior_rw2seasvary'", {
   dimnames_term <- list(x = letters[1:13])
-  ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, along = "x"),
+  ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 1, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 13)
   expect_identical(ans_obtained, ans_expected)                   
@@ -525,7 +525,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw - n_by = 4, zero_sum is T
 
 
 test_that("'draw_vals_effect' works with bage_prior_rwseasfix - zero_sum is FALSE", {
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2, s = 0.01)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -555,7 +555,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwseasfix - zero_sum is FALS
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rwseasfix - zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -787,7 +787,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_s
 
 
 test_that("'draw_vals_effect' works with bage_prior_rw2seasfix - zero_sum is FALSE", {
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -817,7 +817,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2seasfix - zero_sum is FAL
 })
 
 test_that("'draw_vals_effect' works with bage_prior_rw2seasfix - zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1307,7 +1307,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw", {
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rwseasfix", {
-  prior <- RW_Seas(n_seas = 2, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
@@ -1340,7 +1340,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2infant", {
 })
 
 test_that("'draw_vals_hyper' works with bage_prior_rw2seasfix", {
-  prior <- RW2_Seas(n_seas = 2, s_seas = 0)
+  prior <- RW2_Seas(n_seas = 2)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
@@ -1493,7 +1493,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar - zero_sum = TRUE",
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = FALSE", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2, s = 0.01)
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -1512,7 +1512,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = FA
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = TRUE", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -1573,7 +1573,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary - zero_sum is 
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = FALSE", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01)
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -1592,7 +1592,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = F
 
 test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = TRUE", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2576,7 +2576,7 @@ test_that("'forecast_term' works with bage_prior_rw - n_by = 2, zero_sum is TRUE
 
 test_that("'forecast_term' works with bage_prior_rwseasfix", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -2634,7 +2634,7 @@ test_that("'forecast_term' works with bage_prior_rwseasfix", {
 
 test_that("'forecast_term' works with bage_prior_rwseasfix - zero_sum is TRUE", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s_seas = 0, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE)
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -2681,7 +2681,7 @@ test_that("'forecast_term' works with bage_prior_rwseasfix - zero_sum is TRUE", 
 
 test_that("'forecast_term' works with bage_prior_rwseasvary", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2)
+  prior <- RW_Seas(n_seas = 2, s_seas = 1)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -2744,7 +2744,7 @@ test_that("'forecast_term' works with bage_prior_rwseasvary", {
 
 test_that("'forecast_term' works with bage_prior_rwseasvary - zero_sum is TRUE", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s_seas = 1, zero_sum = TRUE)
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -2929,7 +2929,7 @@ test_that("'forecast_term' works with bage_prior_rw2 - n_by = 2, zero_sum is TRU
 
 test_that("'forecast_term' works with bage_prior_rw2seasfix", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s_seas = 0)
+  prior <- RW2_Seas(n_seas = 2)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -2990,7 +2990,7 @@ test_that("'forecast_term' works with bage_prior_rw2seasfix", {
 
 test_that("'forecast_term' works with bage_prior_rw2seasfix - zero_sum is TRUE", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s_seas = 0, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE)
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3037,7 +3037,7 @@ test_that("'forecast_term' works with bage_prior_rw2seasfix - zero_sum is TRUE",
 
 test_that("'forecast_term' works with bage_prior_rw2seasvary", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2)
+  prior <- RW2_Seas(n_seas = 2, s_seas = 1)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -3103,7 +3103,7 @@ test_that("'forecast_term' works with bage_prior_rw2seasvary", {
 
 test_that("'forecast_term' works with bage_prior_rw2seasvary - zero_sum is TRUE", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s_seas = 0.1, zero_sum = TRUE)
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3420,7 +3420,7 @@ test_that("'generate' works with bage_prior_rw", {
 })
 
 test_that("'generate' works with bage_prior_rwseasfix", {
-  x <- RW_Seas(n = 3, s_seas = 0, sd_seas = 0.2)
+  x <- RW_Seas(n = 3, sd_seas = 0.2)
   set.seed(0)
   n <- 20
   n_draw <- 25
@@ -3472,9 +3472,9 @@ test_that("'has_hyperrandfree' returns FALSE with prior without hyperrandfree", 
 test_that("'has_hyperrandfree' returns TRUE with prior with hyperrandfree", {
   expect_true(has_hyperrandfree(Lin()))
   expect_true(has_hyperrandfree(Lin_AR()))
-  expect_true(has_hyperrandfree(RW_Seas(n_seas=2, s_seas = 0)))
+  expect_true(has_hyperrandfree(RW_Seas(n_seas=2)))
   expect_true(has_hyperrandfree(RW_Seas(n_seas=2, s_seas = 0.1)))
-  expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0)))
+  expect_true(has_hyperrandfree(RW2_Seas(n_seas=2)))
   expect_true(has_hyperrandfree(RW2_Seas(n_seas=2, s_seas = 0.1)))
 })
 
@@ -3540,7 +3540,7 @@ test_that("'make_hyperrand_one' works with bage_prior_linar", {
 
 test_that("'make_hyperrand_one' works with bage_prior_rwseasfix", {
   set.seed(0)
-  prior <- RW_Seas(n = 3, s_seas = 0)
+  prior <- RW_Seas(n = 3)
   hyperrandfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
@@ -3578,7 +3578,7 @@ test_that("'make_hyperrand_one' works with bage_prior_rwseasvary", {
 
 test_that("'make_hyperrand_one' works with bage_prior_rw2seasfix", {
   set.seed(0)
-  prior <- RW2_Seas(n = 3, s_seas = 0)
+  prior <- RW2_Seas(n = 3)
   hyperrandfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
@@ -3658,7 +3658,7 @@ test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_rwseasf
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n_seas = 3, s_seas = 0)) |>
+                  set_prior(sex:time ~ RW_Seas(n_seas = 3)) |>
                   set_n_draw(n = 10) |>
                   fit()
   components <- components(mod)
@@ -3724,7 +3724,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasfix", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RW2_Seas(n_seas = 3, s_seas = 0)) |>
+                  set_prior(sex:time ~ RW2_Seas(n_seas = 3)) |>
                   set_n_draw(n = 10) |>
                   fit()
   term <- make_term_components(mod)
@@ -3757,7 +3757,7 @@ test_that("'infer_trend_cyc_seas_err_one' works with bage_prior_rw2seasvary", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RW2_Seas(n_seas = 3)) |>
+                  set_prior(sex:time ~ RW2_Seas(n_seas = 3, s_seas = 1)) |>
                   set_n_draw(n_draw = 10) |>
                   fit()
   term <- make_term_components(mod)
@@ -3885,7 +3885,7 @@ test_that("'is_prior_ok_for_term' throws correct error with bage_prior_rw - n_by
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rwseasfix", {
-    expect_true(is_prior_ok_for_term(prior = RW_Seas(n_seas = 2, s_seas = 0),
+    expect_true(is_prior_ok_for_term(prior = RW_Seas(n_seas = 2),
                                      dimnames_term = list(time = 2001:2003),
                                      var_time = "time",
                                      var_age = "age",
@@ -3893,7 +3893,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rwseasfix", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rwseasvary", {
-    expect_true(is_prior_ok_for_term(prior = RW_Seas(n_seas = 2),
+    expect_true(is_prior_ok_for_term(prior = RW_Seas(n_seas = 2, s_seas = 1),
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3923,7 +3923,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2infant", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasfix", {
-    expect_true(is_prior_ok_for_term(prior = RW2_Seas(n_seas = 2, s_seas = 0),
+    expect_true(is_prior_ok_for_term(prior = RW2_Seas(n_seas = 2),
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -3931,7 +3931,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasfix", {
 })
 
 test_that("'is_prior_ok_for_term' works with bage_prior_rw2seasvary", {
-    expect_true(is_prior_ok_for_term(prior = RW2_Seas(n_seas = 2),
+    expect_true(is_prior_ok_for_term(prior = RW2_Seas(n_seas = 2, s_seas = 1),
                                      dimnames_term = list(time = 2001:2010),
                                      var_time = "time",
                                      var_age = "age",
@@ -4112,7 +4112,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - main effec
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 0, along = "x"),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, along = "x"),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4126,7 +4126,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - main effec
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 2, s_seas = 0, along = "x"),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 2, along = "x"),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4141,7 +4141,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - interactio
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 0),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4156,7 +4156,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - interactio
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 0, zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, zero_sum = TRUE),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4171,7 +4171,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasvary' - interacti
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 1),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4186,7 +4186,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasvary' - interacti
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 1, zero_sum = TRUE),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4200,7 +4200,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rw2seasfix'", {
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
+  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, along = "x"),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4214,7 +4214,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rw2seasvary'", {
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, along = "x"),
+  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, s_seas = 1, along = "x"),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -4277,13 +4277,13 @@ test_that("'levels_hyper' works with 'bage_prior_rw'", {
 
 test_that("'levels_hyper' works with 'bage_prior_rwseasfix'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyper(prior = RW_Seas(n_seas = 3, s_seas = 0)),
+  expect_identical(levels_hyper(prior = RW_Seas(n_seas = 3)),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rwseasvary'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyper(prior = RW_Seas(n_seas = 3)),
+  expect_identical(levels_hyper(prior = RW_Seas(n_seas = 3, s_seas = 1)),
                    c("sd_seas", "sd"))
 })
 
@@ -4301,13 +4301,13 @@ test_that("'levels_hyper' works with 'bage_prior_rw2infant'", {
 
 test_that("'levels_hyper' works with 'bage_prior_rw2seasfix'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyper(prior = RW2_Seas(n_seas = 3, s_seas = 0)),
+  expect_identical(levels_hyper(prior = RW2_Seas(n_seas = 3)),
                    "sd")
 })
 
 test_that("'levels_hyper' works with 'bage_prior_rw2seasvary'", {
   matrix_along_by <- matrix(0:9, ncol = 2L)
-  expect_identical(levels_hyper(prior = RW2_Seas(n_seas = 3)),
+  expect_identical(levels_hyper(prior = RW2_Seas(n_seas = 3, s_seas = 1)),
                    c("sd_seas", "sd"))
 })
 
@@ -4384,7 +4384,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_linar' - n_by = 1", {
 
 test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix' - main effect", {
   dimnames_term <- list(x = letters[1:13])
-  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 0, along = "x"),
+  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
   expect_identical(ans_obtained, ans_expected)                   
@@ -4393,7 +4393,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix' - main effect", 
 test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix' - interaction", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
-  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 0),
+  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
   expect_identical(ans_obtained, ans_expected)                   
@@ -4402,7 +4402,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_rwseasfix' - interaction", 
 test_that("'levels_hyperrand' works with 'bage_prior_rwseasvary' - interaction", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
-  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3),
+  ans_obtained <- levels_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 1),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
   expect_identical(ans_obtained, ans_expected)                   
@@ -4410,7 +4410,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_rwseasvary' - interaction",
 
 test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
   dimnames_term <- list(x = letters[1:13])
-  ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
+  ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
   expect_identical(ans_obtained, ans_expected)                   
@@ -4418,7 +4418,7 @@ test_that("'levels_hyperrand' works with 'bage_prior_rw2seasfix'", {
 
 test_that("'levels_hyperrand' works with 'bage_prior_rw2seasvary'", {
   dimnames_term <- list(x = letters[1:13])
-  ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, along = "x"),
+  ans_obtained <- levels_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 1, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(dimnames_to_levels(dimnames_term), 2)
   expect_identical(ans_obtained, ans_expected)                   
@@ -4503,7 +4503,7 @@ test_that("'make_i_along' works with bage_prior_rw", {
 })
 
 test_that("'make_i_along' works with bage_prior_rwseasfix", {
-  prior <- RW_Seas(n_seas = 2, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2)
   dimnames_term <- list(age = 1:3,
                         time = 2000:2005,
                         sex = c("f", "m"))
@@ -4563,7 +4563,7 @@ test_that("'make_i_along' works with bage_prior_rw2infant", {
 })
 
 test_that("'make_i_along' works with bage_prior_rw2seasfix", {
-  prior <- RW2_Seas(n = 2, s_seas = 0)
+  prior <- RW2_Seas(n = 2)
   dimnames_term <- list(age = 1:3,
                         time = 2000:2005,
                         sex = c("f", "m"))
@@ -4757,7 +4757,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw', 2 dimen
 })
 
 test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwseasfix", {
-  prior <- RW_Seas(n_seas = 2, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 2001:2010),
                                                   var_time = "time",
@@ -4768,7 +4768,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwseasfix", {
 })
 
 test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwseasvary", {
-  prior <- RW_Seas(n_seas = 3)
+  prior <- RW_Seas(n_seas = 3, s_seas = 1)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 2001:2010),
                                                   var_time = "time",
@@ -4825,7 +4825,7 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasfix", {
+test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2infant", {
   prior <- RW2_Infant()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = 0:9),
@@ -4837,7 +4837,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasfix", {
 })
 
 test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasfix", {
-  prior <- RW2_Seas(n_seas = 5, s_seas = 0)
+  prior <- RW2_Seas(n_seas = 5)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 2001:2010),
                                                   var_time = "time",
@@ -4848,7 +4848,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasfix", {
 })
 
 test_that("'make_matrix_along_by_effectfree' works - bage_prior_rw2seasvary", {
-  prior <- RW2_Seas(n_seas = 4)
+  prior <- RW2_Seas(n_seas = 4, s_seas = 1)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 2001:2010),
                                                   var_time = "time",
@@ -5297,7 +5297,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw - interactio
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_rwseasfix - interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE, s_seas = 0)
+  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -5357,7 +5357,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2infant - int
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2seasfix - interaction, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE, s_seas = 0)
+  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -5885,12 +5885,12 @@ test_that("'print' works", {
   expect_snapshot(print(N()))
   expect_snapshot(print(NFix()))
   expect_snapshot(print(RW()))
-  expect_snapshot(print(RW_Seas(n_seas = 2, s_seas = 0)))
   expect_snapshot(print(RW_Seas(n_seas = 2)))
+  expect_snapshot(print(RW_Seas(n_seas = 2, s_seas = 1)))
   expect_snapshot(print(RW2()))
   expect_snapshot(print(RW2_Infant()))
-  expect_snapshot(print(RW2_Seas(n_seas = 2, s_seas = 0)))
   expect_snapshot(print(RW2_Seas(n_seas = 2)))
+  expect_snapshot(print(RW2_Seas(n_seas = 2, s = 1)))
   expect_snapshot(print(Sp()))
   expect_snapshot(print(SVD(HMD)))
   expect_snapshot(print(SVD(HMD, indep = FALSE)))
@@ -5983,10 +5983,10 @@ test_that("'str_call_prior' works with bage_prior_rw", {
 })
 
 test_that("'str_call_prior' works with bage_prior_rwseasfix", {
-    expect_identical(str_call_prior(RW_Seas(n_seas=2, s_seas = 0)), "RW_Seas(n_seas=2,s_seas=0)")
+    expect_identical(str_call_prior(RW_Seas(n_seas=2)), "RW_Seas(n_seas=2)")
     expect_identical(str_call_prior(RW_Seas(along = "a", s = 2, n = 5, sd_seas = 2.0,
-                                            zero_sum=T,s_seas=0)),
-                     "RW_Seas(n_seas=5,s=2,s_seas=0,sd_seas=2,along=\"a\",zero_sum=TRUE)")
+                                            zero_sum=T)),
+                     "RW_Seas(n_seas=5,s=2,sd_seas=2,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwseasvary", {
@@ -6010,10 +6010,10 @@ test_that("'str_call_prior' works with bage_prior_rw2infant", {
 
 test_that("'str_call_prior' works with bage_prior_rw2seasfix", {
   expect_identical(str_call_prior(RW2_Seas(n_seas=2, s_seas = 0)),
-                   "RW2_Seas(n_seas=2,s_seas=0)")
+                   "RW2_Seas(n_seas=2)")
   expect_identical(str_call_prior(RW2_Seas(along = "a", sd_seas = 3, s = 2,
-                                           zero_sum = TRUE, n = 5, s_seas=0)),
-                     "RW2_Seas(n_seas=5,s=2,s_seas=0,sd_seas=3,along=\"a\",zero_sum=TRUE)")
+                                           zero_sum = TRUE, n = 5)),
+                     "RW2_Seas(n_seas=5,s=2,sd_seas=3,along=\"a\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2seasvary", {
@@ -6121,7 +6121,7 @@ test_that("'str_nm_prior' works with bage_prior_rw", {
 })
 
 test_that("'str_nm_prior' works with bage_prior_rwseasfix", {
-    expect_identical(str_nm_prior(RW_Seas(n_seas = 3, s_seas = 0)), "RW_Seas()")
+    expect_identical(str_nm_prior(RW_Seas(n_seas = 3)), "RW_Seas()")
     expect_identical(str_nm_prior(RW_Seas(n_seas = 3, s = 0.95, s_seas = 0)), "RW_Seas()")
 })
 
@@ -6255,12 +6255,12 @@ test_that("'transform_hyper' works with 'bage_prior_rw'", {
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rwseasfix'", {
-  l <- transform_hyper(prior = RW_Seas(n_seas = 3, s_seas=0))
+  l <- transform_hyper(prior = RW_Seas(n_seas = 3))
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rwseasvary'", {
-  l <- transform_hyper(prior = RW_Seas(n_seas = 3))
+  l <- transform_hyper(prior = RW_Seas(n_seas = 3, s_seas = 1))
   expect_equal(0.35, l[[1]](log(0.35)))
   expect_equal(0.35, l[[2]](log(0.35)))
 })
@@ -6276,12 +6276,12 @@ test_that("'transform_hyper' works with 'bage_prior_rw2infant'", {
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw2seasfix'", {
-  l <- transform_hyper(prior = RW2_Seas(n_seas = 3, s_seas=0))
+  l <- transform_hyper(prior = RW2_Seas(n_seas = 3))
   expect_equal(0.35, l[[1]](log(0.35)))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_rw2seasvary'", {
-  l <- transform_hyper(prior = RW2_Seas(n_seas = 3))
+  l <- transform_hyper(prior = RW2_Seas(n_seas = 3, s_seas = 1))
   expect_equal(0.35, l[[1]](log(0.35)))
   expect_equal(0.35, l[[2]](log(0.35)))
 })
@@ -6328,12 +6328,12 @@ test_that("'uses_along' works with valid inputs", {
   expect_false(uses_along(N()))
   expect_false(uses_along(NFix()))
   expect_true(uses_along(RW()))
-  expect_true(uses_along(RW_Seas(n_seas = 3, s_seas = 0)))
   expect_true(uses_along(RW_Seas(n_seas = 3)))
+  expect_true(uses_along(RW_Seas(n_seas = 3, s_seas = 1)))
   expect_true(uses_along(RW2()))
   expect_true(uses_along(RW2_Infant()))
-  expect_true(uses_along(RW2_Seas(n_seas = 3, s_seas = 0)))
   expect_true(uses_along(RW2_Seas(n_seas = 3)))
+  expect_true(uses_along(RW2_Seas(n_seas = 3, s_seas = 1)))
   expect_true(uses_along(Sp()))
   expect_false(uses_along(SVD(HMD)))
   expect_true(uses_along(SVD_AR(HMD)))
@@ -6362,10 +6362,10 @@ test_that("'uses_hyperrandfree' returns FALSE with priors that do not use hyperr
 test_that("'uses_hyperrandfree' returns TRUE with priors do use hyperrandfree parameters", {
   expect_true(uses_hyperrandfree(Lin()))
   expect_true(uses_hyperrandfree(Lin_AR()))
-  expect_true(uses_hyperrandfree(RW_Seas(n_seas = 3, s_seas = 0)))
   expect_true(uses_hyperrandfree(RW_Seas(n_seas = 3)))
-  expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 0)))
+  expect_true(uses_hyperrandfree(RW_Seas(n_seas = 3, s_seas = 1)))
   expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3)))
+  expect_true(uses_hyperrandfree(RW2_Seas(n_seas = 3, s_seas = 1)))
 })
 
 
@@ -6376,12 +6376,12 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_false(uses_matrix_effectfree_effect(Lin()))
   expect_true(uses_matrix_effectfree_effect(Lin(s=0)))
   expect_true(uses_matrix_effectfree_effect(RW()))
-  expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2, s_seas = 0)))
   expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2)))
+  expect_true(uses_matrix_effectfree_effect(RW_Seas(n = 2, s_seas = 1)))
   expect_true(uses_matrix_effectfree_effect(RW2()))
   expect_true(uses_matrix_effectfree_effect(RW2_Infant()))
-  expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2, s_seas = 0)))
   expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2)))
+  expect_true(uses_matrix_effectfree_effect(RW2_Seas(n = 2, s_seas = 1)))
   expect_true(uses_matrix_effectfree_effect(Sp()))
   expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
   expect_true(uses_matrix_effectfree_effect(SVD_AR(HMD)))
