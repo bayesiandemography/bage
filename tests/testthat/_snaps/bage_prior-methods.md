@@ -135,6 +135,16 @@
 ---
 
     Code
+      print(RW2_Infant())
+    Output
+        RW2_Infant() 
+               s: 1
+        sd_slope: 1
+        zero_sum: FALSE
+
+---
+
+    Code
       print(RW2_Seas(n_seas = 2, s_seas = 0))
     Output
         RW2_Seas(n_seas=2,s_seas=0) 

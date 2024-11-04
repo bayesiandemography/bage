@@ -174,6 +174,17 @@ test_that("'RW2' works with valid inputs", {
                                       zero_sum = TRUE))
 })
 
+test_that("'RW2_Infant' works with valid inputs", {
+  expect_identical(RW2_Infant(),
+                   new_bage_prior_rw2infant(scale = 1,
+                                            sd_slope = 1,
+                                            zero_sum = FALSE))
+  expect_identical(RW2_Infant(sd_slope = 0.1, s = 0.3, zero_sum = TRUE),
+                   new_bage_prior_rw2infant(scale = 0.3,
+                                            sd_slope = 0.1,
+                                            zero_sum = TRUE))
+})
+
 test_that("'RW2_Seas' works with valid inputs", {
   expect_identical(RW2_Seas(n_seas = 2, s_seas = 0),
                    new_bage_prior_rw2seasfix(n_seas = 2L,
@@ -562,6 +573,21 @@ test_that("'new_bage_prior_rw2' works", {
   expect_s3_class(obj, "bage_prior_rw2")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 7L)
+  expect_identical(obj$const, c(scale = 1, sd_slope = 1))
+  expect_identical(obj$specific,
+                   list(scale = 1,
+                        sd_slope = 1,
+                        along = NULL,
+                        zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rw2infant' works", {
+  obj <- new_bage_prior_rw2infant(scale = 1,
+                                  sd_slope = 1,
+                                  zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2infant")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 18L)
   expect_identical(obj$const, c(scale = 1, sd_slope = 1))
   expect_identical(obj$specific,
                    list(scale = 1,

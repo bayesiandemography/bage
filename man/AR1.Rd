@@ -15,12 +15,12 @@ Defaults are \code{0.8} and \code{0.98}.}
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
@@ -36,8 +36,8 @@ interactions that involve time.
 \details{
 If \code{AR()} is used with an interaction,
 separate AR processes are constructed along
-the "along" variable, within each combination of the
-"by" variables.
+the 'along' variable, within each combination of the
+'by' variables.
 
 Arguments \code{min} and \code{max} can be used to specify
 the permissible range for autocorrelation.
@@ -62,8 +62,8 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the "along" variable of the interaction; and
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+\item \eqn{v} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 Internally, \code{AR1()} derives a value for \eqn{\omega} that

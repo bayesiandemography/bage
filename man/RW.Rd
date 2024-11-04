@@ -11,12 +11,12 @@ RW(s = 1, along = NULL, zero_sum = FALSE)
 Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_rw"}.
@@ -31,8 +31,8 @@ interactions that involve age or time.
 \details{
 If \code{RW()} is used with an interaction,
 separate random walks are constructed along
-the "along" variable, within each combination of the
-"by" variables.
+the 'along' variable, within each combination of the
+'by' variables.
 
 Argument \code{s} controls the size of innovations.
 Smaller values for \code{s} tend to give smoother series.
@@ -54,8 +54,8 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the "along" variable of the interaction; and
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+\item \eqn{v} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 Parameter \eqn{\tau}

@@ -25,7 +25,7 @@ The \link[tibble:tibble-package]{tibble} returned by \code{tidy()}
 contains the following columns:
 \itemize{
 \item \code{term} Name of the intercept, main effect, or interaction
-\item \code{spec} Specification for prior
+\item \code{prior} Specification for prior
 \item \code{n_par} Number of parameters
 \item \code{n_par_free} Number of free parameters
 \item \code{std_dev} Standard deviation for point estimates.

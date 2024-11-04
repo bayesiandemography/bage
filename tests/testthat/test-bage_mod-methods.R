@@ -881,6 +881,22 @@ test_that("'fit' works with Lin(s = 0)", {
     expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' works with RW2_Infant()", {
+    set.seed(0)
+    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:reg + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    mod <- set_prior(mod, age:reg ~ RW2_Infant())
+    ans_obtained <- fit(mod)
+    mod <- set_prior(mod, age:reg ~ RW2_Infant(zero_sum = TRUE))
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
 test_that("'fit' and 'forecast' work with SVD_AR", {
   data <- expand.grid(age = poputils::age_labels(type = "five", min = 15, max = 60),
                       time = 2001:2010)
@@ -1645,7 +1661,6 @@ test_that("'get_nm_outcome_obs' works with 'bage_mod_pois'", {
   mod <- set_datamod_outcome_rr3(mod)
   expect_identical(get_nm_outcome_obs(mod), ".deaths")
 })
-
 
 
 ## 'has_disp' -----------------------------------------------------------------

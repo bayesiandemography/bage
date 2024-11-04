@@ -260,7 +260,6 @@ set_prior <- function(mod, formula) {
                      i = prior$message))
   dimnames_term <- dimnames_terms[[i]]
   is_prior_ok_for_term(prior = prior,
-                       nm = nm_response,
                        dimnames_term = dimnames_term,
                        var_time = var_time,
                        var_age = var_age,

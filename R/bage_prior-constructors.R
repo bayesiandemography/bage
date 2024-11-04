@@ -12,8 +12,8 @@
 #'
 #' If `AR()` is used with an interaction,
 #' separate AR processes are constructed along
-#' the "along" variable, within each combination of the
-#' "by" variables.
+#' the 'along' variable, within each combination of the
+#' 'by' variables.
 #'
 #' By default, the autoregressive processes
 #' have order 2. Alternative choices can be
@@ -37,8 +37,8 @@
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction;
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
 #' - \eqn{n} is `n_coef`.
 #'
 #' Internally, `AR()` derives a value for \eqn{\omega} that
@@ -63,11 +63,11 @@
 #' @param s Scale for the prior for the innovations.
 #' Default is `1`.
 #' @param along Name of the variable to be used
-#' as the "along" variable. Only used with
+#' as the 'along' variable. Only used with
 #' interactions.
 #' @param zero_sum If `TRUE`, values must
 #' sum to 0 within each combination
-#' of the `"by"` variables. Default is `FALSE`.
+#' of the 'by' variables. Default is `FALSE`.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
 #'
@@ -126,8 +126,8 @@ AR <- function(n_coef = 2,
 #'
 #' If `AR()` is used with an interaction,
 #' separate AR processes are constructed along
-#' the "along" variable, within each combination of the
-#' "by" variables.
+#' the 'along' variable, within each combination of the
+#' 'by' variables.
 #'
 #' Arguments `min` and `max` can be used to specify
 #' the permissible range for autocorrelation.
@@ -150,8 +150,8 @@ AR <- function(n_coef = 2,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction; and
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Internally, `AR1()` derives a value for \eqn{\omega} that
 #' gives every element of \eqn{\beta} a marginal
@@ -254,8 +254,8 @@ Known <- function(values) {
 #'
 #' If `Lin()` is used with an interaction,
 #' then separate lines are constructed along 
-#' the "along" variable, within each combination
-#' of the "by" variables.
+#' the 'along' variable, within each combination
+#' of the 'by' variables.
 #' 
 #' Argument `s` controls the size of the errors.
 #' Smaller values tend to give smoother estimates.
@@ -282,8 +282,8 @@ Known <- function(values) {
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction; and
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #' 
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
@@ -354,8 +354,8 @@ Lin <- function(s = 1,
 #'
 #' If `Lin_AR()` is used with an interaction,
 #' separate lines are constructed along 
-#' the "along" variable, within each combination
-#' of the "by" variables.
+#' the 'along' variable, within each combination
+#' of the 'by' variables.
 #'
 #' The order of the autoregressive errors is
 #' controlled by the `n_coef` argument. The
@@ -389,8 +389,8 @@ Lin <- function(s = 1,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{u} denotes position within the 'along' variable of the interaction;
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
 #' - \eqn{n} is `n_coef`.
 #'
 #' The slopes have priors
@@ -479,8 +479,8 @@ Lin_AR <- function(n_coef = 2,
 #'
 #' If `Lin_AR()` is used with an interaction,
 #' separate lines are constructed along 
-#' the "along" variable, within each combination
-#' of the "by" variables.
+#' the 'along' variable, within each combination
+#' of the 'by' variables.
 #'
 #' Arguments `min` and `max` can be used to specify
 #' the permissible range for autocorrelation.
@@ -509,8 +509,8 @@ Lin_AR <- function(n_coef = 2,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction;
+#' - \eqn{u} denotes position within the 'along' variable of the interaction;
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction;
 #' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
 #' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 #'
@@ -688,8 +688,8 @@ NFix <- function(sd = 1) {
 #'
 #' If `RW()` is used with an interaction,
 #' separate random walks are constructed along
-#' the "along" variable, within each combination of the
-#' "by" variables.
+#' the 'along' variable, within each combination of the
+#' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations.
 #' Smaller values for `s` tend to give smoother series.
@@ -709,8 +709,8 @@ NFix <- function(sd = 1) {
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction; and
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Parameter \eqn{\tau}
 #' has a half-normal prior
@@ -762,9 +762,9 @@ RW <- function(s = 1,
 #'
 #' If `RW_Seas()` is used with an interaction,
 #' separate series are used for
-#' the "along" variable within
+#' the 'along' variable within
 #' each combination of the
-#' "by" variables.
+#' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations in the random walk.
 #' Smaller values for `s` tend to give smoother series.
@@ -799,8 +799,8 @@ RW <- function(s = 1,
 #' - \eqn{\alpha_j} or \eqn{\alpha_{u,v}} is an element of the random walk;
 #' - \eqn{\lambda_j} or \eqn{\lambda_{u,v}} is an element of the seasonal effect;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction;
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
 #' - \eqn{n} is `n_seas`.
 #'
 #' Parameter \eqn{\omega} has a half-normal prior
@@ -890,9 +890,9 @@ RW_Seas <- function(n_seas,
 #'
 #' If `RW2()` is used with an interaction,
 #' separate series are used for
-#' the "along" variable within
+#' the 'along' variable within
 #' each combination of the
-#' "by" variables.
+#' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations in the random walk.
 #' Smaller values for `s` tend to give smoother series.
@@ -924,8 +924,8 @@ RW_Seas <- function(n_seas,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction; and
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction.
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Parameter \eqn{\tau}
 #' has a half-normal prior
@@ -943,7 +943,7 @@ RW_Seas <- function(n_seas,
 #' - [AR()] Autoregressive with order k
 #' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
-#' - [SVD()] Smoothing of age via singular value decomposition
+#' - [SVD()] Smoothing over age via singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -971,6 +971,96 @@ RW2 <- function(s = 1,
 
 
 ## HAS_TESTS
+#' Second-Order Random Walk Prior with 'Infant' Indicator
+#'
+#' Use a second-order random walk to model variation
+#' over age, with an indicator variable for the first age group.
+#' Designed for use in models of mortality rates.
+#' 
+#' A second-order random walk prior [RW2()]
+#' does a good job of smoothing
+#' mortality rates over age, except at age 0, where there
+#' is typically a sudden jump in rates, reflecting the
+#' special risks of infancy. The `RW2_Infant()`
+#' is a [RW2()] prior with a special treatment of
+#' the first age group.
+#'
+#' If `RW2_Infant()` is used in an interaction,
+#' the 'along' dimension is always age, implying that
+#' there is a separate random walk along age within each
+#' combination of the 'by' variables.
+#'
+#' Argument `s` controls the size of innovations in the random walk.
+#' Smaller values for `s` tend to give smoother series.
+#'
+#' Argument `sd` controls the sl size of innovations in the random walk.
+#' Smaller values for `s` tend to give smoother series.
+#'
+#' @section Mathematical details:
+#'
+#' When `RW2_Infant()` is used with a main effect,
+#'
+#' \deqn{\beta_1 \sim \text{N}(0, 1)}
+#' \deqn{\beta_2 \sim \text{N}(0, \omega^2)}
+#' \deqn{\beta_3 \sim \text{N}(2 \beta_2, \tau^2)}
+#' \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2)}
+#'
+#' and when it is used with an interaction,
+#'
+#' \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
+#' \deqn{\beta_{u,2} \sim \text{N}(0, \omega^2)}
+#' \deqn{\beta_{u,3} \sim \text{N}(2 \beta_{u,2}, \tau^2)}
+#' \deqn{\beta_{u,j} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2)}
+#' 
+#' where
+#' - \eqn{\pmb{\beta}} is a main effect or interaction;
+#' - \eqn{j} denotes position within the main effect;
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
+#'
+#' Parameter \eqn{\omega} has a half-normal prior
+#' \deqn{\omega \sim \text{N}^+(0, \text{sd}^2),}
+#' where `sd` can be specified by the user.
+#'
+#' Parameter \eqn{\tau} has a half-normal prior
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' where `s` can be specified by the user.
+#' 
+#' @inheritParams RW2
+#' 
+#' @param sd_slope Standard deviation
+#' for initial slope of random walk. Default is `1`.
+#'
+#' @returns Object of class `"bage_prior_rw2infant"`.
+#'
+#' @seealso
+#' - [RW2()] Second-order random walk, without infant indicator
+#' - [Sp()] Smoothing via splines
+#' - [SVD()] Smoothing over age via singular value decomposition
+#' - [priors] Overview of priors implemented in **bage**
+#' - [set_prior()] Specify prior for intercept,
+#'   main effect, or interaction
+#'
+#' @examples
+#' RW2_Infant()
+#' RW2_Infant(s = 0.1)
+#' @export
+RW2_Infant <- function(s = 1,
+                       sd_slope = 1,
+                       zero_sum = FALSE) {
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
+  scale <- as.double(s)
+  sd_slope <- as.double(sd_slope)
+  check_flag(x = zero_sum, nm_x = "zero_sum")
+  new_bage_prior_rw2infant(scale = scale,
+                           sd_slope = sd_slope,
+                           zero_sum = zero_sum)
+}
+
+
+
+## HAS_TESTS
 #' Second-Order Random Walk Prior with Seasonal Effect
 #'
 #' Use a second-oder random walk with
@@ -987,9 +1077,9 @@ RW2 <- function(s = 1,
 #'
 #' If `RW2_Seas()` is used with an interaction,
 #' separate series are used for
-#' the "along" variable within
+#' the 'along' variable within
 #' each combination of the
-#' "by" variables.
+#' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations in the random walk.
 #' Smaller values for `s` tend to give smoother series.
@@ -1025,8 +1115,8 @@ RW2 <- function(s = 1,
 #' - \eqn{\alpha_j} or \eqn{\alpha_{u,v}} is an element of the random walk;
 #' - \eqn{\lambda_j} or \eqn{\lambda_{u,v}} is an element of the seasonal effect;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the "along" variable of the interaction;
-#' - \eqn{u} denotes position within the "by" variable(s) of the interaction; and
+#' - \eqn{v} denotes position within the 'along' variable of the interaction;
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
 #' - \eqn{n} is `n_seas`.
 #'
 #' Parameter \eqn{\omega} has a half-normal prior
@@ -1109,9 +1199,9 @@ RW2_Seas <- function(n_seas,
 #' expected to vary smoothly from one element to the next.
 #'
 #' If `Sp()` is used with an interaction,
-#' separate splines are used for the "along" variable within
+#' separate splines are used for the 'along' variable within
 #' each combination of the
-#' "by" variables.
+#' 'by' variables.
 #'
 #' @section Mathematical details:
 #'
@@ -1126,7 +1216,7 @@ RW2_Seas <- function(n_seas,
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction, with \eqn{J} elements;
 #' - \eqn{\pmb{\beta}_u} is a subvector of \eqn{\pmb{\beta}} holding
-#'   values for the  \eqn{u}th combination of the "by" variables;
+#'   values for the  \eqn{u}th combination of the 'by' variables;
 #' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}};
 #' - \eqn{U} is the number of elements of \eqn{\pmb{\beta}_u};
 #' - \eqn{X} is a \eqn{J \times n} or \eqn{V \times n} matrix of
@@ -1503,7 +1593,7 @@ SVD <- function(ssvd,
 #' Defaults are `0.8` and `0.98`.
 #' @param zero_sum If `TRUE`, values must
 #' sum to 0 within each combination
-#' of the `"by"` variables. Default is `FALSE`.
+#' of the 'by' variables. Default is `FALSE`.
 #'
 #' @returns An object of class `"bage_prior_svd_ar"`,
 #' `"bage_prior_svd_rw"`, or `"bage_prior_svd_rw2"`.
@@ -1863,6 +1953,21 @@ new_bage_prior_rw2 <- function(scale,
                                 along = along,
                                 zero_sum = zero_sum))
     class(ans) <- c("bage_prior_rw2", "bage_prior")
+    ans
+}
+
+## HAS_TESTS
+new_bage_prior_rw2infant <- function(scale,
+                                     sd_slope,
+                                     zero_sum) {
+    ans <- list(i_prior = 18L,
+                const = c(scale = scale,
+                          sd_slope = sd_slope),
+                specific = list(scale = scale,
+                                sd_slope = sd_slope,
+                                along = NULL,
+                                zero_sum = zero_sum))
+    class(ans) <- c("bage_prior_rw2infant", "bage_prior")
     ans
 }
 

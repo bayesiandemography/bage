@@ -14,12 +14,12 @@ Default is \code{1}.}
 for initial slope. Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_rw2"}.
@@ -38,9 +38,9 @@ trends upward or downward.
 \details{
 If \code{RW2()} is used with an interaction,
 separate series are used for
-the "along" variable within
+the 'along' variable within
 each combination of the
-"by" variables.
+'by' variables.
 
 Argument \code{s} controls the size of innovations in the random walk.
 Smaller values for \code{s} tend to give smoother series.
@@ -73,8 +73,8 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the "along" variable of the interaction; and
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction.
+\item \eqn{v} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 Parameter \eqn{\tau}
@@ -93,7 +93,7 @@ RW2(s = 0.5)
 \item \code{\link[=AR]{AR()}} Autoregressive with order k
 \item \code{\link[=AR1]{AR1()}} Autoregressive with order 1
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
-\item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
+\item \code{\link[=SVD]{SVD()}} Smoothing over age via singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction
