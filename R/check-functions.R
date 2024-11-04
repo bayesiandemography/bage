@@ -598,6 +598,58 @@ check_offset_nonneg <- function(vname_offset, nm_offset, data) {
 
 
 ## HAS_TESTS
+#' Check that Prior has Age Dimension
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm Name of term
+#' @param vname_age Name of age dimension, or NULL
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_prior_age <- function(prior, nm, var_age) {
+  str_nm_prior <- str_nm_prior(prior)
+  msg1 <- "Problem with {.var {str_nm_prior}} prior for term {.var {nm}}."
+  if (is.null(var_age))
+    cli::cli_abort(c(msg1,
+                     i = paste("Can't use {.var {str_nm_prior}} prior when",
+                               "age variable not yet identified."),
+                     i = "Use function {.fun set_var_age} to identify age variable?"))
+  nm_split <- strsplit(nm, split = ":")[[1L]]
+  if (!(var_age %in% nm_split))
+    cli::cli_abort(c(msg1,
+                     i = "{.var {str_nm_prior}} prior only used with terms involving age."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that Prior has Time Dimension
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param nm Name of term
+#' @param vname_time Name of time dimension, or NULL
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_prior_time <- function(prior, nm, var_time) {
+  str_nm_prior <- str_nm_prior(prior)
+  msg1 <- "Problem with {.var {str_nm_prior}} prior for term {.var {nm}}."
+  if (is.null(var_time))
+    cli::cli_abort(c(msg1,
+                     i = paste("Can't use {.var {str_nm_prior}} prior when",
+                               "time variable not yet identified."),
+                     i = "Use function {.fun set_var_time} to identify time variable?"))
+  nm_split <- strsplit(nm, split = ":")[[1L]]
+  if (!(var_time %in% nm_split))
+    cli::cli_abort(c(msg1,
+                     i = "{.var {str_nm_prior}} prior only used with terms involving time."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check Offset not Used in 'formula' Agument
 #'
 #' Applied only when offset is the name of a variable.
@@ -837,32 +889,6 @@ check_svd_agesex <- function(prior,
   if (agesex == "other")
     cli::cli_abort(c(msg1,
                      i = "{.var {str_nm_prior}} prior should be used with terms involving age."))
-  invisible(TRUE)
-}
-
-
-## HAS_TESTS
-#' Check that Term with SVD+Time Prior has Time Dimension
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param nm Name of term
-#' @param vname_time Name of time dimension, or NULL
-#'
-#' @returns TRUE, invisibly
-#'
-#' @noRd
-check_svd_time <- function(prior, nm, var_time) {
-  str_nm_prior <- str_nm_prior(prior)
-  msg1 <- "Problem with {.var {str_nm_prior}} prior for term {.var {nm}}."
-  if (is.null(var_time))
-    cli::cli_abort(c(msg1,
-                     i = paste("Can't use {.var {str_nm_prior}} prior when",
-                               "time variable not yet identified."),
-                     i = "Use function {.fun set_var_time} to identify time variable?"))
-  nm_split <- strsplit(nm, split = ":")[[1L]]
-  if (!(var_time %in% nm_split))
-    cli::cli_abort(c(msg1,
-                     i = "{.var {str_nm_prior}} prior only used with terms involving time."))
   invisible(TRUE)
 }
 

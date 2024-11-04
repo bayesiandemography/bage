@@ -386,8 +386,7 @@ make_along_mod <- function(mod) {
     prior <- priors[[i_term]]
     dimnames_term <- dimnames_terms[[i_term]]
     if (uses_along(prior)) {
-      along <- prior$specific$along
-      i_along <- make_i_along(along = along,
+      i_along <- make_i_along(prior = prior,
                               dimnames_term = dimnames_term,
                               var_time = var_time,
                               var_age = var_age)
@@ -783,7 +782,6 @@ make_hyperrand_lin <- function(prior,
                                var_time,
                                var_age,
                                var_sexgender) {
-  along <- prior$specific$along
   matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
                                                                 dimnames_term = dimnames_term,
                                                                 var_time = var_time,
@@ -794,7 +792,7 @@ make_hyperrand_lin <- function(prior,
                                                             var_time = var_time,
                                                             var_age = var_age,
                                                             var_sexgender = var_sexgender)
-  matrix_along_by_effect <- make_matrix_along_by_effect(along = along,
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
                                                         dimnames_term = dimnames_term,
                                                         var_time = var_time,
                                                         var_age = var_age)
@@ -1145,9 +1143,8 @@ make_levels_spline_term <- function(prior,
                                     dimnames_term,
                                     var_time,
                                     var_age) {
-  along <- prior$specific$along
   zero_sum <- prior$specific$zero_sum
-  i_along <- make_i_along(along = along,
+  i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)
@@ -1959,8 +1956,8 @@ transform_hyper_ar <- function(prior) {
 ## HAS_TESTS
 #' Standardize 'fitted' So It Conforms to 'zero_sum' Constraints
 #'
+#' @param prior Object of class 'bage_prior'
 #' @param fitted A vector, possibly an rvec
-#' @param along Name of the along vector
 #' @param dimnames_term Dimnames for array representation of term
 #' @param var_time Name of time dimension
 #' @param var_age Name of age dimension
@@ -1968,12 +1965,12 @@ transform_hyper_ar <- function(prior) {
 #' @returns A standardized version of 'fitted'
 #'
 #' @noRd
-zero_sum_fitted <- function(fitted,
-                            along,
+zero_sum_fitted <- function(prior,
+                            fitted,
                             dimnames_term,
                             var_time,
                             var_age) {
-  i_along <- make_i_along(along = along,
+  i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)

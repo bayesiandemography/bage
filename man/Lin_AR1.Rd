@@ -30,12 +30,12 @@ the slope of the line. Larger values imply
 steeper slopes. Default is 1.}
 
 \item{along}{Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination
-of the \code{"by"} variables. Default is \code{FALSE}.}
+of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"bage_prior_linar"}.
@@ -48,8 +48,8 @@ or interaction. Typically used with time.
 \details{
 If \code{Lin_AR()} is used with an interaction,
 separate lines are constructed along
-the "along" variable, within each combination
-of the "by" variables.
+the 'along' variable, within each combination
+of the 'by' variables.
 
 Arguments \code{min} and \code{max} can be used to specify
 the permissible range for autocorrelation.
@@ -80,8 +80,8 @@ where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{u} denotes position within the "along" variable of the interaction;
-\item \eqn{u} denotes position within the "by" variable(s) of the interaction;
+\item \eqn{u} denotes position within the 'along' variable of the interaction;
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction;
 \item \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
 \item \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
 }

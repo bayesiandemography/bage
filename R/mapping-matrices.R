@@ -65,16 +65,51 @@ make_dim_svd <- function(prior,
 }
 
 
+## HAS_TESTS
+#' Calculate 'i_along' for a Prior that Specifically Requires Age or Time
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param dimnames_term Dimnames for array
+#' representing term
+#' @param var_time Name of time dimension, or NULL
+#' @param var_age Name of age dimension, or NULL
+#' @param vartime "age" or "time"
+#'
+#' @returns An integer
+#'
+#' @noRd
+make_i_along_agetime <- function(prior, dimnames_term, var_age, var_time, agetime) {
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  nm_term <- dimnames_to_nm(dimnames_term)
+  str_nm_prior <- str_nm_prior(prior)
+  nm_var <- paste0("var_", agetime)
+  nm_fun <- paste0("set_var_", agetime)
+  AgeTime <- agetime
+  substr(AgeTime, 1L, 1L) <- toupper(substr(AgeTime, 1L, 1L))
+  var <- get(nm_var)
+  has_var <- !is.null(var)
+  if (!has_var)
+    cli::cli_abort(c(paste("Using {.var {str_nm_prior}} prior when {agetime}",
+                           "variable not identified."),
+                     i = "Use function {.fun {nm_fun}} to identify {agetime} variable?"))
+  i_along <- match(var, nm_split, nomatch = 0L)
+  if (identical(i_along, 0L))
+    cli::cli_abort(c(paste("Using {.var {str_nm_prior}} prior with a",
+                           "term that does not involve {agetime}."),
+                     i = "Term: {.var {nm_term}}.",
+                     i = "{AgeTime} variable: {.var {var}}."))
+  i_along
+}
+
+
 
 ## HAS_TESTS
 #' Find the Index of the Along Dimension,
 #' Throwing an Error If Cannot be Found
 #'
-#' If 'along' is non-NULL, look for a dimension
-#' with that name. Otherwise, use the dimension
-#' identified by 'var_time', or by 'var_age'.
+#' Helper function for 'make_i_along'
 #'
-#' @param along Name of the 'along' dimension, or NULL
+#' @param Name of 'along' dimension, or NULL
 #' @param dimnames_term Dimnames for array
 #' representing term
 #' @param var_time Name of the time dimension, or NULL
@@ -83,19 +118,19 @@ make_dim_svd <- function(prior,
 #' @returns An integer
 #'
 #' @noRd
-make_i_along <- function(along, dimnames_term, var_time, var_age) {
-  nms <- names(dimnames_term)
-  nm_term <- paste(nms, collapse = ":")
+make_i_along_inner <- function(along, dimnames_term, var_time, var_age) {
+  nm_split <- dimnames_to_nm_split(dimnames_term)
+  nm_term <- dimnames_to_nm(dimnames_term)
   if (is.null(along)) {
     has_time <- !is.null(var_time)
     if (has_time) {
-      i_along <- match(var_time, nms, nomatch = 0L)
+      i_along <- match(var_time, nm_split, nomatch = 0L)
       if (i_along > 0L)
         return(i_along)
     }
     has_age <- !is.null(var_age)
     if (has_age) {
-      i_along <- match(var_age, nms, nomatch = 0L)
+      i_along <- match(var_age, nm_split, nomatch = 0L)
       if (i_along > 0L)
         return(i_along)
     }
@@ -107,18 +142,18 @@ make_i_along <- function(along, dimnames_term, var_time, var_age) {
       msg <- c(msg,
                i = "No age variable identified. Use function {.fun set_var_age} to identify?")
     msg <- c(msg,
-             i = "Choices for {.arg along}: {.val {nms}}.")
+             i = "Choices for {.arg along}: {.val {nm_split}}.")
     cli::cli_abort(msg)
   }
   else {
     if (length(along) != 1L)
       cli::cli_abort("Internal error: {.arg along} does not have length 1.")
-    i_along <- match(along, nms, nomatch = 0L)
+    i_along <- match(along, nm_split, nomatch = 0L)
     if (i_along > 0L)
       return(i_along)
     cli::cli_abort(c("Prior for {.var {nm_term}} has invalid value for {.arg along}.",
                      i = "Value supplied: {.val {along}}.",
-                     i = "Valid choices: {.val {nms}}."))
+                     i = "Valid choices: {.val {nm_split}}."))
   }
 }
 
@@ -163,7 +198,7 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 ## HAS_TESTS
 #' Make 'matrix_along_by' for all Parameters in One Term
 #'
-#' @param along Name of 'along' dimension, or NULL
+#' @param prior Object of class 'bage_prior'
 #' @param dimnames_term Dimnames for array
 #' representing term
 #' @param var_time Name of time dimension, or NULL
@@ -172,8 +207,8 @@ make_matrix_along_by <- function(i_along, dim, dimnames) {
 #' @returns A matrix
 #'
 #' @noRd
-make_matrix_along_by_effect <- function(along, dimnames_term, var_time, var_age) {
-  i_along <- make_i_along(along = along,
+make_matrix_along_by_effect <- function(prior, dimnames_term, var_time, var_age) {
+  i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)
@@ -216,7 +251,7 @@ make_matrix_along_by_effectfree_inner <- function(prior,
                                                   append_zero) {
   along <- prior$specific$along
   zero_sum <- prior$specific$zero_sum
-  i_along <- make_i_along(along = along,
+  i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)
@@ -447,17 +482,13 @@ make_matrix_effectfree_effect_inner <- function(prior,
                                                 var_sexgender,
                                                 append_zero,
                                                 zero_sum) {
-  if (uses_along(prior)) {
-    along <- prior$specific$along
+  if (uses_along(prior))
     zero_sum <- prior$specific$zero_sum
-  }
-  else {
-    along <- NULL
+  else
     zero_sum <- FALSE
-  }
   dim <- lengths(dimnames_term)
   s <- seq_along(dim)
-  i_along <- make_i_along(along = along,
+  i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)
@@ -782,7 +813,7 @@ make_offset_effectfree_effect_svd <- function(prior,
   }
   dim <- lengths(dimnames_term)
   s <- seq_along(dim)
-  i_along <- make_i_along(along = along,
+  i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
                           var_age = var_age)
