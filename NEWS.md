@@ -18,7 +18,9 @@
   to 0, rather than 1, so that seasonal effects are by default fixed
   over time rather than varying. Using varying seasonal effects can
   greatly increase computation times.
-  
+* Moved **rvec** from Imports to Depends, so that it loads when
+  **bage** is loaded. Manipulating results from **bage** models
+  without **rvec** loaded can lead to strange errors.
 
 
 
