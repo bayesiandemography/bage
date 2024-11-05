@@ -11,7 +11,7 @@ or interaction. Typically used with time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,14 @@ or interaction. Typically used with time.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Lin_AR</span><span class="op">(</span>n_coef <span class="op">=</span> <span class="fl">2</span>, s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Lin_AR</span><span class="op">(</span></span>
+<span>  n_coef <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  mean_slope <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  sd_slope <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  along <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  zero_sum <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -72,7 +79,12 @@ model, ie the order of the model. Default is <code>2</code>.</p></dd>
 AR process. Default is <code>1</code>.</p></dd>
 
 
-<dt id="arg-sd">sd<a class="anchor" aria-label="anchor" href="#arg-sd"></a></dt>
+<dt id="arg-mean-slope">mean_slope<a class="anchor" aria-label="anchor" href="#arg-mean-slope"></a></dt>
+<dd><p>Mean in prior for slope
+of line. Default is 0.</p></dd>
+
+
+<dt id="arg-sd-slope">sd_slope<a class="anchor" aria-label="anchor" href="#arg-sd-slope"></a></dt>
 <dd><p>Standard deviation in the prior for
 the slope of the line. Larger values imply
 steeper slopes. Default is 1.</p></dd>
@@ -80,8 +92,14 @@ steeper slopes. Default is 1.</p></dd>
 
 <dt id="arg-along">along<a class="anchor" aria-label="anchor" href="#arg-along"></a></dt>
 <dd><p>Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.</p></dd>
+
+
+<dt id="arg-zero-sum">zero_sum<a class="anchor" aria-label="anchor" href="#arg-zero-sum"></a></dt>
+<dd><p>If <code>TRUE</code>, values must
+sum to 0 within each combination
+of the 'by' variables. Default is <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -92,14 +110,14 @@ interactions.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>If <code>Lin_AR()</code> is used with an interaction,
 separate lines are constructed along
-the "along" variable, within each combination
-of the "by" variables.</p>
+the 'along' variable, within each combination
+of the 'by' variables.</p>
 <p>The order of the autoregressive errors is
 controlled by the <code>n_coef</code> argument. The
 default is 2.</p>
 <p>Argument <code>s</code> controls the size of the innovations.
 Smaller values tend to give smoother estimates.</p>
-<p>Argument <code>sd</code> controls the size of the slopes of
+<p>Argument <code>sd_slope</code> controls the size of the slopes of
 the lines. Larger values can give more steeply
 sloped lines.</p>
     </div>
@@ -122,13 +140,13 @@ $$\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + 
 $$\varepsilon_{u,v} \sim \text{N}(0, \omega^2).$$</p>
 <p>where</p><ul><li><p>\(\pmb{\beta}\) is the main effect or interaction;</p></li>
 <li><p>\(j\) denotes position within the main effect;</p></li>
-<li><p>\(u\) denotes position within the "along" variable of the interaction;</p></li>
-<li><p>\(u\) denotes position within the "by" variable(s) of the interaction; and</p></li>
+<li><p>\(u\) denotes position within the 'along' variable of the interaction;</p></li>
+<li><p>\(u\) denotes position within the 'by' variable(s) of the interaction; and</p></li>
 <li><p>\(n\) is <code>n_coef</code>.</p></li>
 </ul><p>The slopes have priors
-$$\eta \sim \text{N}(0, \text{sd}^2)$$
+$$\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)$$
 and
-$$\eta_u \sim \text{N}(0, \text{sd}^2).$$</p>
+$$\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).$$</p>
 <p>Internally, <code>Lin_AR()</code> derives a value for \(\omega\) that
 gives \(\epsilon_j\) or \(\epsilon_{u,v}\) a marginal
 variance of \(\tau^2\). Parameter \(\tau\)
@@ -157,20 +175,24 @@ main effect, or interaction</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">Lin_AR</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Lin_AR() </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   n_coef: 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        s: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       sd: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      min: -1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      max: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    along: NULL</span>
-<span class="r-in"><span><span class="fu">Lin_AR</span><span class="op">(</span>n_coef <span class="op">=</span> <span class="fl">3</span>, s <span class="op">=</span> <span class="fl">0.5</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Lin_AR(n_coef=3,s=0.5,sd=2) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   n_coef: 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        s: 0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       sd: 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      min: -1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      max: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_coef: 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mean_slope: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        min: -1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        max: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   zero_sum: FALSE</span>
+<span class="r-in"><span><span class="fu">Lin_AR</span><span class="op">(</span>n_coef <span class="op">=</span> <span class="fl">3</span>, s <span class="op">=</span> <span class="fl">0.5</span>, sd_slope <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Lin_AR(n_coef=3,s=0.5,sd_slope=2) </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     n_coef: 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mean_slope: 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sd_slope: 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        min: -1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        max: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   zero_sum: FALSE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

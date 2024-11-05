@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,13 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'bage_mod'</span></span>
-<span><span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">object</span>, method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"standard"</span>, <span class="st">"inner-outer"</span><span class="op">)</span>, vars_inner <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span></span>
+<span>  <span class="va">object</span>,</span>
+<span>  quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"standard"</span>, <span class="st">"inner-outer"</span><span class="op">)</span>,</span>
+<span>  vars_inner <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -61,6 +67,12 @@
 <dd><p>A <code>bage_mod</code> object,
 created with <code><a href="mod_pois.html">mod_pois()</a></code>,
 <code><a href="mod_binom.html">mod_binom()</a></code>, or <code><a href="mod_norm.html">mod_norm()</a></code>.</p></dd>
+
+
+<dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
+<dd><p>Whether to suppress warning messages
+from <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb()</a></code>. Default is <code>TRUE</code>, since these
+messages are almost always false alarms.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
@@ -127,52 +139,57 @@ output from a model</p></li>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## examine unfitted model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -- Unfitted Poisson model --</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Unfitted Poisson model ------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         age ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         sex ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  term n_par n_par_free</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   age    12         12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sex     2          2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  year    19         19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## fit model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## examine fitted model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -- Fitted Poisson model --</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Fitted Poisson model ------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         age ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         sex ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  term n_par n_par_free std_dev</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   age    12         12   0.760</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sex     2          2   0.720</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  year    19         19   0.081</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free std_dev</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11    0.76</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2    0.72</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18    0.08</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_draws iter                    message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.23       0.13       0.00   12   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## extract rates</span></span></span>
 <span class="r-in"><span><span class="va">aug</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
@@ -197,18 +214,18 @@ output from a model</p></li>
 <span class="r-in"><span><span class="va">comp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">comp</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 37 × 4</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                    .fitted</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)   -2.5 (-4.1, -0.86)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -0.43 (-0.52, -0.35)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9            -1.7 (-1.9, -1.6)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14          -1.3 (-1.4, -1.2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19           0.44 (0.38, 0.5)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          0.59 (0.53, 0.64)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29          0.43 (0.37, 0.49)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34           0.33 (0.27, 0.4)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39           0.34 (0.28, 0.4)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44          0.33 (0.27, 0.39)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    term        component level                 .fitted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept) -5.8 (-6.9, -4.7)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> age         effect    0-4                  0 (0, 0)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> age         effect    5-9         -1.3 (-1.5, -1.2)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> age         effect    10-14       -0.87 (-1, -0.75)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> age         effect    15-19       0.86 (0.76, 0.97)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> age         effect    20-24           1 (0.91, 1.1)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> age         effect    25-29       0.86 (0.75, 0.96)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> age         effect    30-34       0.75 (0.65, 0.86)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> age         effect    35-39       0.76 (0.66, 0.87)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> age         effect    40-44       0.76 (0.65, 0.86)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 27 more rows</span></span>
 </code></pre></div>
     </div>

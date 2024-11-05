@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,13 +77,9 @@
 <p>Note: some features described here have not been implemented yet.</p>
 </div>
 <div class="section level2" number="2">
-<h2 id="sec:lik">
-<span class="header-section-number">2</span> Likelihood<a class="anchor" aria-label="anchor" href="#sec:lik"></a>
+<h2 id="sec:data">
+<span class="header-section-number">2</span> Input data<a class="anchor" aria-label="anchor" href="#sec:data"></a>
 </h2>
-<div class="section level3" number="2.1">
-<h3 id="input-data">
-<span class="header-section-number">2.1</span> Input data<a class="anchor" aria-label="anchor" href="#input-data"></a>
-</h3>
 <ul>
 <li>outcome variable: events, numbers of people, or some sort of measure on a continuous variable such as income or expenditure</li>
 <li>exposure/size/weights</li>
@@ -91,18 +87,18 @@
 <li>not all combinations of variables present; may be some missing values</li>
 </ul>
 </div>
-<div class="section level3" number="2.2">
-<h3 id="models">
-<span class="header-section-number">2.2</span> Models<a class="anchor" aria-label="anchor" href="#models"></a>
+<div class="section level2" number="3">
+<h2 id="models">
+<span class="header-section-number">3</span> Models<a class="anchor" aria-label="anchor" href="#models"></a>
+</h2>
+<div class="section level3" number="3.1">
+<h3 id="sec:pois">
+<span class="header-section-number">3.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#sec:pois"></a>
 </h3>
-<div class="section level4" number="2.2.1">
-<h4 id="sec:pois">
-<span class="header-section-number">2.2.1</span> Poisson<a class="anchor" aria-label="anchor" href="#sec:pois"></a>
-</h4>
 <p>Let <span class="math inline">\(y_i\)</span> be a count of events in cell <span class="math inline">\(i = 1, \cdots, n\)</span> and let <span class="math inline">\(w_i\)</span> be the corresponding exposure measure, with the possibility that <span class="math inline">\(w_i \equiv 1\)</span>. The likelihood under the Poisson model is then
 <span class="math display" id="eq:lik-pois-2">\[\begin{align}
-  y_i &amp; \sim \text{Poisson}(\gamma_i w_i) \tag{2.1} \\
-  \gamma_i &amp; \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  \tag{2.2}
+  y_i &amp; \sim \text{Poisson}(\gamma_i w_i) \tag{3.1} \\
+  \gamma_i &amp; \sim \text{Gamma}\left(\xi^{-1}, (\mu_i \xi)^{-1}\right),  \tag{3.2}
 \end{align}\]</span>
 using the shape-rates parameterisation of the Gamma distribution. Parameter <span class="math inline">\(\xi\)</span> governs dispersion, with
 <span class="math display">\[\begin{equation}
@@ -116,7 +112,7 @@ We allow <span class="math inline">\(\xi\)</span> to equal 0, in which case the 
 <span class="math display">\[\begin{equation}
   y_i \sim \text{Poisson}(\mu_i w_i).
 \end{equation}\]</span></p>
-<p>For <span class="math inline">\(\xi &gt; 0\)</span>, Equations <a href="#eq:lik-pois-1">(2.1)</a> and <a href="#eq:lik-pois-2">(2.2)</a> are equivalent to
+<p>For <span class="math inline">\(\xi &gt; 0\)</span>, Equations <a href="#eq:lik-pois-1">(3.1)</a> and <a href="#eq:lik-pois-2">(3.2)</a> are equivalent to
 <span class="math display">\[\begin{equation}
   y_i \sim \text{NegBinom}\left(\xi^{-1}, (1 + \mu_i w_i \xi)^{-1}\right)
 \end{equation}\]</span>
@@ -126,14 +122,14 @@ This is the format we use internally for estimation. When values for <span class
   \gamma_i \mid y_i, w_i, \mu_i, \xi \sim \text{Gamma}\left(y_i + \xi^{-1}, w_i + (\xi \mu_i)^{-1}\right).
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="2.2.2">
-<h4 id="sec:binom">
-<span class="header-section-number">2.2.2</span> Binomial<a class="anchor" aria-label="anchor" href="#sec:binom"></a>
-</h4>
+<div class="section level3" number="3.2">
+<h3 id="sec:binom">
+<span class="header-section-number">3.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#sec:binom"></a>
+</h3>
 <p>The likelihood under the binomial model is
 <span class="math display" id="eq:lik-binom-2">\[\begin{align}
-  y_i  &amp; \sim \text{Binomial}(w_i, \gamma_i) \tag{2.3} \\
-  \gamma_i &amp; \sim \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). \tag{2.4}
+  y_i  &amp; \sim \text{Binomial}(w_i, \gamma_i) \tag{3.3} \\
+  \gamma_i &amp; \sim \text{Beta}\left(\xi^{-1} \mu_i, \xi^{-1}(1 - \mu_i)\right). \tag{3.4}
 \end{align}\]</span>
 Parameter <span class="math inline">\(\xi\)</span> again governs dispersion, with
 <span class="math display">\[\begin{equation}
@@ -147,7 +143,7 @@ and
 <span class="math display">\[\begin{equation}
   y_i \sim  \text{Binom}(w_i, \mu_i).
 \end{equation}\]</span>
-Equations <a href="#eq:lik-binom-1">(2.3)</a> and <a href="#eq:lik-binom-2">(2.4)</a> are equivalent to
+Equations <a href="#eq:lik-binom-1">(3.3)</a> and <a href="#eq:lik-binom-2">(3.4)</a> are equivalent to
 <span class="math display">\[\begin{equation}
   y_i  \sim \text{BetaBinom}\left(w_i, \xi^{-1} \mu_i, \xi^{-1} (1 - \mu_i) \right),
 \end{equation}\]</span>
@@ -156,29 +152,35 @@ which is what we use internally. Values for <span class="math inline">\(\gamma_i
   \gamma_i \mid y_i, w_i, \mu_i, \xi \sim \text{Beta}\left(y_i + \xi^{-1} \mu_i, w_i - y_i + \xi^{-1}(1-\mu_i) \right).
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="2.2.3">
-<h4 id="sec:norm">
-<span class="header-section-number">2.2.3</span> Normal<a class="anchor" aria-label="anchor" href="#sec:norm"></a>
-</h4>
-<p><span class="math display">\[\begin{equation}
-  y_i \sim \text{N}(\mu_i, w_i^{-1}\xi^2)
-\end{equation}\]</span>
-where the <span class="math inline">\(w_i\)</span> are weights.</p>
-<p>Response <span class="math inline">\(y_i\)</span> is standardized to have mean 0 and standard deviation 1. We set
+<div class="section level3" number="3.3">
+<h3 id="sec:norm">
+<span class="header-section-number">3.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#sec:norm"></a>
+</h3>
+<p>The normal model is
 <span class="math display">\[\begin{equation}
-  y_i = \frac{y_i^{*} - \bar{y}^*}{s^*}
+  \tilde{y}_i \sim \text{N}(\mu_i, \tilde{w}_i^{-1}\xi^2).
 \end{equation}\]</span>
-where the <span class="math inline">\(y_i^*\)</span> are the values originally supplied by the user, and <span class="math inline">\(\bar{y}^*\)</span> and <span class="math inline">\(s^*\)</span> are the mean and standard deviation of the <span class="math inline">\(y_i^*\)</span>.</p>
+where <span class="math inline">\(\tilde{y}_i\)</span> is a standardized version of outcome <span class="math inline">\(y_i\)</span>, and <span class="math inline">\(\tilde{w}_i\)</span> is a standardized version of weight <span class="math inline">\(w_i\)</span>. The standardization is carried out using
+<span class="math display">\[\begin{align}
+  \tilde{y}_i &amp; = \frac{y_i - \bar{y}}{s} \\
+  \tilde{w}_i &amp; = \frac{w_i}{\bar{w}}.
+\end{align}\]</span>
+where
+<span class="math display">\[\begin{align}
+  \bar{y} &amp; = \frac{\sum_{i=1}^n y_i}{n} \\
+  s &amp; = \sqrt{\frac{\sum_{i=1}^n (y_i - \bar{y})^2}{n-1}} \\
+  \bar{w} &amp; = \frac{\sum_{i=1}^n w_i}{n}.
+\end{align}\]</span></p>
+<p>Standardizing allows us to apply the same priors as we use for the Poisson and binomial models.</p>
 </div>
 </div>
-</div>
-<div class="section level2" number="3">
-<h2 id="model-for-means">
-<span class="header-section-number">3</span> Model for means<a class="anchor" aria-label="anchor" href="#model-for-means"></a>
+<div class="section level2" number="4">
+<h2 id="model-for-prior-means">
+<span class="header-section-number">4</span> Model for prior means<a class="anchor" aria-label="anchor" href="#model-for-prior-means"></a>
 </h2>
 <p>Let <span class="math inline">\(\pmb{\mu} = (\mu_1, \cdots, \mu_n)^{\top}\)</span>. Our model for <span class="math inline">\(\pmb{\mu}\)</span> is
 <span class="math display" id="eq:means">\[\begin{equation}
-  \pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} \tag{3.1}
+  \pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)} + \pmb{Z} \pmb{\zeta} \tag{4.1}
 \end{equation}\]</span>
 where</p>
 <ul>
@@ -194,58 +196,80 @@ where</p>
 <span class="math inline">\(\pmb{\zeta}\)</span> is a coefficient vector with <span class="math inline">\(P\)</span> elements.</li>
 </ul>
 </div>
-<div class="section level2" number="4">
+<div class="section level2" number="5">
 <h2 id="sec:priors">
-<span class="header-section-number">4</span> Priors for Intercept, Main Effects, and Interactions<a class="anchor" aria-label="anchor" href="#sec:priors"></a>
+<span class="header-section-number">5</span> Priors for Intercept, Main Effects, and Interactions<a class="anchor" aria-label="anchor" href="#sec:priors"></a>
 </h2>
-<p>The algorithm for assigning default priors:</p>
-<ul>
-<li>If <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> has one or two elements, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a fixed-normal prior (Section <a href="#sec:pr-fnorm">4.2</a>);</li>
-<li>otherwise, if <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> is an age or time main effect, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a random walk prior (Section <a href="#sec:pr-rw">4.3</a>);</li>
-<li>otherwise, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a normal prior (Section <a href="#sec:pr-norm">4.1</a>)</li>
-</ul>
-<p>The intercept term <span class="math inline">\(\pmb{\beta}^{(0)}\)</span> can only be given a fixed-normal prior (Section <a href="#sec:pr-fnorm">4.2</a>) or a Known prior (Section <a href="#sec:pr-known">4.17</a>).</p>
-<div class="section level3" number="4.1">
-<h3 id="sec:pr-norm">
-<span class="header-section-number">4.1</span> Normal<a class="anchor" aria-label="anchor" href="#sec:pr-norm"></a>
+<div class="section level3" number="5.1">
+<h3 id="general-features">
+<span class="header-section-number">5.1</span> General features<a class="anchor" aria-label="anchor" href="#general-features"></a>
 </h3>
-<div class="section level4" number="4.1.1">
-<h4 id="model">
-<span class="header-section-number">4.1.1</span> Model<a class="anchor" aria-label="anchor" href="#model"></a>
+<div class="section level4" number="5.1.1">
+<h4 id="along-and-by-dimensions">
+<span class="header-section-number">5.1.1</span> ‘Along’ and ‘by’ dimensions<a class="anchor" aria-label="anchor" href="#along-and-by-dimensions"></a>
 </h4>
+<p>Each <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, <span class="math inline">\(m &gt; 0\)</span>, can be a main effect, involving a single dimension, or an interaction, involving two dimensions. Some priors, when applied to an interaction, treat one dimension, referred to as the ‘along’ dimension, differently from the remaining dimensions, referred to as ‘by’ dimensions. A random walk prior (Section <a href="#sec:pr-rw">5.4</a>), for instance, consists of an independent random walk along the ‘along’ dimension, within each combination of the ‘by’ dimensions.</p>
+<p>We use <span class="math inline">\(v = 1, \cdots, V_m\)</span> to denote position within the ‘along’ dimension, and <span class="math inline">\(u = 1, \cdots, V_m\)</span> to denote position within a classification formed by the ‘by’ dimensions. When there are no sum-to-zero constraints (see below), <span class="math inline">\(U_m = \prod_k d_k\)</span> where <span class="math inline">\(d_k\)</span> is the number of elements in the <span class="math inline">\(k\)</span>th ‘by’ variable. When there are sum-to-zero constraints, <span class="math inline">\(U_m = \prod_k (d_k - 1)\)</span>.</p>
+<p>If a prior involves an ‘along’ dimension but the user does not specify one, the procedure for choosing a dimension is as follows:</p>
+<ul>
+<li>if the term involves time, use the time dimension;</li>
+<li>otherwise, if the term involves age, use the age dimension;</li>
+<li>otherwise, raise an error asking the user to explicitly specify a dimension.</li>
+</ul>
+</div>
+<div class="section level4" number="5.1.2">
+<h4 id="sec:sum-to-zero">
+<span class="header-section-number">5.1.2</span> Sum-to-zero constraints<a class="anchor" aria-label="anchor" href="#sec:sum-to-zero"></a>
+</h4>
+<p>Priors that involve ‘along’ dimensions can optionally include sum-to-zero constraints. If these constrains are applied, then within each element <span class="math inline">\(v\)</span> of the ‘along’ dimension, the sum of the <span class="math inline">\(\beta_j^{(m)}\)</span> across each ‘by’ dimension is zero. For instance, if <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> is an interaction between time, region, and sex, with time as the ‘along’ variable, then within each combination of time and region, the values for females and males sum to zero, and within each combination of time and sex, the values for regions sum to zero.</p>
+<p>Except in the case of dynamic SVD-based priors (eg Sections <a href="#sec:pr-svd-rw">5.15</a>), the sum-to-zero constraints are implemented internally by drawing values within an unrestricted lower-dimensional space, and then transforming to the restricted higher-dimensional space. For instance, a random walk prior for a time-region interaction with <span class="math inline">\(R\)</span> regions consists of <span class="math inline">\(R-1\)</span> unrestricted random walks along time, which are converted into <span class="math inline">\(R\)</span> random walks that sum to zero across region. Matrices for transforming between the unrestricted and restricted spaces are constructed using the QR decomposition, as described in Section 1.8.1 of <span class="citation">Wood (2017)</span>. With dynamic SVD-based priors, we draw values for the SVD coefficients with no constraints, convert these to unconstrained values for <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, and then subtract means.</p>
+</div>
+<div class="section level4" number="5.1.3">
+<h4 id="algorithm-for-assigning-default-priors">
+<span class="header-section-number">5.1.3</span> Algorithm for assigning default priors<a class="anchor" aria-label="anchor" href="#algorithm-for-assigning-default-priors"></a>
+</h4>
+<ul>
+<li>If <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> has one or two elements, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a fixed-normal prior (Section <a href="#sec:pr-fnorm">5.3</a>);</li>
+<li>otherwise, if <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> involves time, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a random walk prior (Section <a href="#sec:pr-rw">5.4</a>) along the time dimension;</li>
+<li>otherwise, if <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> involves age, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a random walk prior (Section <a href="#sec:pr-rw">5.4</a>) along the age dimension;</li>
+<li>otherwise, assign <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> a normal prior (Section <a href="#sec:pr-norm">5.2</a>)</li>
+</ul>
+<p>The intercept term <span class="math inline">\(\pmb{\beta}^{(0)}\)</span> can only be given a fixed-normal prior (Section <a href="#sec:pr-fnorm">5.3</a>) or a Known prior (Section <a href="#sec:pr-known">5.19</a>).</p>
+</div>
+</div>
+<div class="section level3" number="5.2">
+<h3 id="sec:pr-norm">
+<span class="header-section-number">5.2</span> N()<a class="anchor" aria-label="anchor" href="#sec:pr-norm"></a>
+</h3>
+<div class="section level4" number="5.2.1">
+<h4 id="model">
+<span class="header-section-number">5.2.1</span> Model<a class="anchor" aria-label="anchor" href="#model"></a>
+</h4>
+<p>Exchangeable normal</p>
 <p><span class="math display">\[\begin{align}
   \beta_j^{(m)} &amp; \sim \text{N}\left(0, \tau_m^2 \right) \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="4.1.2">
+<div class="section level4" number="5.2.2">
 <h4 id="contribution-to-posterior-density">
-<span class="header-section-number">4.1.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density"></a>
+<span class="header-section-number">5.2.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, \tau_m^2)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.1.3">
-<h4 id="simulation">
-<span class="header-section-number">4.1.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
-</h4>
-<p><span class="math display">\[\begin{align}
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_j^{(m)} &amp; \sim \text{N}\left(0, \tau_m^2 \right)
-\end{align}\]</span></p>
-</div>
-<div class="section level4" number="4.1.4">
+<div class="section level4" number="5.2.3">
 <h4 id="forecasting">
-<span class="header-section-number">4.1.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a>
+<span class="header-section-number">5.2.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
     \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, \tau_m^2)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.1.5">
+<div class="section level4" number="5.2.4">
 <h4 id="code">
-<span class="header-section-number">4.1.5</span> Code<a class="anchor" aria-label="anchor" href="#code"></a>
+<span class="header-section-number">5.2.4</span> Code<a class="anchor" aria-label="anchor" href="#code"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/N.html">N</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -254,45 +278,38 @@ where</p>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.2">
+<div class="section level3" number="5.3">
 <h3 id="sec:pr-fnorm">
-<span class="header-section-number">4.2</span> Fixed normal<a class="anchor" aria-label="anchor" href="#sec:pr-fnorm"></a>
+<span class="header-section-number">5.3</span> NFix()<a class="anchor" aria-label="anchor" href="#sec:pr-fnorm"></a>
 </h3>
-<div class="section level4" number="4.2.1">
+<div class="section level4" number="5.3.1">
 <h4 id="model-1">
-<span class="header-section-number">4.2.1</span> Model<a class="anchor" aria-label="anchor" href="#model-1"></a>
+<span class="header-section-number">5.3.1</span> Model<a class="anchor" aria-label="anchor" href="#model-1"></a>
 </h4>
+<p>Exchangeable normal, with fixed standard deviation</p>
 <p><span class="math display">\[\begin{equation}
   \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.2.2">
+<div class="section level4" number="5.3.2">
 <h4 id="contribution-to-posterior-density-1">
-<span class="header-section-number">4.2.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-1"></a>
+<span class="header-section-number">5.3.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-1"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \prod_{j=1}^{J_m} \text{N}(\beta_j^{(m)} \mid 0, A_{\beta}^{(m)2})
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.2.3">
-<h4 id="simulation-1">
-<span class="header-section-number">4.2.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-1"></a>
-</h4>
-<p><span class="math display">\[\begin{equation}
-  \beta_j^{(m)} \sim \text{N}\left(0, A_{\beta}^{(m)2}\right)
-\end{equation}\]</span></p>
-</div>
-<div class="section level4" number="4.2.4">
+<div class="section level4" number="5.3.3">
 <h4 id="forecasting-1">
-<span class="header-section-number">4.2.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-1"></a>
+<span class="header-section-number">5.3.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-1"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
     \beta_{J_m+h+1}^{(m)} \sim \text{N}(0, A_{\beta}^{(m)2})
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.2.5">
+<div class="section level4" number="5.3.4">
 <h4 id="code-1">
-<span class="header-section-number">4.2.5</span> Code<a class="anchor" aria-label="anchor" href="#code-1"></a>
+<span class="header-section-number">5.3.4</span> Code<a class="anchor" aria-label="anchor" href="#code-1"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/NFix.html">NFix</a></span><span class="op">(</span>sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -301,104 +318,92 @@ where</p>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.3">
+<div class="section level3" number="5.4">
 <h3 id="sec:pr-rw">
-<span class="header-section-number">4.3</span> First-order random walk<a class="anchor" aria-label="anchor" href="#sec:pr-rw"></a>
+<span class="header-section-number">5.4</span> RW()<a class="anchor" aria-label="anchor" href="#sec:pr-rw"></a>
 </h3>
-<div class="section level4" number="4.3.1">
+<div class="section level4" number="5.4.1">
 <h4 id="model-2">
-<span class="header-section-number">4.3.1</span> Model<a class="anchor" aria-label="anchor" href="#model-2"></a>
+<span class="header-section-number">5.4.1</span> Model<a class="anchor" aria-label="anchor" href="#model-2"></a>
 </h4>
+<p>Random walk</p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u1}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
-  \beta_{uv}^{(m)} &amp; \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m \\
+  \beta_{u,1}^{(m)} &amp; = 0 \\
+  \beta_{u,v}^{(m)} &amp; \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}\]</span></p>
+<p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
-<div class="section level4" number="4.3.2">
+<div class="section level4" number="5.4.2">
 <h4 id="contribution-to-posterior-density-2">
-<span class="header-section-number">4.3.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-2"></a>
+<span class="header-section-number">5.4.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-2"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u1}^{(m)} \mid 0, 1)  \prod_{u=1}^{U_m} \prod_{v=2}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, \tau_m^2)  \prod_{v=3}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.3.3">
-<h4 id="simulation-2">
-<span class="header-section-number">4.3.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-2"></a>
-</h4>
-<p><span class="math display">\[\begin{align}
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_{u,1}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \\
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, v = 2, \cdots, V_m
-\end{align}\]</span></p>
-</div>
-<div class="section level4" number="4.3.4">
+<div class="section level4" number="5.4.3">
 <h4 id="forecasting-2">
-<span class="header-section-number">4.3.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-2"></a>
+<span class="header-section-number">5.4.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-2"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m
+  \beta_{u,V_m+h}^{(m)} \sim \text{N}(\beta_{u,V_m+h-1}^{(m)}, \tau_m^2)
 \end{equation}\]</span></p>
+<p>If the prior includes sum-to-zero constraints, means are subtracted from the forecasted values within each combination of ‘along’ and ‘by’ variables.</p>
 </div>
-<div class="section level4" number="4.3.5">
+<div class="section level4" number="5.4.4">
 <h4 id="code-2">
-<span class="header-section-number">4.3.5</span> Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
+<span class="header-section-number">5.4.4</span> Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/RW.html">RW</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW.html">RW</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>. Defaults to 1.</li>
 <li>
-<code>along</code> used to identify “along” and “by” dimensions</li>
+<code>along</code> used to identify ‘along’ and ‘by’ dimensions.</li>
+<li>if <code>zero_sum</code> is <code>TRUE</code>, sum-to-zero constraints are applied.</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.4">
+<div class="section level3" number="5.5">
 <h3 id="sec:pr-rw2">
-<span class="header-section-number">4.4</span> Second-order random walk<a class="anchor" aria-label="anchor" href="#sec:pr-rw2"></a>
+<span class="header-section-number">5.5</span> RW2()<a class="anchor" aria-label="anchor" href="#sec:pr-rw2"></a>
 </h3>
-<div class="section level4" number="4.4.1">
+<div class="section level4" number="5.5.1">
 <h4 id="model-3">
-<span class="header-section-number">4.4.1</span> Model<a class="anchor" aria-label="anchor" href="#model-3"></a>
+<span class="header-section-number">5.5.1</span> Model<a class="anchor" aria-label="anchor" href="#model-3"></a>
 </h4>
+<p>Second-order random walk</p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1,\cdots, U_m, \quad v = 1,2 \\
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \beta_{u,1}^{(m)} &amp; = 0  \\
+  \beta_{u,2}^{(m)} &amp; \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,v}^{(m)} &amp; \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 3, \cdots, V_m \\
+  \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
+<p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
-<div class="section level4" number="4.4.2">
+<div class="section level4" number="5.5.2">
 <h4 id="contribution-to-posterior-density-3">
-<span class="header-section-number">4.4.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-3"></a>
+<span class="header-section-number">5.5.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-3"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^2 \text{N}(\beta_{u,v}^{(m)} \mid 0, 1) \prod_{u=1}^{U_m}\prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} - 2 \beta_{u,v-1}^{(m)} + \beta_{u,v-2}^{(m)} \mid 0, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2) \text{N}(\beta_{u,3}^{(m)} \mid 2 \beta_{u,2}^{(m)}, \tau_m^2) \prod_{v=4}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.4.3">
-<h4 id="simulation-3">
-<span class="header-section-number">4.4.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-3"></a>
-</h4>
-<p><span class="math display">\[\begin{align}
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1,2 \\
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3,\cdots,V_m
-\end{align}\]</span></p>
-</div>
-<div class="section level4" number="4.4.4">
+<div class="section level4" number="5.5.3">
 <h4 id="forecasting-3">
-<span class="header-section-number">4.4.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-3"></a>
+<span class="header-section-number">5.5.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-3"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m+h}^{(m)} \sim \text{N}(2 \beta_{u,V_m+h-1}^{(m)} - \beta_{u,V_m+h-2}^{(m)}, \tau_m^2)
 \end{equation}\]</span></p>
+<p>If the prior includes sum-to-zero constraints, means are subtracted from the forecasted values within each combination of ‘along’ and ‘by’ variables.</p>
 </div>
-<div class="section level4" number="4.4.5">
+<div class="section level4" number="5.5.4">
 <h4 id="code-3">
-<span class="header-section-number">4.4.5</span> Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
+<span class="header-section-number">5.5.4</span> Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/RW2.html">RW2</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW2.html">RW2</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
@@ -407,47 +412,48 @@ where</p>
 <code>sd</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
 </li>
 <li>
-<code>along</code> used to identify “along” and “by” dimensions</li>
+<code>along</code> used to identify ‘along’ and ‘by’ dimensions</li>
+<li>if <code>zero_sum</code> is <code>TRUE</code>, sum-to-zero constraints are applied</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.5">
+<div class="section level3" number="5.6">
 <h3 id="sec:rwseas">
-<span class="header-section-number">4.5</span> Random walk with seasonal effect<a class="anchor" aria-label="anchor" href="#sec:rwseas"></a>
+<span class="header-section-number">5.6</span> RW_Seas()<a class="anchor" aria-label="anchor" href="#sec:rwseas"></a>
 </h3>
-<div class="section level4" number="4.5.1">
+<div class="section level4" number="5.6.1">
 <h4 id="model-4">
-<span class="header-section-number">4.5.1</span> Model<a class="anchor" aria-label="anchor" href="#model-4"></a>
+<span class="header-section-number">5.6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-4"></a>
 </h4>
-<p><span class="math display" id="eq:lambda-rwseas">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_{u,1}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m \\
-  \alpha_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 2, \cdots, V_m \\
-  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
-  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m \tag{4.1} \\ \\
+<p>Random walk with seasonal effect</p>
+<p><span class="math display">\[\begin{align}
+  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,s_v} \\
+  \alpha_{u,1}^{(m)} &amp; = 0 \\
+  \alpha_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
+  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
+  \lambda_{u,v}^{(m)} &amp; = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m &amp; \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}\]</span></p>
-<p>We allow <span class="math inline">\(A_{\omega}^{(m)2}\)</span> to be set to zero, in which case <a href="#eq:lambda-rwseas">(4.1)</a> reduces to
-<span class="math display">\[\begin{equation}
-  \lambda_{u,v}^{(m)} = \lambda_{u,v-S_m}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m,
-\end{equation}\]</span>
-implying that seasonal effects are constant across years.</p>
+<p>Scale parameter <span class="math inline">\(A_{\omega}^{(m)2}\)</span> can be set to zero, implying that seasonal effect for each season does not change over time.</p>
+<p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
-<div class="section level4" number="4.5.2">
+<div class="section level4" number="5.6.2">
 <h4 id="contribution-to-posterior-density-4">
-<span class="header-section-number">4.5.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-4"></a>
+<span class="header-section-number">5.6.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-4"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
   &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, 1 ) \prod_{v=2}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m} \text{N}(\lambda_{u,v}^{(m)} \mid 0, 1) \prod_{v=S_m+1}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, \tau_m^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
+  \prod_{v &gt; S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
 \end{split}
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.5.3">
+<div class="section level4" number="5.6.3">
 <h4 id="forecasting-4">
-<span class="header-section-number">4.5.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-4"></a>
+<span class="header-section-number">5.6.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-4"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \alpha_{J_m+h}^{(m)} &amp; \sim \text{N}(\alpha_{J_m+h-1}^{(m)}, \tau_m^2) \\
@@ -455,14 +461,14 @@ implying that seasonal effects are constant across years.</p>
   \beta_{J_m+h}^{(m)} &amp; = \alpha_{J_m+h}^{(m)} + \lambda_{J_m+h}^{(m)}
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="4.5.4">
+<div class="section level4" number="5.6.4">
 <h4 id="code-4">
-<span class="header-section-number">4.5.4</span> Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
+<span class="header-section-number">5.6.4</span> Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
 </h4>
-<pre><code><span><span class="fu">RWSeas</span><span class="op">(</span><span class="va">n</span>, s <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span><span class="va">n</span>, s <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, <span class="va">sd_seas</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
-<code>n</code> is <span class="math inline">\(S_m\)</span>
+<code>n_seas</code> is <span class="math inline">\(S_m\)</span>
 </li>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
@@ -471,47 +477,52 @@ implying that seasonal effects are constant across years.</p>
 <code>s_seas</code> is <span class="math inline">\(A_{\omega}^{(m)}\)</span>
 </li>
 <li>
-<code>along</code> used to identify “along” and “by” dimensions</li>
+<code>sd_seas</code> is <span class="math inline">\(A_{\lambda}^{(m)}\)</span>
+</li>
+<li>
+<code>along</code> used to identify ‘along’ and ‘by’ dimensions</li>
+<li>if <code>zero_sum</code> is <code>TRUE</code>, sum-to-zero constraints are applied</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.6">
+<div class="section level3" number="5.7">
 <h3 id="sec:rw2seas">
-<span class="header-section-number">4.6</span> Second-order randomw walk, with seasonal effect<a class="anchor" aria-label="anchor" href="#sec:rw2seas"></a>
+<span class="header-section-number">5.7</span> RW2_Seas()<a class="anchor" aria-label="anchor" href="#sec:rw2seas"></a>
 </h3>
-<div class="section level4" number="4.6.1">
+<div class="section level4" number="5.7.1">
 <h4 id="model-5">
-<span class="header-section-number">4.6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-5"></a>
+<span class="header-section-number">5.7.1</span> Model<a class="anchor" aria-label="anchor" href="#model-5"></a>
 </h4>
-<p><span class="math display" id="eq:lambda-rwseas">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,s_v}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_{u,v}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad \quad v = 1,2,  \\
-  \alpha_{u,v}^{(m)} &amp; \sim \text{N}(2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 3, \cdots, V_m \\
-  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, S_m \\
-  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m \tag{4.1} \\ \\
+<p>Second-order random work, with seasonal effect</p>
+<p><span class="math display">\[\begin{align}
+  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,s_v} \\
+  \alpha_{u,1}^{(m)} &amp; = 0 \\
+  \alpha_{u,2}^{(m)} &amp; \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \alpha_{u,v}^{(m)} &amp; \sim \text{N}(2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2), \quad v = 3, \cdots, V_m \\
+  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
+  \lambda_{u,v}^{(m)} &amp; = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} &amp; \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m &amp; \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}\]</span></p>
-<p>We allow <span class="math inline">\(A_{\omega}^{(m)2}\)</span> to be set to zero, in which case <a href="#eq:lambda-rwseas">(4.1)</a> reduces to
-<span class="math display">\[\begin{equation}
-  \lambda_{u,v}^{(m)} = \lambda_{u,v-S_m}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = S_m + 1, \cdots, V_m,
-\end{equation}\]</span>
-implying that seasonal effects are constant across years.</p>
+<p>Scale parameter <span class="math inline">\(A_{\omega}^{(m)2}\)</span> can be set to zero, implying that seasonal effect for each season does not change over time.</p>
+<p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
-<div class="section level4" number="4.6.2">
+<div class="section level4" number="5.7.2">
 <h4 id="contribution-to-posterior-density-5">
-<span class="header-section-number">4.6.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-5"></a>
+<span class="header-section-number">5.7.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-5"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
   &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, 1 ) \prod_{v=2}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m} \text{N}(\lambda_{u,v}^{(m)} \mid 0, 1) \prod_{v=S_m+1}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
-\end{split}
+  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
+  \prod_{v &gt; S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  \end{split}
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.6.3">
+<div class="section level4" number="5.7.3">
 <h4 id="forecasting-5">
-<span class="header-section-number">4.6.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-5"></a>
+<span class="header-section-number">5.7.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-5"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \alpha_{J_m+h}^{(m)} &amp; \sim \text{N}(2 \alpha_{J_m+h-1}^{(m)} - \alpha_{J_m+h-2}^{(m)}, \tau_m^2) \\
@@ -519,11 +530,11 @@ implying that seasonal effects are constant across years.</p>
   \beta_{J_m+h}^{(m)} &amp; = \alpha_{J_m+h}^{(m)} + \lambda_{J_m+h}^{(m)}
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="4.6.4">
+<div class="section level4" number="5.7.4">
 <h4 id="code-5">
-<span class="header-section-number">4.6.4</span> Code<a class="anchor" aria-label="anchor" href="#code-5"></a>
+<span class="header-section-number">5.7.4</span> Code<a class="anchor" aria-label="anchor" href="#code-5"></a>
 </h4>
-<pre><code><span><span class="fu">RW2Seas</span><span class="op">(</span><span class="va">n</span>, s <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span><span class="va">n</span>, s <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>n</code> is <span class="math inline">\(S_m\)</span>
@@ -535,17 +546,17 @@ implying that seasonal effects are constant across years.</p>
 <code>s_seas</code> is <span class="math inline">\(A_{\omega}^{(m)}\)</span>
 </li>
 <li>
-<code>along</code> used to identify “along” and “by” dimensions</li>
+<code>along</code> used to identify ‘along’ and ‘by’ dimensions</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.7">
+<div class="section level3" number="5.8">
 <h3 id="sec:pr-ar">
-<span class="header-section-number">4.7</span> Autoregressive<a class="anchor" aria-label="anchor" href="#sec:pr-ar"></a>
+<span class="header-section-number">5.8</span> AR()<a class="anchor" aria-label="anchor" href="#sec:pr-ar"></a>
 </h3>
-<div class="section level4" number="4.7.1">
+<div class="section level4" number="5.8.1">
 <h4 id="model-6">
-<span class="header-section-number">4.7.1</span> Model<a class="anchor" aria-label="anchor" href="#model-6"></a>
+<span class="header-section-number">5.8.1</span> Model<a class="anchor" aria-label="anchor" href="#model-6"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
@@ -563,26 +574,26 @@ We assign <span class="math inline">\(r^{(m)}\)</span> the prior
   r^{(m)} \sim \text{Beta}(2, 2).
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.7.2">
+<div class="section level4" number="5.8.2">
 <h4 id="contribution-to-posterior-density-6">
-<span class="header-section-number">4.7.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-6"></a>
+<span class="header-section-number">5.8.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-6"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
-<div class="section level4" number="4.7.3">
+<div class="section level4" number="5.8.3">
 <h4 id="forecasting-6">
-<span class="header-section-number">4.7.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-6"></a>
+<span class="header-section-number">5.8.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-6"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,V_m+h-K_m}^{(m)}, \tau_m^2\right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.7.4">
+<div class="section level4" number="5.8.4">
 <h4 id="code-6">
-<span class="header-section-number">4.7.4</span> Code<a class="anchor" aria-label="anchor" href="#code-6"></a>
+<span class="header-section-number">5.8.4</span> Code<a class="anchor" aria-label="anchor" href="#code-6"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/AR.html">AR</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span>, s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -593,18 +604,18 @@ where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
 </li>
 <li>
-<code>along</code> is used to indentify the “along” and “by” dimensions</li>
+<code>along</code> is used to indentify the ‘along’ and ‘by’ dimensions</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.8">
+<div class="section level3" number="5.9">
 <h3 id="sec:pr-ar1">
-<span class="header-section-number">4.8</span> AR1<a class="anchor" aria-label="anchor" href="#sec:pr-ar1"></a>
+<span class="header-section-number">5.9</span> AR1()<a class="anchor" aria-label="anchor" href="#sec:pr-ar1"></a>
 </h3>
 <p>Special case or AR, but with extra options for autocorrelation coefficient.</p>
-<div class="section level4" number="4.8.1">
+<div class="section level4" number="5.9.1">
 <h4 id="model-7">
-<span class="header-section-number">4.8.1</span> Model<a class="anchor" aria-label="anchor" href="#model-7"></a>
+<span class="header-section-number">5.9.1</span> Model<a class="anchor" aria-label="anchor" href="#model-7"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \beta_{u,1}^{(m)} &amp; \sim \text{N}(0, \tau_m^2), \quad u = 1, \cdots, U_m \\
@@ -615,25 +626,25 @@ where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_
 p\end{align}\]</span>
 This is adapted from the specification used for AR1 densities in <a href="http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html" class="external-link">TMB</a>. It implies that the marginal variance of all <span class="math inline">\(\beta_{u,v}^{(m)}\)</span> is <span class="math inline">\(\tau_m^2\)</span>. We require that <span class="math inline">\(-1 &lt; a_{0m} &lt; a_{1m} &lt; 1\)</span>.</p>
 </div>
-<div class="section level4" number="4.8.2">
+<div class="section level4" number="5.9.2">
 <h4 id="contribution-to-posterior-density-7">
-<span class="header-section-number">4.8.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-7"></a>
+<span class="header-section-number">5.9.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-7"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid 2, 2) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{u=1}^{U_m} \prod_{j=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.8.3">
+<div class="section level4" number="5.9.3">
 <h4 id="forecasting-7">
-<span class="header-section-number">4.8.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-7"></a>
+<span class="header-section-number">5.9.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-7"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{J_m + h}^{(m)} \sim \text{N}\left(\phi_m \beta_{J_m + h - 1}^{(m)}, (1 - \phi_m^2) \tau_m^2\right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.8.4">
+<div class="section level4" number="5.9.4">
 <h4 id="code-7">
-<span class="header-section-number">4.8.4</span> Code<a class="anchor" aria-label="anchor" href="#code-7"></a>
+<span class="header-section-number">5.9.4</span> Code<a class="anchor" aria-label="anchor" href="#code-7"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span>min <span class="op">=</span> <span class="fl">0.8</span>, max <span class="op">=</span> <span class="fl">0.98</span>, s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -646,45 +657,58 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>. Defaults to 1.</li>
 <li>
-<code>along</code> is used to identify “along” and “by” dimensions</li>
+<code>along</code> is used to identify ‘along’ and ‘by’ dimensions</li>
 </ul>
 <p>The defaults for <code>min</code> and <code>max</code> are based on the defaults for function <code>ets()</code> in R package <strong>forecast</strong> <span class="citation">(Hyndman and Khandakar 2008)</span>.</p>
 </div>
 </div>
-<div class="section level3" number="4.9">
+<div class="section level3" number="5.10">
 <h3 id="sec:pr-lin">
-<span class="header-section-number">4.9</span> Linear<a class="anchor" aria-label="anchor" href="#sec:pr-lin"></a>
+<span class="header-section-number">5.10</span> Lin()<a class="anchor" aria-label="anchor" href="#sec:pr-lin"></a>
 </h3>
-<div class="section level4" number="4.9.1">
+<div class="section level4" number="5.10.1">
 <h4 id="model-8">
-<span class="header-section-number">4.9.1</span> Model<a class="anchor" aria-label="anchor" href="#model-8"></a>
+<span class="header-section-number">5.10.1</span> Model<a class="anchor" aria-label="anchor" href="#model-8"></a>
 </h4>
+<p><strong>Existing version</strong></p>
 <p><span class="math display">\[\begin{align}
   \beta_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
   \alpha_u^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1,\cdots,U_m  \\
-  \eta_u^{(m)} &amp; \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \eta_u^{(m)} &amp; \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
+  \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
+<p><strong>Suggested new version</strong></p>
+<p><span class="math display">\[\begin{align}
+  \beta_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
+  \eta_u^{(m)} &amp; \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
+  \alpha_u^{(m)} &amp; = -\frac{V_m + 1}{2} \eta_u^{(m)}, \quad u = 1,\cdots,U_m  \\
+  \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
+\end{align}\]</span>
+where <span class="math inline">\(B_{\eta}^{(m)}\)</span> and <span class="math inline">\(A_{\eta}^{(m)}\)</span> default to 0 and 1, though alternatives can be supplied by the user, or via informative priors (for instance, <span class="math inline">\(B_{\eta}^{(m)} = -0.01\)</span>, or similar, for mortality)</p>
+<p>Note that with the new version
+<span class="math display">\[\begin{equation}
+E \sum_{v=1}^{V_m} \beta_{u,v}^{(m)} = \sum_{v=1}^{V_m}\left(-\frac{V_m + 1}{2} \eta_u^{(m)} + v \eta_u^{(m)}\right) = 0
+\end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.9.2">
+<div class="section level4" number="5.10.2">
 <h4 id="contribution-to-posterior-density-8">
-<span class="header-section-number">4.9.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-8"></a>
+<span class="header-section-number">5.10.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} | \alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.9.3">
+<div class="section level4" number="5.10.3">
 <h4 id="forecasting-8">
-<span class="header-section-number">4.9.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-8"></a>
+<span class="header-section-number">5.10.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \beta_{u,V_m + h}^{(m)} \sim \text{N}(\alpha_u^{(m)} + (V_m + h) \eta_u^{(m)}, \tau_m^2)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.9.4">
+<div class="section level4" number="5.10.4">
 <h4 id="code-8">
-<span class="header-section-number">4.9.4</span> Code<a class="anchor" aria-label="anchor" href="#code-8"></a>
+<span class="header-section-number">5.10.4</span> Code<a class="anchor" aria-label="anchor" href="#code-8"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/Lin.html">Lin</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -695,17 +719,17 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 <code>sd</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
 </li>
 <li>
-<code>along</code> is used to indentify “along” and “by” dimensions</li>
+<code>along</code> is used to indentify ‘along’ and ‘by’ dimensions</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.10">
+<div class="section level3" number="5.11">
 <h3 id="sec:pr-lin-ar">
-<span class="header-section-number">4.10</span> Linear-AR<a class="anchor" aria-label="anchor" href="#sec:pr-lin-ar"></a>
+<span class="header-section-number">5.11</span> Lin_AR()<a class="anchor" aria-label="anchor" href="#sec:pr-lin-ar"></a>
 </h3>
-<div class="section level4" number="4.10.1">
+<div class="section level4" number="5.11.1">
 <h4 id="model-9">
-<span class="header-section-number">4.10.1</span> Model<a class="anchor" aria-label="anchor" href="#model-9"></a>
+<span class="header-section-number">5.11.1</span> Model<a class="anchor" aria-label="anchor" href="#model-9"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \beta_{u,v}^{(m)} &amp; = \alpha_u^{(m)} + \eta_u^{(m)} v + \epsilon_{u,v}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
@@ -726,27 +750,27 @@ We assign <span class="math inline">\(r^{(m)}\)</span> the prior
   r^{(m)} \sim \text{Beta}(2, 2).
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.10.2">
+<div class="section level4" number="5.11.2">
 <h4 id="contribution-to-posterior-density-9">
-<span class="header-section-number">4.10.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-9"></a>
+<span class="header-section-number">5.11.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-9"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
-<div class="section level4" number="4.10.3">
+<div class="section level4" number="5.11.3">
 <h4 id="forecasting-9">
-<span class="header-section-number">4.10.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-9"></a>
+<span class="header-section-number">5.11.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-9"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \beta_{u, V_m + h}^{(m)} &amp; = \alpha_u^{(m)} + \eta_u^{(m)} (V_m + h) + \epsilon_{u,V_m+h}^{(m)} \\
   \epsilon_{u,V_m+h}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,V_m+h-K_m}^{(m)}, \omega_m^2\right)
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="4.10.4">
+<div class="section level4" number="5.11.4">
 <h4 id="code-9">
-<span class="header-section-number">4.10.4</span> Code<a class="anchor" aria-label="anchor" href="#code-9"></a>
+<span class="header-section-number">5.11.4</span> Code<a class="anchor" aria-label="anchor" href="#code-9"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/Lin_AR.html">Lin_AR</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -757,41 +781,48 @@ where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon
 <code>sd</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
 </li>
 <li>
-<code>along</code> is used to indentify “along” and “by” variables</li>
+<code>along</code> is used to indentify ‘along’ and ‘by’ variables</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.11">
-<h3 id="sec:pr-spline">
-<span class="header-section-number">4.11</span> P-Spline<a class="anchor" aria-label="anchor" href="#sec:pr-spline"></a>
+<div class="section level3" number="5.12">
+<h3 id="sec:pr-lin-ar-1">
+<span class="header-section-number">5.12</span> Lin_AR()<a class="anchor" aria-label="anchor" href="#sec:pr-lin-ar-1"></a>
 </h3>
-<div class="section level4" number="4.11.1">
+<p>TODO - WRITE DETAILS</p>
+</div>
+<div class="section level3" number="5.13">
+<h3 id="sec:pr-spline">
+<span class="header-section-number">5.13</span> Sp()<a class="anchor" aria-label="anchor" href="#sec:pr-spline"></a>
+</h3>
+<div class="section level4" number="5.13.1">
 <h4 id="model-10">
-<span class="header-section-number">4.11.1</span> Model<a class="anchor" aria-label="anchor" href="#model-10"></a>
+<span class="header-section-number">5.13.1</span> Model<a class="anchor" aria-label="anchor" href="#model-10"></a>
 </h4>
+<p>Penalised spline (P-spline)</p>
 <p><span class="math display">\[\begin{equation}
   \pmb{\beta}_u^{(m)} = \pmb{B}^{(m)} \pmb{\alpha}_u^{(m)}, \quad u = 1, \cdots, U_m
 \end{equation}\]</span>
-where <span class="math inline">\(\pmb{\beta}_u^{(m)}\)</span> is the subvector of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> composed of elements from the <span class="math inline">\(u\)</span>th combination of the “by” variables, <span class="math inline">\(\pmb{B}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix of B-splines, and <span class="math inline">\(\pmb{\alpha}_u^{(m)}\)</span> has a second-order random walk prior (Section <a href="#sec:pr-rw2">4.4</a>).</p>
+where <span class="math inline">\(\pmb{\beta}_u^{(m)}\)</span> is the subvector of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> composed of elements from the <span class="math inline">\(u\)</span>th combination of the ‘by’ variables, <span class="math inline">\(\pmb{B}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix of B-splines, and <span class="math inline">\(\pmb{\alpha}_u^{(m)}\)</span> has a second-order random walk prior (Section <a href="#sec:pr-rw2">5.5</a>).</p>
 <p><span class="math inline">\(\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{v}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{v}))\)</span>, with <span class="math inline">\(\pmb{v} = (1, \cdots, V_m)^{\top}\)</span>. The B-splines are centered, so that <span class="math inline">\(\pmb{1}^{\top} \pmb{b}_k^{(m)}(\pmb{v}) = 0\)</span>, <span class="math inline">\(k = 1, \cdots, K_m\)</span>.</p>
 </div>
-<div class="section level4" number="4.11.2">
+<div class="section level4" number="5.13.2">
 <h4 id="contribution-to-posterior-density-10">
-<span class="header-section-number">4.11.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-10"></a>
+<span class="header-section-number">5.13.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-10"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^2 \text{N}(\alpha_{u,k}^{(m)} \mid 0, 1) \prod_{u=1}^{U_m}\prod_{k=3}^{K_m} \text{N}\left(\alpha_{u,k}^{(m)} - 2 \alpha_{u,k-1}^{(m)} + \alpha_{u,k-2}^{(m)} \mid 0, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.11.3">
+<div class="section level4" number="5.13.3">
 <h4 id="forecasting-10">
-<span class="header-section-number">4.11.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-10"></a>
+<span class="header-section-number">5.13.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-10"></a>
 </h4>
 <p>Terms with a P-Spline prior cannot be forecasted.</p>
 </div>
-<div class="section level4" number="4.11.4">
+<div class="section level4" number="5.13.4">
 <h4 id="code-10">
-<span class="header-section-number">4.11.4</span> Code<a class="anchor" aria-label="anchor" href="#code-10"></a>
+<span class="header-section-number">5.13.4</span> Code<a class="anchor" aria-label="anchor" href="#code-10"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/Sp.html">Sp</a></span><span class="op">(</span>n <span class="op">=</span> <span class="cn">NULL</span>, s <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -800,24 +831,24 @@ where <span class="math inline">\(\pmb{\beta}_u^{(m)}\)</span> is the subvector 
 <li>
 <code>s</code> is the <span class="math inline">\(A_{\tau}^{(m)}\)</span> from the second-order random walk prior. Defaults to 1.</li>
 <li>
-<code>along</code> is used to identify “along” and “by” variables</li>
+<code>along</code> is used to identify ‘along’ and ‘by’ variables</li>
 </ul>
 </div>
 </div>
-<div class="section level3" number="4.12">
+<div class="section level3" number="5.14">
 <h3 id="sec:pr-svd">
-<span class="header-section-number">4.12</span> SVD<a class="anchor" aria-label="anchor" href="#sec:pr-svd"></a>
+<span class="header-section-number">5.14</span> SVD()<a class="anchor" aria-label="anchor" href="#sec:pr-svd"></a>
 </h3>
-<div class="section level4" number="4.12.1">
+<div class="section level4" number="5.14.1">
 <h4 id="model-11">
-<span class="header-section-number">4.12.1</span> Model<a class="anchor" aria-label="anchor" href="#model-11"></a>
+<span class="header-section-number">5.14.1</span> Model<a class="anchor" aria-label="anchor" href="#model-11"></a>
 </h4>
 <p><strong>Age but no sex or gender</strong></p>
 <p>Let <span class="math inline">\(\pmb{\beta}_u\)</span> be the age effect for the <span class="math inline">\(u\)</span>th combination of the ‘by’ variables. With an SVD prior,
 <span class="math display">\[\begin{equation}
   \pmb{\beta}_u^{(m)} = \pmb{F}^{(m)} \pmb{\alpha}_u^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
 \end{equation}\]</span>
-where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">12.2</a>. The centering and scaling used in the construction allow use of the simple prior
+where <span class="math inline">\(\pmb{F}^{(m)}\)</span> is a <span class="math inline">\(V_m \times K_m\)</span> matrix, and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is a vector with <span class="math inline">\(V_m\)</span> elements, both derived from a singular value decomposition (SVD) of an external dataset of age-specific values for all sexes/genders combined. The construction of <span class="math inline">\(\pmb{F}^{(m)}\)</span> and <span class="math inline">\(\pmb{g}^{(m)}\)</span> is described in Appendix <a href="#app:svd">13.2</a>. The centering and scaling used in the construction allow use of the simple prior
 <span class="math display">\[\begin{equation}
   \alpha_{u,k}^{(m)} \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m.
 \end{equation}\]</span></p>
@@ -833,9 +864,9 @@ Matrix <span class="math inline">\(\pmb{F}_s^{(m)}\)</span> and vector <span cla
   \alpha_{s,u,k}^{(m)} \sim \text{N}(0, 1), \quad s = 1, \cdots, S; \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m.
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.12.2">
+<div class="section level4" number="5.14.2">
 <h4 id="contribution-to-posterior-density-11">
-<span class="header-section-number">4.12.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-11"></a>
+<span class="header-section-number">5.14.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-11"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   \prod_{u=1}^{U_m}\prod_{k=1}^{K_m} \text{N}\left(\alpha_{uk}^{(m)} \mid 0, 1 \right)
@@ -846,15 +877,15 @@ for the age-only and joint models, and
 \end{equation}\]</span>
 for the independent model</p>
 </div>
-<div class="section level4" number="4.12.3">
+<div class="section level4" number="5.14.3">
 <h4 id="forecasting-11">
-<span class="header-section-number">4.12.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-11"></a>
+<span class="header-section-number">5.14.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-11"></a>
 </h4>
 <p>Terms with an SVD prior cannot be forecasted.</p>
 </div>
-<div class="section level4" number="4.12.4">
+<div class="section level4" number="5.14.4">
 <h4 id="code-11">
-<span class="header-section-number">4.12.4</span> Code<a class="anchor" aria-label="anchor" href="#code-11"></a>
+<span class="header-section-number">5.14.4</span> Code<a class="anchor" aria-label="anchor" href="#code-11"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">ssvd</span>, n_comp <span class="op">=</span> <span class="cn">NULL</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <p>where
@@ -863,13 +894,13 @@ for the independent model</p>
 - <code>indep</code> determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
 </div>
 </div>
-<div class="section level3" number="4.13">
+<div class="section level3" number="5.15">
 <h3 id="sec:pr-svd-rw">
-<span class="header-section-number">4.13</span> SVD_RW<a class="anchor" aria-label="anchor" href="#sec:pr-svd-rw"></a>
+<span class="header-section-number">5.15</span> SVD_RW()<a class="anchor" aria-label="anchor" href="#sec:pr-svd-rw"></a>
 </h3>
-<div class="section level4" number="4.13.1">
+<div class="section level4" number="5.15.1">
 <h4 id="model-12">
-<span class="header-section-number">4.13.1</span> Model<a class="anchor" aria-label="anchor" href="#model-12"></a>
+<span class="header-section-number">5.15.1</span> Model<a class="anchor" aria-label="anchor" href="#model-12"></a>
 </h4>
 <p>The <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> prior is identical to the <code><a href="../reference/SVD.html">SVD()</a></code> prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models,</p>
 <p><span class="math display">\[\begin{align}
@@ -879,9 +910,9 @@ for the independent model</p>
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="4.13.2">
+<div class="section level4" number="5.15.2">
 <h4 id="contribution-to-posterior-density-12">
-<span class="header-section-number">4.13.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-12"></a>
+<span class="header-section-number">5.15.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-12"></a>
 </h4>
 <p>In the combined-sex/gender and joint models,</p>
 <p><span class="math display">\[\begin{equation}
@@ -892,24 +923,24 @@ for the independent model</p>
   \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="4.13.3">
-<h4 id="simulation-4">
-<span class="header-section-number">4.13.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-4"></a>
+<div class="section level4" number="5.15.3">
+<h4 id="simulation">
+<span class="header-section-number">5.15.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h4>
 <p>TODO - write</p>
 </div>
-<div class="section level4" number="4.13.4">
+<div class="section level4" number="5.15.4">
 <h4 id="forecasting-12">
-<span class="header-section-number">4.13.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
+<span class="header-section-number">5.15.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \alpha_{u,k,T+h}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m \\
   \pmb{\beta}_{u,T+h}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="4.13.5">
+<div class="section level4" number="5.15.5">
 <h4 id="code-12">
-<span class="header-section-number">4.13.5</span> Code<a class="anchor" aria-label="anchor" href="#code-12"></a>
+<span class="header-section-number">5.15.5</span> Code<a class="anchor" aria-label="anchor" href="#code-12"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">ssvd</span>, n_comp <span class="op">=</span> <span class="cn">NULL</span>, s <span class="op">=</span> <span class="fl">1</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <p>where
@@ -919,49 +950,49 @@ for the independent model</p>
 - <code>indep</code> determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
 </div>
 </div>
-<div class="section level3" number="4.14">
+<div class="section level3" number="5.16">
 <h3 id="sec:pr-svd-rw2">
-<span class="header-section-number">4.14</span> SVD_RW2<a class="anchor" aria-label="anchor" href="#sec:pr-svd-rw2"></a>
+<span class="header-section-number">5.16</span> SVD_RW2()<a class="anchor" aria-label="anchor" href="#sec:pr-svd-rw2"></a>
 </h3>
 <p>Same structure as <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>. TODO - write details.</p>
 </div>
-<div class="section level3" number="4.15">
+<div class="section level3" number="5.17">
 <h3 id="sec:pr-svd-ar">
-<span class="header-section-number">4.15</span> SVD_AR<a class="anchor" aria-label="anchor" href="#sec:pr-svd-ar"></a>
+<span class="header-section-number">5.17</span> SVD_AR()<a class="anchor" aria-label="anchor" href="#sec:pr-svd-ar"></a>
 </h3>
 <p>Same structure as <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>. TODO - write details.</p>
 </div>
-<div class="section level3" number="4.16">
+<div class="section level3" number="5.18">
 <h3 id="sec:pr-svd-ar1">
-<span class="header-section-number">4.16</span> SVD_AR1<a class="anchor" aria-label="anchor" href="#sec:pr-svd-ar1"></a>
+<span class="header-section-number">5.18</span> SVD_AR1()<a class="anchor" aria-label="anchor" href="#sec:pr-svd-ar1"></a>
 </h3>
 <p>Same structure as <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code>. TODO - write details.</p>
 </div>
-<div class="section level3" number="4.17">
+<div class="section level3" number="5.19">
 <h3 id="sec:pr-known">
-<span class="header-section-number">4.17</span> Known<a class="anchor" aria-label="anchor" href="#sec:pr-known"></a>
+<span class="header-section-number">5.19</span> Known<a class="anchor" aria-label="anchor" href="#sec:pr-known"></a>
 </h3>
-<div class="section level4" number="4.17.1">
+<div class="section level4" number="5.19.1">
 <h4 id="model-13">
-<span class="header-section-number">4.17.1</span> Model<a class="anchor" aria-label="anchor" href="#model-13"></a>
+<span class="header-section-number">5.19.1</span> Model<a class="anchor" aria-label="anchor" href="#model-13"></a>
 </h4>
 <p>Elements of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are treated as known with certainty.</p>
 </div>
-<div class="section level4" number="4.17.2">
+<div class="section level4" number="5.19.2">
 <h4 id="contribution-to-posterior-density-13">
-<span class="header-section-number">4.17.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-13"></a>
+<span class="header-section-number">5.19.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-13"></a>
 </h4>
 <p>Known priors make no contribution to the posterior density.</p>
 </div>
-<div class="section level4" number="4.17.3">
+<div class="section level4" number="5.19.3">
 <h4 id="forecasting-13">
-<span class="header-section-number">4.17.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-13"></a>
+<span class="header-section-number">5.19.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-13"></a>
 </h4>
 <p>Main effects with a known prior cannot be forecasted.</p>
 </div>
-<div class="section level4" number="4.17.4">
+<div class="section level4" number="5.19.4">
 <h4 id="code-13">
-<span class="header-section-number">4.17.4</span> Code<a class="anchor" aria-label="anchor" href="#code-13"></a>
+<span class="header-section-number">5.19.4</span> Code<a class="anchor" aria-label="anchor" href="#code-13"></a>
 </h4>
 <pre><code><span><span class="fu"><a href="../reference/Known.html">Known</a></span><span class="op">(</span><span class="va">values</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -971,28 +1002,28 @@ for the independent model</p>
 </div>
 </div>
 </div>
-<div class="section level2" number="5">
+<div class="section level2" number="6">
 <h2 id="sec:pr-cov">
-<span class="header-section-number">5</span> Covariates<a class="anchor" aria-label="anchor" href="#sec:pr-cov"></a>
+<span class="header-section-number">6</span> Covariates<a class="anchor" aria-label="anchor" href="#sec:pr-cov"></a>
 </h2>
-<div class="section level3" number="5.1">
+<div class="section level3" number="6.1">
 <h3 id="model-14">
-<span class="header-section-number">5.1</span> Model<a class="anchor" aria-label="anchor" href="#model-14"></a>
+<span class="header-section-number">6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-14"></a>
 </h3>
 <p>The columns of matrix <span class="math inline">\(\pmb{Z}\)</span> are assumed to be standardised to have mean 0 and standard deviation 1. <span class="math inline">\(\pmb{Z}\)</span> does not contain a column for an intercept.</p>
 <p>We implement two priors for coefficient vector <span class="math inline">\(\pmb{\zeta}\)</span>. The first prior is designed for the case where <span class="math inline">\(P\)</span>, the number of colums of <span class="math inline">\(\pmb{Z}\)</span>, is small, and most <span class="math inline">\(\zeta_p\)</span> are likely to distinguishable from zero. The second prior is designed for the case where <span class="math inline">\(P\)</span> is large, and only a few <span class="math inline">\(\zeta_p\)</span> are likely to be distinguishable from zero.</p>
-<div class="section level4" number="5.1.1">
+<div class="section level4" number="6.1.1">
 <h4 id="standard-prior">
-<span class="header-section-number">5.1.1</span> Standard prior<a class="anchor" aria-label="anchor" href="#standard-prior"></a>
+<span class="header-section-number">6.1.1</span> Standard prior<a class="anchor" aria-label="anchor" href="#standard-prior"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
   \zeta_p \mid \varphi &amp; \sim \text{N}(0, \varphi^2) \\
   \varphi &amp; \sim \text{N}^+(0, 1)
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="5.1.2">
+<div class="section level4" number="6.1.2">
 <h4 id="shrinkage-prior">
-<span class="header-section-number">5.1.2</span> Shrinkage prior<a class="anchor" aria-label="anchor" href="#shrinkage-prior"></a>
+<span class="header-section-number">6.1.2</span> Shrinkage prior<a class="anchor" aria-label="anchor" href="#shrinkage-prior"></a>
 </h4>
 <p>Regularized horseshoe prior <span class="citation">(Piironen and Vehtari 2017)</span></p>
 <p><span class="math display">\[\begin{align}
@@ -1032,21 +1063,21 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 <p>The quantities used for Poisson and binomial likelihoods are derived from normal approximations to GLMs <span class="citation">(Piironen and Vehtari 2017; Gelman et al. 2014, sec. 16.2)</span>.</p>
 </div>
 </div>
-<div class="section level3" number="5.2">
+<div class="section level3" number="6.2">
 <h3 id="contribution-to-posterior-density-14">
-<span class="header-section-number">5.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-14"></a>
+<span class="header-section-number">6.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-14"></a>
 </h3>
 <p>TODO - write</p>
 </div>
-<div class="section level3" number="5.3">
+<div class="section level3" number="6.3">
 <h3 id="forecasting-14">
-<span class="header-section-number">5.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-14"></a>
+<span class="header-section-number">6.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-14"></a>
 </h3>
 <p>TODO - write</p>
 </div>
-<div class="section level3" number="5.4">
+<div class="section level3" number="6.4">
 <h3 id="code-14">
-<span class="header-section-number">5.4</span> Code<a class="anchor" aria-label="anchor" href="#code-14"></a>
+<span class="header-section-number">6.4</span> Code<a class="anchor" aria-label="anchor" href="#code-14"></a>
 </h3>
 <pre><code><span><span class="fu">set_covariates</span><span class="op">(</span><span class="va">formula</span>, data <span class="op">=</span> <span class="cn">NULL</span>, n_coef <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -1062,30 +1093,30 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 <span><span class="fu">set_covariates</span><span class="op">(</span><span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">cov_data</span>, n_coef <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre>
 </div>
 </div>
-<div class="section level2" number="6">
+<div class="section level2" number="7">
 <h2 id="prior-for-dispersion-terms">
-<span class="header-section-number">6</span> Prior for dispersion terms<a class="anchor" aria-label="anchor" href="#prior-for-dispersion-terms"></a>
+<span class="header-section-number">7</span> Prior for dispersion terms<a class="anchor" aria-label="anchor" href="#prior-for-dispersion-terms"></a>
 </h2>
-<div class="section level3" number="6.1">
+<div class="section level3" number="7.1">
 <h3 id="model-15">
-<span class="header-section-number">6.1</span> Model<a class="anchor" aria-label="anchor" href="#model-15"></a>
+<span class="header-section-number">7.1</span> Model<a class="anchor" aria-label="anchor" href="#model-15"></a>
 </h3>
 <p>Use exponential distribution, parameterised using mean,
 <span class="math display">\[\begin{equation}
   \xi \sim \text{Exp}(\mu_{\xi})
 \end{equation}\]</span></p>
 </div>
-<div class="section level3" number="6.2">
+<div class="section level3" number="7.2">
 <h3 id="contribution-to-prior-density">
-<span class="header-section-number">6.2</span> Contribution to prior density<a class="anchor" aria-label="anchor" href="#contribution-to-prior-density"></a>
+<span class="header-section-number">7.2</span> Contribution to prior density<a class="anchor" aria-label="anchor" href="#contribution-to-prior-density"></a>
 </h3>
 <p><span class="math display">\[\begin{equation}
   p(\xi) = \frac{1}{\mu_{\xi}} \exp\left(\frac{-\xi}{\mu_{\xi}}\right)
 \end{equation}\]</span></p>
 </div>
-<div class="section level3" number="6.3">
+<div class="section level3" number="7.3">
 <h3 id="code-15">
-<span class="header-section-number">6.3</span> Code<a class="anchor" aria-label="anchor" href="#code-15"></a>
+<span class="header-section-number">7.3</span> Code<a class="anchor" aria-label="anchor" href="#code-15"></a>
 </h3>
 <pre><code><span><span class="fu"><a href="../reference/set_disp.html">set_disp</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre>
 <ul>
@@ -1095,17 +1126,17 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 </ul>
 </div>
 </div>
-<div class="section level2" number="7">
+<div class="section level2" number="8">
 <h2 id="data-models">
-<span class="header-section-number">7</span> Data models<a class="anchor" aria-label="anchor" href="#data-models"></a>
+<span class="header-section-number">8</span> Data models<a class="anchor" aria-label="anchor" href="#data-models"></a>
 </h2>
-<div class="section level3" number="7.1">
+<div class="section level3" number="8.1">
 <h3 id="data-models-for-outcome">
-<span class="header-section-number">7.1</span> Data models for outcome<a class="anchor" aria-label="anchor" href="#data-models-for-outcome"></a>
+<span class="header-section-number">8.1</span> Data models for outcome<a class="anchor" aria-label="anchor" href="#data-models-for-outcome"></a>
 </h3>
-<div class="section level4" number="7.1.1">
+<div class="section level4" number="8.1.1">
 <h4 id="random-rounding-to-base-3">
-<span class="header-section-number">7.1.1</span> Random Rounding to Base 3<a class="anchor" aria-label="anchor" href="#random-rounding-to-base-3"></a>
+<span class="header-section-number">8.1.1</span> Random Rounding to Base 3<a class="anchor" aria-label="anchor" href="#random-rounding-to-base-3"></a>
 </h4>
 <p>Random rounding to base 3 (RR3) is a confidentialization method used by some statistical agencies. It is applied to counts data. Each count <span class="math inline">\(x\)</span> is rounded randomly as follows:</p>
 <ul>
@@ -1121,19 +1152,19 @@ and set <span class="math inline">\(\hat{\sigma} = \hat{\xi}\)</span>.</li>
 \end{align}\]</span></p>
 </div>
 </div>
-<div class="section level3" number="7.2">
+<div class="section level3" number="8.2">
 <h3 id="data-models-for-exposure-or-size">
-<span class="header-section-number">7.2</span> Data models for exposure or size<a class="anchor" aria-label="anchor" href="#data-models-for-exposure-or-size"></a>
+<span class="header-section-number">8.2</span> Data models for exposure or size<a class="anchor" aria-label="anchor" href="#data-models-for-exposure-or-size"></a>
 </h3>
 </div>
 </div>
-<div class="section level2" number="8">
+<div class="section level2" number="9">
 <h2 id="estimation">
-<span class="header-section-number">8</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a>
+<span class="header-section-number">9</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a>
 </h2>
-<div class="section level3" number="8.1">
+<div class="section level3" number="9.1">
 <h3 id="sec:filter-ag">
-<span class="header-section-number">8.1</span> Filtering and Aggregation<a class="anchor" aria-label="anchor" href="#sec:filter-ag"></a>
+<span class="header-section-number">9.1</span> Filtering and Aggregation<a class="anchor" aria-label="anchor" href="#sec:filter-ag"></a>
 </h3>
 <p>The data that we supply to TMB is a a filtered and aggregated version of the data that the user provides through the <code>data</code> argument.</p>
 <p>In the filtering stage, we remove any rows where (i) the offset is 0 or NA, or (ii) the outcome variable is NA.</p>
@@ -1154,25 +1185,25 @@ and the aggregation formuala for weights is
   w^{\text{new}} = \frac{1}{\sum_{i=1}^D \frac{1}{w_i^{\text{old}}}}.
 \end{equation}\]</span></p>
 </div>
-<div class="section level3" number="8.2">
+<div class="section level3" number="9.2">
 <h3 id="inner-outer-approximation">
-<span class="header-section-number">8.2</span> Inner-Outer Approximation<a class="anchor" aria-label="anchor" href="#inner-outer-approximation"></a>
+<span class="header-section-number">9.2</span> Inner-Outer Approximation<a class="anchor" aria-label="anchor" href="#inner-outer-approximation"></a>
 </h3>
-<div class="section level4" number="8.2.1">
+<div class="section level4" number="9.2.1">
 <h4 id="step-0-select-inner-and-outer-variables">
-<span class="header-section-number">8.2.1</span> Step 0: Select ‘inner’ and ‘outer’ variables<a class="anchor" aria-label="anchor" href="#step-0-select-inner-and-outer-variables"></a>
+<span class="header-section-number">9.2.1</span> Step 0: Select ‘inner’ and ‘outer’ variables<a class="anchor" aria-label="anchor" href="#step-0-select-inner-and-outer-variables"></a>
 </h4>
 <p>Select variables to be used in inner model. By default, these are the age, sex, and time variables in the model. All remaining variables are ‘outer’ variables.</p>
 </div>
-<div class="section level4" number="8.2.2">
+<div class="section level4" number="9.2.2">
 <h4 id="step-1-fit-inner-model">
-<span class="header-section-number">8.2.2</span> Step 1: Fit inner model<a class="anchor" aria-label="anchor" href="#step-1-fit-inner-model"></a>
+<span class="header-section-number">9.2.2</span> Step 1: Fit inner model<a class="anchor" aria-label="anchor" href="#step-1-fit-inner-model"></a>
 </h4>
-<p>Aggregate the data using the classification formed by the inner variables. (See Section <a href="#sec:filter-ag">8.1</a> on aggregation procedures.) Remove all terms not involving ‘inner’ variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.</p>
+<p>Aggregate the data using the classification formed by the inner variables. (See Section <a href="#sec:filter-ag">9.1</a> on aggregation procedures.) Remove all terms not involving ‘inner’ variables, other than the intercept term, from the model. Set dispersion to 0. Fit the resulting model.</p>
 </div>
-<div class="section level4" number="8.2.3">
+<div class="section level4" number="9.2.3">
 <h4 id="step-2-fit-outer-model">
-<span class="header-section-number">8.2.3</span> Step 2: Fit outer model<a class="anchor" aria-label="anchor" href="#step-2-fit-outer-model"></a>
+<span class="header-section-number">9.2.3</span> Step 2: Fit outer model<a class="anchor" aria-label="anchor" href="#step-2-fit-outer-model"></a>
 </h4>
 <p>Let <span class="math inline">\(\hat{\mu}_i^{\text{in}}\)</span> be point estimates for the linear predictor <span class="math inline">\(\mu_i\)</span> obtained from the inner model.</p>
 <p><strong>Poisson model</strong></p>
@@ -1182,15 +1213,15 @@ and the aggregation formuala for weights is
 <p><strong>Normal model</strong></p>
 <p>Aggregate the data using the classification formed by the outer variables. Remove all terms involving the ‘inner’ variables, plus the intercept, from the model. Set the outcome variable to to $y_i^{} = y_i - ^{}. Fit the model.</p>
 </div>
-<div class="section level4" number="8.2.4">
+<div class="section level4" number="9.2.4">
 <h4 id="step-4-concatenate-estimates">
-<span class="header-section-number">8.2.4</span> Step 4: Concatenate estimates<a class="anchor" aria-label="anchor" href="#step-4-concatenate-estimates"></a>
+<span class="header-section-number">9.2.4</span> Step 4: Concatenate estimates<a class="anchor" aria-label="anchor" href="#step-4-concatenate-estimates"></a>
 </h4>
 <p>Concatenate posterior distributions for the inner terms from the inner model to posterior distributions for the outer terms from the outer model.</p>
 </div>
-<div class="section level4" number="8.2.5">
+<div class="section level4" number="9.2.5">
 <h4 id="step-5-calculate-dispersion">
-<span class="header-section-number">8.2.5</span> Step 5: Calculate dispersion<a class="anchor" aria-label="anchor" href="#step-5-calculate-dispersion"></a>
+<span class="header-section-number">9.2.5</span> Step 5: Calculate dispersion<a class="anchor" aria-label="anchor" href="#step-5-calculate-dispersion"></a>
 </h4>
 <p>If the original model includes a dispersion term, then estimate dispersion. Let <span class="math inline">\(\hat{\mu}_i^{\text{comb}}\)</span> be point estimates for the linear predictor obtained from the concatenated estimates.</p>
 <p><strong>Poisson model</strong></p>
@@ -1202,9 +1233,9 @@ and the aggregation formuala for weights is
 </div>
 </div>
 </div>
-<div class="section level2" number="9">
+<div class="section level2" number="10">
 <h2 id="deriving-outputs">
-<span class="header-section-number">9</span> Deriving outputs<a class="anchor" aria-label="anchor" href="#deriving-outputs"></a>
+<span class="header-section-number">10</span> Deriving outputs<a class="anchor" aria-label="anchor" href="#deriving-outputs"></a>
 </h2>
 <p>Running TMB yields a set of means <span class="math inline">\(\pmb{m}\)</span>, and a precision matrix <span class="math inline">\(\pmb{Q}^{-1}\)</span>, which together define the approximate joint posterior distribution of</p>
 <ul>
@@ -1231,69 +1262,11 @@ and setting
   \tilde{\pmb{\theta}} = \pmb{v} + \pmb{m}.
 \end{equation}\]</span></p>
 <p>Next we convert any transformed hyper-parameters back to the original units, and insert values for <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> for terms that have Known priors. We denote the resulting vector <span class="math inline">\(\pmb{\theta}\)</span>.</p>
-<p>Finally we draw from the distribution of <span class="math inline">\(\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}\)</span> using the methods described in Section <a href="#sec:lik">2</a>.</p>
-<div class="section level3" number="9.1">
-<h3 id="sec:standard">
-<span class="header-section-number">9.1</span> Standardization<a class="anchor" aria-label="anchor" href="#sec:standard"></a>
-</h3>
-<div class="section level4" number="9.1.1">
-<h4 id="the-need-for-standardization">
-<span class="header-section-number">9.1.1</span> The need for standardization<a class="anchor" aria-label="anchor" href="#the-need-for-standardization"></a>
-</h4>
-<p>NOTE - We are ignoring covariates for the moment. We can probably just subtract the covariates term from <span class="math inline">\(\pmb{\mu}\)</span> and then proceed as before.</p>
-<p>Although the sum <span class="math inline">\(\pmb{\mu} = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}\)</span> is well identified by the data, the individual <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are not. For instance, adding <span class="math inline">\(\Delta\)</span> to <span class="math inline">\(\pmb{\beta}^{(0)}\)</span> and subtracting it from every term in <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> for some <span class="math inline">\(m &gt; 0\)</span> leaves the likelihood unchanged. The use of proper priors for the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> mean that posterior distributions for the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, and for related terms such as trend, cyclical, and seasonal effects, are proper. However, they can be diffuse and hard to interpret.</p>
-<p>To help with interpretation of the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> and related terms, we standardize. We in fact appy two forms of standardization, each designed for a different purpose.</p>
+<p>Finally we draw from the distribution of <span class="math inline">\(\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}\)</span> using the methods described in Sections <a href="#sec:pois">3.1</a>-<a href="#sec:norm">3.3</a>.</p>
 </div>
-<div class="section level4" number="9.1.2">
-<h4 id="standardization-of-estimates">
-<span class="header-section-number">9.1.2</span> Standardization of estimates<a class="anchor" aria-label="anchor" href="#standardization-of-estimates"></a>
-</h4>
-<div class="section level5" number="9.1.2.1">
-<h5 id="anova-style-standardization">
-<span class="header-section-number">9.1.2.1</span> ANOVA-style standardization<a class="anchor" aria-label="anchor" href="#anova-style-standardization"></a>
-</h5>
-<p>The first type of standardization is applied only to the <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>. The aim is to partition the total variation in <span class="math inline">\(\mu_i\)</span> into variation associated with each main effect or interaction, in the style, for instance, of Section 15.6 of <span class="citation">Gelman et al. (2014)</span>. Let <span class="math inline">\(\tilde{\pmb{\beta}}^{(m)}\)</span> be the standardized version of <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>. We obtain the <span class="math inline">\(\tilde{\pmb{\beta}}^{(m)}\)</span> through the following algorithm:</p>
-<p>Set
-<span class="math display">\[\begin{equation}
-  \pmb{r}^{(0)} = \pmb{\mu}
-\end{equation}\]</span></p>
-<p>For <span class="math inline">\(m = 0, \cdots, M\)</span>:</p>
-<ul>
-<li>Set <span class="math inline">\(\tilde{\pmb{\beta}}^{(m)} = (\pmb{X}^{(m)\top} \pmb{X}^{(m)})^{-1} \pmb{X}^{(m)\top} \pmb{r}^{(m)}\)</span>
-</li>
-<li>Set <span class="math inline">\(\pmb{r}^{(m+1)} = \pmb{r}^{(m)} - \pmb{X}^{(m)} \tilde{\pmb{\beta}}^{(m)}\)</span>
-</li>
-</ul>
-</div>
-<div class="section level5" number="9.1.2.2">
-<h5 id="term-level-standardization">
-<span class="header-section-number">9.1.2.2</span> Term-level standardization<a class="anchor" aria-label="anchor" href="#term-level-standardization"></a>
-</h5>
-<p>Term-level standardization aims to clarify the behaviour of the terms making up the model, including trend, cyclical, and seasonal effects. The intercept term is left untouched. All other <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are centered across the “along” dimension, and each of the “by” dimensions.</p>
-</div>
-</div>
-<div class="section level4" number="9.1.3">
-<h4 id="standardization-of-forecasts">
-<span class="header-section-number">9.1.3</span> Standardization of forecasts<a class="anchor" aria-label="anchor" href="#standardization-of-forecasts"></a>
-</h4>
-<div class="section level5" number="9.1.3.1">
-<h5 id="anova-style-standardization-1">
-<span class="header-section-number">9.1.3.1</span> ANOVA-style standardization<a class="anchor" aria-label="anchor" href="#anova-style-standardization-1"></a>
-</h5>
-<p>The forecasted values for the time-varying <span class="math inline">\(\pmb{\beta}^{(m)}\)</span> are shifted up or down so that they line up with the estimated values. The standardization algorithm is then applied to these shifted values.</p>
-</div>
-<div class="section level5" number="9.1.3.2">
-<h5 id="term-level-standardization-1">
-<span class="header-section-number">9.1.3.2</span> Term-level standardization<a class="anchor" aria-label="anchor" href="#term-level-standardization-1"></a>
-</h5>
-<p>The forecasted values for the time-varying <span class="math inline">\(\pmb{\beta}^{(m)}\)</span>, and for SVD coefficients, and trend, cyclical, and seasonal components, are shifted up or down so that they line up with the estimated values. All terms are then centered along all dimensions other than time.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="section level2" number="10">
-<h2 id="simulation-5">
-<span class="header-section-number">10</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-5"></a>
+<div class="section level2" number="11">
+<h2 id="simulation-1">
+<span class="header-section-number">11</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-1"></a>
 </h2>
 <p>To generate one set of simulated values, we start with values for exposure, trials, or weights, <span class="math inline">\(\pmb{w}\)</span>, and possibly covariates <span class="math inline">\(\pmb{Z}\)</span>, then go through the following steps:</p>
 <ol style="list-style-type: decimal">
@@ -1308,29 +1281,29 @@ and setting
 <li>In Poisson and binomial models, use <span class="math inline">\(\pmb{\gamma}\)</span> and <span class="math inline">\(\pmb{w}\)</span> to draw <span class="math inline">\(\pmb{y}\)</span>; in normal models, use <span class="math inline">\(\pmb{\mu}\)</span>, <span class="math inline">\(\xi\)</span>, and <span class="math inline">\(\pmb{w}\)</span> to draw <span class="math inline">\(\pmb{y}\)</span>.</li>
 </ol>
 </div>
-<div class="section level2" number="11">
+<div class="section level2" number="12">
 <h2 id="replicate-data">
-<span class="header-section-number">11</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
+<span class="header-section-number">12</span> Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
 </h2>
-<div class="section level3" number="11.1">
+<div class="section level3" number="12.1">
 <h3 id="model-16">
-<span class="header-section-number">11.1</span> Model<a class="anchor" aria-label="anchor" href="#model-16"></a>
+<span class="header-section-number">12.1</span> Model<a class="anchor" aria-label="anchor" href="#model-16"></a>
 </h3>
-<div class="section level4" number="11.1.1">
+<div class="section level4" number="12.1.1">
 <h4 id="poisson-likelihood">
-<span class="header-section-number">11.1.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#poisson-likelihood"></a>
+<span class="header-section-number">12.1.1</span> Poisson likelihood<a class="anchor" aria-label="anchor" href="#poisson-likelihood"></a>
 </h4>
-<div class="section level5" number="11.1.1.1">
+<div class="section level5" number="12.1.1.1">
 <h5 id="condition-on-pmbgamma">
-<span class="header-section-number">11.1.1.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma"></a>
+<span class="header-section-number">12.1.1.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma"></a>
 </h5>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{Poisson}(\gamma_i w_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level5" number="11.1.1.2">
+<div class="section level5" number="12.1.1.2">
 <h5 id="condition-on-pmbmu-xi">
-<span class="header-section-number">11.1.1.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi"></a>
+<span class="header-section-number">12.1.1.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi"></a>
 </h5>
 <p><span class="math display">\[\begin{align}
   y_i^{\text{rep}} &amp; \sim \text{Poisson}(\gamma_i^{\text{rep}} w_i) \\
@@ -1342,21 +1315,21 @@ which is equivalent to
 \end{equation}\]</span></p>
 </div>
 </div>
-<div class="section level4" number="11.1.2">
+<div class="section level4" number="12.1.2">
 <h4 id="binomial-likelihood">
-<span class="header-section-number">11.1.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#binomial-likelihood"></a>
+<span class="header-section-number">12.1.2</span> Binomial likelihood<a class="anchor" aria-label="anchor" href="#binomial-likelihood"></a>
 </h4>
-<div class="section level5" number="11.1.2.1">
+<div class="section level5" number="12.1.2.1">
 <h5 id="condition-on-pmbgamma-1">
-<span class="header-section-number">11.1.2.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma-1"></a>
+<span class="header-section-number">12.1.2.1</span> Condition on <span class="math inline">\(\pmb{\gamma}\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbgamma-1"></a>
 </h5>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{Binomial}(w_i, \gamma_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level5" number="11.1.2.2">
+<div class="section level5" number="12.1.2.2">
 <h5 id="condition-on-pmbmu-xi-1">
-<span class="header-section-number">11.1.2.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi-1"></a>
+<span class="header-section-number">12.1.2.2</span> Condition on <span class="math inline">\((\pmb{\mu}, \xi)\)</span><a class="anchor" aria-label="anchor" href="#condition-on-pmbmu-xi-1"></a>
 </h5>
 <p><span class="math display">\[\begin{align}
   y_i^{\text{rep}} &amp; \sim \text{Binomial}(w_im \gamma_i^{\text{rep}}) \\
@@ -1364,35 +1337,35 @@ which is equivalent to
 \end{align}\]</span></p>
 </div>
 </div>
-<div class="section level4" number="11.1.3">
+<div class="section level4" number="12.1.3">
 <h4 id="normal-likelihood">
-<span class="header-section-number">11.1.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#normal-likelihood"></a>
+<span class="header-section-number">12.1.3</span> Normal likelihood<a class="anchor" aria-label="anchor" href="#normal-likelihood"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
   y_i^{\text{rep}} \sim \text{N}(\gamma_i, \xi^2 / w_i)
 \end{equation}\]</span></p>
 </div>
-<div class="section level4" number="11.1.4">
+<div class="section level4" number="12.1.4">
 <h4 id="data-models-for-outcomes">
-<span class="header-section-number">11.1.4</span> Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a>
+<span class="header-section-number">12.1.4</span> Data models for outcomes<a class="anchor" aria-label="anchor" href="#data-models-for-outcomes"></a>
 </h4>
 <p>If the overall model includes a data model for the outcome, then a further set of draws is made, deriving values for the observed outcomes, given values for the true outcomes.</p>
 </div>
 </div>
-<div class="section level3" number="11.2">
+<div class="section level3" number="12.2">
 <h3 id="code-16">
-<span class="header-section-number">11.2</span> Code<a class="anchor" aria-label="anchor" href="#code-16"></a>
+<span class="header-section-number">12.2</span> Code<a class="anchor" aria-label="anchor" href="#code-16"></a>
 </h3>
 <pre><code><span><span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="va">x</span>, condition_on <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fitted"</span>, <span class="st">"expected"</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></code></pre>
 </div>
 </div>
-<div class="section level2" number="12">
+<div class="section level2" number="13">
 <h2 id="appendices">
-<span class="header-section-number">12</span> Appendices<a class="anchor" aria-label="anchor" href="#appendices"></a>
+<span class="header-section-number">13</span> Appendices<a class="anchor" aria-label="anchor" href="#appendices"></a>
 </h2>
-<div class="section level3" number="12.1">
+<div class="section level3" number="13.1">
 <h3 id="app:defn">
-<span class="header-section-number">12.1</span> Definitions<a class="anchor" aria-label="anchor" href="#app:defn"></a>
+<span class="header-section-number">13.1</span> Definitions<a class="anchor" aria-label="anchor" href="#app:defn"></a>
 </h3>
 <table class="table">
 <colgroup>
@@ -1585,24 +1558,24 @@ which is equivalent to
 </tbody>
 </table>
 </div>
-<div class="section level3" number="12.2">
+<div class="section level3" number="13.2">
 <h3 id="app:svd">
-<span class="header-section-number">12.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
+<span class="header-section-number">13.2</span> SVD prior for age<a class="anchor" aria-label="anchor" href="#app:svd"></a>
 </h3>
 <p>Let <span class="math inline">\(\pmb{A}\)</span> be a matrix of age-specific estimates from an international database, transformed to take values in the range <span class="math inline">\((-\infty, \infty)\)</span>. Each column of <span class="math inline">\(\pmb{A}\)</span> represents one set of age-specific estimates, such as log mortality rates in Japan in 2010, or logit labour participation rates in Germany in 1980.</p>
 <p>Let <span class="math inline">\(\pmb{U}\)</span>, <span class="math inline">\(\pmb{D}\)</span>, <span class="math inline">\(\pmb{V}\)</span> be the matrices from a singular value decomposition of <span class="math inline">\(\pmb{A}\)</span>, where we have retained the first <span class="math inline">\(K\)</span> components. Then
 <span class="math display" id="eq:svd1">\[\begin{equation}
-  \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{12.1}
+  \pmb{A} \approx \pmb{U} \pmb{D} \pmb{V}. \tag{13.1}
 \end{equation}\]</span></p>
 <p>Let <span class="math inline">\(m_k\)</span> and <span class="math inline">\(s_k\)</span> be the mean and sample standard deviation of the elements of the <span class="math inline">\(k\)</span>th row of <span class="math inline">\(\pmb{V}\)</span>, with <span class="math inline">\(\pmb{m} = (m_1, \cdots, m_k)^{\top}\)</span> and <span class="math inline">\(\pmb{s} = (s_1, \cdots, s_k)^{\top}\)</span>. Then
 <span class="math display">\[\begin{equation}
   \tilde{\pmb{V}} = (\text{diag}(\pmb{s}))^{-1} (\pmb{V} - \pmb{m} \pmb{1}^{\top})
 \end{equation}\]</span>
 is a standardized version of <span class="math inline">\(\pmb{V}\)</span>.</p>
-<p>We can rewrite <a href="#eq:svd1">(12.1)</a> as
+<p>We can rewrite <a href="#eq:svd1">(13.1)</a> as
 <span class="math display" id="eq:svd2">\[\begin{align}
   \pmb{A} &amp; \approx \pmb{U} \pmb{D} (\text{diag}(\pmb{s}) \tilde{\pmb{V}} + \pmb{m} \pmb{1}^{\top}) \\
-  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{12.2}
+  &amp; = \pmb{F} \tilde{\pmb{V}} + \pmb{g} \pmb{1}^{\top}, \tag{13.2}
 \end{align}\]</span>
 where <span class="math inline">\(\pmb{F} = \pmb{U} \pmb{D} \text{diag}(\pmb{s})\)</span> and <span class="math inline">\(\pmb{g} = \pmb{U} \pmb{D} \pmb{m}\)</span>.</p>
 <p>Let <span class="math inline">\(\tilde{\pmb{v}}_l\)</span> be a randomly-selected column from <span class="math inline">\(\tilde{\pmb{V}}\)</span>. From the construction of <span class="math inline">\(\tilde{\pmb{V}}\)</span> we have <span class="math inline">\(\text{E}[\tilde{v}_{kl}] = 0\)</span> and <span class="math inline">\(\text{var}[\tilde{v}_{kl}] = 1\)</span>. If <span class="math inline">\(\pmb{z}\)</span> is a vector of standard normal variables, then
@@ -1630,6 +1603,9 @@ Piironen, Juho, and Aki Vehtari. 2017. <span>“<span class="nocase">On the Hype
 </div>
 <div id="ref-simpson2022priors" class="csl-entry">
 Simpson, Dan. 2022. <span>“Priors Part 4: Specifying Priors That Appropriately Penalise Complexity.”</span> <a href="https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html" class="external-link uri">https://dansblog.netlify.app/posts/2022-08-29-priors4/priors4.html</a>.
+</div>
+<div id="ref-wood2017generalized" class="csl-entry">
+Wood, Simon N. 2017. <em>Generalized Additive Models: An Introduction with <span>R</span></em>. Chapman; Hall/CRC.
 </div>
 </div>
 </div>

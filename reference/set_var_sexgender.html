@@ -13,7 +13,7 @@ from variable names, but do not always get it right."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,53 +116,51 @@ to locate male categories within a sex or gender variable</p></li>
 <span class="r-in"><span>                data <span class="op">=</span> <span class="va">injuries2</span>,</span></span>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -- Unfitted Poisson model --</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           injuries ~ age * biological_sex + year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Unfitted Poisson model ------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        (Intercept) ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                age ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     biological_sex ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               year ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> age:biological_sex ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                term n_par n_par_free</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 age    12         12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      biological_sex     2          2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                year    19         19</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  age:biological_sex    24         24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age * biological_sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                term  prior along zero_sum n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         (Intercept) NFix()     -        -     1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 age   RW()   age        -    12         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      biological_sex NFix()     -        -     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                year   RW()  year        -    19         18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  age:biological_sex   RW()   age    FALSE    24         22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## so we set the sex variable explicitly</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">set_var_sexgender</span><span class="op">(</span>name <span class="op">=</span> <span class="st">"biological_sex"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -- Unfitted Poisson model --</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           injuries ~ age * biological_sex + year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Unfitted Poisson model ------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        (Intercept) ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                age ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     biological_sex ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               year ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> age:biological_sex ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                term n_par n_par_free</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 age    12         12</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      biological_sex     2          2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                year    19         19</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  age:biological_sex    24         24</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age * biological_sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   var_sexgender: biological_sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                term  prior along zero_sum n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         (Intercept) NFix()     -        -     1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                 age   RW()   age        -    12         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      biological_sex NFix()     -        -     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                year   RW()  year        -    19         18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  age:biological_sex   RW()   age    FALSE    24         22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: biological_sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

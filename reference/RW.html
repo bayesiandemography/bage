@@ -15,7 +15,7 @@ interactions that involve age or time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@ interactions that involve age or time.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RW</span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">RW</span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -75,8 +75,14 @@ Default is <code>1</code>.</p></dd>
 
 <dt id="arg-along">along<a class="anchor" aria-label="anchor" href="#arg-along"></a></dt>
 <dd><p>Name of the variable to be used
-as the "along" variable. Only used with
+as the 'along' variable. Only used with
 interactions.</p></dd>
+
+
+<dt id="arg-zero-sum">zero_sum<a class="anchor" aria-label="anchor" href="#arg-zero-sum"></a></dt>
+<dd><p>If <code>TRUE</code>, values must
+sum to 0 within each combination
+of the 'by' variables. Default is <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -87,8 +93,8 @@ interactions.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>If <code>RW()</code> is used with an interaction,
 separate random walks are constructed along
-the "along" variable, within each combination of the
-"by" variables.</p>
+the 'along' variable, within each combination of the
+'by' variables.</p>
 <p>Argument <code>s</code> controls the size of innovations.
 Smaller values for <code>s</code> tend to give smoother series.</p>
     </div>
@@ -105,8 +111,8 @@ $$\epsilon_j \sim \text{N}(0, \tau^2),$$</p>
 $$\epsilon_{u,v} \sim \text{N}(0, \tau^2),$$</p>
 <p>where</p><ul><li><p>\(\pmb{\beta}\) is the main effect or interaction;</p></li>
 <li><p>\(j\) denotes position within the main effect;</p></li>
-<li><p>\(v\) denotes position within the "along" variable of the interaction; and</p></li>
-<li><p>\(u\) denotes position within the "by" variable(s) of the interaction.</p></li>
+<li><p>\(v\) denotes position within the 'along' variable of the interaction; and</p></li>
+<li><p>\(u\) denotes position within the 'by' variable(s) of the interaction.</p></li>
 </ul><p>Parameter \(\tau\)
 has a half-normal prior
 $$\tau \sim \text{N}^+(0, \text{s}^2),$$
@@ -130,16 +136,19 @@ main effect, or interaction</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">RW</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   RW() </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        s: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   zero_sum: FALSE</span>
 <span class="r-in"><span><span class="fu">RW</span><span class="op">(</span>s <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   RW(s=0.5) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        s: 0.5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 0.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      along: NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   zero_sum: FALSE</span>
 <span class="r-in"><span><span class="fu">RW</span><span class="op">(</span>along <span class="op">=</span> <span class="st">"cohort"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   RW(along="cohort") </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        s: 1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    along: cohort</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          s: 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      along: cohort</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   zero_sum: FALSE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

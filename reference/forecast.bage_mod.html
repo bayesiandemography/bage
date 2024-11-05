@@ -9,7 +9,7 @@ other model parameters."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +58,6 @@ other model parameters.</p>
 <span>  newdata <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"augment"</span>, <span class="st">"components"</span><span class="op">)</span>,</span>
 <span>  include_estimates <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  standardize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"terms"</span>, <span class="st">"anova"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  labels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -87,13 +86,6 @@ future periods.</p></dd>
 <dd><p>Whether to
 include historical estimates along
 with the forecasts. Default is <code>FALSE</code>.</p></dd>
-
-
-<dt id="arg-standardize">standardize<a class="anchor" aria-label="anchor" href="#arg-standardize"></a></dt>
-<dd><p>Standardization method:
-one of <code>"terms"</code>, <code>"anova"</code>, or "none".
-The default is <code>"terms"</code>.
-See below for details.</p></dd>
 
 
 <dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
@@ -144,18 +136,6 @@ Setting <code>include_estimates</code> to <code>TRUE</code> can be helpful
 when creating graphs that combine estimates and forecasts.</p>
     </div>
     <div class="section level2">
-    <h2 id="standardization">Standardization<a class="anchor" aria-label="anchor" href="#standardization"></a></h2>
-
-
-
-<p>The standardization used by <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code>
-is equivalent to the standardization
-applied by <a href="components.bage_mod.html">components()</a>,
-except that values for forecasted terms are
-are shifted so that they
-line up with the values for estimates.</p>
-    </div>
-    <div class="section level2">
     <h2 id="fitted-and-unfitted-models">Fitted and unfitted models<a class="anchor" aria-label="anchor" href="#fitted-and-unfitted-models"></a></h2>
 
 
@@ -194,49 +174,52 @@ choosing an appropriate model.</p>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -- Fitted Poisson model --</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Fitted Poisson model ------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age * sex + ethnicity + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> (Intercept) ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         age ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         sex ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ethnicity ~ NFix()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        year ~ RW()</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     age:sex ~ RW()</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       term n_par n_par_free std_dev</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        age    12         12   0.730</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        sex     2          2   0.110</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  ethnicity     2          2   0.450</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       year    19         19   0.092</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    age:sex    24         24   0.430</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free std_dev</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11    0.73</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2    0.21</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    ethnicity NFix()     -        -     2          2    0.45</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18    0.09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      age:sex   RW()   age    FALSE    24         22    0.36</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_draws iter                    message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.49       0.26       0.02   14   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## forecasts</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2024</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 288 × 9</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex    ethnicity  year injuries  popn .observed</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>023       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>024       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex   ethnicity  year injuries  popn .observed                  .fitted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Fema… Maori      <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 2e-04 (0.00014, 0.00026)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 0-4   Fema… Maori      <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 2e-04 (0.00014, 0.00028)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 0-4   Fema… Maori      <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 2e-04 (0.00014, 0.00027)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 0-4   Fema… Maori      <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 2e-04 (0.00014, 0.00028)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 0-4   Fema… Maori      <span style="text-decoration: underline;">2</span>023       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 2e-04 (0.00014, 0.00028)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 0-4   Fema… Maori      <span style="text-decoration: underline;">2</span>024       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 2e-04 (0.00013, 0.00029)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 0-4   Fema… Non Maori  <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 1e-04 (7.4e-05, 0.00014)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 0-4   Fema… Non Maori  <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 1e-04 (7.3e-05, 0.00015)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 0-4   Fema… Non Maori  <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 1e-04 (7.2e-05, 0.00014)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 0-4   Fema… Non Maori  <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 1e-04 (7.1e-05, 0.00015)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 278 more rows</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## combined estimates and forecasts</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span></span></span>
@@ -265,12 +248,12 @@ choosing an appropriate model.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 4</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   term  component level                .fitted</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> year  effect    2019  -0.097 (-0.21, 0.0084)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> year  effect    2020   -0.097 (-0.24, 0.046)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> year  effect    2021   -0.097 (-0.27, 0.082)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> year  effect    2022     -0.096 (-0.3, 0.11)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> year  effect    2023    -0.096 (-0.32, 0.12)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> year  effect    2024    -0.095 (-0.32, 0.14)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> year  effect    2019    -0.21 (-0.35, -0.08)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> year  effect    2020   -0.21 (-0.37, -0.051)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> year  effect    2021   -0.21 (-0.39, -0.029)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span> year  effect    2022  -0.21 (-0.42, -0.0088)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span> year  effect    2023  -0.21 (-0.43, 0.00098)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span> year  effect    2024     -0.2 (-0.47, 0.026)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## hold back some data and forecast</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
@@ -290,7 +273,7 @@ choosing an appropriate model.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>016    8 (3, 15) <span style="text-decoration: underline;">41</span>220        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>016     2 (0, 6) <span style="text-decoration: underline;">43</span>230        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>016     2 (0, 6) <span style="text-decoration: underline;">37</span>640        <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>016   12 (6, 21) <span style="text-decoration: underline;">36</span>040        <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>016   12 (5, 21) <span style="text-decoration: underline;">36</span>040        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>016   10 (4, 19) <span style="text-decoration: underline;">33</span>760        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>016    8 (2, 15) <span style="text-decoration: underline;">30</span>530        <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>016    6 (2, 12) <span style="text-decoration: underline;">24</span>480        <span style="color: #BB0000;">NA</span></span>
@@ -310,16 +293,16 @@ choosing an appropriate model.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 288 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    age   sex    ethnicity  year injuries  popn .observed               .fitted</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.52 (4.7e-06, 26982)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.58 (2.2e-06, 61073)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.57 (3.4e-06, 39302)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.59 (4.4e-06, 40226)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>023       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  0.5 (1.6e-06, 49473)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>024       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.61 (1.5e-06, 1e+05)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.48 (6.7e-06, 50684)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.61 (2.7e-06, 45910)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.52 (1.5e-06, 66433)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.58 (2.3e-06, 42274)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.62 (9.1e-06, 30933)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.64 (2.4e-06, 33631)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.67 (2.7e-06, 18677)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.59 (2.2e-06, 28280)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>023       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.63 (1.4e-06, 54831)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>024       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.67 (1.9e-06, 53181)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>019       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.65 (8.5e-06, 27310)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>020       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.64 (5.7e-06, 27874)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>021       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.65 (5.8e-06, 16056)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 0-4   Female Non Maori  <span style="text-decoration: underline;">2</span>022       <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span> 0.64 (1.9e-06, 18578)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 278 more rows</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: .expected &lt;rdbl&lt;1000&gt;&gt;</span></span>
 </code></pre></div>

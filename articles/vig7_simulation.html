@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,6 +90,15 @@ Figure 1.1: Simulation study of a model
 <p>To illustrate, we use investigate the performance of a model of divorce rates in New Zealand. We reduce the number of ages and time periods to speed up the calculations.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: rvec</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'rvec'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     sd, var</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     rank</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/poputils/" class="external-link">poputils</a></span><span class="op">)</span></span>
 <span></span>
@@ -102,28 +111,27 @@ Figure 1.1: Simulation study of a model
 <span>                data <span class="op">=</span> <span class="va">divorces_small</span>,</span>
 <span>                    exposure <span class="op">=</span> <span class="va">population</span><span class="op">)</span></span>
 <span><span class="va">mod</span>     </span>
-<span><span class="co">#&gt; -- Unfitted Poisson model --</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    divorces ~ age * sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
-<span><span class="co">#&gt;         age ~ RW()</span></span>
-<span><span class="co">#&gt;         sex ~ NFix()</span></span>
-<span><span class="co">#&gt;        time ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ RW()</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     term n_par n_par_free</span></span>
-<span><span class="co">#&gt;      age     4          4</span></span>
-<span><span class="co">#&gt;      sex     2          2</span></span>
-<span><span class="co">#&gt;     time     6          6</span></span>
-<span><span class="co">#&gt;  age:sex     8          8</span></span>
+<span><span class="co">#&gt;         term  prior along zero_sum n_par n_par_free</span></span>
+<span><span class="co">#&gt;  (Intercept) NFix()     -        -     1          1</span></span>
+<span><span class="co">#&gt;          age   RW()   age        -     4          3</span></span>
+<span><span class="co">#&gt;          sex NFix()     -        -     2          2</span></span>
+<span><span class="co">#&gt;         time   RW()  time        -     6          5</span></span>
+<span><span class="co">#&gt;      age:sex   RW()   age    FALSE     8          6</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;      dispersion: mean=1</span></span>
-<span><span class="co">#&gt;        exposure: population</span></span>
-<span><span class="co">#&gt;         var_age: age</span></span>
-<span><span class="co">#&gt;   var_sexgender: sex</span></span>
-<span><span class="co">#&gt;        var_time: time</span></span>
-<span><span class="co">#&gt;          n_draw: 1000</span></span></code></pre></div>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           dispersion: mean=1</span></span>
+<span><span class="co">#&gt;             exposure: population</span></span>
+<span><span class="co">#&gt;              var_age: age</span></span>
+<span><span class="co">#&gt;        var_sexgender: sex</span></span>
+<span><span class="co">#&gt;             var_time: time</span></span>
+<span><span class="co">#&gt;               n_draw: 1000</span></span></code></pre></div>
 <p>To do the simulation study, we pass the model to <code><a href="../reference/report_sim.html">report_sim()</a></code>. If only one model is supplied, <code><a href="../reference/report_sim.html">report_sim()</a></code> assumes that that model should be used as the estimation model and as the data generation model. By default <code><a href="../reference/report_sim.html">report_sim()</a></code> repeats the experiment 100 times, generating a different dataset each time.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
@@ -133,22 +141,22 @@ Figure 1.1: Simulation study of a model
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 7</span></span></span>
 <span><span class="co">#&gt;   term        component  .error .cover_50 .cover_95 .length_50 .length_95</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect     0.228      0.52      0.92       1.19       3.45 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> age         effect    -<span style="color: #BB0000;">0.201</span>      0.462     0.94       1.43       4.20 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> age         hyper      0.080<span style="text-decoration: underline;">9</span>     0.37      0.75       0.603      1.91 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> sex         effect    -<span style="color: #BB0000;">0.022</span><span style="color: #BB0000; text-decoration: underline;">7</span>     0.52      0.93       1.11       3.24 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> time        effect    -<span style="color: #BB0000;">0.115</span>      0.498     0.938      1.27       3.49 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> time        hyper      0.019<span style="text-decoration: underline;">3</span>     0.47      0.87       0.393      1.15 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> age:sex     effect     0.025<span style="text-decoration: underline;">0</span>     0.5       0.961      1.42       4.05 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> age:sex     hyper     -<span style="color: #BB0000;">0.076</span><span style="color: #BB0000; text-decoration: underline;">6</span>     0.46      0.89       0.477      1.62 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> disp        disp      -<span style="color: #BB0000;">0.030</span><span style="color: #BB0000; text-decoration: underline;">2</span>     0.37      0.92       0.220      0.642</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect     0.033<span style="text-decoration: underline;">4</span>     0.56      0.97       0.839      2.37 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> age         effect    -<span style="color: #BB0000;">0.056</span><span style="color: #BB0000; text-decoration: underline;">4</span>     0.7       0.955      0.752      2.14 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> age         hyper      0.094<span style="text-decoration: underline;">7</span>     0.38      0.81       0.593      2.08 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> sex         effect    -<span style="color: #BB0000;">0.027</span><span style="color: #BB0000; text-decoration: underline;">6</span>     0.48      0.935      0.841      2.44 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> time        effect    -<span style="color: #BB0000;">0.039</span><span style="color: #BB0000; text-decoration: underline;">6</span>     0.623     0.948      0.434      1.23 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> time        hyper      0.021<span style="text-decoration: underline;">1</span>     0.55      0.95       0.384      1.26 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> age:sex     effect     0.036<span style="text-decoration: underline;">5</span>     0.669     0.941      0.751      2.16 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> age:sex     hyper     -<span style="color: #BB0000;">0.040</span><span style="color: #BB0000; text-decoration: underline;">4</span>     0.42      0.87       0.489      1.58 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> disp        disp       0.032<span style="text-decoration: underline;">4</span>     0.44      0.91       0.244      0.723</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $augment</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 7</span></span></span>
 <span><span class="co">#&gt;   .var      .observed     .error .cover_50 .cover_95 .length_50 .length_95</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted       <span style="text-decoration: underline;">4</span>358.    0.002<span style="text-decoration: underline;">55</span>     0.494     0.946     0.017<span style="text-decoration: underline;">2</span>     0.050<span style="text-decoration: underline;">1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected     <span style="text-decoration: underline;">4</span>358. <span style="text-decoration: underline;">1</span>335.          0.481     0.935  <span style="text-decoration: underline;">3</span>212.     <span style="text-decoration: underline;">11</span>019.</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted        273.  -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">490</span>     0.499     0.947    0.007<span style="text-decoration: underline;">39</span>     0.021<span style="text-decoration: underline;">6</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected      273. -<span style="color: #BB0000;">23.0</span>          0.539     0.952   90.8       325.</span></span></code></pre></div>
 <p>The output from <code><a href="../reference/report_sim.html">report_sim()</a></code> is a list of two data frames. The first data frame contains results for parameters associated with the <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> function: main effects and interactions, associated hyper-parameters, and dispersion. The second data frame contains results for parameters associated with the <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> function: the lowest-level rates parameters.</p>
 <p>As can be seen in the results, the errors do not average out at exactly zero, 50% credible intervals do not contain the true value exactly 50% of the time, and 95% credible intervals do not contain the true value exactly 95% of the time. However, increasing the number of simulations from the default value of 100 to, say, 1000 will reduce the average size of the errors closer to zero, and bring the actual coverage rates closer to their advertised values. When larger values of <code>n_sim</code> are used, it can be helpful to use parallel processing to speed up calculations, which is done through the <code>n_core</code> argument.</p>
 <p>One slightly odd feature of the results is that the mean for <code>.expected</code> is very large. This reflects the fact that the data generation model draws some extreme values. We are developing a set of more informative priors that should avoid this behavior in future versions of <strong>bage</strong>.</p>
@@ -164,28 +172,27 @@ Figure 1.1: Simulation study of a model
 <code class="sourceCode R"><span><span class="va">mod_ar1</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">time</span> <span class="op">~</span> <span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mod_ar1</span> </span>
-<span><span class="co">#&gt; -- Unfitted Poisson model --</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    divorces ~ age * sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
-<span><span class="co">#&gt;         age ~ RW()</span></span>
-<span><span class="co">#&gt;         sex ~ NFix()</span></span>
-<span><span class="co">#&gt;        time ~ AR1()</span></span>
-<span><span class="co">#&gt;     age:sex ~ RW()</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     term n_par n_par_free</span></span>
-<span><span class="co">#&gt;      age     4          4</span></span>
-<span><span class="co">#&gt;      sex     2          2</span></span>
-<span><span class="co">#&gt;     time     6          6</span></span>
-<span><span class="co">#&gt;  age:sex     8          8</span></span>
+<span><span class="co">#&gt;         term  prior along zero_sum n_par n_par_free</span></span>
+<span><span class="co">#&gt;  (Intercept) NFix()     -        -     1          1</span></span>
+<span><span class="co">#&gt;          age   RW()   age        -     4          3</span></span>
+<span><span class="co">#&gt;          sex NFix()     -        -     2          2</span></span>
+<span><span class="co">#&gt;         time  AR1()  time        -     6          6</span></span>
+<span><span class="co">#&gt;      age:sex   RW()   age    FALSE     8          6</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;      dispersion: mean=1</span></span>
-<span><span class="co">#&gt;        exposure: population</span></span>
-<span><span class="co">#&gt;         var_age: age</span></span>
-<span><span class="co">#&gt;   var_sexgender: sex</span></span>
-<span><span class="co">#&gt;        var_time: time</span></span>
-<span><span class="co">#&gt;          n_draw: 1000</span></span></code></pre></div>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           dispersion: mean=1</span></span>
+<span><span class="co">#&gt;             exposure: population</span></span>
+<span><span class="co">#&gt;              var_age: age</span></span>
+<span><span class="co">#&gt;        var_sexgender: sex</span></span>
+<span><span class="co">#&gt;             var_time: time</span></span>
+<span><span class="co">#&gt;               n_draw: 1000</span></span></code></pre></div>
 <p>We set the <code>mod_sim</code> argument to <code>mod_ar1</code> and generate the report.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_ar1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/report_sim.html">report_sim</a></span><span class="op">(</span>mod_est <span class="op">=</span> <span class="va">mod</span>, mod_sim <span class="op">=</span> <span class="va">mod_ar1</span><span class="op">)</span></span>
@@ -194,22 +201,22 @@ Figure 1.1: Simulation study of a model
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 7</span></span></span>
 <span><span class="co">#&gt;   term        component  .error .cover_50 .cover_95 .length_50 .length_95</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect    -<span style="color: #BB0000;">0.060</span><span style="color: #BB0000; text-decoration: underline;">9</span>     0.44      0.92       1.19       3.44 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> age         effect    -<span style="color: #BB0000;">0.062</span><span style="color: #BB0000; text-decoration: underline;">1</span>     0.5       0.945      1.42       4.16 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> age         hyper      0.117      0.39      0.75       0.611      1.91 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> sex         effect     0.011<span style="text-decoration: underline;">1</span>     0.485     0.92       1.11       3.24 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> time        effect    -<span style="color: #BB0000;">0.029</span><span style="color: #BB0000; text-decoration: underline;">8</span>     0.555     0.893      1.25       3.44 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> time        hyper     -<span style="color: #BB0000;">0.323</span>      0.22      0.71       0.356      1.08 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> age:sex     effect     0.061<span style="text-decoration: underline;">6</span>     0.538     0.955      1.41       4.00 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> age:sex     hyper     -<span style="color: #BB0000;">0.062</span><span style="color: #BB0000; text-decoration: underline;">5</span>     0.41      0.93       0.483      1.68 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> disp        disp      -<span style="color: #BB0000;">0.011</span><span style="color: #BB0000; text-decoration: underline;">9</span>     0.42      0.88       0.223      0.649</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect    -<span style="color: #BB0000;">0.172</span>      0.34      0.79       0.834      2.36 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> age         effect    -<span style="color: #BB0000;">0.047</span><span style="color: #BB0000; text-decoration: underline;">3</span>     0.678     0.948      0.714      2.04 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> age         hyper      0.105      0.4       0.77       0.579      2.00 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> sex         effect     0.038<span style="text-decoration: underline;">1</span>     0.455     0.93       0.838      2.42 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> time        effect     0.075<span style="text-decoration: underline;">5</span>     0.233     0.543      0.391      1.11 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> time        hyper     -<span style="color: #BB0000;">0.357</span>      0.19      0.61       0.335      1.16 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> age:sex     effect     0.053<span style="text-decoration: underline;">9</span>     0.659     0.949      0.719      2.07 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> age:sex     hyper     -<span style="color: #BB0000;">0.052</span><span style="color: #BB0000; text-decoration: underline;">3</span>     0.43      0.88       0.466      1.51 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span> disp        disp       0.013<span style="text-decoration: underline;">4</span>     0.57      0.96       0.245      0.727</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $augment</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 7</span></span></span>
-<span><span class="co">#&gt;   .var      .observed    .error .cover_50 .cover_95 .length_50 .length_95</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted        21.6  0.000<span style="text-decoration: underline;">153</span>     0.499     0.948    0.006<span style="text-decoration: underline;">55</span>     0.019<span style="text-decoration: underline;">0</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected      21.6 -<span style="color: #BB0000;">2.75</span>         0.508     0.944    8.22       26.6</span></span></code></pre></div>
+<span><span class="co">#&gt;   .var      .observed   .error .cover_50 .cover_95 .length_50 .length_95</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted        86.9 0.000<span style="text-decoration: underline;">355</span>     0.500     0.948    0.006<span style="text-decoration: underline;">71</span>     0.019<span style="text-decoration: underline;">5</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected      86.9 3.08         0.488     0.946   44.6       146.</span></span></code></pre></div>
 <p>In this case, although actual coverage for the hyper-parameters (in the <code>components</code> part of the results) now diverges from the advertised coverage, coverage for the low-level rates (in the <code>augment</code> part of the results) is still close to advertised coverage.</p>
 </div>
 <div class="section level2" number="4">
