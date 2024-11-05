@@ -63,6 +63,7 @@
 
 ## usethis namespace: start
 #' @importFrom tibble tibble
+#' @importFrom rvec n_draw
 #' @useDynLib bage, .registration = TRUE
 ## usethis namespace: end
 NULL

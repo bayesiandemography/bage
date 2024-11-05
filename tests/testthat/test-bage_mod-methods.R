@@ -256,8 +256,42 @@ test_that("'disp' estimates not affected by weights in normal model", {
 })
 
 
+## 'computations' -------------------------------------------------------------
 
-## 'draw_vals_augment_fitted' ---------------------------------------------------------------
+test_that("'computations' returns NULL (with warning) if applied to unfitted model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_message({x <- computations(mod)},
+                   "Model not fitted..")
+    expect_true(is.null(x))
+})
+
+test_that("'computations' returns tibble if applied to fitted model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+                        KEEP.OUT.ATTRS = FALSE)
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn) |>
+      fit()
+    expect_true(tibble::is_tibble(computations(mod)))
+})
+
+
+
+
+
+## 'draw_vals_augment_fitted' -------------------------------------------------
 
 test_that("'draw_vals_augment_fitted' works with Poisson, has disp", {
     set.seed(0)
@@ -2140,10 +2174,10 @@ test_that("'print' works with mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-                    set_datamod_outcome_rr3()
+      set_datamod_outcome_rr3()
     expect_snapshot(print(mod))
-    mod <- fit(mod)
-    expect_snapshot(print(mod))
+    ## don't use snapshot, since printed option includes timings, which can change
+    capture.output(print(fit(mod)), file = NULL) 
 })
 
 

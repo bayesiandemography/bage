@@ -12,6 +12,9 @@
   allow better identification of higher-level terms in complicated
   models. It can also slow computations, and has virtually no effect on
   estimates of the lowest-level rates, probabilities, and means.
+* Removed post-estimation standardization. We now rely on explicit
+  constraints instead to give interpretable values for main effects
+  and interactions.
 * Added `RW2_Infant()` prior for modelling age-patterns of mortality
   rates.
 * The `s_seas` parameter in `RW_Seas()` and `RW2_Seas()` now defaults
@@ -21,13 +24,19 @@
 * Moved **rvec** from Imports to Depends, so that it loads when
   **bage** is loaded. Manipulating results from **bage** models
   without **rvec** loaded can lead to strange errors.
-
-
+* Added information on computations to printout from fitted model
+  objects.
+* Added function `computations()`, which can be used to extract this
+  information from fitted model objects.
 
 ## Changes to internal calculations
 
 * Removed some unnecessary coercion of sparse matrices to dense
   matrices (which could sometimes cause memory problems)
+* Added extra constraints to some priors - eg the first element of
+  random walks is now zero. This often (but not always) helps make raw
+  estimates of main effects and interactions more interpretable, and
+  can speed up computations slightly.
 * In the normal model, we now rescale the weights so that they have a
   mean of 1. This allows us to use the same default prior
   for dispersion (an exponential prior with mean 1), regardless of the
@@ -37,13 +46,6 @@
 * Generation of posterior sample now using fast methods from package
   **sparseMVN** where possible.
   
-
-
-
-
-
-
-
 
 # bage 0.7.8
 

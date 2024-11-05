@@ -19,7 +19,8 @@ details.}
 Default is 19.}
 }
 \value{
-A tibble with the following structure:\tabular{ll}{
+A \link[tibble:tibble-package]{tibble}
+with the following structure:\tabular{ll}{
    \code{.replicate} \tab data \cr
    \code{"Original"} \tab Original data supplied to \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} \cr
    \code{"Replicate 1"} \tab Simulated data. \cr

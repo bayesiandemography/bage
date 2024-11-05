@@ -27,12 +27,16 @@ the following components:
 and noting whether the model has been fitted.
 \item A \link[stats:formula]{formula} giving the
 outcome variable and terms for the model.
-\item Priors for each model term.
 \item A table giving the number of parameters, and
 (fitted models only) the standard
 deviation across those parameters,
 a measure of the term's importance.
-\item Values for other model settings.
+See \code{\link[=priors]{priors()}} and \code{\link[=tidy]{tidy()}}.
+\item Values for other model settings. See \code{\link[=set_disp]{set_disp()}},
+\code{\link[=set_var_age]{set_var_age()}}, \code{\link[=set_var_sexgender]{set_var_sexgender()}}, \code{\link[=set_var_time]{set_var_time()}},
+\code{\link[=set_n_draw]{set_n_draw()}}
+\item Details on computations (fitted models only).
+See \code{\link[=computations]{computations()}}.
 }
 }
 \examples{

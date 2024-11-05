@@ -486,5 +486,6 @@ mod_helper <- function(formula, data, n_draw) {
        seed_components = seed_components,
        seed_augment = seed_augment,
        seed_forecast_components = seed_forecast_components,
-       seed_forecast_augment = seed_forecast_augment)
+       seed_forecast_augment = seed_forecast_augment,
+       computations = NULL)
 }

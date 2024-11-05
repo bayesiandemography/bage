@@ -339,16 +339,25 @@ test_that("'set_n_draw' works with valid inputs", {
     data$popn <- seq_len(nrow(data))
     data$deaths <- rev(seq_len(nrow(data)))
     formula <- deaths ~ age:sex + time
-    mod <- mod_pois(formula = formula,
+    mod_unfit <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod_fit_unfit <- unfit(fit(mod))
-    expect_identical(mod$est, mod_fit_unfit$est)
-    expect_identical(mod$is_fixed, mod_fit_unfit$is_fixed)
-    expect_identical(mod$R_prec, mod_fit_unfit$R_prec)
-    expect_identical(mod$scaled_eigen, mod_fit_unfit$scaled_eigen)
-    expect_identical(mod$draws_effectfree, mod_fit_unfit$draws_effectfree)
-    expect_identical(mod$draws_hyper, mod_fit_unfit$draws_hyper)
-    expect_identical(mod$draws_hyperrand, mod_fit_unfit$draws_hyperrand)
-    expect_identical(mod$draws_disp, mod_fit_unfit$draws_disp)
+    mod_fit <- fit(mod_unfit)
+    mod_fit_unfit <- unfit(mod_unfit)
+    nms <- c("draws_effectfree",
+             "draws_hyper",
+             "draws_hyperrandfree",
+             "draws_disp",
+             "point_effectfree",
+             "point_hyper",
+             "point_hyperrandfree",
+             "point_disp",
+             "computations")
+    expect_true(all(nms %in% names(mod_unfit)))
+    expect_true(all(nms %in% names(mod_fit)))
+    expect_true(all(nms %in% names(mod_fit_unfit)))
+    for (nm in nms)
+      expect_false(isTRUE(all.equal(mod_fit[[nm]], mod_unfit[[nm]])))
+    for (nm in nms)
+      expect_true(isTRUE(all.equal(mod_fit_unfit[[nm]], mod_unfit[[nm]])))
 })

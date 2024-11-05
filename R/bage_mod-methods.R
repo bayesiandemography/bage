@@ -238,6 +238,58 @@ components.bage_mod <- function(object,
 }
 
 
+## 'computations' -------------------------------------------------------------
+
+#' Information on Computations Performed Duration Model Fitting
+#'
+#' Get information on computations performed by function [fit()].
+#' The information includes the total time used for fitting, and
+#' the time used for two particular tasks that can be slow:
+#' running the optimizer [stats::nlminb()],
+#' and drawing from the multivariate normal returned
+#' by the TMB. It also includes values returned by the optimizer:
+#' the number of iterations needed, and messages about convergence.
+#'
+#' @param object A fitted object of class `"bage_mod"`.
+#'
+#' @returns A [tibble][tibble::tibble-package] with the following
+#' variables:
+#' - `time_total` Total duration, in seconds, of the fitting process.
+#' - `time_optim` Time used by optimizer ([stats::nlminb()])
+#' - `time_draws` Time used drawing drawing from multivariate normal
+#' - `iter` Number of iterations required by [stats::nlminb()]
+#' - `message` Message about convergence returned by [stats::nlminb()].
+#'
+#' @seealso
+#' - [mod_pois()],[mod_binom()],[mod_norm()] Specify a model
+#' - [fit()] Fit a model
+#' - [tidy()] Summarise a model
+#' - [set_n_draw()] Specify number of posterior draws
+#'
+#' @examples
+#' mod <- mod_pois(divorces ~ age + sex + time,
+#'                 data = nzl_divorces,
+#'                 exposure = population) |>
+#'   fit()
+#' 
+#' computations(mod)
+#' @export
+computations <- function(object) {
+  UseMethod("computations")
+}
+
+#' @export
+computations.bage_mod <- function(object) {
+  if (is_fitted(object))
+    object$computations
+  else {
+    cli::cli_alert_warning("Model not fitted.")
+    NULL
+  }
+}
+
+
+
 ## 'draw_vals_augment_fitted' -------------------------------------------------
 
 #' Draw '.fitted' and Possibly '.expected' from Fitted Model
@@ -532,6 +584,9 @@ generics::fit
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
+#' @param quiet Whether to suppress warning messages
+#' from [nlminb()]. Default is `TRUE`, since these
+#' messages are almost always false alarms.
 #' @param method Estimation method. Current
 #' choices are `"standard"` (the default)
 #' and `"inner-outer"`.
@@ -578,6 +633,7 @@ generics::fit
 #' comp
 #' @export
 fit.bage_mod <- function(object,
+                         quiet = TRUE,
                          method = c("standard", "inner-outer"),
                          vars_inner = NULL,
                          ...) {
@@ -585,9 +641,13 @@ fit.bage_mod <- function(object,
   method <- match.arg(method)
   check_has_no_dots(...)
   if (method == "standard")
-    fit_default(object)
+    fit_default(object,
+                aggregate = TRUE,
+                quiet = quiet)
   else if (method == "inner-outer")
-    fit_inner_outer(mod = object, vars_inner = vars_inner)
+    fit_inner_outer(mod = object,
+                    vars_inner = vars_inner,
+                    quiet = quiet)
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg method}.") ## nocov
 }
@@ -1578,12 +1638,16 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 #'   and noting whether the model has been fitted.
 #' - A [formula][stats::formula()] giving the
 #'   outcome variable and terms for the model.
-#' - Priors for each model term.
 #' - A table giving the number of parameters, and
 #'   (fitted models only) the standard
 #'   deviation across those parameters,
 #'   a measure of the term's importance.
-#' - Values for other model settings.
+#'   See [priors()] and [tidy()].
+#' - Values for other model settings. See [set_disp()],
+#'   [set_var_age()], [set_var_sexgender()], [set_var_time()],
+#'   [set_n_draw()] 
+#' - Details on computations (fitted models only).
+#'   See [computations()].
 #'
 #' @param x Object of class `"bage_mod"`, typically
 #' created with [mod_pois()], [mod_binom()],
@@ -1619,88 +1683,106 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 #' mod
 #' @export
 print.bage_mod <- function(x, ...) {
-    nchar_offset <- 20L
-    ## calculations
-    formula <- x$formula
-    priors <- x$priors
-    n_draw <- x$n_draw
-    data <- x$data
-    vname_offset <- x$vname_offset
-    var_age <- x$var_age
-    var_sexgender <- x$var_sexgender
-    var_time <- x$var_time
-    mean_disp <- x$mean_disp
-    datamod_outcome <- x$datamod_outcome
-    is_fitted <- is_fitted(x)
-    str_title <- sprintf("  ---- %s %s model ----",
-                         if (is_fitted) "Fitted" else "Unfitted",
-                         model_descr(x))
-    terms <- tidy(x)
-    terms <- as.data.frame(terms)
-    terms$along[is.na(terms$along)] <- "-"
-    terms$zero_sum[is.na(terms$zero_sum)] <- "-"
-    str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
-    has_offset <- !is.null(vname_offset)
-    if (has_offset) {
-        nm_offset <- nm_offset(x)
-        nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
-        str_offset <- sprintf("%s: %s", nm_offset, vname_offset)
-    }        
-    ## printing
-    cat(str_title)
-    cat("\n\n")
-    nchar_response <- nchar(as.character(formula[[2L]]))
-    formula_text <- strwrap(deparse1(formula),
-                            width = 55L,
-                            indent = 3L,
-                            exdent = nchar_response + 7L)
-    cat(paste(formula_text, collapse = "\n"))
+  nchar_offset <- 20L
+  ## calculations
+  formula <- x$formula
+  priors <- x$priors
+  n_draw <- x$n_draw
+  data <- x$data
+  vname_offset <- x$vname_offset
+  var_age <- x$var_age
+  var_sexgender <- x$var_sexgender
+  var_time <- x$var_time
+  mean_disp <- x$mean_disp
+  datamod_outcome <- x$datamod_outcome
+  computations <- x$computations
+  is_fitted <- is_fitted(x)
+  str_title <- sprintf("\n    ------ %s %s model ------",
+                       if (is_fitted) "Fitted" else "Unfitted",
+                       model_descr(x))
+  terms <- tidy(x)
+  terms <- as.data.frame(terms)
+  terms$along[is.na(terms$along)] <- "-"
+  terms$zero_sum[is.na(terms$zero_sum)] <- "-"
+  if (is_fitted) {
+    is_na_std_dev <- is.na(terms$std_dev)
+    terms$std_dev <- sprintf("%0.2f", terms$std_dev)
+    terms$std_dev[is_na_std_dev] <- "-"
+  }
+  str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
+  has_offset <- !is.null(vname_offset)
+  if (has_offset) {
+    nm_offset <- nm_offset(x)
+    nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
+    str_offset <- sprintf("%s: %s", nm_offset, vname_offset)
+  }
+  if (is_fitted) {
+    computations <- as.data.frame(computations)
+    computations$time_total <- sprintf("%0.2f", computations$time_total)
+    computations$time_optim <- sprintf("%0.2f",computations$time_optim)
+    computations$time_draws <- sprintf("%0.2f",computations$time_draws)
+    computations$message <- paste0("  ", computations$message)
+  }
+  ## printing
+  cat(str_title)
+  cat("\n\n\n")
+  nchar_response <- nchar(as.character(formula[[2L]]))
+  formula_text <- strwrap(deparse1(formula),
+                          width = 65L,
+                          indent = 3L,
+                          exdent = nchar_response + 7L)
+  cat(paste(formula_text, collapse = "\n"))
+  cat("\n\n\n")
+  if (!is.null(datamod_outcome)) {
+    cat(sprintf("% *s: %s",
+                nchar_offset + 6,
+                "data model for outcome",
+                str_call_datamod(datamod_outcome)))
     cat("\n\n\n")
-    if (!is.null(datamod_outcome)) {
-        cat(sprintf("% *s: %s",
-                    nchar_offset + 6,
-                    "data model for outcome",
-                    str_call_datamod(datamod_outcome)))
-        cat("\n\n\n")
-    }
-    print(terms, row.names = FALSE, digits = 2L)
-    cat("\n\n")
-    cat(str_disp)
+  }
+  print(terms, row.names = FALSE)
+  cat("\n\n")
+  cat(str_disp)
+  cat("\n")
+  if (has_offset) {
+    cat(str_offset)
     cat("\n")
-    if (has_offset) {
-        cat(str_offset)
-        cat("\n")
-    }
-    if (!is.null(var_age)) {
-        cat(sprintf("% *s: %s",
-                    nchar_offset,
-                    "var_age",
-                    var_age))
-        cat("\n")
-    }
-    if (!is.null(var_sexgender)) {
-        cat(sprintf("% *s: %s",
-                    nchar_offset,
-                    "var_sexgender",
-                    var_sexgender))
-        cat("\n")
-    }
-    if (!is.null(var_time)) {
-        cat(sprintf("% *s: %s",
-                    nchar_offset,
-                    "var_time",
-                    var_time))
-        cat("\n")
-    }
-    if (has_offset) {
-        cat(sprintf("% *s: %d",
-                    nchar_offset,
-                    "n_draw",
-                    n_draw))
-        cat("\n")
-    }
-    ## return
-    invisible(x)
+  }
+  if (!is.null(var_age)) {
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "var_age",
+                var_age))
+    cat("\n")
+  }
+  if (!is.null(var_sexgender)) {
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "var_sexgender",
+                var_sexgender))
+    cat("\n")
+  }
+  if (!is.null(var_time)) {
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "var_time",
+                var_time))
+    cat("\n")
+  }
+  if (has_offset) {
+    cat(sprintf("% *s: %d",
+                nchar_offset,
+                "n_draw",
+                n_draw))
+    cat("\n")
+  }
+  if (is_fitted) {
+    cat("\n\n")
+    print(computations, row.names = FALSE)
+    cat("\n")
+  }
+  ## return
+  invisible(x)
 }
 
 
@@ -1772,7 +1854,8 @@ print.bage_mod <- function(x, ...) {
 #' @param n Number of replicate datasets to create.
 #' Default is 19.
 #'
-#' @returns A tibble with the following structure:
+#' @returns A [tibble][tibble::tibble-package]
+#' with the following structure:
 #'
 #' |`.replicate`     | data                           |
 #' |-----------------|--------------------------------|
