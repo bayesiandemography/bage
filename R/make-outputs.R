@@ -112,11 +112,14 @@ draw_vals_components_fitted <- function(mod) {
 #' @param object A `bage_mod` object.
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
+#' @param aggregate Whether to aggregate outcome and offset variables
+#' @param quiet Whether to suppress messages from 'nlminb'
 #'
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_default <- function(mod, aggregate = TRUE) {
+fit_default <- function(mod, aggregate, quiet) {
+  t1 <- Sys.time()
   mod <- unfit(mod)
   ## data
   if (aggregate) {
@@ -188,10 +191,18 @@ fit_default <- function(mod, aggregate = TRUE) {
                       random = random,
                       silent = TRUE)
   ## optimise
-  stats::nlminb(start = f$par,
-                objective = f$fn,
-                gradient = f$gr,
-                silent = TRUE)
+  t2 <- Sys.time()
+  if (quiet) {
+    suppressMessages(out <- stats::nlminb(start = f$par,
+                                          objective = f$fn,
+                                          gradient = f$gr,
+                                          silent = TRUE))
+  }
+  out <- stats::nlminb(start = f$par,
+                       objective = f$fn,
+                       gradient = f$gr,
+                       silent = TRUE)
+  t3 <- Sys.time()
   ## extract results
   if (has_random_effects)
     sdreport <- TMB::sdreport(f,
@@ -204,12 +215,20 @@ fit_default <- function(mod, aggregate = TRUE) {
     prec <- sdreport$jointPrecision
   else
     prec <- solve(sdreport$cov.fixed) ## should be very low dimension
+  t4 <- Sys.time()
   mod <- make_stored_draws(mod = mod,
                            est = est,
                            prec = prec,
                            map = map)
+  t5 <- Sys.time()
   mod <- make_stored_point(mod = mod,
                            est = est)
+  t6 <- Sys.time()
+  mod$computations <- tibble::tibble(time_total = as.numeric(difftime(t6, t1, units = "secs")),
+                                     time_optim = as.numeric(difftime(t3, t2, units = "secs")),
+                                     time_draws = as.numeric(difftime(t5, t4, units = "secs")),
+                                     iter = out$iterations,
+                                     message = out$message)
   mod
 }
 
@@ -218,13 +237,14 @@ fit_default <- function(mod, aggregate = TRUE) {
 #' Two-Step Method for Fitting a Model
 #'
 #' @param object A `bage_mod` object.
+#' @param quiet Whether to suppress warning messages from nlminb
 #' @param vars_inner Variables used
 #' in inner model.
 #'
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_inner_outer <- function(mod, vars_inner) {
+fit_inner_outer <- function(mod, quiet, vars_inner) {
   if (is.null(vars_inner))
     vars_inner <- make_vars_inner(mod)
   else
@@ -234,11 +254,13 @@ fit_inner_outer <- function(mod, vars_inner) {
   mod_inner <- make_mod_inner(mod = mod,
                               use_term = use_term)
   mod_inner <- fit_default(mod = mod_inner,
+                           quiet = quiet,
                            aggregate = TRUE)
   mod_outer <- make_mod_outer(mod = mod,
                               mod_inner = mod_inner,
                               use_term = use_term)
   mod_outer <- fit_default(mod = mod_outer,
+                           quiet = quiet,
                            aggregate = TRUE)
   mod <- combine_stored_draws_point_inner_outer(mod = mod,
                                                 mod_inner = mod_inner,
@@ -247,6 +269,7 @@ fit_inner_outer <- function(mod, vars_inner) {
   if (has_disp(mod)) {
     mod_disp <- make_mod_disp(mod)
     mod_disp <- fit_default(mod = mod_disp,
+                            quiet = quiet,
                             aggregate = FALSE)
     mod <- transfer_draws_disp(mod = mod,
                                mod_disp = mod_disp)

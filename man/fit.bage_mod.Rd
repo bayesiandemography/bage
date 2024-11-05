@@ -4,12 +4,22 @@
 \alias{fit.bage_mod}
 \title{Fit a Model}
 \usage{
-\method{fit}{bage_mod}(object, method = c("standard", "inner-outer"), vars_inner = NULL, ...)
+\method{fit}{bage_mod}(
+  object,
+  quiet = TRUE,
+  method = c("standard", "inner-outer"),
+  vars_inner = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{bage_mod} object,
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
+\item{quiet}{Whether to suppress warning messages
+from \code{\link[=nlminb]{nlminb()}}. Default is \code{TRUE}, since these
+messages are almost always false alarms.}
 
 \item{method}{Estimation method. Current
 choices are \code{"standard"} (the default)

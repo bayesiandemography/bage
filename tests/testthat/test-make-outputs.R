@@ -18,9 +18,9 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
   vars_inner <- c("age", "sex")
   use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
   mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
-  mod_inner <- fit_default(mod_inner)
+  mod_inner <- fit_default(mod_inner, quiet = TRUE, aggregate = TRUE)
   mod_outer <- reduce_model_terms(mod = mod, use_term = !use_term)
-  mod_outer <- fit_default(mod_outer)
+  mod_outer <- fit_default(mod_outer, quiet = TRUE, aggregate = TRUE)
   mod_comb <- combine_stored_draws_point_inner_outer(mod = mod,
                                                      mod_inner = mod_inner,
                                                      mod_outer = mod_outer,
@@ -515,7 +515,7 @@ test_that("'fit_default' works with pois", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  ans_obtained <- fit_default(mod)
+  ans_obtained <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
 
@@ -535,9 +535,9 @@ test_that("'fit_inner_outer' works with with pois", {
                   data = data,
                   exposure = popn)
   set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod, vars_inner = c("age", "sex"))
+  ans_inner_outer <- fit_inner_outer(mod, quiet = TRUE, vars_inner = c("age", "sex"))
   set.seed(0)
-  ans_default <- fit_default(mod)
+  ans_default <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
   augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -560,9 +560,9 @@ test_that("'fit_inner_outer' works with with binom", {
                    data = data,
                    size = popn)
   set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod, vars_inner = NULL)
+  ans_inner_outer <- fit_inner_outer(mod, quiet = TRUE, vars_inner = NULL)
   set.seed(0)
-  ans_default <- fit_default(mod)
+  ans_default <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
   augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -585,9 +585,9 @@ test_that("'fit_inner_outer' works with with norm", {
                   data = data,
                   weights = wt)
   set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod, vars_inner = c("age", "sex"))
+  ans_inner_outer <- fit_inner_outer(mod, quiet = TRUE, vars_inner = c("age", "sex"))
   set.seed(0)
-  ans_default <- fit_default(mod)
+  ans_default <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
   augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
