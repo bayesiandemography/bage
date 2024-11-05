@@ -1,4 +1,14 @@
 
+# bage 0.8.1
+
+## Changes to interface
+
+* Modified construction of `computations` part of models so that it
+  works with models fitted using the "inner-outer" method. Extended
+  the `print()` method for `"bage_mod"` so that it shows extra output
+  for models fitted using the `"inner-outer"` method.
+
+
 # bage 0.8.0
 
 ## Changes to interface

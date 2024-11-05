@@ -1695,6 +1695,7 @@ print.bage_mod <- function(x, ...) {
   var_time <- x$var_time
   mean_disp <- x$mean_disp
   datamod_outcome <- x$datamod_outcome
+  vars_inner <- x$vars_inner
   computations <- x$computations
   is_fitted <- is_fitted(x)
   str_title <- sprintf("\n    ------ %s %s model ------",
@@ -1723,6 +1724,7 @@ print.bage_mod <- function(x, ...) {
     computations$time_draws <- sprintf("%0.2f",computations$time_draws)
     computations$message <- paste0("  ", computations$message)
   }
+  is_inner_outer <- is_fitted && !is.null(vars_inner)
   ## printing
   cat(str_title)
   cat("\n\n\n")
@@ -1774,6 +1776,18 @@ print.bage_mod <- function(x, ...) {
                 nchar_offset,
                 "n_draw",
                 n_draw))
+    cat("\n")
+  }
+  if (is_inner_outer) {
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "fitting method",
+                "inner-outer"))
+    cat("\n")
+    cat(sprintf("% *s: %s",
+                nchar_offset,
+                "vars_inner",
+                paste(vars_inner, collapse = ",")))
     cat("\n")
   }
   if (is_fitted) {

@@ -15,15 +15,14 @@ or age and time.
 
 The intercept, main effects, and interactions
 all have prior models that capture the expected
-behavior of the term. Current choices of prior
-models are summarised here.
+behavior of the term. Current choices for priors
+summarised in the table below.
 
-Priors where 'forecast' is yes can be used for a time-varying
-term in a forecast (for instance, it could be
-be used for a time main effect
-or and age-time interaction).
+Priors where 'forecast' is yes can be used
+in forecasts for a time-varying
+terms such as an age-time interactions.
 
-Priors where \code{zero_sum} is yes contain an
+Priors where \code{zero_sum} is yes have an
 argument specifying whether sum-to-zero constraints
 should be used.
 }
@@ -50,3 +49,15 @@ should be used.
    \code{\link[=SVD_RW2]{SVD_RW2()}} \tab \code{SVD()}, but coefficients follow \code{RW2()} \tab Age or age-sex and time \tab Yes \tab Yes \cr
 }
 }
+\section{Default prior}{
+
+
+The rule for selecting a default prior for a term is:
+\itemize{
+\item if term has less than 3 elements, use \code{\link[=NFix]{NFix()}};
+\item otherwise, if the term involves time, use \code{\link[=RW]{RW()}}, with time as the `along' dimension;
+\item otherwise, if the term involves age, use \code{\link[=RW]{RW()}}, with age as the `along' dimension;
+\item otherwise, use \code{\link[=N]{N()}}.
+}
+}
+

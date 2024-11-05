@@ -262,6 +262,8 @@ fit_inner_outer <- function(mod, quiet, vars_inner) {
   mod_outer <- fit_default(mod = mod_outer,
                            quiet = quiet,
                            aggregate = TRUE)
+  computations <- rbind(inner = mod_inner$computations,
+                        outer = mod_outer$computations)
   mod <- combine_stored_draws_point_inner_outer(mod = mod,
                                                 mod_inner = mod_inner,
                                                 mod_outer = mod_outer,
@@ -271,9 +273,16 @@ fit_inner_outer <- function(mod, quiet, vars_inner) {
     mod_disp <- fit_default(mod = mod_disp,
                             quiet = quiet,
                             aggregate = FALSE)
+    computations <- rbind(computations,
+                          disp = mod_disp$computations)
     mod <- transfer_draws_disp(mod = mod,
                                mod_disp = mod_disp)
   }
+  computations <- cbind(model = rownames(computations),
+                        computations)
+  rownames(computations) <- NULL
+  mod$computations <- computations
+  mod$vars_inner <- vars_inner
   mod
 }
 
