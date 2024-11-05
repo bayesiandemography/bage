@@ -9,6 +9,7 @@ library(knitr)
 opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
+  message = FALSE,
   fig.path = "man/figures/README-",
   out.width = "100%"
 )

@@ -29,15 +29,6 @@ Fit Poisson model to data on injuries
 
 ``` r
 library(bage)
-#> Loading required package: rvec
-#> 
-#> Attaching package: 'rvec'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     sd, var
-#> The following object is masked from 'package:base':
-#> 
-#>     rank
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
                 exposure = popn) |>
@@ -66,7 +57,7 @@ mod
 #> 
 #> 
 #>  time_total time_optim time_draws iter                    message
-#>        0.47       0.07       0.01   11   relative convergence (4)
+#>        0.48       0.08       0.01   11   relative convergence (4)
 ```
 
 Extract model-based and direct estimates
