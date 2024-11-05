@@ -78,31 +78,44 @@
 <p>Fit Poisson model to data on injuries</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: rvec</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'rvec'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     sd, var</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     rank</span></span>
 <span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">+</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span>
 <span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">mod</span></span>
-<span><span class="co">#&gt; -- Fitted Poisson model --</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    injuries ~ age:sex + ethnicity + year</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; (Intercept) ~ NFix()</span></span>
-<span><span class="co">#&gt;   ethnicity ~ NFix()</span></span>
-<span><span class="co">#&gt;        year ~ RW()</span></span>
-<span><span class="co">#&gt;     age:sex ~ RW()</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;       term n_par n_par_free std_dev</span></span>
-<span><span class="co">#&gt;  ethnicity     2          2   0.450</span></span>
-<span><span class="co">#&gt;       year    19         19   0.092</span></span>
-<span><span class="co">#&gt;    age:sex    24         24   0.880</span></span>
+<span><span class="co">#&gt;         term  prior along zero_sum n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;  (Intercept) NFix()     -        -     1          1       -</span></span>
+<span><span class="co">#&gt;    ethnicity NFix()     -        -     2          2    0.45</span></span>
+<span><span class="co">#&gt;         year   RW()  year        -    19         18    0.09</span></span>
+<span><span class="co">#&gt;      age:sex   RW()   age    FALSE    24         22    0.88</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;      dispersion: mean=1</span></span>
-<span><span class="co">#&gt;        exposure: popn</span></span>
-<span><span class="co">#&gt;         var_age: age</span></span>
-<span><span class="co">#&gt;   var_sexgender: sex</span></span>
-<span><span class="co">#&gt;        var_time: year</span></span>
-<span><span class="co">#&gt;          n_draw: 1000</span></span></code></pre></div>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           dispersion: mean=1</span></span>
+<span><span class="co">#&gt;             exposure: popn</span></span>
+<span><span class="co">#&gt;              var_age: age</span></span>
+<span><span class="co">#&gt;        var_sexgender: sex</span></span>
+<span><span class="co">#&gt;             var_time: year</span></span>
+<span><span class="co">#&gt;               n_draw: 1000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  time_total time_optim time_draws iter                    message</span></span>
+<span><span class="co">#&gt;        0.47       0.07       0.01   11   relative convergence (4)</span></span></code></pre></div>
 <p>Extract model-based and direct estimates</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
