@@ -29,31 +29,44 @@ Fit Poisson model to data on injuries
 
 ``` r
 library(bage)
+#> Loading required package: rvec
+#> 
+#> Attaching package: 'rvec'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     sd, var
+#> The following object is masked from 'package:base':
+#> 
+#>     rank
 mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
                 data = nzl_injuries,
                 exposure = popn) |>
   fit()
 mod
-#> -- Fitted Poisson model --
+#> 
+#>     ------ Fitted Poisson model ------
+#> 
 #> 
 #>    injuries ~ age:sex + ethnicity + year
 #> 
-#> (Intercept) ~ NFix()
-#>   ethnicity ~ NFix()
-#>        year ~ RW()
-#>     age:sex ~ RW()
 #> 
-#>       term n_par n_par_free std_dev
-#>  ethnicity     2          2   0.450
-#>       year    19         19   0.092
-#>    age:sex    24         24   0.880
+#>         term  prior along zero_sum n_par n_par_free std_dev
+#>  (Intercept) NFix()     -        -     1          1       -
+#>    ethnicity NFix()     -        -     2          2    0.45
+#>         year   RW()  year        -    19         18    0.09
+#>      age:sex   RW()   age    FALSE    24         22    0.88
 #> 
-#>      dispersion: mean=1
-#>        exposure: popn
-#>         var_age: age
-#>   var_sexgender: sex
-#>        var_time: year
-#>          n_draw: 1000
+#> 
+#>           dispersion: mean=1
+#>             exposure: popn
+#>              var_age: age
+#>        var_sexgender: sex
+#>             var_time: year
+#>               n_draw: 1000
+#> 
+#> 
+#>  time_total time_optim time_draws iter                    message
+#>        0.47       0.07       0.01   11   relative convergence (4)
 ```
 
 Extract model-based and direct estimates
