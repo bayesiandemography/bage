@@ -105,20 +105,18 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    injuries ~ age:sex + age:ethnicity + year</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           term  prior along zero_sum n_par n_par_free</span></span>
-<span><span class="co">#&gt;    (Intercept) NFix()     -        -     1          1</span></span>
-<span><span class="co">#&gt;           year  AR1()  year        -    19         19</span></span>
-<span><span class="co">#&gt;        age:sex   RW()   age    FALSE    24         22</span></span>
-<span><span class="co">#&gt;  age:ethnicity   RW()   age    FALSE    24         22</span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           dispersion: mean=1</span></span>
-<span><span class="co">#&gt;             exposure: popn</span></span>
-<span><span class="co">#&gt;              var_age: age</span></span>
-<span><span class="co">#&gt;        var_sexgender: sex</span></span>
-<span><span class="co">#&gt;             var_time: year</span></span>
-<span><span class="co">#&gt;               n_draw: 1000</span></span></code></pre></div>
+<span><span class="co">#&gt;           term  prior along n_par n_par_free</span></span>
+<span><span class="co">#&gt;    (Intercept) NFix()     -     1          1</span></span>
+<span><span class="co">#&gt;           year  AR1()  year    19         19</span></span>
+<span><span class="co">#&gt;        age:sex   RW()   age    24         22</span></span>
+<span><span class="co">#&gt;  age:ethnicity   RW()   age    24         22</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender</span></span>
+<span><span class="co">#&gt;    1000            1     year     age           sex</span></span></code></pre></div>
 <!-- ```{r} -->
 <!-- mod <- mod |> -->
 <!--   fit() -->

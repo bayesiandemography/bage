@@ -157,20 +157,19 @@ Age, sex/gender and time variables</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age    12         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year    19         18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw pr_mean_disp var_time var_age var_sexgender</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1000            1     year     age           sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -182,24 +181,22 @@ Age, sex/gender and time variables</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free std_dev</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11    0.76</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2    0.72</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18    0.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free std_dev</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age    12         11    0.76</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -     2          2    0.72</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year    19         18    0.08</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_draws iter                    message</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        0.23       0.13       0.00   12   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw pr_mean_disp var_time var_age var_sexgender optimizer</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1000            1     year     age           sex    nlminb</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_draws iter converged                    message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.18       0.07       0.00   12      TRUE   relative convergence (4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

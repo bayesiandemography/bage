@@ -223,21 +223,19 @@ deaths but no population. Our model is then</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age * sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         term  prior along zero_sum n_par n_par_free</span></span>
-<span><span class="co">#&gt;  (Intercept) NFix()     -        -     1          1</span></span>
-<span><span class="co">#&gt;          age   RW()   age        -   106        105</span></span>
-<span><span class="co">#&gt;          sex NFix()     -        -     2          2</span></span>
-<span><span class="co">#&gt;         time   RW()  time        -    25         24</span></span>
-<span><span class="co">#&gt;      age:sex   RW()   age    FALSE   212        210</span></span>
+<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           dispersion: mean=1</span></span>
-<span><span class="co">#&gt;             exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
-<span><span class="co">#&gt;              var_age: age</span></span>
-<span><span class="co">#&gt;        var_sexgender: sex</span></span>
-<span><span class="co">#&gt;             var_time: time</span></span>
-<span><span class="co">#&gt;               n_draw: 1000</span></span></code></pre></div>
+<span><span class="co">#&gt;         term  prior along n_par n_par_free</span></span>
+<span><span class="co">#&gt;  (Intercept) NFix()     -     1          1</span></span>
+<span><span class="co">#&gt;          age   RW()   age   106        105</span></span>
+<span><span class="co">#&gt;          sex NFix()     -     2          2</span></span>
+<span><span class="co">#&gt;         time   RW()  time    25         24</span></span>
+<span><span class="co">#&gt;      age:sex   RW()   age   212        210</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender</span></span>
+<span><span class="co">#&gt;    1000            1     time     age           sex</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="mathematical-description-of-the-model">Mathematical description of the model<a class="anchor" aria-label="anchor" href="#mathematical-description-of-the-model"></a>
@@ -340,25 +338,23 @@ has a penalized-complexity prior <span class="citation">[@simpson2022priors]</sp
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age * sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         term  prior along zero_sum n_par n_par_free std_dev</span></span>
-<span><span class="co">#&gt;  (Intercept) NFix()     -        -     1          1       -</span></span>
-<span><span class="co">#&gt;          age   RW()   age        -   106        105    2.68</span></span>
-<span><span class="co">#&gt;          sex NFix()     -        -     2          2    0.15</span></span>
-<span><span class="co">#&gt;         time   RW()  time        -    25         24    0.10</span></span>
-<span><span class="co">#&gt;      age:sex   RW()   age    FALSE   212        210    0.17</span></span>
+<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           dispersion: mean=1</span></span>
-<span><span class="co">#&gt;             exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
-<span><span class="co">#&gt;              var_age: age</span></span>
-<span><span class="co">#&gt;        var_sexgender: sex</span></span>
-<span><span class="co">#&gt;             var_time: time</span></span>
-<span><span class="co">#&gt;               n_draw: 1000</span></span>
+<span><span class="co">#&gt;         term  prior along n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;  (Intercept) NFix()     -     1          1       -</span></span>
+<span><span class="co">#&gt;          age   RW()   age   106        105    2.68</span></span>
+<span><span class="co">#&gt;          sex NFix()     -     2          2    0.15</span></span>
+<span><span class="co">#&gt;         time   RW()  time    25         24    0.10</span></span>
+<span><span class="co">#&gt;      age:sex   RW()   age   212        210    0.17</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_draws iter                    message</span></span>
-<span><span class="co">#&gt;        2.59       1.59       0.06   17   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender optimizer</span></span>
+<span><span class="co">#&gt;    1000            1     time     age           sex    nlminb</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  time_total time_optim time_draws iter converged                    message</span></span>
+<span><span class="co">#&gt;        1.93       0.91       0.07   17      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="extracting-rates">Extracting rates<a class="anchor" aria-label="anchor" href="#extracting-rates"></a>
@@ -527,19 +523,17 @@ sex.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age:sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         term    prior along zero_sum n_par n_par_free</span></span>
-<span><span class="co">#&gt;  (Intercept)   NFix()     -        -     1          1</span></span>
-<span><span class="co">#&gt;         time     RW()  time        -    25         24</span></span>
-<span><span class="co">#&gt;      age:sex SVD(HMD)     -        -   212          6</span></span>
+<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           dispersion: mean=1</span></span>
-<span><span class="co">#&gt;             exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
-<span><span class="co">#&gt;              var_age: age</span></span>
-<span><span class="co">#&gt;        var_sexgender: sex</span></span>
-<span><span class="co">#&gt;             var_time: time</span></span>
-<span><span class="co">#&gt;               n_draw: 1000</span></span></code></pre></div>
+<span><span class="co">#&gt;         term    prior along n_par n_par_free</span></span>
+<span><span class="co">#&gt;  (Intercept)   NFix()     -     1          1</span></span>
+<span><span class="co">#&gt;         time     RW()  time    25         24</span></span>
+<span><span class="co">#&gt;      age:sex SVD(HMD)     -   212          6</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender</span></span>
+<span><span class="co">#&gt;    1000            1     time     age           sex</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span><span class="va">mod_hmd</span></span>
@@ -549,23 +543,21 @@ sex.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age:sex + time</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         term    prior along zero_sum n_par n_par_free std_dev</span></span>
-<span><span class="co">#&gt;  (Intercept)   NFix()     -        -     1          1       -</span></span>
-<span><span class="co">#&gt;         time     RW()  time        -    25         24    0.10</span></span>
-<span><span class="co">#&gt;      age:sex SVD(HMD)     -        -   212          6    2.80</span></span>
+<span><span class="co">#&gt;   exposure = ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;           dispersion: mean=1</span></span>
-<span><span class="co">#&gt;             exposure: ~ifelse(deaths &gt; 0 &amp; popn == 0, 0.5, popn)</span></span>
-<span><span class="co">#&gt;              var_age: age</span></span>
-<span><span class="co">#&gt;        var_sexgender: sex</span></span>
-<span><span class="co">#&gt;             var_time: time</span></span>
-<span><span class="co">#&gt;               n_draw: 1000</span></span>
+<span><span class="co">#&gt;         term    prior along n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;  (Intercept)   NFix()     -     1          1       -</span></span>
+<span><span class="co">#&gt;         time     RW()  time    25         24    0.10</span></span>
+<span><span class="co">#&gt;      age:sex SVD(HMD)     -   212          6    2.80</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_draws iter                    message</span></span>
-<span><span class="co">#&gt;        2.43       1.50       0.00   10   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender optimizer</span></span>
+<span><span class="co">#&gt;    1000            1     time     age           sex    nlminb</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  time_total time_optim time_draws iter converged                    message</span></span>
+<span><span class="co">#&gt;        1.77       0.85       0.00   10      TRUE   relative convergence (4)</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span></span>

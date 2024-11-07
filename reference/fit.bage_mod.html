@@ -52,9 +52,11 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'bage_mod'</span></span>
 <span><span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span></span>
 <span>  <span class="va">object</span>,</span>
-<span>  quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"standard"</span>, <span class="st">"inner-outer"</span><span class="op">)</span>,</span>
 <span>  vars_inner <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  optimizer <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"nlminb"</span>, <span class="st">"BFGS"</span>, <span class="st">"CG"</span><span class="op">)</span>,</span>
+<span>  quiet <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  start_oldpar <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -69,12 +71,6 @@ created with <code><a href="mod_pois.html">mod_pois()</a></code>,
 <code><a href="mod_binom.html">mod_binom()</a></code>, or <code><a href="mod_norm.html">mod_norm()</a></code>.</p></dd>
 
 
-<dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
-<dd><p>Whether to suppress warning messages
-from <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb()</a></code>. Default is <code>TRUE</code>, since these
-messages are almost always false alarms.</p></dd>
-
-
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>Estimation method. Current
 choices are <code>"standard"</code> (the default)
@@ -87,6 +83,27 @@ See below for details.</p></dd>
 for inner model when <code>method</code> is <code>"inner-outer". If </code>NULL<code>(the default)</code>vars_inner` is the
 <a href="set_var_age.html">age</a>, <a href="set_var_sexgender.html">sex/gender</a>,
 and <a href="set_var_time.html">time</a> variables.</p></dd>
+
+
+<dt id="arg-optimizer">optimizer<a class="anchor" aria-label="anchor" href="#arg-optimizer"></a></dt>
+<dd><p>Which optimizer to use.
+Current choices are <code>"nlminb"</code> (<code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>)
+and <code>"BFGS"</code> (<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> using method
+<code>"BFGS"</code>), and "GC" (<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> using method
+<code>"CG"</code>) . Default is <code>"nlminb"</code>.</p></dd>
+
+
+<dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
+<dd><p>Whether to suppress warnings and
+progress messages from the optimizer.
+Default is <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-start-oldpar">start_oldpar<a class="anchor" aria-label="anchor" href="#arg-start-oldpar"></a></dt>
+<dd><p>Whether the optimizer should start
+at previous estimates. Used only
+when <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> is being called on a fitted
+model. Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -114,8 +131,11 @@ for the <code>inner</code> variables is fitted to the data.
 In Step 2, the data is aggregated across the
 remaining variables, and a model for the
 <code>outer</code> variables is fitted to the data.
-Parameter estimtes from steps 1 and 2 are then
-combined.</p></li>
+In Step 3, values for dispersion are calculated.
+Parameter estimtes from steps 1, 2, and 3
+are then combined. <code>"inner-outer"</code> methods are
+still experimental, and may change in future,
+eg dividing calculations into chunks in Step 2.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -145,20 +165,19 @@ output from a model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age    12         11</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -     2          2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year    19         18</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw pr_mean_disp var_time var_age var_sexgender</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1000            1     year     age           sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## fit model</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
@@ -171,24 +190,22 @@ output from a model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age + sex + year</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along zero_sum n_par n_par_free std_dev</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -        -     1          1       -</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age        -    12         11    0.76</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -        -     2          2    0.72</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year        -    19         18    0.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   exposure = popn</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           dispersion: mean=1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             exposure: popn</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>              var_age: age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        var_sexgender: sex</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             var_time: year</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>               n_draw: 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         term  prior along n_par n_par_free std_dev</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  (Intercept) NFix()     -     1          1       -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          age   RW()   age    12         11    0.76</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sex NFix()     -     2          2    0.72</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         year   RW()  year    19         18    0.08</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_draws iter                    message</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        0.23       0.13       0.00   12   relative convergence (4)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw pr_mean_disp var_time var_age var_sexgender optimizer</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1000            1     year     age           sex    nlminb</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  time_total time_optim time_draws iter converged                    message</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        0.18       0.08       0.00   12      TRUE   relative convergence (4)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## extract rates</span></span></span>
