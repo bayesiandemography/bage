@@ -6,9 +6,11 @@
 \usage{
 \method{fit}{bage_mod}(
   object,
-  quiet = TRUE,
   method = c("standard", "inner-outer"),
   vars_inner = NULL,
+  optimizer = c("nlminb", "BFGS", "CG"),
+  quiet = TRUE,
+  start_oldpar = FALSE,
   ...
 )
 }
@@ -16,10 +18,6 @@
 \item{object}{A \code{bage_mod} object,
 created with \code{\link[=mod_pois]{mod_pois()}},
 \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
-
-\item{quiet}{Whether to suppress warning messages
-from \code{\link[=nlminb]{nlminb()}}. Default is \code{TRUE}, since these
-messages are almost always false alarms.}
 
 \item{method}{Estimation method. Current
 choices are \code{"standard"} (the default)
@@ -30,6 +28,21 @@ See below for details.}
 for inner model when \code{method} is \verb{"inner-outer". If }NULL\verb{(the default)}vars_inner` is the
 \link[=set_var_age]{age}, \link[=set_var_sexgender]{sex/gender},
 and \link[=set_var_time]{time} variables.}
+
+\item{optimizer}{Which optimizer to use.
+Current choices are \code{"nlminb"} (\code{\link[stats:nlminb]{stats::nlminb()}})
+and \code{"BFGS"} (\code{\link[stats:optim]{stats::optim()}} using method
+\code{"BFGS"}), and "GC" (\code{\link[stats:optim]{stats::optim()}} using method
+\code{"CG"}) . Default is \code{"nlminb"}.}
+
+\item{quiet}{Whether to suppress warnings and
+progress messages from the optimizer.
+Default is \code{TRUE}.}
+
+\item{start_oldpar}{Whether the optimizer should start
+at previous estimates. Used only
+when \code{fit()} is being called on a fitted
+model. Default is \code{FALSE}.}
 
 \item{...}{Not currently used.}
 }
@@ -55,8 +68,11 @@ for the \code{inner} variables is fitted to the data.
 In Step 2, the data is aggregated across the
 remaining variables, and a model for the
 \code{outer} variables is fitted to the data.
-Parameter estimtes from steps 1 and 2 are then
-combined.
+In Step 3, values for dispersion are calculated.
+Parameter estimtes from steps 1, 2, and 3
+are then combined. \code{"inner-outer"} methods are
+still experimental, and may change in future,
+eg dividing calculations into chunks in Step 2.
 }
 }
 

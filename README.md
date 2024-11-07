@@ -40,24 +40,22 @@ mod
 #> 
 #>    injuries ~ age:sex + ethnicity + year
 #> 
-#> 
-#>         term  prior along zero_sum n_par n_par_free std_dev
-#>  (Intercept) NFix()     -        -     1          1       -
-#>    ethnicity NFix()     -        -     2          2    0.45
-#>         year   RW()  year        -    19         18    0.09
-#>      age:sex   RW()   age    FALSE    24         22    0.88
+#>   exposure = popn
 #> 
 #> 
-#>           dispersion: mean=1
-#>             exposure: popn
-#>              var_age: age
-#>        var_sexgender: sex
-#>             var_time: year
-#>               n_draw: 1000
+#>         term  prior along n_par n_par_free std_dev
+#>  (Intercept) NFix()     -     1          1       -
+#>    ethnicity NFix()     -     2          2    0.45
+#>         year   RW()  year    19         18    0.09
+#>      age:sex   RW()   age    24         22    0.88
 #> 
 #> 
-#>  time_total time_optim time_draws iter                    message
-#>        0.48       0.08       0.01   11   relative convergence (4)
+#>  n_draw pr_mean_disp var_time var_age var_sexgender optimizer
+#>    1000            1     year     age           sex    nlminb
+#> 
+#> 
+#>  time_total time_optim time_draws iter converged                    message
+#>        1.00       0.29       0.02   11      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates

@@ -3559,7 +3559,7 @@ test_that("'make_hyperrand_one' works with bage_prior_rwseasfix", {
 
 test_that("'make_hyperrand_one' works with bage_prior_rwseasvary", {
   set.seed(0)
-  prior <- RW_Seas(n = 3)
+  prior <- RW_Seas(n = 3, s_seas = 0.2)
   hyperrandfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
@@ -3692,7 +3692,7 @@ test_that("'infer_trend_cyc_seas_err_forecast_one' works with bage_prior_rwseasv
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-                  set_prior(sex:time ~ RW_Seas(n_seas = 3)) |>
+                  set_prior(sex:time ~ RW_Seas(n_seas = 3, s_seas = 0.5)) |>
                   fit()
   term <- make_term_components(mod)
   comp <- make_comp_components(mod)
@@ -5890,7 +5890,7 @@ test_that("'print' works", {
   expect_snapshot(print(RW2()))
   expect_snapshot(print(RW2_Infant()))
   expect_snapshot(print(RW2_Seas(n_seas = 2)))
-  expect_snapshot(print(RW2_Seas(n_seas = 2, s = 1)))
+  expect_snapshot(print(RW2_Seas(n_seas = 2, s_seas = 1)))
   expect_snapshot(print(Sp()))
   expect_snapshot(print(SVD(HMD)))
   expect_snapshot(print(SVD(HMD, indep = FALSE)))
