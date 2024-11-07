@@ -18,9 +18,11 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
   vars_inner <- c("age", "sex")
   use_term <- make_use_term(mod = mod, vars_inner = vars_inner)
   mod_inner <- reduce_model_terms(mod = mod, use_term = use_term)
-  mod_inner <- fit_default(mod_inner, quiet = TRUE, aggregate = TRUE)
+  mod_inner <- fit_default(mod_inner, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+                           start_oldpar = FALSE)
   mod_outer <- reduce_model_terms(mod = mod, use_term = !use_term)
-  mod_outer <- fit_default(mod_outer, quiet = TRUE, aggregate = TRUE)
+  mod_outer <- fit_default(mod_outer, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+                           start_oldpar = FALSE)
   mod_comb <- combine_stored_draws_point_inner_outer(mod = mod,
                                                      mod_inner = mod_inner,
                                                      mod_outer = mod_outer,
@@ -515,9 +517,57 @@ test_that("'fit_default' works with pois", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  ans_obtained <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
+  ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+                              start_oldpar = FALSE)
   expect_s3_class(ans_obtained, "bage_mod")
 })
+
+test_that("'fit_default' works with pois - start_oldpar", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+                     start_oldpar = FALSE)
+  ans_obtained <- fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+                              start_oldpar = TRUE)
+  expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_error(fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
+                           start_oldpar = TRUE),
+               "`start_oldpar` is TRUE but model has not been fitted.")
+})
+
+test_that("'fit_default' gives error invalid value for 'optimizer'", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_error(fit_default(mod, optimizer = "wrong", quiet = TRUE, aggregate = TRUE,
+                           start_oldpar = FALSE),
+               "Internal error: Invalid value for `optimizer`.")
+})
+
+
+
 
 
 ## 'fit_inner_outer' ----------------------------------------------------------
@@ -535,9 +585,17 @@ test_that("'fit_inner_outer' works with with pois", {
                   data = data,
                   exposure = popn)
   set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod, quiet = TRUE, vars_inner = c("age", "sex"))
+  ans_inner_outer <- fit_inner_outer(mod,
+                                     optimizer = "nlminb",
+                                     quiet = TRUE,
+                                     start_oldpar = FALSE,
+                                     vars_inner = c("age", "sex"))
   set.seed(0)
-  ans_default <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
+  ans_default <- fit_default(mod,
+                             optimizer = "nlminb",
+                             quiet = TRUE,
+                             start_oldpar = FALSE,
+                             aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
   augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -560,9 +618,17 @@ test_that("'fit_inner_outer' works with with binom", {
                    data = data,
                    size = popn)
   set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod, quiet = TRUE, vars_inner = NULL)
+  ans_inner_outer <- fit_inner_outer(mod,
+                                     optimizer = "nlminb",
+                                     quiet = TRUE,
+                                     start_oldpar = FALSE,
+                                     vars_inner = NULL)
   set.seed(0)
-  ans_default <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
+  ans_default <- fit_default(mod,
+                             optimizer = "nlminb",
+                             quiet = TRUE,
+                             start_oldpar = FALSE,
+                             aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
   augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
@@ -585,17 +651,47 @@ test_that("'fit_inner_outer' works with with norm", {
                   data = data,
                   weights = wt)
   set.seed(0)
-  ans_inner_outer <- fit_inner_outer(mod, quiet = TRUE, vars_inner = c("age", "sex"))
+  ans_inner_outer <- fit_inner_outer(mod,
+                                     optimizer = "BFGS",
+                                     quiet = TRUE,
+                                     start_oldpar = FALSE,
+                                     vars_inner = c("age", "sex"))
   set.seed(0)
-  ans_default <- fit_default(mod, quiet = TRUE, aggregate = TRUE)
+  ans_default <- fit_default(mod,
+                             optimizer = "BFGS",
+                             quiet = TRUE,
+                             start_oldpar = FALSE,
+                             aggregate = TRUE)
   aug_inner_outer <- ans_inner_outer |>
-  augment()
+    augment()
   fit_inner_outer <- rvec::draws_median(aug_inner_outer$.fitted)
   aug_default <- ans_default |>
-  augment()
+    augment()
   fit_default <- rvec::draws_median(aug_default$.fitted)
   expect_true(cor(fit_inner_outer, fit_default) > 0.98)
 })
+
+test_that("'fit_inner_outer' throws error when 'start_oldpar' is TRUE", {
+  set.seed(0)
+  data <- expand.grid(age = 0:5,
+                      time = 2000:2003,
+                      sex = c("F", "M"),
+                      region = c("a", "b"))
+  data$wt <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data), mean = data$age + data$time/100, sd = 5 / sqrt(data$wt))
+  formula <- income ~ age * sex + region * time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  set.seed(0)
+  expect_error(fit_inner_outer(mod,
+                               optimizer = "BFGS",
+                               quiet = TRUE,
+                               start_oldpar = TRUE,
+                               vars_inner = c("age", "sex")),
+               "`start_oldpar` must be FALSE when using \"inner-outer\" method.")
+})
+
 
 
 ## 'make_along_mod' -----------------------------------------------------------
@@ -1765,32 +1861,6 @@ test_that("'make_unconstr_dimnames_by' works", {
   ans_obtained <- make_unconstr_dimnames_by(i_along = 2L,
                                             dimnames_term = dimnames_term)
   ans_expected <- list(age = paste0("age", 1:4), reg = paste0("reg", 1:2))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_zero_sum_mod' -----------------------------------------------------------
-
-test_that("'make_zero_sum_mod' works", {
-  set.seed(0)
-  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
-                      time = 2000:2005,
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ sex * age + age * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_prior(mod, age:time ~ Sp(n_comp = 5, along = "age", zero_sum = TRUE))
-  mod <- set_prior(mod, sex:age ~ RW())
-  ans_obtained <- make_zero_sum_mod(mod)
-  ans_expected <- c("(Intercept)" = NA,
-                    sex = NA,
-                    age = NA,
-                    time = NA,
-                    "sex:age" = FALSE,
-                    "age:time" = TRUE)
   expect_identical(ans_obtained, ans_expected)
 })
 

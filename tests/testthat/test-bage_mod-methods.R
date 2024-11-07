@@ -288,9 +288,6 @@ test_that("'computations' returns tibble if applied to fitted model", {
 })
 
 
-
-
-
 ## 'draw_vals_augment_fitted' -------------------------------------------------
 
 test_that("'draw_vals_augment_fitted' works with Poisson, has disp", {
@@ -410,7 +407,6 @@ test_that("'draw_vals_augment_fitted' works with binomial, has rr3", {
   expect_identical(names(aug_nodisp),
                    c(names(data), c(".deaths", ".observed", ".fitted")))
 })
-
 
 
 ## 'draw_vals_augment_unfitted' --------------------------------------------------------
@@ -1019,6 +1015,63 @@ test_that("'fit' works inner-outer", {
   expect_true(is_fitted(mod_est))
 })
 
+test_that("'fit' works when optimizer is 'optim'", {
+    set.seed(0)
+    data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age:reg + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- fit(mod)
+    expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit' works when 'quiet' is FALSE and optimizer is 'nlminb'", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  suppressMessages(
+    capture.output(ans_obtained <- fit(mod, quiet = FALSE), file = NULL)
+  )
+  expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit' works when 'quiet' is FALSE and optimizer is 'BFGS'", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  suppressMessages(
+    capture.output(ans_obtained <- fit(mod, optimizer = "BFGS", quiet = FALSE), file = NULL)
+  )
+  expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit' works when 'quiet' is FALSE and optimizer is 'CG'", {
+  set.seed(0)
+  data <- expand.grid(age = c(0:59, "60+"), time = 2000:2005, reg = c("a", "b"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age:reg + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  suppressMessages(
+    capture.output(ans_obtained <- fit(mod, optimizer = "CG", quiet = FALSE), file = NULL)
+  )
+  expect_s3_class(ans_obtained, "bage_mod")
+})
 
 
 ## 'forecast' -----------------------------------------------------------------
@@ -2297,12 +2350,12 @@ test_that("'tidy' works with valid inputs", {
                     size = popn)
     ans_unfit <- tidy(mod)
     expect_true(is.data.frame(ans_unfit))
-    expect_identical(names(ans_unfit), c("term", "prior", "along", "zero_sum",
+    expect_identical(names(ans_unfit), c("term", "prior", "along",
                                          "n_par", "n_par_free"))
     mod_fitted <- fit(mod)
     ans_fitted <- tidy(mod_fitted)
     expect_true(is.data.frame(ans_fitted))
-    expect_identical(names(ans_fitted), c("term", "prior", "along", "zero_sum",
+    expect_identical(names(ans_fitted), c("term", "prior", "along",
                                           "n_par", "n_par_free",
                                           "std_dev"))
 })

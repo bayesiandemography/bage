@@ -1,4 +1,17 @@
 
+# bage 0.8.2
+
+## Changes to interface
+
+* Added `optimizer` argument to `fit()`, giving choice between three
+  ways of optimizing
+* Modifed behaviour of `quiet` argument to `fit()` so that when it is
+  `TRUE`, trace output from the optimizer is shown.
+* Added `start_oldpar` argument to `fit()`, to allow calculations to
+  be restarted on a model that has already been fitted.
+* Modified printing of `"bage_mod"` object.
+
+
 # bage 0.8.1
 
 ## Changes to interface

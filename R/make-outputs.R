@@ -113,13 +113,22 @@ draw_vals_components_fitted <- function(mod) {
 #' typically created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #' @param aggregate Whether to aggregate outcome and offset variables
-#' @param quiet Whether to suppress messages from 'nlminb'
+#' @param optimizer Which optimizer to use
+#' @param quiet Whether to suppress warnings and trace information
+#' from optimizer
+#' @param start_oldpar Whether to start from old parameter values
 #'
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_default <- function(mod, aggregate, quiet) {
+fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   t1 <- Sys.time()
+  if (start_oldpar) {
+    if (is_fitted(mod))
+      oldpar <- mod$oldpar
+    else
+      cli::cli_abort("{.arg start_oldpar} is {.val {start_oldpar}} but model has not been fitted.")
+  }
   mod <- unfit(mod)
   ## data
   if (aggregate) {
@@ -172,14 +181,18 @@ fit_default <- function(mod, aggregate, quiet) {
                matrices_along_by_effectfree = matrices_along_by_effectfree,
                mean_disp = mean_disp)
   ## parameters
-  effectfree <- make_effectfree(mod)
-  hyper <- make_hyper(mod)
-  hyperrandfree <- make_hyperrandfree(mod)
-  log_disp <- 0
-  parameters <- list(effectfree = effectfree,   
-                     hyper = hyper,
-                     hyperrandfree = hyperrandfree,
-                     log_disp = log_disp)
+  if (start_oldpar)
+    parameters <- oldpar
+  else {
+    effectfree <- make_effectfree(mod)
+    hyper <- make_hyper(mod)
+    hyperrandfree <- make_hyperrandfree(mod)
+    log_disp <- 0
+    parameters <- list(effectfree = effectfree,   
+                       hyper = hyper,
+                       hyperrandfree = hyperrandfree,
+                       log_disp = log_disp)
+  }
   ## MakeADFun
   map <- make_map(mod)
   random <- make_random(mod)
@@ -192,16 +205,53 @@ fit_default <- function(mod, aggregate, quiet) {
                       silent = TRUE)
   ## optimise
   t2 <- Sys.time()
-  if (quiet) {
-    suppressMessages(out <- stats::nlminb(start = f$par,
-                                          objective = f$fn,
-                                          gradient = f$gr,
-                                          silent = TRUE))
+  if (identical(optimizer, "nlminb")) {
+    if (quiet) {
+      suppressWarnings(out <- stats::nlminb(start = f$par,
+                                            objective = f$fn,
+                                            gradient = f$gr,
+                                            control = list(iter.max = 300L,
+                                                           eval.max = 400L,
+                                                           trace = 0L)))
+    }
+    else {
+      cli::cli_alert("Output from {.fun nlminb}:")
+      out <- stats::nlminb(start = f$par,
+                           objective = f$fn,
+                           gradient = f$gr,
+                           control = list(iter.max = 300L,
+                                          eval.max = 400L,
+                                          trace = 1L))
+    }
+    iter <- out$iterations
+    message <- out$message
   }
-  out <- stats::nlminb(start = f$par,
-                       objective = f$fn,
-                       gradient = f$gr,
-                       silent = TRUE)
+  else if (optimizer %in% c("BFGS", "CG")) {
+    if (quiet) {
+      suppressWarnings(out <- stats::optim(par = f$par,
+                                           fn = f$fn,
+                                           gr = f$gr,
+                                           method = optimizer,
+                                           control = list(maxit = 300L,
+                                                          trace = 0L)))
+    }
+    else {
+      cli::cli_alert("Output from {.fun optim}:")
+      out <- stats::optim(par = f$par,
+                          fn = f$fn,
+                          gr = f$gr,
+                          method = optimizer,
+                          control = list(trace = 1L,
+                                         maxit = 300L,
+                                         REPORT = 1L))
+    }
+    iter <- out$counts[["gradient"]]
+    message <- out$message
+    if (is.null(message))
+      message <- "<none>"
+  }
+  else
+    cli::cli_abort("Internal error: Invalid value for {.arg optimizer}.")
   t3 <- Sys.time()
   ## extract results
   if (has_random_effects)
@@ -224,27 +274,38 @@ fit_default <- function(mod, aggregate, quiet) {
   mod <- make_stored_point(mod = mod,
                            est = est)
   t6 <- Sys.time()
-  mod$computations <- tibble::tibble(time_total = as.numeric(difftime(t6, t1, units = "secs")),
-                                     time_optim = as.numeric(difftime(t3, t2, units = "secs")),
-                                     time_draws = as.numeric(difftime(t5, t4, units = "secs")),
-                                     iter = out$iterations,
-                                     message = out$message)
+  time_total <- as.numeric(difftime(t6, t1, units = "secs"))
+  time_optim <- as.numeric(difftime(t3, t2, units = "secs"))
+  time_draws <- as.numeric(difftime(t5, t4, units = "secs"))
+  converged <- identical(out$convergence, 0L)
+  mod$computations <- tibble::tibble(time_total = time_total,
+                                     time_optim = time_optim,
+                                     time_draws = time_draws,
+                                     iter = iter,
+                                     converged = converged,
+                                     message = message)
+  mod$optimizer <- optimizer
+  mod$oldpar <- est
   mod
 }
 
 
-
+## HAS_TESTS
 #' Two-Step Method for Fitting a Model
 #'
 #' @param object A `bage_mod` object.
 #' @param quiet Whether to suppress warning messages from nlminb
 #' @param vars_inner Variables used
 #' in inner model.
+#' @param optimizer Which optimizer to use
+#' @param quiet Whether to suppress warnings from 'optimizer'
 #'
 #' @returns A `bage_mod` object
 #'
 #' @noRd
-fit_inner_outer <- function(mod, quiet, vars_inner) {
+fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
+  if (start_oldpar)
+    cli::cli_abort("{.arg start_oldpar} must be {.val {FALSE}} when using \"inner-outer\" method.")
   if (is.null(vars_inner))
     vars_inner <- make_vars_inner(mod)
   else
@@ -254,13 +315,17 @@ fit_inner_outer <- function(mod, quiet, vars_inner) {
   mod_inner <- make_mod_inner(mod = mod,
                               use_term = use_term)
   mod_inner <- fit_default(mod = mod_inner,
+                           optimizer = optimizer,
                            quiet = quiet,
+                           start_oldpar = start_oldpar,
                            aggregate = TRUE)
   mod_outer <- make_mod_outer(mod = mod,
                               mod_inner = mod_inner,
                               use_term = use_term)
   mod_outer <- fit_default(mod = mod_outer,
+                           optimizer = optimizer,
                            quiet = quiet,
+                           start_oldpar = start_oldpar,
                            aggregate = TRUE)
   computations <- rbind(inner = mod_inner$computations,
                         outer = mod_outer$computations)
@@ -271,7 +336,9 @@ fit_inner_outer <- function(mod, quiet, vars_inner) {
   if (has_disp(mod)) {
     mod_disp <- make_mod_disp(mod)
     mod_disp <- fit_default(mod = mod_disp,
+                            optimizer = optimizer,
                             quiet = quiet,
+                            start_oldpar = start_oldpar,
                             aggregate = FALSE)
     computations <- rbind(computations,
                           disp = mod_disp$computations)
@@ -1570,36 +1637,6 @@ make_unconstr_dimnames_by <- function(i_along, dimnames_term) {
   nms <- names(ans)
   for (i in seq_along(ans))
     ans[[i]] <- paste0(nms[[i]], seq_along(ans[[i]][-1L]))
-  ans
-}
-
-
-## HAS_TESTS
-#' Obtain the Value for 'zero_sum' for Terms in Model
-#'
-#' Returns NA for terms that do not have a 'zero_sum' attribute
-#' 
-#' @param mod An object of class 'bage_mod'
-#'
-#' @returns A character vector
-#'
-#' @noRd
-make_zero_sum_mod <- function(mod) {
-  priors <- mod$priors
-  dimnames_terms <- mod$dimnames_terms
-  n_term <- length(priors)
-  ans <- rep(NA, times = n_term)
-  names(ans) <- names(priors)
-  for (i_term in seq_len(n_term)) {
-    prior <- priors[[i_term]]
-    dimnames_term <- dimnames_terms[[i_term]]
-    is_interaction <- length(dimnames_term) >= 2L
-    uses_along <- uses_along(prior)
-    if (is_interaction && uses_along) {
-      val <- prior$specific$zero_sum
-      ans[[i_term]] <- val
-    }
-  }
   ans
 }
 

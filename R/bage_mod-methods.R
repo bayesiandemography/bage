@@ -563,6 +563,7 @@ generics::fit
 #'
 #' Calculate the posterior distribution for a model.
 #'
+#'
 #' @section Estimation methods:
 #'
 #' - `"standard"` All parameters, other than
@@ -578,15 +579,15 @@ generics::fit
 #'   In Step 2, the data is aggregated across the
 #'   remaining variables, and a model for the
 #'   `outer` variables is fitted to the data.
-#'   Parameter estimtes from steps 1 and 2 are then
-#'   combined.
+#'   In Step 3, values for dispersion are calculated.
+#'   Parameter estimtes from steps 1, 2, and 3
+#'   are then combined. `"inner-outer"` methods are
+#'   still experimental, and may change in future,
+#'   eg dividing calculations into chunks in Step 2.
 #'
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
-#' @param quiet Whether to suppress warning messages
-#' from [nlminb()]. Default is `TRUE`, since these
-#' messages are almost always false alarms.
 #' @param method Estimation method. Current
 #' choices are `"standard"` (the default)
 #' and `"inner-outer"`.
@@ -596,6 +597,18 @@ generics::fit
 #' If `NULL` (the default) `vars_inner` is the
 #' [age][set_var_age()], [sex/gender][set_var_sexgender()],
 #' and [time][set_var_time()] variables.
+#' @param optimizer Which optimizer to use.
+#' Current choices are `"nlminb"` ([stats::nlminb()])
+#' and `"BFGS"` ([stats::optim()] using method
+#' `"BFGS"`), and "GC" ([stats::optim()] using method
+#' `"CG"`) . Default is `"nlminb"`.
+#' @param quiet Whether to suppress warnings and
+#' progress messages from the optimizer.
+#'  Default is `TRUE`.
+#' @param start_oldpar Whether the optimizer should start
+#' at previous estimates. Used only
+#' when `fit()` is being called on a fitted
+#' model. Default is `FALSE`.
 #' @param ... Not currently used.
 #'
 #' @returns A `bage_mod` object
@@ -633,21 +646,30 @@ generics::fit
 #' comp
 #' @export
 fit.bage_mod <- function(object,
-                         quiet = TRUE,
                          method = c("standard", "inner-outer"),
                          vars_inner = NULL,
+                         optimizer = c("nlminb", "BFGS", "CG"),
+                         quiet = TRUE,
+                         start_oldpar = FALSE,
                          ...) {
   check_mod_has_obs(object)
   method <- match.arg(method)
+  optimizer <- match.arg(optimizer)
+  check_flag(x = quiet, nm_x = "quiet")
+  check_flag(x = start_oldpar, nm_x = "start_oldpar")
   check_has_no_dots(...)
   if (method == "standard")
     fit_default(object,
-                aggregate = TRUE,
-                quiet = quiet)
+                optimizer = optimizer,
+                quiet = quiet,
+                start_oldpar = start_oldpar,
+                aggregate = TRUE)
   else if (method == "inner-outer")
     fit_inner_outer(mod = object,
-                    vars_inner = vars_inner,
-                    quiet = quiet)
+                    optimizer = optimizer,
+                    quiet = quiet,
+                    start_oldpar = start_oldpar,
+                    vars_inner = vars_inner)
   else
     cli::cli_abort("Internal error: Unexpected value for {.arg method}.") ## nocov
 }
@@ -1683,7 +1705,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 #' mod
 #' @export
 print.bage_mod <- function(x, ...) {
-  nchar_offset <- 20L
+  nchar_offset <- 10L
   ## calculations
   formula <- x$formula
   priors <- x$priors
@@ -1696,27 +1718,49 @@ print.bage_mod <- function(x, ...) {
   mean_disp <- x$mean_disp
   datamod_outcome <- x$datamod_outcome
   vars_inner <- x$vars_inner
+  optimizer <- x$optimizer
   computations <- x$computations
   is_fitted <- is_fitted(x)
   str_title <- sprintf("\n    ------ %s %s model ------",
                        if (is_fitted) "Fitted" else "Unfitted",
                        model_descr(x))
+  nchar_response <- nchar(as.character(formula[[2L]]))
+  formula_text <- strwrap(deparse1(formula),
+                          width = 65L,
+                          indent = 3L,
+                          exdent = nchar_response + 7L)
+  has_offset <- !is.null(vname_offset)
+  if (has_offset) {
+    nm_offset <- nm_offset(x)
+    nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
+    str_offset <- sprintf("%s = %s", nm_offset, vname_offset)
+  }
   terms <- tidy(x)
   terms <- as.data.frame(terms)
   terms$along[is.na(terms$along)] <- "-"
-  terms$zero_sum[is.na(terms$zero_sum)] <- "-"
   if (is_fitted) {
     is_na_std_dev <- is.na(terms$std_dev)
     terms$std_dev <- sprintf("%0.2f", terms$std_dev)
     terms$std_dev[is_na_std_dev] <- "-"
   }
-  str_disp <- sprintf("% *s: mean=%s", nchar_offset, "dispersion", mean_disp)
-  has_offset <- !is.null(vname_offset)
-  if (has_offset) {
-    nm_offset <- nm_offset(x)
-    nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
-    str_offset <- sprintf("%s: %s", nm_offset, vname_offset)
+  settings <- data.frame(n_draw = n_draw,
+                         pr_mean_disp = mean_disp)
+  for (nm in c("var_time", "var_age", "var_sexgender")) {
+    val <- get(nm)
+    if (!is.null(val)) {
+      tmp <- data.frame(val)
+      names(tmp) <- nm
+      settings <- cbind(settings, tmp)
+    }
   }
+  has_optimizer <- !is.null(optimizer)
+  if (has_optimizer)
+  settings <- cbind(settings,
+                    data.frame(optimizer = optimizer))
+  is_inner_outer <- !is.null(vars_inner)
+  if (is_inner_outer)
+    settings <- cbind(settings,
+                      data.frame(method = "inner-outer"))
   if (is_fitted) {
     computations <- as.data.frame(computations)
     computations$time_total <- sprintf("%0.2f", computations$time_total)
@@ -1728,70 +1772,26 @@ print.bage_mod <- function(x, ...) {
   ## printing
   cat(str_title)
   cat("\n\n\n")
-  nchar_response <- nchar(as.character(formula[[2L]]))
-  formula_text <- strwrap(deparse1(formula),
-                          width = 65L,
-                          indent = 3L,
-                          exdent = nchar_response + 7L)
   cat(paste(formula_text, collapse = "\n"))
-  cat("\n\n\n")
-  if (!is.null(datamod_outcome)) {
-    cat(sprintf("% *s: %s",
-                nchar_offset + 6,
-                "data model for outcome",
-                str_call_datamod(datamod_outcome)))
-    cat("\n\n\n")
-  }
-  print(terms, row.names = FALSE)
   cat("\n\n")
-  cat(str_disp)
-  cat("\n")
   if (has_offset) {
     cat(str_offset)
-    cat("\n")
-  }
-  if (!is.null(var_age)) {
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "var_age",
-                var_age))
-    cat("\n")
-  }
-  if (!is.null(var_sexgender)) {
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "var_sexgender",
-                var_sexgender))
-    cat("\n")
-  }
-  if (!is.null(var_time)) {
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "var_time",
-                var_time))
-    cat("\n")
-  }
-  if (has_offset) {
-    cat(sprintf("% *s: %d",
-                nchar_offset,
-                "n_draw",
-                n_draw))
-    cat("\n")
-  }
-  if (is_inner_outer) {
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "fitting method",
-                "inner-outer"))
-    cat("\n")
-    cat(sprintf("% *s: %s",
-                nchar_offset,
-                "vars_inner",
-                paste(vars_inner, collapse = ",")))
-    cat("\n")
-  }
-  if (is_fitted) {
     cat("\n\n")
+  }
+  if (!is.null(datamod_outcome)) {
+    cat(sprintf("% *s: %s",
+                nchar_offset + 15L,
+                "data model for outcome",
+                str_call_datamod(datamod_outcome)))
+    cat("\n\n")
+  }
+  cat("\n")
+  print(terms, row.names = FALSE)
+  cat("\n\n")
+  print(settings, row.names = FALSE)
+    cat("\n")
+  if (is_fitted) {
+    cat("\n")
     print(computations, row.names = FALSE)
     cat("\n")
   }
@@ -2118,12 +2118,11 @@ tidy.bage_mod <- function(x, ...) {
   priors <- x$priors
   dimnames_terms <- x$dimnames_terms
   along <- make_along_mod(x)
-  zero_sum <- make_zero_sum_mod(x)
   n_par <- make_lengths_effect(dimnames_terms)
   n_par_free <- make_lengths_effectfree(x)
   term <- names(priors)
   prior <- vapply(priors, str_call_prior, "")
-  ans <- tibble::tibble(term, prior, along, zero_sum, n_par, n_par_free)
+  ans <- tibble::tibble(term, prior, along, n_par, n_par_free)
   is_fitted <- is_fitted(x)
   if (is_fitted) {
     effectfree <- x$point_effectfree

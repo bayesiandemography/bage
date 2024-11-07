@@ -4847,8 +4847,8 @@ print.bage_prior_rw2seasfix <- function(x, ...) {
 #' @export
 print.bage_prior_rw2seasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n_seas", "s", "s_seas", "sd_seas", "along", "zero_sum"),
-              slots = c("n_seas", "scale", "scale_seas", "sd_seas", "along", "zero_sum"))
+              nms = c("n_seas", "s", "sd_slope", "s_seas", "sd_seas", "along", "zero_sum"),
+              slots = c("n_seas", "scale", "sd_slope", "scale_seas", "sd_seas", "along", "zero_sum"))
 }
 
 ## HAS_TESTS

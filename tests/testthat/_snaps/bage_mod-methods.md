@@ -9,21 +9,19 @@
       
          deaths ~ age + sex + time
       
+        exposure = popn
       
-          data model for outcome: rr3()
-      
-      
-              term  prior along zero_sum n_par n_par_free
-       (Intercept) NFix()     -        -     1          1
-               age   RW()   age        -    10          9
-               sex NFix()     -        -     2          2
-              time   RW()  time        -     6          5
+         data model for outcome: rr3()
       
       
-                dispersion: mean=1
-                  exposure: popn
-                   var_age: age
-             var_sexgender: sex
-                  var_time: time
-                    n_draw: 1000
+              term  prior along n_par n_par_free
+       (Intercept) NFix()     -     1          1
+               age   RW()   age    10          9
+               sex NFix()     -     2          2
+              time   RW()  time     6          5
+      
+      
+       n_draw pr_mean_disp var_time var_age var_sexgender
+         1000            1     time     age           sex
+      
 

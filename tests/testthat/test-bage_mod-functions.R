@@ -352,7 +352,8 @@ test_that("'set_n_draw' works with valid inputs", {
              "point_hyper",
              "point_hyperrandfree",
              "point_disp",
-             "computations")
+             "computations",
+             "oldpar")
     expect_true(all(nms %in% names(mod_unfit)))
     expect_true(all(nms %in% names(mod_fit)))
     expect_true(all(nms %in% names(mod_fit_unfit)))

@@ -498,6 +498,7 @@ unfit <- function(mod) {
   mod["point_hyperrandfree"] <- list(NULL)
   mod["point_disp"] <- list(NULL)
   mod["computations"] <- list(NULL)
+  mod["oldpar"] <- list(NULL)
   mod
 }
 

@@ -159,13 +159,13 @@
 ---
 
     Code
-      print(RW2_Seas(n_seas = 2, s = 1))
+      print(RW2_Seas(n_seas = 2, s_seas = 1))
     Output
-        RW2_Seas(n_seas=2) 
+        RW2_Seas(n_seas=2,s_seas=1) 
           n_seas: 2
                s: 1
         sd_slope: 1
-          s_seas: 0
+          s_seas: 1
          sd_seas: 1
            along: NULL
         zero_sum: FALSE
