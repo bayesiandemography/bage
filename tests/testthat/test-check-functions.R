@@ -652,6 +652,36 @@ test_that("'check_offset_not_in_formula' returns correct error with invalid inpu
 })
 
 
+## 'check_old_version' --------------------------------------------------------
+
+test_that("'check_old_version' returns TRUE with valid version model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ (age + sex + time)^2
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_true(check_old_version(mod))
+})
+
+test_that("'check_old_version' raises error with invalid version", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, sex = c("F", "M"), time = 2001:2005)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ (age + sex + time)^2
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod$draws_hyperrandfree <- NULL
+  expect_error(check_old_version(mod, nm_x = "object"),
+               "`object` appears to have been created with an old version of bage.")
+})
+
+
+
 ## 'check_resp_le_offset' -----------------------------------------------------
 
 test_that("'check_resp_le_offset' returns TRUE with valid inputs - formula", {

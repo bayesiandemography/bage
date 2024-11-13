@@ -3,6 +3,8 @@
 
 ## Changes to interface
 
+* Check to see that model object was created using current version of
+  'bage'.
 * Added `optimizer` argument to `fit()`, giving choice between three
   ways of optimizing
 * Modifed behaviour of `quiet` argument to `fit()` so that when it is
