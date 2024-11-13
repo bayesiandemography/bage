@@ -128,6 +128,7 @@ generics::augment
 augment.bage_mod <- function(x,
                              quiet = FALSE,
                              ...) {
+  check_old_version(x = x, nm_x = "x")
   is_fitted <- is_fitted(x)
   check_flag(x = quiet, nm_x = "quiet")
   check_has_no_dots(...)
@@ -222,6 +223,7 @@ generics::components
 components.bage_mod <- function(object,
                                 quiet = FALSE,
                                 ...) {
+  check_old_version(x = object, nm_x = "object")
   check_flag(x = quiet, nm_x = "quiet")
   is_fitted <- is_fitted(object)
   check_has_no_dots(...)
@@ -280,6 +282,7 @@ computations <- function(object) {
 
 #' @export
 computations.bage_mod <- function(object) {
+  check_old_version(x = object, nm_x = "object")
   if (is_fitted(object))
     object$computations
   else {
@@ -652,6 +655,7 @@ fit.bage_mod <- function(object,
                          quiet = TRUE,
                          start_oldpar = FALSE,
                          ...) {
+  check_old_version(x = object, nm_x = "object")
   check_mod_has_obs(object)
   method <- match.arg(method)
   optimizer <- match.arg(optimizer)
@@ -805,6 +809,7 @@ forecast.bage_mod <- function(object,
                               include_estimates = FALSE,
                               labels = NULL,
                               ...) {
+  check_old_version(x = object, nm_x = "object")
   data_est <- object$data
   priors <- object$priors
   dn_terms_est <- object$dimnames_terms
@@ -1705,6 +1710,7 @@ nm_offset.bage_mod_norm <- function(mod) "weights"
 #' mod
 #' @export
 print.bage_mod <- function(x, ...) {
+  check_old_version(x = x, nm_x = "x")
   nchar_offset <- 10L
   ## calculations
   formula <- x$formula
@@ -1915,6 +1921,7 @@ replicate_data <- function(x, condition_on = NULL, n = 19) {
 ## HAS_TESTS
 #' @export
 replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
+  check_old_version(x = x, nm_x = "x")
   if (is.null(condition_on))
     condition_on <- "expected"
   else
@@ -1964,6 +1971,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
 ## HAS_TESTS
 #' @export
 replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
+  check_old_version(x = x, nm_x = "x")
   if (is.null(condition_on))
     condition_on <- "expected"
   else
@@ -2017,6 +2025,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
 ## HAS_TESTS
 #' @export
 replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
+  check_old_version(x = x, nm_x = "x")
   if (!is.null(condition_on))
     cli::cli_warn(c("Ignoring value for {.arg condition_on}.",
                     i = paste("{.fun replicate_data} ignores argument {.arg condition_on}",
@@ -2114,6 +2123,7 @@ generics::tidy
 #' tidy(mod)
 #' @export
 tidy.bage_mod <- function(x, ...) {
+  check_old_version(x = x, nm_x = "x")
   check_has_no_dots(...)
   priors <- x$priors
   dimnames_terms <- x$dimnames_terms

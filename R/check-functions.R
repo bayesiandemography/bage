@@ -598,6 +598,27 @@ check_offset_nonneg <- function(vname_offset, nm_offset, data) {
 
 
 ## HAS_TESTS
+#' Raise Error of Model Object Created Using Old Version of 'bage'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd 
+check_old_version <- function(x, nm_x) {
+  check_bage_mod(x = x, nm_x = nm_x)
+  is_old_version <- !("draws_hyperrandfree" %in% names(x))
+  if (is_old_version) {
+    cli::cli_abort(c("{.arg {nm_x}} appears to have been created with an old version of {.pkg bage}.",
+                     i = "Please recreate the object using the current version.",
+                     i = paste("Alternatively, install the old version using, for instance,",
+                               '{.code devtools::install_version("bage", version = "0.7.4")}')))
+  }
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that Prior has Age Dimension
 #'
 #' @param prior Object of class 'bage_prior'

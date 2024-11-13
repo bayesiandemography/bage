@@ -10,6 +10,16 @@ Bayesian estimation and forecasting of age-specific rates.
 Estimation uses \href{https://CRAN.R-project.org/package=TMB}{TMB},
 and is fast.
 }
+\section{Example workflow}{
+
+\enumerate{
+\item Specify model using \code{\link[=mod_pois]{mod_pois()}}
+\item Fit model using \code{\link[=fit]{fit()}}
+\item Extract results using \code{\link[=augment]{augment()}}
+\item Check model using \code{\link[=replicate_data]{replicate_data()}}
+}
+}
+
 \section{Functions}{
 
 

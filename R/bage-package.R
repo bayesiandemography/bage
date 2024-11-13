@@ -5,6 +5,13 @@
 #' Estimation uses [TMB](https://CRAN.R-project.org/package=TMB),
 #' and is fast.
 #'
+#' @section Example workflow:
+#'
+#' 1. Specify model using [mod_pois()]
+#' 2. Fit model using [fit()]
+#' 3. Extract results using [augment()]
+#' 4. Check model using [replicate_data()]
+#'
 #' @section Functions:
 #'
 #' **Specify model**
