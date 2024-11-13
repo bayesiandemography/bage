@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,8 @@
 <h2 class="pkg-version" data-toc-text="0.8.2" id="bage-082">bage 0.8.2<a class="anchor" aria-label="anchor" href="#bage-082"></a></h2>
 <div class="section level3">
 <h3 id="changes-to-interface-0-8-2">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-8-2"></a></h3>
-<ul><li>Added <code>optimizer</code> argument to <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>, giving choice between three ways of optimizing</li>
+<ul><li>Check to see that model object was created using current version of ‘bage’.</li>
+<li>Added <code>optimizer</code> argument to <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>, giving choice between three ways of optimizing</li>
 <li>Modifed behaviour of <code>quiet</code> argument to <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> so that when it is <code>TRUE</code>, trace output from the optimizer is shown.</li>
 <li>Added <code>start_oldpar</code> argument to <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>, to allow calculations to be restarted on a model that has already been fitted.</li>
 <li>Modified printing of <code>"bage_mod"</code> object.</li>
