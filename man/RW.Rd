@@ -4,7 +4,7 @@
 \alias{RW}
 \title{Random Walk Prior}
 \usage{
-RW(s = 1, along = NULL, zero_sum = FALSE)
+RW(s = 1, sd = 1, along = NULL, zero_sum = FALSE)
 }
 \arguments{
 \item{s}{Scale for the prior for the innovations.
@@ -19,13 +19,14 @@ sum to 0 within each combination
 of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
-An object of class \code{"bage_prior_rw"}.
+An object of class \code{"bage_prior_rwrandom"}
+or \code{"bage_prior_rwzero"}.
 }
 \description{
-Use a random walk to model
+Use a random walk as a model for a main effect
 a main effect, or use multiple random walks
-to model an interaction.
-Typically used with age or time effects or with
+as a model for an interaction.
+Typically used with age or time effects, or with
 interactions that involve age or time.
 }
 \details{
@@ -35,19 +36,24 @@ the 'along' variable, within each combination of the
 'by' variables.
 
 Argument \code{s} controls the size of innovations.
-Smaller values for \code{s} tend to give smoother series.
+Smaller values for \code{s} may produce smoother series.
+
+Argument \code{sd} controls variance in the
+initial value. \code{sd} can be \code{0}.
 }
 \section{Mathematical details}{
 
 
 When \code{RW()} is used with a main effect,
 
-\deqn{\beta_j = \beta_{j-1} + \epsilon_j}
+\deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_j = \beta_{j-1} + \epsilon_j, \quad j > 1}
 \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}}
+\deqn{\beta_{u,1} = \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}, \quad v > 1}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 
 where
@@ -67,6 +73,7 @@ where \code{s} is provided by the user.
 \examples{
 RW()
 RW(s = 0.5)
+RW(sd = 0)
 RW(along = "cohort")
 }
 \seealso{
