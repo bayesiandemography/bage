@@ -680,10 +680,10 @@ NFix <- function(sd = 1) {
 ## HAS_TESTS
 #' Random Walk Prior
 #'
-#' Use a random walk to model
+#' Use a random walk as a model for a main effect
 #' a main effect, or use multiple random walks
-#' to model an interaction.
-#' Typically used with age or time effects or with
+#' as a model for an interaction.
+#' Typically used with age or time effects, or with
 #' interactions that involve age or time.
 #'
 #' If `RW()` is used with an interaction,
@@ -692,18 +692,23 @@ NFix <- function(sd = 1) {
 #' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations.
-#' Smaller values for `s` tend to give smoother series.
+#' Smaller values for `s` tend to produce a smoother series.
+#'
+#' Argument `sd` controls variance in the
+#' initial value. `sd` can be `0`.
 #' 
 #' @section Mathematical details:
 #'
 #' When `RW()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \beta_{j-1} + \epsilon_j}
+#' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\beta_j = \beta_{j-1} + \epsilon_j, \quad j > 1}
 #' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}}
+#' \deqn{\beta_{u,1} = \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}, \quad v > 1}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
 #' where
@@ -719,14 +724,16 @@ NFix <- function(sd = 1) {
 #'
 #' @inheritParams AR
 #'
-#' @returns An object of class `"bage_prior_rw"`.
+#' @returns An object of class `"bage_prior_rwrandom"`
+#' or `"bage_prior_rwzero"`.
 #'
 #' @seealso
+#' - [RW_Seas()] Random walk with seasonal effect
 #' - [RW2()] Second-order random walk
 #' - [AR()] Autoregressive with order k
 #' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
-#' - [SVD()] Smoothing of age via singular value decomposition
+#' - [SVD()] Smoothing over age using singular value decomposition
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -734,29 +741,38 @@ NFix <- function(sd = 1) {
 #' @examples
 #' RW()
 #' RW(s = 0.5)
+#' RW(sd = 0)
 #' RW(along = "cohort")
 #' @export
 RW <- function(s = 1,
+               sd = 1,
                along = NULL,
                zero_sum = FALSE) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   scale <- as.double(s)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
-  new_bage_prior_rw(scale = scale,
-                    along = along,
-                    zero_sum = zero_sum)
+  if (sd > 0)
+    new_bage_prior_rwrandom(scale = scale,
+                            sd = sd,
+                            along = along,
+                            zero_sum = zero_sum)
+  else
+    new_bage_prior_rwzero(scale = scale,
+                          along = along,
+                          zero_sum = zero_sum)
 }
 
 
 ## HAS_TESTS
 #' Random Walk Prior with Seasonal Effect
 #'
-#' Use a random walk with seasonal effects to model
+#' Use a random walk with seasonal effects as a model for
 #' a main effect, or use multiple random walks,
 #' each with their own seasonal effects,
-#' to model an interaction.
+#' as a model for an interaction.
 #' Typically used with main effects or interactions
 #' that involve time.
 #'
@@ -767,9 +783,12 @@ RW <- function(s = 1,
 #' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations in the random walk.
-#' Smaller values for `s` tend to give smoother series.
+#' Smaller values for `s` tend to produce a smoother series.
 #'
-#' Argument `n_seas` controls the number of `seasons`. 
+#' Argument `sd` controls variance in the
+#' initial value of the random walk. `sd` can be `0`.
+#'
+#' Argument `n_seas` controls the number of seasons. 
 #' When using quarterly data, for instance,
 #' `n_seas` should be `4`, and when using
 #' monthly data, `n_seas` should be `12`.
@@ -784,13 +803,15 @@ RW <- function(s = 1,
 #' When `RW_Seas()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \alpha_j + \lambda_j}
-#' \deqn{\alpha_j \sim \text{N}(\alpha_{j-1}, \tau^2)}
+#' \deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\alpha_j \sim \text{N}(\alpha_{j-1}, \tau^2), \quad j > 1}
 #' \deqn{\lambda_j \sim \text{N}(\lambda_{j-n}, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}}
-#' \deqn{\alpha_{u,v} \sim \text{N}(\alpha_{u,v-1}, \tau^2),}
+#' \deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\alpha_{u,v} \sim \text{N}(\alpha_{u,v-1}, \tau^2), \quad v > 1}
 #' \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-n}, \omega^2)}
 #' 
 #' where
@@ -827,7 +848,7 @@ RW <- function(s = 1,
 #'
 #' @seealso
 #' - [RW()] Random walk without seasonal effect
-#' - [RW2_Seas()] Second-order random walk, with seasonal effect
+#' - [RW2_Seas()] Second-order random walk with seasonal effect
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -835,9 +856,11 @@ RW <- function(s = 1,
 #' @examples
 #' RW_Seas(n_seas = 4)               ## seasonal effects fixed
 #' RW_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
+#' RW_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
 #' @export
 RW_Seas <- function(n_seas,
                     s = 1,
+                    sd = 1,
                     s_seas = 0,
                     sd_seas = 1,
                     along = NULL,
@@ -848,28 +871,49 @@ RW_Seas <- function(n_seas,
                     max = NULL,
                     divisible_by = NULL)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
   check_scale(sd_seas, nm_x = "sd_seas", zero_ok = FALSE)
   n_seas <- as.integer(n_seas)
   scale <- as.double(s)
+  sd <- as.double(sd)
   scale_seas = as.double(s_seas)
   sd_seas <- as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
-  if (scale_seas > 0)
-    new_bage_prior_rwseasvary(n_seas = n_seas,
-                              scale_seas = scale_seas,
-                              sd_seas = sd_seas,
-                              scale = scale,
-                              along = along,
-                              zero_sum = zero_sum)
-  else
-    new_bage_prior_rwseasfix(n_seas = n_seas,
-                             sd_seas = sd_seas,
-                             scale = scale,
-                             along = along,
-                             zero_sum = zero_sum)
+  if (scale_seas > 0) {
+    if (sd > 0)
+      new_bage_prior_rwrandomseasvary(n_seas = n_seas,
+                                      scale_seas = scale_seas,
+                                      sd_seas = sd_seas,
+                                      scale = scale,
+                                      sd = sd,
+                                      along = along,
+                                      zero_sum = zero_sum)
+    else
+      new_bage_prior_rwzeroseasvary(n_seas = n_seas,
+                                    scale_seas = scale_seas,
+                                    sd_seas = sd_seas,
+                                    scale = scale,
+                                    along = along,
+                                    zero_sum = zero_sum)
+  }
+  else {
+    if (sd > 0)
+      new_bage_prior_rwrandomseasfix(n_seas = n_seas,
+                                     sd_seas = sd_seas,
+                                     scale = scale,
+                                     sd = sd,
+                                     along = along,
+                                     zero_sum = zero_sum)
+    else
+      new_bage_prior_rwzeroseasfix(n_seas = n_seas,
+                                   sd_seas = sd_seas,
+                                   scale = scale,
+                                   along = along,
+                                   zero_sum = zero_sum)
+  }
 }
 
 
@@ -879,11 +923,11 @@ RW_Seas <- function(n_seas,
 #' Use a second-oder random walk to model
 #' a main effect, or use multiple second-order random walks
 #' to model an interaction.
-#' A second-order random walk is effectively
+#' A second-order random walk is
 #' a random walk with drift where the
 #' drift term varies. It is typically
 #' used with main effects or interactions
-#' that involve time, where there are sustained
+#' that involve age or time, where there are sustained
 #' trends upward or downward.
 #'
 #' If `RW2()` is used with an interaction,
@@ -895,28 +939,26 @@ RW_Seas <- function(n_seas,
 #' Argument `s` controls the size of innovations in the random walk.
 #' Smaller values for `s` tend to give smoother series.
 #'
-#' Argument `n_seas` controls the number of `seasons`. 
-#' When using quarterly data, for instance,
-#' `n_seas` should be `4`, and when using
-#' monthly data, `n_seas` should be `12`.
+#' Argument `sd` controls variance in the
+#' initial value of the random walk. `sd` can be `0`.
 #'
-#' By default, the magnitude of seasonal effects
-#' can change over time. However, setting `s_seas`
-#' to `0` produces seasonal effects that are fixed,
-#' eg where "January" effect is the same every year,
-#'  the "Feburary" effect is the same every year, and so on.
-#'
+#' Argument `sd_slope` controls variance in the
+#' initial slope of the random walk.
 #'
 #' @section Mathematical details:
 #'
-#' When `RW()` is used with a main effect,
+#' When `RW2()` is used with a main effect,
 #'
-#' \deqn{\beta_j = 2 \beta_{j-1} - \beta_{j-2} + \epsilon_j}
+#' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)} 
+#' \deqn{\beta_2 \sim \text{N}(\beta_1, \text{sd_slope}^2)} 
+#' \deqn{\beta_j = 2 \beta_{j-1} - \beta_{j-2} + \epsilon_j, \quad j > 2}
 #' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} = 2\beta_{u,v-1} - \beta_{u,v-2} + \epsilon_{u,v}}
+#' \deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)} 
+#' \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \text{sd_slope}^2)} 
+#' \deqn{\beta_{u,v} = 2\beta_{u,v-1} - \beta_{u,v-2} + \epsilon_{u,v}, \quad v > 2}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
 #' 
 #' where
@@ -976,12 +1018,12 @@ RW2 <- function(s = 1,
 #' Designed for use in models of mortality rates.
 #' 
 #' A second-order random walk prior [RW2()]
-#' does a good job of smoothing
+#' works well for smoothing
 #' mortality rates over age, except at age 0, where there
-#' is typically a sudden jump in rates, reflecting the
+#' is a sudden jump in rates, reflecting the
 #' special risks of infancy. The `RW2_Infant()`
-#' is a [RW2()] prior with a special treatment of
-#' the first age group.
+#' extends the [RW2()] prior by adding an indicator
+#' variable for the first age group.
 #'
 #' If `RW2_Infant()` is used in an interaction,
 #' the 'along' dimension is always age, implying that
@@ -999,26 +1041,22 @@ RW2 <- function(s = 1,
 #' When `RW2_Infant()` is used with a main effect,
 #'
 #' \deqn{\beta_1 \sim \text{N}(0, 1)}
-#' \deqn{\beta_2 \sim \text{N}(0, \omega^2)}
+#' \deqn{\beta_2 \sim \text{N}(0, \text{sd_slope}^2)}
 #' \deqn{\beta_3 \sim \text{N}(2 \beta_2, \tau^2)}
-#' \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2)}
+#' \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j > 2}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
-#' \deqn{\beta_{u,2} \sim \text{N}(0, \omega^2)}
+#' \deqn{\beta_{u,2} \sim \text{N}(0, \text{sd_slope}^2)}
 #' \deqn{\beta_{u,3} \sim \text{N}(2 \beta_{u,2}, \tau^2)}
-#' \deqn{\beta_{u,j} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2)}
+#' \deqn{\beta_{u,v} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v > 2}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is a main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
 #' - \eqn{v} denotes position within the 'along' variable of the interaction; and
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
-#'
-#' Parameter \eqn{\omega} has a half-normal prior
-#' \deqn{\omega \sim \text{N}^+(0, \text{sd}^2),}
-#' where `sd` can be specified by the user.
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
@@ -1882,74 +1920,123 @@ new_bage_prior_normfixed <- function(sd) {
     ans
 }
 
+
+
 ## HAS_TESTS
-new_bage_prior_rw <- function(scale,
-                              along,
-                              zero_sum) {
-    ans <- list(i_prior = 6L,
-                const = c(scale = scale),
-                specific = list(scale = scale,
-                                along = along,
-                                zero_sum = zero_sum))
-    class(ans) <- c("bage_prior_rw", "bage_prior")
-    ans
+new_bage_prior_rwrandom <- function(scale,
+                                    sd,
+                                    along,
+                                    zero_sum) {
+  ans <- list(i_prior = 19L,
+              const = c(scale = scale,
+                        sd = sd),
+              specific = list(scale = scale,
+                              sd = sd,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rwrandom", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasfix <- function(n_seas,
-                                     sd_seas,
-                                     scale,
-                                     along,
-                                     zero_sum) {
-    ans <- list(i_prior = 10L,
-                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          sd_seas = sd_seas,
-                          scale = scale),
-                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
-                                sd_seas = sd_seas,
-                                scale = scale,
-                                along = along,
-                                zero_sum = zero_sum))
-    class(ans) <- c("bage_prior_rwseasfix", "bage_prior")
-    ans
+new_bage_prior_rwrandomseasfix <- function(n_seas,
+                                           sd_seas,
+                                           scale,
+                                           sd,
+                                           along,
+                                           zero_sum) {
+  ans <- list(i_prior = 20L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        sd_seas = sd_seas,
+                        scale = scale,
+                        sd = sd),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              sd = sd,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rwrandomseasfix", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rwseasvary <- function(n_seas,
-                                      scale_seas,
-                                      sd_seas,
-                                      scale,
-                                      along,
-                                      zero_sum) {
-    ans <- list(i_prior = 11L,
-                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          scale_seas = scale_seas,
-                          sd_seas = sd_seas,
-                          scale = scale),
-                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
-                                scale_seas = scale_seas,
-                                sd_seas = sd_seas,
-                                scale = scale,
-                                along = along,
-                                zero_sum = zero_sum))
-    class(ans) <- c("bage_prior_rwseasvary", "bage_prior")
-    ans
+new_bage_prior_rwrandomseasvary <- function(n_seas,
+                                            scale_seas,
+                                            sd_seas,
+                                            scale,
+                                            sd,
+                                            along,
+                                            zero_sum) {
+  ans <- list(i_prior = 21L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        scale_seas = scale_seas,
+                        sd_seas = sd_seas,
+                        scale = scale,
+                        sd = sd),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              scale_seas = scale_seas,
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              sd = sd,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rwrandomseasvary", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2 <- function(scale,
-                               sd_slope,
-                               along,
-                               zero_sum) {
-    ans <- list(i_prior = 7L,
-                const = c(scale = scale,
-                          sd_slope = sd_slope),
-                specific = list(scale = scale,
-                                sd_slope = sd_slope,
-                                along = along,
-                                zero_sum = zero_sum))
-    class(ans) <- c("bage_prior_rw2", "bage_prior")
-    ans
+new_bage_prior_rwzero <- function(scale,
+                                  along,
+                                  zero_sum) {
+  ans <- list(i_prior = 6L,
+              const = c(scale = scale),
+              specific = list(scale = scale,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rwzero", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_rwzeroseasfix <- function(n_seas,
+                                         sd_seas,
+                                         scale,
+                                         along,
+                                         zero_sum) {
+  ans <- list(i_prior = 10L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        sd_seas = sd_seas,
+                        scale = scale),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rwzeroseasfix", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_rwzeroseasvary <- function(n_seas,
+                                          scale_seas,
+                                          sd_seas,
+                                          scale,
+                                          along,
+                                          zero_sum) {
+  ans <- list(i_prior = 11L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        scale_seas = scale_seas,
+                        sd_seas = sd_seas,
+                        scale = scale),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              scale_seas = scale_seas,
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rwzeroseasvary", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS
@@ -1968,50 +2055,138 @@ new_bage_prior_rw2infant <- function(scale,
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasfix <- function(n_seas,
-                                      sd_seas,
-                                      scale,
-                                      sd_slope,
-                                      along,
-                                      zero_sum) {
-    ans <- list(i_prior = 12L,
-                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          sd_seas = sd_seas,
-                          scale = scale,
-                          sd_slope = sd_slope),
-                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
-                                sd_seas = sd_seas,
-                                scale = scale,
-                                sd_slope = sd_slope,
-                                along = along,
-                                zero_sum = zero_sum))
-    class(ans) <- c("bage_prior_rw2seasfix", "bage_prior")
-    ans
+new_bage_prior_rw2random <- function(scale,
+                                     sd,
+                                     sd_slope,
+                                     along,
+                                     zero_sum) {
+  ans <- list(i_prior = 22L,
+              const = c(scale = scale,
+                        sd = sd,
+                        sd_slope = sd_slope),
+              specific = list(scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rw2random", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS
-new_bage_prior_rw2seasvary <- function(n_seas,
-                                       scale_seas,
-                                       sd_seas,
-                                       scale,
-                                       sd_slope,
-                                       along,
-                                       zero_sum) {
-    ans <- list(i_prior = 13L,
-                const = c(n_seas = n_seas,       ## put season-related quantities at beginning
-                          scale_seas = scale_seas,
-                          sd_seas = sd_seas,
-                          scale = scale,
-                          sd_slope = sd_slope),
-                specific = list(n_seas = n_seas, ## put season-related quantities at beginning
-                                scale_seas = scale_seas,
-                                sd_seas = sd_seas,
-                                scale = scale,
-                                sd_slope = sd_slope,
-                                along = along,
-                                zero_sum = zero_sum))
-    class(ans) <- c("bage_prior_rw2seasvary", "bage_prior")
-    ans
+new_bage_prior_rw2randomseasfix <- function(n_seas,
+                                            sd_seas,
+                                            scale,
+                                            sd,
+                                            sd_slope,
+                                            along,
+                                            zero_sum) {
+  ans <- list(i_prior = 23L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        sd_seas = sd_seas,
+                        scale = scale,
+                        sd = sd,
+                        sd_slope = sd_slope),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rw2randomseasfix", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_rw2randomseasvary <- function(n_seas,
+                                           scale_seas,
+                                           sd_seas,
+                                           scale,
+                                           sd,
+                                           sd_slope,
+                                           along,
+                                           zero_sum) {
+  ans <- list(i_prior = 24L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        scale_seas = scale_seas,
+                        sd_seas = sd_seas,
+                        scale = scale,
+                        sd = sd,
+                        sd_slope = sd_slope),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              scale_seas = scale_seas,
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rw2randomseasvary", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_rw2zero <- function(scale,
+                                   sd_slope,
+                                   along,
+                                   zero_sum) {
+  ans <- list(i_prior = 7L,
+              const = c(scale = scale,
+                        sd_slope = sd_slope),
+              specific = list(scale = scale,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rw2zero", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_rw2zeroseasfix <- function(n_seas,
+                                          sd_seas,
+                                          scale,
+                                          sd_slope,
+                                          along,
+                                          zero_sum) {
+  ans <- list(i_prior = 12L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        sd_seas = sd_seas,
+                        scale = scale,
+                        sd_slope = sd_slope),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rw2zeroseasfix", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_rw2zeroseasvary <- function(n_seas,
+                                           scale_seas,
+                                           sd_seas,
+                                           scale,
+                                           sd_slope,
+                                           along,
+                                           zero_sum) {
+  ans <- list(i_prior = 13L,
+              const = c(n_seas = n_seas,       ## put season-related quantities at beginning
+                        scale_seas = scale_seas,
+                        sd_seas = sd_seas,
+                        scale = scale,
+                        sd_slope = sd_slope),
+              specific = list(n_seas = n_seas, ## put season-related quantities at beginning
+                              scale_seas = scale_seas,
+                              sd_seas = sd_seas,
+                              scale = scale,
+                              sd_slope = sd_slope,
+                              along = along,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_rw2zeroseasvary", "bage_prior")
+  ans
 }
 
 ## HAS_TESTS

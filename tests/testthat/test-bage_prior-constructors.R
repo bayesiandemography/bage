@@ -131,16 +131,29 @@ test_that("'NFix' works with valid inputs", {
     expect_identical(NFix(), new_bage_prior_normfixed(sd = 1))
 })
 
-
 test_that("'RW' works with valid inputs", {
   expect_identical(RW(),
-                   new_bage_prior_rw(scale = 1, along = NULL, zero_sum = FALSE))
+                   new_bage_prior_rwrandom(scale = 1,
+                                           sd = 1,
+                                           along = NULL,
+                                           zero_sum = FALSE))
   expect_identical(RW(s = 0.3,
+                      sd = 0.2,
                       zero_sum = TRUE,
                       along = "reg"),
-                   new_bage_prior_rw(scale = 0.3,
-                                     along = "reg",
-                                     zero_sum = TRUE))
+                   new_bage_prior_rwrandom(scale = 0.3,
+                                           sd = 0.2,
+                                           along = "reg",
+                                           zero_sum = TRUE))
+  expect_identical(RW(sd = 0),
+                   new_bage_prior_rwzero(scale = 1, along = NULL, zero_sum = FALSE))
+  expect_identical(RW(s = 0.3,
+                      sd = 0,
+                      zero_sum = TRUE,
+                      along = "reg"),
+                   new_bage_prior_rwzero(scale = 0.3,
+                                         along = "reg",
+                                         zero_sum = TRUE))
 })
 
 
@@ -517,9 +530,71 @@ test_that("'new_bage_prior_normfixed' works", {
     expect_identical(obj$specific, list(sd = 1))
 })
 
-test_that("'new_bage_prior_rw' works", {
-  obj <- new_bage_prior_rw(scale = 1, along = NULL, zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_rw")
+test_that("'new_bage_prior_rwrandom' works", {
+  obj <- new_bage_prior_rwrandom(scale = 1, sd = 1, along = NULL, zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rwrandom")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 19L)
+  expect_identical(obj$const, c(scale = 1, sd = 1))
+  expect_identical(obj$specific, list(scale = 1,
+                                      sd = 1,
+                                      along = NULL,
+                                      zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rwrandomseasfix' works", {
+  obj <- new_bage_prior_rwrandomseasfix(n_seas = 4,
+                                      sd_seas = 1,
+                                      scale = 1,
+                                      sd = 1,
+                                      along = NULL,
+                                      zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rwrandomseasfix")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 20L)
+  expect_identical(obj$const, c(n_seas = 4,
+                                sd_seas = 1,
+                                scale = 1,
+                                sd = 1))
+  expect_identical(obj$specific, list(n_seas = 4,
+                                      sd_seas = 1,
+                                      scale = 1,
+                                      sd = 1,
+                                      along = NULL,
+                                      zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rwrandomseasvary' works", {
+  obj <- new_bage_prior_rwrandomseasvary(n_seas = 4,
+                                         scale_seas = 1,
+                                         sd_seas = 1,
+                                         scale = 1,
+                                         sd = 1,
+                                         along = NULL,
+                                         zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rwrandomseasvary")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 21L)
+  expect_identical(obj$const, c(n_seas = 4,
+                                scale_seas = 1,
+                                sd_seas = 1,
+                                scale = 1,
+                                sd = 1))
+  expect_identical(obj$specific,
+                   list(n_seas = 4,
+                        scale_seas = 1,
+                        sd_seas = 1,
+                        scale = 1,
+                        sd = 1,
+                        along = NULL,
+                        zero_sum = FALSE))
+})
+
+
+
+test_that("'new_bage_prior_rwzero' works", {
+  obj <- new_bage_prior_rwzero(scale = 1, along = NULL, zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rwzero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 6L)
   expect_identical(obj$const, c(scale = 1))
@@ -528,13 +603,13 @@ test_that("'new_bage_prior_rw' works", {
                                       zero_sum = FALSE))
 })
 
-test_that("'new_bage_prior_rwseasfix' works", {
-  obj <- new_bage_prior_rwseasfix(n_seas = 4,
-                                  sd_seas = 1,
-                                  scale = 1,
-                                  along = NULL,
-                                  zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_rwseasfix")
+test_that("'new_bage_prior_rwzeroseasfix' works", {
+  obj <- new_bage_prior_rwzeroseasfix(n_seas = 4,
+                                      sd_seas = 1,
+                                      scale = 1,
+                                      along = NULL,
+                                      zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rwzeroseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 10L)
   expect_identical(obj$const, c(n_seas = 4, sd_seas = 1, scale = 1))
@@ -545,14 +620,14 @@ test_that("'new_bage_prior_rwseasfix' works", {
                                       zero_sum = FALSE))
 })
 
-test_that("'new_bage_prior_rwseasvary' works", {
-  obj <- new_bage_prior_rwseasvary(n_seas = 4,
+test_that("'new_bage_prior_rwzeroseasvary' works", {
+  obj <- new_bage_prior_rwzeroseasvary(n_seas = 4,
                                    scale_seas = 1,
                                    sd_seas = 1,
                                    scale = 1,
                                    along = NULL,
                                    zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_rwseasvary")
+  expect_s3_class(obj, "bage_prior_rwzeroseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 11L)
   expect_identical(obj$const, c(n_seas = 4,

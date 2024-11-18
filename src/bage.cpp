@@ -139,123 +139,6 @@ Type logpost_betabinom(Type x,
   return log_num - log_den;
 }
 
-// log-posterior for random walk where first element
-// is drawn from normal distribution
-template <class Type>
-Type logpost_rwrandom(vector<Type> rw,
-		      vector<Type> hyper,
-		      vector<Type> consts,
-		      matrix<int> matrix_along_by) {
-  Type scale_innov = consts[0];
-  Type sd_init = consts[1];
-  Type log_sd_innov = hyper[0];
-  Type sd_innov = exp(log_sd_innov);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i = matrix_along_by(0, i_by);
-    ans += dnorm(rw[i], Type(0), sd_init, true);
-    for (int i_along = 1; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - 1, i_by);
-      ans += dnorm(rw[i_curr], rw[i_prev], sd_innov, true);
-    }
-  }
-  return ans;
-}
-
-// log-posterior for random walk where first element is zero
-template <class Type>
-Type logpost_rwzero(vector<Type> rw,
-		    vector<Type> hyper,
-		    vector<Type> consts,
-		    matrix<int> matrix_along_by) {
-  Type scale_innov = consts[0];
-  Type log_sd_innov = hyper[0];
-  Type sd_innov = exp(log_sd_innov);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i = matrix_along_by(0, i_by);
-    ans += dnorm(rw[i], Type(0), sd_innov, true);
-    for (int i_along = 1; i_along < n_along; i_along++) {
-      int i_curr = matrix_along_by(i_along, i_by);
-      int i_prev = matrix_along_by(i_along - 1, i_by);
-      ans += dnorm(rw[i_curr], rw[i_prev], sd_innov, true);
-    }
-  }
-  return ans;
-}
-
-// log-posterior for second-order random walk where first element
-// is drawn from normal distribution
-template <class Type>
-Type logpost_rw2random(vector<Type> rw,
-		       vector<Type> hyper,
-		       vector<Type> consts,
-		       matrix<int> matrix_along_by) {
-  Type scale_innov = consts[0];
-  Type sd_init = consts[1];
-  Type sd_slope = consts[2];
-  Type log_sd_innov = hyper[0];
-  Type sd_innov = exp(log_sd_innov);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i_0 = matrix_along_by(0, i_by);
-    int i_1 = matrix_along_by(1, i_by);
-    ans += dnorm(rw[i_0], Type(0), sd_init, true);
-    Type diff = rw[i_1] - rw[i_0];
-    ans += dnorm(diff, Type(0), sd_slope, true);
-    for (int i_along = 2; i_along < n_along; i_along++) {
-      int i_2 = matrix_along_by(i_along, i_by);
-      int i_1 = matrix_along_by(i_along - 1, i_by);
-      int i_0 = matrix_along_by(i_along - 2, i_by);
-      Type diff = rw[i_2] - 2 * rw[i_1] + rw[i_0];
-      ans += dnorm(diff, Type(0), sd_innov, true);
-    }
-  }
-  return ans;
-}
-
-// log-posterior for second-order random walk where
-// first element is zero
-template <class Type>
-Type logpost_rw2zero(vector<Type> rw,
-		     vector<Type> hyper,
-		     vector<Type> consts,
-		     matrix<int> matrix_along_by) {
-  Type scale_innov = consts[0];
-  Type sd_slope = consts[1];
-  Type log_sd_innov = hyper[0];
-  Type sd_innov = exp(log_sd_innov);
-  int n_along = matrix_along_by.rows();
-  int n_by = matrix_along_by.cols();
-  Type ans = 0;
-  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    int i_0 = matrix_along_by(0, i_by);
-    int i_1 = matrix_along_by(1, i_by);
-    ans += dnorm(rw[i_0], Type(0), sd_slope, true);
-    Type diff = rw[i_1] - 2 * rw[i_0];
-    ans += dnorm(diff, Type(0), sd_innov, true);
-    for (int i_along = 2; i_along < n_along; i_along++) {
-      int i_2 = matrix_along_by(i_along, i_by);
-      int i_1 = matrix_along_by(i_along - 1, i_by);
-      int i_0 = matrix_along_by(i_along - 2, i_by);
-      Type diff = rw[i_2] - 2 * rw[i_1] + rw[i_0];
-      ans += dnorm(diff, Type(0), sd_innov, true);
-    }
-  }
-  return ans;
-}
-
 template <class Type>
 Type logpost_seasfix(vector<Type> seas,
 		     vector<Type> consts) {
@@ -412,19 +295,36 @@ Type logpost_normfixed(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_rw(vector<Type> effectfree,
-		vector<Type> hyper,
-		vector<Type> consts,
-		matrix<int> matrix_along_by_effectfree) {
-  return logpost_rwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
+Type logpost_rwrandom(vector<Type> rw,
+		      vector<Type> hyper,
+		      vector<Type> consts,
+		      matrix<int> matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type sd_init = consts[1];
+  Type log_sd_innov = hyper[0];
+  Type sd_innov = exp(log_sd_innov);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(rw[i], Type(0), sd_init, true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      ans += dnorm(rw[i_curr], rw[i_prev], sd_innov, true);
+    }
+  }
+  return ans;
 }
 
 template <class Type>
-Type logpost_rwseasfix(vector<Type> effectfree,
-		       vector<Type> hyper,
-		       vector<Type> hyperrandfree, // seasonal effect
-		       vector<Type> consts,
-		       matrix<int> matrix_along_by_effectfree) {
+Type logpost_rwrandomseasfix(vector<Type> effectfree,
+			     vector<Type> hyper,
+			     vector<Type> hyperrandfree, // seasonal effect
+			     vector<Type> consts,
+			     matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
   vector<Type> consts_rw(2);
   consts_rw[0] = consts[2]; // scale
@@ -437,11 +337,11 @@ Type logpost_rwseasfix(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_rwseasvary(vector<Type> effectfree,
-			vector<Type> hyper,
-			vector<Type> hyperrandfree, // seasonal effect
-			vector<Type> consts,
-			matrix<int> matrix_along_by_effectfree) {
+Type logpost_rwrandomseasvary(vector<Type> effectfree,
+			      vector<Type> hyper,
+			      vector<Type> hyperrandfree, // seasonal effect
+			      vector<Type> consts,
+			      matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
   vector<Type> consts_rw(2);
   consts_rw[0] = consts[3]; // scale
@@ -456,11 +356,63 @@ Type logpost_rwseasvary(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_rw2(vector<Type> effectfree,
-		 vector<Type> hyper,
-		 vector<Type> consts,
-		 matrix<int> matrix_along_by_effectfree) {
-  return logpost_rw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
+Type logpost_rwzero(vector<Type> rw,
+		    vector<Type> hyper,
+		    vector<Type> consts,
+		    matrix<int> matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type log_sd_innov = hyper[0];
+  Type sd_innov = exp(log_sd_innov);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i = matrix_along_by(0, i_by);
+    ans += dnorm(rw[i], Type(0), sd_innov, true);
+    for (int i_along = 1; i_along < n_along; i_along++) {
+      int i_curr = matrix_along_by(i_along, i_by);
+      int i_prev = matrix_along_by(i_along - 1, i_by);
+      ans += dnorm(rw[i_curr], rw[i_prev], sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_rwzeroseasfix(vector<Type> effectfree,
+			   vector<Type> hyper,
+			   vector<Type> hyperrandfree, // seasonal effect
+			   vector<Type> consts,
+			   matrix<int> matrix_along_by_effectfree) {
+  vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
+  vector<Type> consts_rw(2);
+  consts_rw[0] = consts[2]; // scale
+  consts_rw[1] = consts[1]; // sd_seas 
+  vector<Type> rw = alpha_seasfix(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
+  Type ans = 0;
+  ans += logpost_seasfix(hyperrandfree, consts_seas);
+  ans += logpost_rwzero(rw, hyper, consts_rw, matrix_along_by_effectfree);
+  return ans;
+}
+
+template <class Type>
+Type logpost_rwzeroseasvary(vector<Type> effectfree,
+			    vector<Type> hyper,
+			    vector<Type> hyperrandfree, // seasonal effect
+			    vector<Type> consts,
+			    matrix<int> matrix_along_by_effectfree) {
+  vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
+  vector<Type> consts_rw(2);
+  consts_rw[0] = consts[3]; // scale
+  consts_rw[1] = consts[2]; // sd_seas, used for sd
+  vector<Type> hyper_seas = hyper.head(1);   // log_sd_seas
+  vector<Type> hyper_rw = hyper.tail(1);     // log_sd
+  vector<Type> rw = alpha_seasvary(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
+  Type ans = 0;
+  ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
+  ans += logpost_rwzero(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
+  return ans;
 }
 
 template <class Type>
@@ -496,7 +448,38 @@ Type logpost_rw2infant(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_rw2seasfix(vector<Type> effectfree,
+Type logpost_rw2random(vector<Type> rw,
+		       vector<Type> hyper,
+		       vector<Type> consts,
+		       matrix<int> matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type sd_init = consts[1];
+  Type sd_slope = consts[2];
+  Type log_sd_innov = hyper[0];
+  Type sd_innov = exp(log_sd_innov);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(rw[i_0], Type(0), sd_init, true);
+    Type diff = rw[i_1] - rw[i_0];
+    ans += dnorm(diff, Type(0), sd_slope, true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = rw[i_2] - 2 * rw[i_1] + rw[i_0];
+      ans += dnorm(diff, Type(0), sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2randomseasfix(vector<Type> effectfree,
 			vector<Type> hyper,
 			vector<Type> hyperrandfree, // seasonal effect
 			vector<Type> consts,
@@ -514,11 +497,11 @@ Type logpost_rw2seasfix(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_rw2seasvary(vector<Type> effectfree,
-			 vector<Type> hyper,
-			 vector<Type> hyperrandfree, // seasonal effect
-			 vector<Type> consts,
-			 matrix<int> matrix_along_by_effectfree) {
+Type logpost_rw2randomseasvary(vector<Type> effectfree,
+			       vector<Type> hyper,
+			       vector<Type> hyperrandfree, // seasonal effect
+			       vector<Type> consts,
+			       matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
   vector<Type> consts_rw(3);
   consts_rw[0] = consts[3]; // scale
@@ -530,6 +513,74 @@ Type logpost_rw2seasvary(vector<Type> effectfree,
   Type ans = 0;
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
   ans += logpost_rw2random(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2zero(vector<Type> rw,
+		     vector<Type> hyper,
+		     vector<Type> consts,
+		     matrix<int> matrix_along_by) {
+  Type scale_innov = consts[0];
+  Type sd_slope = consts[1];
+  Type log_sd_innov = hyper[0];
+  Type sd_innov = exp(log_sd_innov);
+  int n_along = matrix_along_by.rows();
+  int n_by = matrix_along_by.cols();
+  Type ans = 0;
+  ans += dnorm(sd_innov, Type(0), scale_innov, true) + log_sd_innov;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_0 = matrix_along_by(0, i_by);
+    int i_1 = matrix_along_by(1, i_by);
+    ans += dnorm(rw[i_0], Type(0), sd_slope, true);
+    Type diff = rw[i_1] - 2 * rw[i_0];
+    ans += dnorm(diff, Type(0), sd_innov, true);
+    for (int i_along = 2; i_along < n_along; i_along++) {
+      int i_2 = matrix_along_by(i_along, i_by);
+      int i_1 = matrix_along_by(i_along - 1, i_by);
+      int i_0 = matrix_along_by(i_along - 2, i_by);
+      Type diff = rw[i_2] - 2 * rw[i_1] + rw[i_0];
+      ans += dnorm(diff, Type(0), sd_innov, true);
+    }
+  }
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2zeroseasfix(vector<Type> effectfree,
+			    vector<Type> hyper,
+			    vector<Type> hyperrandfree, // seasonal effect
+			    vector<Type> consts,
+			    matrix<int> matrix_along_by_effectfree) {
+  vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
+  vector<Type> consts_rw(3);
+  consts_rw[0] = consts[2]; // scale
+  consts_rw[1] = consts[1]; // sd_seas, used for sd
+  consts_rw[2] = consts[3]; // sd_slope
+  vector<Type> rw = alpha_seasfix(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
+  Type ans = 0;
+  ans += logpost_seasfix(hyperrandfree, consts_seas);
+  ans += logpost_rw2zero(rw, hyper, consts_rw, matrix_along_by_effectfree);
+  return ans;
+}
+
+template <class Type>
+Type logpost_rw2zeroseasvary(vector<Type> effectfree,
+			     vector<Type> hyper,
+			     vector<Type> hyperrandfree, // seasonal effect
+			     vector<Type> consts,
+			     matrix<int> matrix_along_by_effectfree) {
+  vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
+  vector<Type> consts_rw(3);
+  consts_rw[0] = consts[3]; // scale
+  consts_rw[1] = consts[2]; // sd_seas, used for sd
+  consts_rw[2] = consts[4]; // sd_slope
+  vector<Type> hyper_seas = hyper.head(1);   // log_sd_seas
+  vector<Type> hyper_rw = hyper.tail(1);     // log_sd
+  vector<Type> rw = alpha_seasvary(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
+  Type ans = 0;
+  ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
+  ans += logpost_rw2zero(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
 }
 
@@ -612,10 +663,10 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_norm(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 6:
-    ans = logpost_rw(effectfree, hyper, consts, matrix_along_by_effectfree);
+    ans = logpost_rwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 7:
-    ans = logpost_rw2(effectfree, hyper, consts, matrix_along_by_effectfree);
+    ans = logpost_rw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 8:
     ans = logpost_spline(effectfree, hyper, consts, matrix_along_by_effectfree);
@@ -631,6 +682,12 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 18:
     ans = logpost_rw2infant(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 19:
+    ans = logpost_rwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 22:
+    ans = logpost_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov
@@ -654,16 +711,33 @@ Type logpost_uses_hyperrandfree(vector<Type> effectfree,
     ans = logpost_linar(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
     break;
   case 10:
-    ans = logpost_rwseasfix(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
+    ans = logpost_rwzeroseasfix(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
     break;
   case 11:
-    ans = logpost_rwseasvary(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
+    ans = logpost_rwzeroseasvary(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
     break;
   case 12:
-    ans = logpost_rw2seasfix(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
+    ans = logpost_rw2zeroseasfix(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
     break;
   case 13:
-    ans = logpost_rw2seasvary(effectfree, hyper, hyperrandfree, consts, matrix_along_by_effectfree);
+    ans = logpost_rw2zeroseasvary(effectfree, hyper, hyperrandfree, consts,
+				  matrix_along_by_effectfree);
+    break;
+  case 20:
+    ans = logpost_rwrandomseasfix(effectfree, hyper, hyperrandfree, consts,
+				  matrix_along_by_effectfree);
+    break;
+  case 21:
+    ans = logpost_rwrandomseasvary(effectfree, hyper, hyperrandfree, consts,
+				   matrix_along_by_effectfree);
+    break;
+  case 23:
+    ans = logpost_rw2randomseasfix(effectfree, hyper, hyperrandfree, consts,
+				   matrix_along_by_effectfree);
+    break;
+  case 24:
+    ans = logpost_rw2randomseasvary(effectfree, hyper, hyperrandfree, consts,
+				    matrix_along_by_effectfree);
     break;
   default:                                                                                          // # nocov
     error("Internal error: function 'logpost_uses_hyperrandfree' cannot handle i_prior = %d", i_prior); // # nocov
