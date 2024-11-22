@@ -7,6 +7,7 @@
 RW2_Seas(
   n_seas,
   s = 1,
+  sd = 1,
   sd_slope = 1,
   s_seas = 0,
   sd_seas = 1,
@@ -18,10 +19,10 @@ RW2_Seas(
 \item{n_seas}{Number of seasons}
 
 \item{s}{Scale for prior for innovations in
-the random walk. Default is \code{1}.}
+random walk. Default is \code{1}.}
 
 \item{sd_slope}{Standard deviation
-for initial slope or random walk. Default is \code{1}.}
+for initial slope of random walk. Default is \code{1}.}
 
 \item{s_seas}{Scale for innovations
 in seasonal effects. Default is \code{0}.}
@@ -39,36 +40,31 @@ sum to 0 within each combination
 of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
-Object of class \code{"bage_prior_rw2seasvary"}
-or \code{"bage_prior_rw2seasfix"}.
+Object of class
+\code{"bage_prior_rw2randomseasvary"},
+\code{"bage_prior_rw2randomseasfix"},
+\code{"bage_prior_rw2zeroseasvary"}, or
+\code{"bage_prior_rw2zeroseasfix"}.
 }
 \description{
 Use a second-oder random walk with
-seasonal effects to model
+seasonal effects as a model for
 a main effect, or use multiple second-order random walks,
 each with their own seasonal effects,
-to model an interaction.
-A second-order random walk is effectively
-a random walk with drift where the
-drift term varies. It is typically
-used with main effects or interactions
-that involve time, where there are sustained
-trends upward or downward.
+as a model for an interaction.
+Typically used with temrs that involve time.
 }
 \details{
 If \code{RW2_Seas()} is used with an interaction,
-separate series are used for
-the 'along' variable within
-each combination of the
-'by' variables.
+a separate series is constructed within each
+combination of the 'by' variables.
 
 Argument \code{s} controls the size of innovations in the random walk.
-Smaller values for \code{s} tend to give smoother series.
+Smaller values for \code{s} tend to produce smoother series.
 
-Argument \code{n_seas} controls the number of \code{seasons}.
+Argument \code{n_seas} controls the number of seasons.
 When using quarterly data, for instance,
-\code{n_seas} should be \code{4}, and when using
-monthly data, \code{n_seas} should be \code{12}.
+\code{n_seas} should be \code{4}.
 
 By default, the magnitude of seasonal effects
 is fixed. However, setting \code{s_seas} to a value
@@ -81,13 +77,17 @@ that evolve over time.
 When \code{RW2_Seas()} is used with a main effect,
 
 \deqn{\beta_j = \alpha_j + \lambda_j}
-\deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2)}
+\deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
+\deqn{\alpha_2 \sim \text{N}(0, \text{sd\_slope}^2)}
+\deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j > 2}
 \deqn{\lambda_j \sim \text{N}(\lambda_{j-n}, \omega^2),}
 
 and when it is used with an interaction,
 
 \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}}
-\deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2),}
+\deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
+\deqn{\alpha_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
+\deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad j > 2}
 \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-n}, \omega^2)}
 
 where
@@ -115,11 +115,12 @@ where \code{s} is provided by the user.
 \examples{
 RW2_Seas(n_seas = 4)               ## seasonal effects fixed
 RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
+RW2_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
 }
 \seealso{
 \itemize{
-\item \code{\link[=RW2]{RW2()}} Second-order random walk, without seasonal effect
-\item \code{\link[=RW_Seas]{RW_Seas()}} Random walk, with seasonal effect
+\item \code{\link[=RW2]{RW2()}} Second-order random walk without seasonal effect
+\item \code{\link[=RW_Seas]{RW_Seas()}} Random walk with seasonal effect
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

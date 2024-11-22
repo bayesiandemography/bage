@@ -10,6 +10,10 @@ RW(s = 1, sd = 1, along = NULL, zero_sum = FALSE)
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
+\item{sd}{Standard deviation
+of initial value. Default is \code{1}.
+Can be \code{0}.}
+
 \item{along}{Name of the variable to be used
 as the 'along' variable. Only used with
 interactions.}
@@ -23,23 +27,23 @@ An object of class \code{"bage_prior_rwrandom"}
 or \code{"bage_prior_rwzero"}.
 }
 \description{
-Use a random walk as a model for a main effect
+Use a random walk as a model for
 a main effect, or use multiple random walks
 as a model for an interaction.
-Typically used with age or time effects, or with
-interactions that involve age or time.
+Typically used with terms that involve age or time.
 }
 \details{
-If \code{RW()} is used with an interaction,
-separate random walks are constructed along
-the 'along' variable, within each combination of the
+If \code{RW2()} is used with an interaction,
+a separate random walk is constructed
+within each combination of the
 'by' variables.
 
 Argument \code{s} controls the size of innovations.
-Smaller values for \code{s} may produce smoother series.
+Smaller values for \code{s} tend to produce smoother series.
 
-Argument \code{sd} controls variance in the
-initial value. \code{sd} can be \code{0}.
+Argument \code{sd} controls variance in
+initial values. Setting \code{sd} to \code{0} fixes initial
+values at 0.
 }
 \section{Mathematical details}{
 
@@ -47,14 +51,12 @@ initial value. \code{sd} can be \code{0}.
 When \code{RW()} is used with a main effect,
 
 \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
-\deqn{\beta_j = \beta_{j-1} + \epsilon_j, \quad j > 1}
-\deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+\deqn{\beta_j \sim \text{N}(\beta_{j-1}, \tau^2), \quad j > 1}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,1} = \sim \text{N}(0, \text{sd}^2)}
-\deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}, \quad v > 1}
-\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+\deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1}, \tau^2), \quad v > 1}
 
 where
 \itemize{
@@ -78,11 +80,12 @@ RW(along = "cohort")
 }
 \seealso{
 \itemize{
+\item \code{\link[=RW_Seas]{RW_Seas()}} Random walk with seasonal effect
 \item \code{\link[=RW2]{RW2()}} Second-order random walk
 \item \code{\link[=AR]{AR()}} Autoregressive with order k
 \item \code{\link[=AR1]{AR1()}} Autoregressive with order 1
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines
-\item \code{\link[=SVD]{SVD()}} Smoothing of age via singular value decomposition
+\item \code{\link[=SVD]{SVD()}} Smoothing over age using singular value decomposition
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

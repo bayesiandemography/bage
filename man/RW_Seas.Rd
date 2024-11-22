@@ -4,13 +4,21 @@
 \alias{RW_Seas}
 \title{Random Walk Prior with Seasonal Effect}
 \usage{
-RW_Seas(n_seas, s = 1, s_seas = 0, sd_seas = 1, along = NULL, zero_sum = FALSE)
+RW_Seas(
+  n_seas,
+  s = 1,
+  sd = 1,
+  s_seas = 0,
+  sd_seas = 1,
+  along = NULL,
+  zero_sum = FALSE
+)
 }
 \arguments{
 \item{n_seas}{Number of seasons}
 
 \item{s}{Scale for prior for innovations in
-the random walk. Default is \code{1}.}
+random walk. Default is \code{1}.}
 
 \item{s_seas}{Scale for innovations
 in seasonal effects. Default is \code{0}.}
@@ -28,31 +36,34 @@ sum to 0 within each combination
 of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
-Object of class \code{"bage_prior_rwseasvary"}
-or \code{"bage_prior_rwseasfix"}.
+Object of class
+\code{"bage_prior_rwrandomseasvary"},
+\code{"bage_prior_rwrandomseasfix"},
+\code{"bage_prior_rwzeroseasvary"}, or
+\code{"bage_prior_rwzeroseasfix"}.
 }
 \description{
-Use a random walk with seasonal effects to model
+Use a random walk with seasonal effects as a model for
 a main effect, or use multiple random walks,
 each with their own seasonal effects,
-to model an interaction.
-Typically used with main effects or interactions
-that involve time.
+as a model for an interaction.
+Typically used with terms that involve time.
 }
 \details{
 If \code{RW_Seas()} is used with an interaction,
-separate series are used for
-the 'along' variable within
-each combination of the
+a separate series is constructed
+within each combination of the
 'by' variables.
 
 Argument \code{s} controls the size of innovations in the random walk.
-Smaller values for \code{s} tend to give smoother series.
+Smaller values for \code{s} tend to produce smoother series.
 
-Argument \code{n_seas} controls the number of \code{seasons}.
+Argument \code{sd} controls variance in
+initial values of the random walk. \code{sd} can be \code{0}.
+
+Argument \code{n_seas} controls the number of seasons.
 When using quarterly data, for instance,
-\code{n_seas} should be \code{4}, and when using
-monthly data, \code{n_seas} should be \code{12}.
+\code{n_seas} should be \code{4}.
 
 By default, the magnitude of seasonal effects
 is fixed. However, setting \code{s_seas} to a value
@@ -65,13 +76,15 @@ that evolve over time.
 When \code{RW_Seas()} is used with a main effect,
 
 \deqn{\beta_j = \alpha_j + \lambda_j}
-\deqn{\alpha_j \sim \text{N}(\alpha_{j-1}, \tau^2)}
+\deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
+\deqn{\alpha_j \sim \text{N}(\alpha_{j-1}, \tau^2), \quad j > 1}
 \deqn{\lambda_j \sim \text{N}(\lambda_{j-n}, \omega^2),}
 
 and when it is used with an interaction,
 
 \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}}
-\deqn{\alpha_{u,v} \sim \text{N}(\alpha_{u,v-1}, \tau^2),}
+\deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
+\deqn{\alpha_{u,v} \sim \text{N}(\alpha_{u,v-1}, \tau^2), \quad v > 1}
 \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-n}, \omega^2)}
 
 where
@@ -89,7 +102,7 @@ Parameter \eqn{\omega} has a half-normal prior
 \deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2),}
 where \code{s_seas} is provided by the user. If
 \code{s_seas} is set to 0, then \eqn{\omega} is 0,
-and the seasonal effects are fixed over time.
+and seasonal effects are time-invariant.
 
 Parameter \eqn{\tau} has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
@@ -99,11 +112,12 @@ where \code{s} is provided by the user.
 \examples{
 RW_Seas(n_seas = 4)               ## seasonal effects fixed
 RW_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
+RW_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
 }
 \seealso{
 \itemize{
 \item \code{\link[=RW]{RW()}} Random walk without seasonal effect
-\item \code{\link[=RW2_Seas]{RW2_Seas()}} Second-order random walk, with seasonal effect
+\item \code{\link[=RW2_Seas]{RW2_Seas()}} Second-order random walk with seasonal effect
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,
 main effect, or interaction

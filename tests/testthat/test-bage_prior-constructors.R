@@ -159,32 +159,60 @@ test_that("'RW' works with valid inputs", {
 
 test_that("'RW_Seas' works with valid inputs", {
   expect_identical(RW_Seas(n_seas = 2),
-                   new_bage_prior_rwseasfix(n_seas = 2L,
-                                            sd_seas = 1,
-                                            scale = 1,
-                                            along = NULL,
-                                            zero_sum = FALSE))
+                   new_bage_prior_rwrandomseasfix(n_seas = 2L,
+                                                  sd_seas = 1,
+                                                  scale = 1,
+                                                  sd = 1,
+                                                  along = NULL,
+                                                  zero_sum = FALSE))
   expect_identical(RW_Seas(s = 0.3, sd_seas = 0.15, n_seas = 12, s_seas = 0.1, along = "reg",
-                           zero_sum = TRUE),
-                   new_bage_prior_rwseasvary(n_seas = 12L,
-                                             scale_seas = 0.1,
-                                             sd_seas = 0.15,
-                                             scale = 0.3,
-                                             along = "reg",
-                                             zero_sum = TRUE))
+                           zero_sum = TRUE, sd = 0.4),
+                   new_bage_prior_rwrandomseasvary(n_seas = 12L,
+                                                   scale_seas = 0.1,
+                                                   sd_seas = 0.15,
+                                                   scale = 0.3,
+                                                   sd = 0.4,
+                                                   along = "reg",
+                                                   zero_sum = TRUE))
+  expect_identical(RW_Seas(n_seas = 2, sd = 0),
+                   new_bage_prior_rwzeroseasfix(n_seas = 2L,
+                                                sd_seas = 1,
+                                                scale = 1,
+                                                along = NULL,
+                                                zero_sum = FALSE))
+  expect_identical(RW_Seas(s = 0.3, sd_seas = 0.15, n_seas = 12, s_seas = 0.1, along = "reg",
+                           zero_sum = TRUE, sd = 0),
+                   new_bage_prior_rwzeroseasvary(n_seas = 12L,
+                                                 scale_seas = 0.1,
+                                                 sd_seas = 0.15,
+                                                 scale = 0.3,
+                                                 along = "reg",
+                                                 zero_sum = TRUE))
 })
 
 test_that("'RW2' works with valid inputs", {
   expect_identical(RW2(),
-                   new_bage_prior_rw2(scale = 1,
-                                      sd_slope = 1,
-                                      along = NULL,
-                                      zero_sum = FALSE))
-  expect_identical(RW2(sd_slope = 0.1, s = 0.3, along = "reg", zero_sum = TRUE),
-                   new_bage_prior_rw2(scale = 0.3,
-                                      sd_slope = 0.1,
-                                      along = "reg",
-                                      zero_sum = TRUE))
+                   new_bage_prior_rw2random(scale = 1,
+                                            sd = 1,
+                                            sd_slope = 1,
+                                            along = NULL,
+                                            zero_sum = FALSE))
+  expect_identical(RW2(sd_slope = 0.1, s = 0.3, sd = 0.5, along = "reg", zero_sum = TRUE),
+                   new_bage_prior_rw2random(scale = 0.3,
+                                            sd = 0.5,
+                                            sd_slope = 0.1,
+                                            along = "reg",
+                                            zero_sum = TRUE))
+  expect_identical(RW2(sd = 0),
+                   new_bage_prior_rw2zero(scale = 1,
+                                          sd_slope = 1,
+                                          along = NULL,
+                                          zero_sum = FALSE))
+  expect_identical(RW2(sd_slope = 0.1, s = 0.3, sd = 0, along = "reg", zero_sum = TRUE),
+                   new_bage_prior_rw2zero(scale = 0.3,
+                                          sd_slope = 0.1,
+                                          along = "reg",
+                                          zero_sum = TRUE))
 })
 
 test_that("'RW2_Infant' works with valid inputs", {
@@ -200,22 +228,41 @@ test_that("'RW2_Infant' works with valid inputs", {
 
 test_that("'RW2_Seas' works with valid inputs", {
   expect_identical(RW2_Seas(n_seas = 2),
-                   new_bage_prior_rw2seasfix(n_seas = 2L,
-                                             sd_seas = 1,
-                                             scale = 1,
-                                             sd_slope = 1,
-                                             along = NULL,
-                                             zero_sum = FALSE))
+                   new_bage_prior_rw2randomseasfix(n_seas = 2L,
+                                                   sd_seas = 1,
+                                                   scale = 1,
+                                                   sd = 1,
+                                                   sd_slope = 1,
+                                                   along = NULL,
+                                                   zero_sum = FALSE))
   expect_identical(RW2_Seas(s = 0.3, n_seas = 12, sd_seas = 0.5,
                             s_seas = 0.1, along = "reg", sd_slope = 0.2,
-                            zero_sum = TRUE),
-                   new_bage_prior_rw2seasvary(n_seas = 12L,
-                                              scale_seas = 0.1,
-                                              sd_seas = 0.5,
-                                              scale = 0.3,
-                                              sd_slope = 0.2,
-                                              along = "reg",
-                                              zero_sum = TRUE))
+                            zero_sum = TRUE, sd = 0.4),
+                   new_bage_prior_rw2randomseasvary(n_seas = 12L,
+                                                    scale_seas = 0.1,
+                                                    sd_seas = 0.5,
+                                                    scale = 0.3,
+                                                    sd = 0.4,
+                                                    sd_slope = 0.2,
+                                                    along = "reg",
+                                                    zero_sum = TRUE))
+  expect_identical(RW2_Seas(n_seas = 2, sd = 0),
+                   new_bage_prior_rw2zeroseasfix(n_seas = 2L,
+                                                   sd_seas = 1,
+                                                   scale = 1,
+                                                   sd_slope = 1,
+                                                   along = NULL,
+                                                   zero_sum = FALSE))
+  expect_identical(RW2_Seas(s = 0.3, n_seas = 12, sd_seas = 0.5,
+                            s_seas = 0.1, along = "reg", sd_slope = 0.2,
+                            zero_sum = TRUE, sd = 0),
+                   new_bage_prior_rw2zeroseasvary(n_seas = 12L,
+                                                    scale_seas = 0.1,
+                                                    sd_seas = 0.5,
+                                                    scale = 0.3,
+                                                    sd_slope = 0.2,
+                                                    along = "reg",
+                                                    zero_sum = TRUE))
 })
 
 test_that("'Sp' works with valid inputs", {
@@ -590,8 +637,6 @@ test_that("'new_bage_prior_rwrandomseasvary' works", {
                         zero_sum = FALSE))
 })
 
-
-
 test_that("'new_bage_prior_rwzero' works", {
   obj <- new_bage_prior_rwzero(scale = 1, along = NULL, zero_sum = FALSE)
   expect_s3_class(obj, "bage_prior_rwzero")
@@ -643,19 +688,6 @@ test_that("'new_bage_prior_rwzeroseasvary' works", {
                         zero_sum = FALSE))
 })
 
-test_that("'new_bage_prior_rw2' works", {
-  obj <- new_bage_prior_rw2(scale = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_rw2")
-  expect_s3_class(obj, "bage_prior")
-  expect_identical(obj$i_prior, 7L)
-  expect_identical(obj$const, c(scale = 1, sd_slope = 1))
-  expect_identical(obj$specific,
-                   list(scale = 1,
-                        sd_slope = 1,
-                        along = NULL,
-                        zero_sum = FALSE))
-})
-
 test_that("'new_bage_prior_rw2infant' works", {
   obj <- new_bage_prior_rw2infant(scale = 1,
                                   sd_slope = 1,
@@ -671,14 +703,90 @@ test_that("'new_bage_prior_rw2infant' works", {
                         zero_sum = FALSE))
 })
 
-test_that("'new_bage_prior_rw2seasfix' works", {
-  obj <- new_bage_prior_rw2seasfix(n_seas = 4,
-                                   sd_seas = 1,
-                                   scale = 1,
-                                   sd_slope = 1,
-                                   along = NULL,
-                                   zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_rw2seasfix")
+test_that("'new_bage_prior_rw2random' works", {
+  obj <- new_bage_prior_rw2random(scale = 1, sd = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2random")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 22L)
+  expect_identical(obj$const, c(scale = 1, sd = 1, sd_slope = 1))
+  expect_identical(obj$specific,
+                   list(scale = 1,
+                        sd = 1,
+                        sd_slope = 1,
+                        along = NULL,
+                        zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rw2randomseasfix' works", {
+  obj <- new_bage_prior_rw2randomseasfix(n_seas = 4,
+                                         sd_seas = 1,
+                                         scale = 1,
+                                         sd = 1,
+                                         sd_slope = 1,
+                                         along = NULL,
+                                         zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2randomseasfix")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 23L)
+  expect_identical(obj$const, c(n_seas = 4, sd_seas = 1, scale = 1, sd = 1, sd_slope = 1))
+  expect_identical(obj$specific, list(n_seas = 4,
+                                      sd_seas = 1,
+                                      scale = 1,
+                                      sd = 1,
+                                      sd_slope = 1,
+                                      along = NULL,
+                                      zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rw2randomseasvary' works", {
+  obj <- new_bage_prior_rw2randomseasvary(n_seas = 4,
+                                          scale = 1,
+                                          sd = 1,
+                                          sd_slope = 1,
+                                          scale_seas = 1,
+                                          sd_seas = 1,
+                                          along = NULL,
+                                          zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2randomseasvary")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 24L)
+  expect_identical(obj$const, c(n_seas = 4,
+                                scale_seas = 1,
+                                sd_seas = 1,
+                                scale = 1,
+                                sd = 1,
+                                sd_slope = 1))
+  expect_identical(obj$specific, list(n_seas = 4,
+                                      scale_seas = 1,
+                                      sd_seas = 1,
+                                      scale = 1,
+                                      sd = 1,
+                                      sd_slope = 1,
+                                      along = NULL,
+                                      zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rw2zero' works", {
+  obj <- new_bage_prior_rw2zero(scale = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2zero")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 7L)
+  expect_identical(obj$const, c(scale = 1, sd_slope = 1))
+  expect_identical(obj$specific,
+                   list(scale = 1,
+                        sd_slope = 1,
+                        along = NULL,
+                        zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_rw2zeroseasfix' works", {
+  obj <- new_bage_prior_rw2zeroseasfix(n_seas = 4,
+                                       sd_seas = 1,
+                                       scale = 1,
+                                       sd_slope = 1,
+                                       along = NULL,
+                                       zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2zeroseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
   expect_identical(obj$const, c(n_seas = 4, sd_seas = 1, scale = 1, sd_slope = 1))
@@ -690,22 +798,18 @@ test_that("'new_bage_prior_rw2seasfix' works", {
                                       zero_sum = FALSE))
 })
 
-test_that("'new_bage_prior_rw2seasvary' works", {
-  obj <- new_bage_prior_rw2seasvary(n_seas = 4,
-                                    scale = 1,
-                                    sd_slope = 1,
-                                    scale_seas = 1,
-                                    sd_seas = 1,
-                                    along = NULL,
-                                    zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_rw2seasvary")
+test_that("'new_bage_prior_rw2zeroseasvary' works", {
+  obj <- new_bage_prior_rw2zeroseasvary(n_seas = 4,
+                                        scale_seas = 1,
+                                        sd_seas = 1,
+                                        scale = 1,
+                                        sd_slope = 1,
+                                        along = NULL,
+                                        zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_rw2zeroseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 13L)
-  expect_identical(obj$const, c(n_seas = 4,
-                                scale_seas = 1,
-                                sd_seas = 1,
-                                scale = 1,
-                                sd_slope = 1))
+  expect_identical(obj$const, c(n_seas = 4, scale_seas = 1, sd_seas = 1, scale = 1, sd_slope = 1))
   expect_identical(obj$specific, list(n_seas = 4,
                                       scale_seas = 1,
                                       sd_seas = 1,

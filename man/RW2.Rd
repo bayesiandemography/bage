@@ -4,14 +4,17 @@
 \alias{RW2}
 \title{Second-Order Random Walk Prior}
 \usage{
-RW2(s = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
+RW2(s = 1, sd = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
 }
 \arguments{
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
+\item{sd}{Standard deviation
+of initial value. Default is \code{1}. Can be \code{0}.}
+
 \item{sd_slope}{Standard deviation
-for initial slope. Default is \code{1}.}
+of initial slope. Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
 as the 'along' variable. Only used with
@@ -22,52 +25,50 @@ sum to 0 within each combination
 of the 'by' variables. Default is \code{FALSE}.}
 }
 \value{
-An object of class \code{"bage_prior_rw2"}.
+An object of class \code{"bage_prior_rw2random"}
+or \code{"bage_prior_rw2zero"}.
 }
 \description{
-Use a second-oder random walk to model
+Use a second-order random walk as a model for
 a main effect, or use multiple second-order random walks
-to model an interaction.
-A second-order random walk is effectively
+as a model for an interaction.
+A second-order random walk is
 a random walk with drift where the
 drift term varies. It is typically
-used with main effects or interactions
-that involve time, where there are sustained
+used with terms that involve age or time,
+where there are sustained
 trends upward or downward.
 }
 \details{
 If \code{RW2()} is used with an interaction,
-separate series are used for
-the 'along' variable within
-each combination of the
+a separate random walk is constructed
+within each combination of the
 'by' variables.
 
-Argument \code{s} controls the size of innovations in the random walk.
+Argument \code{s} controls the size of innovations.
 Smaller values for \code{s} tend to give smoother series.
 
-Argument \code{n_seas} controls the number of \code{seasons}.
-When using quarterly data, for instance,
-\code{n_seas} should be \code{4}, and when using
-monthly data, \code{n_seas} should be \code{12}.
+Argument \code{sd} controls variance in
+initial values. Setting \code{sd} to \code{0} fixes
+initial values at \code{0}.
 
-By default, the magnitude of seasonal effects
-can change over time. However, setting \code{s_seas}
-to \code{0} produces seasonal effects that are fixed,
-eg where "January" effect is the same every year,
-the "Feburary" effect is the same every year, and so on.
+Argument \code{sd_slope} controls variance in the
+initial slope.
 }
 \section{Mathematical details}{
 
 
-When \code{RW()} is used with a main effect,
+When \code{RW2()} is used with a main effect,
 
-\deqn{\beta_j = 2 \beta_{j-1} - \beta_{j-2} + \epsilon_j}
-\deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+\deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_2 \sim \text{N}(\beta_1, \text{sd\_slope}^2)}
+\deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j > 2}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} = 2\beta_{u,v-1} - \beta_{u,v-2} + \epsilon_{u,v}}
-\deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+\deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \text{sd\_slope}^2)}
+\deqn{\beta_{u,v} \sim \text{N}(2\beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v > 2}
 
 where
 \itemize{
@@ -90,6 +91,7 @@ RW2(s = 0.5)
 \seealso{
 \itemize{
 \item \code{\link[=RW]{RW()}} Random walk
+\item \code{\link[=RW2_Seas]{RW2_Seas()}} Second order random walk with seasonal effect
 \item \code{\link[=AR]{AR()}} Autoregressive with order k
 \item \code{\link[=AR1]{AR1()}} Autoregressive with order 1
 \item \code{\link[=Sp]{Sp()}} Smoothing via splines

@@ -27,12 +27,12 @@ Designed for use in models of mortality rates.
 }
 \details{
 A second-order random walk prior \code{\link[=RW2]{RW2()}}
-does a good job of smoothing
+works well for smoothing
 mortality rates over age, except at age 0, where there
-is typically a sudden jump in rates, reflecting the
+is a sudden jump in rates, reflecting the
 special risks of infancy. The \code{RW2_Infant()}
-is a \code{\link[=RW2]{RW2()}} prior with a special treatment of
-the first age group.
+extends the \code{\link[=RW2]{RW2()}} prior by adding an indicator
+variable for the first age group.
 
 If \code{RW2_Infant()} is used in an interaction,
 the 'along' dimension is always age, implying that
@@ -51,16 +51,16 @@ Smaller values for \code{s} tend to give smoother series.
 When \code{RW2_Infant()} is used with a main effect,
 
 \deqn{\beta_1 \sim \text{N}(0, 1)}
-\deqn{\beta_2 \sim \text{N}(0, \omega^2)}
+\deqn{\beta_2 \sim \text{N}(0, \text{sd_slope}^2)}
 \deqn{\beta_3 \sim \text{N}(2 \beta_2, \tau^2)}
-\deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2)}
+\deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j > 2}
 
 and when it is used with an interaction,
 
 \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
-\deqn{\beta_{u,2} \sim \text{N}(0, \omega^2)}
+\deqn{\beta_{u,2} \sim \text{N}(0, \text{sd_slope}^2)}
 \deqn{\beta_{u,3} \sim \text{N}(2 \beta_{u,2}, \tau^2)}
-\deqn{\beta_{u,j} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2)}
+\deqn{\beta_{u,v} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v > 2}
 
 where
 \itemize{
@@ -69,10 +69,6 @@ where
 \item \eqn{v} denotes position within the 'along' variable of the interaction; and
 \item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
-
-Parameter \eqn{\omega} has a half-normal prior
-\deqn{\omega \sim \text{N}^+(0, \text{sd}^2),}
-where \code{sd} can be specified by the user.
 
 Parameter \eqn{\tau} has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
