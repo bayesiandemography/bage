@@ -680,36 +680,34 @@ NFix <- function(sd = 1) {
 ## HAS_TESTS
 #' Random Walk Prior
 #'
-#' Use a random walk as a model for a main effect
+#' Use a random walk as a model for
 #' a main effect, or use multiple random walks
 #' as a model for an interaction.
-#' Typically used with age or time effects, or with
-#' interactions that involve age or time.
+#' Typically used with terms that involve age or time.
 #'
-#' If `RW()` is used with an interaction,
-#' separate random walks are constructed along
-#' the 'along' variable, within each combination of the
+#' If `RW2()` is used with an interaction,
+#' a separate random walk is constructed
+#' within each combination of the
 #' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations.
-#' Smaller values for `s` tend to produce a smoother series.
+#' Smaller values for `s` tend to produce smoother series.
 #'
-#' Argument `sd` controls variance in the
-#' initial value. `sd` can be `0`.
+#' Argument `sd` controls variance in
+#' initial values. Setting `sd` to `0` fixes initial
+#' values at 0.
 #' 
 #' @section Mathematical details:
 #'
 #' When `RW()` is used with a main effect,
 #'
 #' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
-#' \deqn{\beta_j = \beta_{j-1} + \epsilon_j, \quad j > 1}
-#' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+#' \deqn{\beta_j \sim \text{N}(\beta_{j-1}, \tau^2), \quad j > 1}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,1} = \sim \text{N}(0, \text{sd}^2)}
-#' \deqn{\beta_{u,v} = \beta_{u,v-1} + \epsilon_{u,v}, \quad v > 1}
-#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+#' \deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1}, \tau^2), \quad v > 1}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
@@ -723,6 +721,10 @@ NFix <- function(sd = 1) {
 #' where `s` is provided by the user.
 #'
 #' @inheritParams AR
+#' @param sd Standard deviation
+#' of initial value. Default is `1`.
+#' Can be `0`.
+#'
 #'
 #' @returns An object of class `"bage_prior_rwrandom"`
 #' or `"bage_prior_rwzero"`.
@@ -773,25 +775,22 @@ RW <- function(s = 1,
 #' a main effect, or use multiple random walks,
 #' each with their own seasonal effects,
 #' as a model for an interaction.
-#' Typically used with main effects or interactions
-#' that involve time.
+#' Typically used with terms that involve time.
 #'
 #' If `RW_Seas()` is used with an interaction,
-#' separate series are used for
-#' the 'along' variable within
-#' each combination of the
+#' a separate series is constructed
+#' within each combination of the
 #' 'by' variables.
 #'
 #' Argument `s` controls the size of innovations in the random walk.
-#' Smaller values for `s` tend to produce a smoother series.
+#' Smaller values for `s` tend to produce smoother series.
 #'
-#' Argument `sd` controls variance in the
-#' initial value of the random walk. `sd` can be `0`.
+#' Argument `sd` controls variance in
+#' initial values of the random walk. `sd` can be `0`.
 #'
 #' Argument `n_seas` controls the number of seasons. 
 #' When using quarterly data, for instance,
-#' `n_seas` should be `4`, and when using
-#' monthly data, `n_seas` should be `12`.
+#' `n_seas` should be `4`.
 #'
 #' By default, the magnitude of seasonal effects
 #' is fixed. However, setting `s_seas` to a value
@@ -827,7 +826,7 @@ RW <- function(s = 1,
 #' \deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2),}
 #' where `s_seas` is provided by the user. If
 #' `s_seas` is set to 0, then \eqn{\omega} is 0,
-#' and the seasonal effects are fixed over time.
+#' and seasonal effects are time-invariant.
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
 #' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
@@ -836,15 +835,18 @@ RW <- function(s = 1,
 #' @inheritParams AR
 #' @param n_seas Number of seasons
 #' @param s Scale for prior for innovations in
-#' the random walk. Default is `1`.
+#' random walk. Default is `1`.
 #' @param s_seas Scale for innovations
 #' in seasonal effects. Default is `0`.
 #' @param sd_seas Standard deviation for
 #' initial values of seasonal effects.
 #' Default is `1`.
 #'
-#' @returns Object of class `"bage_prior_rwseasvary"`
-#' or `"bage_prior_rwseasfix"`.
+#' @returns Object of class
+#' `"bage_prior_rwrandomseasvary"`,
+#' `"bage_prior_rwrandomseasfix"`,
+#' `"bage_prior_rwzeroseasvary"`, or
+#' `"bage_prior_rwzeroseasfix"`.
 #'
 #' @seealso
 #' - [RW()] Random walk without seasonal effect
@@ -920,46 +922,44 @@ RW_Seas <- function(n_seas,
 ## HAS_TESTS
 #' Second-Order Random Walk Prior
 #'
-#' Use a second-oder random walk to model
+#' Use a second-order random walk as a model for
 #' a main effect, or use multiple second-order random walks
-#' to model an interaction.
+#' as a model for an interaction.
 #' A second-order random walk is
 #' a random walk with drift where the
 #' drift term varies. It is typically
-#' used with main effects or interactions
-#' that involve age or time, where there are sustained
+#' used with terms that involve age or time,
+#' where there are sustained
 #' trends upward or downward.
 #'
 #' If `RW2()` is used with an interaction,
-#' separate series are used for
-#' the 'along' variable within
-#' each combination of the
+#' a separate random walk is constructed
+#' within each combination of the
 #' 'by' variables.
 #'
-#' Argument `s` controls the size of innovations in the random walk.
+#' Argument `s` controls the size of innovations.
 #' Smaller values for `s` tend to give smoother series.
 #'
-#' Argument `sd` controls variance in the
-#' initial value of the random walk. `sd` can be `0`.
+#' Argument `sd` controls variance in
+#' initial values. Setting `sd` to `0` fixes
+#' initial values at `0`.
 #'
 #' Argument `sd_slope` controls variance in the
-#' initial slope of the random walk.
+#' initial slope.
 #'
 #' @section Mathematical details:
 #'
 #' When `RW2()` is used with a main effect,
 #'
-#' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)} 
-#' \deqn{\beta_2 \sim \text{N}(\beta_1, \text{sd_slope}^2)} 
-#' \deqn{\beta_j = 2 \beta_{j-1} - \beta_{j-2} + \epsilon_j, \quad j > 2}
-#' \deqn{\epsilon_j \sim \text{N}(0, \tau^2),}
+#' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\beta_2 \sim \text{N}(\beta_1, \text{sd\_slope}^2)} 
+#' \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j > 2}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)} 
-#' \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \text{sd_slope}^2)} 
-#' \deqn{\beta_{u,v} = 2\beta_{u,v-1} - \beta_{u,v-2} + \epsilon_{u,v}, \quad v > 2}
-#' \deqn{\epsilon_{u,v} \sim \text{N}(0, \tau^2),}
+#' \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \text{sd\_slope}^2)} 
+#' \deqn{\beta_{u,v} \sim \text{N}(2\beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v > 2}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
@@ -973,13 +973,17 @@ RW_Seas <- function(n_seas,
 #' where `s` is provided by the user.
 #'
 #' @inheritParams AR
+#' @param sd Standard deviation
+#' of initial value. Default is `1`. Can be `0`.
 #' @param sd_slope Standard deviation
-#' for initial slope. Default is `1`.
+#' of initial slope. Default is `1`.
 #'
-#' @returns An object of class `"bage_prior_rw2"`.
+#' @returns An object of class `"bage_prior_rw2random"`
+#' or `"bage_prior_rw2zero"`.
 #'
 #' @seealso
 #' - [RW()] Random walk
+#' - [RW2_Seas()] Second order random walk with seasonal effect
 #' - [AR()] Autoregressive with order k
 #' - [AR1()] Autoregressive with order 1
 #' - [Sp()] Smoothing via splines
@@ -993,20 +997,30 @@ RW_Seas <- function(n_seas,
 #' RW2(s = 0.5)
 #' @export
 RW2 <- function(s = 1,
+                sd = 1,
                 sd_slope = 1,
                 along = NULL,
                 zero_sum = FALSE) {
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
+  sd <- as.double(sd)
   sd_slope <- as.double(sd_slope)
-  new_bage_prior_rw2(scale = scale,
-                     sd_slope = sd_slope,
-                     along = along,
-                     zero_sum = zero_sum)
+  if (sd > 0)
+    new_bage_prior_rw2random(scale = scale,
+                             sd = sd,
+                             sd_slope = sd_slope,
+                             along = along,
+                             zero_sum = zero_sum)
+  else
+    new_bage_prior_rw2zero(scale = scale,
+                           sd_slope = sd_slope,
+                           along = along,
+                           zero_sum = zero_sum)
 }
 
 
@@ -1100,30 +1114,22 @@ RW2_Infant <- function(s = 1,
 #' Second-Order Random Walk Prior with Seasonal Effect
 #'
 #' Use a second-oder random walk with
-#' seasonal effects to model
+#' seasonal effects as a model for
 #' a main effect, or use multiple second-order random walks,
 #' each with their own seasonal effects,
-#' to model an interaction.
-#' A second-order random walk is effectively
-#' a random walk with drift where the
-#' drift term varies. It is typically
-#' used with main effects or interactions
-#' that involve time, where there are sustained
-#' trends upward or downward.
+#' as a model for an interaction.
+#' Typically used with temrs that involve time.
 #'
 #' If `RW2_Seas()` is used with an interaction,
-#' separate series are used for
-#' the 'along' variable within
-#' each combination of the
-#' 'by' variables.
+#' a separate series is constructed within each
+#' combination of the 'by' variables.
 #'
 #' Argument `s` controls the size of innovations in the random walk.
-#' Smaller values for `s` tend to give smoother series.
+#' Smaller values for `s` tend to produce smoother series.
 #'
-#' Argument `n_seas` controls the number of `seasons`. 
+#' Argument `n_seas` controls the number of seasons. 
 #' When using quarterly data, for instance,
-#' `n_seas` should be `4`, and when using
-#' monthly data, `n_seas` should be `12`.
+#' `n_seas` should be `4`.
 #'
 #' By default, the magnitude of seasonal effects
 #' is fixed. However, setting `s_seas` to a value
@@ -1135,13 +1141,17 @@ RW2_Infant <- function(s = 1,
 #' When `RW2_Seas()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \alpha_j + \lambda_j}
-#' \deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2)}
+#' \deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\alpha_2 \sim \text{N}(0, \text{sd\_slope}^2)}
+#' \deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j > 2}
 #' \deqn{\lambda_j \sim \text{N}(\lambda_{j-n}, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}}
-#' \deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2),}
+#' \deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\alpha_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
+#' \deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad j > 2}
 #' \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-n}, \omega^2)}
 #' 
 #' where
@@ -1166,14 +1176,17 @@ RW2_Infant <- function(s = 1,
 #' @inheritParams RW_Seas
 #' 
 #' @param sd_slope Standard deviation
-#' for initial slope or random walk. Default is `1`.
+#' for initial slope of random walk. Default is `1`.
 #'
-#' @returns Object of class `"bage_prior_rw2seasvary"`
-#' or `"bage_prior_rw2seasfix"`.
+#' @returns Object of class
+#' `"bage_prior_rw2randomseasvary"`,
+#' `"bage_prior_rw2randomseasfix"`,
+#' `"bage_prior_rw2zeroseasvary"`, or
+#' `"bage_prior_rw2zeroseasfix"`.
 #'
 #' @seealso
-#' - [RW2()] Second-order random walk, without seasonal effect
-#' - [RW_Seas()] Random walk, with seasonal effect
+#' - [RW2()] Second-order random walk without seasonal effect
+#' - [RW_Seas()] Random walk with seasonal effect
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
 #'   main effect, or interaction
@@ -1181,9 +1194,11 @@ RW2_Infant <- function(s = 1,
 #' @examples
 #' RW2_Seas(n_seas = 4)               ## seasonal effects fixed
 #' RW2_Seas(n_seas = 4, s_seas = 0.5) ## seasonal effects evolve
+#' RW2_Seas(n_seas = 4, sd = 0)       ## first term in random walk fixed at 0
 #' @export
 RW2_Seas <- function(n_seas,
                      s = 1,
+                     sd = 1,
                      sd_slope = 1,
                      s_seas = 0,
                      sd_seas = 1,
@@ -1195,32 +1210,55 @@ RW2_Seas <- function(n_seas,
                     max = NULL,
                     divisible_by = NULL)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   check_scale(s_seas, nm_x = "s_seas", zero_ok = TRUE)
   check_scale(sd_seas, nm_x = "sd_seas", zero_ok = FALSE)
   n_seas <- as.integer(n_seas)
   scale <- as.double(s)
+  sd <- as.double(sd)
   sd_slope <- as.double(sd_slope)
   scale_seas = as.double(s_seas)
   sd_seas = as.double(sd_seas)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
-  if (scale_seas > 0)
-    new_bage_prior_rw2seasvary(n_seas = n_seas,
-                               scale_seas = scale_seas,
-                               sd_seas = sd_seas,
-                               scale = scale,
-                               sd_slope = sd_slope,
-                               along = along,
-                               zero_sum = zero_sum)
-  else
-    new_bage_prior_rw2seasfix(n_seas = n_seas,
-                              sd_seas = sd_seas,
-                              scale = scale,
-                              sd_slope = sd_slope,
-                              along = along,
-                              zero_sum = zero_sum)
+  if (scale_seas > 0) {
+    if (sd > 0) 
+      new_bage_prior_rw2randomseasvary(n_seas = n_seas,
+                                       scale_seas = scale_seas,
+                                       sd_seas = sd_seas,
+                                       scale = scale,
+                                       sd = sd,
+                                       sd_slope = sd_slope,
+                                       along = along,
+                                       zero_sum = zero_sum)
+    else
+      new_bage_prior_rw2zeroseasvary(n_seas = n_seas,
+                                     scale_seas = scale_seas,
+                                     sd_seas = sd_seas,
+                                     scale = scale,
+                                     sd_slope = sd_slope,
+                                     along = along,
+                                     zero_sum = zero_sum)
+  }
+  else {
+    if (sd > 0) 
+      new_bage_prior_rw2randomseasfix(n_seas = n_seas,
+                                      sd_seas = sd_seas,
+                                      scale = scale,
+                                      sd = sd,
+                                      sd_slope = sd_slope,
+                                      along = along,
+                                      zero_sum = zero_sum)
+    else
+      new_bage_prior_rw2zeroseasfix(n_seas = n_seas,
+                                    sd_seas = sd_seas,
+                                    scale = scale,
+                                    sd_slope = sd_slope,
+                                    along = along,
+                                    zero_sum = zero_sum)
+  }    
 }
 
 
@@ -2100,13 +2138,13 @@ new_bage_prior_rw2randomseasfix <- function(n_seas,
 
 ## HAS_TESTS
 new_bage_prior_rw2randomseasvary <- function(n_seas,
-                                           scale_seas,
-                                           sd_seas,
-                                           scale,
-                                           sd,
-                                           sd_slope,
-                                           along,
-                                           zero_sum) {
+                                             scale_seas,
+                                             sd_seas,
+                                             scale,
+                                             sd,
+                                             sd_slope,
+                                             along,
+                                             zero_sum) {
   ans <- list(i_prior = 24L,
               const = c(n_seas = n_seas,       ## put season-related quantities at beginning
                         scale_seas = scale_seas,
