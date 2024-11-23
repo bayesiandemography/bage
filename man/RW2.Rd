@@ -62,13 +62,13 @@ When \code{RW2()} is used with a main effect,
 
 \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
 \deqn{\beta_2 \sim \text{N}(\beta_1, \text{sd\_slope}^2)}
-\deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j > 2}
+\deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j = 2, \cdots, J}
 
 and when it is used with an interaction,
 
 \deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)}
 \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \text{sd\_slope}^2)}
-\deqn{\beta_{u,v} \sim \text{N}(2\beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v > 2}
+\deqn{\beta_{u,v} \sim \text{N}(2\beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
 
 where
 \itemize{
@@ -80,8 +80,7 @@ where
 
 Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-where \code{s} is provided by the user.
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}.
 }
 
 \examples{

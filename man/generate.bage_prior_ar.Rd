@@ -5,9 +5,18 @@
 \alias{generate.bage_prior_known}
 \alias{generate.bage_prior_norm}
 \alias{generate.bage_prior_normfixed}
-\alias{generate.bage_prior_rw}
-\alias{generate.bage_prior_rwseasfix}
-\alias{generate.bage_prior_rw2}
+\alias{generate.bage_prior_rwrandom}
+\alias{generate.bage_prior_rwrandomseasfix}
+\alias{generate.bage_prior_rwrandomseasvary}
+\alias{generate.bage_prior_rwzero}
+\alias{generate.bage_prior_rwzeroseasfix}
+\alias{generate.bage_prior_rwzeroseasvary}
+\alias{generate.bage_prior_rw2random}
+\alias{generate.bage_prior_rw2randomseasfix}
+\alias{generate.bage_prior_rw2randomseasvary}
+\alias{generate.bage_prior_rw2zero}
+\alias{generate.bage_prior_rw2zeroseasfix}
+\alias{generate.bage_prior_rw2zeroseasvary}
 \title{Generate Values from Priors}
 \usage{
 \method{generate}{bage_prior_ar}(x, n = 20, n_draw = 25, ...)
@@ -18,11 +27,29 @@
 
 \method{generate}{bage_prior_normfixed}(x, n = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwrandom}(x, n = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwseasfix}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwrandomseasfix}(x, n = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwrandomseasvary}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rwzero}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rwzeroseasfix}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rwzeroseasvary}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2random}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2randomseasfix}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2randomseasvary}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2zero}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2zeroseasfix}(x, n = 20, n_draw = 25, ...)
+
+\method{generate}{bage_prior_rw2zeroseasvary}(x, n = 20, n_draw = 25, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}
