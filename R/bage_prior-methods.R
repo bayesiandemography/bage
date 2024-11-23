@@ -57,28 +57,56 @@ comp_hyperrand.bage_prior_linar <- function(prior, dimnames_term, var_age, var_t
 
 ## HAS_TESTS
 #' @export
-comp_hyperrand.bage_prior_rwseasfix <- function(prior, dimnames_term, var_age, var_time) {
+comp_hyperrand.bage_prior_rwrandomseasfix <- function(prior, dimnames_term, var_age, var_time) {
   n <- prod(lengths(dimnames_term))
   rep(c("trend", "season"), each = n)
 }
 
 ## HAS_TESTS
 #' @export
-comp_hyperrand.bage_prior_rwseasvary <- function(prior, dimnames_term, var_age, var_time) {
+comp_hyperrand.bage_prior_rwrandomseasvary <- function(prior, dimnames_term, var_age, var_time) {
   n <- prod(lengths(dimnames_term))
   rep(c("trend", "season"), each = n)
 }
 
 ## HAS_TESTS
 #' @export
-comp_hyperrand.bage_prior_rw2seasfix <- function(prior, dimnames_term, var_age, var_time) {
+comp_hyperrand.bage_prior_rwzeroseasfix <- function(prior, dimnames_term, var_age, var_time) {
   n <- prod(lengths(dimnames_term))
   rep(c("trend", "season"), each = n)
 }
 
 ## HAS_TESTS
 #' @export
-comp_hyperrand.bage_prior_rw2seasvary <- function(prior, dimnames_term, var_age, var_time) {
+comp_hyperrand.bage_prior_rwzeroseasvary <- function(prior, dimnames_term, var_age, var_time) {
+  n <- prod(lengths(dimnames_term))
+  rep(c("trend", "season"), each = n)
+}
+
+## HAS_TESTS
+#' @export
+comp_hyperrand.bage_prior_rw2randomseasfix <- function(prior, dimnames_term, var_age, var_time) {
+  n <- prod(lengths(dimnames_term))
+  rep(c("trend", "season"), each = n)
+}
+
+## HAS_TESTS
+#' @export
+comp_hyperrand.bage_prior_rw2randomseasvary <- function(prior, dimnames_term, var_age, var_time) {
+  n <- prod(lengths(dimnames_term))
+  rep(c("trend", "season"), each = n)
+}
+
+## HAS_TESTS
+#' @export
+comp_hyperrand.bage_prior_rw2zeroseasfix <- function(prior, dimnames_term, var_age, var_time) {
+  n <- prod(lengths(dimnames_term))
+  rep(c("trend", "season"), each = n)
+}
+
+## HAS_TESTS
+#' @export
+comp_hyperrand.bage_prior_rw2zeroseasvary <- function(prior, dimnames_term, var_age, var_time) {
   n <- prod(lengths(dimnames_term))
   rep(c("trend", "season"), each = n)
 }
@@ -697,21 +725,21 @@ draw_vals_hyper.bage_prior_normfixed <- function(prior, n_sim)
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_rwrandom <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rwseasfix <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_rwrandomseasfix <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rwseasvary <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_rwrandomseasvary <- function(prior, n_sim) {
   sd_seas <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd_seas = sd_seas,
@@ -720,9 +748,25 @@ draw_vals_hyper.bage_prior_rwseasvary <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw2 <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_rwzero <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rwzeroseasfix <- function(prior, n_sim) {
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rwzeroseasvary <- function(prior, n_sim) {
+  sd_seas <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd_seas = sd_seas,
+       sd = sd)
 }
 
 ## HAS_TESTS
@@ -734,14 +778,44 @@ draw_vals_hyper.bage_prior_rw2infant <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw2seasfix <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_rw2random <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)
 }
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyper.bage_prior_rw2seasvary <- function(prior, n_sim) {
+draw_vals_hyper.bage_prior_rw2randomseasfix <- function(prior, n_sim) {
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2randomseasvary <- function(prior, n_sim) {
+  sd_seas <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd_seas = sd_seas,
+       sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2zero <- function(prior, n_sim) {
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2zeroseasfix <- function(prior, n_sim) {
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(sd = sd)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyper.bage_prior_rw2zeroseasvary <- function(prior, n_sim) {
   sd_seas <- draw_vals_sd_seas(prior = prior, n_sim = n_sim)
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd_seas = sd_seas,
@@ -925,7 +999,7 @@ draw_vals_hyperrand.bage_prior_linar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
+draw_vals_hyperrand.bage_prior_rwrandomseasfix <- function(prior,
                                                      vals_hyper,
                                                      dimnames_term,
                                                      var_time,
@@ -933,7 +1007,8 @@ draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
                                                      n_sim) {
   zero_sum <- prior$specific$zero_sum
   n_seas <- prior$specific$n_seas
-  sd_init <- prior$specific$sd_seas
+  sd_init <- prior$specific$sd
+  sd_init_seas <- prior$specific$sd_seas
   sd <- vals_hyper$sd
   matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
                                                         dimnames_term = dimnames_term,
@@ -941,11 +1016,11 @@ draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
                                                         var_age = var_age)
   labels <- dimnames_to_levels(dimnames_term)
   trend <- draw_vals_rw(sd = sd,
-                        sd_init = 0,
+                        sd_init = sd_init,
                         matrix_along_by = matrix_along_by_effect,
                         levels_effect = labels)
   season <- draw_vals_seasfix(n_seas = n_seas,
-                              sd_init = sd_init,
+                              sd_init = sd_init_seas,
                               matrix_along_by = matrix_along_by_effect,
                               n_sim = n_sim)
   if (zero_sum) {
@@ -967,12 +1042,98 @@ draw_vals_hyperrand.bage_prior_rwseasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_rwseasvary <- function(prior,
-                                                      vals_hyper,
-                                                      dimnames_term,
-                                                      var_time,
-                                                      var_age,
-                                                      n_sim) {
+draw_vals_hyperrand.bage_prior_rwrandomseasvary <- function(prior,
+                                                            vals_hyper,
+                                                            dimnames_term,
+                                                            var_time,
+                                                            var_age,
+                                                            n_sim) {
+  zero_sum <- prior$specific$zero_sum
+  n_seas <- prior$specific$n_seas
+  sd <- vals_hyper$sd
+  sd_init <- prior$specific$sd
+  sd_init_seas <- prior$specific$sd_seas
+  sd_innov_seas <- vals_hyper$sd_seas
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  labels <- dimnames_to_levels(dimnames_term)
+  trend <- draw_vals_rw(sd = sd,
+                        sd_init = sd_init,
+                        matrix_along_by = matrix_along_by_effect,
+                        levels_effect = labels)
+  season <- draw_vals_seasvary(n_seas = n_seas,
+                               sd_init = sd_init_seas,
+                               sd_innov = sd_innov_seas,
+                               matrix_along_by = matrix_along_by_effect)
+  if (zero_sum) {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_zero_sum(i_along = i_along,
+                              dim = dim)
+    trend <- m %*% trend
+    season <- m %*% season
+    trend <- Matrix::as.matrix(trend)
+    season <- Matrix::as.matrix(season)
+  }
+  list(trend = trend,
+       season = season)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rwzeroseasfix <- function(prior,
+                                                         vals_hyper,
+                                                         dimnames_term,
+                                                         var_time,
+                                                         var_age,
+                                                         n_sim) {
+  zero_sum <- prior$specific$zero_sum
+  n_seas <- prior$specific$n_seas
+  sd_init_seas <- prior$specific$sd_seas
+  sd <- vals_hyper$sd
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  labels <- dimnames_to_levels(dimnames_term)
+  trend <- draw_vals_rw(sd = sd,
+                        sd_init = 0,
+                        matrix_along_by = matrix_along_by_effect,
+                        levels_effect = labels)
+  season <- draw_vals_seasfix(n_seas = n_seas,
+                              sd_init = sd_init_seas,
+                              matrix_along_by = matrix_along_by_effect,
+                              n_sim = n_sim)
+  if (zero_sum) {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_zero_sum(i_along = i_along,
+                              dim = dim)
+    trend <- m %*% trend
+    season <- m %*% season
+    trend <- Matrix::as.matrix(trend)
+    season <- Matrix::as.matrix(season)
+  }
+  list(trend = trend,
+       season = season)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rwzeroseasvary <- function(prior,
+                                                          vals_hyper,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          n_sim) {
   zero_sum <- prior$specific$zero_sum
   n_seas <- prior$specific$n_seas
   sd <- vals_hyper$sd
@@ -1010,12 +1171,104 @@ draw_vals_hyperrand.bage_prior_rwseasvary <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_rw2seasfix <- function(prior,
+draw_vals_hyperrand.bage_prior_rw2randomseasfix <- function(prior,
                                                       vals_hyper,
                                                       dimnames_term,
                                                       var_time,
                                                       var_age,
                                                       n_sim) {
+  zero_sum <- prior$specific$zero_sum
+  n_seas <- prior$specific$n_seas
+  sd_init <- prior$specific$sd_init
+  sd_slope <- prior$specific$sd_slope
+  sd_init_seas <- prior$specific$sd_seas
+  sd <- vals_hyper$sd
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  labels <- dimnames_to_levels(dimnames_term)
+  trend <- draw_vals_rw2(sd = sd,
+                         sd_init = sd_init,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix_along_by_effect,
+                         levels_effect = labels)
+  season <- draw_vals_seasfix(n_seas = n_seas,
+                              sd_init = sd_init_seas,
+                              matrix_along_by = matrix_along_by_effect,
+                              n_sim = n_sim)
+  if (zero_sum) {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_zero_sum(i_along = i_along,
+                              dim = dim)
+    trend <- m %*% trend
+    season <- m %*% season
+    trend <- Matrix::as.matrix(trend)
+    season <- Matrix::as.matrix(season)
+  }
+  list(trend = trend,
+       season = season)
+}
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rw2randomseasvary <- function(prior,
+                                                             vals_hyper,
+                                                             dimnames_term,
+                                                             var_time,
+                                                             var_age,
+                                                             n_sim) {
+  zero_sum <- prior$specific$zero_sum
+  n_seas <- prior$specific$n_seas
+  sd_init <- prior$specific$sd_init
+  sd_slope <- prior$specific$sd_slope
+  sd_init_seas <- prior$specific$sd_seas
+  sd_innov_seas <- vals_hyper$sd_seas
+  sd <- vals_hyper$sd
+  matrix_along_by_effect <- make_matrix_along_by_effect(prior = prior,
+                                                        dimnames_term = dimnames_term,
+                                                        var_time = var_time,
+                                                        var_age = var_age)
+  labels <- dimnames_to_levels(dimnames_term)
+  trend <- draw_vals_rw2(sd = sd,
+                         sd_init = sd_init,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix_along_by_effect,
+                         levels_effect = labels)
+  season <- draw_vals_seasvary(n_seas = n_seas,
+                               sd_init = sd_init_seas,
+                               sd_innov = sd_innov_seas,
+                               matrix_along_by = matrix_along_by_effect)
+  if (zero_sum) {
+    i_along <- make_i_along(prior = prior,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age)
+    dim <- lengths(dimnames_term)
+    m <- make_matrix_zero_sum(i_along = i_along,
+                              dim = dim)
+    trend <- m %*% trend
+    season <- m %*% season
+    trend <- Matrix::as.matrix(trend)
+    season <- Matrix::as.matrix(season)
+  }
+  list(trend = trend,
+       season = season)
+}
+
+
+## HAS_TESTS
+#' @export
+draw_vals_hyperrand.bage_prior_rw2zeroseasfix <- function(prior,
+                                                          vals_hyper,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          n_sim) {
   zero_sum <- prior$specific$zero_sum
   n_seas <- prior$specific$n_seas
   sd_slope <- prior$specific$sd_slope
@@ -1054,12 +1307,12 @@ draw_vals_hyperrand.bage_prior_rw2seasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-draw_vals_hyperrand.bage_prior_rw2seasvary <- function(prior,
-                                                       vals_hyper,
-                                                       dimnames_term,
-                                                       var_time,
-                                                       var_age,
-                                                       n_sim) {
+draw_vals_hyperrand.bage_prior_rw2zeroseasvary <- function(prior,
+                                                           vals_hyper,
+                                                           dimnames_term,
+                                                           var_time,
+                                                           var_age,
+                                                           n_sim) {
   zero_sum <- prior$specific$zero_sum
   n_seas <- prior$specific$n_seas
   sd_slope <- prior$specific$sd_slope

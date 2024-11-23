@@ -34,7 +34,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_linar' - n_by = 1", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - main effect", {
+test_that("'comp_hyperrand' works with 'bage_prior_rwrandomseasfix' - main effect", {
   dimnames_term <- list(x = letters[1:13])
   ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term)
@@ -42,7 +42,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - main effect", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - interaction", {
+test_that("'comp_hyperrand' works with 'bage_prior_rwrandomseasfix' - interaction", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
   ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3),
@@ -51,7 +51,7 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwseasfix' - interaction", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'comp_hyperrand' works with 'bage_prior_rwseasvary' - interaction", {
+test_that("'comp_hyperrand' works with 'bage_prior_rwrandomseasvary' - interaction", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
   ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 1),
@@ -60,7 +60,33 @@ test_that("'comp_hyperrand' works with 'bage_prior_rwseasvary' - interaction", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'comp_hyperrand' works with 'bage_prior_rw2seasfix'", {
+test_that("'comp_hyperrand' works with 'bage_prior_rwzeroseasfix' - main effect", {
+  dimnames_term <- list(x = letters[1:13])
+  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, sd = 0, along = "x"),
+                                   dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "season"), each = 13)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_rwzeroseasfix' - interaction", {
+  dimnames_term <- list(sex = c("f", "m"),
+                        time = 2001:2010)
+  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, sd = 0),
+                                   dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "season"), each = 20)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_rwzeroseasvary' - interaction", {
+  dimnames_term <- list(time = 2001:2013,
+                        sex = c("f", "m"))
+  ans_obtained <- comp_hyperrand(prior = RW_Seas(n_seas = 3, s_seas = 1, sd = 0),
+                                   dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "season"), each = 26)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_rw2randomseasfix'", {
   dimnames_term <- list(x = letters[1:13])
   ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, along = "x"),
                                    dimnames_term = dimnames_term)
@@ -68,9 +94,25 @@ test_that("'comp_hyperrand' works with 'bage_prior_rw2seasfix'", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'comp_hyperrand' works with 'bage_prior_rw2seasvary'", {
+test_that("'comp_hyperrand' works with 'bage_prior_rw2randomseasvary'", {
   dimnames_term <- list(x = letters[1:13])
   ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, s_seas = 1, along = "x"),
+                                   dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "season"), each = 13)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_rw2zeroseasfix'", {
+  dimnames_term <- list(x = letters[1:13])
+  ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, sd = 0, along = "x"),
+                                   dimnames_term = dimnames_term)
+  ans_expected <- rep(c("trend", "season"), each = 13)
+  expect_identical(ans_obtained, ans_expected)                   
+})
+
+test_that("'comp_hyperrand' works with 'bage_prior_rw2zeroseasvary'", {
+  dimnames_term <- list(x = letters[1:13])
+  ans_obtained <- comp_hyperrand(prior = RW2_Seas(n_seas = 3, sd = 0, s_seas = 1, along = "x"),
                                    dimnames_term = dimnames_term)
   ans_expected <- rep(c("trend", "season"), each = 13)
   expect_identical(ans_obtained, ans_expected)                   
@@ -1298,7 +1340,7 @@ test_that("'draw_vals_hyper' works with bage_prior_normfixed", {
   expect_identical(ans, list())
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_rw", {
+test_that("'draw_vals_hyper' works with bage_prior_rwrandom", {
   prior <- RW()
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
@@ -1306,7 +1348,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rw", {
   expect_identical(length(ans$sd), 10L)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_rwseasfix", {
+test_that("'draw_vals_hyper' works with bage_prior_rwrandomseasfix", {
   prior <- RW_Seas(n_seas = 2)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
@@ -1314,7 +1356,7 @@ test_that("'draw_vals_hyper' works with bage_prior_rwseasfix", {
   expect_identical(length(ans$sd), 10L)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_rwseasvary", {
+test_that("'draw_vals_hyper' works with bage_prior_rwrandomseasvary", {
   prior <- RW_Seas(n_seas = 2, s_seas = 0.1)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
@@ -1323,11 +1365,28 @@ test_that("'draw_vals_hyper' works with bage_prior_rwseasvary", {
   expect_identical(length(ans$sd), 10L)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_rw2", {
-  prior <- RW2()
+test_that("'draw_vals_hyper' works with bage_prior_rwzero", {
+  prior <- RW(sd = 0)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rwzeroseasfix", {
+  prior <- RW_Seas(n_seas = 2, sd = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rwzeroseasvary", {
+  prior <- RW_Seas(n_seas = 2, s_seas = 0.1, sd = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("sd_seas", "sd"))
+  expect_identical(length(ans$sd_seas), 10L)
   expect_identical(length(ans$sd), 10L)
 })
 
@@ -1339,7 +1398,15 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2infant", {
   expect_identical(length(ans$sd), 10L)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_rw2seasfix", {
+test_that("'draw_vals_hyper' works with bage_prior_rw2random", {
+  prior <- RW2()
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2randomseasfix", {
   prior <- RW2_Seas(n_seas = 2)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
@@ -1347,8 +1414,33 @@ test_that("'draw_vals_hyper' works with bage_prior_rw2seasfix", {
   expect_identical(length(ans$sd), 10L)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_rw2seasvary", {
+test_that("'draw_vals_hyper' works with bage_prior_rw2randomseasvary", {
   prior <- RW2_Seas(n_seas = 2, s_seas = 0.1)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), c("sd_seas", "sd"))
+  expect_identical(length(ans$sd_seas), 10L)
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2zero", {
+  prior <- RW2(sd = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2zeroseasfix", {
+  prior <- RW2_Seas(n_seas = 2, sd = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(names(ans), "sd")
+  expect_identical(length(ans$sd), 10L)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_rw2zeroseasvary", {
+  prior <- RW2_Seas(n_seas = 2, s_seas = 0.1, sd = 0)
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
   expect_identical(names(ans), c("sd_seas", "sd"))
@@ -1491,7 +1583,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar - zero_sum = TRUE",
   expect_equal(rowSums(matrix(ans$error[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - zero_sum = FALSE", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1510,7 +1602,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = FA
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - zero_sum = TRUE", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1531,7 +1623,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasfix - zero_sum = TR
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - zero_sum is FALSE", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.4)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1550,7 +1642,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary - zero_sum is 
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - zero_sum is TRUE", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.4, zero_sum = TRUE)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1571,7 +1663,87 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwseasvary - zero_sum is 
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - zero_sum = FALSE", {
+  set.seed(0)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = 10)
+  expect_identical(names(ans), c("trend", "season"))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - zero_sum = TRUE", {
+  set.seed(0)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, zero_sum = TRUE)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = 10)
+  expect_identical(names(ans), c("trend", "season"))
+  expect_equal(rowSums(matrix(ans$trend[,1], nr = 3)), rep(0, 3))
+  expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - zero_sum is FALSE", {
+  set.seed(0)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_time = var_time,
+                                      n_sim = n_sim)
+  expect_identical(names(ans), c("trend", "season"))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - zero_sum is TRUE", {
+  set.seed(0)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4, zero_sum = TRUE)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_time = var_time,
+                                      n_sim = n_sim)
+  expect_identical(names(ans), c("trend", "season"))
+  expect_equal(rowSums(matrix(ans$trend[,1], nr = 3)), rep(0, 3))
+  expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
+})
+
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - zero_sum = FALSE", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1590,7 +1762,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = F
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - zero_sum = TRUE", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1611,7 +1783,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasfix - zero_sum = T
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasvary - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - zero_sum is FALSE", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.4)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1630,7 +1802,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasvary - zero_sum is
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasvary - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - zero_sum is TRUE", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.4, zero_sum = TRUE)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1651,9 +1823,85 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2seasvary - zero_sum is
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - zero_sum = FALSE", {
+  set.seed(0)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = 10)
+  expect_identical(names(ans), c("trend", "season"))
+})
 
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - zero_sum = TRUE", {
+  set.seed(0)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, zero_sum = TRUE)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                             vals_hyper = vals_hyper,
+                             dimnames_term = dimnames_term,
+                             var_age = var_age,
+                             var_time = var_time,
+                             n_sim = 10)
+  expect_identical(names(ans), c("trend", "season"))
+  expect_equal(rowSums(matrix(ans$trend[,1], nr = 3)), rep(0, 3))
+  expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
+})
 
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - zero_sum is FALSE", {
+  set.seed(0)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_time = var_time,
+                                      n_sim = n_sim)
+  expect_identical(names(ans), c("trend", "season"))
+})
 
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - zero_sum is TRUE", {
+  set.seed(0)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4, zero_sum = TRUE)
+  dimnames_term <- list(time = 1:3, region = 1:4)
+  var_time <- "time"
+  var_age <- "age"
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  set.seed(1)
+  ans <- draw_vals_hyperrand(prior = prior,
+                                      vals_hyper = vals_hyper,
+                                      dimnames_term = dimnames_term,
+                                      var_age = var_age,
+                                      var_time = var_time,
+                                      n_sim = n_sim)
+  expect_identical(names(ans), c("trend", "season"))
+  expect_equal(rowSums(matrix(ans$trend[,1], nr = 3)), rep(0, 3))
+  expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
+})
 
 
 ## 'draw_vals_spline' ---------------------------------------------------------
