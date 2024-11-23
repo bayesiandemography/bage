@@ -245,20 +245,20 @@ NFix(sd = 1)
 Random walk
 
 \begin{align}
-  \beta_{u,1}^{(m)} & = 0 \\
+  \beta_{u,1}^{(m)} & \sim \text{N}\left(0, (A_0^{(m)})^2\right) \\
   \beta_{u,v}^{(m)} & \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
 
-When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
+$A_0^{(m)}$ can be 0, implying that $\beta_{u,1}^{(m)}$ is fixed at 0.
 
+When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, \tau_m^2)  \prod_{v=3}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2\right) \prod_{v=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
-
 
 
 ### Forecasting
@@ -277,6 +277,7 @@ RW(s = 1, along = NULL, zero_sum = TRUE)
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
+- `sd` is $A_0^{(m)}$. Defaults to 1.
 - `along` used to identify 'along' and 'by' dimensions.
 - if `zero_sum` is `TRUE`, sum-to-zero constraints are applied.
 
@@ -288,21 +289,21 @@ RW(s = 1, along = NULL, zero_sum = TRUE)
 Second-order random walk
 
 \begin{align}
-  \beta_{u,1}^{(m)} & = 0  \\
-  \beta_{u,2}^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,1}^{(m)} & \sim \text{N}\left(0, (A_0^{(m)})^2\right) \\
+  \beta_{u,2}^{(m)} & \sim \text{N}\left(\beta_{u,1}, (A_{\eta}^{(m)})^2\right) \\
   \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 3, \cdots, V_m \\
   \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
 
+$A_0^{(m)}$ can be 0, implying that $\beta_{u,1}^{(m)}$ is fixed at 0.
 
 When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2) \text{N}(\beta_{u,3}^{(m)} \mid 2 \beta_{u,2}^{(m)}, \tau_m^2) \prod_{v=4}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2) \text{N}(\beta_{u,2}^{(m)} \mid \beta_{u,1}^{(m)}, (A_{\eta}^{(m)})^2) \prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right) 
 \end{equation}
-
 
 
 ### Forecasting
@@ -317,11 +318,12 @@ If the prior includes sum-to-zero constraints, means are subtracted from the for
 ### Code
 
 ```
-RW2(s = 1, sd = 1, along = NULL, zero_sum = TRUE)
+RW2(s = 1, sd = 1, sd_slope = 1, along = NULL, zero_sum = TRUE)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
-- `sd` is $A_{\eta}^{(m)}$
+- `sd` is $A_0^{(m)}$
+- `sd_slope` is $A_{\eta}^{(m)}$
 - `along` used to identify 'along' and 'by' dimensions
 - if `zero_sum` is `TRUE`, sum-to-zero constraints are applied
 
@@ -334,17 +336,19 @@ RW2(s = 1, sd = 1, along = NULL, zero_sum = TRUE)
 Random walk with seasonal effect
 
 \begin{align}
-  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,s_v} \\
-  \alpha_{u,1}^{(m)} & = 0 \\
+  \beta_{u,v}^{(m)} & = \alpha_{u,v} + \lambda_{u,v}, \quad v = 1, \cdots, V_m \\
+  \alpha_{u,1}^{(m)} & \sim \text{N}\left(0, (A_0^{(m)})^2 \right) \\
   \alpha_{u,v}^{(m)} & \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
   \lambda_{u,v}^{(m)} & \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
-  \lambda_{u,v}^{(m)} & = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} & = -\sum_{s=1}^{S_m-1} \lambda_{u,v-s}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
   \lambda_{u,v}^{(m)} & \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m & \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}
 
-Scale parameter $A_{\omega}^{(m)2}$ can be set to zero, implying that seasonal effect for each season does not change over time.
+$A_0^{(m)}$ can be 0, implying that $\alpha_{u,1}^{(m)}$ is fixed at 0.
+
+$A_{\omega}^{(m)2}$ can be set to zero, implying that seasonal effects are fixed over time.
 
 When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
 
@@ -354,8 +358,8 @@ When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be 
 \begin{equation}
 \begin{split}
   & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, \tau_m^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
-  \prod_{v > S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}\left(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 \right) \prod_{v=2}^{V_m} \text{N}\left(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 \right) \prod_{v=1}^{S_m-1}  \text{N}\left(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2\right) \\
+  \prod_{v > S_m, \; (v-1) \bmod S_m \neq 0}^{V_m} \text{N}\left(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2\right) \right)
 \end{split}
 \end{equation}
 
@@ -370,11 +374,12 @@ When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be 
 ### Code
 
 ```
-RW_Seas(n, s = 1, s_seas = 1, sd_seas, along = NULL, zero_sum = FALSE)
+RW_Seas(n_seas, s = 1, sd = 1, s_seas = 0, sd_seas = 1, along = NULL, zero_sum = FALSE)
 ```
 
 - `n_seas` is $S_m$
 - `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_0^{(m)}$
 - `s_seas` is $A_{\omega}^{(m)}$
 - `sd_seas` is $A_{\lambda}^{(m)}$
 - `along` used to identify 'along' and 'by' dimensions
@@ -632,7 +637,7 @@ Lin_AR(s = 1, sd = 1, along = NULL)
 - `along` is used to indentify 'along' and 'by' variables
 
 
-## Lin_AR() {#sec:pr-lin-ar}
+## Lin_AR1() {#sec:pr-lin-ar1}
 
 TODO - WRITE DETAILS
 
@@ -1152,7 +1157,7 @@ replicate_data(x, condition_on = c("fitted", "expected"), n = 20)
 | $\pmb{X}^{(m)}$ | Matrix mapping $\pmb{\beta}^{(m)}$ to $\pmb{y}$. |
 | $\pmb{Z}$ | Matrix of covariates. |
 | $\pmb{\zeta}$ | Parameter vector for covariates $\pmb{Z}^{(m)}$. |
-| $A_0$ | Scale parameter in prior for intercept $\beta^{(0)}$. |
+| $A_0$ | Scale parameter in prior for intercept $\beta^{(0)}$ or initial value. |
 | $\tau_m$ | Standard deviation parameter for main effect or interaction. |
 | $A_{\tau}^{(m)}$ | Scale parameter in prior for $\tau_m$. |
 | $\pmb{\alpha}^{(m)}$ | Parameter vector for P-spline and SVD priors. |
