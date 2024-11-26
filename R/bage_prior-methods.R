@@ -4240,7 +4240,7 @@ length_hyperrandfree.bage_prior_linar <- function(prior,
 
 ## HAS_TESTS
 #' @export
-length_hyperrandfree.bage_prior_rwseasfix <- function(prior,
+length_hyperrandfree.bage_prior_rwrandomseasfix <- function(prior,
                                                       dimnames_term,
                                                       var_time,
                                                       var_age,
@@ -4257,7 +4257,7 @@ length_hyperrandfree.bage_prior_rwseasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-length_hyperrandfree.bage_prior_rwseasvary <- function(prior,
+length_hyperrandfree.bage_prior_rwrandomseasvary <- function(prior,
                                                    dimnames_term,
                                                    var_time,
                                                    var_age,
@@ -4279,7 +4279,46 @@ length_hyperrandfree.bage_prior_rwseasvary <- function(prior,
 
 ## HAS_TESTS
 #' @export
-length_hyperrandfree.bage_prior_rw2seasfix <- function(prior,
+length_hyperrandfree.bage_prior_rwzeroseasfix <- function(prior,
+                                                      dimnames_term,
+                                                      var_time,
+                                                      var_age,
+                                                      var_sexgender) {
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  n_by <- ncol(matrix_along_by_effectfree)
+  (n_seas - 2L) * n_by
+}
+
+## HAS_TESTS
+#' @export
+length_hyperrandfree.bage_prior_rwzeroseasvary <- function(prior,
+                                                   dimnames_term,
+                                                   var_time,
+                                                   var_age,
+                                 var_sexgender) {
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  n_along <- nrow(matrix_along_by_effectfree)
+  n_by <- ncol(matrix_along_by_effectfree)
+  s <- seq_len(n_along) - 1L
+  is_first_period <- s == 0L
+  is_last_season <- (s %% n_seas) == n_seas - 1L
+  n_seas_free <- sum(!is_first_period & !is_last_season)
+  n_seas_free * n_by
+}
+
+## HAS_TESTS
+#' @export
+length_hyperrandfree.bage_prior_rw2randomseasfix <- function(prior,
                                                        dimnames_term,
                                                        var_time,
                                                        var_age,
@@ -4296,7 +4335,7 @@ length_hyperrandfree.bage_prior_rw2seasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-length_hyperrandfree.bage_prior_rw2seasvary <- function(prior,
+length_hyperrandfree.bage_prior_rw2randomseasvary <- function(prior,
                                                         dimnames_term,
                                                         var_time,
                                                         var_age,
@@ -4316,7 +4355,44 @@ length_hyperrandfree.bage_prior_rw2seasvary <- function(prior,
   n_seas_free * n_by
 }
 
+## HAS_TESTS
+#' @export
+length_hyperrandfree.bage_prior_rw2zeroseasfix <- function(prior,
+                                                       dimnames_term,
+                                                       var_time,
+                                                       var_age,
+                                                       var_sexgender) {
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  n_by <- ncol(matrix_along_by_effectfree)
+  (n_seas - 2L) * n_by
+}
 
+## HAS_TESTS
+#' @export
+length_hyperrandfree.bage_prior_rw2zeroseasvary <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  n_along <- nrow(matrix_along_by_effectfree)
+  n_by <- ncol(matrix_along_by_effectfree)
+  s <- seq_len(n_along) - 1L
+  is_first_period <- s == 0L
+  is_last_season <- (s %% n_seas) == n_seas - 1L
+  n_seas_free <- sum(!is_first_period & !is_last_season)
+  n_seas_free * n_by
+}
 ## 'levels_hyper' -------------------------------------------------------------
 
 #' Names of hyper-parameters
@@ -4381,23 +4457,33 @@ levels_hyper.bage_prior_normfixed <- function(prior)
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rw <- function(prior)
+levels_hyper.bage_prior_rwrandom <- function(prior)
   "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rwseasfix <- function(prior)
+levels_hyper.bage_prior_rwrandomseasfix <- function(prior)
   "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rwseasvary <- function(prior)
+levels_hyper.bage_prior_rwrandomseasvary <- function(prior)
   c("sd_seas", "sd")
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rw2 <- function(prior)
+levels_hyper.bage_prior_rwzero <- function(prior)
   "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rwzeroseasfix <- function(prior)
+  "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rwzeroseasvary <- function(prior)
+  c("sd_seas", "sd")
 
 ## HAS_TESTS
 #' @export
@@ -4406,12 +4492,32 @@ levels_hyper.bage_prior_rw2infant <- function(prior)
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rw2seasfix <- function(prior)
+levels_hyper.bage_prior_rw2random <- function(prior)
   "sd"
 
 ## HAS_TESTS
 #' @export
-levels_hyper.bage_prior_rw2seasvary <- function(prior)
+levels_hyper.bage_prior_rw2randomseasfix <- function(prior)
+  "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rw2randomseasvary <- function(prior)
+  c("sd_seas", "sd")
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rw2zero <- function(prior)
+  "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rw2zeroseasfix <- function(prior)
+  "sd"
+
+## HAS_TESTS
+#' @export
+levels_hyper.bage_prior_rw2zeroseasvary <- function(prior)
   c("sd_seas", "sd")
 
 ## HAS_TESTS
@@ -4508,34 +4614,59 @@ levels_hyperrand.bage_prior_linar <- function(prior, dimnames_term, var_age, var
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_rwseasfix <- function(prior, dimnames_term, var_age, var_time) {
+levels_hyperrand.bage_prior_rwrandomseasfix <- function(prior, dimnames_term, var_age, var_time) {
   levels <- dimnames_to_levels(dimnames_term)
   c(levels, levels)
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_rwseasvary <- function(prior, dimnames_term, var_age, var_time) {
+levels_hyperrand.bage_prior_rwrandomseasvary <- function(prior, dimnames_term, var_age, var_time) {
   levels <- dimnames_to_levels(dimnames_term)
   c(levels, levels)
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_rw2seasfix <- function(prior, dimnames_term, var_age, var_time) {
+levels_hyperrand.bage_prior_rwzeroseasfix <- function(prior, dimnames_term, var_age, var_time) {
   levels <- dimnames_to_levels(dimnames_term)
   c(levels, levels)
 }
 
 ## HAS_TESTS
 #' @export
-levels_hyperrand.bage_prior_rw2seasvary <- function(prior, dimnames_term, var_age, var_time) {
+levels_hyperrand.bage_prior_rwzeroseasvary <- function(prior, dimnames_term, var_age, var_time) {
   levels <- dimnames_to_levels(dimnames_term)
   c(levels, levels)
 }
 
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior_rw2randomseasfix <- function(prior, dimnames_term, var_age, var_time) {
+  levels <- dimnames_to_levels(dimnames_term)
+  c(levels, levels)
+}
 
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior_rw2randomseasvary <- function(prior, dimnames_term, var_age, var_time) {
+  levels <- dimnames_to_levels(dimnames_term)
+  c(levels, levels)
+}
 
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior_rw2zeroseasfix <- function(prior, dimnames_term, var_age, var_time) {
+  levels <- dimnames_to_levels(dimnames_term)
+  c(levels, levels)
+}
+
+## HAS_TESTS
+#' @export
+levels_hyperrand.bage_prior_rw2zeroseasvary <- function(prior, dimnames_term, var_age, var_time) {
+  levels <- dimnames_to_levels(dimnames_term)
+  c(levels, levels)
+}
 
 
 ## 'make_hyperrand_one' -------------------------------------------------------
@@ -4818,7 +4949,7 @@ make_i_along.bage_prior_linex <- function(prior, dimnames_term, var_time, var_ag
 
 ## HAS_TESTS
 #' @export
-make_i_along.bage_prior_rw <- function(prior, dimnames_term, var_time, var_age) {
+make_i_along.bage_prior_rwrandom <- function(prior, dimnames_term, var_time, var_age) {
   along <- prior$specific$along
   make_i_along_inner(along = along,
                      dimnames_term = dimnames_term,
@@ -4828,7 +4959,7 @@ make_i_along.bage_prior_rw <- function(prior, dimnames_term, var_time, var_age) 
 
 ## HAS_TESTS
 #' @export
-make_i_along.bage_prior_rwseasfix <- function(prior, dimnames_term, var_time, var_age) {
+make_i_along.bage_prior_rwrandomseasfix <- function(prior, dimnames_term, var_time, var_age) {
   along <- prior$specific$along
   make_i_along_inner(along = along,
                      dimnames_term = dimnames_term,
@@ -4838,7 +4969,7 @@ make_i_along.bage_prior_rwseasfix <- function(prior, dimnames_term, var_time, va
 
 ## HAS_TESTS
 #' @export
-make_i_along.bage_prior_rwseasvary <- function(prior, dimnames_term, var_time, var_age) {
+make_i_along.bage_prior_rwrandomseasvary <- function(prior, dimnames_term, var_time, var_age) {
   along <- prior$specific$along
   make_i_along_inner(along = along,
                      dimnames_term = dimnames_term,
@@ -4848,7 +4979,27 @@ make_i_along.bage_prior_rwseasvary <- function(prior, dimnames_term, var_time, v
 
 ## HAS_TESTS
 #' @export
-make_i_along.bage_prior_rw2 <- function(prior, dimnames_term, var_time, var_age) {
+make_i_along.bage_prior_rwzero <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_rwzeroseasfix <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_rwzeroseasvary <- function(prior, dimnames_term, var_time, var_age) {
   along <- prior$specific$along
   make_i_along_inner(along = along,
                      dimnames_term = dimnames_term,
@@ -4868,7 +5019,7 @@ make_i_along.bage_prior_rw2infant <- function(prior, dimnames_term, var_time, va
 
 ## HAS_TESTS
 #' @export
-make_i_along.bage_prior_rw2seasfix <- function(prior, dimnames_term, var_time, var_age) {
+make_i_along.bage_prior_rw2random <- function(prior, dimnames_term, var_time, var_age) {
   along <- prior$specific$along
   make_i_along_inner(along = along,
                      dimnames_term = dimnames_term,
@@ -4878,7 +5029,47 @@ make_i_along.bage_prior_rw2seasfix <- function(prior, dimnames_term, var_time, v
 
 ## HAS_TESTS
 #' @export
-make_i_along.bage_prior_rw2seasvary <- function(prior, dimnames_term, var_time, var_age) {
+make_i_along.bage_prior_rw2randomseasfix <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_rw2randomseasvary <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_rw2zero <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_rw2zeroseasfix <- function(prior, dimnames_term, var_time, var_age) {
+  along <- prior$specific$along
+  make_i_along_inner(along = along,
+                     dimnames_term = dimnames_term,
+                     var_time = var_time,
+                     var_age = var_age)
+}
+
+## HAS_TESTS
+#' @export
+make_i_along.bage_prior_rw2zeroseasvary <- function(prior, dimnames_term, var_time, var_age) {
   along <- prior$specific$along
   make_i_along_inner(along = along,
                      dimnames_term = dimnames_term,
@@ -5029,22 +5220,7 @@ make_matrix_along_by_effectfree.bage_prior_linex <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_along_by_effectfree.bage_prior_rw <- function(prior,
-                                                          dimnames_term,
-                                                          var_time,
-                                                          var_age,
-                                                          var_sexgender) {
-  make_matrix_along_by_effectfree_inner(prior = prior,
-                                        dimnames_term = dimnames_term,
-                                        var_time = var_time,
-                                        var_age = var_age,
-                                        var_sexgender = var_sexgender,
-                                        append_zero = TRUE)
-}
-
-## HAS_TESTS
-#' @export
-make_matrix_along_by_effectfree.bage_prior_rwseasfix <- function(prior,
+make_matrix_along_by_effectfree.bage_prior_rwrandom <- function(prior,
                                                           dimnames_term,
                                                           var_time,
                                                           var_age,
@@ -5059,7 +5235,22 @@ make_matrix_along_by_effectfree.bage_prior_rwseasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_along_by_effectfree.bage_prior_rwseasvary <- function(prior,
+make_matrix_along_by_effectfree.bage_prior_rwrandomseasfix <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rwrandomseasvary <- function(prior,
                                                                   dimnames_term,
                                                                   var_time,
                                                                   var_age,
@@ -5072,9 +5263,40 @@ make_matrix_along_by_effectfree.bage_prior_rwseasvary <- function(prior,
                                         append_zero = FALSE)
 }
 
+
 ## HAS_TESTS
 #' @export
-make_matrix_along_by_effectfree.bage_prior_rw2 <- function(prior,
+make_matrix_along_by_effectfree.bage_prior_rwzero <- function(prior,
+                                                              dimnames_term,
+                                                              var_time,
+                                                              var_age,
+                                                              var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rwzeroseasfix <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rwzeroseasvary <- function(prior,
                                                                   dimnames_term,
                                                                   var_time,
                                                                   var_age,
@@ -5084,7 +5306,7 @@ make_matrix_along_by_effectfree.bage_prior_rw2 <- function(prior,
                                         var_time = var_time,
                                         var_age = var_age,
                                         var_sexgender = var_sexgender,
-                                        append_zero = TRUE)
+                                        append_zero = FALSE)
 }
 
 ## HAS_TESTS
@@ -5104,7 +5326,22 @@ make_matrix_along_by_effectfree.bage_prior_rw2infant <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_along_by_effectfree.bage_prior_rw2seasfix <- function(prior,
+make_matrix_along_by_effectfree.bage_prior_rw2random <- function(prior,
+                                                                 dimnames_term,
+                                                                 var_time,
+                                                                 var_age,
+                                                                 var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw2zeroseasfix <- function(prior,
                                                           dimnames_term,
                                                           var_time,
                                                           var_age,
@@ -5119,7 +5356,52 @@ make_matrix_along_by_effectfree.bage_prior_rw2seasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_along_by_effectfree.bage_prior_rw2seasvary <- function(prior,
+make_matrix_along_by_effectfree.bage_prior_rw2zeroseasvary <- function(prior,
+                                                                  dimnames_term,
+                                                                  var_time,
+                                                                  var_age,
+                                                                  var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw2zero <- function(prior,
+                                                                  dimnames_term,
+                                                                  var_time,
+                                                                  var_age,
+                                                                  var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw2zeroseasfix <- function(prior,
+                                                          dimnames_term,
+                                                          var_time,
+                                                          var_age,
+                                                          var_sexgender) {
+  make_matrix_along_by_effectfree_inner(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender,
+                                        append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_along_by_effectfree.bage_prior_rw2zeroseasvary <- function(prior,
                                                                   dimnames_term,
                                                                   var_time,
                                                                   var_age,
@@ -5565,7 +5847,7 @@ make_matrix_effectfree_effect.bage_prior_linex <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_rw <- function(prior,
+make_matrix_effectfree_effect.bage_prior_rwrandom <- function(prior,
                                                         dimnames_term,
                                                         var_time,
                                                         var_age,
@@ -5575,12 +5857,12 @@ make_matrix_effectfree_effect.bage_prior_rw <- function(prior,
                                       var_time = var_time,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender,
-                                      append_zero = TRUE)
+                                      append_zero = FALSE)
 }
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_rwseasfix <- function(prior,
+make_matrix_effectfree_effect.bage_prior_rwrandomseasfix <- function(prior,
                                                                dimnames_term,
                                                                var_time,
                                                                var_age,
@@ -5595,11 +5877,11 @@ make_matrix_effectfree_effect.bage_prior_rwseasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_rwseasvary <- function(prior,
-                                                                dimnames_term,
-                                                                var_time,
-                                                                var_age,
-                                                                var_sexgender) {
+make_matrix_effectfree_effect.bage_prior_rwrandomseasvary <- function(prior,
+                                                                      dimnames_term,
+                                                                      var_time,
+                                                                      var_age,
+                                                                      var_sexgender) {
   make_matrix_effectfree_effect_inner(prior = prior,
                                       dimnames_term = dimnames_term,
                                       var_time = var_time,
@@ -5610,7 +5892,7 @@ make_matrix_effectfree_effect.bage_prior_rwseasvary <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_rw2 <- function(prior,
+make_matrix_effectfree_effect.bage_prior_rwzero <- function(prior,
                                                         dimnames_term,
                                                         var_time,
                                                         var_age,
@@ -5621,6 +5903,36 @@ make_matrix_effectfree_effect.bage_prior_rw2 <- function(prior,
                                       var_age = var_age,
                                       var_sexgender = var_sexgender,
                                       append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rwzeroseasfix <- function(prior,
+                                                               dimnames_term,
+                                                               var_time,
+                                                               var_age,
+                                                               var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rwzeroseasvary <- function(prior,
+                                                                dimnames_term,
+                                                                var_time,
+                                                                var_age,
+                                                                var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
 }
 
 ## HAS_TESTS
@@ -5640,7 +5952,22 @@ make_matrix_effectfree_effect.bage_prior_rw2infant <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_rw2seasfix <- function(prior,
+make_matrix_effectfree_effect.bage_prior_rw2random <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw2randomseasfix <- function(prior,
                                                                dimnames_term,
                                                                var_time,
                                                                var_age,
@@ -5655,7 +5982,52 @@ make_matrix_effectfree_effect.bage_prior_rw2seasfix <- function(prior,
 
 ## HAS_TESTS
 #' @export
-make_matrix_effectfree_effect.bage_prior_rw2seasvary <- function(prior,
+make_matrix_effectfree_effect.bage_prior_rw2randomseasvary <- function(prior,
+                                                                dimnames_term,
+                                                                var_time,
+                                                                var_age,
+                                                                var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw2zero <- function(prior,
+                                                        dimnames_term,
+                                                        var_time,
+                                                        var_age,
+                                                        var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = TRUE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw2zeroseasfix <- function(prior,
+                                                               dimnames_term,
+                                                               var_time,
+                                                               var_age,
+                                                               var_sexgender) {
+  make_matrix_effectfree_effect_inner(prior = prior,
+                                      dimnames_term = dimnames_term,
+                                      var_time = var_time,
+                                      var_age = var_age,
+                                      var_sexgender = var_sexgender,
+                                      append_zero = FALSE)
+}
+
+## HAS_TESTS
+#' @export
+make_matrix_effectfree_effect.bage_prior_rw2zeroseasvary <- function(prior,
                                                                 dimnames_term,
                                                                 var_time,
                                                                 var_age,
@@ -6054,19 +6426,20 @@ print.bage_prior_normfixed <- function(x, ...) {
 
 ## HAS_TESTS
 #' @export
-print.bage_prior_rw <- function(x, ...) {
+print.bage_prior_rwrandom <- function(x, ...) {
   print_prior(x,
-              nms = c("s", "along", "zero_sum"),
-              slots = c("scale", "along", "zero_sum"))
+              nms = c("s", "sd", "along", "zero_sum"),
+              slots = c("scale", "sd", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
 #' @export
-print.bage_prior_rwseasfix <- function(x, ...) {
+print.bage_prior_rwrandomseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
+  print_prior_slot(prior = x, nm = "sd", slot = "sd")
   cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
   print_prior_slot(prior = x, nm = "along", slot = "along")
@@ -6076,18 +6449,52 @@ print.bage_prior_rwseasfix <- function(x, ...) {
 
 ## HAS_TESTS
 #' @export
-print.bage_prior_rwseasvary <- function(x, ...) {
+print.bage_prior_rwrandomseasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n", "s", "s_seas", "sd_seas", "along", "zero_sum"),
-              slots = c("n", "scale", "scale_seas", "sd_seas", "along", "zero_sum"))
+              nms = c("n", "s", "sd", "s_seas", "sd_seas", "along", "zero_sum"),
+              slots = c("n", "scale", "sd", "scale_seas", "sd_seas", "along", "zero_sum"))
 }
 
 ## HAS_TESTS
 #' @export
-print.bage_prior_rw2 <- function(x, ...) {
-  print_prior(x,
-              nms = c("s", "sd_slope", "along", "zero_sum"),
-              slots = c("scale", "sd_slope", "along", "zero_sum"))
+print.bage_prior_rwzero <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rwzeroseasfix <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
+  print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rwzeroseasvary <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  print_prior_slot(prior = x, nm = "s_seas", slot = "scale_seas")
+  print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
 }
 
 ## HAS_TESTS
@@ -6100,11 +6507,20 @@ print.bage_prior_rw2infant <- function(x, ...) {
 
 ## HAS_TESTS
 #' @export
-print.bage_prior_rw2seasfix <- function(x, ...) {
+print.bage_prior_rw2random <- function(x, ...) {
+  print_prior(x,
+              nms = c("s", "sd", "sd_slope", "along", "zero_sum"),
+              slots = c("scale", "sd", "sd_slope", "along", "zero_sum"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2randomseasfix <- function(x, ...) {
   n_offset <- get_print_prior_n_offset()
   print_prior_header(x)
   print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
   print_prior_slot(prior = x, nm = "s", slot = "scale")
+  print_prior_slot(prior = x, nm = "sd", slot = "sd")
   print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
   cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
   print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
@@ -6115,10 +6531,75 @@ print.bage_prior_rw2seasfix <- function(x, ...) {
 
 ## HAS_TESTS
 #' @export
-print.bage_prior_rw2seasvary <- function(x, ...) {
+print.bage_prior_rw2randomseasvary <- function(x, ...) {
   print_prior(x,
-              nms = c("n_seas", "s", "sd_slope", "s_seas", "sd_seas", "along", "zero_sum"),
-              slots = c("n_seas", "scale", "sd_slope", "scale_seas", "sd_seas", "along", "zero_sum"))
+              nms = c("n_seas",
+                      "s", "sd", "sd_slope",
+                      "s_seas", "sd_seas",
+                      "along", "zero_sum"),
+              slots = c("n_seas",
+                        "scale", "sd", "sd_slope",
+                        "scale_seas", "sd_seas",
+                        "along", "zero_sum"))
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2zero <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2zeroseasfix <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
+  cat(sprintf("% *s: %s\n", n_offset, "s_seas", 0))
+  print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2zeroseasfix <- function(x, ...) {
+  n_offset <- get_print_prior_n_offset()
+  print_prior_header(x)
+  print_prior_slot(prior = x, nm = "n_seas", slot = "n_seas")
+  print_prior_slot(prior = x, nm = "s", slot = "scale")
+  cat(sprintf("% *s: %s\n", n_offset, "sd", 0))
+  print_prior_slot(prior = x, nm = "sd_slope", slot = "sd_slope")
+  print_prior_slot(prior = x, nm = "s_seas", slot = "scale_seas")
+  print_prior_slot(prior = x, nm = "sd_seas", slot = "sd_seas")
+  print_prior_slot(prior = x, nm = "along", slot = "along")
+  print_prior_slot(prior = x, nm = "zero_sum", slot = "zero_sum")
+  invisible(x)
+}
+
+## HAS_TESTS
+#' @export
+print.bage_prior_rw2zeroseasvary <- function(x, ...) {
+  print_prior(x,
+              nms = c("n_seas",
+                      "s", "sd", "sd_slope",
+                      "s_seas", "sd_seas",
+                      "along", "zero_sum"),
+              slots = c("n_seas",
+                        "scale", "sd", "sd_slope",
+                        "scale_seas", "sd_seas",
+                        "along", "zero_sum"))
 }
 
 ## HAS_TESTS
@@ -6300,11 +6781,12 @@ str_call_prior.bage_prior_normfixed <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_rw <- function(prior) {
+str_call_prior.bage_prior_rwrandom <- function(prior) {
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
-  args <- c(args_scale, args_along, args_zero_sum)
+  args <- c(args_scale, args_sd, args_along, args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
   sprintf("RW(%s)", args)
@@ -6312,14 +6794,16 @@ str_call_prior.bage_prior_rw <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_rwseasfix <- function(prior) {
+str_call_prior.bage_prior_rwrandomseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_n_seas,
             args_scale,
+            args_sd,
             args_sd_seas,
             args_along,
             args_zero_sum)
@@ -6330,15 +6814,17 @@ str_call_prior.bage_prior_rwseasfix <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_rwseasvary <- function(prior) {
+str_call_prior.bage_prior_rwrandomseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_n_seas,
             args_scale,
+            args_sd,
             args_s_seas,
             args_sd_seas,
             args_along,
@@ -6350,18 +6836,60 @@ str_call_prior.bage_prior_rwseasvary <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_rw2 <- function(prior) {
+str_call_prior.bage_prior_rwzero <- function(prior) {
   args_scale <- str_call_args_scale(prior)
-  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_sd <- "sd=0"
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_scale,
-            args_sd_slope,
+            args_sd,
             args_along,
             args_zero_sum)
   args <- args[nzchar(args)]
   args <- paste(args, collapse = ",")
-  sprintf("RW2(%s)", args)
+  sprintf("RW(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_rwzeroseasfix <- function(prior) {
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_sd_seas <- str_call_args_sd_seas(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas,
+            args_scale,
+            args_sd,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("RW_Seas(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_rwzeroseasvary <- function(prior) {
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_s_seas <- str_call_args_s_seas(prior)
+  args_sd_seas <- str_call_args_sd_seas(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas,
+            args_scale,
+            args_sd,
+            args_s_seas,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("RW_Seas(%s)", args)
 }
 
 ## HAS_TESTS
@@ -6381,15 +6909,35 @@ str_call_prior.bage_prior_rw2infant <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_rw2seasfix <- function(prior) {
+str_call_prior.bage_prior_rw2random <- function(prior) {
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
+  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_scale,
+            args_sd,
+            args_sd_slope,
+            args_along,
+            args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("RW2(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_rw2randomseasfix <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_n_seas,
             args_scale,
+            args_sd,
             args_sd_slope,
             args_sd_seas,
             args_along,
@@ -6401,9 +6949,10 @@ str_call_prior.bage_prior_rw2seasfix <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_call_prior.bage_prior_rw2seasvary <- function(prior) {
+str_call_prior.bage_prior_rw2randomseasvary <- function(prior) {
   args_n_seas <- str_call_args_n_seas(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_s_seas <- str_call_args_s_seas(prior)
   args_sd_seas <- str_call_args_sd_seas(prior)
@@ -6411,6 +6960,71 @@ str_call_prior.bage_prior_rw2seasvary <- function(prior) {
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_n_seas,
             args_scale,
+            args_sd,
+            args_sd_slope,
+            args_s_seas,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("RW2_Seas(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_rw2zero <- function(prior) {
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_scale,
+            args_sd,
+            args_sd_slope,
+            args_along,
+            args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("RW2(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_rw2zeroseasfix <- function(prior) {
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_sd_seas <- str_call_args_sd_seas(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas,
+            args_scale,
+            args_sd,
+            args_sd_slope,
+            args_sd_seas,
+            args_along,
+            args_zero_sum)
+  args <- args[nzchar(args)]
+  args <- paste(args, collapse = ",")
+  sprintf("RW2_Seas(%s)", args)
+}
+
+## HAS_TESTS
+#' @export
+str_call_prior.bage_prior_rw2zeroseasvary <- function(prior) {
+  args_n_seas <- str_call_args_n_seas(prior)
+  args_scale <- str_call_args_scale(prior)
+  args_sd <- "sd=0"
+  args_sd_slope <- str_call_args_sd_slope(prior)
+  args_s_seas <- str_call_args_s_seas(prior)
+  args_sd_seas <- str_call_args_sd_seas(prior)
+  args_along <- str_call_args_along(prior)
+  args_zero_sum <- str_call_args_zero_sum(prior)
+  args <- c(args_n_seas,
+            args_scale,
+            args_sd,
             args_sd_slope,
             args_s_seas,
             args_sd_seas,
@@ -6472,10 +7086,12 @@ str_call_prior.bage_prior_svd_ar <- function(prior) {
 str_call_prior.bage_prior_svd_rw <- function(prior) {
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_svd,
             args_scale,
+            args_sd,
             args_along,
             args_zero_sum)
   args <- args[nzchar(args)]
@@ -6488,11 +7104,13 @@ str_call_prior.bage_prior_svd_rw <- function(prior) {
 str_call_prior.bage_prior_svd_rw2 <- function(prior) {
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
+  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_svd,
             args_scale,
+            args_sd,
             args_sd_slope,
             args_along,
             args_zero_sum)
@@ -6564,26 +7182,38 @@ str_nm_prior.bage_prior_normfixed <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_rw <- function(prior) {
+str_nm_prior.bage_prior_rwrandom <- function(prior) {
   "RW()"
 }
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_rwseasfix <- function(prior) {
+str_nm_prior.bage_prior_rwrandomseasfix <- function(prior) {
   "RW_Seas()"
 }
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_rwseasvary <- function(prior) {
+str_nm_prior.bage_prior_rwrandomseasvary <- function(prior) {
   "RW_Seas()"
 }
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_rw2 <- function(prior) {
-  "RW2()"
+str_nm_prior.bage_prior_rwzero <- function(prior) {
+  "RW()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rwzeroseasfix <- function(prior) {
+  "RW_Seas()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rwzeroseasvary <- function(prior) {
+  "RW_Seas()"
 }
 
 ## HAS_TESTS
@@ -6594,13 +7224,37 @@ str_nm_prior.bage_prior_rw2infant <- function(prior) {
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_rw2seasfix <- function(prior) {
+str_nm_prior.bage_prior_rw2random <- function(prior) {
+  "RW2()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rw2randomseasfix <- function(prior) {
   "RW2_Seas()"
 }
 
 ## HAS_TESTS
 #' @export
-str_nm_prior.bage_prior_rw2seasvary <- function(prior) {
+str_nm_prior.bage_prior_rw2randomseasvary <- function(prior) {
+  "RW2_Seas()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rw2zero <- function(prior) {
+  "RW2()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rw2zeroseasfix <- function(prior) {
+  "RW2_Seas()"
+}
+
+## HAS_TESTS
+#' @export
+str_nm_prior.bage_prior_rw2zeroseasvary <- function(prior) {
   "RW2_Seas()"
 }
 
@@ -6699,24 +7353,35 @@ transform_hyper.bage_prior_normfixed <- function(prior)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rw <- function(prior)
+transform_hyper.bage_prior_rwrandom <- function(prior)
   list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rwseasfix <- function(prior)
+transform_hyper.bage_prior_rwrandomseasfix <- function(prior)
   list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rwseasvary <- function(prior)
+transform_hyper.bage_prior_rwrandomseasvary <- function(prior)
   list(sd_seas = exp,
        sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rw2 <- function(prior)
+transform_hyper.bage_prior_rwzero <- function(prior)
   list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rwzeroseasfix <- function(prior)
+  list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rwzeroseasvary <- function(prior)
+  list(sd_seas = exp,
+       sd = exp)
 
 ## HAS_TESTS
 #' @export
@@ -6725,12 +7390,33 @@ transform_hyper.bage_prior_rw2infant <- function(prior)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rw2seasfix <- function(prior)
+transform_hyper.bage_prior_rw2random <- function(prior)
   list(sd = exp)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_rw2seasvary <- function(prior)
+transform_hyper.bage_prior_rw2randomseasfix <- function(prior)
+  list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rw2randomseasvary <- function(prior)
+  list(sd_seas = exp,
+       sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rw2zero <- function(prior)
+  list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rw2zeroseasfix <- function(prior)
+  list(sd = exp)
+
+## HAS_TESTS
+#' @export
+transform_hyper.bage_prior_rw2zeroseasvary <- function(prior)
   list(sd_seas = exp,
        sd = exp)
 
@@ -6804,19 +7490,27 @@ uses_along.bage_prior_normfixed <- function(prior) FALSE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_rw <- function(prior) TRUE
+uses_along.bage_prior_rwrandom <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_rwseasfix <- function(prior) TRUE
+uses_along.bage_prior_rwrandomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_rwseasvary <- function(prior) TRUE
+uses_along.bage_prior_rwrandomseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_rw2 <- function(prior) TRUE
+uses_along.bage_prior_rwzero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rwzeroseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rwzeroseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -6824,11 +7518,27 @@ uses_along.bage_prior_rw2infant <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_rw2seasfix <- function(prior) TRUE
+uses_along.bage_prior_rw2random <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_along.bage_prior_rw2seasvary <- function(prior) TRUE
+uses_along.bage_prior_rw2randomseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw2randomseasvary <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw2zero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw2zeroseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_along.bage_prior_rw2zeroseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -6879,19 +7589,35 @@ uses_hyperrandfree.bage_prior_linar <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_hyperrandfree.bage_prior_rwseasfix <- function(prior) TRUE
+uses_hyperrandfree.bage_prior_rwrandomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_hyperrandfree.bage_prior_rwseasvary <- function(prior) TRUE
+uses_hyperrandfree.bage_prior_rwrandomseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_hyperrandfree.bage_prior_rw2seasfix <- function(prior) TRUE
+uses_hyperrandfree.bage_prior_rwzeroseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_hyperrandfree.bage_prior_rw2seasvary <- function(prior) TRUE
+uses_hyperrandfree.bage_prior_rwzeroseasvary <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_hyperrandfree.bage_prior_rw2randomseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_hyperrandfree.bage_prior_rw2randomseasvary <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_hyperrandfree.bage_prior_rw2zeroseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_hyperrandfree.bage_prior_rw2zeroseasvary <- function(prior) TRUE
 
 
 ## 'uses_matrix_effectfree_effect' --------------------------------------------
@@ -6917,19 +7643,27 @@ uses_matrix_effectfree_effect.bage_prior_linex <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_effectfree_effect.bage_prior_rw <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_rwrandom <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_effectfree_effect.bage_prior_rwseasfix <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_rwrandomseasfix <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_effectfree_effect.bage_prior_rwseasvary <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_rwrandomseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_effectfree_effect.bage_prior_rw2 <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_rwzero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rwzeroseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rwzeroseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
@@ -6937,11 +7671,27 @@ uses_matrix_effectfree_effect.bage_prior_rw2infant <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_effectfree_effect.bage_prior_rw2seasfix <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_rw2random <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export
-uses_matrix_effectfree_effect.bage_prior_rw2seasvary <- function(prior) TRUE
+uses_matrix_effectfree_effect.bage_prior_rw2randomseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rw2randomseasvary <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rw2zero <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rw2zeroseasfix <- function(prior) TRUE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_rw2zeroseasvary <- function(prior) TRUE
 
 ## HAS_TESTS
 #' @export

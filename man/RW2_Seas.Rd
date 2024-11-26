@@ -81,8 +81,8 @@ When \code{RW2_Seas()} is used with a main effect,
 \deqn{\alpha_2 \sim \text{N}(0, \text{sd\_slope}^2)}
 \deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J}
 \deqn{\lambda_j \sim \text{N}(0, \text{sd\_seas}^2), \quad j = 1, \cdots, \text{n\_seas} - 1}
-\deqn{\lambda_{\text{n\_seas}} = -\sum_{j=1}^{\text{n\_seas} - 1} \lambda_j}
-\deqn{\lambda_j \sim \text{N}(\lambda_{j-n}, \omega^2), j = \text{n\_seas} + 1, \cdots, J}
+\deqn{\lambda_j = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{j - s}, \quad j = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
+\deqn{\lambda_j \sim \text{N}(\lambda_{j-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
 
 and when it is used with an interaction,
 
@@ -91,8 +91,8 @@ and when it is used with an interaction,
 \deqn{\alpha_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
 \deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
 \deqn{\lambda_{u,v} \sim \text{N}(0, \text{sd\_seas}^2), \quad v = 1, \cdots, \text{n\_seas} - 1}
-\deqn{\lambda_{u, \text{n\_seas}} = \sum_{v=1}^{\text{n\_seas} - 1} \lambda_{u,v}}
-\deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\text{n\_seas}}, \omega^2), \quad v = \text{n\_seas} + 1, \cdots, V}
+\deqn{\lambda_{u,v} = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
+\deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
 
 where
 \itemize{

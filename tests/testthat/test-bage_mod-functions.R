@@ -133,7 +133,7 @@ test_that("'set_prior' works with valid inputs", {
                     data = data,
                     exposure = popn)
     mod_rw <- set_prior(mod, age ~ RW2())
-    expect_s3_class(mod_rw$priors[["age"]], "bage_prior_rw2")
+    expect_s3_class(mod_rw$priors[["age"]], "bage_prior_rw2random")
     mod_rw <- set_prior(mod, age:sex ~ NFix())
     expect_s3_class(mod_rw$priors[["age:sex"]], "bage_prior_normfixed")
 })
@@ -213,7 +213,7 @@ test_that("'set_var_age' works with valid inputs - no existing age var", {
     expect_identical(mod$var_age, NULL)
     mod <- set_var_age(mod, name = "oldness")
     expect_identical(mod$var_age, "oldness")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rwrandom")
 })
 
 test_that("'set_var_age' works with valid inputs - has existing age var", {
@@ -225,12 +225,12 @@ test_that("'set_var_age' works with valid inputs - has existing age var", {
                     data = data,
                     exposure = popn)
     expect_identical(mod$var_age, "age")
-    expect_s3_class(mod$priors[["age"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["age"]], "bage_prior_rwrandom")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_norm")
     mod <- set_var_age(mod, name = "oldness")
     expect_identical(mod$var_age, "oldness")
     expect_s3_class(mod$priors[["age"]], "bage_prior_norm")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rwrandom")
 })
 
 
@@ -280,7 +280,7 @@ test_that("'set_var_time' works with valid inputs", {
     expect_identical(mod$var_time, NULL)
     mod <- set_var_time(mod, name = "timex")
     expect_identical(mod$var_time, "timex")
-    expect_s3_class(mod$priors[["timex"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["timex"]], "bage_prior_rwrandom")
 })
 
 
@@ -297,7 +297,7 @@ test_that("'set_var_inner' works with valid inputs - no existing var", {
     expect_identical(mod$var_age, NULL)
     mod <- set_var_inner(mod, name = "oldness", var = "age")
     expect_identical(mod$var_age, "oldness")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rwrandom")
 })
 
 test_that("'set_var_inner' works with valid inputs - has existing var", {
@@ -309,12 +309,12 @@ test_that("'set_var_inner' works with valid inputs - has existing var", {
                     data = data,
                     exposure = popn)
     expect_identical(mod$var_age, "age")
-    expect_s3_class(mod$priors[["age"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["age"]], "bage_prior_rwrandom")
     expect_s3_class(mod$priors[["oldness"]], "bage_prior_norm")
     mod <- set_var_inner(mod, name = "oldness", var = "age")
     expect_identical(mod$var_age, "oldness")
     expect_s3_class(mod$priors[["age"]], "bage_prior_norm")
-    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rw")
+    expect_s3_class(mod$priors[["oldness"]], "bage_prior_rwrandom")
 })
 
 test_that("'set_var_inner' gives correct errors with invalid inputs", {

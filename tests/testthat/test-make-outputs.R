@@ -338,7 +338,7 @@ test_that("'make_draws_components' works - no svd, spline", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + 4L +
+                   length(make_effectfree(mod)) +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -361,7 +361,7 @@ test_that("'make_draws_components' works - has spline", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + 1L + 2L + length(unique(data$age)) +
+                   length(make_effectfree(mod)) + length(unique(data$age)) +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -384,7 +384,7 @@ test_that("'make_draws_components' works - has svd", {
   ans_obtained <- make_draws_components(mod)
   expect_true(rvec::is_rvec(ans_obtained))
   expect_identical(length(ans_obtained),
-                   length(make_effectfree(mod)) + length(unique(data$age)) + 3L +
+                   length(make_effectfree(mod)) + length(unique(data$age)) +
                      length(make_hyper(mod)) +
                      length(make_hyperrand(mod)) + 1L)
 })
@@ -565,9 +565,6 @@ test_that("'fit_default' gives error invalid value for 'optimizer'", {
                            start_oldpar = FALSE),
                "Internal error: Invalid value for `optimizer`.")
 })
-
-
-
 
 
 ## 'fit_inner_outer' ----------------------------------------------------------
@@ -1268,11 +1265,11 @@ test_that("'make_stored_draws' works with valid inputs", {
                   exposure = popn)
   mod <- set_prior(mod, sex ~ Known(c(0.1, -0.1)))
   mod <- set_n_draw(mod, n = 10)
-  est <- list(effectfree = c(rnorm(10), 0.1, -0.1),
+  est <- list(effectfree = c(rnorm(11), 0.1, -0.1),
               hyper = rnorm(1),
               hyperrandfree = numeric(),
               disp = runif(1))
-  prec <- crossprod(matrix(rnorm(144), nr = 12))
+  prec <- crossprod(matrix(rnorm(169), nr = 13))
   map <- make_map(mod)
   ans <- make_stored_draws(mod = mod,
                            est = est,
@@ -1412,9 +1409,10 @@ test_that("'make_is_fixed' works when Known prior", {
     map <- make_map(mod)
     ans_obtained <- make_is_fixed(est = est, map = map)
     ans_expected <- rep(c(FALSE, TRUE, FALSE),
-                        times = c(10,
+                        times = c(11,
                                   2,
-                                  5 + 18 + length(est$hyper) + length(est$log_disp)))
+                                  20 + 6 + length(est$hyper) +
+                                    + length(est$log_disp)))
     expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -1581,7 +1579,9 @@ test_that("'make_point_est_effects' works with valid inputs", {
   formula <- deaths ~ age * sex
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn)
+                  exposure = popn) |>
+    set_prior(age ~ RW(sd = 0)) |>
+    set_prior(age:sex ~ RW(sd = 0))
   mod <- fit(mod)
   ans_obtained <- make_point_est_effects(mod)
   int <- unname(mod$point_effectfree[1])
@@ -1645,12 +1645,13 @@ test_that("'make_spline' works", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
+  mod <- set_prior(mod, age ~ RW(sd = 0))
   mod <- set_prior(mod, age:sex ~ Sp(n = 5))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_spline(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[22:31,]
+  ans_expected <- effectfree[23:32,]
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1674,9 +1675,9 @@ test_that("'make_svd' works - SVD_RW", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- rbind(effectfree[22:31,],
+  ans_expected <- rbind(effectfree[24:33,],
                         matrix(0, nrow = 5, ncol = 5),
-                        effectfree[32:56,])
+                        effectfree[34:58,])
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1696,7 +1697,7 @@ test_that("'make_svd' works - SVD_AR", {
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
   ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
-  ans_expected <- effectfree[20:25,]
+  ans_expected <- effectfree[22:27,]
   expect_equal(ans_obtained, ans_expected)
 })
 
