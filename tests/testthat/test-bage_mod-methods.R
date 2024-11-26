@@ -20,7 +20,7 @@ test_that("'augment' works with Poisson, disp - has data", {
 
 test_that("'augment' calculates fitted in cells with missing outcome or offset -  Poisson", {
     set.seed(0)
-    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"),
+    data <- expand.grid(age = 0:9, time = 2000:2010, sex = c("F", "M"),
                         KEEP.OUT.ATTRS = FALSE)
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
@@ -667,7 +667,7 @@ test_that("'fit' works with known intercept and sex effect", {
     mod <- set_prior(mod, sex ~ Known(values = c(-0.1, 0.1)))
     ans_obtained <- fit(mod)
     expect_equal(ans_obtained$draws_effectfree[1,1], -2)
-    expect_equal(ans_obtained$draws_effectfree[11:12,1], c(-0.1, 0.1))
+    expect_equal(ans_obtained$draws_effectfree[12:13,1], c(-0.1, 0.1))
 })
 
 test_that("'fit' works with AR1", {
@@ -751,7 +751,8 @@ test_that("'fit' works when single dimension", {
                        time = 2001:2010)
     mod <- mod_pois(deaths ~ time,
                     data = data,
-                    exposure = 1)
+                    exposure = 1) |>
+      set_prior(time ~ RW(sd = 0))
     mod_fitted <- fit(mod)
     expect_identical(nrow(mod_fitted$draws_effectfree), nrow(data))
 })
@@ -1856,7 +1857,8 @@ test_that("'make_mod_disp' works with pois - large dataset", {
   formula <- deaths ~ sex + time
   mod <- mod_pois(formula = formula,
                   data = data,
-                  exposure = popn)
+                  exposure = popn) |>
+    set_prior(time ~ RW(sd = 0))
   mod$point_effectfree <- rnorm(1 + 5999 + 2)
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
@@ -1903,7 +1905,8 @@ test_that("'make_mod_disp' works with binom - large dataset", {
   formula <- deaths ~ sex + time
   mod <- mod_binom(formula = formula,
                    data = data,
-                   size = popn)
+                   size = popn) |>
+    set_prior(time ~ RW2(sd = 0))
   mod$point_effectfree <- rnorm(1 + 5999 + 2)
   mod$draws_effectfree  <- 1 ## to fool 'is_fitted'
   mod_disp <- make_mod_disp(mod)
@@ -1937,7 +1940,7 @@ test_that("'make_mod_disp' works with norm - large dataset", {
   mod <- mod_norm(formula = formula,
                   data = data,
                   weights = wt)
-  mod$point_effectfree <- rnorm(1 + 6000 + 2)
+  mod$point_effectfree <- rnorm(1 + 6001 + 2)
   mod_disp <- make_mod_disp(mod)
   expect_true(identical(nrow(mod_disp$data), 10000L))
 })

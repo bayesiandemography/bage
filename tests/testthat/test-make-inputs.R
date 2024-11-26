@@ -419,6 +419,7 @@ test_that("'make_const' works with valid inputs", {
     ans_obtained <- make_const(mod)
     ans_expected <- c("(Intercept)" = 0,
                       agegp.scale = 1,
+                      agegp.sd = 1,
                       SEX.sd = 1)
     expect_identical(ans_obtained, ans_expected)
 })
@@ -491,7 +492,7 @@ test_that("'make_effectfree' works with valid inputs", {
         set_prior((Intercept) ~ Known(3))
     ans_obtained <- make_effectfree(mod)
     ans_expected <- c("(Intercept)" = 3,
-                      agegp = 0, agegp = 0,
+                      agegp = 0, agegp = 0, agegp = 0,
                       SEX = 0, SEX = 0)
     expect_identical(ans_obtained, ans_expected)
 })
@@ -572,7 +573,7 @@ test_that("'make_hyperrandfree' works with valid inputs - has hyperrandfree", {
 test_that("'make_i_prior' works with valid inputs", {
     mod <- list(priors = list(a = N(), b = RW(), c = N()))
     ans_obtained <- make_i_prior(mod)
-    ans_expected <- c(a = 4L, b = 6L, c = 4L)
+    ans_expected <- c(a = 4L, b = 19L, c = 4L)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -649,10 +650,10 @@ test_that("'make_lengths_effectfree' works with valid inputs", {
                     exposure = popn)
     ans_obtained <- make_lengths_effectfree(mod)
     ans_expected <- c("(Intercept)" = 1L,
-                      agegp = 9L,
+                      agegp = 10L,
                       SEX = 2L,
                       region = 2L,
-                      "agegp:SEX" = 18L)
+                      "agegp:SEX" = 20L)
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -863,14 +864,17 @@ test_that("'make_map' works when 'effectfree' contains known values", {
                                             time = 2,
                                             time = 3,
                                             time = 4,
+                                            time = 5,
                                             SEX = NA,
                                             SEX = NA,
-                                            "time:SEX" = 5,
                                             "time:SEX" = 6,
                                             "time:SEX" = 7,
                                             "time:SEX" = 8,
                                             "time:SEX" = 9,
-                                            "time:SEX" = 10)))
+                                            "time:SEX" = 10,
+                                            "time:SEX" = 11,
+                                            "time:SEX" = 12,
+                                            "time:SEX" = 13)))
     expect_identical(ans_obtained, ans_expected)
 })
 
@@ -900,7 +904,9 @@ test_that("'make_map' works when effectfree has known values", {
     formula <- deaths ~ time * SEX
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = popn)
+                    exposure = popn) |>
+      set_prior(time ~ RW(sd = 0)) |>
+      set_prior(time:SEX ~ RW(sd = 0))
     mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
     ans_obtained <- make_map(mod)
     ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
@@ -936,6 +942,7 @@ test_that("'make_map_effectfree_fixed' works with valid inputs", {
     ans_expected <- factor(c("(Intercept)" = 1,
                              time = 2,
                              time = 3,
+                             time = 4,
                              SEX = NA,
                              SEX = NA))
     expect_identical(ans_obtained, ans_expected)
@@ -1091,7 +1098,8 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
     formula <- deaths ~ agegp + SEX + region
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = popn)
+                    exposure = popn) |>
+      set_prior(agegp ~ RW(sd = 0))
     ans_obtained <- make_matrices_effectfree_effect(mod)
     agegp <- rbind(0,Matrix::.sparseDiagonal(9))
     ans_expected <- list("(Intercept)" = Matrix::.sparseDiagonal(1),
@@ -1243,7 +1251,8 @@ test_that("'make_terms_const' works with valid inputs", {
                     exposure = popn)
     mod <- set_prior(mod, agegp ~ AR1())
     ans_obtained <- make_terms_const(mod)
-    ans_expected <- factor(c("(Intercept)", rep("agegp", 5), "SEX", "region", "agegp:SEX"),
+    ans_expected <- factor(c("(Intercept)", rep("agegp", 5),
+                             "SEX", "region", "agegp:SEX", "agegp:SEX"),
                            levels = c("(Intercept)", "agegp", "SEX", "region", "agegp:SEX"))
     expect_identical(ans_obtained, ans_expected)
 })
@@ -1283,13 +1292,14 @@ test_that("'make_terms_effectfree' works with valid inputs", {
     formula <- deaths ~ agegp * SEX + region
     mod <- mod_pois(formula = formula,
                     data = data,
-                    exposure = popn)
+                    exposure = popn) |>
+      set_prior(agegp ~ RW(sd = 0))
     ans_obtained <- make_terms_effectfree(mod)
     ans_expected <- factor(c("(Intercept)",
                              rep("agegp", times = 9),
                              rep("SEX", times = 2),
                              rep("region", times = 2),
-                             rep("agegp:SEX", times = 18)),
+                             rep("agegp:SEX", times = 20)),
                            levels = c("(Intercept)",
                                       "agegp",
                                       "SEX",
@@ -1939,10 +1949,10 @@ test_that("'str_call_args_sd_slope' works - sd_slope = 1", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'str_call_args_sd_slope' works - sd_slope not 1", {
-  prior <- RW2(sd = 0.3)
+test_that("'str_call_args_sd_slope' works - non-default", {
+  prior <- RW2(sd_slope = 0.2)
   ans_obtained <- str_call_args_sd_slope(prior)
-  ans_expected <- "sd=0.3"
+  ans_expected <- "sd_slope=0.2"
   expect_identical(ans_obtained, ans_expected)
 })
 

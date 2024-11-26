@@ -1755,7 +1755,7 @@ str_call_args_sd_slope <- function(prior) {
   if (identical(sd_slope, 1))
     ""
   else
-    sprintf("sd=%s", sd_slope)
+    sprintf("sd_slope=%s", sd_slope)
 }
 
 

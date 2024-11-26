@@ -480,15 +480,12 @@ Type logpost_rw2random(vector<Type> rw,
 
 template <class Type>
 Type logpost_rw2randomseasfix(vector<Type> effectfree,
-			vector<Type> hyper,
-			vector<Type> hyperrandfree, // seasonal effect
-			vector<Type> consts,
-			matrix<int> matrix_along_by_effectfree) {
+			      vector<Type> hyper,
+			      vector<Type> hyperrandfree, // seasonal effect
+			      vector<Type> consts,
+			      matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
-  vector<Type> consts_rw(3);
-  consts_rw[0] = consts[2]; // scale
-  consts_rw[1] = consts[1]; // sd_seas, used for sd
-  consts_rw[2] = consts[3]; // sd_slope
+  vector<Type> consts_rw = consts.tail(3); // scale, sd, sd_slope
   vector<Type> rw = alpha_seasfix(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasfix(hyperrandfree, consts_seas);
@@ -503,12 +500,9 @@ Type logpost_rw2randomseasvary(vector<Type> effectfree,
 			       vector<Type> consts,
 			       matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
-  vector<Type> consts_rw(3);
-  consts_rw[0] = consts[3]; // scale
-  consts_rw[1] = consts[2]; // sd_seas, used for sd
-  consts_rw[2] = consts[4]; // sd_slope
-  vector<Type> hyper_seas = hyper.head(1);   // log_sd_seas
-  vector<Type> hyper_rw = hyper.tail(1);     // log_sd
+  vector<Type> consts_rw = consts.tail(3); // scale, sd, sd_slope
+  vector<Type> hyper_seas = hyper.head(1); // log_sd_seas
+  vector<Type> hyper_rw = hyper.tail(1); // log_sd
   vector<Type> rw = alpha_seasvary(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
@@ -553,10 +547,7 @@ Type logpost_rw2zeroseasfix(vector<Type> effectfree,
 			    vector<Type> consts,
 			    matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
-  vector<Type> consts_rw(3);
-  consts_rw[0] = consts[2]; // scale
-  consts_rw[1] = consts[1]; // sd_seas, used for sd
-  consts_rw[2] = consts[3]; // sd_slope
+  vector<Type> consts_rw = consts.tail(2); // scale, sd_slope
   vector<Type> rw = alpha_seasfix(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasfix(hyperrandfree, consts_seas);
@@ -571,12 +562,9 @@ Type logpost_rw2zeroseasvary(vector<Type> effectfree,
 			     vector<Type> consts,
 			     matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
-  vector<Type> consts_rw(3);
-  consts_rw[0] = consts[3]; // scale
-  consts_rw[1] = consts[2]; // sd_seas, used for sd
-  consts_rw[2] = consts[4]; // sd_slope
-  vector<Type> hyper_seas = hyper.head(1);   // log_sd_seas
-  vector<Type> hyper_rw = hyper.tail(1);     // log_sd
+  vector<Type> consts_rw = consts.tail(2); // scale, sd_slope
+  vector<Type> hyper_seas = hyper.head(1); // log_sd_seas
+  vector<Type> hyper_rw = hyper.tail(1); // log_sd
   vector<Type> rw = alpha_seasvary(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
