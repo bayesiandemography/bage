@@ -361,30 +361,30 @@ fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
 ## HAS_TESTS
 #' Helper Function for 'generate' Methods for 'bage_prior'
 #'
-#' @param n Number of elements in term
-#' @param n_draw Number of draws
+#' @param n_element Number of elements in term
+#' @param n_replicate Number of replicates
 #'
 #' @returns A named list
 #'
 #' @noRd
-generate_prior_helper <- function(n, n_draw) {
-  poputils::check_n(n = n,
-                    nm_n = "n",
+generate_prior_helper <- function(n_element, n_replicate) {
+  poputils::check_n(n = n_element,
+                    nm_n = "n_element",
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  poputils::check_n(n = n_draw,
-                    nm_n = "n_draw",
+  poputils::check_n(n = n_replicate,
+                    nm_n = "n_replicate",
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  levels_effect <- seq_len(n)
-  matrix_along_by <- matrix(seq_len(n) - 1L,
+  levels_effect <- seq_len(n_element)
+  matrix_along_by <- matrix(seq_len(n_element) - 1L,
                             ncol = 1L,
                             dimnames = list(levels_effect, NULL))
-  x <- rep(seq_len(n), times = n_draw)
-  draw <- rep(seq_len(n_draw), each = n)
-  ans <- tibble::tibble(x = x, draw = draw)
+  element <- rep(seq_len(n_element), times = n_replicate)
+  replicate <- rep(seq_len(n_replicate), each = n_element)
+  ans <- tibble::tibble(element = element, replicate = replicate)
   list(matrix_along_by = matrix_along_by,
        levels_effect = levels_effect,
        ans = ans)
