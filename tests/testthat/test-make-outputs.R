@@ -73,11 +73,11 @@ test_that("'draw_vals_components_fitted' works", {
 ## 'generate_prior_helper' ----------------------------------------------------
 
 test_that("'generate_prior_helper' works with valid inputs", {
-  ans_obtained <- generate_prior_helper(n = 5, n_draw = 2)
+  ans_obtained <- generate_prior_helper(n_element = 5, n_replicate = 2)
   ans_expected <- list(matrix_along_by = matrix(0:4, nc = 1, dimnames = list(1:5, NULL)),
                        levels_effect = 1:5,
-                       ans = tibble::tibble(x = rep(1:5, times = 2),
-                                            draw = rep(1:2, each = 5)))
+                       ans = tibble::tibble(element= rep(1:5, times = 2),
+                                            replicate = rep(1:2, each = 5)))
   expect_identical(ans_obtained, ans_expected)
 })                       
 
