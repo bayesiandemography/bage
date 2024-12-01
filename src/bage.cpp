@@ -10,13 +10,46 @@ using namespace tmbutils;
 
 // Helper functions -----------------------------------------------------------
 
-// Calculate alpha, given free parameters and fixed seasonal effect.
-// First seasonal effect is zero, and last equals sum of other effects.
 template <class Type>
-vector<Type> alpha_seasfix(vector<Type> effectfree,
-			   vector<Type> seas,
-			   vector<Type> consts,
-			   matrix<int> matrix_along_by_effectfree) {
+vector<Type> alpha_seasfixrandom(vector<Type> effectfree,
+				 vector<Type> seas,
+				 vector<Type> consts,
+				 matrix<int> matrix_along_by_effectfree) {
+  int n_seas = CppAD::Integer(consts[0]);
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  vector<Type> ans = effectfree;
+  vector<Type> seas_sum(n_by);
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    seas_sum[i_by] = 0;
+    for (int i_along = 0; i_along < n_seas - 1; i_along++) {
+      int i_seas = i_along + i_by * (n_seas - 1);
+      seas_sum[i_by] += seas[i_seas];
+    }
+  }
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i_alpha = matrix_along_by_effectfree(i_along, i_by);
+      int index_seas = i_along % n_seas;
+      bool is_last_seas = index_seas == n_seas - 1;
+      if (!is_last_seas) {
+	int i_seas = index_seas + i_by * (n_seas - 1);
+	ans[i_alpha] -= seas[i_seas];
+      }
+      else {
+	ans[i_along] += seas_sum[i_by];
+      }
+    }
+  }
+  return ans;
+}
+
+// use first value of random walk as first seasonal effect
+template <class Type>
+vector<Type> alpha_seasfixzero(vector<Type> effectfree,
+			       vector<Type> seas,
+			       vector<Type> consts,
+			       matrix<int> matrix_along_by_effectfree) {
   int n_seas = CppAD::Integer(consts[0]);
   int n_along = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
@@ -52,12 +85,47 @@ vector<Type> alpha_seasfix(vector<Type> effectfree,
   return ans;
 }
 
-// calculate alpha, given free parameters and time-varying seasonal effect
+
+
 template <class Type>
-vector<Type> alpha_seasvary(vector<Type> effectfree,
-			    vector<Type> seas,
-			    vector<Type> consts,
-			    matrix<int> matrix_along_by_effectfree) {
+vector<Type> alpha_seasvaryrandom(vector<Type> effectfree,
+				  vector<Type> seas,
+				  vector<Type> consts,
+				  matrix<int> matrix_along_by_effectfree) {
+  int n_seas = CppAD::Integer(consts[0]);
+  int n_along_alpha = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  int n_along_seas = seas.size() / n_by;
+  vector<Type> ans = effectfree;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    int i_along_seas = 0;
+    Type seas_sum = 0;
+    for (int i_along_alpha = 0; i_along_alpha < n_along_alpha; i_along_alpha++) {
+      int index_seas = i_along_alpha % n_seas;
+      bool is_last_seas = index_seas == n_seas - 1;
+      int i_alpha = matrix_along_by_effectfree(i_along_alpha, i_by);
+      if (!is_last_seas) {
+	int i_seas = i_along_seas + i_by * n_along_seas;
+	i_along_seas++;
+	ans[i_alpha] -= seas[i_seas];
+	seas_sum += seas[i_seas];
+      }
+      else {
+	ans[i_alpha] += seas_sum;
+	seas_sum = 0;
+      }
+    }
+  }
+  return ans;
+}
+
+
+
+template <class Type>
+vector<Type> alpha_seasvaryzero(vector<Type> effectfree,
+				vector<Type> seas,
+				vector<Type> consts,
+				matrix<int> matrix_along_by_effectfree) {
   int n_seas = CppAD::Integer(consts[0]);
   int n_along_alpha = matrix_along_by_effectfree.rows();
   int n_by = matrix_along_by_effectfree.cols();
@@ -392,7 +460,7 @@ Type logpost_rwzeroseasfix(vector<Type> effectfree,
   vector<Type> rw = alpha_seasfix(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasfix(hyperrandfree, consts_seas);
-  ans += logpost_rwzero(rw, hyper, consts_rw, matrix_along_by_effectfree);
+  ans += logpost_rwrandom(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
 }
 
@@ -411,7 +479,7 @@ Type logpost_rwzeroseasvary(vector<Type> effectfree,
   vector<Type> rw = alpha_seasvary(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
-  ans += logpost_rwzero(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
+  ans += logpost_rwrandom(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
 }
 
@@ -547,11 +615,14 @@ Type logpost_rw2zeroseasfix(vector<Type> effectfree,
 			    vector<Type> consts,
 			    matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(2); // n_seas, sd_seas
-  vector<Type> consts_rw = consts.tail(2); // scale, sd_slope
+  vector<Type> consts_rw(3);
+  consts_rw[0] = consts[2]; // scale
+  consts_rw[1] = consts[1]; // sd_seas, used for sd
+  consts_rw[2] = consts[3]; // sd_slope
   vector<Type> rw = alpha_seasfix(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasfix(hyperrandfree, consts_seas);
-  ans += logpost_rw2zero(rw, hyper, consts_rw, matrix_along_by_effectfree);
+  ans += logpost_rw2random(rw, hyper, consts_rw, matrix_along_by_effectfree);
   return ans;
 }
 
@@ -562,13 +633,16 @@ Type logpost_rw2zeroseasvary(vector<Type> effectfree,
 			     vector<Type> consts,
 			     matrix<int> matrix_along_by_effectfree) {
   vector<Type> consts_seas = consts.head(3); // n_seas, scale_seas, sd_seas
-  vector<Type> consts_rw = consts.tail(2); // scale, sd_slope
+  vector<Type> consts_rw(3);
+  consts_rw[0] = consts[3]; // scale
+  consts_rw[1] = consts[2]; // sd_seas, used for sd
+  consts_rw[2] = consts[4]; // sd_slope
   vector<Type> hyper_seas = hyper.head(1); // log_sd_seas
   vector<Type> hyper_rw = hyper.tail(1); // log_sd
   vector<Type> rw = alpha_seasvary(effectfree, hyperrandfree, consts_seas, matrix_along_by_effectfree);
   Type ans = 0;
   ans += logpost_seasvary(hyperrandfree, hyper_seas, consts_seas, matrix_along_by_effectfree);
-  ans += logpost_rw2zero(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
+  ans += logpost_rw2random(rw, hyper_rw, consts_rw, matrix_along_by_effectfree);
   return ans;
 }
 

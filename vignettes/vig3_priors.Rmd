@@ -10,86 +10,55 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  echo = FALSE,
+  echo = TRUE,
   comment = "#>",
   fig.width = 6,
   fig.height = 3
 )
 ```
 
-```{r setup}
-library(bage)
-library(poputils)
-library(ggplot2)
-library(dplyr, warn.conflicts = FALSE)
-```
-
-
 # Set-up
 
+```{r setup}
+suppressPackageStartupMessages({
+  library(bage)
+  library(poputils)
+  library(ggplot2)
+  library(dplyr)
+})	
+```
+
 
 ```{r}
-draws_point <- function(x) {
-  ans <- generate(x, n = 10, n_draw = 18)
-  ans$draw <- paste("Draw", ans$draw)
-  ans$draw <- factor(ans$draw, levels = unique(ans$draw))
-  ans
+draw_vals <- function(x, n) {
+  x |>
+  generate(n = n, n_draw = 18) |>
+  mutate(draw = paste("Draw", draw),
+         draw = factor(draw, levels = unique(draw)))
 }
-```
-
-```{r}
-draws_line <- function(x) {
-  ans <- generate(x, n = 20, n_draw = 18)
-  ans$draw <- paste("Draw", ans$draw)
-  ans$draw <- factor(ans$draw, levels = unique(ans$draw))
-  ans
-}
-```
-
-```{r}
-plot_prior_point <- function(draws) {
-  n <- max(draws$x)
-  ggplot(draws, aes(x = x, y = value)) +
-    facet_wrap(vars(draw), nrow = 3) +
-    geom_point(col = "darkblue",
-               size = 0.7) +
-    scale_x_continuous(n.breaks = n) +
-    xlab("Unit") +
-    ylab("") +
-    theme(text = element_text(size = 8))
-}	       
-```
-
-```{r}
-plot_prior_line <- function(draws) {
-  ggplot(draws, aes(x = x, y = value)) +
-    facet_wrap(vars(draw), nrow = 3) +
-    geom_line(col = "darkblue") +
-    xlab("Unit") +
-    ylab("") +
-    theme(text = element_text(size = 8))
-}	       
 ```
 
 ```{r}
 mx <- west_lifetab |>
-  filter(sex == "Female",
-         level == 23) |>
+  filter(sex == "Female", level == 23) |>
   select(age, sex, mx)
 ```
 
 ```{r}
-plot_lifeexp_point <- function(draws) {
-  lifeexp <- draws |>
-    cross_join(mx) |>
-    mutate(mx = exp(value) * mx) |>
-    lifeexp(mx = mx, age = age, sex = sex, by = c(x, draw))
-  n <- max(draws$x)
-  ggplot(lifeexp, aes(x = x, y = ex)) +
+convert_to_lifeexp <- function(draws) {
+  draws |>
+  cross_join(mx) |>
+  mutate(mx = exp(value) * mx) |>
+  lifeexp(mx = mx, age = age, sex = sex, by = c(x, draw))
+}
+```
+
+```{r}
+plot_points <- function(draws) {
+  ggplot(draws, aes(x = x, y = value)) +
     facet_wrap(vars(draw), nrow = 3) +
-    geom_point(col = "darkblue",
-               size = 0.7) +
-    scale_x_continuous(n.breaks = n) +
+    geom_point(col = "darkblue", size = 0.7) +
+    scale_x_continuous(n.breaks = max(draws$x)) +
     xlab("Unit") +
     ylab("") +
     theme(text = element_text(size = 8))
@@ -97,12 +66,8 @@ plot_lifeexp_point <- function(draws) {
 ```
 
 ```{r}
-plot_lifeexp_line <- function(draws) {
-  lifeexp <- draws |>
-    cross_join(mx) |>
-    mutate(mx = exp(value) * mx) |>
-    lifeexp(mx = mx, age = age, sex = sex, by = c(x, draw))
-  ggplot(lifeexp, aes(x = x, y = ex)) +
+plot_lines <- function(draws) {
+  ggplot(draws, aes(x = x, y = value)) +
     facet_wrap(vars(draw), nrow = 3) +
     geom_line(col = "darkblue") +
     xlab("Unit") +
@@ -110,8 +75,6 @@ plot_lifeexp_line <- function(draws) {
     theme(text = element_text(size = 8))
 }	       
 ```
-
-
 
 
 
@@ -119,16 +82,47 @@ plot_lifeexp_line <- function(draws) {
 
 ## Normal `N()`
 
+\begin{align}
+  \beta_j & \sim \text{N}(0, \tau^2) \\
+  \tau & \sim N^+(0, 1)
+\end{align}
+
+### All defaults
+
 ```{r}
 x <- N()
-draws <- draws_point(x)
-plot_prior_point(draws)
+x
 ```
 
+Values on log scale
 
 ```{r}
-plot_lifeexp_point(draws)
+draws <- N() |>
+  draw_vals(n = 10)
 ```
+
+```{r}
+plot_points(draws)
+```
+
+Life expectancies when mortality rates multiplied by draws
+
+```{r}
+draws |>
+  convert_to_lifeexp() |>
+  plot_points()
+```
+
+
+
+
+## Reduce value for `s`
+
+```{r, echo = TRUE}
+x <- N(s = 0.05)
+x
+```
+
 
 ```{r}
 x <- N(s = 0.05)
@@ -136,6 +130,7 @@ draws <- draws_point(x)
 plot_prior_point(draws)
 ```
 
+Draws from `N(s = 0.05)` converted to life expectancy
 ```{r}
 plot_lifeexp_point(draws)
 ```
@@ -145,6 +140,7 @@ plot_lifeexp_point(draws)
 
 ## Random Walk `RW()`
 
+Draws from `RW()`
 ```{r}
 x <- RW()
 draws <- draws_line(x)
