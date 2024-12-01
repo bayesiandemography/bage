@@ -19,45 +19,45 @@
 \alias{generate.bage_prior_rw2zeroseasvary}
 \title{Generate Values from Priors}
 \usage{
-\method{generate}{bage_prior_ar}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_ar}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_known}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_known}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_norm}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_norm}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_normfixed}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_normfixed}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rwrandom}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwrandom}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rwrandomseasfix}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwrandomseasfix}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rwrandomseasvary}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwrandomseasvary}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rwzero}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwzero}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rwzeroseasfix}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwzeroseasfix}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rwzeroseasvary}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rwzeroseasvary}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rw2random}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rw2random}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rw2randomseasfix}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rw2randomseasfix}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rw2randomseasvary}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rw2randomseasvary}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rw2zero}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rw2zero}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rw2zeroseasfix}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rw2zeroseasfix}(x, n_element = 20, n_replicate = 25, ...)
 
-\method{generate}{bage_prior_rw2zeroseasvary}(x, n = 20, n_draw = 25, ...)
+\method{generate}{bage_prior_rw2zeroseasvary}(x, n_element = 20, n_replicate = 25, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}
 
-\item{n}{Number of elements in term.
+\item{n_element}{Number of elements in term.
 Default is \code{20}.}
 
-\item{n_draw}{Number of draws. Default
+\item{n_replicate}{Number of replicates. Default
 is \code{25}.}
 
 \item{...}{Unused. Included for generic consistency only.}

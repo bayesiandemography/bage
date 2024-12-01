@@ -4673,15 +4673,15 @@ test_that("'forecast_term' works with bage_prior_svd_rw2 - zero_sum is TRUE", {
 test_that("'generate' works with bage_prior_ar", {
   x <- AR()
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  coef <- draw_vals_coef(x, n_sim = n_draw)
-  ans_expected <- draw_vals_ar_inner(n = n, coef = coef, sd = sd)
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  coef <- draw_vals_coef(x, n_sim = n_replicate)
+  ans_expected <- draw_vals_ar_inner(n = n_element, coef = coef, sd = sd)
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4689,31 +4689,31 @@ test_that("'generate' works with bage_prior_ar", {
 test_that("'generate' works with bage_prior_known", {
   x <- Known(values = 1:5)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
   ans_expected <- rep(1:5, times = 25)
-  ans_expected <- tibble(x = rep(seq_len(5), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = 5),
+  ans_expected <- tibble(element = rep(seq_len(5), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = 5),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
-  expect_message(generate(x, n = 3, n_draw = n_draw),
-                 "Non-default value of `n` ignored with \"Known\\(\\)\" prior.")
+  expect_message(generate(x, n_element = 3, n_replicate = n_replicate),
+                 "Non-default value of `n_element` ignored with \"Known\\(\\)\" prior.")
 })
 
 test_that("'generate' works with bage_prior_norm", {
   x <- N()
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  ans_expected <- matrix(rnorm(n * n_draw, sd = rep(sd, each = n)),
-                         nrow = n)
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  ans_expected <- matrix(rnorm(n_element * n_replicate, sd = rep(sd, each = n_element)),
+                         nrow = n_element)
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4721,14 +4721,14 @@ test_that("'generate' works with bage_prior_norm", {
 test_that("'generate' works with bage_prior_normfixed", {
   x <- NFix(sd = 0.3)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  ans_expected <- matrix(rnorm(n * n_draw, sd = 0.3),
-                         nrow = n)
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- matrix(rnorm(n_element * n_replicate, sd = 0.3),
+                         nrow = n_element)
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4736,17 +4736,17 @@ test_that("'generate' works with bage_prior_normfixed", {
 test_that("'generate' works with bage_prior_rwrandom", {
   x <- RW()
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
   ans_expected <- draw_vals_rw(sd = sd,
                                sd_init = 1,
-                               matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
-                               levels_effect = seq_len(n))
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+                               matrix_along_by = matrix(seq_len(n_element) - 1L, nc = 1),
+                               levels_effect = seq_len(n_element))
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4754,21 +4754,21 @@ test_that("'generate' works with bage_prior_rwrandom", {
 test_that("'generate' works with bage_prior_rwrandomseasfix", {
   x <- RW_Seas(n = 3, sd_seas = 0.2)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  matrix_along_by <- matrix(seq_len(n_element) - 1L, nr = n_element)
   alpha <- draw_vals_rw(sd = sd,
                         sd_init = 1,
                         matrix_along_by = matrix_along_by,
-                        levels_effect = seq_len(n))
+                        levels_effect = seq_len(n_element))
   seas <- draw_vals_seasfix(n_seas = 3, sd_init = 0.2, matrix_along_by = matrix_along_by,
-                            n_sim = n_draw)
+                            n_sim = n_replicate)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4776,24 +4776,24 @@ test_that("'generate' works with bage_prior_rwrandomseasfix", {
 test_that("'generate' works with bage_prior_rwrandomseasvary", {
   x <- RW_Seas(n = 3, sd_seas = 0.2, s_seas = 0.3)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  sd_seas <- draw_vals_sd_seas(x, n_sim = n_draw)
-  matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  sd_seas <- draw_vals_sd_seas(x, n_sim = n_replicate)
+  matrix_along_by <- matrix(seq_len(n_element) - 1L, nr = n_element)
   alpha <- draw_vals_rw(sd = sd,
                         sd_init = 1,
                         matrix_along_by = matrix_along_by,
-                        levels_effect = seq_len(n))
+                        levels_effect = seq_len(n_element))
   seas <- draw_vals_seasvary(n_seas = 3,
                              sd_innov = sd_seas,
                              sd_init = 0.2,
                              matrix_along_by = matrix_along_by)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4801,17 +4801,17 @@ test_that("'generate' works with bage_prior_rwrandomseasvary", {
 test_that("'generate' works with bage_prior_rwzero", {
   x <- RW(sd = 0)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
   ans_expected <- draw_vals_rw(sd = sd,
                                sd_init = 0,
-                               matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
-                               levels_effect = seq_len(n))
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+                               matrix_along_by = matrix(seq_len(n_element) - 1L, nc = 1),
+                               levels_effect = seq_len(n_element))
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4819,21 +4819,21 @@ test_that("'generate' works with bage_prior_rwzero", {
 test_that("'generate' works with bage_prior_rwzeroseasfix", {
   x <- RW_Seas(n = 3, sd_seas = 0.2, sd = 0)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  matrix_along_by <- matrix(seq_len(n_element) - 1L, nr = n_element)
   alpha <- draw_vals_rw(sd = sd,
                         sd_init = 0,
                         matrix_along_by = matrix_along_by,
-                        levels_effect = seq_len(n))
+                        levels_effect = seq_len(n_element))
   seas <- draw_vals_seasfix(n_seas = 3, sd_init = 0.2, matrix_along_by = matrix_along_by,
-                            n_sim = n_draw)
+                            n_sim = n_replicate)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = rep(seq_len(n_replicate), each = n_element),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4841,12 +4841,12 @@ test_that("'generate' works with bage_prior_rwzeroseasfix", {
 test_that("'generate' works with bage_prior_rwzeroseasvary", {
   x <- RW_Seas(n = 3, sd_seas = 0.2, sd = 0, s_seas = 0.3)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  sd_seas <- draw_vals_sd_seas(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  sd_seas <- draw_vals_sd_seas(x, n_sim = n_replicate)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   alpha <- draw_vals_rw(sd = sd,
                         sd_init = 0,
@@ -4857,8 +4857,8 @@ test_that("'generate' works with bage_prior_rwzeroseasvary", {
                              sd_init = 0.2,
                              matrix_along_by = matrix_along_by)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4866,11 +4866,11 @@ test_that("'generate' works with bage_prior_rwzeroseasvary", {
 test_that("'generate' works with bage_prior_rw2random", {
   x <- RW2()
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
   sd_init <- x$specific$sd
   sd_slope <- x$specific$sd_slope
   ans_expected <- draw_vals_rw2(sd = sd,
@@ -4878,8 +4878,8 @@ test_that("'generate' works with bage_prior_rw2random", {
                                 sd_slope = sd_slope,
                                 matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                 levels_effect = seq_len(n))
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4887,11 +4887,11 @@ test_that("'generate' works with bage_prior_rw2random", {
 test_that("'generate' works with bage_prior_rw2randomseasfix", {
   x <- RW2_Seas(n = 3, sd_seas = 0.2)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   sd_init <- x$specific$sd
   sd_slope <- x$specific$sd_slope
@@ -4901,10 +4901,10 @@ test_that("'generate' works with bage_prior_rw2randomseasfix", {
                         matrix_along_by = matrix_along_by,
                         levels_effect = seq_len(n))
   seas <- draw_vals_seasfix(n_seas = 3, sd_init = 0.2, matrix_along_by = matrix_along_by,
-                            n_sim = n_draw)
+                            n_sim = n_replicate)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4912,12 +4912,12 @@ test_that("'generate' works with bage_prior_rw2randomseasfix", {
 test_that("'generate' works with bage_prior_rw2randomseasvary", {
   x <- RW2_Seas(n = 3, sd_seas = 0.2, s_seas = 0.3)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  sd_seas <- draw_vals_sd_seas(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  sd_seas <- draw_vals_sd_seas(x, n_sim = n_replicate)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   sd_init <- x$specific$sd
   sd_slope <- x$specific$sd_slope
@@ -4931,8 +4931,8 @@ test_that("'generate' works with bage_prior_rw2randomseasvary", {
                              sd_init = 0.2,
                              matrix_along_by = matrix_along_by)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4940,19 +4940,19 @@ test_that("'generate' works with bage_prior_rw2randomseasvary", {
 test_that("'generate' works with bage_prior_rw2zero", {
   x <- RW2(sd = 0)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
   sd_slope <- x$specific$sd_slope
   ans_expected <- draw_vals_rw2(sd = sd,
                                 sd_init = 0,
                                 sd_slope = sd_slope,
                                 matrix_along_by = matrix(seq_len(n) - 1L, nc = 1),
                                 levels_effect = seq_len(n))
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4960,11 +4960,11 @@ test_that("'generate' works with bage_prior_rw2zero", {
 test_that("'generate' works with bage_prior_rw2zeroseasfix", {
   x <- RW2_Seas(n = 3, sd_seas = 0.2, sd = 0)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   sd_slope <- x$specific$sd_slope
   alpha <- draw_vals_rw2(sd = sd,
@@ -4973,10 +4973,10 @@ test_that("'generate' works with bage_prior_rw2zeroseasfix", {
                         matrix_along_by = matrix_along_by,
                         levels_effect = seq_len(n))
   seas <- draw_vals_seasfix(n_seas = 3, sd_init = 0.2, matrix_along_by = matrix_along_by,
-                            n_sim = n_draw)
+                            n_sim = n_replicate)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
@@ -4984,12 +4984,12 @@ test_that("'generate' works with bage_prior_rw2zeroseasfix", {
 test_that("'generate' works with bage_prior_rw2zeroseasvary", {
   x <- RW2_Seas(n = 3, sd_seas = 0.2, sd = 0, s_seas = 0.3)
   set.seed(0)
-  n <- 20
-  n_draw <- 25
-  ans_obtained <- generate(x, n = n, n_draw = n_draw)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
-  sd <- draw_vals_sd(x, n_sim = n_draw)
-  sd_seas <- draw_vals_sd_seas(x, n_sim = n_draw)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  sd_seas <- draw_vals_sd_seas(x, n_sim = n_replicate)
   matrix_along_by <- matrix(seq_len(n) - 1L, nr = n)
   sd_slope <- x$specific$sd_slope
   alpha <- draw_vals_rw2(sd = sd,
@@ -5002,8 +5002,8 @@ test_that("'generate' works with bage_prior_rw2zeroseasvary", {
                              sd_init = 0.2,
                              matrix_along_by = matrix_along_by)
   ans_expected <- alpha + seas
-  ans_expected <- tibble(x = rep(seq_len(n), times = n_draw),
-                         draw = rep(seq_len(n_draw), each = n),
+  ans_expected <- tibble(x = rep(seq_len(n), times = n_replicate),
+                         draw = rep(seq_len(n_replicate), each = n),
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })

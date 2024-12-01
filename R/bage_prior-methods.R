@@ -2822,7 +2822,7 @@ generate.bage_prior_ar <- function(x,
   ans <- l$ans
   sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
   coef <- draw_vals_coef(prior = x, n_sim = n_replicate)
-  value <- draw_vals_ar_inner(n_element = n_element, coef = coef, sd = sd)
+  value <- draw_vals_ar_inner(n = n_element, coef = coef, sd = sd)
   value <- as.double(value)
   ans$value <- value
   ans
