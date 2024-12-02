@@ -384,6 +384,8 @@ generate_prior_helper <- function(n_element, n_replicate) {
                             dimnames = list(levels_effect, NULL))
   element <- rep(seq_len(n_element), times = n_replicate)
   replicate <- rep(seq_len(n_replicate), each = n_element)
+  replicate <- paste("Replicate", replicate)
+  replicate <- factor(replicate, levels = unique(replicate))
   ans <- tibble::tibble(element = element, replicate = replicate)
   list(matrix_along_by = matrix_along_by,
        levels_effect = levels_effect,
