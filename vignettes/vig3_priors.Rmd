@@ -30,15 +30,6 @@ suppressPackageStartupMessages({
 
 
 ```{r}
-draw_vals <- function(x, n) {
-  x |>
-  generate(n = n, n_draw = 18) |>
-  mutate(draw = paste("Draw", draw),
-         draw = factor(draw, levels = unique(draw)))
-}
-```
-
-```{r}
 mx <- west_lifetab |>
   filter(sex == "Female", level == 23) |>
   select(age, sex, mx)
@@ -47,19 +38,20 @@ mx <- west_lifetab |>
 ```{r}
 convert_to_lifeexp <- function(draws) {
   draws |>
-  cross_join(mx) |>
-  mutate(mx = exp(value) * mx) |>
-  lifeexp(mx = mx, age = age, sex = sex, by = c(x, draw))
+    cross_join(mx) |>
+    mutate(mx = exp(value) * mx) |>
+    lifeexp(mx = mx, age = age, sex = sex, by = c(element, replicate)) |>
+    select(element, replicate, value = ex)
 }
 ```
 
 ```{r}
 plot_points <- function(draws) {
-  ggplot(draws, aes(x = x, y = value)) +
-    facet_wrap(vars(draw), nrow = 3) +
+  ggplot(draws, aes(x = element, y = value)) +
+    facet_wrap(vars(replicate), nrow = 1) +
     geom_point(col = "darkblue", size = 0.7) +
-    scale_x_continuous(n.breaks = max(draws$x)) +
-    xlab("Unit") +
+    scale_x_continuous(n.breaks = max(draws$element)) +
+    xlab("Element") +
     ylab("") +
     theme(text = element_text(size = 8))
 }	       
@@ -67,131 +59,103 @@ plot_points <- function(draws) {
 
 ```{r}
 plot_lines <- function(draws) {
-  ggplot(draws, aes(x = x, y = value)) +
-    facet_wrap(vars(draw), nrow = 3) +
+  ggplot(draws, aes(x = element, y = value)) +
+    facet_wrap(vars(replicate), nrow = 1) +
     geom_line(col = "darkblue") +
-    xlab("Unit") +
+    xlab("Element") +
     ylab("") +
     theme(text = element_text(size = 8))
 }	       
 ```
 
 
+```{r}
+make_scaled_versions <- function(draws) {
+  prior <- draws |>
+    mutate(variant = "Original")
+  log <- draws |>
+    mutate(variant = "Exp") |>
+    mutate(value = exp(value))
+  logit <- draws |>
+    mutate(variant = "Inv-Logit") |>
+    mutate(value = exp(value) / (1 + exp(value)))
+  bind_rows(prior, log, logit) |>
+    mutate(variant = factor(variant, levels = unique(variant)))
+}
+```
 
-# Priors for Exchangeable Units
 
-## Normal `N()`
+```{r}
+plot_points_scales <- function(draws) {
+  ggplot(draws, aes(x = element, y = value)) +
+    facet_grid(vars(variant), vars(replicate), scale = "free_y") +
+    geom_point(col = "darkblue", size = 0.7) +
+    scale_x_continuous(n.breaks = max(draws$element)) +
+    xlab("Element") +
+    ylab("") +
+    theme(text = element_text(size = 8))
+}
+```
+
+
+# Normal `N()`
+
+## Model
 
 \begin{align}
   \beta_j & \sim \text{N}(0, \tau^2) \\
-  \tau & \sim N^+(0, 1)
+  \tau & \sim \text{N}^+(0, 1)
 \end{align}
 
-### All defaults
+## Values with all defaults
 
-```{r}
-x <- N()
-x
-```
 
 Values on log scale
 
-```{r}
-draws <- N() |>
-  draw_vals(n = 10)
-```
-
-```{r}
-plot_points(draws)
-```
-
-Life expectancies when mortality rates multiplied by draws
-
-```{r}
-draws |>
-  convert_to_lifeexp() |>
+```{r, fig.height = 1.5}
+set.seed(0)
+N() |>
+  generate(n_element = 10, n_replicate = 6) |>
   plot_points()
 ```
 
 
 
+```{r}
+set.seed(0)
+N() |>
+  generate(n_element = 10, n_replicate = 6) |>
+  make_scaled_versions() |>
+  plot_points_scales()
+```
 
-## Reduce value for `s`
 
-```{r, echo = TRUE}
-x <- N(s = 0.05)
-x
+## Values with `s = 0.05`
+
+
+```{r, fig.height = 1.5}
+set.seed(0)
+N(s = 0.05) |>
+  generate(n_element = 10, n_replicate = 6) |>
+  plot_points()
 ```
 
 
 ```{r}
-x <- N(s = 0.05)
-draws <- draws_point(x)
-plot_prior_point(draws)
-```
-
-Draws from `N(s = 0.05)` converted to life expectancy
-```{r}
-plot_lifeexp_point(draws)
+set.seed(0)
+N(s = 0.05) |>
+  generate(n_element = 10, n_replicate = 6) |>
+  make_scaled_versions() |>
+  plot_points_scales()
 ```
 
 
-# Priors for Series
+# Random Walk `RW()`
 
-## Random Walk `RW()`
+## Model
 
-Draws from `RW()`
-```{r}
-x <- RW()
-draws <- draws_line(x)
-plot_prior_line(draws)
-```
-
-```{r}
-plot_lifeexp_line(draws)
-```
-
-```{r}
-x <- RW(s = 0.01)
-draws <- draws_line(x)
-plot_prior_line(draws)
-```
-
-```{r}
-plot_lifeexp_line(draws)
-```
-
-
-## Second-order Random Walk `RW2()`
-
-
-```{r}
-x <- RW2()
-draws <- draws_line(x)
-plot_prior_line(draws)
-```
-
-```{r}
-plot_lifeexp_line(draws)
-```
-
-
-```{r}
-x <- RW2(s = 0.01)
-draws <- draws_line(x)
-plot_prior_line(draws)
-```
-
-```{r}
-plot_lifeexp_line(draws)
-```
-
-```{r}
-x <- RW2(s = 0.01, sd = 0.01)
-draws <- draws_line(x)
-plot_prior_line(draws)
-```
-
-```{r}
-plot_lifeexp_line(draws)
-```
+\begin{align}
+  \beta_1 & \sim \text{N}(0, \text{sd}^2) \\
+  \beta_j & \sim \text{N}(\beta_{j-1}, \tau^2), \quad j = 2, \cdots, J \\
+  \tau & \sim \text{N}^+(0, 1)
+\end{align}
