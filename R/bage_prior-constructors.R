@@ -10,7 +10,7 @@
 #' Typically used with time effects or with
 #' interactions that involve time.
 #'
-#' If `AR()` is used with an interaction,
+#' If `AR()` is used with an interaction, then
 #' separate AR processes are constructed along
 #' the 'along' variable, within each combination of the
 #' 'by' variables.
@@ -26,42 +26,38 @@
 #'
 #' When `AR()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-n} + \epsilon_j}
+#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_{\text{n\_coef}} \beta_{j-\text{n\_coef}} + \epsilon_j}
 #' \deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_n \beta_{u,v-n} + \epsilon_{u,v}}
+#' \deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \beta_{u,v-\text{n\_coef}} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{v} denotes position within the 'along' variable of the interaction;
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
-#' - \eqn{n} is `n_coef`.
+#' - \eqn{v} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Internally, `AR()` derives a value for \eqn{\omega} that
 #' gives every element of \eqn{\beta} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
 #'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 #'
-#' where `s` is provided by the user.
-#' 
-#' The autocorrelation coefficients \eqn{\phi_1, \cdots, \phi_n}
-#' are restricted to values between -1 and 1 that jointly
-#' lead to a stationary model. The quantity
-#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_n^2}} has the
-#' boundary-avoiding prior
+#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+#' each have prior
 #'
-#' \deqn{r \sim \text{Beta}(2, 2).}
+#' \deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 #' 
 #' @param n_coef Number of lagged terms in the
 #' model, ie the order of the model. Default is `2`.
 #' @param s Scale for the prior for the innovations.
 #' Default is `1`.
+#' @param shape1,shape2 Parameters for beta-distribution prior
+#' for coefficients. Defaults are `5` and `5`.
 #' @param along Name of the variable to be used
 #' as the 'along' variable. Only used with
 #' interactions.
@@ -72,7 +68,8 @@
 #' @returns An object of class `"bage_prior_ar"`.
 #'
 #' @seealso
-#' - [AR1()] Special case of `AR()`
+#' - [AR1()] Special case of `AR()`. Can be more
+#'   numerically stable than higher-order models.
 #' - [Lin_AR()], [Lin_AR1()] Straight line with AR errors
 #' - [priors] Overview of priors implemented in **bage**
 #' - [set_prior()] Specify prior for intercept,
@@ -89,6 +86,8 @@
 #' @export
 AR <- function(n_coef = 2,
                s = 1,
+               shape1 = 5,
+               shape2 = 5,
                along = NULL,
                zero_sum = FALSE) {
   poputils::check_n(n = n_coef,
@@ -96,15 +95,19 @@ AR <- function(n_coef = 2,
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  check_scale(s,
-              nm_x = "s",
-              zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
   n_coef <- as.integer(n_coef)
   scale <- as.double(s)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_ar(n_coef = n_coef,
+                    shape1 = shape1,
+                    shape2 = shape2,
                     min = -1,
                     max = 1,
                     scale = scale,
@@ -168,7 +171,7 @@ AR <- function(n_coef = 2,
 #' 
 #' where
 #' 
-#' \deqn{\phi' \sim \text{Beta}(2, 2).}
+#' \deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 #' 
 #' @inheritParams AR
 #' @param min,max Minimum and maximum values
@@ -195,23 +198,31 @@ AR <- function(n_coef = 2,
 #' AR1(min = 0, max = 1, s = 2.4)
 #' AR1(along = "cohort")
 #' @export
-AR1 <- function(min = 0.8,
+AR1 <- function(s = 1,
+                shape1 = 5,
+                shape2 = 5,
+                min = 0.8,
                 max = 0.98,
-                s = 1,
                 along = NULL,
                 zero_sum = FALSE) {
-  check_min_max_ar(min = min, max = max)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
+  check_min_max_ar(min = min, max = max)
   scale <- as.double(s)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
   min <- as.double(min)
   max <- as.double(max)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_ar(n_coef = 1L,
+                    scale = scale,
+                    shape1 = shape1,
+                    shape2 = shape2,
                     min = min,
                     max = max,
-                    scale = scale,
                     along = along,
                     zero_sum = zero_sum,
                     nm = "AR1")
@@ -375,7 +386,7 @@ Lin <- function(s = 1,
 #' \deqn{\beta_1 = \alpha + \epsilon_1}
 #' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
 #' \deqn{\alpha \sim \text{N}(0, 1)}
-#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j}
+#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{j-\text{n\_coef}} + \varepsilon_j}
 #' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
@@ -383,15 +394,14 @@ Lin <- function(s = 1,
 #' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
 #' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
 #' \deqn{\alpha_u \sim \text{N}(0, 1)}
-#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
+#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{u,v-\text{n\_coef}} + \varepsilon_{u,v},}
 #' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'along' variable of the interaction;
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
-#' - \eqn{n} is `n_coef`.
+#' - \eqn{u} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' The slopes have priors
 #' \deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
@@ -402,15 +412,12 @@ Lin <- function(s = 1,
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-#' where a value for `s` is provided by the user.
+#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 #'
-#' The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-#' between -1 and 1 that jointly lead to a stationary model. The quantity
-#' \eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} has
-#' boundary-avoiding prior
+#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+#' each have prior
 #'
-#' \deqn{r \sim \text{Beta}(2, 2).}
+#' \deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 #' 
 #' @inheritParams AR
 #' @param s Scale for the innovations in the
@@ -437,6 +444,8 @@ Lin <- function(s = 1,
 #' @export
 Lin_AR <- function(n_coef = 2,
                    s = 1,
+                   shape1 = 5,
+                   shape2 = 5,
                    mean_slope = 0,
                    sd_slope = 1,
                    along = NULL,
@@ -446,9 +455,9 @@ Lin_AR <- function(n_coef = 2,
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  check_scale(s,
-              nm_x = "s",
-              zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
   check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
@@ -456,14 +465,18 @@ Lin_AR <- function(n_coef = 2,
   check_flag(x = zero_sum, nm_x = "zero_sum")
   n_coef <- as.integer(n_coef)
   scale <- as.double(s)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
   mean_slope <- as.double(mean_slope)
   sd_slope <- as.double(sd_slope)
   new_bage_prior_linar(n_coef = n_coef,
-                       scale = scale,
+                       shape1 = shape1,
+                       shape2 = shape2,
                        mean_slope = mean_slope,
                        sd_slope = sd_slope,
                        min = -1,
                        max = 1,
+                       scale = scale,
                        along = along,
                        zero_sum = zero_sum,
                        nm = "Lin_AR")
@@ -532,7 +545,7 @@ Lin_AR <- function(n_coef = 2,
 #' Its prior distribution is
 #' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 #' where
-#' \deqn{\phi' \sim \text{Beta}(2, 2).}
+#' \deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 #' 
 #' @inheritParams Lin_AR
 #' @param min,max Minimum and maximum values
@@ -557,33 +570,39 @@ Lin_AR <- function(n_coef = 2,
 #' Lin_AR1()
 #' Lin_AR1(min = 0, s = 0.5, sd_slope = 2)
 #' @export
-Lin_AR1 <- function(min = 0.8,
+Lin_AR1 <- function(s = 1,
+                    shape1 = 5,
+                    shape2 = 5,
+                    min = 0.8,
                     max = 0.98,
-                    s = 1,
                     mean_slope = 0,
                     sd_slope = 1,
                     along = NULL,
                     zero_sum = FALSE) {
   check_min_max_ar(min = min, max = max)
-  check_scale(s,
-              nm_x = "s",
-              zero_ok = FALSE)
+  check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
   check_number(mean_slope, nm_x = "mean_slope")
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   if (!is.null(along))
     check_string(x = along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
-  mean_slope <- as.double(mean_slope)
-  sd_slope <- as.double(sd_slope)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
   min <- as.double(min)
   max <- as.double(max)
+  mean_slope <- as.double(mean_slope)
+  sd_slope <- as.double(sd_slope)
   new_bage_prior_linar(n_coef = 1L,
                        scale = scale,
-                       mean_slope = mean_slope,
-                       sd_slope = sd_slope,
+                       shape1 = shape1,
+                       shape2 = shape2,
                        min = min,
                        max = max,
+                       mean_slope = mean_slope,
+                       sd_slope = sd_slope,
                        along = along,
                        zero_sum = zero_sum,
                        nm = "Lin_AR1")
@@ -1584,6 +1603,9 @@ SVD <- function(ssvd,
 #' @param s Scale for standard deviations terms.
 #' @param sd_slope Standard deviation in prior
 #' for initial slope. Default is `1`.
+#' @param shape1,shape2 Parameters for prior
+#' for coefficients in `SVD_AR()`.
+#' Defaults are `5` and `5`.
 #' @param min,max Minimum and maximum values
 #' for autocorrelation coefficient in `SVD_AR()`.
 #' Defaults are `0.8` and `0.98`.
@@ -1619,6 +1641,8 @@ SVD_AR <- function(ssvd,
                    indep = TRUE,
                    n_coef = 2,
                    s = 1,
+                   shape1 = 5,
+                   shape2 = 5,
                    zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
@@ -1631,17 +1655,21 @@ SVD_AR <- function(ssvd,
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  check_scale(x = s,
-              nm_x = "s",
-              zero_ok = FALSE)
+  check_scale(x = s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
   n_coef <- as.integer(n_coef)
   scale <- as.double(s)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
   check_flag(x = zero_sum, nm_x = "zero_sum")
   new_bage_prior_svd_ar(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
                         indep = indep,
                         n_coef = n_coef,
+                        shape1 = shape1,
+                        shape2 = shape2,
                         min = -1,
                         max = 1,
                         scale = scale,
@@ -1658,6 +1686,8 @@ SVD_AR1 <- function(ssvd,
                     min = 0.8,
                     max = 0.98,
                     s = 1,
+                    shape1 = 5,
+                    shape2 = 5,
                     zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
@@ -1667,15 +1697,21 @@ SVD_AR1 <- function(ssvd,
   check_flag(x = indep, nm_x = "indep")
   check_min_max_ar(min = min, max = max)
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(shape1, nm_x = "shape1", zero_ok = FALSE)
+  check_scale(shape2, nm_x = "shape2", zero_ok = FALSE)
   check_flag(x = zero_sum, nm_x = "zero_sum")
   min <- as.double(min)
   max <- as.double(max)
   scale <- as.double(s)
+  shape1 <- as.double(shape1)
+  shape2 <- as.double(shape2)
   new_bage_prior_svd_ar(ssvd = ssvd,
                         nm_ssvd = nm_ssvd,
                         n_comp = n_comp,
                         indep = indep,
                         n_coef = 1L,
+                        shape1 = shape1,
+                        shape2 = shape2,
                         min = min,
                         max = max,
                         scale = scale,
@@ -1758,14 +1794,14 @@ SVD_RW2 <- function(ssvd,
 
 ## HAS_TESTS
 new_bage_prior_ar <- function(n_coef,
-                              scale,
+                              shape1,
+                              shape2,
                               min,
                               max,
+                              scale,
                               nm,
                               along,
                               zero_sum) {
-  shape1 <- 2.0
-  shape2 <- 2.0
   ans <- list(i_prior = 1L,
               const = c(shape1 = shape1,
                         shape2 = shape2,
@@ -1815,32 +1851,32 @@ new_bage_prior_lin <- function(scale,
 
 ## HAS_TESTS
 new_bage_prior_linar <- function(n_coef,
-                                 scale,
                                  mean_slope,
                                  sd_slope,
+                                 shape1,
+                                 shape2,
                                  min,
                                  max,
+                                 scale,
                                  along,
                                  zero_sum,
                                  nm) {
-  shape1 <- 2.0
-  shape2 <- 2.0
   ans <- list(i_prior = 3L,
-              const = c(scale = scale,
-                        mean_slope = mean_slope,
+              const = c(mean_slope = mean_slope,
                         sd_slope = sd_slope,
                         shape1 = shape1,
                         shape2 = shape2,
                         min = min,
-                        max = max),
+                        max = max,
+                        scale = scale),
               specific = list(n_coef = n_coef,
-                              scale = scale,
                               mean_slope = mean_slope,
                               sd_slope = sd_slope,
                               shape1 = shape1,
                               shape2 = shape2,
                               min = min,
                               max = max,
+                              scale = scale,
                               along = along,
                               zero_sum = zero_sum,
                               nm = nm))
@@ -2057,12 +2093,12 @@ new_bage_prior_svd_ar <- function(ssvd,
                                   indep,
                                   n_coef,
                                   scale,
+                                  shape1,
+                                  shape2,
                                   min,
                                   max,
                                   zero_sum,
                                   nm) {
-  shape1 <- 2.0
-  shape2 <- 2.0
   ans <- list(i_prior = 14L,
               const = c(shape1 = shape1,
                         shape2 = shape2,

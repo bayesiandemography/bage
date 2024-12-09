@@ -1279,7 +1279,7 @@ test_that("'draw_vals_hyper' works with bage_prior_linar", {
   prior <- Lin_AR()
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
-  expect_identical(names(ans), c("sd", "coef"))
+  expect_identical(names(ans), c("coef", "sd"))
   expect_identical(length(ans$sd), 10L)
 })
 
@@ -2105,24 +2105,24 @@ test_that("'forecast_term' works with bage_prior_ar", {
   sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * components$.fitted[4 + 3:5]),
+                                              mean = sum(rev(coef) * components$.fitted[4 + 3:5]),
                                               sd = sd)
   ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(components$.fitted[4 + 4:5],
+                                              mean = sum(rev(coef) * c(components$.fitted[4 + 4:5],
                                                                   ans_expected$.fitted[1])),
                                               sd = sd)
   ans_expected$.fitted[3] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(components$.fitted[4 + 5],
+                                              mean = sum(rev(coef) * c(components$.fitted[4 + 5],
                                                                   ans_expected$.fitted[1:2])),
                                               sd = sd)
   ans_expected$.fitted[4] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[1:3]),
+                                              mean = sum(rev(coef) * ans_expected$.fitted[1:3]),
                                               sd = sd)
   ans_expected$.fitted[5] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[2:4]),
+                                              mean = sum(rev(coef) * ans_expected$.fitted[2:4]),
                                               sd = sd)
   ans_expected$.fitted[6] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[3:5]),
+                                              mean = sum(rev(coef) * ans_expected$.fitted[3:5]),
                                               sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
@@ -2266,24 +2266,24 @@ test_that("'forecast_term' works with bage_prior_linar - n_by = 1", {
   set.seed(1)
   trend_forecast <- intercept + slope * (6:11)
   error_forecast[1] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (components$.fitted[4 + 4:5] -
+                               mean = sum(rev(coef) * (components$.fitted[4 + 4:5] -
                                                     (intercept + slope * (4:5)))),
                                sd = sd)
   error_forecast[2] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * c(components$.fitted[4 + 5] - (intercept + slope * 5),
+                               mean = sum(rev(coef) * c(components$.fitted[4 + 5] - (intercept + slope * 5),
                                                    error_forecast[1])),
                                sd = sd)
   error_forecast[3] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[1:2])),
+                               mean = sum(rev(coef) * (error_forecast[1:2])),
                                sd = sd)
   error_forecast[4] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[2:3])),
+                               mean = sum(rev(coef) * (error_forecast[2:3])),
                                sd = sd)
   error_forecast[5] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[3:4])),
+                               mean = sum(rev(coef) * (error_forecast[3:4])),
                                sd = sd)
   error_forecast[6] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[4:5])),
+                               mean = sum(rev(coef) * (error_forecast[4:5])),
                                sd = sd)
   effect_forecast <- trend_forecast + error_forecast
   ans_expected <- tibble::tibble(term = "year",
@@ -4247,9 +4247,9 @@ test_that("'levels_hyper' works with 'bage_prior_lin'", {
 test_that("'levels_hyper' works with 'bage_prior_linar'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = Lin_AR()),
-                   c("sd", "coef1", "coef2"))
+                   c("coef1", "coef2", "sd"))
   expect_identical(levels_hyper(prior = Lin_AR1()),
-                   c("sd", "coef"))
+                   c("coef", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_linex'", {
@@ -5913,15 +5913,17 @@ test_that("'str_call_prior' works with bage_prior_ar - AR1", {
     expect_identical(str_call_prior(AR1(max = 0.95)),"AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
     expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, along = "age",
-                                        s = 0.3, zero_sum = TRUE)),
-                     "AR1(min=0.5,max=0.95,s=0.3,along=\"age\",zero_sum=TRUE)")
+                                        s = 0.3, zero_sum = TRUE, shape2 = 3,
+                                        shape1 = 2)),
+                     "AR1(s=0.3,shape1=2,shape2=3,min=0.5,max=0.95,along=\"age\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n_coef = 1)), "AR(n_coef=1)")
     expect_identical(str_call_prior(AR(n_coef = 3, s = 0.3)), "AR(n_coef=3,s=0.3)")
-    expect_identical(str_call_prior(AR(s = 0.3, zero_sum = T, along = "cohort", n = 2)),
-                     "AR(s=0.3,along=\"cohort\",zero_sum=TRUE)")
+    expect_identical(str_call_prior(AR(s = 0.3, shape1 = 2, shape2 = 2,
+                                       zero_sum = T, along = "cohort", n = 2)),
+                     "AR(s=0.3,shape1=2,shape2=2,along=\"cohort\",zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -5942,8 +5944,9 @@ test_that("'str_call_prior' works with bage_prior_lin", {
 test_that("'str_call_prior' works with bage_prior_linar - AR format", {
     expect_identical(str_call_prior(Lin_AR()), "Lin_AR()")
     expect_identical(str_call_prior(Lin_AR(sd = 0.5)), "Lin_AR(sd_slope=0.5)")
-    expect_identical(str_call_prior(Lin_AR(sd=2L,mean_slope=0.1,s = 0.95)),
-                     "Lin_AR(s=0.95,mean_slope=0.1,sd_slope=2)")
+    expect_identical(str_call_prior(Lin_AR(sd=2L,mean_slope=0.1,s = 0.95,
+                                           shape1 = 2, shape2 = 2)),
+                     "Lin_AR(s=0.95,shape1=2,shape2=2,mean_slope=0.1,sd_slope=2)")
     expect_identical(str_call_prior(Lin_AR(sd = 0.1, along = "cohort", zero_sum = T,
                                            s = 0.95,n=3)),
                      "Lin_AR(n_coef=3,s=0.95,sd_slope=0.1,along=\"cohort\",zero_sum=TRUE)")
@@ -5955,8 +5958,9 @@ test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
                      "Lin_AR1(sd_slope=0.5,along=\"age\")")
     expect_identical(str_call_prior(Lin_AR1(sd=2L,s = 0.95)), "Lin_AR1(s=0.95,sd_slope=2)")
     expect_identical(str_call_prior(Lin_AR1(sd = 0.1, mean_slope = 0.2,
-                                            zero_sum = T, max=1,s = 0.95, min = 0.5)),
-                     "Lin_AR1(min=0.5,max=1,s=0.95,mean_slope=0.2,sd_slope=0.1,zero_sum=TRUE)")
+                                            zero_sum = T, max=1,s = 0.95, min = 0.5,
+                                            shape1 = 1, shape2 = 0.1)),
+                     "Lin_AR1(s=0.95,shape1=1,shape2=0.1,min=0.5,max=1,mean_slope=0.2,sd_slope=0.1,zero_sum=TRUE)")
 })
 
 test_that("'str_call_prior' works with bage_prior_linex", {
@@ -6219,9 +6223,9 @@ test_that("'transform_hyper' works with 'bage_prior_linar - AR'", {
     2 * ans - 1
   }
   l <- transform_hyper(prior = Lin_AR(n_coef = 2))
-  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
-  expect_equal(l[[3]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_linar - AR1'", {
@@ -6230,8 +6234,8 @@ test_that("'transform_hyper' works with 'bage_prior_linar - AR1'", {
     0.18 * ans + 0.8
   }
   l <- transform_hyper(prior = Lin_AR1())
-  expect_equal(l[[1]](0.35), exp(0.35))
-  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_linex'", {

@@ -1,8 +1,4 @@
 
-
-
-
-
 ## HAS_TESTS
 #' Combined Stored Draws and Point EStimates from Two Models
 #'
@@ -191,7 +187,7 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
     effectfree <- make_effectfree(mod)
     hyper <- make_hyper(mod)
     hyperrandfree <- make_hyperrandfree(mod)
-    log_disp <- 0
+    log_disp <- c(disp = 0)
     parameters <- list(effectfree = effectfree,   
                        hyper = hyper,
                        hyperrandfree = hyperrandfree,
@@ -265,10 +261,16 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   else
     sdreport <- TMB::sdreport(f) 
   est <- as.list(sdreport, what = "Est")
-  if (has_random_effects)
+  check_est(est)
+  if (has_random_effects) {
     prec <- sdreport$jointPrecision
-  else
-    prec <- solve(sdreport$cov.fixed) ## should be very low dimension
+    check_var_prec(x = prec, est = est)
+  }
+  else {
+    var <- sdreport$cov.fixed
+    check_var_prec(x = var, est = est)
+    prec <- solve(var) ## should be very low dimension
+  }
   t4 <- Sys.time()
   mod <- make_stored_draws(mod = mod,
                            est = est,
@@ -415,6 +417,27 @@ get_disp <- function(mod) {
 }
 
 
+## HAS_TESTS
+#' Get the Name of the Term(s) for Element(s) in the 'est'
+#' Object Returned by TMB
+#'
+#' @param est Named list
+#' @param index_term Integer vector with indices of
+#' elements within unlisted version of 'est'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+get_term_from_est <- function(est, index_term) {
+  nm_term <- lapply(est, names)
+  nm_term <- unlist(nm_term, use.names = FALSE)
+  ans <- nm_term[index_term]
+  ans <- unique(ans)
+  ans
+}
+
+
+## HAS_TESTS
 #' Insert a Into a Data Frame
 #'
 #' Insert a variable into a dataframe, immediately

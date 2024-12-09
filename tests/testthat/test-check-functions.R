@@ -64,6 +64,35 @@ test_that("'check_bage_mod' returns expected error message with invalid model ob
 })
 
 
+## 'check_est' ----------------------------------------------------------------
+
+test_that("'check_est' returns TRUE with valid inputs", {
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = 5),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  expect_true(check_est(est))
+})
+
+test_that("'check_est' returns correct error message with one NA", {
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = NA),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  expect_error(check_est(est),
+               "Problem deriving posterior distribution.")
+})
+
+test_that("'check_est' returns correct error message with multiple NAs", {
+  est <- list(effectfree = c(a = 1, a = 2, b = NA, c = 4, c = NA),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = NA))
+  expect_error(check_est(est),
+               "Problem deriving posterior distribution.")
+})
+
+
 ## 'check_flag' ---------------------------------------------------------------
 
 test_that("'check_flag' returns TRUE with valid inputs", {
@@ -955,6 +984,49 @@ test_that("'check_prior_time'  throws correct error when time variable not prese
                               var_time = "time"),
                "Problem with `SVD_RW2\\(\\)` prior for term `reg:age:sex`.")
 })
+
+
+## 'check_var_prec' -----------------------------------------------------------
+
+test_that("'check_var_prec' returns TRUE with valid inputs", {
+  x <- matrix(1, nr = 7, nc = 7,
+              dimnames = list(c("a", "a", "b", "c", "c", "a", "disp"),
+                              c("a", "a", "b", "c", "c", "a", "disp")))
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = 5),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  expect_true(check_var_prec(x = x, est = est))
+})
+
+test_that("'check_var_prec' throws correct error message with single NA", {
+  x <- matrix(1, nr = 7, nc = 7,
+              dimnames = list(c("a", "a", "b", "c", "c", "a", "disp"),
+                              c("a", "a", "b", "c", "c", "a", "disp")))
+  x[2,2] <- NA
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = 5),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  expect_error(check_var_prec(x = x, est = est),
+               "Problem deriving posterior distribution.")
+})
+
+test_that("'check_var_prec' throws correct error message with multiple NAs", {
+  x <- matrix(1, nr = 7, nc = 7,
+              dimnames = list(c("a", "a", "b", "c", "c", "a", "disp"),
+                              c("a", "a", "b", "c", "c", "a", "disp")))
+  x[3,3] <- NA
+  x[6,6] <- NA
+  x[7,7] <- NA
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = 5),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  expect_error(check_var_prec(x = x, est = est),
+               "Problem deriving posterior distribution.")
+})
+
 
 
 ## 'check_vars_inner' ---------------------------------------------------------
