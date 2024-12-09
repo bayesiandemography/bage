@@ -10,6 +10,24 @@ using namespace tmbutils;
 
 // Helper functions -----------------------------------------------------------
 
+// Calculate alpha, given slope
+template <class Type>
+vector<Type> alpha_lin(vector<Type> effectfree,
+		       vector<Type> hyperrandfree,
+		       matrix<int> matrix_along_by_effectfree) {
+  int n_along = matrix_along_by_effectfree.rows();
+  int n_by = matrix_along_by_effectfree.cols();
+  vector<Type> intercept = -0.5 * (n_along + 1) * hyperrandfree;
+  vector<Type> ans = effectfree;
+  for (int i_by = 0; i_by < n_by; i_by++) {
+    for (int i_along = 0; i_along < n_along; i_along++) {
+      int i = matrix_along_by_effectfree(i_along, i_by);
+      ans[i] -= intercept[i_by] + (i_along + 1) * hyperrandfree[i_by];
+    }
+  }
+  return ans;
+}
+
 // Calculate alpha, given free parameters and fixed seasonal effect.
 // First seasonal effect is zero, and last equals sum of other effects.
 template <class Type>
@@ -92,8 +110,7 @@ template <class Type>
 Type logpost_ar_inner(vector<Type> effectfree,
 		      vector<Type> hyper,
 		      vector<Type> consts,
-		      matrix<int> matrix_along_by_effectfree,
-		      bool append_zero) {
+		      matrix<int> matrix_along_by_effectfree) {
   Type shape1 = consts[0];
   Type shape2 = consts[1];
   Type min = consts[2];
@@ -108,18 +125,15 @@ Type logpost_ar_inner(vector<Type> effectfree,
   vector<Type> coef = (max - min) * coef_raw + min;
   Type sd = exp(log_sd);
   Type ans = 0;
-  Type radius = sqrt((coef_raw * coef_raw).sum());
-  ans += dbeta(radius, shape1, shape2, true)
-    + log(coef_raw).sum()
-    + log(1 - coef_raw).sum();
+  ans += dbeta(coef_raw, shape1, shape2, true).sum() +
+    log(coef_raw).sum() +
+    log(1 - coef_raw).sum();
   ans += dnorm(sd, Type(0), scale, true) + log_sd;
   for (int i_by = 0; i_by < n_by; i_by++) {
-    vector<Type> effect_along(n_along + append_zero);
-    if (append_zero)
-      effect_along[0] = 0;
+    vector<Type> effect_along(n_along);
     for (int i_along = 0; i_along < n_along; i_along++) {
       int i = matrix_along_by_effectfree(i_along, i_by);
-      effect_along[i_along + append_zero] = effectfree[i];
+      effect_along[i_along] = effectfree[i];
     }
     ans -= SCALE(ARk(coef), sd)(effect_along); // ARk returns neg log-lik
   }
@@ -297,6 +311,14 @@ Type logpost_seasvary(vector<Type> seas,
   return ans;
 }
 
+template <class Type>
+Type logpost_slope(vector<Type> slope,
+		   vector<Type> consts) {
+  Type mean_slope = consts[0];
+  Type sd_slope = consts[1];
+  return dnorm(slope, mean_slope, sd_slope, true).sum();
+}
+
 
 // "Methods" for 'logpost' function  ------------------------------------------
 
@@ -309,7 +331,7 @@ Type logpost_ar(vector<Type> effectfree,
 		vector<Type> hyper,
 		vector<Type> consts,
 		matrix<int> matrix_along_by_effectfree) {
-  return logpost_ar_inner(effectfree, hyper, consts, matrix_along_by_effectfree, false);
+  return logpost_ar_inner(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
 template <class Type>
@@ -344,37 +366,12 @@ Type logpost_linar(vector<Type> effectfree,
 		   vector<Type> hyperrandfree, // slope
 		   vector<Type> consts,
 		   matrix<int> matrix_along_by_effectfree) {
-  Type scale = consts[0];
-  Type mean_slope = consts[1];
-  Type sd_slope = consts[2];
-  Type shape1 = consts[3];
-  Type shape2 = consts[4];
-  Type min = consts[5];
-  Type max = consts[6];
-  Type log_sd = hyper[0];
-  int n_coef = hyper.size() - 1;
-  int n_along = matrix_along_by_effectfree.rows();
-  int n_by = matrix_along_by_effectfree.cols();
-  vector<Type> logit_coef = hyper.segment(1, n_coef);
-  vector<Type> intercept = -0.5 * (n_along + 1) * hyperrandfree;
-  Type sd = exp(log_sd);
-  vector<Type> coef_raw = exp(logit_coef) / (1 + exp(logit_coef));
-  vector<Type> coef = (max - min) * coef_raw + min;
+  vector<Type> consts_slope = consts.head(2);
+  vector<Type> consts_ar = consts.tail(5);
+  vector<Type> ar = alpha_lin(effectfree, hyperrandfree, matrix_along_by_effectfree);
   Type ans = 0;
-  ans += dnorm(sd, Type(0), scale, true) + log_sd;
-  ans += dnorm(hyperrandfree, mean_slope, sd_slope, true).sum();
-  Type radius = sqrt((coef_raw * coef_raw).sum());
-  ans += dbeta(radius, shape1, shape2, true)
-    + log(coef_raw).sum()
-    + log(1 - coef_raw).sum();
-  for (int i_by = 0; i_by < n_by; i_by++) {
-    vector<Type> err(n_along);
-    for (int i_along = 0; i_along < n_along; i_along++) {
-      int i = matrix_along_by_effectfree(i_along, i_by);
-      err[i_along] = effectfree[i] - intercept[i_by] - (i_along + 1) * hyperrandfree[i_by];
-    }
-    ans -= SCALE(ARk(coef), sd)(err); // ARk returns neg log-lik
-  }
+  ans += logpost_slope(hyperrandfree, consts_slope);
+  ans += logpost_ar_inner(ar, hyper, consts_ar, matrix_along_by_effectfree);
   return ans;
 }
 
@@ -553,7 +550,7 @@ Type logpost_svd_ar(vector<Type> effectfree,
 		    vector<Type> hyper,
 		    vector<Type> consts,
 		    matrix<int> matrix_along_by_effectfree) {
-  return logpost_ar_inner(effectfree, hyper, consts, matrix_along_by_effectfree, true);
+  return logpost_ar_inner(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
 template <class Type>

@@ -7,6 +7,8 @@
 Lin_AR(
   n_coef = 2,
   s = 1,
+  shape1 = 5,
+  shape2 = 5,
   mean_slope = 0,
   sd_slope = 1,
   along = NULL,
@@ -19,6 +21,9 @@ model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the innovations in the
 AR process. Default is \code{1}.}
+
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
 
 \item{mean_slope}{Mean in prior for slope
 of line. Default is 0.}
@@ -68,7 +73,7 @@ When \code{Lin_AR()} is used with a main effect,
 \deqn{\beta_1 = \alpha + \epsilon_1}
 \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
 \deqn{\alpha \sim \text{N}(0, 1)}
-\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j}
+\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{j-\text{n\_coef}} + \varepsilon_j}
 \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 
 and when it is used with an interaction,
@@ -76,16 +81,15 @@ and when it is used with an interaction,
 \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
 \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
 \deqn{\alpha_u \sim \text{N}(0, 1)}
-\deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
+\deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{u,v-\text{n\_coef}} + \varepsilon_{u,v},}
 \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 
 where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{u} denotes position within the 'along' variable of the interaction;
-\item \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
-\item \eqn{n} is \code{n_coef}.
+\item \eqn{u} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 The slopes have priors
@@ -97,15 +101,12 @@ Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-where a value for \code{s} is provided by the user.
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 
-The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-between -1 and 1 that jointly lead to a stationary model. The quantity
-\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} has
-boundary-avoiding prior
+The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+each have prior
 
-\deqn{r \sim \text{Beta}(2, 2).}
+\deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 }
 
 \examples{

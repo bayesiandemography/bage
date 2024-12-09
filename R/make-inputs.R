@@ -1599,27 +1599,37 @@ str_call_args_along <- function(prior) {
 str_call_args_ar <- function(prior) {
   specific <- prior$specific
   n_coef <- specific$n_coef
+  scale <- specific$scale
+  shape1 <- specific$shape1
+  shape2 <- specific$shape2
   min <- specific$min
   max <- specific$max
-  scale <- specific$scale
-  along <- prior$specific$along
+  along <- specific$along
   nm <- specific$nm
   is_ar1 <- grepl("AR1", nm)
   if (is_ar1) {
-    ans <- character(3L)
-    if (min != 0.8)
-      ans[[1L]] <- sprintf("min=%s", min)
-    if (max != 0.98)
-      ans[[2L]] <- sprintf("max=%s", max)
+    ans <- character(5L)
     if (scale != 1)
-      ans[[3L]] <- sprintf("s=%s", scale)
+      ans[[1L]] <- sprintf("s=%s", scale)
+    if (shape1 != 5)
+      ans[[2L]] <- sprintf("shape1=%s", shape1)
+    if (shape2 != 5)
+      ans[[3L]] <- sprintf("shape2=%s", shape2)
+    if (min != 0.8)
+      ans[[4L]] <- sprintf("min=%s", min)
+    if (max != 0.98)
+      ans[[5L]] <- sprintf("max=%s", max)
   }
   else {
-    ans <- character(2L)
+    ans <- character(4L)
     if (n_coef != 2L)
       ans[[1L]] <- sprintf("n_coef=%d", n_coef)
     if (scale != 1)
       ans[[2L]] <- sprintf("s=%s", scale)
+    if (shape1 != 5)
+      ans[[3L]] <- sprintf("shape1=%s", shape1)
+    if (shape2 != 5)
+      ans[[4L]] <- sprintf("shape2=%s", shape2)
   }
   ans
 }

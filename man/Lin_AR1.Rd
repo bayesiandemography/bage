@@ -5,9 +5,11 @@
 \title{Linear Prior with Autoregressive Errors of Order 1}
 \usage{
 Lin_AR1(
+  s = 1,
+  shape1 = 5,
+  shape2 = 5,
   min = 0.8,
   max = 0.98,
-  s = 1,
   mean_slope = 0,
   sd_slope = 1,
   along = NULL,
@@ -15,12 +17,15 @@ Lin_AR1(
 )
 }
 \arguments{
+\item{s}{Scale for the innovations in the
+AR process. Default is \code{1}.}
+
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
+
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
-
-\item{s}{Scale for the innovations in the
-AR process. Default is \code{1}.}
 
 \item{mean_slope}{Mean in prior for slope
 of line. Default is 0.}
@@ -104,7 +109,7 @@ to lie between \code{min} and \code{max}.
 Its prior distribution is
 \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 where
-\deqn{\phi' \sim \text{Beta}(2, 2).}
+\deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 }
 
 \examples{

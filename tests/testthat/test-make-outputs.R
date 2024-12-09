@@ -82,6 +82,19 @@ test_that("'generate_prior_helper' works with valid inputs", {
 })                       
 
 
+## 'get_term_from_est' --------------------------------------------------------
+
+test_that("'get_term_from_est' works", {
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = 5),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  ans_obtained <- get_term_from_est(est = est, index_term = c(1L, 4L, 7L))
+  ans_expected <- c("a", "c", "disp")
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'get_disp' -----------------------------------------------------------------
 
 test_that("'get_disp' works - unfitted", {

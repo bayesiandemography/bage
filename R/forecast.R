@@ -26,12 +26,13 @@ forecast_ar <- function(ar_est,
   tmp <- rep(ar_est[[1L]], times = n_along_forecast + n_coef)
   s_head <- seq_len(n_coef)
   s_tail <- seq(to = n_along_est, length.out = n_coef)
+  coef_rev <- rev(coef)
   for (i_by in seq_len(n_by)) {
     i_tail <- matrix_along_by_est[s_tail, i_by] + 1L ## matrix uses 0-based index
     tmp[s_head] <- ar_est[i_tail]
     for (j in seq_len(n_along_forecast)) {
       s_ar <- seq(from = j, to = j + n_coef - 1L)
-      mean <- sum(coef * tmp[s_ar])
+      mean <- sum(coef_rev * tmp[s_ar])
       tmp[[j + n_coef]] <- rvec::rnorm_rvec(n = 1L, mean = mean, sd = sd)
     }
     i_ans <- matrix_along_by_forecast[, i_by] + 1L

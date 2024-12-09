@@ -1,4 +1,15 @@
 
+# bage 0.8.3
+
+## Changes to internal calculations
+
+* Corrected bug in forecasting of `AR()` and `Lin_AR()` priors. 
+* Modified prior for coefficients of `AR()` and `Lin_AR()` priors, so
+  that partical autocorrelation function (PACF), rather than the AR
+  coefficients themselves, are restricted to (-1, 1). Restricting the
+  PACF to (-1,1) ensures stationarity.
+
+
 # bage 0.8.2
 
 ## Changes to interface

@@ -4,15 +4,26 @@
 \alias{AR1}
 \title{Autoregressive Prior of Order 1}
 \usage{
-AR1(min = 0.8, max = 0.98, s = 1, along = NULL, zero_sum = FALSE)
+AR1(
+  s = 1,
+  shape1 = 5,
+  shape2 = 5,
+  min = 0.8,
+  max = 0.98,
+  along = NULL,
+  zero_sum = FALSE
+)
 }
 \arguments{
+\item{s}{Scale for the prior for the innovations.
+Default is \code{1}.}
+
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
+
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
-
-\item{s}{Scale for the prior for the innovations.
-Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
 as the 'along' variable. Only used with
@@ -81,7 +92,7 @@ Its prior distribution is
 
 where
 
-\deqn{\phi' \sim \text{Beta}(2, 2).}
+\deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 }
 
 \examples{
