@@ -375,7 +375,7 @@ Lin <- function(s = 1,
 #' Argument `s` controls the size of the innovations.
 #' Smaller values tend to give smoother estimates.
 #'
-#' Argument `sd_slope` controls the size of the slopes of
+#' Argument `sd_slope` controls the slopes of
 #' the lines. Larger values can give more steeply
 #' sloped lines.
 #' 
@@ -404,9 +404,9 @@ Lin <- function(s = 1,
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
+#' \deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
 #'
 #' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -417,7 +417,7 @@ Lin <- function(s = 1,
 #' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
 #' each have prior
 #'
-#' \deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+#' \deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 #' 
 #' @inheritParams AR
 #' @param s Scale for the innovations in the
@@ -490,7 +490,7 @@ Lin_AR <- function(n_coef = 2,
 #' errors to model a main effect
 #' or interaction. Typically used with time.
 #'
-#' If `Lin_AR()` is used with an interaction,
+#' If `Lin_AR1()` is used with an interaction,
 #' separate lines are constructed along 
 #' the 'along' variable, within each combination
 #' of the 'by' variables.
@@ -501,7 +501,7 @@ Lin_AR <- function(n_coef = 2,
 #' Argument `s` controls the size of the innovations.
 #' Smaller values tend to give smoother estimates.
 #'
-#' Argument `sd_slope` controls the size of the slopes of
+#' Argument `sd_slope` controls the slopes of
 #' the lines. Larger values can give more steeply
 #' sloped lines.
 #'
@@ -509,29 +509,30 @@ Lin_AR <- function(n_coef = 2,
 #'
 #' When `Lin_AR1()` is being used with a main effect,
 #'
-#' \deqn{\beta_j = \eta q_j + \epsilon_j}
-#' \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j,}
-#' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+#' \deqn{\beta_1 = \alpha + \epsilon_1}
+#' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
+#' \deqn{\alpha \sim \text{N}(0, 1)}
+#' \deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
+#' \deqn{\varepsilon \sim \text{N}(0, \omega^2),}
 #'
-#' and when it is being used with an interaction,
+#' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
-#' \deqn{\epsilon_{u,v} = \phi + \varepsilon_{u,v},}
+#' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
+#' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
+#' \deqn{\alpha_u \sim \text{N}(0, 1)}
+#' \deqn{\epsilon_{u,v} = \phi \epsilon_{u,v-1} + \varepsilon_{u,v},}
 #' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
 #' - \eqn{j} denotes position within the main effect;
-#' - \eqn{u} denotes position within the 'along' variable of the interaction;
-#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction;
-#' - \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
-#' - \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+#' - \eqn{u} denotes position within the 'along' variable of the interaction; and
+#' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
-#' Larger values for `sd_slope` permit steeper slopes.
+#' \deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
 #'
 #' Internally, `Lin_AR1()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
