@@ -542,55 +542,41 @@ The defaults for `min` and `max` are based on the defaults for function `ets()` 
 
 ### Model
 
-**Existing version**
-
-
 \begin{align}
-  \beta_{u,v}^{(m)} & \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
-  \alpha_u^{(m)} & \sim \text{N}(0, 1), \quad u = 1,\cdots,U_m  \\
-  \eta_u^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
+  \beta_{u,v}^{(m)} & = \alpha_{u,v}^{(m)} + \epsilon_{u,v}^{(m)} \\
+  \alpha_{u,v}^{(m)} & = \left(v - \frac{V_m + 1}{2}\right) \eta_u^{(m)} \\
+  \eta_u^{(m)} & \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right)\\
+  \epsilon_{u,v}^{(m)} & \sim \text{N}(0, \tau_m^2) \\
   \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
 
+Note that $\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0$.
 
-**Suggested new version**
-
-\begin{align}
-  \beta_{u,v}^{(m)} & \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
-  \eta_u^{(m)} & \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
-  \alpha_u^{(m)} & = -\frac{V_m + 1}{2} \eta_u^{(m)}, \quad u = 1,\cdots,U_m  \\
-  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
-\end{align}
-where $B_{\eta}^{(m)}$ and $A_{\eta}^{(m)}$ default to 0 and 1, though alternatives can be supplied by the user, or via informative priors (for instance, $B_{\eta}^{(m)} = -0.01$, or similar, for mortality)
-
-Note that with the new version
-\begin{equation}
- E \sum_{v=1}^{V_m} \beta_{u,v}^{(m)} = \sum_{v=1}^{V_m}\left(-\frac{V_m + 1}{2} \eta_u^{(m)} + v \eta_u^{(m)}\right) = 0
-\end{equation}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} | \alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid v - \frac{V_m + 1}{2}, \tau_m^2 \right) 
 \end{equation}
 
 
 ### Forecasting
 
 \begin{equation}
-  \beta_{u,V_m + h}^{(m)} \sim \text{N}(\alpha_u^{(m)} + (V_m + h) \eta_u^{(m)}, \tau_m^2)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)}, \tau_m^2\right)
 \end{equation}
 
 
 ### Code
 
 ```
-Lin(s = 1, sd = 1, along = NULL)
+Lin(s = 1, mean_slop = 0, sd_slope = 1, along = NULL, zero_sum = FALSE)
 ```
 
 - `s` is $A_{\tau}^{(m)}$
-- `sd` is $A_{\eta}^{(m)}$
+- `mean_slope` is $B_{\eta}^{(m)}$
+- `sd_slope` is $A_{\eta}^{(m)}$
 - `along` is used to indentify 'along' and 'by' dimensions
 
 
@@ -598,12 +584,16 @@ Lin(s = 1, sd = 1, along = NULL)
 
 ### Model
 
+
 \begin{align}
-  \beta_{u,v}^{(m)} & = \alpha_u^{(m)} + \eta_u^{(m)} v + \epsilon_{u,v}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_u^{(m)} & \sim \text{N}\left(0, 1\right), \quad u = 1, \cdots, U_m \\
-  \eta_u^{(m)} & \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
-  \epsilon_{u,v}^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
+  \beta_{u,v}^{(m)} & = \alpha_{u,v}^{(m)} + \epsilon_{u,v}^{(m)} \\
+  \alpha_{u,v}^{(m)} & = \left(v - \frac{V_m + 1}{2}\right) \eta_u^{(m)} \\
+  \eta_u^{(m)} & \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right)\\
+  \epsilon_{u,v}^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad v = K_m + 1, \cdots, V_m
 \end{align}
+
+Note that $\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0$.
+
 
 
 Internally, TMB derives values for $\epsilon_{u,v}^{(m)}, v = 1, \cdots, K_m$, and for $\omega_m$, that provide the $\epsilon_{u,v}^{(m)}$ with a stationary distribution in which each term has the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior

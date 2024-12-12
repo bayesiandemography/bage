@@ -1011,12 +1011,12 @@ make_hyperrand_seasfix <- function(prior,
 #'
 #' @noRd
 make_hyperrand_seasvary <- function(prior,
-                                   hyperrandfree,
-                                   effectfree,
-                                   dimnames_term,
-                                   var_time,
-                                   var_age,
-                                   var_sexgender) {
+                                    hyperrandfree,
+                                    effectfree,
+                                    dimnames_term,
+                                    var_time,
+                                    var_age,
+                                    var_sexgender) {
   n_seas <- prior$specific$n_seas
   matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
                                                                 dimnames_term = dimnames_term,
