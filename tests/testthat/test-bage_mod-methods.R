@@ -937,7 +937,7 @@ test_that("'fit' and 'forecast' work with SVD_AR", {
   mod <- mod_pois(deaths ~ age:time,
                   data = data,
                   exposure = population) |>
-                  set_prior(age:time ~ SVD_AR(LFP))
+                  set_prior(age:time ~ SVD_AR1(LFP))
   mod <- suppressWarnings(fit(mod))
   expect_true(is_fitted(mod))
   f <- forecast(mod, labels = 2011:2012)
@@ -996,7 +996,7 @@ test_that("'fit' works inner-outer", {
                       set_prior(age ~ RW(s = 0.02)) |>
                       set_prior(sex ~ NFix(sd = 0.1)) |>
                       set_prior(age:sex ~ SVD(HMD)) |>
-                      set_prior(time ~ Lin_AR(s = 0.05, sd = 0.02)) |>
+                      set_prior(time ~ Lin_AR1(s = 0.05, sd = 0.02)) |>
                       set_prior(region ~ NFix(sd = 0.05)) |>
                       set_disp(mean = 0.005)
   data_sim <- mod_sim |>
@@ -2234,6 +2234,24 @@ test_that("'print' works with mod_pois", {
     expect_snapshot(print(mod))
     ## don't use snapshot, since printed option includes timings, which can change
     capture.output(print(fit(mod)), file = NULL) 
+})
+
+
+test_that("'print' works with mod_pois - inner-outer fitting method", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.4 * data$popn)
+    formula <- deaths ~ age + sex + time
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    expect_snapshot(print(mod))
+    ## don't use snapshot, since printed option includes timings, which can change
+    capture.output(print(fit(mod,
+                             method = "inner-outer",
+                             vars_inner = "age")),
+                   file = NULL)
 })
 
 

@@ -67,6 +67,27 @@ check_bage_mod <- function(x, nm_x) {
 
 
 ## HAS_TESTS
+#' Check that 'est' Object Returned by TMB has No NAs
+#'
+#' @param est Named list
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_est <- function(est) {
+  is_na <- is.na(unlist(est, use.names = FALSE))
+  if (any(is_na)) {
+    index_term <- which(is_na)
+    nm_term <- get_term_from_est(est = est, index_term = index_term)
+    cli::cli_abort(c("Problem deriving posterior distribution.",
+                     i = "Estimation of posterior mean for {.val {nm_term}} term{?s} failed.",
+                     i = "You may need to change the specification of your model."))
+  }
+  invisible(TRUE)
+}
+    
+    
+## HAS_TESTS
 #' Check a Logical Flag
 #'
 #' @param x TRUE or FALSE
@@ -910,6 +931,28 @@ check_svd_agesex <- function(prior,
   if (agesex == "other")
     cli::cli_abort(c(msg1,
                      i = "{.var {str_nm_prior}} prior should be used with terms involving age."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that Variance or Precision Returned by TMB has No NAs
+#'
+#' @param x Variance or precision matrix
+#' @param est object returned by TMB (a named list)
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_var_prec <- function(x, est) {
+  has_na <- is.na(Matrix::diag(x))
+  if (any(has_na)) {
+    index_term <- which(has_na)
+    nm_term <- get_term_from_est(est = est, index_term = index_term)
+    cli::cli_abort(c("Problem deriving posterior distribution.",
+                     i = "Estimation of posterior variance for {.val {nm_term}} term{?s} failed.",
+                     i = "You may need to change the specification of your model."))
+  }
   invisible(TRUE)
 }
 

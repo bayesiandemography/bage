@@ -7,7 +7,16 @@
 \alias{SVD_RW2}
 \title{Dynamic SVD-Based Priors for Age Profiles or Age-Sex Profiles}
 \usage{
-SVD_AR(ssvd, n_comp = NULL, indep = TRUE, n_coef = 2, s = 1, zero_sum = FALSE)
+SVD_AR(
+  ssvd,
+  n_comp = NULL,
+  indep = TRUE,
+  n_coef = 2,
+  s = 1,
+  shape1 = 5,
+  shape2 = 5,
+  zero_sum = FALSE
+)
 
 SVD_AR1(
   ssvd,
@@ -16,6 +25,8 @@ SVD_AR1(
   min = 0.8,
   max = 0.98,
   s = 1,
+  shape1 = 5,
+  shape2 = 5,
   zero_sum = FALSE
 )
 
@@ -47,6 +58,10 @@ See below for details.}
 \item{n_coef}{Number of AR coefficients in \code{SVD_RW()}.}
 
 \item{s}{Scale for standard deviations terms.}
+
+\item{shape1, shape2}{Parameters for prior
+for coefficients in \code{SVD_AR()}.
+Defaults are \code{5} and \code{5}.}
 
 \item{zero_sum}{If \code{TRUE}, values must
 sum to 0 within each combination

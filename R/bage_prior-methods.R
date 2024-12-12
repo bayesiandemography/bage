@@ -846,10 +846,10 @@ draw_vals_hyper.bage_prior_lin <- function(prior, n_sim) {
 ## HAS_TESTS
 #' @export
 draw_vals_hyper.bage_prior_linar <- function(prior, n_sim) {
-  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   coef <- draw_vals_coef(prior = prior, n_sim = n_sim)
-  list(sd = sd,
-       coef = coef)
+  sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
+  list(coef = coef,
+       sd = sd)
 }
 
 ## HAS_TESTS
@@ -4436,7 +4436,7 @@ levels_hyper.bage_prior_linar <- function(prior) {
     coef <- "coef"
   else
     coef <- paste0("coef", seq_len(n_coef))
-  c("sd", coef)
+  c(coef, "sd")
 }
 
 ## HAS_TESTS
@@ -7321,20 +7321,8 @@ transform_hyper.bage_prior_lin <- function(prior)
 
 ## HAS_TESTS
 #' @export
-transform_hyper.bage_prior_linar <- function(prior) {
-  specific <- prior$specific
-  n_coef <- specific$n_coef
-  min <- specific$min
-  max <- specific$max
-  shifted_inv_logit <- function(x) {
-    ans_raw <- exp(x) / (1 + exp(x))
-    ans <- (max - min) * ans_raw + min
-    ans
-  }
-  rep(list(sd = exp,
-           coef = shifted_inv_logit),
-      times = c(1L, n_coef))
-}
+transform_hyper.bage_prior_linar <- function(prior)
+  transform_hyper_ar(prior)
 
 ## HAS_TESTS
 #' @export
