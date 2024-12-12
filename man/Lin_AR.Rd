@@ -61,7 +61,7 @@ default is 2.
 Argument \code{s} controls the size of the innovations.
 Smaller values tend to give smoother estimates.
 
-Argument \code{sd_slope} controls the size of the slopes of
+Argument \code{sd_slope} controls the slopes of
 the lines. Larger values can give more steeply
 sloped lines.
 }
@@ -93,9 +93,9 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
+\deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
 
 Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -106,7 +106,7 @@ has a half-normal prior
 The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
 each have prior
 
-\deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+\deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\text{shape1}, \text{shape2}).}
 }
 
 \examples{

@@ -452,26 +452,22 @@ RW2_Seas(n_seas, s = 1, sd = 1, sd_slope = 1, s_seas = 0, sd_seas = 1, along = N
 ### Model
 
 \begin{equation}
-  \beta_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
+  \beta_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad v = K_m + 1, \cdots, V_m.
 \end{equation}
 Internally, TMB derives values for $\beta_{u,v}^{(m)}, v = 1, \cdots, K_m$, and for $\omega_m$, that imply a stationary distribution, and that give every term $\beta_{u,v}^{(m)}$ the same marginal variance. We denote this marginal variance $\tau_m^2$, and assign it a prior
 \begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}
-Each of the individual $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$, and the $\phi_k^{(m)}$ are jointly restricted to values that yield stationary models. We implement the restriction indirectly. Let
+Each of the $\phi_k^{(m)}$ has prior
 \begin{equation}
-  \pi_1^{(m)}, \cdots, \pi_{K_m}^{(m)}
-\end{equation}
-be the partial autocorrelation function (PACF) derived from $\phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}$ through the Durbin-Levinson recursion. We assign each $\pi_k^{(m)}$ the prior
-\begin{equation}
-  \frac{\pi_k^{(m)} + 1}{2} \sim \text{Beta}(2, 2).
+  \frac{\phi_k^{(m)} + 1}{2} \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}).
 \end{equation}
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \prod_{k=1}^{K_m} \text{Beta}\left(\tfrac{1}{2} \pi_k^{(m)} + \tfrac{1}{2} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \prod_{k=1}^{K_m} \text{Beta}\left(\tfrac{1}{2} \phi_k^{(m)} + \tfrac{1}{2} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
 \end{equation}
 where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
@@ -485,17 +481,24 @@ where $p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)},
 ### Code
 
 ```
-AR(n_coef = 2, s = 1, along = NULL)
+AR(n_coef = 2,
+   s = 1,
+   shape1 = 5,
+   shape2 = 5,
+   along = NULL,
+   zero_sum = FALSE)
 ```
 
 - `n_coef` is $K_m$
 - `s` is $A_{\tau}^{(m)}$
+- `shape1` is $S_1^{(m)}$
+- `shape2` is $S_2^{(m)}$
 - `along` is used to indentify the 'along' and 'by' dimensions
 
 
 ## AR1() {#sec:pr-ar1}
 
-Special case or AR, but with extra options for autocorrelation coefficient.
+Special case or `AR()`, with extra options for autocorrelation coefficient.
 
 ### Model
 
@@ -503,16 +506,16 @@ Special case or AR, but with extra options for autocorrelation coefficient.
   \beta_{u,1}^{(m)} & \sim \text{N}(0, \tau_m^2), \quad u = 1, \cdots, U_m \\
   \beta_{u,v}^{(m)} & \sim \text{N}(\phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 2, \cdots, V_m \\
   \phi_m & = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
-  \phi_m^{\prime} & \sim \text{Beta}(2, 2) \\
+  \phi_m^{\prime} & \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}) \\
   \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right).
-p\end{align}
+\end{align}
 This is adapted from the specification used for AR1 densities in [TMB](http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html). It implies that the marginal variance of all $\beta_{u,v}^{(m)}$ is $\tau_m^2$. We require that $-1 < a_{0m} < a_{1m} < 1$.
 
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid 2, 2) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{u=1}^{U_m} \prod_{j=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{u=1}^{U_m} \prod_{j=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right) 
 \end{equation}
 
 
@@ -527,12 +530,20 @@ This is adapted from the specification used for AR1 densities in [TMB](http://ka
 ### Code
 
 ```
-AR1(min = 0.8, max = 0.98, s = 1, along = NULL)
+AR1(s = 1,
+    shape1 = 5,
+    shape2 = 5,
+    min = 0.8,
+    max = 0.98,
+    along = NULL,
+    zero_sum = TRUE)
 ```
 
+- `s` is $A_{\tau}^{(m)}$
+- `shape1` is $S_1^{(m)}$
+- `shape2` is $S_2^{(m)}$
 - `min` is $a_{0m}$
 - `max` is $a_{1m}$
-- `s` is $A_{\tau}^{(m)}$. Defaults to 1.
 - `along` is used to identify 'along' and 'by' dimensions
 
 The defaults for `min` and `max` are based on the defaults for function `ets()` in R package **forecast** [@hyndman2008automatic].
@@ -600,26 +611,25 @@ Internally, TMB derives values for $\epsilon_{u,v}^{(m)}, v = 1, \cdots, K_m$, a
 \begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}
-Each of the individual $\phi_k^{(m)}$ is restricted to the interval $(-1, 1)$, and the $\phi_k^{(m)}$ are jointly restricted to values that yield stationary models. We implement the restriction indirectly. Let
+Each of the individual $\phi_k^{(m)}$ has prior
 \begin{equation}
-  \pi_1^{(m)}, \cdots, \pi_{K_m}^{(m)}
-\end{equation}
-be the partial autocorrelation function (PACF) derived from $\phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}$ through the Durbin-Levinson recursion. We assign each $\pi_k^{(m)}$ the prior
-\begin{equation}
-  \frac{\pi_k^{(m)} + 1}{2} \sim \text{Beta}(2, 2).
+  \frac{\phi_k^{(m)} + 1}{2} \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}).
 \end{equation}
 
 ### Contribution to posterior density
 
 \begin{equation}
-  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \prod_{k=1}^{K_m} \text{Beta}\left( \tfrac{1}{2} \pi_k^{(m)} + \tfrac{1}{2} \mid 2, 2 \right) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+\begin{split}
+  & \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \prod_{k=1}^{K_m} \text{Beta}\left( \tfrac{1}{2} \phi_k^{(m)} + \tfrac{1}{2} \mid 2, 2 \right) \\
+  & \quad \times \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
+\end{split}
 \end{equation}
 where $p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
 ### Forecasting
 
 \begin{align}
-  \beta_{u, V_m + h}^{(m)} & = \alpha_u^{(m)} + \eta_u^{(m)} (V_m + h) + \epsilon_{u,V_m+h}^{(m)} \\
+  \beta_{u, V_m + h}^{(m)} & = \left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)} + \epsilon_{u,V_m+h}^{(m)} \\
   \epsilon_{u,V_m+h}^{(m)} & \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,V_m+h-K_m}^{(m)}, \omega_m^2\right)
 \end{align}
 
@@ -627,11 +637,22 @@ where $p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^
 ### Code
 
 ```
-Lin_AR(s = 1, sd = 1, along = NULL)
+Lin_AR(n_coef = 2,
+       s = 1,
+       shape1 = 5,
+       shape2 = 5,
+       mean_slope = 0,
+       sd_slope = 1,
+       along = NULL,
+       zero_coef = FALSE)
 ```
 
+- `n_coef` is $K_m$
 - `s` is $A_{\tau}^{(m)}$
-- `sd` is $A_{\eta}^{(m)}$
+- `shape1` is $S_1^{(m)}$
+- `shape2` is $S_2^{(m)}$
+- `mean_slope` is $B_{\eta}^{(m)}$
+- `sd_slope` is $A_{\eta}^{(m)}$
 - `along` is used to indentify 'along' and 'by' variables
 
 
