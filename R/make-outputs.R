@@ -950,8 +950,10 @@ make_hyperrand_lin <- function(prior,
 }
 
 
+
 ## HAS_TESTS
-#' Derive Values for Hyper-Parameters Involving Fixed Seasonal Effects
+#' Derive Values for Hyper-Parameters Involving Fixed Seasonal Effects and
+#' Random Initial Value Random Walk
 #'
 #' @param prior Object of class 'bage_prior'.
 #' @param hyperrandfree Values for unconstrained hyper-parameters. An rvec.
@@ -964,7 +966,143 @@ make_hyperrand_lin <- function(prior,
 #' @returns An rvec
 #'
 #' @noRd
-make_hyperrand_seasfix <- function(prior,
+make_hyperrand_randomseasfix <- function(prior,
+                                         hyperrandfree,
+                                         effectfree,
+                                         dimnames_term,
+                                         var_time,
+                                         var_age,
+                                         var_sexgender) {
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  matrix_effectfree_effect <- make_matrix_effectfree_effect(prior = prior,
+                                                            dimnames_term = dimnames_term,
+                                                            var_time = var_time,
+                                                            var_age = var_age,
+                                                            var_sexgender = var_sexgender)
+  n_along <- nrow(matrix_along_by_effectfree)
+  n_by <- ncol(matrix_along_by_effectfree)
+  n_draw <- rvec::n_draw(hyperrandfree)
+  season <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  for (i_by in seq_len(n_by)) {
+    sum_seas <- 0
+    for (i_along in seq_len(n_along)) {
+      i_season <- matrix_along_by_effectfree[i_along, i_by] + 1L
+      index_seas <- (i_along - 1L) %% n_seas
+      is_final_seas <- index_seas == n_seas - 1L
+      if (!is_final_seas) {
+        i_hyper <- index_seas + (i_by - 1L) * (n_seas - 1L) + 1L
+        season[[i_season]] <- hyperrandfree[[i_hyper]]
+        sum_seas <- sum_seas + hyperrandfree[[i_hyper]]
+      }
+      else {
+        season[[i_season]] <- -sum_seas
+        sum_seas <- 0
+      }
+    }
+  }
+  trend <- effectfree - season
+  trend <- as.matrix(trend) ## to cope with sparse matrix
+  season <- as.matrix(season) ## to cope with sparse matrix
+  trend <- matrix_effectfree_effect %*% trend
+  season <- matrix_effectfree_effect %*% season
+  trend <- rvec::rvec_dbl(as.matrix(trend))
+  season <- rvec::rvec_dbl(as.matrix(season))
+  vctrs::vec_c(trend, season)
+}
+
+  
+## HAS_TESTS
+#' Derive Values for Hyper-Parameters Involving Varying Seasonal Effects
+#' and Random Initial Value Random Walk
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param hyperrandfree Values for unconstrained hyper-parameters. An rvec.
+#' @param effectfree Values for unconstrained effect. An rvec.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_hyperrand_randomseasvary <- function(prior,
+                                          hyperrandfree,
+                                          effectfree,
+                                          dimnames_term,
+                                          var_time,
+                                          var_age,
+                                          var_sexgender) {
+  n_seas <- prior$specific$n_seas
+  matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
+                                                                dimnames_term = dimnames_term,
+                                                                var_time = var_time,
+                                                                var_age = var_age,
+                                                                var_sexgender = var_sexgender)
+  matrix_effectfree_effect <- make_matrix_effectfree_effect(prior = prior,
+                                                            dimnames_term = dimnames_term,
+                                                            var_time = var_time,
+                                                            var_age = var_age,
+                                                            var_sexgender = var_sexgender)
+  n_along <- nrow(matrix_along_by_effectfree)
+  n_by <- ncol(matrix_along_by_effectfree)
+  n_along_hyper <- length(hyperrandfree) %/% n_by
+  n_draw <- rvec::n_draw(hyperrandfree)
+  season <- rvec::new_rvec(length = n_along * n_by, n_draw = n_draw)
+  for (i_by in seq_len(n_by)) {
+    i_along_hyper <- 1L
+    sum_seas <- 0
+    for (i_along in seq_len(n_along)) {
+      index_seas <- (i_along - 1L) %% n_seas
+      is_last_seas <- index_seas == n_seas - 1L
+      i_season <- matrix_along_by_effectfree[i_along, i_by] + 1L
+      if (!is_last_seas) {
+        i_hyper <- i_along_hyper + (i_by - 1L) * n_along_hyper
+        i_along_hyper <- i_along_hyper + 1L
+        season[[i_season]] <- hyperrandfree[[i_hyper]]
+        sum_seas <- sum_seas + hyperrandfree[[i_hyper]]
+      }
+      if (is_last_seas) {
+        season[[i_season]] <- -sum_seas
+        sum_seas <- 0
+      }
+    }
+  }
+  trend <- effectfree - season
+  trend <- as.matrix(trend) ## to cope with sparse matrix
+  season <- as.matrix(season) ## to cope with sparse matrix
+  trend <- matrix_effectfree_effect %*% trend
+  season <- matrix_effectfree_effect %*% season
+  trend <- rvec::rvec_dbl(as.matrix(trend))
+  season <- rvec::rvec_dbl(as.matrix(season))
+  vctrs::vec_c(trend, season)
+}
+
+
+
+
+
+## HAS_TESTS
+#' Derive Values for Hyper-Parameters Involving Fixed Seasonal Effects and
+#' Zero Initial Value Random Walk
+#'
+#' @param prior Object of class 'bage_prior'.
+#' @param hyperrandfree Values for unconstrained hyper-parameters. An rvec.
+#' @param effectfree Values for unconstrained effect. An rvec.
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time variable
+#' @param var_age Name of age variable
+#' @param var_sexgender Name of sex/gender variable
+#'
+#' @returns An rvec
+#'
+#' @noRd
+make_hyperrand_zeroseasfix <- function(prior,
                                    hyperrandfree,
                                    effectfree,
                                    dimnames_term,
@@ -1020,7 +1158,8 @@ make_hyperrand_seasfix <- function(prior,
 
   
 ## HAS_TESTS
-#' Derive Values for Hyper-Parameters Involving Fixed Seasonal Effects
+#' Derive Values for Hyper-Parameters Involving Varying Seasonal Effects
+#' and Zero Initial Value Random Walk
 #'
 #' @param prior Object of class 'bage_prior'.
 #' @param hyperrandfree Values for unconstrained hyper-parameters. An rvec.
@@ -1033,13 +1172,13 @@ make_hyperrand_seasfix <- function(prior,
 #' @returns An rvec
 #'
 #' @noRd
-make_hyperrand_seasvary <- function(prior,
-                                    hyperrandfree,
-                                    effectfree,
-                                    dimnames_term,
-                                    var_time,
-                                    var_age,
-                                    var_sexgender) {
+make_hyperrand_zeroseasvary <- function(prior,
+                                        hyperrandfree,
+                                        effectfree,
+                                        dimnames_term,
+                                        var_time,
+                                        var_age,
+                                        var_sexgender) {
   n_seas <- prior$specific$n_seas
   matrix_along_by_effectfree <- make_matrix_along_by_effectfree(prior = prior,
                                                                 dimnames_term = dimnames_term,
@@ -1089,8 +1228,6 @@ make_hyperrand_seasvary <- function(prior,
   season <- rvec::rvec_dbl(as.matrix(season))
   vctrs::vec_c(trend, season)
 }
-  
-
 
 
 ## HAS_TESTS

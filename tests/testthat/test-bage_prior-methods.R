@@ -5718,7 +5718,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_linar' - n_by = 1", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - main effect", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - main effect", {
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
@@ -5728,7 +5728,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - main effec
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 1L
+  ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5742,7 +5742,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - main
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 0L
+  ans_expected <- 1L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5757,7 +5757,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - inte
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 2L
+  ans_expected <- 4L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5772,7 +5772,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - inte
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 1L
+  ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5787,7 +5787,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - int
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 16L
+  ans_expected <- 18L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5802,7 +5802,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - int
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 8L
+  ans_expected <- 9L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5894,20 +5894,17 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - inter
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-
-
-
 test_that("'length_hyperrandfree' works with 'bage_prior_rw2randomseasfix'", {
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, along = "x"),
+  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 1L
+  ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5921,7 +5918,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rw2randomseasvary'", {
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 8L
+  ans_expected <- 9L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -8435,7 +8432,7 @@ test_that("'str_call_prior' works with bage_prior_svd_rw2", {
     expect_identical(str_call_prior(SVD_RW2(s)), "SVD_RW2(s)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=F)), "SVD_RW2(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd=0.2,n_comp = 3L,s=0.3,zero_sum=T)),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0.2,zero_sum=TRUE)")
+                     "SVD_RW2(s,n_comp=3,s=0.3,sd_slope=0.2,zero_sum=TRUE)")
 })
 
 
