@@ -4252,7 +4252,7 @@ length_hyperrandfree.bage_prior_rwrandomseasfix <- function(prior,
                                                                 var_age = var_age,
                                                                 var_sexgender = var_sexgender)
   n_by <- ncol(matrix_along_by_effectfree)
-  (n_seas - 2L) * n_by
+  (n_seas - 1L) * n_by
 }
 
 ## HAS_TESTS
@@ -4271,9 +4271,8 @@ length_hyperrandfree.bage_prior_rwrandomseasvary <- function(prior,
   n_along <- nrow(matrix_along_by_effectfree)
   n_by <- ncol(matrix_along_by_effectfree)
   s <- seq_len(n_along) - 1L
-  is_first_period <- s == 0L
   is_last_season <- (s %% n_seas) == n_seas - 1L
-  n_seas_free <- sum(!is_first_period & !is_last_season)
+  n_seas_free <- sum(!is_last_season)
   n_seas_free * n_by
 }
 
@@ -4330,7 +4329,7 @@ length_hyperrandfree.bage_prior_rw2randomseasfix <- function(prior,
                                                                 var_age = var_age,
                                                                 var_sexgender = var_sexgender)
   n_by <- ncol(matrix_along_by_effectfree)
-  (n_seas - 2L) * n_by
+  (n_seas - 1L) * n_by
 }
 
 ## HAS_TESTS
@@ -4349,9 +4348,8 @@ length_hyperrandfree.bage_prior_rw2randomseasvary <- function(prior,
   n_along <- nrow(matrix_along_by_effectfree)
   n_by <- ncol(matrix_along_by_effectfree)
   s <- seq_len(n_along) - 1L
-  is_first_period <- s == 0L
   is_last_season <- (s %% n_seas) == n_seas - 1L
-  n_seas_free <- sum(!is_first_period & !is_last_season)
+  n_seas_free <- sum(!is_last_season)
   n_seas_free * n_by
 }
 
@@ -4750,13 +4748,13 @@ make_hyperrand_one.bage_prior_rwrandomseasfix <- function(prior,
                                                           var_time,
                                                           var_age,
                                                           var_sexgender)
-  make_hyperrand_seasfix(prior = prior,
-                         hyperrandfree = hyperrandfree,
-                         effectfree = effectfree,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age,
-                         var_sexgender = var_sexgender)
+  make_hyperrand_randomseasfix(prior = prior,
+                               hyperrandfree = hyperrandfree,
+                               effectfree = effectfree,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
@@ -4767,13 +4765,13 @@ make_hyperrand_one.bage_prior_rwrandomseasvary <- function(prior,
                                                            var_time,
                                                            var_age,
                                                            var_sexgender)
-  make_hyperrand_seasvary(prior = prior,
-                          hyperrandfree = hyperrandfree,
-                          effectfree = effectfree,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age,
-                          var_sexgender = var_sexgender)
+  make_hyperrand_randomseasvary(prior = prior,
+                                hyperrandfree = hyperrandfree,
+                                effectfree = effectfree,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
@@ -4784,13 +4782,13 @@ make_hyperrand_one.bage_prior_rwzeroseasfix <- function(prior,
                                                         var_time,
                                                         var_age,
                                                         var_sexgender)
-  make_hyperrand_seasfix(prior = prior,
-                         hyperrandfree = hyperrandfree,
-                         effectfree = effectfree,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age,
-                         var_sexgender = var_sexgender)
+  make_hyperrand_zeroseasfix(prior = prior,
+                             hyperrandfree = hyperrandfree,
+                             effectfree = effectfree,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
@@ -4801,30 +4799,30 @@ make_hyperrand_one.bage_prior_rwzeroseasvary <- function(prior,
                                                          var_time,
                                                          var_age,
                                                          var_sexgender)
-  make_hyperrand_seasvary(prior = prior,
-                          hyperrandfree = hyperrandfree,
-                          effectfree = effectfree,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age,
-                          var_sexgender = var_sexgender)
+  make_hyperrand_zeroseasvary(prior = prior,
+                              hyperrandfree = hyperrandfree,
+                              effectfree = effectfree,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age,
+                              var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
 make_hyperrand_one.bage_prior_rw2randomseasfix <- function(prior,
-                               hyperrandfree,
-                               effectfree,
-                               dimnames_term,
-                               var_time,
-                               var_age,
-                               var_sexgender)
-  make_hyperrand_seasfix(prior = prior,
-                         hyperrandfree = hyperrandfree,
-                         effectfree = effectfree,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age,
-                         var_sexgender = var_sexgender)
+                                                           hyperrandfree,
+                                                           effectfree,
+                                                           dimnames_term,
+                                                           var_time,
+                                                           var_age,
+                                                           var_sexgender)
+  make_hyperrand_randomseasfix(prior = prior,
+                               hyperrandfree = hyperrandfree,
+                               effectfree = effectfree,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age,
+                               var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
@@ -4835,13 +4833,13 @@ make_hyperrand_one.bage_prior_rw2randomseasvary <- function(prior,
                                                             var_time,
                                                             var_age,
                                                             var_sexgender)
-  make_hyperrand_seasvary(prior = prior,
-                          hyperrandfree = hyperrandfree,
-                          effectfree = effectfree,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age,
-                          var_sexgender = var_sexgender)
+  make_hyperrand_randomseasvary(prior = prior,
+                                hyperrandfree = hyperrandfree,
+                                effectfree = effectfree,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
@@ -4852,13 +4850,13 @@ make_hyperrand_one.bage_prior_rw2zeroseasfix <- function(prior,
                                                          var_time,
                                                          var_age,
                                                          var_sexgender)
-  make_hyperrand_seasfix(prior = prior,
-                         hyperrandfree = hyperrandfree,
-                         effectfree = effectfree,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age,
-                         var_sexgender = var_sexgender)
+  make_hyperrand_zeroseasfix(prior = prior,
+                             hyperrandfree = hyperrandfree,
+                             effectfree = effectfree,
+                             dimnames_term = dimnames_term,
+                             var_time = var_time,
+                             var_age = var_age,
+                             var_sexgender = var_sexgender)
 
 ## HAS_TESTS
 #' @export
@@ -4869,13 +4867,13 @@ make_hyperrand_one.bage_prior_rw2zeroseasvary <- function(prior,
                                                           var_time,
                                                           var_age,
                                                           var_sexgender)
-  make_hyperrand_seasvary(prior = prior,
-                          hyperrandfree = hyperrandfree,
-                          effectfree = effectfree,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age,
-                          var_sexgender = var_sexgender)
+  make_hyperrand_zeroseasvary(prior = prior,
+                              hyperrandfree = hyperrandfree,
+                              effectfree = effectfree,
+                              dimnames_term = dimnames_term,
+                              var_time = var_time,
+                              var_age = var_age,
+                              var_sexgender = var_sexgender)
 
 
 ## 'make_i_along' -------------------------------------------------------------
@@ -7104,13 +7102,11 @@ str_call_prior.bage_prior_svd_rw <- function(prior) {
 str_call_prior.bage_prior_svd_rw2 <- function(prior) {
   args_svd <- str_call_args_svd(prior)
   args_scale <- str_call_args_scale(prior)
-  args_sd <- str_call_args_sd(prior)
   args_sd_slope <- str_call_args_sd_slope(prior)
   args_along <- str_call_args_along(prior)
   args_zero_sum <- str_call_args_zero_sum(prior)
   args <- c(args_svd,
             args_scale,
-            args_sd,
             args_sd_slope,
             args_along,
             args_zero_sum)
