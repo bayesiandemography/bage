@@ -1536,6 +1536,8 @@ Sp <- function(n_comp = NULL,
 #'
 #' - \code{\link{HMD}} Mortality rates from the
 #' [Human Mortality Database](https://www.mortality.org).
+#' - \code{\link{HFD}} Fertility rates from the
+#' [Human Fertility Database](https://www.humanfertility.org).
 #' - \code{\link{LFP}} Labor forcce participation
 #' rates from the [OECD](https://data-explorer.oecd.org).
 #'
@@ -1626,17 +1628,12 @@ SVD <- function(ssvd,
 #' - \eqn{\pmb{\beta}_{u,t}} is a subvector of \eqn{\pmb{\beta}_t} holding
 #'   values for the  \eqn{u}th combination of the non-age, non-time,
 #'   non-sex/gender variables for period \eqn{t};
-#' - \eqn{J} is the number of elements of \eqn{\pmb{\beta}_t};
-#' - \eqn{V} is the number of elements of \eqn{\pmb{\beta}_{u,t}};
-#' - \eqn{n} is `n_coef`;
-#' - \eqn{\pmb{F}} is a known matrix with dimension \eqn{J \times n}
-#'   or \eqn{V \times n};
-#' - \eqn{\pmb{g}} is a known vector with \eqn{J} or \eqn{V}
-#'   elements.
+#' - \eqn{\pmb{F}} is a known matrix; and
+#' - \eqn{\pmb{g}} is a known vector.
 #' 
 #' \eqn{\pmb{F}} and \eqn{\pmb{g}} are constructed from
 #' a large database of age-specific demographic estimates
-#' by performing an SVD and standardizing.
+#' by applying the singular value decomposition, and then standardizing.
 #'
 #' With `SVD_AR()`, the prior for the \eqn{k}th element
 #' of \eqn{\pmb{\alpha}_t} or \eqn{\pmb{\alpha}_{u,t}} is
@@ -1671,7 +1668,7 @@ SVD <- function(ssvd,
 #'
 #' \deqn{\alpha_{k,u,t} = 2 \alpha_{k,u,t-1} - \alpha_{k,u,t-2} + \epsilon_{k,u,t}.}
 #'
-#' For more on the \eqn{\phi} and \eqn{\epsilon}, see [AR()], [AR1()],
+#' For details, see [AR()], [AR1()],
 #' [RW()], and [RW2()].
 #' 
 #' @inheritSection SVD Scaled SVDs of demographic databases in bage
