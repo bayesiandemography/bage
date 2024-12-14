@@ -689,18 +689,34 @@ Type logpost_svd_ar(vector<Type> effectfree,
 }
 
 template <class Type>
-Type logpost_svd_rw(vector<Type> effectfree,
-		    vector<Type> hyper,
-		    vector<Type> consts,
-		    matrix<int> matrix_along_by_effectfree) {
+Type logpost_svd_rwrandom(vector<Type> effectfree,
+			  vector<Type> hyper,
+			  vector<Type> consts,
+			  matrix<int> matrix_along_by_effectfree) {
+  return logpost_rwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
+Type logpost_svd_rwzero(vector<Type> effectfree,
+			vector<Type> hyper,
+			vector<Type> consts,
+			matrix<int> matrix_along_by_effectfree) {
   return logpost_rwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
 template <class Type>
-Type logpost_svd_rw2(vector<Type> effectfree,
-		     vector<Type> hyper,
-		     vector<Type> consts,
-		     matrix<int> matrix_along_by_effectfree) {
+Type logpost_svd_rw2random(vector<Type> effectfree,
+			   vector<Type> hyper,
+			   vector<Type> consts,
+			   matrix<int> matrix_along_by_effectfree) {
+  return logpost_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
+}
+
+template <class Type>
+Type logpost_svd_rw2zero(vector<Type> effectfree,
+			 vector<Type> hyper,
+			 vector<Type> consts,
+			 matrix<int> matrix_along_by_effectfree) {
   return logpost_rw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
 }
 
@@ -756,10 +772,10 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     ans = logpost_svd_ar(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 15:
-    ans = logpost_svd_rw(effectfree, hyper, consts, matrix_along_by_effectfree);
+    ans = logpost_svd_rwzero(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 16:
-    ans = logpost_svd_rw2(effectfree, hyper, consts, matrix_along_by_effectfree);
+    ans = logpost_svd_rw2zero(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   case 18:
     ans = logpost_rw2infant(effectfree, hyper, consts, matrix_along_by_effectfree);
@@ -769,6 +785,12 @@ Type logpost_uses_hyper(vector<Type> effectfree,
     break;
   case 22:
     ans = logpost_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 25:
+    ans = logpost_svd_rwrandom(effectfree, hyper, consts, matrix_along_by_effectfree);
+    break;
+  case 26:
+    ans = logpost_svd_rw2random(effectfree, hyper, consts, matrix_along_by_effectfree);
     break;
   default:                                                                                      // # nocov
     error("Internal error: function 'logpost_uses_hyper' cannot handle i_prior = %d", i_prior); // # nocov

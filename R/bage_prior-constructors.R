@@ -773,6 +773,7 @@ RW <- function(s = 1,
   check_scale(s, nm_x = "s", zero_ok = FALSE)
   check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   scale <- as.double(s)
+  sd <- as.double(sd)
   if (!is.null(along))
     check_string(along, nm_x = "along")
   check_flag(x = zero_sum, nm_x = "zero_sum")
@@ -1802,6 +1803,7 @@ SVD_RW <- function(ssvd,
                    n_comp = NULL,
                    indep = TRUE,
                    s = 1,
+                   sd = 1,
                    zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
   check_is_ssvd(x = ssvd, nm_x = "ssvd")
@@ -1810,14 +1812,25 @@ SVD_RW <- function(ssvd,
                        ssvd = ssvd)
   check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "sd", zero_ok = TRUE)
   check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
-  new_bage_prior_svd_rw(ssvd = ssvd,
-                        nm_ssvd = nm_ssvd,
-                        n_comp = n_comp,
-                        indep = indep,
-                        scale = scale,
-                        zero_sum = zero_sum)
+  sd <- as.double(sd)
+  if (sd > 0)
+    new_bage_prior_svd_rwrandom(ssvd = ssvd,
+                                nm_ssvd = nm_ssvd,
+                                n_comp = n_comp,
+                                indep = indep,
+                                scale = scale,
+                                sd = sd,
+                                zero_sum = zero_sum)
+  else
+    new_bage_prior_svd_rwzero(ssvd = ssvd,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              zero_sum = zero_sum)
 }
 
 ## HAS_TESTS
@@ -1827,6 +1840,7 @@ SVD_RW2 <- function(ssvd,
                     n_comp = NULL,
                     indep = TRUE,
                     s = 1,
+                    sd = 1,
                     sd_slope = 1,
                     zero_sum = FALSE) {
   nm_ssvd <- deparse1(substitute(ssvd))
@@ -1836,17 +1850,29 @@ SVD_RW2 <- function(ssvd,
                        ssvd = ssvd)
   check_flag(x = indep, nm_x = "indep")
   check_scale(s, nm_x = "s", zero_ok = FALSE)
+  check_scale(sd, nm_x = "s", zero_ok = TRUE)
   check_scale(sd_slope, nm_x = "sd_slope", zero_ok = FALSE)
   check_flag(x = zero_sum, nm_x = "zero_sum")
   scale <- as.double(s)
+  sd <- as.double(sd)
   sd_slope <- as.double(sd_slope)
-  new_bage_prior_svd_rw2(ssvd = ssvd,
-                         nm_ssvd = nm_ssvd,
-                         n_comp = n_comp,
-                         indep = indep,
-                         scale = scale,
-                         sd_slope = sd_slope,
-                         zero_sum = zero_sum)
+  if (sd > 0)
+    new_bage_prior_svd_rw2random(ssvd = ssvd,
+                                 nm_ssvd = nm_ssvd,
+                                 n_comp = n_comp,
+                                 indep = indep,
+                                 scale = scale,
+                                 sd = sd,
+                                 sd_slope = sd_slope,
+                                 zero_sum = zero_sum)
+  else
+    new_bage_prior_svd_rw2zero(ssvd = ssvd,
+                               nm_ssvd = nm_ssvd,
+                               n_comp = n_comp,
+                               indep = indep,
+                               scale = scale,
+                               sd_slope = sd_slope,
+                               zero_sum = zero_sum)
 }
 
 
@@ -2337,12 +2363,35 @@ new_bage_prior_svd_ar <- function(ssvd,
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_rw <- function(ssvd,
-                                  nm_ssvd,
-                                  n_comp,
-                                  indep,
-                                  scale,
-                                  zero_sum) {
+new_bage_prior_svd_rwrandom <- function(ssvd,
+                                        nm_ssvd,
+                                        n_comp,
+                                        indep,
+                                        scale,
+                                        sd,
+                                        zero_sum) {
+  ans <- list(i_prior = 25L,
+              const = c(scale = scale,
+                        sd = sd),
+              specific = list(ssvd = ssvd,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              sd = sd,
+                              along = NULL,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_svd_rwrandom", "bage_prior")
+  ans
+}
+
+## HAS_TESTS
+new_bage_prior_svd_rwzero <- function(ssvd,
+                                      nm_ssvd,
+                                      n_comp,
+                                      indep,
+                                      scale,
+                                      zero_sum) {
   ans <- list(i_prior = 15L,
               const = c(scale = scale),
               specific = list(ssvd = ssvd,
@@ -2352,18 +2401,45 @@ new_bage_prior_svd_rw <- function(ssvd,
                               scale = scale,
                               along = NULL,
                               zero_sum = zero_sum))
-  class(ans) <- c("bage_prior_svd_rw", "bage_prior")
+  class(ans) <- c("bage_prior_svd_rwzero", "bage_prior")
+  ans
+}
+
+
+## HAS_TESTS
+new_bage_prior_svd_rw2random <- function(ssvd,
+                                         nm_ssvd,
+                                         n_comp,
+                                         indep,
+                                         scale,
+                                         sd,
+                                         sd_slope,
+                                         zero_sum) {
+  ans <- list(i_prior = 26L,
+              const = c(scale = scale,
+                        sd = sd,
+                        sd_slope = sd_slope),
+              specific = list(ssvd = ssvd,
+                              nm_ssvd = nm_ssvd,
+                              n_comp = n_comp,
+                              indep = indep,
+                              scale = scale,
+                              sd = sd,
+                              sd_slope = sd_slope,
+                              along = NULL,
+                              zero_sum = zero_sum))
+  class(ans) <- c("bage_prior_svd_rw2random", "bage_prior")
   ans
 }
 
 ## HAS_TESTS
-new_bage_prior_svd_rw2 <- function(ssvd,
-                                   nm_ssvd,
-                                   n_comp,
-                                   indep,
-                                   scale,
-                                   sd_slope,
-                                   zero_sum) {
+new_bage_prior_svd_rw2zero <- function(ssvd,
+                                       nm_ssvd,
+                                       n_comp,
+                                       indep,
+                                       scale,
+                                       sd_slope,
+                                       zero_sum) {
   ans <- list(i_prior = 16L,
               const = c(scale = scale,
                         sd_slope = sd_slope),
@@ -2375,6 +2451,6 @@ new_bage_prior_svd_rw2 <- function(ssvd,
                               sd_slope = sd_slope,
                               along = NULL,
                               zero_sum = zero_sum))
-  class(ans) <- c("bage_prior_svd_rw2", "bage_prior")
+  class(ans) <- c("bage_prior_svd_rw2zero", "bage_prior")
   ans
 }

@@ -1012,13 +1012,11 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age e
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  append_zero <- FALSE
   ans <- make_offset_effectfree_effect_svd(prior = prior,
                                            dimnames_term = dimnames_term,
                                            var_time = var_time,
                                            var_age = var_age,
-                                           var_sexgender = var_sexgender,
-                                           append_zero = append_zero)
+                                           var_sexgender = var_sexgender)
   expect_identical(length(ans), length(dimnames_term[[1]]))
 })
 
@@ -1029,13 +1027,11 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - ag
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  append_zero <- TRUE
   ans <- make_offset_effectfree_effect_svd(prior = prior,
                                            dimnames_term = dimnames_term,
                                            var_time = var_time,
                                            var_age = var_age,
-                                           var_sexgender = var_sexgender,
-                                           append_zero = append_zero)
+                                           var_sexgender = var_sexgender)
   expect_equal(length(ans), prod(lengths(dimnames_term)))
 })
 
@@ -1046,13 +1042,11 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - ag
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  append_zero <- TRUE
   ans <- make_offset_effectfree_effect_svd(prior = prior,
                                            dimnames_term = dimnames_term,
                                            var_time = var_time,
                                            var_age = var_age,
-                                           var_sexgender = var_sexgender,
-                                           append_zero = append_zero)
+                                           var_sexgender = var_sexgender)
   expect_equal(length(ans), prod(lengths(dimnames_term)))
 })
 

@@ -386,16 +386,35 @@ test_that("'SVD_AR1' works with valid inputs", {
                                          nm = "SVD_AR1"))
 })
 
-test_that("'SVD_RW' works with valid inputs", {
+test_that("'SVD_RW' works with valid inputs - random", {
   expect_identical(SVD_RW(HMD),
-                   new_bage_prior_svd_rw(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 3L,
-                                         indep = TRUE,
-                                         scale = 1,
-                                         zero_sum = FALSE))
-  expect_identical(SVD_RW(LFP, n_comp = 2, s = 0.01, indep = F, zero_sum = TRUE),
-                   new_bage_prior_svd_rw(LFP,
+                   new_bage_prior_svd_rwrandom(HMD,
+                                               nm_ssvd = "HMD",
+                                               n_comp = 3L,
+                                               indep = TRUE,
+                                               scale = 1,
+                                               sd = 1,
+                                               zero_sum = FALSE))
+  expect_identical(SVD_RW(LFP, n_comp = 2, sd = 0.3, s = 0.01, indep = F, zero_sum = TRUE),
+                   new_bage_prior_svd_rwrandom(LFP,
+                                               nm_ssvd = "LFP",
+                                               n_comp = 2L,
+                                               indep = FALSE,
+                                               scale = 0.01,
+                                               sd = 0.3,
+                                               zero_sum = TRUE))
+})
+
+test_that("'SVD_RW' works with valid inputs - zero", {
+  expect_identical(SVD_RW(HMD, sd = 0),
+                   new_bage_prior_svd_rwzero(HMD,
+                                                nm_ssvd = "HMD",
+                                                n_comp = 3L,
+                                                indep = TRUE,
+                                                scale = 1,
+                                                zero_sum = FALSE))
+  expect_identical(SVD_RW(LFP, n_comp = 2, sd = 0, s = 0.01, indep = F, zero_sum = TRUE),
+                   new_bage_prior_svd_rwzero(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
                                          indep = FALSE,
@@ -403,23 +422,45 @@ test_that("'SVD_RW' works with valid inputs", {
                                          zero_sum = TRUE))
 })
 
-test_that("'SVD_RW2' works with valid inputs", {
+test_that("'SVD_RW2' works with valid inputs - random", {
   expect_identical(SVD_RW2(HMD),
-                   new_bage_prior_svd_rw2(HMD,
-                                          nm_ssvd = "HMD",
-                                          n_comp = 3L,
-                                          indep = TRUE,
-                                          scale = 1,
-                                          sd_slope = 1,
-                                          zero_sum = FALSE))
-  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, s = 0.01, zero_sum = TRUE),
-                   new_bage_prior_svd_rw2(LFP,
-                                          nm_ssvd = "LFP",
-                                          n_comp = 2L,
-                                          indep = TRUE,
-                                          scale = 0.01,
-                                          sd_slope = 0.2,
-                                          zero_sum = TRUE))
+                   new_bage_prior_svd_rw2random(HMD,
+                                                nm_ssvd = "HMD",
+                                                n_comp = 3L,
+                                                indep = TRUE,
+                                                scale = 1,
+                                                sd = 1,
+                                                sd_slope = 1,
+                                                zero_sum = FALSE))
+  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, sd = 0.4, s = 0.01, zero_sum = TRUE),
+                   new_bage_prior_svd_rw2random(LFP,
+                                                nm_ssvd = "LFP",
+                                                n_comp = 2L,
+                                                indep = TRUE,
+                                                scale = 0.01,
+                                                sd = 0.4,
+                                                sd_slope = 0.2,
+                                                zero_sum = TRUE))
+})
+
+test_that("'SVD_RW2' works with valid inputs - zero", {
+  expect_identical(SVD_RW2(HMD, sd = 0),
+                   new_bage_prior_svd_rw2zero(HMD,
+                                              nm_ssvd = "HMD",
+                                              n_comp = 3L,
+                                              indep = TRUE,
+                                              scale = 1,
+                                              sd_slope = 1,
+                                              zero_sum = FALSE))
+  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, s = 0.01, sd = 0,
+                           zero_sum = TRUE),
+                   new_bage_prior_svd_rw2zero(LFP,
+                                              nm_ssvd = "LFP",
+                                              n_comp = 2L,
+                                              indep = TRUE,
+                                              scale = 0.01,
+                                              sd_slope = 0.2,
+                                              zero_sum = TRUE))
 })
 
 
@@ -969,14 +1010,39 @@ test_that("'new_bage_prior_svd_ar' works", {
                         nm = "SVD_AR1"))
 })
 
-test_that("'new_bage_prior_svd_rw' works", {
-  obj <- new_bage_prior_svd_rw(HMD,
-                               nm_ssvd = "HMD",
-                               n_comp = 3L,
-                               indep = TRUE,
-                               scale = 1,
-                               zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_svd_rw")
+test_that("'new_bage_prior_svd_rwrandom' works", {
+  obj <- new_bage_prior_svd_rwrandom(HMD,
+                                     nm_ssvd = "HMD",
+                                     n_comp = 3L,
+                                     indep = TRUE,
+                                     scale = 1,
+                                     sd = 1,
+                                     zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_svd_rwrandom")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 25L)
+  expect_identical(obj$const,
+                   c(scale = 1,
+                     sd = 1))
+  expect_identical(obj$specific,
+                   list(ssvd = HMD,
+                        nm_ssvd = "HMD",
+                        n_comp = 3L,
+                        indep = TRUE,
+                        scale = 1,
+                        sd = 1,
+                        along = NULL,
+                        zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_svd_rwzero' works", {
+  obj <- new_bage_prior_svd_rwzero(HMD,
+                                   nm_ssvd = "HMD",
+                                   n_comp = 3L,
+                                   indep = TRUE,
+                                   scale = 1,
+                                   zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_svd_rwzero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 15L)
   expect_identical(obj$const,
@@ -991,15 +1057,43 @@ test_that("'new_bage_prior_svd_rw' works", {
                         zero_sum = FALSE))
 })
 
-test_that("'new_bage_prior_svd_rw2' works", {
-  obj <- new_bage_prior_svd_rw2(HMD,
-                                nm_ssvd = "HMD",
-                                n_comp = 3L,
-                                indep = TRUE,
-                                scale = 1,
-                                sd_slope = 1,
-                                zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_svd_rw2")
+test_that("'new_bage_prior_svd_rw2random' works", {
+  obj <- new_bage_prior_svd_rw2random(HMD,
+                                      nm_ssvd = "HMD",
+                                      n_comp = 3L,
+                                      indep = TRUE,
+                                      scale = 1,
+                                      sd = 1,
+                                      sd_slope = 1,
+                                      zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_svd_rw2random")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 26L)
+  expect_identical(obj$const,
+                   c(scale = 1,
+                     sd = 1,
+                     sd_slope = 1))
+  expect_identical(obj$specific,
+                   list(ssvd = HMD,
+                        nm_ssvd = "HMD",
+                        n_comp = 3L,
+                        indep = TRUE,
+                        scale = 1,
+                        sd = 1,
+                        sd_slope = 1,
+                        along = NULL,
+                        zero_sum = FALSE))
+})
+
+test_that("'new_bage_prior_svd_rw2zero' works", {
+  obj <- new_bage_prior_svd_rw2zero(HMD,
+                                    nm_ssvd = "HMD",
+                                    n_comp = 3L,
+                                    indep = TRUE,
+                                    scale = 1,
+                                    sd_slope = 1,
+                                    zero_sum = FALSE)
+  expect_s3_class(obj, "bage_prior_svd_rw2zero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 16L)
   expect_identical(obj$const,
@@ -1015,5 +1109,3 @@ test_that("'new_bage_prior_svd_rw2' works", {
                         along = NULL,
                         zero_sum = FALSE))
 })
-
-
