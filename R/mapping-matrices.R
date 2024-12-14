@@ -789,8 +789,6 @@ make_matrix_zero_sum <- function(i_along, dim) {
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
-#' @param append_zero Whether to append a zero to the start
-#' of each 'along' series.
 #' @param zero_sum Whether elements should sum to zero
 #' within each element of 'along'
 #'
@@ -801,8 +799,7 @@ make_offset_effectfree_effect_svd <- function(prior,
                                               dimnames_term,
                                               var_time,
                                               var_age,
-                                              var_sexgender,
-                                              append_zero) {
+                                              var_sexgender) {
   if (uses_along(prior)) {
     along <- prior$specific$along
     zero_sum <- prior$specific$zero_sum
@@ -863,7 +860,7 @@ make_offset_effectfree_effect_svd <- function(prior,
 #' transform (which is not necessarily the same as the dimension
 #' implied by 'dimnames_term')
 #' @param zero_sum Whether values for age/sex/gender are
-#' constained to sum to zero.
+#' constrained to sum to zero.
 #'
 #' @returns A sparse matrix
 #'

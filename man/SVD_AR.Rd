@@ -30,13 +30,14 @@ SVD_AR1(
   zero_sum = FALSE
 )
 
-SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1, zero_sum = FALSE)
+SVD_RW(ssvd, n_comp = NULL, indep = TRUE, s = 1, sd = 1, zero_sum = FALSE)
 
 SVD_RW2(
   ssvd,
   n_comp = NULL,
   indep = TRUE,
   s = 1,
+  sd = 1,
   sd_slope = 1,
   zero_sum = FALSE
 )

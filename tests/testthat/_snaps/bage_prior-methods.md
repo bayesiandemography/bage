@@ -357,6 +357,7 @@
             ssvd: HMD
           n_comp: 3
                s: 1
+              sd: 1
            along: NULL
         zero_sum: FALSE
 
@@ -370,6 +371,19 @@
           n_comp: 3
            indep: FALSE
                s: 1
+              sd: 1
+           along: NULL
+        zero_sum: FALSE
+
+---
+
+    Code
+      print(SVD_RW(HMD, sd = 0))
+    Output
+        SVD_RW(HMD,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+               s: 1
            along: NULL
         zero_sum: FALSE
 
@@ -382,6 +396,7 @@
             ssvd: HMD
           n_comp: 3
                s: 1
+              sd: 1
         sd_slope: 1
            along: NULL
         zero_sum: FALSE
@@ -395,6 +410,20 @@
             ssvd: HMD
           n_comp: 3
            indep: FALSE
+               s: 1
+              sd: 1
+        sd_slope: 1
+           along: NULL
+        zero_sum: FALSE
+
+---
+
+    Code
+      print(SVD_RW2(HMD, sd = 0))
+    Output
+        SVD_RW2(HMD,sd=0) 
+            ssvd: HMD
+          n_comp: 3
                s: 1
         sd_slope: 1
            along: NULL
