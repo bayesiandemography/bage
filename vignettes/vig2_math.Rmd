@@ -761,13 +761,13 @@ where
 
 ### Model
 
-The `SVD_RW()` prior is identical to the `SVD()` prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models,
+The `SVD_RW()` prior is identical to the `SVD()` prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models with $K_m$ SVD components,
 
 \begin{align}
-  \pmb{\beta}_{u,t}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m; \quad t = 1, \cdots, T \\
-  \alpha_{u,k,1}^{(m)} & \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m \\
-  \alpha_{u,k,t}^{(m)} & \sim \text{N}(\alpha_{u,k,t-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m; t = 2, \cdots, T \\
-  \tau_m & \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \pmb{\beta}_{u,t}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)} \\
+  \alpha_{u,k,1}^{(m)} & \sim \text{N}(0, (A_0^{(m)})^2),  \\
+  \alpha_{u,k,t}^{(m)} & \sim \text{N}(\alpha_{u,k,t-1}^{(m)}, \tau_m^2), \quad t = 2, \cdots, T \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}
 
 ### Contribution to posterior density
@@ -775,38 +775,40 @@ The `SVD_RW()` prior is identical to the `SVD()` prior except that the coefficie
 In the combined-sex/gender and joint models,
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,k,t}^{(m)} \mid \alpha_{u,k,t-1}^{(m)}, \tau_m^2 \right),
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,k,1}^{(m)} \mid 0, (A_0^{(m)})^2)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,k,t}^{(m)} \mid \alpha_{u,k,t-1}^{(m)}, \tau_m^2 \right),
 \end{equation}
 
 and in the independent model,
 
 \begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right) 
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, (A_0^{(m)})^2)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right) 
 \end{equation}
 
-
-### Simulation
-
-TODO - write
 
 ### Forecasting
 
 \begin{align}
-  \alpha_{u,k,T+h}^{(m)} & \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m \\
-  \pmb{\beta}_{u,T+h}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m 
+  \alpha_{u,k,T+h}^{(m)} & \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2) \\
+  \pmb{\beta}_{u,T+h}^{(m)} & = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)} 
 \end{align}
 
 
 ### Code
 
 ```
-SVD_RW(ssvd, n_comp = NULL, s = 1, indep = TRUE)
+SVD_RW(ssvd,
+       n_comp = NULL,
+       indep = TRUE,
+       s = 1,
+       sd = 1,
+       zero_sum = FALSE)
 ```
 where
 - `ssvd` is an object containing $\pmb{F}$ and $\pmb{g}$
-- `n_comp` is $K_m$ (which defaults to `ceiling(n/2)`, where `n` is the number of components in `ssvd`
-- `s` is $A_{\tau}^{(m)}$
+- `n_comp` is $K_m$
 - `indep` determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.
+- `s` is $A_{\tau}^{(m)}$
+- `sd` is $A_0^{(m)}$
 
 
 ## SVD_RW2() {#sec:pr-svd-rw2}
