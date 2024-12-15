@@ -22,13 +22,13 @@ Priors where 'forecast' is yes can be used
 in forecasts for a time-varying
 terms such as an age-time interactions.
 
-Priors where \code{zero_sum} is yes have an
-argument specifying whether sum-to-zero constraints
+Priors where \code{con} is yes have an
+argument specifying whether constraints
 should be used.
 }
 \details{
 \tabular{lllll}{
-   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \code{zero_sum} \cr
+   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \code{con} \cr
    \code{\link[=N]{N()}} \tab Elements drawn from normal distribution \tab Term with no natural order \tab Yes \tab No \cr
    \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation fixed \tab Term with few elements \tab Yes \tab No \cr
    \code{\link[=RW]{RW()}} \tab Random walk \tab Smoothing \tab Yes \tab Yes \cr

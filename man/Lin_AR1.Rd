@@ -5,22 +5,27 @@
 \title{Linear Prior with Autoregressive Errors of Order 1}
 \usage{
 Lin_AR1(
+  s = 1,
+  shape1 = 5,
+  shape2 = 5,
   min = 0.8,
   max = 0.98,
-  s = 1,
   mean_slope = 0,
   sd_slope = 1,
   along = NULL,
-  zero_sum = FALSE
+  con = c("none", "by")
 )
 }
 \arguments{
+\item{s}{Scale for the innovations in the
+AR process. Default is \code{1}.}
+
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
+
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
-
-\item{s}{Scale for the innovations in the
-AR process. Default is \code{1}.}
 
 \item{mean_slope}{Mean in prior for slope
 of line. Default is 0.}
@@ -33,9 +38,9 @@ steeper slopes. Default is 1.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{zero_sum}{If \code{TRUE}, values must
-sum to 0 within each combination
-of the 'by' variables. Default is \code{FALSE}.}
+\item{con}{Constraints on parameters.
+Current choices are \code{"none"} and \code{"all"}.
+Default is \code{"none"}. See below for details.}
 }
 \value{
 An object of class \code{"bage_prior_linar"}.
@@ -46,7 +51,7 @@ errors to model a main effect
 or interaction. Typically used with time.
 }
 \details{
-If \code{Lin_AR()} is used with an interaction,
+If \code{Lin_AR1()} is used with an interaction,
 separate lines are constructed along
 the 'along' variable, within each combination
 of the 'by' variables.
@@ -57,7 +62,7 @@ the permissible range for autocorrelation.
 Argument \code{s} controls the size of the innovations.
 Smaller values tend to give smoother estimates.
 
-Argument \code{sd_slope} controls the size of the slopes of
+Argument \code{sd_slope} controls the slopes of
 the lines. Larger values can give more steeply
 sloped lines.
 }
@@ -66,31 +71,32 @@ sloped lines.
 
 When \code{Lin_AR1()} is being used with a main effect,
 
-\deqn{\beta_j = \eta q_j + \epsilon_j}
-\deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j,}
-\deqn{\varepsilon_j \sim \text{N}(0, \omega^2).}
+\deqn{\beta_1 = \alpha + \epsilon_1}
+\deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
+\deqn{\alpha \sim \text{N}(0, 1)}
+\deqn{\epsilon_j = \phi \epsilon_{j-1} + \varepsilon_j}
+\deqn{\varepsilon \sim \text{N}(0, \omega^2),}
 
-and when it is being used with an interaction,
+and when it is used with an interaction,
 
-\deqn{\beta_{u,v} = \eta_j q_{u,v} + \epsilon_{u,v}}
-\deqn{\epsilon_{u,v} = \phi + \varepsilon_{u,v},}
+\deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
+\deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
+\deqn{\alpha_u \sim \text{N}(0, 1)}
+\deqn{\epsilon_{u,v} = \phi \epsilon_{u,v-1} + \varepsilon_{u,v},}
 \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 
 where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{u} denotes position within the 'along' variable of the interaction;
-\item \eqn{u} denotes position within the 'by' variable(s) of the interaction;
-\item \eqn{q = - (J+1)/(J-1) + 2j/(J-1);} and
-\item \eqn{q_v = - (V+1)/(V-1) + 2v/(V-1)}.
+\item \eqn{u} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(0, \text{sd_slope}^2)}
+\deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(0, \text{sd_slope}^2).}
-Larger values for \code{sd_slope} permit steeper slopes.
+\deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
 
 Internally, \code{Lin_AR1()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
@@ -104,7 +110,32 @@ to lie between \code{min} and \code{max}.
 Its prior distribution is
 \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
 where
-\deqn{\phi' \sim \text{Beta}(2, 2).}
+\deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+}
+
+\section{Constraints}{
+
+
+With some combinations of terms and priors, the values of
+the intercept, main effects, and interactions are
+are only weakly identified.
+For instance, it may be possible to increase the value of the
+intercept and reduce the value of the remaining terms in
+the model with no effect on predicted rates and only a tiny
+effect on prior probabilities. This weak identifiability is
+typically harmless. However, in some applications, such as
+forecasting, or when trying to obtain interpretable values
+for main effects and interactions, it can be helpful to increase
+identifiability through the use of constraints.
+
+Current options for constraints are:
+\itemize{
+\item \code{"none"} No constraints. The default.
+\item \code{"by"} Only used in interaction terms that include 'along' and
+'by' dimensions. Within each value of the 'along'
+dimension, terms across each 'by' dimension are constrained
+to sum to 0.
+}
 }
 
 \examples{

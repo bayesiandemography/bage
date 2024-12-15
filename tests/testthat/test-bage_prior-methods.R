@@ -156,7 +156,7 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 1", {
   expect_identical(dimnames(ans), list(letters, NULL))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2, con is 'none'", {
   prior <- AR(n_coef = 3, along = "x")
   dimnames_term <- list(x = letters[1:13], reg = c("a", "b"))
   var_time <- "time"
@@ -182,8 +182,8 @@ test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2, zero_sum is F
   expect_identical(dim(ans), c(26L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2, zero_sum is TRUE", {
-  prior <- AR(n_coef = 3, along = "x", zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_ar - n_by = 2, con is 'by'", {
+  prior <- AR(n_coef = 3, along = "x", con = "by")
   dimnames_term <- list(x = letters[1:13], reg = c("a", "b"))
   var_time <- "time"
   var_age <- "age"
@@ -233,7 +233,7 @@ test_that("'draw_vals_effect' works with bage_prior_known", {
   expect_identical(dimnames(ans), list(c("a", "b", "c"), NULL))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2, con is 'none'", {
   prior <- Lin(along = "x")
   dimnames_term <- list(x = 1:13, y = 1:2)
   var_time <- "time"
@@ -263,8 +263,8 @@ test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2, zero_sum is 
   expect_identical(dim(ans), c(26L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2, zero_sum is TRUE", {
-  prior <- Lin(along = "x", zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_lin - n_by = 2, con is 'by'", {
+  prior <- Lin(along = "x", con = "by")
   dimnames_term <- list(x = 1:13, y = 1:2)
   var_time <- "time"
   var_age <- "age"
@@ -356,8 +356,8 @@ test_that("'draw_vals_effect' works with bage_prior_linar", {
 })
 
 
-test_that("'draw_vals_effect' works with bage_prior_linar, zero_sum is TRUE", {
-  prior <- Lin_AR(zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_linar, con is 'by'", {
+  prior <- Lin_AR(con = "by")
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -388,7 +388,7 @@ test_that("'draw_vals_effect' works with bage_prior_linar, zero_sum is TRUE", {
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, con is 'none'", {
   prior <- Lin(along = "x", s = 0)
   dimnames_term <- list(x = 1:13, y = 1:2)
   var_time <- "time"
@@ -412,8 +412,8 @@ test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, zero_sum i
   expect_identical(dim(ans), c(26L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, zero_sum is TRUE", {
-  prior <- Lin(along = "x", zero_sum = TRUE, s = 0)
+test_that("'draw_vals_effect' works with bage_prior_linex - n_by = 2, con is 'by'", {
+  prior <- Lin(along = "x", con = "by", s = 0)
   dimnames_term <- list(x = 1:13, y = 1:2)
   var_time <- "time"
   var_age <- "age"
@@ -513,7 +513,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 1", {
   expect_identical(dim(ans), c(10L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 4, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 4, con is 'none'", {
   prior <- RW(s = 0.01)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -538,8 +538,8 @@ test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 4, zero_su
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 4, zero_sum is TRUE", {
-  prior <- RW(s = 0.01, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 4, con is 'by'", {
+  prior <- RW(s = 0.01, con = "by")
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -565,7 +565,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwrandom - n_by = 4, zero_su
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwrandomseasfix - zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rwrandomseasfix - con is 'none'", {
   prior <- RW_Seas(n_seas = 2, s = 0.01)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -595,8 +595,8 @@ test_that("'draw_vals_effect' works with bage_prior_rwrandomseasfix - zero_sum i
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwrandomseasfix - zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rwrandomseasfix - con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, s = 0.01, con = "by")
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -627,7 +627,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwrandomseasfix - zero_sum i
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwrandomseasvary, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rwrandomseasvary, con is 'none'", {
   prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.5)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -657,8 +657,8 @@ test_that("'draw_vals_effect' works with bage_prior_rwrandomseasvary, zero_sum i
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwrandomseasvary, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rwrandomseasvary, con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, con = "by")
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -714,7 +714,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 1", {
   expect_identical(dim(ans), c(10L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 4, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 4, con is 'none'", {
   prior <- RW(s = 0.01, sd = 0)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
@@ -739,8 +739,8 @@ test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 4, zero_sum 
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 4, zero_sum is TRUE", {
-  prior <- RW(s = 0.01, sd = 0, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 4, con is 'by'", {
+  prior <- RW(s = 0.01, sd = 0, con = "by")
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -766,7 +766,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwzero - n_by = 4, zero_sum 
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwzeroseasfix - zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rwzeroseasfix - con is 'none'", {
   prior <- RW_Seas(n_seas = 2, sd = 0, s = 0.01)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -796,8 +796,8 @@ test_that("'draw_vals_effect' works with bage_prior_rwzeroseasfix - zero_sum is 
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwzeroseasfix - zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rwzeroseasfix - con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, con = "by")
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -828,7 +828,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwzeroseasfix - zero_sum is 
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwzeroseasvary, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rwzeroseasvary, con is 'none'", {
   prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.5)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -858,8 +858,8 @@ test_that("'draw_vals_effect' works with bage_prior_rwzeroseasvary, zero_sum is 
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rwzeroseasvary, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, sd = 0, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rwzeroseasvary, con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, sd = 0, con = "by")
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -890,7 +890,7 @@ test_that("'draw_vals_effect' works with bage_prior_rwzeroseasvary, zero_sum is 
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_sum = FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, con is 'none'", {
   prior <- RW2_Infant()
   n_sim <- 10
   dimnames_term <- list(age = 1:10, reg = 1:4)
@@ -933,8 +933,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_s
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_sum = TRUE", {
-  prior <- RW2_Infant(zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, con = 'by'", {
+  prior <- RW2_Infant(con = "by")
   n_sim <- 10
   dimnames_term <- list(age = 1:10, reg = 1:4)
   var_time <- "time"
@@ -965,7 +965,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2infant - n_by = 4, zero_s
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, zero_sum = FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, con is 'none'", {
   prior <- RW2()
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -995,8 +995,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, zero_s
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, zero_sum = TRUE", {
-  prior <- RW2(zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, con = 'by'", {
+  prior <- RW2(con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1027,7 +1027,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2random - n_by = 4, zero_s
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - con is 'none'", {
   prior <- RW2_Seas(n_seas = 2, s = 0.01)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -1057,8 +1057,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - zero_sum 
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1089,7 +1089,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2randomseasfix - zero_sum 
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2randomseasvary, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2randomseasvary, con is 'none'", {
   prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.5)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -1119,8 +1119,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2randomseasvary, zero_sum 
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2randomseasvary, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2randomseasvary, con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1151,7 +1151,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2randomseasvary, zero_sum 
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, zero_sum = FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, con is 'none'", {
   prior <- RW2(sd = 0)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -1181,8 +1181,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, zero_sum
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, zero_sum = TRUE", {
-  prior <- RW2(sd = 0, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, con = 'by'", {
+  prior <- RW2(sd = 0, con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1213,7 +1213,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2zero - n_by = 4, zero_sum
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasfix - zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasfix - con is 'none'", {
   prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -1243,8 +1243,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasfix - zero_sum is
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasfix - zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasfix - con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1275,7 +1275,7 @@ test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasfix - zero_sum is
   expect_equal(as.numeric(apply(a, c(1, 3), mean)), rep(0, 100))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasvary, zero_sum is FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasvary, con is 'none'", {
   prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.5)
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
@@ -1305,8 +1305,8 @@ test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasvary, zero_sum is
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasvary, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, sd = 0, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_rw2zeroseasvary, con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.5, sd = 0, con = 'by')
   n_sim <- 10
   dimnames_term <- list(time = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1368,7 +1368,7 @@ test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 1", {
   expect_identical(dim(ans), c(10L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 4, zero_sum = FALSE", {
+test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 4, con is 'none'", {
   prior <- Sp(n_comp = 5)
   n_sim <- 10
   dimnames_term <- list(age = 1:10, reg = 1:4)
@@ -1399,8 +1399,8 @@ test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 4, zero_sum 
   expect_identical(dim(ans), c(40L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 4, zero_sum = TRUE", {
-  prior <- Sp(n_comp = 5, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_spline - n_by = 4, con = 'by'", {
+  prior <- Sp(n_comp = 5, con = 'by')
   n_sim <- 10
   dimnames_term <- list(age = 1:10, reg = 1:4)
   var_time <- "time"
@@ -1603,7 +1603,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_ar - age x time", {
   expect_identical(dim(ans), c(5L * 81L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_svd_rw - age x time", {
+test_that("'draw_vals_effect' works with bage_prior_svd_rwrandom - age x time", {
   prior <- SVD_RW(HMD)
   n_sim <- 10
   dimnames_term <- list(time = 2000:2004,
@@ -1638,8 +1638,81 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw - age x time", {
   expect_identical(dim(ans), c(5L * 81L, 10L))
 })
 
-test_that("'draw_vals_effect' works with bage_prior_svd_rw2 - age and sex", {
-  prior <- SVD_RW2(HMD, zero_sum = TRUE)
+test_that("'draw_vals_effect' works with bage_prior_svd_rwzero - age x time", {
+  prior <- SVD_RW(HMD, sd = 0)
+  n_sim <- 10
+  dimnames_term <- list(time = 2000:2004,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  matrix_along_by_free <- matrix(0:29, nr = 5)
+  levels_svd <- paste(paste0("comp", 1:3), rep(2000:2004, each = 3), sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_svd = levels_svd,
+                            n_sim = 10)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(5L * 81L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_svd_rw2random - age and sex", {
+  prior <- SVD_RW2(HMD, con = 'by')
+  n_sim <- 10
+  dimnames_term <- list(age = c(0:79, "80+"),
+                        sex = c("F", "M"),
+                        time = 2000:2004)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  vals_hyperrand <- list()
+  levels_svd <- paste(rep(c("F", "M"), each = 3),
+                             paste0("comp", 1:3),
+                             rep(2000:2004, each = 6),
+                             sep = ".")
+  vals_spline <- NULL
+  vals_svd <- draw_vals_svd(prior = prior,
+                            vals_hyper = vals_hyper,
+                            dimnames_term = dimnames_term,
+                            var_time = var_time,
+                            var_age = var_age,
+                            var_sexgender = var_sexgender,
+                            levels_svd = levels_svd,
+                            n_sim = 10)
+  ans <- draw_vals_effect(prior = prior,
+                          vals_hyper = vals_hyper,
+                          vals_hyperrand = vals_hyperrand,
+                          vals_spline = vals_spline,
+                          vals_svd = vals_svd,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age,
+                          var_sexgender = var_sexgender,
+                          n_sim = n_sim)
+  expect_identical(dim(ans), c(81L * 2L * 5L, 10L))
+})
+
+test_that("'draw_vals_effect' works with bage_prior_svd_rw2zero - age and sex", {
+  prior <- SVD_RW2(HMD, sd = 0, con = 'by')
   n_sim <- 10
   dimnames_term <- list(age = c(0:79, "80+"),
                         sex = c("F", "M"),
@@ -1677,6 +1750,7 @@ test_that("'draw_vals_effect' works with bage_prior_svd_rw2 - age and sex", {
 })
 
 
+
 ## draw_vals_hyper ------------------------------------------------------------
 
 test_that("'draw_vals_hyper' works with bage_prior_ar", {
@@ -1706,7 +1780,7 @@ test_that("'draw_vals_hyper' works with bage_prior_linar", {
   prior <- Lin_AR()
   ans <- draw_vals_hyper(prior = prior,
                          n_sim = 10)
-  expect_identical(names(ans), c("sd", "coef"))
+  expect_identical(names(ans), c("coef", "sd"))
   expect_identical(length(ans$sd), 10L)
 })
 
@@ -1860,26 +1934,50 @@ test_that("'draw_vals_hyper' works with bage_prior_svd_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_svd_ar", {
+test_that("'draw_vals_hyper' works with bage_prior_svd_rwrandom", {
   prior <- SVD_RW(HMD, s = 0.5)
-  prior_ar <- RW(s = 0.5)
+  prior_rw <- RW(s = 0.5)
   set.seed(0)
   ans_obtained <- draw_vals_hyper(prior = prior,
                                   n_sim = 10)
   set.seed(0)
-  ans_expected <- draw_vals_hyper(prior = prior_ar,
+  ans_expected <- draw_vals_hyper(prior = prior_rw,
                                   n_sim = 10)
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_hyper' works with bage_prior_svd_ar", {
-  prior <- SVD_RW2(HMD, s = 0.5)
-  prior_ar <- RW2(s = 0.5)
+test_that("'draw_vals_hyper' works with bage_prior_svd_rwzero", {
+  prior <- SVD_RW(HMD, s = 0.5, sd = 0)
+  prior_rw <- RW(s = 0.5, sd = 0)
   set.seed(0)
   ans_obtained <- draw_vals_hyper(prior = prior,
                                   n_sim = 10)
   set.seed(0)
-  ans_expected <- draw_vals_hyper(prior = prior_ar,
+  ans_expected <- draw_vals_hyper(prior = prior_rw,
+                                  n_sim = 10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_svd_rw2random", {
+  prior <- SVD_RW2(HMD, s = 0.5)
+  prior_rw <- RW2(s = 0.5)
+  set.seed(0)
+  ans_obtained <- draw_vals_hyper(prior = prior,
+                                  n_sim = 10)
+  set.seed(0)
+  ans_expected <- draw_vals_hyper(prior = prior_rw,
+                                  n_sim = 10)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_hyper' works with bage_prior_svd_rw2zero", {
+  prior <- SVD_RW2(HMD, s = 0.5, sd = 0)
+  prior_rw <- RW2(s = 0.5, sd = 0)
+  set.seed(0)
+  ans_obtained <- draw_vals_hyper(prior = prior,
+                                  n_sim = 10)
+  set.seed(0)
+  ans_expected <- draw_vals_hyper(prior = prior_rw,
                                   n_sim = 10)
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1887,7 +1985,7 @@ test_that("'draw_vals_hyper' works with bage_prior_svd_ar", {
 
 ## 'draw_vals_hyperrand' ------------------------------------------------------
 
-test_that("'draw_vals_hyperrand' works with bage_prior_lin - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_lin - con is 'none'", {
   set.seed(0)
   prior <- Lin()
   matrix_along_by <- matrix(0:11, nr = 3)
@@ -1907,9 +2005,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin - zero_sum is FALSE",
   expect_equal(ans$slope[1,], ans$trend[2,] - ans$trend[1,])
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_lin - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_lin - con is 'by'", {
   set.seed(0)
-  prior <- Lin(zero_sum = TRUE)
+  prior <- Lin(con = 'by')
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -1928,7 +2026,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_lin - zero_sum is TRUE", 
   expect_equal(rowSums(matrix(ans$error[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_linar - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_linar - con is 'none'", {
   set.seed(0)
   prior <- Lin_AR()
   n_sim <- 10
@@ -1947,9 +2045,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar - zero_sum = FALSE"
   expect_equal(ans$slope[1,], ans$trend[2,] - ans$trend[1,])
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_linar - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_linar - con = 'by'", {
   set.seed(0)
-  prior <- Lin_AR(zero_sum = TRUE)
+  prior <- Lin_AR(con = 'by')
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -1968,7 +2066,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_linar - zero_sum = TRUE",
   expect_equal(rowSums(matrix(ans$error[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - con is 'none'", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -1987,9 +2085,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - zero_su
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - con = 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2008,7 +2106,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasfix - zero_su
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - con is 'none'", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.4)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2027,9 +2125,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - zero_s
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.4, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, s_seas = 0.4, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2048,7 +2146,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwrandomseasvary - zero_s
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - con is 'none'", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2067,9 +2165,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - zero_sum 
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - con = 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2088,7 +2186,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasfix - zero_sum 
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - con is 'none'", {
   set.seed(0)
   prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2107,9 +2205,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - zero_sum
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2128,7 +2226,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rwzeroseasvary - zero_sum
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2147,9 +2245,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - zero_s
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - con = 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2168,7 +2266,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasfix - zero_s
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.4)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2187,9 +2285,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - zero_
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.4, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, s_seas = 0.4, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2208,7 +2306,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2randomseasvary - zero_
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - zero_sum = FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2227,9 +2325,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - zero_sum
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - zero_sum = TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - con = 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2248,7 +2346,7 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasfix - zero_sum
   expect_equal(rowSums(matrix(ans$season[,10], nr = 3)), rep(0, 3))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - zero_sum is FALSE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4)
   dimnames_term <- list(time = 1:3, region = 1:4)
@@ -2267,9 +2365,9 @@ test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - zero_su
   expect_identical(names(ans), c("trend", "season"))
 })
 
-test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - zero_sum is TRUE", {
+test_that("'draw_vals_hyperrand' works with bage_prior_rw2zeroseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s = 0.01, sd = 0, s_seas = 0.4, con = 'by')
   dimnames_term <- list(time = 1:3, region = 1:4)
   var_time <- "time"
   var_age <- "age"
@@ -2310,7 +2408,7 @@ test_that("'draw_vals_spline' returns NULL with non-spline prior main effect", {
   expect_identical(ans, NULL)
 })
 
-test_that("'draw_vals_spline' works with 'bage_prior_spline' - zero_sum is FALSE", {
+test_that("'draw_vals_spline' works with 'bage_prior_spline' - con is 'none'", {
   set.seed(0)
   prior <- Sp(n_comp = 7)
   n_sim <- 10
@@ -2338,9 +2436,9 @@ test_that("'draw_vals_spline' works with 'bage_prior_spline' - zero_sum is FALSE
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_spline' works with 'bage_prior_spline' - zero_sum is TRUE", {
+test_that("'draw_vals_spline' works with 'bage_prior_spline' - con is 'by'", {
   set.seed(0)
-  prior <- Sp(n_comp = 7, zero_sum = TRUE)
+  prior <- Sp(n_comp = 7, con = 'by')
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2412,7 +2510,7 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - zero_sum is FALSE", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - con is 'none'", {
   set.seed(0)
   prior <- SVD_AR1(HMD)
   n_sim <- 10
@@ -2444,9 +2542,9 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - zero_sum is FALSE", 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - zero_sum is TRUE", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - con is 'by'", {
   set.seed(0)
-  prior <- SVD_AR1(HMD, zero_sum = TRUE)
+  prior <- SVD_AR1(HMD, con = 'by')
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2478,9 +2576,110 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_ar' - zero_sum is TRUE", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw'", {
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom'", {
   set.seed(0)
   prior <- SVD_RW(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                             rep(2001:2005, each = 3),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
+  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
+                               sd_init = prior$specific$sd,
+                               matrix_along_by = matrix_along_by_free,
+                               levels_effect = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom' - con is 'none'", {
+  set.seed(0)
+  prior <- SVD_RW(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                      rep(1:3, each = 3),
+                      rep(2001:2005, each = 9),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
+  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
+                               sd_init = prior$specific$sd,
+                               matrix_along_by = matrix_along_by_free,
+                               levels_effect = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwrandom' - con is 'by'", {
+  set.seed(0)
+  prior <- SVD_RW(HMD, con = 'by')
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                      rep(c("reg1", "reg2"), each = 3),
+                      rep(2001:2005, each = 6),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
+  ans_expected <- draw_vals_rw(sd = vals_hyper$sd,
+                               sd_init = prior$specific$sd,
+                               matrix_along_by = matrix_along_by_free,
+                               levels_effect = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero'", {
+  set.seed(0)
+  prior <- SVD_RW(HMD, sd = 0)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2510,9 +2709,9 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is FALSE", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero' - con is 'none'", {
   set.seed(0)
-  prior <- SVD_RW(HMD)
+  prior <- SVD_RW(HMD, sd = 0)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2544,9 +2743,9 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is FALSE", 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is TRUE", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rwzero' - con is 'by'", {
   set.seed(0)
-  prior <- SVD_RW(HMD, zero_sum = TRUE)
+  prior <- SVD_RW(HMD, sd = 0, con = 'by')
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2578,9 +2777,112 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw' - zero_sum is TRUE", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random'", {
   set.seed(0)
   prior <- SVD_RW2(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                             rep(2001:2005, each = 3),
+                             sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- t(matrix(0:14, nr = 3))
+  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                sd_init = prior$specific$sd,
+                                sd_slope = prior$specific$sd_slope,
+                                matrix_along_by = matrix_along_by_free,
+                                levels_effect = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random' - con is 'none'", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD)
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                      rep(1:3, each = 3),
+                      rep(2001:2005, each = 9),
+                      sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- matrix(aperm(array(0:44, c(3, 3, 5)), c(3, 1, 2)), nr = 5)
+  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                sd_init = prior$specific$sd,
+                                sd_slope = prior$specific$sd_slope,
+                                matrix_along_by = matrix_along_by_free,
+                                levels_effect = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2random' - con is 'by'", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD, con = 'by')
+  n_sim <- 10
+  vals_hyper <- draw_vals_hyper(prior = prior,
+                                n_sim = n_sim)
+  dimnames_term <- list(reg = 1:3,
+                        time = 2001:2005,
+                        age = c(0:79, "80+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  levels_svd <- paste(paste0("comp", 1:3),
+                      rep(c("reg1", "reg2"), each = 3),
+                      rep(2001:2005, each = 6),
+                      sep = ".")
+  set.seed(0)
+  ans_obtained <- draw_vals_svd(prior = prior,
+                                vals_hyper = vals_hyper,
+                                dimnames_term = dimnames_term,
+                                var_time = var_time,
+                                var_age = var_age,
+                                var_sexgender = var_sexgender,
+                                levels_svd = levels_svd,
+                                n_sim = n_sim)
+  set.seed(0)
+  matrix_along_by_free <- matrix(aperm(array(0:29, c(3, 2, 5)), c(3, 1, 2)), nr = 5)
+  ans_expected <- draw_vals_rw2(sd = vals_hyper$sd,
+                                sd_init = prior$specific$sd,
+                                sd_slope = prior$specific$sd_slope,
+                                matrix_along_by = matrix_along_by_free,
+                                levels_effect = levels_svd)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero'", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD, sd = 0)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2611,9 +2913,9 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is FALSE", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero' - con is 'none'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD)
+  prior <- SVD_RW2(HMD, sd = 0)
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2646,9 +2948,9 @@ test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is FALSE",
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2' - zero_sum is TRUE", {
+test_that("'draw_vals_svd' works with 'bage_prior_svd_rw2zero' - con is 'by'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD, zero_sum = TRUE)
+  prior <- SVD_RW2(HMD, sd = 0, con = 'by')
   n_sim <- 10
   vals_hyper <- draw_vals_hyper(prior = prior,
                                 n_sim = n_sim)
@@ -2738,31 +3040,31 @@ test_that("'forecast_term' works with bage_prior_ar", {
   sd <- components$.fitted[components$level == "sd"]
   set.seed(1)
   ans_expected$.fitted[1] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * components$.fitted[4 + 3:5]),
+                                              mean = sum(rev(coef) * components$.fitted[4 + 3:5]),
                                               sd = sd)
   ans_expected$.fitted[2] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(components$.fitted[4 + 4:5],
+                                              mean = sum(rev(coef) * c(components$.fitted[4 + 4:5],
                                                                   ans_expected$.fitted[1])),
                                               sd = sd)
   ans_expected$.fitted[3] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * c(components$.fitted[4 + 5],
+                                              mean = sum(rev(coef) * c(components$.fitted[4 + 5],
                                                                   ans_expected$.fitted[1:2])),
                                               sd = sd)
   ans_expected$.fitted[4] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[1:3]),
+                                              mean = sum(rev(coef) * ans_expected$.fitted[1:3]),
                                               sd = sd)
   ans_expected$.fitted[5] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[2:4]),
+                                              mean = sum(rev(coef) * ans_expected$.fitted[2:4]),
                                               sd = sd)
   ans_expected$.fitted[6] <- rvec::rnorm_rvec(n = 1,
-                                              mean = sum(coef * ans_expected$.fitted[3:5]),
+                                              mean = sum(rev(coef) * ans_expected$.fitted[3:5]),
                                               sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_ar - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_ar - con is 'by'", {
   set.seed(0)
-  prior <- AR(zero_sum = TRUE)
+  prior <- AR(con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -2789,7 +3091,7 @@ test_that("'forecast_term' works with bage_prior_ar - zero_sum is TRUE", {
   expect_equal(ans$.fitted[1:6], -ans$.fitted[7:12])  
 })
 
-test_that("'forecast_term' works with bage_prior_lin - zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_lin - con is 'none'", {
   set.seed(0)
   prior <- Lin()
   dimnames_term <- list(year = 2001:2005,
@@ -2835,9 +3137,9 @@ test_that("'forecast_term' works with bage_prior_lin - zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_lin - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_lin - con is 'by'", {
   set.seed(0)
-  prior <- Lin(zero_sum = TRUE)
+  prior <- Lin(con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -2899,24 +3201,24 @@ test_that("'forecast_term' works with bage_prior_linar - n_by = 1", {
   set.seed(1)
   trend_forecast <- intercept + slope * (6:11)
   error_forecast[1] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (components$.fitted[4 + 4:5] -
+                               mean = sum(rev(coef) * (components$.fitted[4 + 4:5] -
                                                     (intercept + slope * (4:5)))),
                                sd = sd)
   error_forecast[2] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * c(components$.fitted[4 + 5] - (intercept + slope * 5),
+                               mean = sum(rev(coef) * c(components$.fitted[4 + 5] - (intercept + slope * 5),
                                                    error_forecast[1])),
                                sd = sd)
   error_forecast[3] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[1:2])),
+                               mean = sum(rev(coef) * (error_forecast[1:2])),
                                sd = sd)
   error_forecast[4] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[2:3])),
+                               mean = sum(rev(coef) * (error_forecast[2:3])),
                                sd = sd)
   error_forecast[5] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[3:4])),
+                               mean = sum(rev(coef) * (error_forecast[3:4])),
                                sd = sd)
   error_forecast[6] <- rvec::rnorm_rvec(n = 1,
-                               mean = sum(coef * (error_forecast[4:5])),
+                               mean = sum(rev(coef) * (error_forecast[4:5])),
                                sd = sd)
   effect_forecast <- trend_forecast + error_forecast
   ans_expected <- tibble::tibble(term = "year",
@@ -2926,9 +3228,9 @@ test_that("'forecast_term' works with bage_prior_linar - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_linar - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_linar - con is 'by'", {
   set.seed(0)
-  prior <- Lin_AR1(zero_sum = TRUE)
+  prior <- Lin_AR1(con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -2957,7 +3259,7 @@ test_that("'forecast_term' works with bage_prior_linar - zero_sum is TRUE", {
 })
 
 
-test_that("'forecast_term' works with bage_prior_linex - zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_linex - con is 'none'", {
   set.seed(0)
   prior <- Lin(s = 0)
   dimnames_term <- list(year = 2001:2005,
@@ -2993,9 +3295,9 @@ test_that("'forecast_term' works with bage_prior_linex - zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_linex - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_linex - con is 'by'", {
   set.seed(0)
-  prior <- Lin(zero_sum = TRUE, s = 0)
+  prior <- Lin(con = 'by', s = 0)
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -3125,7 +3427,7 @@ test_that("'forecast_term' works with bage_prior_rwrandom - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwrandom - n_by = 2, zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_rwrandom - n_by = 2, con is 'none'", {
   set.seed(0)
   prior <- RW()
   dimnames_term <- list(year = 2001:2005,
@@ -3177,9 +3479,9 @@ test_that("'forecast_term' works with bage_prior_rwrandom - n_by = 2, zero_sum i
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwrandom - n_by = 2, zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rwrandom - n_by = 2, con is 'by'", {
   set.seed(0)
-  prior <- RW(zero_sum = TRUE)
+  prior <- RW(con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -3265,9 +3567,9 @@ test_that("'forecast_term' works with bage_prior_rwrandomseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwrandomseasfix - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rwrandomseasfix - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3375,9 +3677,9 @@ test_that("'forecast_term' works with bage_prior_rwrandomseasvary", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwrandomseasvary - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rwrandomseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s_seas = 1, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s_seas = 1, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3464,7 +3766,7 @@ test_that("'forecast_term' works with bage_prior_rwzero - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, con is 'none'", {
   set.seed(0)
   prior <- RW()
   dimnames_term <- list(year = 2001:2005,
@@ -3516,9 +3818,9 @@ test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, zero_sum is 
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, con is 'by'", {
   set.seed(0)
-  prior <- RW(zero_sum = TRUE)
+  prior <- RW(con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -3604,9 +3906,9 @@ test_that("'forecast_term' works with bage_prior_rwzeroseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwzeroseasfix - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rwzeroseasfix - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3714,9 +4016,9 @@ test_that("'forecast_term' works with bage_prior_rwzeroseasvary", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rwzeroseasvary - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rwzeroseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s_seas = 1, zero_sum = TRUE)
+  prior <- RW_Seas(n_seas = 2, s_seas = 1, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3806,7 +4108,7 @@ test_that("'forecast_term' works with bage_prior_rw2random - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2random - n_by = 2, zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_rw2random - n_by = 2, con is 'none'", {
   set.seed(0)
   prior <- RW2()
   dimnames_term <- list(year = 2001:2005,
@@ -3869,9 +4171,9 @@ test_that("'forecast_term' works with bage_prior_rw2random - n_by = 2, zero_sum 
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2random - n_by = 2, zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rw2random - n_by = 2, con is 'by'", {
   set.seed(0)
-  prior <- RW2(zero_sum = TRUE)
+  prior <- RW2(con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -3960,9 +4262,9 @@ test_that("'forecast_term' works with bage_prior_rw2randomseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2randomseasfix - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rw2randomseasfix - con is 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -4073,9 +4375,9 @@ test_that("'forecast_term' works with bage_prior_rw2randomseasvary", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2randomseasvary - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rw2randomseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s_seas = 0.1, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s_seas = 0.1, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -4165,7 +4467,7 @@ test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 1", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 2, zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 2, con is 'none'", {
   set.seed(0)
   prior <- RW2(sd = 0)
   dimnames_term <- list(year = 2001:2005,
@@ -4228,9 +4530,9 @@ test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 2, zero_sum is
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 2, zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rw2zero - n_by = 2, con is 'by'", {
   set.seed(0)
-  prior <- RW2(sd = 0, zero_sum = TRUE)
+  prior <- RW2(sd = 0, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -4319,9 +4621,9 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasfix", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2zeroseasfix - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rw2zeroseasfix - con is 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, sd = 0, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, sd = 0, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -4432,9 +4734,9 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasvary", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_term' works with bage_prior_rw2zeroseasvary - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_rw2zeroseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW2_Seas(n_seas = 2, s_seas = 0.1, sd = 0, zero_sum = TRUE)
+  prior <- RW2_Seas(n_seas = 2, s_seas = 0.1, sd = 0, con = 'by')
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -4480,7 +4782,7 @@ test_that("'forecast_term' works with bage_prior_rw2zeroseasvary - zero_sum is T
 })
 
 
-test_that("'forecast_term' works with bage_prior_svd_ar - zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_svd_ar - con is 'none'", {
   set.seed(0)
   prior <- SVD_AR(HMD)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
@@ -4511,9 +4813,9 @@ test_that("'forecast_term' works with bage_prior_svd_ar - zero_sum is FALSE", {
   expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
 })
 
-test_that("'forecast_term' works with bage_prior_svd_ar - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_svd_ar - con is 'by'", {
   set.seed(0)
-  prior <- SVD_AR(HMD, zero_sum = TRUE)
+  prior <- SVD_AR(HMD, con = 'by')
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -4540,7 +4842,7 @@ test_that("'forecast_term' works with bage_prior_svd_ar - zero_sum is TRUE", {
   expect_equal(rvec::draws_mean(sum(ans$.fitted[57:70])), 0)
 })
 
-test_that("'forecast_term' works with bage_prior_svd_rw - zero_sum is FALSE", {
+test_that("'forecast_term' works with bage_prior_svd_rwrandom - con is 'none'", {
   set.seed(0)
   prior <- SVD_RW(HMD)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
@@ -4571,9 +4873,40 @@ test_that("'forecast_term' works with bage_prior_svd_rw - zero_sum is FALSE", {
   expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
 })
 
-test_that("'forecast_term' works with bage_prior_svd_rw - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_svd_rwzero - con is 'none'", {
   set.seed(0)
-  prior <- SVD_RW(HMD, zero_sum = TRUE)
+  prior <- SVD_RW(HMD, sd = 0)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  labels_forecast <- 2011:2015
+  components <- vctrs::vec_rbind(tibble::tibble(term = "age:time",
+                                                component = "hyper",
+                                                level = "sd",
+                                                .fitted = rvec::runif_rvec(n = 1, n_draw = 10)),
+                                 tibble::tibble(term = "age:time",
+                                                component = "svd",
+                                                level = paste(paste0("comp", 1:3),
+                                                              rep(2001:2010, each = 3),
+                                                              sep = "."),
+                                                .fitted = rvec::rnorm_rvec(n = 30, n_draw = 10)))
+  ans <- forecast_term(prior = prior,
+                       dimnames_term = dimnames_term,
+                       var_time = var_time,
+                       var_age = var_age,
+                       var_sexgender = var_sexgender,
+                       components = components,
+                       labels_forecast = labels_forecast)
+  expect_identical(names(ans), c("term", "component", "level", ".fitted"))
+  expect_setequal(ans$component, c("svd", "effect"))
+  expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
+})
+
+test_that("'forecast_term' works with bage_prior_svd_rwrandom - con is 'by'", {
+  set.seed(0)
+  prior <- SVD_RW(HMD, con = 'by')
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -4603,7 +4936,7 @@ test_that("'forecast_term' works with bage_prior_svd_rw - zero_sum is TRUE", {
   expect_equal(rvec::draws_mean(sum(ans$.fitted[57:70])), 0)
 })
 
-test_that("'forecast_term' works with bage_prior_svd_rw2 - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_svd_rw2random - con is 'by'", {
   set.seed(0)
   prior <- SVD_RW2(HMD)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
@@ -4634,9 +4967,9 @@ test_that("'forecast_term' works with bage_prior_svd_rw2 - zero_sum is TRUE", {
   expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
 })
 
-test_that("'forecast_term' works with bage_prior_svd_rw2 - zero_sum is TRUE", {
+test_that("'forecast_term' works with bage_prior_svd_rw2zero - con is 'by'", {
   set.seed(0)
-  prior <- SVD_RW2(HMD, zero_sum = TRUE)
+  prior <- SVD_RW2(HMD, con = 'by', sd = 0)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -4665,7 +4998,6 @@ test_that("'forecast_term' works with bage_prior_svd_rw2 - zero_sum is TRUE", {
   expect_identical(nrow(ans), 15L + length(dimnames_term$age) * 5L)
   expect_equal(rvec::draws_mean(sum(ans$.fitted[57:70])), 0)
 })
-
                    
 
 ## 'generate' -----------------------------------------------------------------
@@ -5624,7 +5956,7 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd_ar, correct inputs",
                                    var_sexgender = "sex"))
 })
 
-test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw, correct inputs", {
+test_that("'is_prior_ok_for_term' works with bage_prior_svd_rwrandom, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD_RW(HMD),
                                    dimnames_term = list(age = c(0:59, "60+"),
                                                         sex = 1:2,
@@ -5634,8 +5966,28 @@ test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw, correct inputs",
                                    var_sexgender = "sex"))
 })
 
-test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw2, correct inputs", {
+test_that("'is_prior_ok_for_term' works with bage_prior_svd_rwzero, correct inputs", {
+  expect_true(is_prior_ok_for_term(prior = SVD_RW(HMD, sd = 0),
+                                   dimnames_term = list(age = c(0:59, "60+"),
+                                                        sex = 1:2,
+                                                        year = 1:5),
+                                   var_time = "year",
+                                   var_age = "age",
+                                   var_sexgender = "sex"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw2random, correct inputs", {
   expect_true(is_prior_ok_for_term(prior = SVD_RW2(HMD),
+                                   dimnames_term = list(age = c(0:59, "60+"),
+                                                        sex = 1:2,
+                                                        year = 1:5),
+                                   var_time = "year",
+                                   var_age = "age",
+                                   var_sexgender = "sex"))
+})
+
+test_that("'is_prior_ok_for_term' works with bage_prior_svd_rw2zero, correct inputs", {
+  expect_true(is_prior_ok_for_term(prior = SVD_RW2(HMD, sd = 0),
                                    dimnames_term = list(age = c(0:59, "60+"),
                                                         sex = 1:2,
                                                         year = 1:5),
@@ -5660,7 +6012,9 @@ test_that("'is_svd' works with valid inputs", {
     expect_true(is_svd(SVD(HMD)))
     expect_true(is_svd(SVD_AR(HMD)))
     expect_true(is_svd(SVD_RW(HMD)))
+    expect_true(is_svd(SVD_RW(HMD, sd = 0)))
     expect_true(is_svd(SVD_RW2(HMD)))
+    expect_true(is_svd(SVD_RW2(HMD, sd = 0)))
 })
 
 
@@ -5680,7 +6034,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_ar'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_lin', zero_sum is FALSE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_lin', con is 'none'", {
   dimnames_term <- list(x = letters[1:13], y = c("a", "b"))
   var_time <- "time"
   var_age <- "age"
@@ -5694,12 +6048,12 @@ test_that("'length_hyperrandfree' works with 'bage_prior_lin', zero_sum is FALSE
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_lin', zero_sum is TRUE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_lin', con is 'by'", {
   dimnames_term <- list(x = letters[1:13], y = c("a", "b"))
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = Lin(along = "x", zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = Lin(along = "x", con = 'by'),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -5722,7 +6076,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_lin' - n_by = 1", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_linar', zero_sum is FALSE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_linar', con is 'none'", {
   dimnames_term <- list(x = letters[1:13],
                         y = c("a", "b"))
   var_time <- "time"
@@ -5737,13 +6091,13 @@ test_that("'length_hyperrandfree' works with 'bage_prior_linar', zero_sum is FAL
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_linar', zero_sum is TRUE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_linar', con is 'by'", {
   dimnames_term <- list(x = letters[1:13],
                         y = c("a", "b"))
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = Lin_AR(along = "x", zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = Lin_AR(along = "x", con = 'by'),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -5766,7 +6120,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_linar' - n_by = 1", {
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - main effect", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - main effect", {
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
@@ -5776,7 +6130,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwseasfix' - main effec
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 1L
+  ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5790,11 +6144,11 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - main
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 0L
+  ans_expected <- 1L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - interaction, zero_sum is FALSE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - interaction, con is 'none'", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
   var_time <- "time"
@@ -5805,26 +6159,26 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - inte
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 2L
+  ans_expected <- 4L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - interaction, zero_sum is TRUE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasfix' - interaction, con is 'by'", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, con = 'by'),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 1L
+  ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - interaction, zero_sum is FALSE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - interaction, con is 'none'", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
   var_time <- "time"
@@ -5835,22 +6189,22 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - int
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 16L
+  ans_expected <- 18L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - interaction, zero_sum is TRUE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwrandomseasvary' - interaction, con is 'by'", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 1, zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, s_seas = 1, con = 'by'),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 8L
+  ans_expected <- 9L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5882,7 +6236,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - main e
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - interaction, zero_sum is FALSE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - interaction, con is 'none'", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
   var_time <- "time"
@@ -5897,13 +6251,13 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - intera
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - interaction, zero_sum is TRUE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - interaction, con is 'by'", {
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2010)
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, sd = 0, zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, sd = 0, con = 'by'),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -5912,7 +6266,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasfix' - intera
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - interaction, zero_sum is FALSE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - interaction, con is 'none'", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
   var_time <- "time"
@@ -5927,13 +6281,13 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - inter
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - interaction, zero_sum is TRUE", {
+test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - interaction, con is 'by'", {
   dimnames_term <- list(time = 2001:2013,
                         sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, sd = 0, s_seas = 1, zero_sum = TRUE),
+  ans_obtained <- length_hyperrandfree(prior = RW_Seas(n_seas = 3, sd = 0, s_seas = 1, con = 'by'),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
@@ -5942,20 +6296,17 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rwzeroseasvary' - inter
   expect_identical(ans_obtained, ans_expected)                   
 })
 
-
-
-
 test_that("'length_hyperrandfree' works with 'bage_prior_rw2randomseasfix'", {
   dimnames_term <- list(x = letters[1:13])
   var_time <- "time"
   var_age <- "age"
   var_varsexgender <- "sex"
-  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, along = "x"),
+  ans_obtained <- length_hyperrandfree(prior = RW2_Seas(n_seas = 3, s_seas = 0, along = "x"),
                                        dimnames_term = dimnames_term,
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 1L
+  ans_expected <- 2L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -5969,7 +6320,7 @@ test_that("'length_hyperrandfree' works with 'bage_prior_rw2randomseasvary'", {
                                        var_time = var_time,
                                        var_age = var_age,
                                        var_sexgender = var_sexgender)
-  ans_expected <- 8L
+  ans_expected <- 9L
   expect_identical(ans_obtained, ans_expected)                   
 })
 
@@ -6025,9 +6376,9 @@ test_that("'levels_hyper' works with 'bage_prior_lin'", {
 test_that("'levels_hyper' works with 'bage_prior_linar'", {
   matrix_along_by <- matrix(0:9, ncol = 1L)
   expect_identical(levels_hyper(prior = Lin_AR()),
-                   c("sd", "coef1", "coef2"))
+                   c("coef1", "coef2", "sd"))
   expect_identical(levels_hyper(prior = Lin_AR1()),
-                   c("sd", "coef"))
+                   c("coef", "sd"))
 })
 
 test_that("'levels_hyper' works with 'bage_prior_linex'", {
@@ -6142,13 +6493,23 @@ test_that("'levels_hyper' works with 'bage_prior_svd_ar'", {
                    c("coef", "sd"))
 })
 
-test_that("'levels_hyper' works with 'bage_prior_svd_rw'", {
+test_that("'levels_hyper' works with 'bage_prior_svd_rwrandom'", {
   expect_identical(levels_hyper(prior = SVD_RW(HMD)),
                    "sd")
 })
 
-test_that("'levels_hyper' works with 'bage_prior_svd_rw2'", {
+test_that("'levels_hyper' works with 'bage_prior_svd_rwzero'", {
+  expect_identical(levels_hyper(prior = SVD_RW(HMD, sd = 0)),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_svd_rw2random'", {
   expect_identical(levels_hyper(prior = SVD_RW2(HMD)),
+                   "sd")
+})
+
+test_that("'levels_hyper' works with 'bage_prior_svd_rw2zero'", {
+  expect_identical(levels_hyper(prior = SVD_RW2(HMD, sd = 0)),
                    "sd")
 })
 
@@ -6781,7 +7142,7 @@ test_that("'make_i_along' works with bage_prior_svd_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_i_along' works with bage_prior_svd_rw", {
+test_that("'make_i_along' works with bage_prior_svd_rwrandom", {
   prior <- SVD_RW(HMD)
   dimnames_term <- list(age = 1:3,
                         time = 2000:2005,
@@ -6796,8 +7157,38 @@ test_that("'make_i_along' works with bage_prior_svd_rw", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_i_along' works with bage_prior_svd_rw2", {
+test_that("'make_i_along' works with bage_prior_svd_rwzero", {
+  prior <- SVD_RW(HMD, sd = 0)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_svd_rw2random", {
   prior <- SVD_RW2(HMD)
+  dimnames_term <- list(age = 1:3,
+                        time = 2000:2005,
+                        sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  ans_obtained <- make_i_along(prior = prior,
+                               dimnames_term = dimnames_term,
+                               var_time = var_time,
+                               var_age = var_age)
+  ans_expected <- 2L
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_i_along' works with bage_prior_svd_rw2zero", {
+  prior <- SVD_RW2(HMD, sd = 0)
   dimnames_term <- list(age = 1:3,
                         time = 2000:2005,
                         sex = c("f", "m"))
@@ -6847,8 +7238,8 @@ test_that("'make_matrix_along_by_effectfree' works with bage_prior_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with bage_prior_ar = zero_sum is TRUE", {
-  prior <- AR1(zero_sum = TRUE)
+test_that("'make_matrix_along_by_effectfree' works with bage_prior_ar = con is 'by'", {
+  prior <- AR1(con = 'by')
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 2001:2010,
                                                                        sex = c("f", "m")),
@@ -6903,7 +7294,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwrandom", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rwrandom', 2 dimensions, zero_sum is FALSE", {
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rwrandom', 2 dimensions, con is 'none'", {
   prior <- RW()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 0:9, region = c("a", "b")),
@@ -6937,7 +7328,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwrandomseasvary
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rwzero', 2 dimensions, zero_sum is FALSE", {
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rwzero', 2 dimensions, con is 'none'", {
   prior <- RW(sd = 0)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(time = 0:9, region = c("a", "b")),
@@ -6971,7 +7362,7 @@ test_that("'make_matrix_along_by_effectfree' works - bage_prior_rwzeroseasvary",
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 2 dimensions, zero_sum is FALSE", {
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 2 dimensions, con is 'none'", {
   prior <- RW2_Infant()
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = 0:9, region = c("a", "b")),
@@ -6983,8 +7374,8 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 2 dimensions, zero_sum is TRUE", {
-  prior <- RW2_Infant(zero_sum = TRUE)
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_rw2infant', 2 dimensions, con is 'by'", {
+  prior <- RW2_Infant(con = 'by')
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = 0:9, region = c("a", "b")),
                                                   var_time = "time",
@@ -7145,8 +7536,20 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_ar'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw'", {
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rwrandom'", {
   prior <- SVD_RW(HMD)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                  time = 2001:2005),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:14, nr = 3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rwzero'", {
+  prior <- SVD_RW(HMD, sd = 0)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -7157,8 +7560,20 @@ test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw'", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2'", {
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2random'", {
   prior <- SVD_RW2(HMD)
+  ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
+                                                  dimnames_term = list(age = c(0:79, "80+"),
+                                                                  time = 2001:2005),
+                                                  var_time = "time",
+                                                  var_age = "age",
+                                                  var_sexgender = NULL)
+  ans_expected <- t(matrix(0:14, nr = 3))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree' works with 'bage_prior_svd_rw2zero'", {
+  prior <- SVD_RW2(HMD, sd = 0)
   ans_obtained <- make_matrix_along_by_effectfree(prior = prior,
                                                   dimnames_term = list(age = c(0:79, "80+"),
                                                                   time = 2001:2005),
@@ -7241,7 +7656,7 @@ test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rw works, - age, sex, time", {
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rwrandom works, - age, sex, time", {
   prior <- SVD_RW(HMD, n_comp = 4)
   ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
                                                             dimnames_term = list(sex = c("f", "m"),
@@ -7256,7 +7671,22 @@ test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rw2 works, - age, sex, time", {
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rwzero works, - age, sex, time", {
+  prior <- SVD_RW(HMD, n_comp = 4, sd = 0)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rw2random works, - age, sex, time", {
   prior <- SVD_RW2(HMD, n_comp = 4)
   ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
                                                             dimnames_term = list(sex = c("f", "m"),
@@ -7271,8 +7701,23 @@ test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd
   expect_identical(ans_obtained, ans_expected)
 })
 
+test_that("'make_matrix_along_by_effectfree_innermost' method for bage_prior_svd_rw2zero works, - age, sex, time", {
+  prior <- SVD_RW2(HMD, n_comp = 4, sd = 0)
+  ans_obtained <- make_matrix_along_by_effectfree_innermost(prior = prior,
+                                                            dimnames_term = list(sex = c("f", "m"),
+                                                                                 age = c(0:99,
+                                                                                         "100+"),
+                                                                                 time = 1:10),
+                                                            var_time = "time",
+                                                            var_age = "age",
+                                                            var_sexgender = "sex",
+                                                            dim = c(2L, 101L, 10L))
+  ans_expected <- make_matrix_along_by_inner(2L, c(8L, 10L))
+  expect_identical(ans_obtained, ans_expected)
+})
 
-## 'make_matrix_draws_svd_nonzero' --------------------------------------------
+
+## 'make_matrix_draws_svd' ----------------------------------------------------
 
 test_that("'make_matrix_draws_svd' works with bage_prior_norm", {
   set.seed(0)
@@ -7325,9 +7770,26 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_ar", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw", {
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_rwrandom", {
   set.seed(0)
   prior <- SVD_RW(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(30)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_rwzero", {
+  set.seed(0)
+  prior <- SVD_RW(HMD, sd = 0)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -7344,9 +7806,26 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2", {
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2random", {
   set.seed(0)
   prior <- SVD_RW2(HMD)
+  dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
+                        time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_draws_svd(prior = prior,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        var_sexgender = var_sexgender)
+  ans_expected <- Matrix::.sparseDiagonal(30)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2zero", {
+  set.seed(0)
+  prior <- SVD_RW2(HMD, sd = 0)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -7366,7 +7845,7 @@ test_that("'make_matrix_draws_svd' works with bage_prior_svd_rw2", {
 
 ## 'make_matrix_effectfree_effect' --------------------------------------------------
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - zero_sum is FALSE", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - con is 'none'", {
   prior <- AR1()
   dimnames_term <- list(time = 2001:2005)
   var_time <- "time"
@@ -7381,8 +7860,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - zero_sum 
   expect_identical(as.matrix(ans_obtained), ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - interaction, zero_sum is TRUE", {
-  prior <- AR1(zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - interaction, con is 'by'", {
+  prior <- AR1(con = 'by')
   dimnames_term <- list(time = 2001:2005, reg = 1:2)
   var_time <- "time"
   var_age <- "age"
@@ -7396,8 +7875,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_ar1 - interacti
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_lin - interaction, zero_sum is TRUE", {
-  prior <- Lin(zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_lin - interaction, con is 'by'", {
+  prior <- Lin(con = 'by')
   dimnames_term <- list(time = 2001:2005, reg = 1:2)
   var_time <- "time"
   var_age <- "age"
@@ -7411,8 +7890,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_lin - interacti
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_linar - interaction, zero_sum is TRUE", {
-  prior <- Lin_AR(zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linar - interaction, con is 'by'", {
+  prior <- Lin_AR(con = 'by')
   dimnames_term <- list(time = 2001:2005, reg = 1:2)
   var_time <- "time"
   var_age <- "age"
@@ -7426,7 +7905,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_linar - interac
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, zero_sum is FALSE", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, con is 'none'", {
   prior <- Lin(s = 0)
   dimnames_term <- list(time = 2001:2005, reg = 1:2)
   var_time <- "time"
@@ -7442,7 +7921,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interac
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along second, zero_sum is FALSE", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along second, con is 'none'", {
   prior <- Lin(s = 0)
   dimnames_term <- list(reg = 1:2, time = 2001:2005)
   var_time <- "time"
@@ -7458,8 +7937,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interac
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, zero_sum is TRUE", {
-  prior <- Lin(s = 0, zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along first, con is 'by'", {
+  prior <- Lin(s = 0, con = 'by')
   dimnames_term <- list(time = 2001:2005, reg = 1:2)
   var_time <- "time"
   var_age <- "age"
@@ -7472,8 +7951,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interac
   expect_equal(as.matrix(ans_obtained)[1:5], -as.matrix(ans_obtained)[6:10])
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along second, zero_sum is TRUE", {
-  prior <- Lin(s = 0, zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_linex - interaction, along second, con is 'by'", {
+  prior <- Lin(s = 0, con = 'by')
   dimnames_term <- list(reg = 1:3, time = 2001:2005)
   var_time <- "time"
   var_age <- "age"
@@ -7503,7 +7982,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - main
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - interaction, zero_sum is FALSE", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - interaction, con is 'none'", {
   prior <- RW()
   dimnames_term <- list(age = 1:10, reg = 1:3)
   var_time <- "time"
@@ -7518,8 +7997,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - inte
   expect_identical(Matrix::as.matrix(ans_obtained), Matrix::as.matrix(ans_expected))
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - interaction, zero_sum is TRUE", {
-  prior <- RW(zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - interaction, con is 'by'", {
+  prior <- RW(con = 'by')
   dimnames_term <- list(age = 1:10, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7534,8 +8013,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandom - inte
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandomseasfix - interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandomseasfix - interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, con = 'by')
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7549,8 +8028,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandomseasfix
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandomseasvary - interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE, s_seas = 0.2)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwrandomseasvary - interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, con = 'by', s_seas = 0.2)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7579,7 +8058,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - main e
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - interaction, zero_sum is FALSE", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - interaction, con is 'none'", {
   prior <- RW(sd = 0)
   dimnames_term <- list(age = 1:10, reg = 1:3)
   var_time <- "time"
@@ -7595,8 +8074,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - intera
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - interaction, zero_sum is TRUE", {
-  prior <- RW(zero_sum = TRUE, sd = 0)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - interaction, con is 'by'", {
+  prior <- RW(con = 'by', sd = 0)
   dimnames_term <- list(age = 1:10, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7611,8 +8090,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzero - intera
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzeroseasfix - interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE, sd = 0)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzeroseasfix - interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, con = 'by', sd = 0)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7626,8 +8105,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzeroseasfix -
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzeroseasvary - interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 2, zero_sum = TRUE, s_seas = 0.2, sd = 0)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzeroseasvary - interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 2, con = 'by', s_seas = 0.2, sd = 0)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7641,8 +8120,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rwzeroseasvary 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2infant - interaction, zero_sum is TRUE", {
-  prior <- RW2_Infant(zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2infant - interaction, con is 'by'", {
+  prior <- RW2_Infant(con = 'by')
   dimnames_term <- list(age = 0:9, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7655,12 +8134,6 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2infant - int
   ans_expected <- make_matrix_unconstr_constr_along(c(10, 3))
   expect_identical(ans_obtained, ans_expected)
 })
-
-
-
-
-
-
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2random", {
   prior <- RW2()
@@ -7677,8 +8150,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2random", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2randomseasfix - interaction, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2randomseasfix - interaction, con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, con = 'by')
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7692,8 +8165,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2randomseasfi
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2randomseasvary - interaction, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE, s_seas = 0.2)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2randomseasvary - interaction, con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, con = 'by', s_seas = 0.2)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7722,8 +8195,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2zero", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2zeroseasfix - interaction, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE, sd = 0)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2zeroseasfix - interaction, con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, con = 'by', sd = 0)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7737,8 +8210,8 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2zeroseasfix 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2zeroseasvary - interaction, zero_sum is TRUE", {
-  prior <- RW2_Seas(n_seas = 2, zero_sum = TRUE, s_seas = 0.2, sd = 0)
+test_that("'make_matrix_effectfree_effect' works with bage_prior_rw2zeroseasvary - interaction, con is 'by'", {
+  prior <- RW2_Seas(n_seas = 2, con = 'by', s_seas = 0.2, sd = 0)
   dimnames_term <- list(time = 2001:2010, reg = 1:3)
   var_time <- "time"
   var_age <- "age"
@@ -7767,7 +8240,7 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - main e
 })
 
 test_that("'make_matrix_effectfree_effect' works with bage_prior_spline - interaction", {
-  prior <- Sp(zero_sum = T, n_comp = 5)
+  prior <- Sp(con = 'by', n_comp = 5)
   dimnames_term <- list(age = 1:10,
                         reg = 1:3)
   var_time <- "time"
@@ -7875,8 +8348,23 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_ar - age-ti
   expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 10))
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rw - age-time interaction", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rwrandom - age-time interaction", {
   prior <- SVD_RW(HMD, n_comp = 2)
+  dimnames_term = list(time = 2001:2005,
+                       age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_matrix_effectfree_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 10))
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rwzero - age-time interaction", {
+  prior <- SVD_RW(HMD, n_comp = 2, sd = 0)
   dimnames_term = list(time = 2001:2005,
                        age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "time"
@@ -7890,8 +8378,23 @@ test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rw - age-ti
   expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 8))
 })
 
-test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_ar - age-time interaction", {
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rw2random - age-time interaction", {
   prior <- SVD_RW2(HMD, n_comp = 2)
+  dimnames_term = list(time = 2001:2005,
+                       age = poputils::age_labels(type = "lt", max = 60))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_matrix_effectfree_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  expect_equal(dim(ans), c(prod(lengths(dimnames_term)), 10))
+})
+
+test_that("'make_matrix_effectfree_effect' works with bage_prior_svd_rw2zero - age-time interaction", {
+  prior <- SVD_RW2(HMD, n_comp = 2, sd = 0)
   dimnames_term = list(time = 2001:2005,
                        age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "time"
@@ -8047,7 +8550,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd - sex x reg x ag
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, zero_sum is FALSE", {
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, con is 'none'", {
   prior <- SVD_AR(HMD)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
@@ -8070,8 +8573,8 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time 
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_sub_orig' works with bage_prior_svd_ar - sex x time x age interaction, zero_sum is TRUE", {
-  prior <- SVD_AR(HMD, zero_sum = TRUE)
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_ar - sex x time x age interaction, con is 'by'", {
+  prior <- SVD_AR(HMD, con = 'by')
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -8093,7 +8596,7 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_ar - sex x time x ag
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw - sex x time x age interaction", {
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_rwrandom - sex x time x age interaction", {
   prior <- SVD_RW(HMD)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
@@ -8116,8 +8619,54 @@ test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw - sex x time x ag
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw2 - sex x time x age interaction", {
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_rwzero - sex x time x age interaction", {
+  prior <- SVD_RW(HMD, sd = 0)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw2random - sex x time x age interaction", {
   prior <- SVD_RW2(HMD)
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_matrix_sub_orig(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender,
+                                       dim_after = lengths(dimnames_term))
+  m2 <- HMD$data$matrix[[35]][as.integer(t(matrix(1:28,nr=14))), c(1:3, 6:8)]
+  m2 <- Matrix::kronecker(Matrix::.sparseDiagonal(10), m2)
+  m1 <- make_matrix_perm_agesex_from_front(i_age = 3L,
+                                           i_sexgender = 1L,
+                                           dim_after = lengths(dimnames_term))
+  ans_expected <- m1 %*% m2
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_sub_orig' works with bage_prior_svd_rw2zero - sex x time x age interaction", {
+  prior <- SVD_RW2(HMD, sd = 0)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -8206,8 +8755,24 @@ test_that("'make_offset_effectfree_effect' works with bage_prior_svd_ar - sex x 
   expect_equal(length(ans), prod(lengths(dimnames_term)))
 })
 
-test_that("'make_offset_effectfree_effect' works with bage_prior_svd_rw - sex x time x age interaction", {
-  prior <- SVD_RW(HMD, zero_sum = TRUE)
+test_that("'make_offset_effectfree_effect' works with bage_prior_svd_rwrandom - sex x time x age interaction", {
+  prior <- SVD_RW(HMD, con = 'by')
+  dimnames_term = list(sex = c("F", "M"),
+                       time = 2001:2010,
+                       age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans <- make_offset_effectfree_effect(prior = prior,
+                                       dimnames_term = dimnames_term,
+                                       var_time = var_time,
+                                       var_age = var_age,
+                                       var_sexgender = var_sexgender)
+  expect_equal(length(ans), prod(lengths(dimnames_term)))
+})
+
+test_that("'make_offset_effectfree_effect' works with bage_prior_svd_rwzero - sex x time x age interaction", {
+  prior <- SVD_RW(HMD, con = 'by', sd = 0)
   dimnames_term = list(sex = c("F", "M"),
                        time = 2001:2010,
                        age = c(0, "1-4", paste(seq(5, 55, 5), seq(9, 59, 5), sep = "--"), "60+"))
@@ -8272,8 +8837,10 @@ test_that("'print' works", {
   expect_snapshot(print(SVD_AR1(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_RW(HMD)))
   expect_snapshot(print(SVD_RW(HMD, indep = FALSE)))
+  expect_snapshot(print(SVD_RW(HMD, sd = 0)))
   expect_snapshot(print(SVD_RW2(HMD)))
   expect_snapshot(print(SVD_RW2(HMD, indep = FALSE)))
+  expect_snapshot(print(SVD_RW2(HMD, sd = 0)))
 })
 
 
@@ -8285,15 +8852,17 @@ test_that("'str_call_prior' works with bage_prior_ar - AR1", {
     expect_identical(str_call_prior(AR1(max = 0.95)),"AR1(max=0.95)")
     expect_identical(str_call_prior(AR1(s = 0.3)), "AR1(s=0.3)")
     expect_identical(str_call_prior(AR1(min = 0.5, max = 0.95, along = "age",
-                                        s = 0.3, zero_sum = TRUE)),
-                     "AR1(min=0.5,max=0.95,s=0.3,along=\"age\",zero_sum=TRUE)")
+                                        s = 0.3, con = 'by', shape2 = 3,
+                                        shape1 = 2)),
+                     "AR1(s=0.3,shape1=2,shape2=3,min=0.5,max=0.95,along=\"age\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_ar - AR", {
     expect_identical(str_call_prior(AR(n_coef = 1)), "AR(n_coef=1)")
     expect_identical(str_call_prior(AR(n_coef = 3, s = 0.3)), "AR(n_coef=3,s=0.3)")
-    expect_identical(str_call_prior(AR(s = 0.3, zero_sum = T, along = "cohort", n = 2)),
-                     "AR(s=0.3,along=\"cohort\",zero_sum=TRUE)")
+    expect_identical(str_call_prior(AR(s = 0.3, shape1 = 2, shape2 = 2,
+                                       con = "by", along = "cohort", n = 2)),
+                     "AR(s=0.3,shape1=2,shape2=2,along=\"cohort\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_known", {
@@ -8307,18 +8876,19 @@ test_that("'str_call_prior' works with bage_prior_known", {
 test_that("'str_call_prior' works with bage_prior_lin", {
     expect_identical(str_call_prior(Lin()), "Lin()")
     expect_identical(str_call_prior(Lin(sd_slope = 0.5, mean_slope = -0.2, s = 2,
-                                        zero_sum = TRUE, along = "a")),
-                     "Lin(s=2,mean_slope=-0.2,sd_slope=0.5,along=\"a\",zero_sum=TRUE)")
+                                        con = 'by', along = "a")),
+                     "Lin(s=2,mean_slope=-0.2,sd_slope=0.5,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR format", {
     expect_identical(str_call_prior(Lin_AR()), "Lin_AR()")
     expect_identical(str_call_prior(Lin_AR(sd = 0.5)), "Lin_AR(sd_slope=0.5)")
-    expect_identical(str_call_prior(Lin_AR(sd=2L,mean_slope=0.1,s = 0.95)),
-                     "Lin_AR(s=0.95,mean_slope=0.1,sd_slope=2)")
-    expect_identical(str_call_prior(Lin_AR(sd = 0.1, along = "cohort", zero_sum = T,
+    expect_identical(str_call_prior(Lin_AR(sd=2L,mean_slope=0.1,s = 0.95,
+                                           shape1 = 2, shape2 = 2)),
+                     "Lin_AR(s=0.95,shape1=2,shape2=2,mean_slope=0.1,sd_slope=2)")
+    expect_identical(str_call_prior(Lin_AR(sd = 0.1, along = "cohort", con = "by",
                                            s = 0.95,n=3)),
-                     "Lin_AR(n_coef=3,s=0.95,sd_slope=0.1,along=\"cohort\",zero_sum=TRUE)")
+                     "Lin_AR(n_coef=3,s=0.95,sd_slope=0.1,along=\"cohort\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
@@ -8327,15 +8897,16 @@ test_that("'str_call_prior' works with bage_prior_linar - AR1 format", {
                      "Lin_AR1(sd_slope=0.5,along=\"age\")")
     expect_identical(str_call_prior(Lin_AR1(sd=2L,s = 0.95)), "Lin_AR1(s=0.95,sd_slope=2)")
     expect_identical(str_call_prior(Lin_AR1(sd = 0.1, mean_slope = 0.2,
-                                            zero_sum = T, max=1,s = 0.95, min = 0.5)),
-                     "Lin_AR1(min=0.5,max=1,s=0.95,mean_slope=0.2,sd_slope=0.1,zero_sum=TRUE)")
+                                            con = "by", max=1,s = 0.95, min = 0.5,
+                                            shape1 = 1, shape2 = 0.1)),
+                     "Lin_AR1(s=0.95,shape1=1,shape2=0.1,min=0.5,max=1,mean_slope=0.2,sd_slope=0.1,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_linex", {
     expect_identical(str_call_prior(Lin(s = 0)), "Lin(s=0)")
     expect_identical(str_call_prior(Lin(sd_slope = 0.5, mean_slope = -0.2, s = 0,
-                                        zero_sum = TRUE, along = "a")),
-                     "Lin(s=0,mean_slope=-0.2,sd_slope=0.5,along=\"a\",zero_sum=TRUE)")
+                                        con = 'by', along = "a")),
+                     "Lin(s=0,mean_slope=-0.2,sd_slope=0.5,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_norm", {
@@ -8350,92 +8921,92 @@ test_that("'str_call_prior' works with bage_prior_normfixed", {
 
 test_that("'str_call_prior' works with bage_prior_rwrandom", {
     expect_identical(str_call_prior(RW()), "RW()")
-    expect_identical(str_call_prior(RW(along = "a", s = 2, sd = 0.2, zero_sum=T)),
-                     "RW(s=2,sd=0.2,along=\"a\",zero_sum=TRUE)")
+    expect_identical(str_call_prior(RW(along = "a", s = 2, sd = 0.2, con="by")),
+                     "RW(s=2,sd=0.2,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwrandomseasfix", {
     expect_identical(str_call_prior(RW_Seas(n_seas=2)), "RW_Seas(n_seas=2)")
     expect_identical(str_call_prior(RW_Seas(along = "a", s = 2, n = 5, sd_seas = 2.0,
-                                            zero_sum=T,sd=0.2)),
-                     "RW_Seas(n_seas=5,s=2,sd=0.2,sd_seas=2,along=\"a\",zero_sum=TRUE)")
+                                            con="by",sd=0.2)),
+                     "RW_Seas(n_seas=5,s=2,sd=0.2,sd_seas=2,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwrandomseasvary", {
     expect_identical(str_call_prior(RW_Seas(n_seas=2)), "RW_Seas(n_seas=2)")
     expect_identical(str_call_prior(RW_Seas(along = "a", sd_seas = 3.00, s = 2,
-                                            sd=0.2,zero_sum = T, n = 5, s_seas=0.1)),
-                     "RW_Seas(n_seas=5,s=2,sd=0.2,s_seas=0.1,sd_seas=3,along=\"a\",zero_sum=TRUE)")
+                                            sd=0.2,con = "by", n = 5, s_seas=0.1)),
+                     "RW_Seas(n_seas=5,s=2,sd=0.2,s_seas=0.1,sd_seas=3,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwzero", {
     expect_identical(str_call_prior(RW(sd = 0)), "RW(sd=0)")
-    expect_identical(str_call_prior(RW(along = "a", s = 2, sd = 0, zero_sum=T)),
-                     "RW(s=2,sd=0,along=\"a\",zero_sum=TRUE)")
+    expect_identical(str_call_prior(RW(along = "a", s = 2, sd = 0, con="by")),
+                     "RW(s=2,sd=0,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwzeroseasfix", {
     expect_identical(str_call_prior(RW_Seas(n_seas=2,sd = 0)), "RW_Seas(n_seas=2,sd=0)")
     expect_identical(str_call_prior(RW_Seas(along = "a", s = 2, n = 5, sd_seas = 2.0,
-                                            zero_sum=T,sd=0)),
-                     "RW_Seas(n_seas=5,s=2,sd=0,sd_seas=2,along=\"a\",zero_sum=TRUE)")
+                                            con="by",sd=0)),
+                     "RW_Seas(n_seas=5,s=2,sd=0,sd_seas=2,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rwzeroseasvary", {
     expect_identical(str_call_prior(RW_Seas(n_seas=2,sd=0)), "RW_Seas(n_seas=2,sd=0)")
     expect_identical(str_call_prior(RW_Seas(along = "a", sd_seas = 3.00, s = 2,
-                                            sd=0,zero_sum = T, n = 5, s_seas=0.1)),
-                     "RW_Seas(n_seas=5,s=2,sd=0,s_seas=0.1,sd_seas=3,along=\"a\",zero_sum=TRUE)")
+                                            sd=0,con = "by", n = 5, s_seas=0.1)),
+                     "RW_Seas(n_seas=5,s=2,sd=0,s_seas=0.1,sd_seas=3,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2infant", {
   expect_identical(str_call_prior(RW2_Infant()), "RW2_Infant()")
-  expect_identical(str_call_prior(RW2_Infant(s = 2, zero_sum = TRUE)),
-                   "RW2_Infant(s=2,zero_sum=TRUE)")
+  expect_identical(str_call_prior(RW2_Infant(s = 2, con = 'by')),
+                   "RW2_Infant(s=2,con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2random", {
   expect_identical(str_call_prior(RW2()), "RW2()")
-  expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0.5, zero_sum = TRUE)),
-                   "RW2(s=2,sd=0.5,along=\"a\",zero_sum=TRUE)")
+  expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0.5, con = 'by')),
+                   "RW2(s=2,sd=0.5,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2randomseasfix", {
   expect_identical(str_call_prior(RW2_Seas(n_seas=2, s_seas = 0)),
                    "RW2_Seas(n_seas=2)")
   expect_identical(str_call_prior(RW2_Seas(along = "a", sd_seas = 3, s = 2, sd = 0.2,
-                                           zero_sum = TRUE, n = 5)),
-                     "RW2_Seas(n_seas=5,s=2,sd=0.2,sd_seas=3,along=\"a\",zero_sum=TRUE)")
+                                           con = 'by', n = 5)),
+                     "RW2_Seas(n_seas=5,s=2,sd=0.2,sd_seas=3,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2randomseasvary", {
     expect_identical(str_call_prior(RW2_Seas(n_seas=2)), "RW2_Seas(n_seas=2)")
     expect_identical(str_call_prior(RW2_Seas(along = "a",
                                              s = 2, n = 5, s_seas=0.1,
-                                             zero_sum=T,sd_seas = 0.2)),
-                     "RW2_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=0.2,along=\"a\",zero_sum=TRUE)")
+                                             con="by",sd_seas = 0.2)),
+                     "RW2_Seas(n_seas=5,s=2,s_seas=0.1,sd_seas=0.2,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2zero", {
   expect_identical(str_call_prior(RW2(sd = 0)), "RW2(sd=0)")
-  expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0, zero_sum = TRUE)),
-                   "RW2(s=2,sd=0,along=\"a\",zero_sum=TRUE)")
+  expect_identical(str_call_prior(RW2(along = "a", s = 2, sd = 0, con = 'by')),
+                   "RW2(s=2,sd=0,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2zeroseasfix", {
   expect_identical(str_call_prior(RW2_Seas(n_seas=2, sd = 0, s_seas = 0)),
                    "RW2_Seas(n_seas=2,sd=0)")
   expect_identical(str_call_prior(RW2_Seas(along = "a", sd_seas = 3, s = 2, sd = 0,
-                                           zero_sum = TRUE, n = 5)),
-                     "RW2_Seas(n_seas=5,s=2,sd=0,sd_seas=3,along=\"a\",zero_sum=TRUE)")
+                                           con = 'by', n = 5)),
+                     "RW2_Seas(n_seas=5,s=2,sd=0,sd_seas=3,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_rw2zeroseasvary", {
     expect_identical(str_call_prior(RW2_Seas(sd=0,n_seas=2)), "RW2_Seas(n_seas=2,sd=0)")
     expect_identical(str_call_prior(RW2_Seas(along = "a",
                                              s = 2, n = 5, s_seas=0.1, sd=0,
-                                             zero_sum=T,sd_seas = 0.2)),
-                     "RW2_Seas(n_seas=5,s=2,sd=0,s_seas=0.1,sd_seas=0.2,along=\"a\",zero_sum=TRUE)")
+                                             con="by",sd_seas = 0.2)),
+                     "RW2_Seas(n_seas=5,s=2,sd=0,s_seas=0.1,sd_seas=0.2,along=\"a\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_spline", {
@@ -8443,8 +9014,8 @@ test_that("'str_call_prior' works with bage_prior_spline", {
     expect_identical(str_call_prior(Sp(n = 5L)), "Sp(n_comp=5)")
     expect_identical(str_call_prior(Sp(s = 0.1, sd = 0.5)), "Sp(s=0.1,sd=0.5)")
     expect_identical(str_call_prior(Sp(s = 3,along = "cohort", n = 5L,
-                                       zero_sum=T,sd=2.0000)),
-                     "Sp(n_comp=5,s=3,sd=2,along=\"cohort\",zero_sum=TRUE)")
+                                       con="by",sd=2.0000)),
+                     "Sp(n_comp=5,s=3,sd=2,along=\"cohort\",con=\"by\")")
 })
 
 test_that("'str_call_prior' works with bage_prior_svd", {
@@ -8461,25 +9032,42 @@ test_that("'str_call_prior' works with bage_prior_svd_ar", {
     expect_identical(str_call_prior(SVD_AR1(s)), "SVD_AR1(s)")
     expect_identical(str_call_prior(SVD_AR1(s,indep = FALSE)), "SVD_AR1(s,indep=FALSE)")
     expect_identical(str_call_prior(SVD_AR1(s,min = 0.2, n = 6L)), "SVD_AR1(s,n_comp=6,min=0.2)")
-    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 3L,n_coef=3,zero_sum=T)),
-                     "SVD_AR(s,n_comp=3,n_coef=3,zero_sum=TRUE)")
+    expect_identical(str_call_prior(SVD_AR(s,indep=T,n_comp = 3L,n_coef=3,con="by")),
+                     "SVD_AR(s,n_comp=3,n_coef=3,con=\"by\")")
 })
 
-test_that("'str_call_prior' works with bage_prior_svd_rw", {
+test_that("'str_call_prior' works with bage_prior_svd_rwrandom", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW(s)), "SVD_RW(s)")
     expect_identical(str_call_prior(SVD_RW(s,indep = FALSE)), "SVD_RW(s,indep=FALSE)")
-    expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,zero_sum=T,
-                                           n_comp = 3L,s=0.3)),
-                     "SVD_RW(s,n_comp=3,s=0.3,zero_sum=TRUE)")
+    expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,con="by",
+                                           n_comp = 3L,sd=3,s=0.3)),
+                     "SVD_RW(s,n_comp=3,s=0.3,sd=3,con=\"by\")")
 })
 
-test_that("'str_call_prior' works with bage_prior_svd_rw2", {
+test_that("'str_call_prior' works with bage_prior_svd_rwzero", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_RW(s,sd = 0)), "SVD_RW(s,sd=0)")
+    expect_identical(str_call_prior(SVD_RW(s,indep = FALSE, sd = 0)), "SVD_RW(s,indep=FALSE,sd=0)")
+    expect_identical(str_call_prior(SVD_RW(s,indep = TRUE,con="by",
+                                           n_comp = 3L,s=0.3,sd=0)),
+                     "SVD_RW(s,n_comp=3,s=0.3,sd=0,con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_rw2random", {
     s <- sim_ssvd()
     expect_identical(str_call_prior(SVD_RW2(s)), "SVD_RW2(s)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=F)), "SVD_RW2(s,indep=FALSE)")
-    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd=0.2,n_comp = 3L,s=0.3,zero_sum=T)),
-                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0.2,zero_sum=TRUE)")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=F,sd=0.1)), "SVD_RW2(s,indep=FALSE,sd=0.1)")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,n_comp = 3L,s=0.3,sd=2,con="by")),
+                     "SVD_RW2(s,n_comp=3,s=0.3,sd=2,sd_slope=0.2,con=\"by\")")
+})
+
+test_that("'str_call_prior' works with bage_prior_svd_rw2zero", {
+    s <- sim_ssvd()
+    expect_identical(str_call_prior(SVD_RW2(s,sd=0)), "SVD_RW2(s,sd=0)")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=F,sd=0)), "SVD_RW2(s,indep=FALSE,sd=0)")
+    expect_identical(str_call_prior(SVD_RW2(s,indep=T,sd_slope=0.2,sd=0,n_comp = 3L,s=0.3,con="by")),
+                     "SVD_RW2(s,n_comp=3,s=0.3,sd=0,sd_slope=0.2,con=\"by\")")
 })
 
 
@@ -8611,16 +9199,28 @@ test_that("'str_nm_prior' works with bage_prior_svd_ar", {
     expect_identical(str_nm_prior(SVD_AR1(s,indep=T,n = 3L)), "SVD_AR1()")
 })
 
-test_that("'str_nm_prior' works with bage_prior_svd_rw", {
+test_that("'str_nm_prior' works with bage_prior_svd_rwrandom", {
     s <- sim_ssvd()
     expect_identical(str_nm_prior(SVD_RW(s)), "SVD_RW()")
     expect_identical(str_nm_prior(SVD_RW(s,indep=T)), "SVD_RW()")
 })
 
-test_that("'str_nm_prior' works with bage_prior_svd_rw2", {
+test_that("'str_nm_prior' works with bage_prior_svd_rwzero", {
+    s <- sim_ssvd()
+    expect_identical(str_nm_prior(SVD_RW(s, sd = 0)), "SVD_RW()")
+    expect_identical(str_nm_prior(SVD_RW(s,indep=T, sd = 0)), "SVD_RW()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_svd_rw2random", {
     s <- sim_ssvd()
     expect_identical(str_nm_prior(SVD_RW2(s)), "SVD_RW2()")
     expect_identical(str_nm_prior(SVD_RW2(s,indep=T)), "SVD_RW2()")
+})
+
+test_that("'str_nm_prior' works with bage_prior_svd_rw2zero", {
+    s <- sim_ssvd()
+    expect_identical(str_nm_prior(SVD_RW2(s, sd = 0)), "SVD_RW2()")
+    expect_identical(str_nm_prior(SVD_RW2(s,indep=T, sd = 0)), "SVD_RW2()")
 })
 
 
@@ -8663,9 +9263,9 @@ test_that("'transform_hyper' works with 'bage_prior_linar - AR'", {
     2 * ans - 1
   }
   l <- transform_hyper(prior = Lin_AR(n_coef = 2))
-  expect_equal(l[[1]](0.35), exp(0.35))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
-  expect_equal(l[[3]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[3]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_linar - AR1'", {
@@ -8674,8 +9274,8 @@ test_that("'transform_hyper' works with 'bage_prior_linar - AR1'", {
     0.18 * ans + 0.8
   }
   l <- transform_hyper(prior = Lin_AR1())
-  expect_equal(l[[1]](0.35), exp(0.35))
-  expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
+  expect_equal(l[[2]](0.35), exp(0.35))
 })
 
 test_that("'transform_hyper' works with 'bage_prior_linex'", {
@@ -8782,13 +9382,23 @@ test_that("'transform_hyper' works with 'bage_prior_svd_ar - AR1'", {
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
-test_that("'transform_hyper' works with 'bage_prior_svd_rw'", {
+test_that("'transform_hyper' works with 'bage_prior_svd_rwrandom'", {
   l <- transform_hyper_ar(prior = SVD_RW(LFP))
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
-test_that("'transform_hyper' works with 'bage_prior_svd_rw2'", {
+test_that("'transform_hyper' works with 'bage_prior_svd_rwzero'", {
+  l <- transform_hyper_ar(prior = SVD_RW(LFP, sd = 0))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_svd_rw2random'", {
   l <- transform_hyper_ar(prior = SVD_RW2(LFP))
+  expect_equal(l[[2]](0.35), exp(0.35))
+})
+
+test_that("'transform_hyper' works with 'bage_prior_svd_rw2zero'", {
+  l <- transform_hyper_ar(prior = SVD_RW2(LFP, sd = 0))
   expect_equal(l[[2]](0.35), exp(0.35))
 })
 
@@ -8820,7 +9430,9 @@ test_that("'uses_along' works with valid inputs", {
   expect_false(uses_along(SVD(HMD)))
   expect_true(uses_along(SVD_AR(HMD)))
   expect_true(uses_along(SVD_RW(HMD)))
+  expect_true(uses_along(SVD_RW(HMD, sd = 0)))
   expect_true(uses_along(SVD_RW2(HMD)))
+  expect_true(uses_along(SVD_RW2(HMD, sd = 0)))
 })
 
 
@@ -8880,7 +9492,9 @@ test_that("'uses_matrix_effectfree_effect' works with valid inputs", {
   expect_true(uses_matrix_effectfree_effect(SVD(HMD)))
   expect_true(uses_matrix_effectfree_effect(SVD_AR(HMD)))
   expect_true(uses_matrix_effectfree_effect(SVD_RW(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_RW(HMD, sd = 0)))
   expect_true(uses_matrix_effectfree_effect(SVD_RW2(HMD)))
+  expect_true(uses_matrix_effectfree_effect(SVD_RW2(HMD, sd = 0)))
 })
 
 
@@ -8892,7 +9506,9 @@ test_that("'uses_offset_effectfree_effect' works with valid inputs", {
   expect_true(uses_offset_effectfree_effect(SVD(HMD)))
   expect_true(uses_offset_effectfree_effect(SVD_AR(HMD)))
   expect_true(uses_offset_effectfree_effect(SVD_RW(HMD)))
+  expect_true(uses_offset_effectfree_effect(SVD_RW(HMD, sd = 0)))
   expect_true(uses_offset_effectfree_effect(SVD_RW2(HMD)))
+  expect_true(uses_offset_effectfree_effect(SVD_RW2(HMD, sd = 0)))
 })
 
 

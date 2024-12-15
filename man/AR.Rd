@@ -4,7 +4,14 @@
 \alias{AR}
 \title{Autoregressive Prior}
 \usage{
-AR(n_coef = 2, s = 1, along = NULL, zero_sum = FALSE)
+AR(
+  n_coef = 2,
+  s = 1,
+  shape1 = 5,
+  shape2 = 5,
+  along = NULL,
+  con = c("none", "by")
+)
 }
 \arguments{
 \item{n_coef}{Number of lagged terms in the
@@ -13,13 +20,16 @@ model, ie the order of the model. Default is \code{2}.}
 \item{s}{Scale for the prior for the innovations.
 Default is \code{1}.}
 
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
+
 \item{along}{Name of the variable to be used
 as the 'along' variable. Only used with
 interactions.}
 
-\item{zero_sum}{If \code{TRUE}, values must
-sum to 0 within each combination
-of the 'by' variables. Default is \code{FALSE}.}
+\item{con}{Constraints on parameters.
+Current choices are \code{"none"} and \code{"all"}.
+Default is \code{"none"}. See below for details.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
@@ -32,7 +42,7 @@ Typically used with time effects or with
 interactions that involve time.
 }
 \details{
-If \code{AR()} is used with an interaction,
+If \code{AR()} is used with an interaction, then
 separate AR processes are constructed along
 the 'along' variable, within each combination of the
 'by' variables.
@@ -49,21 +59,20 @@ Smaller values for \code{s} tend to give smoother estimates.
 
 When \code{AR()} is used with a main effect,
 
-\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_n \beta_{j-n} + \epsilon_j}
+\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_{\text{n\_coef}} \beta_{j-\text{n\_coef}} + \epsilon_j}
 \deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_n \beta_{u,v-n} + \epsilon_{u,v}}
+\deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \beta_{u,v-\text{n\_coef}} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
 
 where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{v} denotes position within the 'along' variable of the interaction;
-\item \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
-\item \eqn{n} is \code{n_coef}.
+\item \eqn{v} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 Internally, \code{AR()} derives a value for \eqn{\omega} that
@@ -71,17 +80,37 @@ gives every element of \eqn{\beta} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
 
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 
-where \code{s} is provided by the user.
+The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+each have prior
 
-The autocorrelation coefficients \eqn{\phi_1, \cdots, \phi_n}
-are restricted to values between -1 and 1 that jointly
-lead to a stationary model. The quantity
-\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_n^2}} has the
-boundary-avoiding prior
+\deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+}
 
-\deqn{r \sim \text{Beta}(2, 2).}
+\section{Constraints}{
+
+
+With some combinations of terms and priors, the values of
+the intercept, main effects, and interactions are
+are only weakly identified.
+For instance, it may be possible to increase the value of the
+intercept and reduce the value of the remaining terms in
+the model with no effect on predicted rates and only a tiny
+effect on prior probabilities. This weak identifiability is
+typically harmless. However, in some applications, such as
+forecasting, or when trying to obtain interpretable values
+for main effects and interactions, it can be helpful to increase
+identifiability through the use of constraints.
+
+Current options for constraints are:
+\itemize{
+\item \code{"none"} No constraints. The default.
+\item \code{"by"} Only used in interaction terms that include 'along' and
+'by' dimensions. Within each value of the 'along'
+dimension, terms across each 'by' dimension are constrained
+to sum to 0.
+}
 }
 
 \examples{
@@ -97,7 +126,8 @@ AR(along = "cohort")
 }
 \seealso{
 \itemize{
-\item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}
+\item \code{\link[=AR1]{AR1()}} Special case of \code{AR()}. Can be more
+numerically stable than higher-order models.
 \item \code{\link[=Lin_AR]{Lin_AR()}}, \code{\link[=Lin_AR1]{Lin_AR1()}} Straight line with AR errors
 \item \link{priors} Overview of priors implemented in \strong{bage}
 \item \code{\link[=set_prior]{set_prior()}} Specify prior for intercept,

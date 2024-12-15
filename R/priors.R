@@ -20,13 +20,13 @@
 #' in forecasts for a time-varying
 #' terms such as an age-time interactions.
 #'
-#' Priors where `zero_sum` is yes have an
-#' argument specifying whether sum-to-zero constraints
+#' Priors where `con` is yes have an
+#' argument specifying whether constraints
 #' should be used.
 #'
 #' @details
 #'
-#' | **Prior** |   **Description**        | **Uses**                     | **Forecast** | `zero_sum`
+#' | **Prior** |   **Description**        | **Uses**                     | **Forecast** | `con`
 #' |-----------|--------------------------|------------------------------|------|-----|
 #' | [N()]     | Elements drawn from normal distribution | Term with no natural order | Yes | No |
 #' | [NFix()]  | As for `N()`, but standard deviation fixed | Term with few elements | Yes | No |
