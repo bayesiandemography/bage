@@ -238,7 +238,7 @@ make_matrix_along_by_effect <- function(prior, dimnames_term, var_time, var_age)
 #' @param var_age Name of age variable, or NULL
 #' @param var_sexgender Name of sexgender variable, or NULL
 #' @param dim Dimension of the term, once arguments
-#' such as 'zero_sum' and 'append_zero' have been applied.
+#' such as 'con' and 'append_zero' have been applied.
 #'
 #' @returns A matrix.
 #'
@@ -250,7 +250,7 @@ make_matrix_along_by_effectfree_inner <- function(prior,
                                                   var_sexgender,
                                                   append_zero) {
   along <- prior$specific$along
-  zero_sum <- prior$specific$zero_sum
+  con <- prior$specific$con
   i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
@@ -258,7 +258,7 @@ make_matrix_along_by_effectfree_inner <- function(prior,
   dim <- lengths(dimnames_term)
   if (append_zero)
     dim[[i_along]] <- dim[[i_along]] - 1L
-  if (zero_sum)
+  if (con == "by")
     dim[-i_along] <- dim[-i_along] - 1L
   make_matrix_along_by_effectfree_innermost(prior = prior,
                                             dimnames_term = dimnames_term,
@@ -306,7 +306,7 @@ make_matrix_along_by_inner <- function(i_along, dim) {
 #' @param var_age Name of age dimension, or NULL
 #' @param var_sexgender Name of sex/gender dimension, or NULL
 #' @param dim Dimension of term, once arguments
-#' such as 'zero_sum' and 'append_zero' have been applied.
+#' such as 'con' and 'append_zero' have been applied.
 #'
 #' @returns A matrix
 #'
@@ -361,6 +361,32 @@ make_matrix_append_zero <- function(dim_after) {
 
 
 ## HAS_TESTS
+#' Make Matrix That Centers An Array Within Each Element of Along Dimension
+#'
+#' @param i_along Index for along dimension
+#' @param dim Dimensions of array
+#'
+#' @returns A sparse matrix
+#'
+#' @noRd
+make_matrix_con_by <- function(i_along, dim) {
+  s <- seq_along(dim)
+  perm <- c(i_along, s[-i_along])
+  dim_after <- dim[perm]
+  m_perm <- make_matrix_perm_along_to_front(i_along = i_along,
+                                            dim_after = dim_after)
+  dim_by <- dim[-i_along]
+  Z <- make_matrix_unconstr_constr(dim_by)
+  H <- tcrossprod(Z)
+  n_along <- dim[[i_along]]
+  I <- Matrix::.sparseDiagonal(n_along)
+  ans <- Matrix::kronecker(H, I)
+  ans <- Matrix::crossprod(m_perm, ans %*% m_perm)
+  ans
+}
+
+
+## HAS_TESTS
 #' Make a Matrix of Summation Constraints for an Array
 #'
 #' Contains redundant constraints
@@ -398,7 +424,7 @@ make_matrix_constraints <- function(dim) {
 #' @param var_age Name of age dimension, or NULL
 #' @param var_sexgender Name of sex/gender dimension, or NULL
 #' @param dim Dimension of term, once arguments
-#' such as 'zero_sum' and 'append_zero' have been applied.
+#' such as 'con' and 'append_zero' have been applied.
 #' 
 #' @returns A sparse diagonal matrix
 #'
@@ -439,7 +465,7 @@ make_matrix_draws_svd_appendzero <- function(prior,
 #' @param var_age Name of age dimension, or NULL
 #' @param var_sexgender Name of sex/gender dimension, or NULL
 #' @param dim Dimension of term, once arguments
-#' such as 'zero_sum' and 'append_zero' have been applied.
+#' such as 'con' and 'append_zero' have been applied.
 #' 
 #' @returns A sparse diagonal matrix
 #'
@@ -469,8 +495,7 @@ make_matrix_draws_svd_nozero <- function(prior,
 #' @param var_sexgender Name of sex/gender variable
 #' @param append_zero Whether to append a zero to the start
 #' of each 'along' series.
-#' @param zero_sum Whether elements should sum to zero
-#' within each element of 'along'
+#' @param con Type of constraints
 #'
 #' @returns A sparse matrix
 #'
@@ -481,11 +506,11 @@ make_matrix_effectfree_effect_inner <- function(prior,
                                                 var_age,
                                                 var_sexgender,
                                                 append_zero,
-                                                zero_sum) {
+                                                con) {
   if (uses_along(prior))
-    zero_sum <- prior$specific$zero_sum
+    con <- prior$specific$con
   else
-    zero_sum <- FALSE
+    con <- "none"
   dim <- lengths(dimnames_term)
   s <- seq_along(dim)
   i_along <- make_i_along(prior = prior,
@@ -506,7 +531,7 @@ make_matrix_effectfree_effect_inner <- function(prior,
     dim[[1L]] <- dim[[1L]] - 1L
   }
   ## transform from unconstrained space to constrained space
-  if (zero_sum) {
+  if (con == "by") {
     ans[[3L]] <- make_matrix_unconstr_constr_along(dim)
     dim[-1L] <- dim[-1L] - 1L
   }
@@ -660,7 +685,7 @@ make_matrix_spline <- function(n_along, n_comp) {
 #'
 #' Workhorse for SVD methods for 'make_matrix_sub_orig'
 #'
-#' When 'zero_sum' is TRUE, project into a
+#' When 'con' is "by", project into a
 #' lower-dimensional subspace.
 #'
 #' @param prior Object of class 'bage_prior'
@@ -671,8 +696,7 @@ make_matrix_spline <- function(n_along, n_comp) {
 #' @param dim_after Dimension after applying the
 #' transform (which is not necessarily the same as the dimension
 #' implied by 'dimnames_term')
-#' @param zero_sum Whether values for age/sex/gender are
-#' constained to sum to zero.
+#' @param con Type of constraints
 #'
 #' @returns A sparse matrix
 #'
@@ -682,7 +706,7 @@ make_matrix_sub_orig_svd <- function(prior,
                                      var_age,
                                      var_sexgender,
                                      dim_after,
-                                     zero_sum) {
+                                     con) {
   nm_split <- dimnames_to_nm_split(dimnames_term)
   i_age <- match(var_age, nm_split)
   if (is.null(var_sexgender))
@@ -695,7 +719,7 @@ make_matrix_sub_orig_svd <- function(prior,
                                         var_age = var_age,
                                         var_sexgender = var_sexgender,
                                         get_matrix = TRUE)
-  if (zero_sum) {
+  if (con == "by") {
     ## make matrix that projects unconstrained age-sex into lower dimension
     dim_agesex_constr <- dim_after[sort(c(i_age, i_sexgender))]
     dim_agesex_unconstr <- dim_agesex_constr + 1L
@@ -755,32 +779,6 @@ make_matrix_unconstr_constr_along <- function(dim_after) {
 }
 
 
-
-#' Make Matrix That Centers An Array Within Each Element of Along Dimension
-#'
-#' @param i_along Index for along dimension
-#' @param dim Dimensions of array
-#'
-#' @returns A sparse matrix
-#'
-#' @noRd
-make_matrix_zero_sum <- function(i_along, dim) {
-  s <- seq_along(dim)
-  perm <- c(i_along, s[-i_along])
-  dim_after <- dim[perm]
-  m_perm <- make_matrix_perm_along_to_front(i_along = i_along,
-                                            dim_after = dim_after)
-  dim_by <- dim[-i_along]
-  Z <- make_matrix_unconstr_constr(dim_by)
-  H <- tcrossprod(Z)
-  n_along <- dim[[i_along]]
-  I <- Matrix::.sparseDiagonal(n_along)
-  ans <- Matrix::kronecker(H, I)
-  ans <- Matrix::crossprod(m_perm, ans %*% m_perm)
-  ans
-}
-
-
 ## HAS_TESTS
 #' Make Offset used in Converting 'effectfree' to 'effect' for SVD Priors
 #'
@@ -789,10 +787,7 @@ make_matrix_zero_sum <- function(i_along, dim) {
 #' @param var_time Name of time variable
 #' @param var_age Name of age variable
 #' @param var_sexgender Name of sex/gender variable
-#' @param append_zero Whether to append a zero to the start
-#' of each 'along' series.
-#' @param zero_sum Whether elements should sum to zero
-#' within each element of 'along'
+#' @param con Type of constraints
 #'
 #' @returns A vector of doubles
 #'
@@ -801,15 +796,14 @@ make_offset_effectfree_effect_svd <- function(prior,
                                               dimnames_term,
                                               var_time,
                                               var_age,
-                                              var_sexgender,
-                                              append_zero) {
+                                              var_sexgender) {
   if (uses_along(prior)) {
     along <- prior$specific$along
-    zero_sum <- prior$specific$zero_sum
+    con <- prior$specific$con
   }
   else {
     along <- NULL
-    zero_sum <- FALSE
+    con <- "none"
   }
   dim <- lengths(dimnames_term)
   s <- seq_along(dim)
@@ -827,7 +821,7 @@ make_offset_effectfree_effect_svd <- function(prior,
   s_along_first <- c(i_along, s[-i_along])
   dim <- dim[s_along_first]
   ## transform from unconstrained space to constrained space
-  if (zero_sum) {
+  if (con == "by") {
     ans[[2L]] <- make_matrix_unconstr_constr_along(dim)
     dim[-1L] <- dim[-1L] - 1L
   }
@@ -841,7 +835,7 @@ make_offset_effectfree_effect_svd <- function(prior,
                                      var_age = var_age,
                                      var_sexgender = var_sexgender,
                                      dim_after = dim,
-                                     zero_sum = zero_sum)
+                                     con = con)
   ans[[4L]] <- offset
   ## combine
   ans <- Filter(Negate(is.null), ans)
@@ -862,8 +856,7 @@ make_offset_effectfree_effect_svd <- function(prior,
 #' @param dim_after Dimension after applying the
 #' transform (which is not necessarily the same as the dimension
 #' implied by 'dimnames_term')
-#' @param zero_sum Whether values for age/sex/gender are
-#' constained to sum to zero.
+#' @param con Type of constraints
 #'
 #' @returns A sparse matrix
 #'
@@ -873,7 +866,7 @@ make_offset_sub_orig_svd <- function(prior,
                                      var_age,
                                      var_sexgender,
                                      dim_after,
-                                     zero_sum) {
+                                     con) {
   nm_split <- dimnames_to_nm_split(dimnames_term)
   i_age <- match(var_age, nm_split)
   if (is.null(var_sexgender))
@@ -886,7 +879,7 @@ make_offset_sub_orig_svd <- function(prior,
                                         var_age = var_age,
                                         var_sexgender = var_sexgender,
                                         get_matrix = FALSE)
-  if (zero_sum) {
+  if (con == "by") {
     ## make matrix that projects unconstrained age-sex into lower dimension
     dim_agesex_constr <- dim_after[sort(c(i_age, i_sexgender))]
     dim_agesex_unconstr <- dim_agesex_constr + 1L

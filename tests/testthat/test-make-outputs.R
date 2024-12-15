@@ -45,6 +45,29 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
 })
 
 
+## 'con_by_fitted' ------------------------------------------------------------
+
+test_that("'con_by_fitted' works", {
+  set.seed(0)
+  prior <- RW()
+  fitted <- rvec::rnorm_rvec(n = 100, n_draw = 10)
+  along <- "time"
+  dimnames_term <- list(time = 2001:2010,
+                        age = 0:4,
+                        sex = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- con_by_fitted(prior = prior,
+                         fitted = fitted,
+                         dimnames_term = dimnames_term,
+                         var_time = var_time,
+                         var_age = var_age)
+  expect_equal(sum(ans[c(3, 13, 23, 33, 43)]),
+               sum(ans[c(4, 14, 24, 34, 44)]))
+  expect_equal(ans[10], -ans[60])
+})
+
+
 ## 'draw_vals_components_fitted' ----------------------------------------------
 
 test_that("'draw_vals_components_fitted' works", {
@@ -81,6 +104,19 @@ test_that("'generate_prior_helper' works with valid inputs", {
                                             replicate = replicate))
   expect_identical(ans_obtained, ans_expected)
 })                       
+
+
+## 'get_term_from_est' --------------------------------------------------------
+
+test_that("'get_term_from_est' works", {
+  est <- list(effectfree = c(a = 1, a = 2, b = 3, c = 4, c = 5),
+              hyper = c(a = 1),
+              hyperrandfree = double(),
+              log_disp = c(disp = 3))
+  ans_obtained <- get_term_from_est(est = est, index_term = c(1L, 4L, 7L))
+  ans_expected <- c("a", "c", "disp")
+  expect_identical(ans_obtained, ans_expected)
+})
 
 
 ## 'get_disp' -----------------------------------------------------------------
@@ -776,7 +812,7 @@ test_that("'make_hyperrand_lin' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_lin' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_lin' works with interaction, con is 'none'", {
   prior <- Lin_AR()
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
@@ -799,8 +835,8 @@ test_that("'make_hyperrand_lin' works with interaction, zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_lin' works with interaction, zero_sum is TRUE", {
-  prior <- Lin_AR(zero_sum = TRUE)
+test_that("'make_hyperrand_lin' works with interaction, con is 'by'", {
+  prior <- Lin_AR(con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 1, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -823,23 +859,193 @@ test_that("'make_hyperrand_lin' works with interaction, zero_sum is TRUE", {
 })
 
 
-## 'make_hyperrand_seasfix' ---------------------------------------------------
+## 'make_hyperrand_randomseasfix' -----------------------------------------------
 
-test_that("'make_hyperrand_seasfix' works with main effect", {
+test_that("'make_hyperrand_randomseasfix' works with main effect", {
   prior <- RW_Seas(n = 4)
+  hyperrandfree <- rvec::rnorm_rvec(n = 3, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_randomseasfix(prior = prior,
+                                               hyperrandfree = hyperrandfree,
+                                               effectfree = effectfree,
+                                               dimnames_term = dimnames_term,
+                                               var_time = var_time,
+                                               var_age = var_age,
+                                               var_sexgender = var_sexgender)
+  season <- c(hyperrandfree[1],
+              hyperrandfree[2],
+              hyperrandfree[3],
+              -sum(hyperrandfree))[c(1:4, 1:4, 1:2)]
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_randomseasfix' works with interaction, random_sum is FALSE", {
+  set.seed(0)
+  prior <- RW2_Seas(n = 4)
+  hyperrandfree <- rvec::rnorm_rvec(n = 6, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_randomseasfix(prior = prior,
+                                             hyperrandfree = hyperrandfree,
+                                             effectfree = effectfree,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender)
+  season1 <- c(hyperrandfree[1],
+               hyperrandfree[2],
+               hyperrandfree[3],
+               -sum(hyperrandfree[1:3]))[c(1:4, 1:4, 1:2)]
+  season2 <- c(hyperrandfree[4],
+               hyperrandfree[5],
+               hyperrandfree[6],
+               -sum(hyperrandfree[4:6]))[c(1:4, 1:4, 1:2)]
+  season <- c(season1, season2)
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_randomseasfix' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n = 4, con = "by")
+  hyperrandfree <- rvec::rnorm_rvec(n = 3, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_randomseasfix(prior = prior,
+                                             hyperrandfree = hyperrandfree,
+                                             effectfree = effectfree,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender)
+  season <- vctrs::vec_c(hyperrandfree[1],
+                         hyperrandfree[2],
+                         hyperrandfree[3],
+                         -sum(hyperrandfree[1:3]))[c(1:4, 1:4, 1:2)]
+  season <- c(-sqrt(0.5) * season,
+              sqrt(0.5) * season)
+  trend <- c(-sqrt(0.5) * effectfree, sqrt(0.5) * effectfree) - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_hyperrand_randomseasvary' ----------------------------------------------
+
+test_that("'make_hyperrand_randomseasvary' works with main effect", {
+  prior <- RW_Seas(n = 4, s_seas = 1)
+  hyperrandfree <- rvec::rnorm_rvec(n = 8, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010)
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_randomseasvary(prior = prior,
+                                              hyperrandfree = hyperrandfree,
+                                              effectfree = effectfree,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  season <- c(hyperrandfree[1:3],
+              -sum(hyperrandfree[1:3]),
+              hyperrandfree[4:6],
+              -sum(hyperrandfree[4:6]),
+              hyperrandfree[7:8])
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_randomseasvary' works with interaction, con is 'none'", {
+  set.seed(0)
+  prior <- RW2_Seas(n = 4, s_seas = 1)
+  hyperrandfree <- rvec::rnorm_rvec(n = 16, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_randomseasvary(prior = prior,
+                                              hyperrandfree = hyperrandfree,
+                                              effectfree = effectfree,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  season1 <- c(hyperrandfree[1:3],
+               -sum(hyperrandfree[1:3]),
+               hyperrandfree[4:6],
+               -sum(hyperrandfree[4:6]),
+               hyperrandfree[7:8])
+  season2 <- c(hyperrandfree[9:11],
+               -sum(hyperrandfree[9:11]),
+               hyperrandfree[12:14],
+               -sum(hyperrandfree[12:14]),
+               hyperrandfree[15:16])
+  season <- c(season1, season2)
+  trend <- effectfree - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_hyperrand_randomseasvary' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 4, s_seas = 1, con = "by")
+  hyperrandfree <- rvec::rnorm_rvec(n = 8, n_draw = 10)
+  effectfree <- rvec::rnorm_rvec(n = 10)
+  dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
+  var_time <- "time"
+  var_age <- "age"
+  var_sexgender <- "sex"
+  ans_obtained <- make_hyperrand_randomseasvary(prior = prior,
+                                              hyperrandfree = hyperrandfree,
+                                              effectfree = effectfree,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
+  season <- vctrs::vec_c(hyperrandfree[1:3],
+                         -sum(hyperrandfree[1:3]),
+                         hyperrandfree[4:6],
+                         -sum(hyperrandfree[4:6]),
+                         hyperrandfree[7:8])
+  season <- c(-sqrt(0.5) * season,
+              sqrt(0.5) * season)
+  trend <- c(-sqrt(0.5) * effectfree, sqrt(0.5) * effectfree) - season
+  ans_expected <- c(trend, season)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
+## 'make_hyperrand_zeroseasfix' -----------------------------------------------
+
+test_that("'make_hyperrand_zeroseasfix' works with main effect", {
+  prior <- RW_Seas(n = 4, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_hyperrand_seasfix(prior = prior,
-                                         hyperrandfree = hyperrandfree,
-                                         effectfree = effectfree,
-                                         dimnames_term = dimnames_term,
-                                         var_time = var_time,
-                                         var_age = var_age,
-                                         var_sexgender = var_sexgender)
+  ans_obtained <- make_hyperrand_zeroseasfix(prior = prior,
+                                             hyperrandfree = hyperrandfree,
+                                             effectfree = effectfree,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender)
   season <- c(effectfree[1],
               effectfree[1] + hyperrandfree[1],
               effectfree[1] + hyperrandfree[2],
@@ -849,22 +1055,22 @@ test_that("'make_hyperrand_seasfix' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_seasfix' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'none'", {
   set.seed(0)
-  prior <- RW2_Seas(n = 4)
+  prior <- RW2_Seas(n = 4, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 4, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_hyperrand_seasfix(prior = prior,
-                                         hyperrandfree = hyperrandfree,
-                                         effectfree = effectfree,
-                                         dimnames_term = dimnames_term,
-                                         var_time = var_time,
-                                         var_age = var_age,
-                                         var_sexgender = var_sexgender)
+  ans_obtained <- make_hyperrand_zeroseasfix(prior = prior,
+                                             hyperrandfree = hyperrandfree,
+                                             effectfree = effectfree,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender)
   season1 <- c(effectfree[1],
                effectfree[1] + hyperrandfree[1],
                effectfree[1] + hyperrandfree[2],
@@ -879,21 +1085,21 @@ test_that("'make_hyperrand_seasfix' works with interaction, zero_sum is FALSE", 
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_seasfix' works with interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n = 4, zero_sum = TRUE)
+test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n = 4, sd = 0, con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_hyperrand_seasfix(prior = prior,
-                                         hyperrandfree = hyperrandfree,
-                                         effectfree = effectfree,
-                                         dimnames_term = dimnames_term,
-                                         var_time = var_time,
-                                         var_age = var_age,
-                                         var_sexgender = var_sexgender)
+  ans_obtained <- make_hyperrand_zeroseasfix(prior = prior,
+                                             hyperrandfree = hyperrandfree,
+                                             effectfree = effectfree,
+                                             dimnames_term = dimnames_term,
+                                             var_time = var_time,
+                                             var_age = var_age,
+                                             var_sexgender = var_sexgender)
   season <- vctrs::vec_c(effectfree[1],
                          effectfree[1] + hyperrandfree[1],
                          effectfree[1] + hyperrandfree[2],
@@ -906,23 +1112,23 @@ test_that("'make_hyperrand_seasfix' works with interaction, zero_sum is TRUE", {
 })
 
 
-## 'make_hyperrand_seasvary' --------------------------------------------------
+## 'make_hyperrand_zeroseasvary' ----------------------------------------------
 
-test_that("'make_hyperrand_seasvary' works with main effect", {
-  prior <- RW_Seas(n = 4, s_seas = 1)
+test_that("'make_hyperrand_zeroseasvary' works with main effect", {
+  prior <- RW_Seas(n = 4, s_seas = 1, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 7, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10, n_draw = 10)
   dimnames_term <- list(time = 2001:2010)
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_hyperrand_seasvary(prior = prior,
-                                          hyperrandfree = hyperrandfree,
-                                          effectfree = effectfree,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
+  ans_obtained <- make_hyperrand_zeroseasvary(prior = prior,
+                                              hyperrandfree = hyperrandfree,
+                                              effectfree = effectfree,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
   season <- c(effectfree[1],
               effectfree[1] + hyperrandfree[1],
               effectfree[1] + hyperrandfree[2],
@@ -935,57 +1141,57 @@ test_that("'make_hyperrand_seasvary' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_seasvary' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_zeroseasvary' works with interaction, con is 'none'", {
   set.seed(0)
-  prior <- RW2_Seas(n = 4, s_seas = 1)
+  prior <- RW2_Seas(n = 4, s_seas = 1, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 14, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_hyperrand_seasvary(prior = prior,
-                                         hyperrandfree = hyperrandfree,
-                                         effectfree = effectfree,
-                                         dimnames_term = dimnames_term,
-                                         var_time = var_time,
-                                         var_age = var_age,
-                                         var_sexgender = var_sexgender)
+  ans_obtained <- make_hyperrand_zeroseasvary(prior = prior,
+                                              hyperrandfree = hyperrandfree,
+                                              effectfree = effectfree,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
   season1 <- c(effectfree[1],
-              effectfree[1] + hyperrandfree[1],
-              effectfree[1] + hyperrandfree[2],
-              -3 * effectfree[1] - sum(hyperrandfree[1:2]),
-              effectfree[1] + hyperrandfree[3:5],
-              -3 * effectfree[1] - sum(hyperrandfree[3:5]),
-              effectfree[1] + hyperrandfree[6:7])
+               effectfree[1] + hyperrandfree[1],
+               effectfree[1] + hyperrandfree[2],
+               -3 * effectfree[1] - sum(hyperrandfree[1:2]),
+               effectfree[1] + hyperrandfree[3:5],
+               -3 * effectfree[1] - sum(hyperrandfree[3:5]),
+               effectfree[1] + hyperrandfree[6:7])
   season2 <- c(effectfree[11],
-              effectfree[11] + hyperrandfree[8],
-              effectfree[11] + hyperrandfree[9],
-              -3 * effectfree[11] - sum(hyperrandfree[8:9]),
-              effectfree[11] + hyperrandfree[10:12],
-              -3 * effectfree[11] - sum(hyperrandfree[10:12]),
-              effectfree[11] + hyperrandfree[13:14])
+               effectfree[11] + hyperrandfree[8],
+               effectfree[11] + hyperrandfree[9],
+               -3 * effectfree[11] - sum(hyperrandfree[8:9]),
+               effectfree[11] + hyperrandfree[10:12],
+               -3 * effectfree[11] - sum(hyperrandfree[10:12]),
+               effectfree[11] + hyperrandfree[13:14])
   season <- c(season1, season2)
   trend <- effectfree - season
   ans_expected <- c(trend, season)
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_seasvary' works with interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 4, s_seas = 1, zero_sum = TRUE)
+test_that("'make_hyperrand_zeroseasvary' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 4, s_seas = 1, con = "by", sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 7, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  ans_obtained <- make_hyperrand_seasvary(prior = prior,
-                                          hyperrandfree = hyperrandfree,
-                                          effectfree = effectfree,
-                                          dimnames_term = dimnames_term,
-                                          var_time = var_time,
-                                          var_age = var_age,
-                                          var_sexgender = var_sexgender)
+  ans_obtained <- make_hyperrand_zeroseasvary(prior = prior,
+                                              hyperrandfree = hyperrandfree,
+                                              effectfree = effectfree,
+                                              dimnames_term = dimnames_term,
+                                              var_time = var_time,
+                                              var_age = var_age,
+                                              var_sexgender = var_sexgender)
   season <- vctrs::vec_c(effectfree[1],
                          effectfree[1] + hyperrandfree[1],
                          effectfree[1] + hyperrandfree[2],
@@ -1055,7 +1261,7 @@ test_that("'make_levels_spline' works - unlist is TRUE", {
 
 ## 'make_levels_spline_term' --------------------------------------------------
 
-test_that("'make_levels_spline_term' works - zero_sum is FALSE", {
+test_that("'make_levels_spline_term' works - con is 'none'", {
   prior <- Sp(n = 5)
   dimnames_term <- list(reg = 1:2,
                         age = 1:20)
@@ -1067,8 +1273,8 @@ test_that("'make_levels_spline_term' works - zero_sum is FALSE", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_spline_term' works - zero_sum is TRUE", {
-  prior <- Sp(n = 5, zero_sum = TRUE)
+test_that("'make_levels_spline_term' works - con is 'by'", {
+  prior <- Sp(n = 5, con = "by")
   dimnames_term <- list(reg = 1:2,
                         age = 1:20)
   ans_obtained <- make_levels_spline_term(prior = prior,
@@ -1079,8 +1285,8 @@ test_that("'make_levels_spline_term' works - zero_sum is TRUE", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_spline_term' works - zero_sum is TRUE, more dimensions", {
-  prior <- Sp(n = 5, zero_sum = TRUE)
+test_that("'make_levels_spline_term' works - con is 'by', more dimensions", {
+  prior <- Sp(n = 5, con = "by")
   dimnames_term <- list(reg = 1:4,
                         age = 1:20,
                         sex = c("f", "m"))
@@ -1191,7 +1397,7 @@ test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - indep, age:sex:time, zero_sum is FALSE", {
+test_that("'make_levels_svd_term' works - indep, age:sex:time, con is 'none'", {
   prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5)
   dimnames_term <- list(time = 2001:2010, age = c(0:59, "60+"), sex = c("M", "F"))
   var_age <- "age"
@@ -1206,8 +1412,8 @@ test_that("'make_levels_svd_term' works - indep, age:sex:time, zero_sum is FALSE
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - indep, age:time:reg, zero_sum is TRUE", {
-  prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5, zero_sum = TRUE)
+test_that("'make_levels_svd_term' works - indep, age:time:reg, con is 'by'", {
+  prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5, con = "by")
   dimnames_term <- list(time = 2001:2010, age = c(0:59, "60+"), reg = c("a", "b", "c"))
   var_age <- "age"
   var_sexgender <- "sex"
@@ -1659,7 +1865,7 @@ test_that("'make_spline' works", {
 
 ## 'make_svd' -----------------------------------------------------------------
 
-test_that("'make_svd' works - SVD_RW", {
+test_that("'make_svd' works - SVD_RW, random", {
   set.seed(0)
   data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
                       time = 2000:2005,
@@ -1672,6 +1878,27 @@ test_that("'make_svd' works - SVD_RW", {
                   exposure = popn)
   mod <- set_prior(mod, age:sex ~ SVD(HMD, n_comp = 5))
   mod <- set_prior(mod, age:time ~ SVD_RW(HMD, n_comp = 5))
+  mod <- set_n_draw(mod, n = 5)
+  mod <- fit(mod)
+  effectfree <- mod$draws_effectfree
+  ans_obtained <- make_svd(mod = mod, effectfree = effectfree)
+  ans_expected <- effectfree[24:63,]
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_svd' works - SVD_RW, zero", {
+  set.seed(0)
+  data <- expand.grid(age = poputils::age_labels(type = "lt", max = 60),
+                      time = 2000:2005,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + age * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, age:sex ~ SVD(HMD, n_comp = 5))
+  mod <- set_prior(mod, age:time ~ SVD_RW(HMD, n_comp = 5, sd = 0))
   mod <- set_n_draw(mod, n = 5)
   mod <- fit(mod)
   effectfree <- mod$draws_effectfree
@@ -2079,27 +2306,4 @@ test_that("'transform_hyper_ar' works with 'bage_prior_svd_ar - AR'", {
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
-})
-
-
-## 'zero_sum_fitted' ----------------------------------------------------------
-
-test_that("'zero_sum' works", {
-  set.seed(0)
-  prior <- RW()
-  fitted <- rvec::rnorm_rvec(n = 100, n_draw = 10)
-  along <- "time"
-  dimnames_term <- list(time = 2001:2010,
-                        age = 0:4,
-                        sex = 1:2)
-  var_time <- "time"
-  var_age <- "age"
-  ans <- zero_sum_fitted(prior = prior,
-                         fitted = fitted,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age)
-  expect_equal(sum(ans[c(3, 13, 23, 33, 43)]),
-               sum(ans[c(4, 14, 24, 34, 44)]))
-  expect_equal(ans[10], -ans[60])
 })

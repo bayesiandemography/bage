@@ -11,7 +11,7 @@ RW_Seas(
   s_seas = 0,
   sd_seas = 1,
   along = NULL,
-  zero_sum = FALSE
+  con = c("none", "by")
 )
 }
 \arguments{
@@ -31,9 +31,9 @@ Default is \code{1}.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{zero_sum}{If \code{TRUE}, values must
-sum to 0 within each combination
-of the 'by' variables. Default is \code{FALSE}.}
+\item{con}{Constraints on parameters.
+Current choices are \code{"none"} and \code{"all"}.
+Default is \code{"none"}. See below for details.}
 }
 \value{
 Object of class
@@ -108,6 +108,31 @@ and seasonal effects are time-invariant.
 
 Parameter \eqn{\tau} has a half-normal prior
 \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+}
+
+\section{Constraints}{
+
+
+With some combinations of terms and priors, the values of
+the intercept, main effects, and interactions are
+are only weakly identified.
+For instance, it may be possible to increase the value of the
+intercept and reduce the value of the remaining terms in
+the model with no effect on predicted rates and only a tiny
+effect on prior probabilities. This weak identifiability is
+typically harmless. However, in some applications, such as
+forecasting, or when trying to obtain interpretable values
+for main effects and interactions, it can be helpful to increase
+identifiability through the use of constraints.
+
+Current options for constraints are:
+\itemize{
+\item \code{"none"} No constraints. The default.
+\item \code{"by"} Only used in interaction terms that include 'along' and
+'by' dimensions. Within each value of the 'along'
+dimension, terms across each 'by' dimension are constrained
+to sum to 0.
+}
 }
 
 \examples{

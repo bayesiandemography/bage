@@ -4,30 +4,37 @@
 test_that("'AR' works with valid inputs", {
   expect_identical(AR(n_coef = 3),
                    new_bage_prior_ar(n_coef = 3L,
+                                     shape1 = 5,
+                                     shape2 = 5,
                                      min = -1,
                                      max = 1,
                                      scale = 1,
                                      along = NULL,
-                                     zero_sum = FALSE,
+                                     con = "none",
                                      nm = "AR"))
-  expect_identical(AR(n_coef = 1, s = 0.01, along = "age", zero_sum = TRUE),
+  expect_identical(AR(n_coef = 1, s = 0.01, shape1 = 2, shape2 = 3,
+                      along = "age", con = "by"),
                    new_bage_prior_ar(n_coef = 1L,
+                                     shape1 = 2,
+                                     shape2 = 3,
                                      min = -1,
                                      max = 1,
                                      scale = 0.01,
                                      along = "age",
-                                     zero_sum = TRUE,
+                                     con = "by",
                                      nm = "AR"))
 })
 
 test_that("'AR1' works with valid inputs", {
   expect_identical(AR1(),
                    new_bage_prior_ar(n_coef = 1L,
+                                     shape1 = 5,
+                                     shape2 = 5,
                                      min = 0.8,
                                      max = 0.98,
                                      scale = 1,
                                      along = NULL,
-                                     zero_sum = FALSE,
+                                     con = "none",
                                      nm = "AR1"))
 })
 
@@ -47,17 +54,17 @@ test_that("'Lin' works with valid inputs", {
                                       mean_slope = 0,
                                       sd_slope = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
   expect_identical(Lin(s = 0.3,
                        sd_slope = 0.1,
                        mean = 0.2,
                        along = "reg",
-                       zero_sum = TRUE),
+                       con = "by"),
                    new_bage_prior_lin(scale = 0.3,
                                       mean_slope = 0.2,
                                       sd_slope = 0.1,
                                       along = "reg",
-                                      zero_sum = TRUE))
+                                      con = "by"))
 })
 
 test_that("'Lin' works with s = 0", {
@@ -65,61 +72,69 @@ test_that("'Lin' works with s = 0", {
                    new_bage_prior_linex(mean_slope = 0,
                                         sd_slope = 1,
                                         along = NULL,
-                                        zero_sum = FALSE))
+                                        con = "none"))
   expect_identical(Lin(s = 0,
                        sd_slope = 0.1,
                        mean = 0.2,
                        along = "reg",
-                       zero_sum = TRUE),
+                       con = "by"),
                    new_bage_prior_linex(mean_slope = 0.2,
                                         sd_slope = 0.1,
                                         along = "reg",
-                                        zero_sum = TRUE))
+                                        con = "by"))
 })
 
 test_that("'Lin_AR' works with valid inputs", {
   expect_identical(Lin_AR(),
                    new_bage_prior_linar(n_coef = 2L,
-                                        scale = 1,
                                         mean_slope = 0,
                                         sd_slope = 1,
+                                        shape1 = 5,
+                                        shape2 = 5,
                                         min = -1,
                                         max = 1,
+                                        scale = 1,
                                         along = NULL,
-                                        zero_sum = FALSE,
+                                        con = "none",
                                         nm = "Lin_AR"))
-  expect_identical(Lin_AR(s = 0.3, mean_slope = -0.02, zero_sum = TRUE, sd_slope = 0.1),
+  expect_identical(Lin_AR(s = 0.3, shape2 = 2, mean_slope = -0.02, con = "by", sd_slope = 0.1),
                    new_bage_prior_linar(n_coef = 2L,
-                                        scale = 0.3,
                                         mean_slope = -0.02,
                                         sd_slope = 0.1,
+                                        shape1 = 5,
+                                        shape2 = 2,
                                         min = -1,
                                         max = 1,
+                                        scale = 0.3,
                                         along = NULL,
-                                        zero_sum = TRUE,
+                                        con = "by",
                                         nm = "Lin_AR"))
 })
 
 test_that("'Lin_AR1' works with valid inputs", {
   expect_identical(Lin_AR1(),
                    new_bage_prior_linar(n_coef = 1L,
-                                        scale = 1,
                                         mean_slope = 0,
                                         sd_slope = 1,
+                                        shape1 = 5,
+                                        shape2 = 5,
                                         min = 0.8,
                                         max = 0.98,
+                                        scale = 1,
                                         along = NULL,
-                                        zero_sum = FALSE,
+                                        con = "none",
                                         nm = "Lin_AR1"))
-  expect_identical(Lin_AR1(s = 0.3, sd_slope = 0.1, zero_sum = TRUE, mean_slope = 2L),
+  expect_identical(Lin_AR1(s = 0.3, sd_slope = 0.1, con = "by", mean_slope = 2L),
                    new_bage_prior_linar(n_coef = 1L,
-                                        scale = 0.3,
                                         mean_slope = 2,
                                         sd_slope = 0.1,
+                                        shape1 = 5,
+                                        shape2 = 5,
                                         min = 0.8,
                                         max = 0.98,
+                                        scale = 0.3,
                                         along = NULL,
-                                        zero_sum = TRUE,
+                                        con = "by",
                                         nm = "Lin_AR1"))
 })
 
@@ -136,24 +151,24 @@ test_that("'RW' works with valid inputs", {
                    new_bage_prior_rwrandom(scale = 1,
                                            sd = 1,
                                            along = NULL,
-                                           zero_sum = FALSE))
+                                           con = "none"))
   expect_identical(RW(s = 0.3,
                       sd = 0.2,
-                      zero_sum = TRUE,
+                      con = "by",
                       along = "reg"),
                    new_bage_prior_rwrandom(scale = 0.3,
                                            sd = 0.2,
                                            along = "reg",
-                                           zero_sum = TRUE))
+                                           con = "by"))
   expect_identical(RW(sd = 0),
-                   new_bage_prior_rwzero(scale = 1, along = NULL, zero_sum = FALSE))
+                   new_bage_prior_rwzero(scale = 1, along = NULL, con = "none"))
   expect_identical(RW(s = 0.3,
                       sd = 0,
-                      zero_sum = TRUE,
+                      con = "by",
                       along = "reg"),
                    new_bage_prior_rwzero(scale = 0.3,
                                          along = "reg",
-                                         zero_sum = TRUE))
+                                         con = "by"))
 })
 
 
@@ -164,30 +179,30 @@ test_that("'RW_Seas' works with valid inputs", {
                                                   scale = 1,
                                                   sd = 1,
                                                   along = NULL,
-                                                  zero_sum = FALSE))
+                                                  con = "none"))
   expect_identical(RW_Seas(s = 0.3, sd_seas = 0.15, n_seas = 12, s_seas = 0.1, along = "reg",
-                           zero_sum = TRUE, sd = 0.4),
+                           con = "by", sd = 0.4),
                    new_bage_prior_rwrandomseasvary(n_seas = 12L,
                                                    scale_seas = 0.1,
                                                    sd_seas = 0.15,
                                                    scale = 0.3,
                                                    sd = 0.4,
                                                    along = "reg",
-                                                   zero_sum = TRUE))
+                                                   con = "by"))
   expect_identical(RW_Seas(n_seas = 2, sd = 0),
                    new_bage_prior_rwzeroseasfix(n_seas = 2L,
                                                 sd_seas = 1,
                                                 scale = 1,
                                                 along = NULL,
-                                                zero_sum = FALSE))
+                                                con = "none"))
   expect_identical(RW_Seas(s = 0.3, sd_seas = 0.15, n_seas = 12, s_seas = 0.1, along = "reg",
-                           zero_sum = TRUE, sd = 0),
+                           con = "by", sd = 0),
                    new_bage_prior_rwzeroseasvary(n_seas = 12L,
                                                  scale_seas = 0.1,
                                                  sd_seas = 0.15,
                                                  scale = 0.3,
                                                  along = "reg",
-                                                 zero_sum = TRUE))
+                                                 con = "by"))
 })
 
 test_that("'RW2' works with valid inputs", {
@@ -196,34 +211,34 @@ test_that("'RW2' works with valid inputs", {
                                             sd = 1,
                                             sd_slope = 1,
                                             along = NULL,
-                                            zero_sum = FALSE))
-  expect_identical(RW2(sd_slope = 0.1, s = 0.3, sd = 0.5, along = "reg", zero_sum = TRUE),
+                                            con = "none"))
+  expect_identical(RW2(sd_slope = 0.1, s = 0.3, sd = 0.5, along = "reg", con = "by"),
                    new_bage_prior_rw2random(scale = 0.3,
                                             sd = 0.5,
                                             sd_slope = 0.1,
                                             along = "reg",
-                                            zero_sum = TRUE))
+                                            con = "by"))
   expect_identical(RW2(sd = 0),
                    new_bage_prior_rw2zero(scale = 1,
                                           sd_slope = 1,
                                           along = NULL,
-                                          zero_sum = FALSE))
-  expect_identical(RW2(sd_slope = 0.1, s = 0.3, sd = 0, along = "reg", zero_sum = TRUE),
+                                          con = "none"))
+  expect_identical(RW2(sd_slope = 0.1, s = 0.3, sd = 0, along = "reg", con = "by"),
                    new_bage_prior_rw2zero(scale = 0.3,
                                           sd_slope = 0.1,
                                           along = "reg",
-                                          zero_sum = TRUE))
+                                          con = "by"))
 })
 
 test_that("'RW2_Infant' works with valid inputs", {
   expect_identical(RW2_Infant(),
                    new_bage_prior_rw2infant(scale = 1,
                                             sd_slope = 1,
-                                            zero_sum = FALSE))
-  expect_identical(RW2_Infant(sd_slope = 0.1, s = 0.3, zero_sum = TRUE),
+                                            con = "none"))
+  expect_identical(RW2_Infant(sd_slope = 0.1, s = 0.3, con = "by"),
                    new_bage_prior_rw2infant(scale = 0.3,
                                             sd_slope = 0.1,
-                                            zero_sum = TRUE))
+                                            con = "by"))
 })
 
 test_that("'RW2_Seas' works with valid inputs", {
@@ -234,10 +249,10 @@ test_that("'RW2_Seas' works with valid inputs", {
                                                    sd = 1,
                                                    sd_slope = 1,
                                                    along = NULL,
-                                                   zero_sum = FALSE))
+                                                   con = "none"))
   expect_identical(RW2_Seas(s = 0.3, n_seas = 12, sd_seas = 0.5,
                             s_seas = 0.1, along = "reg", sd_slope = 0.2,
-                            zero_sum = TRUE, sd = 0.4),
+                            con = "by", sd = 0.4),
                    new_bage_prior_rw2randomseasvary(n_seas = 12L,
                                                     scale_seas = 0.1,
                                                     sd_seas = 0.5,
@@ -245,24 +260,24 @@ test_that("'RW2_Seas' works with valid inputs", {
                                                     sd = 0.4,
                                                     sd_slope = 0.2,
                                                     along = "reg",
-                                                    zero_sum = TRUE))
+                                                    con = "by"))
   expect_identical(RW2_Seas(n_seas = 2, sd = 0),
                    new_bage_prior_rw2zeroseasfix(n_seas = 2L,
                                                    sd_seas = 1,
                                                    scale = 1,
                                                    sd_slope = 1,
                                                    along = NULL,
-                                                   zero_sum = FALSE))
+                                                   con = "none"))
   expect_identical(RW2_Seas(s = 0.3, n_seas = 12, sd_seas = 0.5,
                             s_seas = 0.1, along = "reg", sd_slope = 0.2,
-                            zero_sum = TRUE, sd = 0),
+                            con = "by", sd = 0),
                    new_bage_prior_rw2zeroseasvary(n_seas = 12L,
                                                     scale_seas = 0.1,
                                                     sd_seas = 0.5,
                                                     scale = 0.3,
                                                     sd_slope = 0.2,
                                                     along = "reg",
-                                                    zero_sum = TRUE))
+                                                    con = "by"))
 })
 
 test_that("'Sp' works with valid inputs", {
@@ -272,19 +287,19 @@ test_that("'Sp' works with valid inputs", {
                                          sd = 1,
                                          sd_slope = 1,
                                          along = NULL,
-                                         zero_sum = FALSE))
+                                         con = "none"))
   expect_identical(Sp(n_comp = 6,
                       sd = 0.2,
                       sd_slope = 0.3,
                       s = 3,
                       along = "time",
-                      zero_sum = TRUE),
+                      con = "by"),
                    new_bage_prior_spline(n_comp = 6L,
                                          scale = 3,
                                          sd = 0.2,
                                          sd_slope = 0.3,
                                          along = "time",
-                                         zero_sum = TRUE))
+                                         con = "by"))
 })
 
 test_that("'SVD' works with valid inputs", {
@@ -320,10 +335,13 @@ test_that("'SVD_AR' works with valid inputs", {
                                          scale = 1,
                                          min = -1,
                                          max = 1,
-                                         zero_sum = FALSE,
+                                         shape1 = 5,
+                                         shape2 = 5,
+                                         con = "none",
                                          nm = "SVD_AR"))
   expect_identical(SVD_AR(LFP, n_comp = 2, indep = FALSE, n_coef = 1, s = 0.01,
-                          zero_sum = TRUE),
+                          con = "by",
+                          shape1 = 3),
                    new_bage_prior_svd_ar(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
@@ -331,8 +349,10 @@ test_that("'SVD_AR' works with valid inputs", {
                                          n_coef = 1L,
                                          min = -1,
                                          max = 1,
+                                         shape1 = 3,
+                                         shape2 = 5,
                                          scale = 0.01,
-                                         zero_sum = TRUE,
+                                         con = "by",
                                          nm = "SVD_AR"))
 })
 
@@ -344,58 +364,103 @@ test_that("'SVD_AR1' works with valid inputs", {
                                          indep = TRUE,
                                          n_coef = 1L,
                                          scale = 1,
+                                         shape1 = 5,
+                                         shape2 = 5,
                                          min = 0.8,
                                          max = 0.98,
-                                         zero_sum = FALSE,
+                                         con = "none",
                                          nm = "SVD_AR1"))
   expect_identical(SVD_AR1(LFP, n_comp = 2, max = 0.9, s = 0.01, 
-                           zero_sum = TRUE),
+                           con = "by"),
                    new_bage_prior_svd_ar(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
                                          indep = TRUE,
                                          n_coef = 1L,
+                                         shape1 = 5,
+                                         shape2 = 5,
                                          min = 0.8,
                                          max = 0.9,
                                          scale = 0.01,
-                                         zero_sum = TRUE,
+                                         con = "by",
                                          nm = "SVD_AR1"))
 })
 
-test_that("'SVD_RW' works with valid inputs", {
+test_that("'SVD_RW' works with valid inputs - random", {
   expect_identical(SVD_RW(HMD),
-                   new_bage_prior_svd_rw(HMD,
-                                         nm_ssvd = "HMD",
-                                         n_comp = 3L,
-                                         indep = TRUE,
-                                         scale = 1,
-                                         zero_sum = FALSE))
-  expect_identical(SVD_RW(LFP, n_comp = 2, s = 0.01, indep = F, zero_sum = TRUE),
-                   new_bage_prior_svd_rw(LFP,
+                   new_bage_prior_svd_rwrandom(HMD,
+                                               nm_ssvd = "HMD",
+                                               n_comp = 3L,
+                                               indep = TRUE,
+                                               scale = 1,
+                                               sd = 1,
+                                               con = "none"))
+  expect_identical(SVD_RW(LFP, n_comp = 2, sd = 0.3, s = 0.01, indep = F, con = "by"),
+                   new_bage_prior_svd_rwrandom(LFP,
+                                               nm_ssvd = "LFP",
+                                               n_comp = 2L,
+                                               indep = FALSE,
+                                               scale = 0.01,
+                                               sd = 0.3,
+                                               con = "by"))
+})
+
+test_that("'SVD_RW' works with valid inputs - zero", {
+  expect_identical(SVD_RW(HMD, sd = 0),
+                   new_bage_prior_svd_rwzero(HMD,
+                                                nm_ssvd = "HMD",
+                                                n_comp = 3L,
+                                                indep = TRUE,
+                                                scale = 1,
+                                                con = "none"))
+  expect_identical(SVD_RW(LFP, n_comp = 2, sd = 0, s = 0.01, indep = F, con = "by"),
+                   new_bage_prior_svd_rwzero(LFP,
                                          nm_ssvd = "LFP",
                                          n_comp = 2L,
                                          indep = FALSE,
                                          scale = 0.01,
-                                         zero_sum = TRUE))
+                                         con = "by"))
 })
 
-test_that("'SVD_RW2' works with valid inputs", {
+test_that("'SVD_RW2' works with valid inputs - random", {
   expect_identical(SVD_RW2(HMD),
-                   new_bage_prior_svd_rw2(HMD,
-                                          nm_ssvd = "HMD",
-                                          n_comp = 3L,
-                                          indep = TRUE,
-                                          scale = 1,
-                                          sd_slope = 1,
-                                          zero_sum = FALSE))
-  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, s = 0.01, zero_sum = TRUE),
-                   new_bage_prior_svd_rw2(LFP,
-                                          nm_ssvd = "LFP",
-                                          n_comp = 2L,
-                                          indep = TRUE,
-                                          scale = 0.01,
-                                          sd_slope = 0.2,
-                                          zero_sum = TRUE))
+                   new_bage_prior_svd_rw2random(HMD,
+                                                nm_ssvd = "HMD",
+                                                n_comp = 3L,
+                                                indep = TRUE,
+                                                scale = 1,
+                                                sd = 1,
+                                                sd_slope = 1,
+                                                con = "none"))
+  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, sd = 0.4, s = 0.01, con = "by"),
+                   new_bage_prior_svd_rw2random(LFP,
+                                                nm_ssvd = "LFP",
+                                                n_comp = 2L,
+                                                indep = TRUE,
+                                                scale = 0.01,
+                                                sd = 0.4,
+                                                sd_slope = 0.2,
+                                                con = "by"))
+})
+
+test_that("'SVD_RW2' works with valid inputs - zero", {
+  expect_identical(SVD_RW2(HMD, sd = 0),
+                   new_bage_prior_svd_rw2zero(HMD,
+                                              nm_ssvd = "HMD",
+                                              n_comp = 3L,
+                                              indep = TRUE,
+                                              scale = 1,
+                                              sd_slope = 1,
+                                              con = "none"))
+  expect_identical(SVD_RW2(LFP, n_comp = 2, sd_slope = 0.2, s = 0.01, sd = 0,
+                           con = "by"),
+                   new_bage_prior_svd_rw2zero(LFP,
+                                              nm_ssvd = "LFP",
+                                              n_comp = 2L,
+                                              indep = TRUE,
+                                              scale = 0.01,
+                                              sd_slope = 0.2,
+                                              con = "by"))
 })
 
 
@@ -403,54 +468,58 @@ test_that("'SVD_RW2' works with valid inputs", {
 
 test_that("'new_bage_prior_ar' works - AR interface", {
   obj <- new_bage_prior_ar(n_coef = 2L,
+                           shape1 = 5,
+                           shape2 = 5,
                            min = -1,
                            max = 1,
                            scale = 1.0,
                            along = NULL,
-                           zero_sum = TRUE,
+                           con = "by",
                            nm = "AR")
   expect_s3_class(obj, "bage_prior_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 1L)
   expect_identical(obj$const,
-                   c(shape1 = 2, shape2 = 2, min = -1, max = 1, scale = 1))
+                   c(shape1 = 5, shape2 = 5, min = -1, max = 1, scale = 1))
   expect_identical(obj$specific, list(n_coef = 2L,
-                                      shape1 = 2,
-                                      shape2 = 2,
+                                      shape1 = 5,
+                                      shape2 = 5,
                                       min = -1,
                                       max = 1,
                                       scale = 1,
                                       along = NULL,
-                                      zero_sum = TRUE,
+                                      con = "by",
                                       nm = "AR"))
 })
 
 test_that("'new_bage_prior_ar' works - AR1 interface", {
   obj <- new_bage_prior_ar(n_coef = 1L,
+                           shape1 = 5,
+                           shape2 = 5,
                            min = 0.8,
                            max = 0.98,
                            scale = 1.0,
                            along = NULL,
-                           zero_sum = FALSE,
+                           con = "none",
                            nm = "AR1")
   expect_s3_class(obj, "bage_prior_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 1L)
   expect_identical(obj$const,
-                   c(shape1 = 2,
-                     shape2 = 2,
+                   c(shape1 = 5,
+                     shape2 = 5,
                      min = 0.8,
                      max = 0.98,
                      scale = 1))
   expect_identical(obj$specific,
                    list(n_coef = 1L,
-                        shape1 = 2,
-                        shape2 = 2,
+                        shape1 = 5,
+                        shape2 = 5,
                         min = 0.8,
                         max = 0.98,
                         scale = 1,
                         along = NULL,
-                        zero_sum = FALSE,
+                        con = "none",
                         nm = "AR1"))
 })
 
@@ -468,81 +537,85 @@ test_that("'new_bage_prior_lin' works", {
                             mean_slope = 0,
                             sd_slope = 1,
                             along = NULL,
-                            zero_sum = FALSE)
+                            con = "none")
   expect_s3_class(obj, "bage_prior_lin")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 2L)
   expect_identical(obj$const, c(scale = 1, mean_slope = 0, sd_slope = 1))
   expect_identical(obj$specific, list(scale = 1, mean_slope = 0, sd_slope = 1,
-                                      along = NULL, zero_sum = FALSE))
+                                      along = NULL, con = "none"))
 })
 
 test_that("'new_bage_prior_linar' works - AR interface", {
   obj <- new_bage_prior_linar(n_coef = 2L,
-                              scale = 1,
                               mean_slope = 0,
                               sd_slope = 1,
+                              shape1 = 5,
+                              shape2 = 5,
                               min = -1,
                               max = 1,
+                              scale = 1,
                               along = NULL,
-                              zero_sum = FALSE,
+                              con = "none",
                               nm = "Lin_AR")
   expect_s3_class(obj, "bage_prior_linar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 3L)
   expect_identical(obj$const,
-                   c(scale = 1,
-                     mean_slope = 0,
+                   c(mean_slope = 0,
                      sd_slope = 1,
-                     shape1 = 2,
-                     shape2 = 2,
+                     shape1 = 5,
+                     shape2 = 5,
                      min = -1,
-                     max = 1))
+                     max = 1,
+                     scale = 1))
   expect_identical(obj$specific,
                    list(n_coef = 2L,
-                        scale = 1,
                         mean_slope = 0,
                         sd_slope = 1,
-                        shape1 = 2,
-                        shape2 = 2,
+                        shape1 = 5,
+                        shape2 = 5,
                         min = -1,
                         max = 1,
+                        scale = 1,
                         along = NULL,
-                        zero_sum = FALSE,
+                        con = "none",
                         nm = "Lin_AR"))
 })
 
 test_that("'new_bage_prior_linar' works - AR1 interface", {
   obj <- new_bage_prior_linar(n_coef = 1L,
-                              scale = 1,
                               mean_slope = 0,
                               sd_slope = 1,
+                              shape1 = 5,
+                              shape2 = 5,
                               min = 0.8,
                               max = 0.98,
+                              scale = 1,
                               along = NULL,
-                              zero_sum = FALSE,
+                              con = "none",
                               nm = "Lin_AR1")
   expect_s3_class(obj, "bage_prior_linar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 3L)
-  expect_identical(obj$const, c(scale = 1,
-                                mean_slope = 0,
+  expect_identical(obj$const, c(mean_slope = 0,
                                 sd_slope = 1,
-                                shape1 = 2,
-                                shape2 = 2,
+                                shape1 = 5,
+                                shape2 = 5,
                                 min = 0.8,
-                                max = 0.98))
+                                max = 0.98,
+                                scale = 1))
   expect_identical(obj$specific,
                    list(n_coef = 1L,
-                        scale = 1,
                         mean_slope = 0,
                         sd_slope = 1,
-                        shape1 = 2,
-                        shape2 = 2,
+                        shape1 = 5,
+                        shape2 = 5,
                         min = 0.8,
                         max = 0.98,
+                        scale = 1,
                         along = NULL,
-                        zero_sum = FALSE,
+                        con = "none",
                         nm = "Lin_AR1"))
 })
 
@@ -550,13 +623,13 @@ test_that("'new_bage_prior_linex' works", {
   obj <- new_bage_prior_linex(mean_slope = 0,
                               sd_slope = 1,
                               along = NULL,
-                              zero_sum = FALSE)
+                              con = "none")
   expect_s3_class(obj, "bage_prior_linex")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 17L)
   expect_identical(obj$const, c(mean_slope = 0, sd_slope = 1))
   expect_identical(obj$specific, list(mean_slope = 0, sd_slope = 1,
-                                      along = NULL, zero_sum = FALSE))
+                                      along = NULL, con = "none"))
 })
 
 test_that("'new_bage_prior_norm' works", {
@@ -578,7 +651,7 @@ test_that("'new_bage_prior_normfixed' works", {
 })
 
 test_that("'new_bage_prior_rwrandom' works", {
-  obj <- new_bage_prior_rwrandom(scale = 1, sd = 1, along = NULL, zero_sum = FALSE)
+  obj <- new_bage_prior_rwrandom(scale = 1, sd = 1, along = NULL, con = "none")
   expect_s3_class(obj, "bage_prior_rwrandom")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 19L)
@@ -586,7 +659,7 @@ test_that("'new_bage_prior_rwrandom' works", {
   expect_identical(obj$specific, list(scale = 1,
                                       sd = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rwrandomseasfix' works", {
@@ -595,7 +668,7 @@ test_that("'new_bage_prior_rwrandomseasfix' works", {
                                       scale = 1,
                                       sd = 1,
                                       along = NULL,
-                                      zero_sum = FALSE)
+                                      con = "none")
   expect_s3_class(obj, "bage_prior_rwrandomseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 20L)
@@ -608,7 +681,7 @@ test_that("'new_bage_prior_rwrandomseasfix' works", {
                                       scale = 1,
                                       sd = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rwrandomseasvary' works", {
@@ -618,7 +691,7 @@ test_that("'new_bage_prior_rwrandomseasvary' works", {
                                          scale = 1,
                                          sd = 1,
                                          along = NULL,
-                                         zero_sum = FALSE)
+                                         con = "none")
   expect_s3_class(obj, "bage_prior_rwrandomseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 21L)
@@ -634,18 +707,18 @@ test_that("'new_bage_prior_rwrandomseasvary' works", {
                         scale = 1,
                         sd = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
 
 test_that("'new_bage_prior_rwzero' works", {
-  obj <- new_bage_prior_rwzero(scale = 1, along = NULL, zero_sum = FALSE)
+  obj <- new_bage_prior_rwzero(scale = 1, along = NULL, con = "none")
   expect_s3_class(obj, "bage_prior_rwzero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 6L)
   expect_identical(obj$const, c(scale = 1))
   expect_identical(obj$specific, list(scale = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rwzeroseasfix' works", {
@@ -653,7 +726,7 @@ test_that("'new_bage_prior_rwzeroseasfix' works", {
                                       sd_seas = 1,
                                       scale = 1,
                                       along = NULL,
-                                      zero_sum = FALSE)
+                                      con = "none")
   expect_s3_class(obj, "bage_prior_rwzeroseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 10L)
@@ -662,7 +735,7 @@ test_that("'new_bage_prior_rwzeroseasfix' works", {
                                       sd_seas = 1,
                                       scale = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rwzeroseasvary' works", {
@@ -671,7 +744,7 @@ test_that("'new_bage_prior_rwzeroseasvary' works", {
                                    sd_seas = 1,
                                    scale = 1,
                                    along = NULL,
-                                   zero_sum = FALSE)
+                                   con = "none")
   expect_s3_class(obj, "bage_prior_rwzeroseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 11L)
@@ -685,13 +758,13 @@ test_that("'new_bage_prior_rwzeroseasvary' works", {
                         sd_seas = 1,
                         scale = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
 
 test_that("'new_bage_prior_rw2infant' works", {
   obj <- new_bage_prior_rw2infant(scale = 1,
                                   sd_slope = 1,
-                                  zero_sum = FALSE)
+                                  con = "none")
   expect_s3_class(obj, "bage_prior_rw2infant")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 18L)
@@ -700,11 +773,11 @@ test_that("'new_bage_prior_rw2infant' works", {
                    list(scale = 1,
                         sd_slope = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
 
 test_that("'new_bage_prior_rw2random' works", {
-  obj <- new_bage_prior_rw2random(scale = 1, sd = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
+  obj <- new_bage_prior_rw2random(scale = 1, sd = 1, sd_slope = 1, along = NULL, con = "none")
   expect_s3_class(obj, "bage_prior_rw2random")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 22L)
@@ -714,7 +787,7 @@ test_that("'new_bage_prior_rw2random' works", {
                         sd = 1,
                         sd_slope = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
 
 test_that("'new_bage_prior_rw2randomseasfix' works", {
@@ -724,7 +797,7 @@ test_that("'new_bage_prior_rw2randomseasfix' works", {
                                          sd = 1,
                                          sd_slope = 1,
                                          along = NULL,
-                                         zero_sum = FALSE)
+                                         con = "none")
   expect_s3_class(obj, "bage_prior_rw2randomseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 23L)
@@ -735,7 +808,7 @@ test_that("'new_bage_prior_rw2randomseasfix' works", {
                                       sd = 1,
                                       sd_slope = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rw2randomseasvary' works", {
@@ -746,7 +819,7 @@ test_that("'new_bage_prior_rw2randomseasvary' works", {
                                           scale_seas = 1,
                                           sd_seas = 1,
                                           along = NULL,
-                                          zero_sum = FALSE)
+                                          con = "none")
   expect_s3_class(obj, "bage_prior_rw2randomseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 24L)
@@ -763,11 +836,11 @@ test_that("'new_bage_prior_rw2randomseasvary' works", {
                                       sd = 1,
                                       sd_slope = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rw2zero' works", {
-  obj <- new_bage_prior_rw2zero(scale = 1, sd_slope = 1, along = NULL, zero_sum = FALSE)
+  obj <- new_bage_prior_rw2zero(scale = 1, sd_slope = 1, along = NULL, con = "none")
   expect_s3_class(obj, "bage_prior_rw2zero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 7L)
@@ -776,7 +849,7 @@ test_that("'new_bage_prior_rw2zero' works", {
                    list(scale = 1,
                         sd_slope = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
 
 test_that("'new_bage_prior_rw2zeroseasfix' works", {
@@ -785,7 +858,7 @@ test_that("'new_bage_prior_rw2zeroseasfix' works", {
                                        scale = 1,
                                        sd_slope = 1,
                                        along = NULL,
-                                       zero_sum = FALSE)
+                                       con = "none")
   expect_s3_class(obj, "bage_prior_rw2zeroseasfix")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 12L)
@@ -795,7 +868,7 @@ test_that("'new_bage_prior_rw2zeroseasfix' works", {
                                       scale = 1,
                                       sd_slope = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_rw2zeroseasvary' works", {
@@ -805,7 +878,7 @@ test_that("'new_bage_prior_rw2zeroseasvary' works", {
                                         scale = 1,
                                         sd_slope = 1,
                                         along = NULL,
-                                        zero_sum = FALSE)
+                                        con = "none")
   expect_s3_class(obj, "bage_prior_rw2zeroseasvary")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 13L)
@@ -816,7 +889,7 @@ test_that("'new_bage_prior_rw2zeroseasvary' works", {
                                       scale = 1,
                                       sd_slope = 1,
                                       along = NULL,
-                                      zero_sum = FALSE))
+                                      con = "none"))
 })
 
 test_that("'new_bage_prior_spline' works", {
@@ -825,14 +898,14 @@ test_that("'new_bage_prior_spline' works", {
                                sd = 0.1,
                                sd_slope = 0.2,
                                along = NULL,
-                               zero_sum = FALSE)
+                               con = "none")
   expect_s3_class(obj, "bage_prior_spline")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 8L)
   expect_identical(obj$const, c(scale = 1, sd = 0.1, sd_slope = 0.2))
   expect_identical(obj$specific,
                    list(n_comp = 10L, scale = 1, sd = 0.1, sd_slope = 0.2,
-                        along = NULL, zero_sum = FALSE))
+                        along = NULL, con = "none"))
 })
 
 test_that("'new_bage_prior_svd' works", {
@@ -871,16 +944,18 @@ test_that("'new_bage_prior_svd_ar' works", {
                                indep = TRUE,
                                n_coef = 2L,
                                scale = 1,
+                               shape1 = 5,
+                               shape2 = 5,
                                min = -1,
                                max = 1,
-                               zero_sum = FALSE,
+                               con = "none",
                                nm = "SVD_AR")
   expect_s3_class(obj, "bage_prior_svd_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 14L)
   expect_identical(obj$const,
-                   c(shape1 = 2,
-                     shape2 = 2,
+                   c(shape1 = 5,
+                     shape2 = 5,
                      min = -1,
                      max = 1,
                      scale = 1))
@@ -890,13 +965,13 @@ test_that("'new_bage_prior_svd_ar' works", {
                         n_comp = 3L,
                         indep = TRUE,
                         n_coef = 2L,
-                        shape1 = 2,
-                        shape2 = 2,
+                        shape1 = 5,
+                        shape2 = 5,
                         min = -1,
                         max = 1,
                         scale = 1,
                         along = NULL,
-                        zero_sum = FALSE,
+                        con = "none",
                         nm = "SVD_AR"))
   obj <- new_bage_prior_svd_ar(HMD,
                                nm_ssvd = "HMD",
@@ -904,16 +979,18 @@ test_that("'new_bage_prior_svd_ar' works", {
                                indep = FALSE,
                                n_coef = 1L,
                                scale = 0.5,
+                               shape1 = 5,
+                               shape2 = 5,
                                min = 0.8,
                                max = 0.98,
-                               zero_sum = FALSE,
+                               con = "none",
                                nm = "SVD_AR1")
   expect_s3_class(obj, "bage_prior_svd_ar")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 14L)
   expect_identical(obj$const,
-                   c(shape1 = 2,
-                     shape2 = 2,
+                   c(shape1 = 5,
+                     shape2 = 5,
                      min = 0.8,
                      max = 0.98,
                      scale = 0.5))
@@ -923,24 +1000,49 @@ test_that("'new_bage_prior_svd_ar' works", {
                         n_comp = 5L,
                         indep = FALSE,
                         n_coef = 1L,
-                        shape1 = 2,
-                        shape2 = 2,
+                        shape1 = 5,
+                        shape2 = 5,
                         min = 0.8,
                         max = 0.98,
                         scale = 0.5,
                         along = NULL,
-                        zero_sum = FALSE,
+                        con = "none",
                         nm = "SVD_AR1"))
 })
 
-test_that("'new_bage_prior_svd_rw' works", {
-  obj <- new_bage_prior_svd_rw(HMD,
-                               nm_ssvd = "HMD",
-                               n_comp = 3L,
-                               indep = TRUE,
-                               scale = 1,
-                               zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_svd_rw")
+test_that("'new_bage_prior_svd_rwrandom' works", {
+  obj <- new_bage_prior_svd_rwrandom(HMD,
+                                     nm_ssvd = "HMD",
+                                     n_comp = 3L,
+                                     indep = TRUE,
+                                     scale = 1,
+                                     sd = 1,
+                                     con = "none")
+  expect_s3_class(obj, "bage_prior_svd_rwrandom")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 25L)
+  expect_identical(obj$const,
+                   c(scale = 1,
+                     sd = 1))
+  expect_identical(obj$specific,
+                   list(ssvd = HMD,
+                        nm_ssvd = "HMD",
+                        n_comp = 3L,
+                        indep = TRUE,
+                        scale = 1,
+                        sd = 1,
+                        along = NULL,
+                        con = "none"))
+})
+
+test_that("'new_bage_prior_svd_rwzero' works", {
+  obj <- new_bage_prior_svd_rwzero(HMD,
+                                   nm_ssvd = "HMD",
+                                   n_comp = 3L,
+                                   indep = TRUE,
+                                   scale = 1,
+                                   con = "none")
+  expect_s3_class(obj, "bage_prior_svd_rwzero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 15L)
   expect_identical(obj$const,
@@ -952,18 +1054,46 @@ test_that("'new_bage_prior_svd_rw' works", {
                         indep = TRUE,
                         scale = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
 
-test_that("'new_bage_prior_svd_rw2' works", {
-  obj <- new_bage_prior_svd_rw2(HMD,
-                                nm_ssvd = "HMD",
-                                n_comp = 3L,
-                                indep = TRUE,
-                                scale = 1,
-                                sd_slope = 1,
-                                zero_sum = FALSE)
-  expect_s3_class(obj, "bage_prior_svd_rw2")
+test_that("'new_bage_prior_svd_rw2random' works", {
+  obj <- new_bage_prior_svd_rw2random(HMD,
+                                      nm_ssvd = "HMD",
+                                      n_comp = 3L,
+                                      indep = TRUE,
+                                      scale = 1,
+                                      sd = 1,
+                                      sd_slope = 1,
+                                      con = "none")
+  expect_s3_class(obj, "bage_prior_svd_rw2random")
+  expect_s3_class(obj, "bage_prior")
+  expect_identical(obj$i_prior, 26L)
+  expect_identical(obj$const,
+                   c(scale = 1,
+                     sd = 1,
+                     sd_slope = 1))
+  expect_identical(obj$specific,
+                   list(ssvd = HMD,
+                        nm_ssvd = "HMD",
+                        n_comp = 3L,
+                        indep = TRUE,
+                        scale = 1,
+                        sd = 1,
+                        sd_slope = 1,
+                        along = NULL,
+                        con = "none"))
+})
+
+test_that("'new_bage_prior_svd_rw2zero' works", {
+  obj <- new_bage_prior_svd_rw2zero(HMD,
+                                    nm_ssvd = "HMD",
+                                    n_comp = 3L,
+                                    indep = TRUE,
+                                    scale = 1,
+                                    sd_slope = 1,
+                                    con = "none")
+  expect_s3_class(obj, "bage_prior_svd_rw2zero")
   expect_s3_class(obj, "bage_prior")
   expect_identical(obj$i_prior, 16L)
   expect_identical(obj$const,
@@ -977,7 +1107,5 @@ test_that("'new_bage_prior_svd_rw2' works", {
                         scale = 1,
                         sd_slope = 1,
                         along = NULL,
-                        zero_sum = FALSE))
+                        con = "none"))
 })
-
-

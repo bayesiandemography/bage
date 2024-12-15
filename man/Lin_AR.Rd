@@ -7,10 +7,12 @@
 Lin_AR(
   n_coef = 2,
   s = 1,
+  shape1 = 5,
+  shape2 = 5,
   mean_slope = 0,
   sd_slope = 1,
   along = NULL,
-  zero_sum = FALSE
+  con = c("none", "by")
 )
 }
 \arguments{
@@ -19,6 +21,9 @@ model, ie the order of the model. Default is \code{2}.}
 
 \item{s}{Scale for the innovations in the
 AR process. Default is \code{1}.}
+
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
 
 \item{mean_slope}{Mean in prior for slope
 of line. Default is 0.}
@@ -31,9 +36,9 @@ steeper slopes. Default is 1.}
 as the 'along' variable. Only used with
 interactions.}
 
-\item{zero_sum}{If \code{TRUE}, values must
-sum to 0 within each combination
-of the 'by' variables. Default is \code{FALSE}.}
+\item{con}{Constraints on parameters.
+Current choices are \code{"none"} and \code{"all"}.
+Default is \code{"none"}. See below for details.}
 }
 \value{
 An object of class \code{"bage_prior_linar"}.
@@ -56,7 +61,7 @@ default is 2.
 Argument \code{s} controls the size of the innovations.
 Smaller values tend to give smoother estimates.
 
-Argument \code{sd_slope} controls the size of the slopes of
+Argument \code{sd_slope} controls the slopes of
 the lines. Larger values can give more steeply
 sloped lines.
 }
@@ -68,7 +73,7 @@ When \code{Lin_AR()} is used with a main effect,
 \deqn{\beta_1 = \alpha + \epsilon_1}
 \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
 \deqn{\alpha \sim \text{N}(0, 1)}
-\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_n \epsilon_{j-n} + \varepsilon_j}
+\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{j-\text{n\_coef}} + \varepsilon_j}
 \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 
 and when it is used with an interaction,
@@ -76,36 +81,57 @@ and when it is used with an interaction,
 \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
 \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
 \deqn{\alpha_u \sim \text{N}(0, 1)}
-\deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_n \epsilon_{u,v-n} + \varepsilon_{u,v},}
+\deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{u,v-\text{n\_coef}} + \varepsilon_{u,v},}
 \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 
 where
 \itemize{
 \item \eqn{\pmb{\beta}} is the main effect or interaction;
 \item \eqn{j} denotes position within the main effect;
-\item \eqn{u} denotes position within the 'along' variable of the interaction;
-\item \eqn{u} denotes position within the 'by' variable(s) of the interaction; and
-\item \eqn{n} is \code{n_coef}.
+\item \eqn{u} denotes position within the 'along' variable of the interaction; and
+\item \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
+\deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
 
 Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
-where a value for \code{s} is provided by the user.
+\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
 
-The \eqn{\phi_1, \cdots, \phi_k} are restricted to values
-between -1 and 1 that jointly lead to a stationary model. The quantity
-\eqn{r = \sqrt{\phi_1^2 + \cdots + \phi_k^2}} has
-boundary-avoiding prior
+The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+each have prior
 
-\deqn{r \sim \text{Beta}(2, 2).}
+\deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+}
+
+\section{Constraints}{
+
+
+With some combinations of terms and priors, the values of
+the intercept, main effects, and interactions are
+are only weakly identified.
+For instance, it may be possible to increase the value of the
+intercept and reduce the value of the remaining terms in
+the model with no effect on predicted rates and only a tiny
+effect on prior probabilities. This weak identifiability is
+typically harmless. However, in some applications, such as
+forecasting, or when trying to obtain interpretable values
+for main effects and interactions, it can be helpful to increase
+identifiability through the use of constraints.
+
+Current options for constraints are:
+\itemize{
+\item \code{"none"} No constraints. The default.
+\item \code{"by"} Only used in interaction terms that include 'along' and
+'by' dimensions. Within each value of the 'along'
+dimension, terms across each 'by' dimension are constrained
+to sum to 0.
+}
 }
 
 \examples{

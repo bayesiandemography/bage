@@ -38,6 +38,8 @@ summary of a demographic database.
 \itemize{
 \item \code{\link{HMD}} Mortality rates from the
 \href{https://www.mortality.org}{Human Mortality Database}.
+\item \code{\link{HFD}} Fertility rates from the
+\href{https://www.humanfertility.org}{Human Fertility Database}.
 \item \code{\link{LFP}} Labor forcce participation
 rates from the \href{https://data-explorer.oecd.org}{OECD}.
 }

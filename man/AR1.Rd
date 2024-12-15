@@ -4,23 +4,34 @@
 \alias{AR1}
 \title{Autoregressive Prior of Order 1}
 \usage{
-AR1(min = 0.8, max = 0.98, s = 1, along = NULL, zero_sum = FALSE)
+AR1(
+  s = 1,
+  shape1 = 5,
+  shape2 = 5,
+  min = 0.8,
+  max = 0.98,
+  along = NULL,
+  con = c("none", "by")
+)
 }
 \arguments{
+\item{s}{Scale for the prior for the innovations.
+Default is \code{1}.}
+
+\item{shape1, shape2}{Parameters for beta-distribution prior
+for coefficients. Defaults are \code{5} and \code{5}.}
+
 \item{min, max}{Minimum and maximum values
 for autocorrelation coefficient.
 Defaults are \code{0.8} and \code{0.98}.}
-
-\item{s}{Scale for the prior for the innovations.
-Default is \code{1}.}
 
 \item{along}{Name of the variable to be used
 as the 'along' variable. Only used with
 interactions.}
 
-\item{zero_sum}{If \code{TRUE}, values must
-sum to 0 within each combination
-of the 'by' variables. Default is \code{FALSE}.}
+\item{con}{Constraints on parameters.
+Current choices are \code{"none"} and \code{"all"}.
+Default is \code{"none"}. See below for details.}
 }
 \value{
 An object of class \code{"bage_prior_ar"}.
@@ -81,7 +92,32 @@ Its prior distribution is
 
 where
 
-\deqn{\phi' \sim \text{Beta}(2, 2).}
+\deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+}
+
+\section{Constraints}{
+
+
+With some combinations of terms and priors, the values of
+the intercept, main effects, and interactions are
+are only weakly identified.
+For instance, it may be possible to increase the value of the
+intercept and reduce the value of the remaining terms in
+the model with no effect on predicted rates and only a tiny
+effect on prior probabilities. This weak identifiability is
+typically harmless. However, in some applications, such as
+forecasting, or when trying to obtain interpretable values
+for main effects and interactions, it can be helpful to increase
+identifiability through the use of constraints.
+
+Current options for constraints are:
+\itemize{
+\item \code{"none"} No constraints. The default.
+\item \code{"by"} Only used in interaction terms that include 'along' and
+'by' dimensions. Within each value of the 'along'
+dimension, terms across each 'by' dimension are constrained
+to sum to 0.
+}
 }
 
 \examples{

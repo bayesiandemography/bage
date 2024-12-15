@@ -67,6 +67,45 @@ check_bage_mod <- function(x, nm_x) {
 
 
 ## HAS_TESTS
+#' Check that 'con' is Only "by" When 'n_by' is Greater Than 1
+#'
+#' @param con Constraints
+#' @param n_by Number of 'by' dimensions.
+#'
+#' @returns TRUE, invisibly.
+#'
+#' @noRd
+check_con_n_by <- function(con, n_by, nm) {
+  if ((con == "by") && (n_by == 1L))
+    cli::cli_abort(c("{.arg con} is {.val {con}} but {.var {nm}} term is a main effect.",
+                     i = paste("{.arg con} should only equal {.val {con}}",
+                               "in a prior for an interaction.")))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that 'est' Object Returned by TMB has No NAs
+#'
+#' @param est Named list
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_est <- function(est) {
+  is_na <- is.na(unlist(est, use.names = FALSE))
+  if (any(is_na)) {
+    index_term <- which(is_na)
+    nm_term <- get_term_from_est(est = est, index_term = index_term)
+    cli::cli_abort(c("Problem deriving posterior distribution.",
+                     i = "Estimation of posterior mean for {.val {nm_term}} term{?s} failed.",
+                     i = "You may need to change the specification of your model."))
+  }
+  invisible(TRUE)
+}
+    
+    
+## HAS_TESTS
 #' Check a Logical Flag
 #'
 #' @param x TRUE or FALSE
@@ -915,6 +954,28 @@ check_svd_agesex <- function(prior,
 
 
 ## HAS_TESTS
+#' Check that Variance or Precision Returned by TMB has No NAs
+#'
+#' @param x Variance or precision matrix
+#' @param est object returned by TMB (a named list)
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_var_prec <- function(x, est) {
+  has_na <- is.na(Matrix::diag(x))
+  if (any(has_na)) {
+    index_term <- which(has_na)
+    nm_term <- get_term_from_est(est = est, index_term = index_term)
+    cli::cli_abort(c("Problem deriving posterior distribution.",
+                     i = "Estimation of posterior variance for {.val {nm_term}} term{?s} failed.",
+                     i = "You may need to change the specification of your model."))
+  }
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check 'vars_inner' Argument
 #'
 #' @param vars_inner
@@ -973,20 +1034,3 @@ check_widths <- function(widths) {
 }
 
 
-## HAS_TESTS
-#' Check that 'zero_sum' is Only TRUE When 'n_by' is Greater Than 1
-#'
-#' @param zero_sum Whether values constrained to sum to zero,
-#' within each value of along
-#' @param n_by Number of 'by' dimensions.
-#'
-#' @returns TRUE, invisibly.
-#'
-#' @noRd
-check_zero_sum_n_by <- function(zero_sum, n_by, nm) {
-  if (zero_sum & (n_by == 1L))
-    cli::cli_abort(c("{.arg zero_sum} is {.val {zero_sum}} but {.var {nm}} term is a main effect.",
-                     i = paste("{.arg zero_sum} should only be {.val {zero_sum}}",
-                               "in a prior for an interaction.")))
-  invisible(TRUE)
-}

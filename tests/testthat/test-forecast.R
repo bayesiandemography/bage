@@ -18,23 +18,23 @@ test_that("'forecast_ar' works, n_by = 1", {
   set.seed(1)
   ans_expected <- rep(ar_est[1], 6)
   ans_expected[1] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ar_est[3:5]),
+                                      mean = sum(rev(coef) * ar_est[3:5]),
                                       sd = sd)
   ans_expected[2] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * c(ar_est[4:5],
+                                      mean = sum(rev(coef) * c(ar_est[4:5],
                                                           ans_expected[1])),
                                       sd = sd)
   ans_expected[3] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * c(ar_est[5], ans_expected[1:2])),
+                                      mean = sum(rev(coef) * c(ar_est[5], ans_expected[1:2])),
                                       sd = sd)
   ans_expected[4] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[1:3]),
+                                      mean = sum(rev(coef) * ans_expected[1:3]),
                                       sd = sd)
   ans_expected[5] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[2:4]),
+                                      mean = sum(rev(coef) * ans_expected[2:4]),
                                       sd = sd)
   ans_expected[6] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[3:5]),
+                                      mean = sum(rev(coef) * ans_expected[3:5]),
                                       sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
@@ -56,42 +56,42 @@ test_that("'forecast_ar' works, n_by = 2", {
   ans_expected <- rvec::rnorm_rvec(n = 12, n_draw = 10)
   set.seed(1)
   ans_expected[1] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ar_est[4:5]),
+                                      mean = sum(rev(coef) * ar_est[4:5]),
                                       sd = sd)
   ans_expected[2] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * c(ar_est[5],
+                                      mean = sum(rev(coef) * c(ar_est[5],
                                                           ans_expected[1])),
                                       sd = sd)
   ans_expected[3] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[1:2]),
+                                      mean = sum(rev(coef) * ans_expected[1:2]),
                                       sd = sd)
   ans_expected[4] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[2:3]),
+                                      mean = sum(rev(coef) * ans_expected[2:3]),
                                       sd = sd)
   ans_expected[5] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[3:4]),
+                                      mean = sum(rev(coef) * ans_expected[3:4]),
                                       sd = sd)
   ans_expected[6] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[4:5]),
+                                      mean = sum(rev(coef) * ans_expected[4:5]),
                                       sd = sd)
   ans_expected[7] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ar_est[9:10]),
+                                      mean = sum(rev(coef) * ar_est[9:10]),
                                       sd = sd)
   ans_expected[8] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * c(ar_est[10],
+                                      mean = sum(rev(coef) * c(ar_est[10],
                                                           ans_expected[7])),
                                       sd = sd)
   ans_expected[9] <- rvec::rnorm_rvec(n = 1,
-                                      mean = sum(coef * ans_expected[7:8]),
+                                      mean = sum(rev(coef) * ans_expected[7:8]),
                                       sd = sd)
   ans_expected[10] <- rvec::rnorm_rvec(n = 1,
-                                       mean = sum(coef * ans_expected[8:9]),
+                                       mean = sum(rev(coef) * ans_expected[8:9]),
                                        sd = sd)
   ans_expected[11] <- rvec::rnorm_rvec(n = 1,
-                                       mean = sum(coef * ans_expected[9:10]),
+                                       mean = sum(rev(coef) * ans_expected[9:10]),
                                        sd = sd)
   ans_expected[12] <- rvec::rnorm_rvec(n = 1,
-                                       mean = sum(coef * ans_expected[10:11]),
+                                       mean = sum(rev(coef) * ans_expected[10:11]),
                                        sd = sd)
   expect_equal(ans_obtained, ans_expected)
 })
@@ -99,7 +99,7 @@ test_that("'forecast_ar' works, n_by = 2", {
 
 ## 'forecast_ar_svd' ----------------------------------------------------------
 
-test_that("'forecast_ar_svd' works - zero_sum is FALSE", {
+test_that("'forecast_ar_svd' works - con is 'none'", {
   set.seed(0)
   prior <- SVD_AR1(HMD)
   dimnames_term <- list(year = letters[1:5],
@@ -144,9 +144,9 @@ test_that("'forecast_ar_svd' works - zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_ar_svd' works - zero_sum is TRUE (does not affect results)", {
+test_that("'forecast_ar_svd' works - con is 'by' (does not affect results)", {
   set.seed(0)
-  prior <- SVD_AR1(HMD, zero_sum = TRUE)
+  prior <- SVD_AR1(HMD, con = "by")
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"
