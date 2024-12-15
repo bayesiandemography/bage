@@ -1604,7 +1604,6 @@ str_call_args_ar <- function(prior) {
   shape2 <- specific$shape2
   min <- specific$min
   max <- specific$max
-  along <- specific$along
   nm <- specific$nm
   is_ar1 <- grepl("AR1", nm)
   if (is_ar1) {
@@ -1632,6 +1631,22 @@ str_call_args_ar <- function(prior) {
       ans[[4L]] <- sprintf("shape2=%s", shape2)
   }
   ans
+}
+
+## HAS_TESTS
+#' Compile Args for 'con' Part of Prior for 'str_call_prior'
+#'
+#' @param prior Prior with 'con' 
+#'
+#' @returns A character vector
+#'
+#' @noRd
+str_call_args_con <- function(prior) {
+  con <- prior$specific$con
+  if (con == "by")
+    sprintf('con="%s"', con)
+  else
+    ""
 }
 
 ## HAS_TESTS
@@ -1794,23 +1809,6 @@ str_call_args_svd <- function(prior) {
   if (!indep)
     ans[[3L]] <- "indep=FALSE"
   ans
-}
-
-
-## HAS_TESTS
-#' Compile Args for 'zero_sum' Part of Prior for 'str_call_prior'
-#'
-#' @param prior Prior with 'zero_sum' 
-#'
-#' @returns A character vector
-#'
-#' @noRd
-str_call_args_zero_sum <- function(prior) {
-  zero_sum <- prior$specific$zero_sum
-  if (zero_sum)
-    sprintf("zero_sum=%s", zero_sum)
-  else
-    ""
 }
 
 

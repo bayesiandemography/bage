@@ -45,6 +45,29 @@ test_that("'combine_stored_draws_point_inner_outer' works with valid inputs", {
 })
 
 
+## 'con_by_fitted' ------------------------------------------------------------
+
+test_that("'con_by_fitted' works", {
+  set.seed(0)
+  prior <- RW()
+  fitted <- rvec::rnorm_rvec(n = 100, n_draw = 10)
+  along <- "time"
+  dimnames_term <- list(time = 2001:2010,
+                        age = 0:4,
+                        sex = 1:2)
+  var_time <- "time"
+  var_age <- "age"
+  ans <- con_by_fitted(prior = prior,
+                         fitted = fitted,
+                         dimnames_term = dimnames_term,
+                         var_time = var_time,
+                         var_age = var_age)
+  expect_equal(sum(ans[c(3, 13, 23, 33, 43)]),
+               sum(ans[c(4, 14, 24, 34, 44)]))
+  expect_equal(ans[10], -ans[60])
+})
+
+
 ## 'draw_vals_components_fitted' ----------------------------------------------
 
 test_that("'draw_vals_components_fitted' works", {
@@ -788,7 +811,7 @@ test_that("'make_hyperrand_lin' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_lin' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_lin' works with interaction, con is 'none'", {
   prior <- Lin_AR()
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 20, n_draw = 10)
@@ -811,8 +834,8 @@ test_that("'make_hyperrand_lin' works with interaction, zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_lin' works with interaction, zero_sum is TRUE", {
-  prior <- Lin_AR(zero_sum = TRUE)
+test_that("'make_hyperrand_lin' works with interaction, con is 'by'", {
+  prior <- Lin_AR(con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 1, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -891,8 +914,8 @@ test_that("'make_hyperrand_randomseasfix' works with interaction, random_sum is 
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_randomseasfix' works with interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n = 4, zero_sum = TRUE)
+test_that("'make_hyperrand_randomseasfix' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n = 4, con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 3, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -945,7 +968,7 @@ test_that("'make_hyperrand_randomseasvary' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_randomseasvary' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_randomseasvary' works with interaction, con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n = 4, s_seas = 1)
   hyperrandfree <- rvec::rnorm_rvec(n = 16, n_draw = 10)
@@ -977,8 +1000,8 @@ test_that("'make_hyperrand_randomseasvary' works with interaction, zero_sum is F
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_randomseasvary' works with interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 4, s_seas = 1, zero_sum = TRUE)
+test_that("'make_hyperrand_randomseasvary' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 4, s_seas = 1, con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 8, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -1031,7 +1054,7 @@ test_that("'make_hyperrand_zeroseasfix' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_zeroseasfix' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n = 4, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 4, n_draw = 10)
@@ -1061,8 +1084,8 @@ test_that("'make_hyperrand_zeroseasfix' works with interaction, zero_sum is FALS
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_zeroseasfix' works with interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n = 4, sd = 0, zero_sum = TRUE)
+test_that("'make_hyperrand_zeroseasfix' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n = 4, sd = 0, con = "by")
   hyperrandfree <- rvec::rnorm_rvec(n = 2, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -1117,7 +1140,7 @@ test_that("'make_hyperrand_zeroseasvary' works with main effect", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_zeroseasvary' works with interaction, zero_sum is FALSE", {
+test_that("'make_hyperrand_zeroseasvary' works with interaction, con is 'none'", {
   set.seed(0)
   prior <- RW2_Seas(n = 4, s_seas = 1, sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 14, n_draw = 10)
@@ -1153,8 +1176,8 @@ test_that("'make_hyperrand_zeroseasvary' works with interaction, zero_sum is FAL
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'make_hyperrand_zeroseasvary' works with interaction, zero_sum is TRUE", {
-  prior <- RW_Seas(n_seas = 4, s_seas = 1, zero_sum = TRUE, sd = 0)
+test_that("'make_hyperrand_zeroseasvary' works with interaction, con is 'by'", {
+  prior <- RW_Seas(n_seas = 4, s_seas = 1, con = "by", sd = 0)
   hyperrandfree <- rvec::rnorm_rvec(n = 7, n_draw = 10)
   effectfree <- rvec::rnorm_rvec(n = 10)
   dimnames_term <- list(time = 2001:2010, sex = c("f", "m"))
@@ -1237,7 +1260,7 @@ test_that("'make_levels_spline' works - unlist is TRUE", {
 
 ## 'make_levels_spline_term' --------------------------------------------------
 
-test_that("'make_levels_spline_term' works - zero_sum is FALSE", {
+test_that("'make_levels_spline_term' works - con is 'none'", {
   prior <- Sp(n = 5)
   dimnames_term <- list(reg = 1:2,
                         age = 1:20)
@@ -1249,8 +1272,8 @@ test_that("'make_levels_spline_term' works - zero_sum is FALSE", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_spline_term' works - zero_sum is TRUE", {
-  prior <- Sp(n = 5, zero_sum = TRUE)
+test_that("'make_levels_spline_term' works - con is 'by'", {
+  prior <- Sp(n = 5, con = "by")
   dimnames_term <- list(reg = 1:2,
                         age = 1:20)
   ans_obtained <- make_levels_spline_term(prior = prior,
@@ -1261,8 +1284,8 @@ test_that("'make_levels_spline_term' works - zero_sum is TRUE", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_spline_term' works - zero_sum is TRUE, more dimensions", {
-  prior <- Sp(n = 5, zero_sum = TRUE)
+test_that("'make_levels_spline_term' works - con is 'by', more dimensions", {
+  prior <- Sp(n = 5, con = "by")
   dimnames_term <- list(reg = 1:4,
                         age = 1:20,
                         sex = c("f", "m"))
@@ -1373,7 +1396,7 @@ test_that("'make_levels_svd_term' works - indep, age:sex:reg", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - indep, age:sex:time, zero_sum is FALSE", {
+test_that("'make_levels_svd_term' works - indep, age:sex:time, con is 'none'", {
   prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5)
   dimnames_term <- list(time = 2001:2010, age = c(0:59, "60+"), sex = c("M", "F"))
   var_age <- "age"
@@ -1388,8 +1411,8 @@ test_that("'make_levels_svd_term' works - indep, age:sex:time, zero_sum is FALSE
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_levels_svd_term' works - indep, age:time:reg, zero_sum is TRUE", {
-  prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5, zero_sum = TRUE)
+test_that("'make_levels_svd_term' works - indep, age:time:reg, con is 'by'", {
+  prior <- SVD_RW(HMD, indep = FALSE, n_comp = 5, con = "by")
   dimnames_term <- list(time = 2001:2010, age = c(0:59, "60+"), reg = c("a", "b", "c"))
   var_age <- "age"
   var_sexgender <- "sex"
@@ -2282,27 +2305,4 @@ test_that("'transform_hyper_ar' works with 'bage_prior_svd_ar - AR'", {
   expect_equal(l[[1]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[2]](0.35), shifted_invlogit(0.35))
   expect_equal(l[[3]](0.35), exp(0.35))
-})
-
-
-## 'zero_sum_fitted' ----------------------------------------------------------
-
-test_that("'zero_sum' works", {
-  set.seed(0)
-  prior <- RW()
-  fitted <- rvec::rnorm_rvec(n = 100, n_draw = 10)
-  along <- "time"
-  dimnames_term <- list(time = 2001:2010,
-                        age = 0:4,
-                        sex = 1:2)
-  var_time <- "time"
-  var_age <- "age"
-  ans <- zero_sum_fitted(prior = prior,
-                         fitted = fitted,
-                         dimnames_term = dimnames_term,
-                         var_time = var_time,
-                         var_age = var_age)
-  expect_equal(sum(ans[c(3, 13, 23, 33, 43)]),
-               sum(ans[c(4, 14, 24, 34, 44)]))
-  expect_equal(ans[10], -ans[60])
 })

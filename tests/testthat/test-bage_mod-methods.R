@@ -923,7 +923,7 @@ test_that("'fit' works with RW2_Infant()", {
                     exposure = popn)
     mod <- set_prior(mod, age:reg ~ RW2_Infant())
     ans_obtained <- fit(mod)
-    mod <- set_prior(mod, age:reg ~ RW2_Infant(zero_sum = TRUE))
+    mod <- set_prior(mod, age:reg ~ RW2_Infant(con = "by"))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })

@@ -1835,6 +1835,23 @@ test_that("'str_call_args_svd' works - AR", {
 })
 
 
+## 'str_call_args_con' --------------------------------------------------------
+
+test_that("'str_call_args_con' works - con is 'none'", {
+  prior <- RW()
+  ans_obtained <- str_call_args_con(prior)
+  ans_expected <- ""
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'str_call_args_con' works - con is 'by'", {
+  prior <- RW(con = "by")
+  ans_obtained <- str_call_args_con(prior)
+  ans_expected <- 'con="by"'
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'str_call_args_lin' --------------------------------------------------------
 
 test_that("'str_call_args_lin' works - mean_slope = 0, sd_slope = 1", {
@@ -1977,22 +1994,6 @@ test_that("'str_call_args_svd' works - joint", {
   prior <- SVD(HMD, indep = FALSE, n_comp = 3)
   ans_obtained <- str_call_args_svd(prior)
   ans_expected <- c("HMD", "", "indep=FALSE")
-  expect_identical(ans_obtained, ans_expected)
-})
-
-## 'str_call_args_zero_sum' ---------------------------------------------------
-
-test_that("'str_call_args_zero_sum' works - zero_sum is FALSE", {
-  prior <- RW()
-  ans_obtained <- str_call_args_zero_sum(prior)
-  ans_expected <- ""
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'str_call_args_zero_sum' works - zero_sum is TRUE", {
-  prior <- RW(zero_sum = TRUE)
-  ans_obtained <- str_call_args_zero_sum(prior)
-  ans_expected <- "zero_sum=TRUE"
   expect_identical(ans_obtained, ans_expected)
 })
 

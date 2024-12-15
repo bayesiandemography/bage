@@ -369,8 +369,8 @@ test_that("'make_matrix_along_by' works when 'i_along' is 1:2", {
 
 ## 'make_matrix_along_by_effectfree_inner' ------------------------------------
 
-test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interaction, append_zero is TRUE, zero_sum is TRUE", {
-  prior <- RW(zero_sum = TRUE)
+test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interaction, append_zero is TRUE, con is 'by'", {
+  prior <- RW(con = "by")
   dimnames_term <- list(reg = 1:4,
                         time = 2001:2010)
   var_age <- "age"
@@ -386,7 +386,7 @@ test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interactio
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interaction, append_zero is FALSE, zero_sum is FALSE", {
+test_that("'make_matrix_along_by_effectfree_inner' works - reg x time interaction, append_zero is FALSE, con is 'none'", {
   prior <- RW()
   dimnames_term <- list(reg = 1:4,
                         time = 2001:2010)
@@ -558,6 +558,35 @@ test_that("'make_matrix_append_zero' works", {
 })
 
 
+## 'make_matrix_con_by' -------------------------------------------------------
+
+test_that("'make_matrix_con_by' works with one 'by' dimension, along first", {
+  m <- make_matrix_con_by(i_along = 1L, dim = c(4, 3))
+  ans <- m %*% rnorm(12)
+  expect_equal(rowMeans(matrix(ans, nr = 4)), rep(0, 4))
+})
+
+test_that("'make_matrix_con_by' works with one 'by' dimension, along second", {
+  m <- make_matrix_con_by(i_along = 2L, dim = c(4, 3))
+  ans <- m %*% rnorm(12)
+  expect_equal(colMeans(matrix(ans, nr = 4)), rep(0, 3))
+})
+
+test_that("'make_matrix_con_by' works with two 'by' dimensions, along first", {
+  m <- make_matrix_con_by(i_along = 1L, dim = c(4, 3, 2))
+  ans <- array(m %*% rnorm(24), dim = 4:2)
+  expect_equal(as.numeric(apply(ans, 1:2, mean)), rep(0, 12))
+  expect_equal(as.numeric(apply(ans, c(1, 3), mean)), rep(0, 8))
+})
+
+test_that("'make_matrix_con_by' works with two 'by' dimensions, along second", {
+  m <- make_matrix_con_by(i_along = 2L, dim = c(4, 3, 2))
+  ans <- array(m %*% rnorm(24), dim = 4:2)
+  expect_equal(as.numeric(apply(ans, 1:2, mean)), rep(0, 12))
+  expect_equal(as.numeric(apply(ans, c(2, 3), mean)), rep(0, 6))
+})
+
+
 ## 'make_matrix_constraints' --------------------------------------------------
 
 test_that("'make_matrix_constraints' works", {
@@ -642,9 +671,9 @@ test_that("'make_matrix_draws_svd_nozero' works", {
 
 ## 'make_matrix_effectfree_effect_inner' --------------------------------------
 
-test_that("'make_matrix_effectfree_effect_inner' works - zero_sum is TRUE, along first", {
+test_that("'make_matrix_effectfree_effect_inner' works - con is 'by', along first", {
   dimnames_term <- list(time = 2001:2003, age = 0:4)
-  prior <- AR1(zero_sum = TRUE)
+  prior <- AR1(con = "by")
   m <- make_matrix_effectfree_effect_inner(prior = prior,
                                            dimnames_term = dimnames_term,
                                            var_time = "time",
@@ -654,8 +683,8 @@ test_that("'make_matrix_effectfree_effect_inner' works - zero_sum is TRUE, along
   expect_equal(rowSums(matrix(m %*% (1:12), nrow = 3)), rep(0, 3))
 })
 
-test_that("'make_matrix_effectfree_effect_inner' works - zero_sum, along second", {
-  prior <- AR1(zero_sum = TRUE)
+test_that("'make_matrix_effectfree_effect_inner' works - con is 'by', along second", {
+  prior <- AR1(con = "by")
   dimnames_term <- list(age = 0:2, time = 2001:2005)
   m <- make_matrix_effectfree_effect_inner(prior = prior,
                                            dimnames_term = dimnames_term,
@@ -670,7 +699,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - zero_sum, along second"
 
 test_that("'make_matrix_effectfree_effect_inner' works - append zero, along first", {
   set.seed(0)
-  prior <- AR1(zero_sum = FALSE)  
+  prior <- AR1()  
   dimnames_term <- list(time = 2001:2003, age = 0:4)
   m <- make_matrix_effectfree_effect_inner(prior = prior,
                                            dimnames_term = dimnames_term,
@@ -702,7 +731,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append zero, along seco
 
 test_that("'make_matrix_effectfree_effect_inner' works - append column and append zero, along first", {
   set.seed(0)
-  prior <- RW(zero_sum = TRUE)
+  prior <- RW(con = "by")
   dimnames_term <- list(time = 2001:2003, age = 0:4)
   m <- make_matrix_effectfree_effect_inner(prior = prior,
                                            dimnames_term = dimnames_term,
@@ -719,7 +748,7 @@ test_that("'make_matrix_effectfree_effect_inner' works - append column and appen
 
 test_that("'make_matrix_effectfree_effect_inner' works - append column and append zero, along second", {
   set.seed(0)
-  prior <- AR1(zero_sum = TRUE)
+  prior <- AR1(con = "by")
   dimnames_term <- list(age = 0:4, time = 2001:2003)
   m <- make_matrix_effectfree_effect_inner(prior = prior,
                                            dimnames_term = dimnames_term,
@@ -750,13 +779,13 @@ test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig"
   expect_equal(dim(ans), c(5 * 13, 4 * 3))
 })
 
-test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig, zero_sum is TRUE", {
+test_that("'make_matrix_effectfree_effect' works with SVD-based matrix_sub_orig, con is 'by'", {
   dimnames_term <- list(age = poputils::age_labels(type = "five", max = 60),
                         time = 2001:2005)
   var_time <- "time"
   var_age <- "age"
   var_sexgender <- "sex"
-  prior <- SVD_RW(HMD, zero_sum = TRUE)
+  prior <- SVD_RW(HMD, con = "by")
   ans <- make_matrix_effectfree_effect_inner(prior = prior,
                                              dimnames_term = dimnames_term,
                                              var_time = var_time,
@@ -856,7 +885,7 @@ test_that("'make_matrix_spline' works", {
 
 ## 'make_matrix_sub_orig_svd' -------------------------------------------------
 
-test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, zero_sum is FALSE", {
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, con is 'none'", {
   prior <- SVD_RW(HMD)
   dimnames_term <- list(time = 2001:2005,
                         age = poputils::age_labels(type = "five", max = 60))
@@ -868,11 +897,11 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age 
                                   var_age = var_age,
                                   var_sexgender = var_sexgender,
                                   dim_after = dim_after,
-                                  zero_sum = FALSE)
+                                  con = "none")
   expect_equal(dim(ans), c(prod(dim_after), 12L))
 })
 
-test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, zero_sum is TRUE", {
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age interaction, con is 'none'", {
   prior <- SVD_RW(HMD)
   dimnames_term <- list(time = 2001:2005,
                         age = poputils::age_labels(type = "five", max = 60))
@@ -884,11 +913,11 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - time x age 
                                   var_age = var_age,
                                   var_sexgender = var_sexgender,
                                   dim_after = dim_after,
-                                  zero_sum = TRUE)
+                                  con = "by")
   expect_equal(dim(ans), c(prod(dim_after), 12L))
 })
 
-test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, zero_sum is TRUE", {
+test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time x age interaction, con is 'none'", {
   prior <- SVD_RW(HMD)
   dimnames_term <- list(sex = c("f", "m"),
                         time = 2001:2005,
@@ -901,7 +930,7 @@ test_that("'make_matrix_sub_orig_svd' works with bage_prior_svd_ar - sex x time 
                                   var_age = var_age,
                                   var_sexgender = var_sexgender,
                                   dim_after = dim_after,
-                                  zero_sum = TRUE)
+                                  con = "by")
   expect_equal(dim(ans), c(prod(dim_after), 24L))
 })
 
@@ -975,35 +1004,6 @@ test_that("'make_matrix_unconstr_constr_along' works when array representation o
 })
 
 
-## 'make_matrix_zero_sum' -----------------------------------------------------
-
-test_that("'make_matrix_zero_sum' works with one 'by' dimension, along first", {
-  m <- make_matrix_zero_sum(i_along = 1L, dim = c(4, 3))
-  ans <- m %*% rnorm(12)
-  expect_equal(rowMeans(matrix(ans, nr = 4)), rep(0, 4))
-})
-
-test_that("'make_matrix_zero_sum' works with one 'by' dimension, along second", {
-  m <- make_matrix_zero_sum(i_along = 2L, dim = c(4, 3))
-  ans <- m %*% rnorm(12)
-  expect_equal(colMeans(matrix(ans, nr = 4)), rep(0, 3))
-})
-
-test_that("'make_matrix_zero_sum' works with two 'by' dimensions, along first", {
-  m <- make_matrix_zero_sum(i_along = 1L, dim = c(4, 3, 2))
-  ans <- array(m %*% rnorm(24), dim = 4:2)
-  expect_equal(as.numeric(apply(ans, 1:2, mean)), rep(0, 12))
-  expect_equal(as.numeric(apply(ans, c(1, 3), mean)), rep(0, 8))
-})
-
-test_that("'make_matrix_zero_sum' works with two 'by' dimensions, along second", {
-  m <- make_matrix_zero_sum(i_along = 2L, dim = c(4, 3, 2))
-  ans <- array(m %*% rnorm(24), dim = 4:2)
-  expect_equal(as.numeric(apply(ans, 1:2, mean)), rep(0, 12))
-  expect_equal(as.numeric(apply(ans, c(2, 3), mean)), rep(0, 6))
-})
-
-
 ## 'make_offset_effectfree_effect_svd' ----------------------------------------
 
 test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age effect", {
@@ -1020,7 +1020,7 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd - age e
   expect_identical(length(ans), length(dimnames_term[[1]]))
 })
 
-test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - age x time interaction, zero_sum is FALSE", {
+test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - age x time interaction, con is 'none'", {
   prior <- SVD_RW(HMD)
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
@@ -1035,8 +1035,8 @@ test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - ag
   expect_equal(length(ans), prod(lengths(dimnames_term)))
 })
 
-test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - age x time interaction, zero_sum is TRUE", {
-  prior <- SVD_RW(HMD, zero_sum = TRUE)
+test_that("'make_offset_effectfree_effect_svd' works with bage_prior_svd_RW - age x time interaction, con is 'by'", {
+  prior <- SVD_RW(HMD, con = "by")
   dimnames_term <- list(age = poputils::age_labels(type = "lt", max = 60),
                         time = 2001:2010)
   var_time <- "time"
@@ -1066,13 +1066,13 @@ test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - age x time int
                                            var_age = var_age,
                                            var_sexgender = var_sexgender,
                                            dim_after = c(2L, 3L),
-                                           zero_sum = FALSE)
+                                           con = "none")
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- unname(rep(ans_expected, 3))
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - age x time interaction, zero_sum is FALSE", {
+test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - age x time interaction, con is 'none'", {
   s <- sim_ssvd()
   prior <- SVD_AR1(ssvd = s, n_comp = 2)
   dimnames_term <- list(age = c("0-4", "5-9"),
@@ -1086,13 +1086,13 @@ test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - age x time int
                                            var_age = var_age,
                                            var_sexgender = var_sexgender,
                                            dim_after = c(2L, 3L),
-                                           zero_sum = FALSE)
+                                           con = "none")
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- unname(rep(ans_expected, 3))
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_offset_sub_orig_svd' works with bage_prior_svd_ar - age x time interaction, zero_sum is TRUE", {
+test_that("'make_offset_sub_orig_svd' works with bage_prior_svd_ar - age x time interaction, con is 'by'", {
   s <- sim_ssvd()
   prior <- SVD_AR1(ssvd = s, n_comp = 2)
   dimnames_term <- list(age = c("0-4", "5-9"),
@@ -1105,7 +1105,7 @@ test_that("'make_offset_sub_orig_svd' works with bage_prior_svd_ar - age x time 
                                            var_age = var_age,
                                            var_sexgender = var_sexgender,
                                            dim_after = c(1L, 3L),
-                                           zero_sum = TRUE)
+                                           con = "by")
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- unname(rep(sqrt(0.5), 3))
   expect_equal(ans_obtained, ans_expected)
@@ -1125,7 +1125,7 @@ test_that("'make_offset_sub_orig_svd' works with bage_prior_svd_rw - age x time 
                                                     var_age = var_age,
                                            var_sexgender = var_sexgender,
                                            dim_after = c(2L, 3L),
-                                           zero_sum = FALSE)
+                                           con = "none")
   ans_expected <- s$data$offset[s$data$type == "total"][[1L]]
   ans_expected <- unname(rep(ans_expected, 3))
   expect_identical(ans_obtained, ans_expected)
@@ -1144,7 +1144,7 @@ test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - sex x age inte
                                            var_age = var_age,
                                            var_sexgender = var_sexgender,
                                            dim_after = c(2L, 2L),
-                                           zero_sum = FALSE)
+                                           con = "none")
   ans_expected <- unname(s$data$offset[s$data$type == "indep"][[1L]][c(1,3,2,4)])
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1163,7 +1163,7 @@ test_that("'make_offset_sub_orig_svd' works with bage_prior_svd - sex x age inte
                                            var_age = var_age,
                                            var_sexgender = var_sexgender,
                                            dim_after = c(2L, 2L),
-                                           zero_sum = FALSE)
+                                           con = "none")
   ans_expected <- unname(s$data$offset[s$data$type == "joint"][[1L]][c(1,3,2,4)])
   expect_identical(ans_obtained, ans_expected)
 })

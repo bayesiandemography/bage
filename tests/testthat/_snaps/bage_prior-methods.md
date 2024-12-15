@@ -9,7 +9,7 @@
              max: 1
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -21,7 +21,7 @@
              max: 0.98
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -40,7 +40,7 @@
       mean_slope: 0
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -52,7 +52,7 @@
       mean_slope: 0
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -67,7 +67,7 @@
              min: -1
              max: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -94,7 +94,7 @@
                s: 1
               sd: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -108,7 +108,7 @@
           s_seas: 0
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -122,7 +122,7 @@
           s_seas: 1
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -133,7 +133,7 @@
                s: 1
               sd: 0
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -147,7 +147,7 @@
           s_seas: 0
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -161,7 +161,7 @@
           s_seas: 1
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -171,7 +171,7 @@
         RW2_Infant() 
                s: 1
         sd_slope: 1
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -183,7 +183,7 @@
               sd: 1
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -198,7 +198,7 @@
           s_seas: 0
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -213,7 +213,7 @@
           s_seas: 1
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -225,7 +225,7 @@
               sd: 0
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -240,7 +240,7 @@
           s_seas: NULL
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -255,7 +255,7 @@
           s_seas: 1
          sd_seas: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -267,7 +267,7 @@
                s: 1
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -301,7 +301,7 @@
              max: 1
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -317,7 +317,7 @@
              max: 1
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -331,7 +331,7 @@
              max: 0.98
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -346,7 +346,7 @@
              max: 0.98
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -359,7 +359,7 @@
                s: 1
               sd: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -373,7 +373,7 @@
                s: 1
               sd: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -385,7 +385,7 @@
           n_comp: 3
                s: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -399,7 +399,7 @@
               sd: 1
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -414,7 +414,7 @@
               sd: 1
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 
 ---
 
@@ -427,5 +427,5 @@
                s: 1
         sd_slope: 1
            along: NULL
-        zero_sum: FALSE
+             con: none
 

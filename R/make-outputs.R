@@ -81,6 +81,35 @@ combine_stored_draws_point_inner_outer <- function(mod, mod_inner, mod_outer, us
 
 
 ## HAS_TESTS
+#' Standardize 'fitted' So It Conforms to 'con == "by"' Constraints
+#'
+#' @param prior Object of class 'bage_prior'
+#' @param fitted A vector, possibly an rvec
+#' @param dimnames_term Dimnames for array representation of term
+#' @param var_time Name of time dimension
+#' @param var_age Name of age dimension
+#'
+#' @returns A standardized version of 'fitted'
+#'
+#' @noRd
+con_by_fitted <- function(prior,
+                          fitted,
+                          dimnames_term,
+                          var_time,
+                          var_age) {
+  i_along <- make_i_along(prior = prior,
+                          dimnames_term = dimnames_term,
+                          var_time = var_time,
+                          var_age = var_age)
+  dim <- lengths(dimnames_term)
+  m <- make_matrix_con_by(i_along = i_along,
+                          dim = dim)
+  m <- as.matrix(m)
+  fitted <- m %*% fitted
+}
+
+
+## HAS_TESTS
 #' Return Values for Higher-Level Parameters from Fitted Model
 #'
 #' @param mod A fitted object of class 'bage_mod'
@@ -1406,7 +1435,7 @@ make_levels_spline_term <- function(prior,
                                     dimnames_term,
                                     var_time,
                                     var_age) {
-  zero_sum <- prior$specific$zero_sum
+  con <- prior$specific$con
   i_along <- make_i_along(prior = prior,
                           dimnames_term = dimnames_term,
                           var_time = var_time,
@@ -1416,7 +1445,7 @@ make_levels_spline_term <- function(prior,
                               n_along = n_along)
   levels_along <- paste0("comp", seq_len(n_comp))
   dimnames_term[[i_along]] <- levels_along
-  if (zero_sum) {
+  if (con == "by") {
     dimnames_term[-i_along] <- make_unconstr_dimnames_by(i_along = i_along,
                                                          dimnames_term = dimnames_term)
   }
@@ -1484,8 +1513,8 @@ make_levels_svd_term <- function(prior,
   nms_noagesex <- setdiff(nms, c(var_age, var_sexgender))
   dimnames_noagesex <- dimnames_term[nms_noagesex]
   if (uses_along(prior)) {
-    zero_sum <- prior$specific$zero_sum
-    if (zero_sum) {
+    con <- prior$specific$con
+    if (con == "by") {
       i_along <- match(var_time, names(dimnames_noagesex))
       dimnames_noagesex[-i_along] <- make_unconstr_dimnames_by(i_along = i_along,
                                                                dimnames_term = dimnames_noagesex)
@@ -2183,33 +2212,4 @@ transform_hyper_ar <- function(prior) {
   }
   rep(list(coef = shifted_inv_logit, sd = exp),
       times = c(n_coef, 1L))
-}
-
-  
-## HAS_TESTS
-#' Standardize 'fitted' So It Conforms to 'zero_sum' Constraints
-#'
-#' @param prior Object of class 'bage_prior'
-#' @param fitted A vector, possibly an rvec
-#' @param dimnames_term Dimnames for array representation of term
-#' @param var_time Name of time dimension
-#' @param var_age Name of age dimension
-#'
-#' @returns A standardized version of 'fitted'
-#'
-#' @noRd
-zero_sum_fitted <- function(prior,
-                            fitted,
-                            dimnames_term,
-                            var_time,
-                            var_age) {
-  i_along <- make_i_along(prior = prior,
-                          dimnames_term = dimnames_term,
-                          var_time = var_time,
-                          var_age = var_age)
-  dim <- lengths(dimnames_term)
-  m <- make_matrix_zero_sum(i_along = i_along,
-                            dim = dim)
-  m <- as.matrix(m)
-  fitted <- m %*% fitted
 }
