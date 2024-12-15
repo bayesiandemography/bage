@@ -1,4 +1,17 @@
 
+# bage 0.8.4
+
+## Changes to interface
+
+* Changed `zero_sum` argument to `con` (short for "constraint"). `con
+  = "none"` corresponds to `zero_sum = FALSE`, and `con = "by"`
+  corresponds to `zero_sum = TRUE`. Additional options will be added
+  in future.
+* Added `sd` argument to `SVD_RW()` and `SVD_RW2()`. The initial value
+  of the random walks are drawn from a `N(0, sd^2)` prior. `sd` can be
+  set to 0.
+
+
 # bage 0.8.3
 
 ## Changes to internal calculations

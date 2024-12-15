@@ -67,6 +67,24 @@ check_bage_mod <- function(x, nm_x) {
 
 
 ## HAS_TESTS
+#' Check that 'con' is Only "by" When 'n_by' is Greater Than 1
+#'
+#' @param con Constraints
+#' @param n_by Number of 'by' dimensions.
+#'
+#' @returns TRUE, invisibly.
+#'
+#' @noRd
+check_con_n_by <- function(con, n_by, nm) {
+  if ((con == "by") && (n_by == 1L))
+    cli::cli_abort(c("{.arg con} is {.val {con}} but {.var {nm}} term is a main effect.",
+                     i = paste("{.arg con} should only equal {.val {con}}",
+                               "in a prior for an interaction.")))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that 'est' Object Returned by TMB has No NAs
 #'
 #' @param est Named list
@@ -1016,20 +1034,3 @@ check_widths <- function(widths) {
 }
 
 
-## HAS_TESTS
-#' Check that 'zero_sum' is Only TRUE When 'n_by' is Greater Than 1
-#'
-#' @param zero_sum Whether values constrained to sum to zero,
-#' within each value of along
-#' @param n_by Number of 'by' dimensions.
-#'
-#' @returns TRUE, invisibly.
-#'
-#' @noRd
-check_zero_sum_n_by <- function(zero_sum, n_by, nm) {
-  if (zero_sum & (n_by == 1L))
-    cli::cli_abort(c("{.arg zero_sum} is {.val {zero_sum}} but {.var {nm}} term is a main effect.",
-                     i = paste("{.arg zero_sum} should only be {.val {zero_sum}}",
-                               "in a prior for an interaction.")))
-  invisible(TRUE)
-}

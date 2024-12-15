@@ -99,7 +99,7 @@ test_that("'forecast_ar' works, n_by = 2", {
 
 ## 'forecast_ar_svd' ----------------------------------------------------------
 
-test_that("'forecast_ar_svd' works - zero_sum is FALSE", {
+test_that("'forecast_ar_svd' works - con is 'none'", {
   set.seed(0)
   prior <- SVD_AR1(HMD)
   dimnames_term <- list(year = letters[1:5],
@@ -144,9 +144,9 @@ test_that("'forecast_ar_svd' works - zero_sum is FALSE", {
   expect_equal(ans_obtained, ans_expected)
 })
 
-test_that("'forecast_ar_svd' works - zero_sum is TRUE (does not affect results)", {
+test_that("'forecast_ar_svd' works - con is 'by' (does not affect results)", {
   set.seed(0)
-  prior <- SVD_AR1(HMD, zero_sum = TRUE)
+  prior <- SVD_AR1(HMD, con = "by")
   dimnames_term <- list(year = letters[1:5],
                         age = poputils::age_labels(type = "lt", max = 60))
   var_time <- "year"

@@ -256,7 +256,7 @@ test_that("'draw_vals_hyperrand_mod' works with bage_mod_pois", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    mod <- set_prior(mod, age:time ~ Lin(zero_sum = TRUE))
+    mod <- set_prior(mod, age:time ~ Lin(con = "by"))
     vals_hyper <- draw_vals_hyper_mod(mod = mod, n_sim = 10)
     ans <- draw_vals_hyperrand_mod(mod, vals_hyper = vals_hyper, n_sim = 10)
     expect_identical(names(ans), c("(Intercept)", "age", "time", "sex", "age:time"))
