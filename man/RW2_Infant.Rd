@@ -51,14 +51,14 @@ Smaller values for \code{s} tend to give smoother series.
 When \code{RW2_Infant()} is used with a main effect,
 
 \deqn{\beta_1 \sim \text{N}(0, 1)}
-\deqn{\beta_2 \sim \text{N}(0, \text{sd\_slope}^2)}
+\deqn{\beta_2 \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 \deqn{\beta_3 \sim \text{N}(2 \beta_2, \tau^2)}
 \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j = 3, \cdots, J}
 
 and when it is used with an interaction,
 
 \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
-\deqn{\beta_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
+\deqn{\beta_{u,2} \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 \deqn{\beta_{u,3} \sim \text{N}(2 \beta_{u,2}, \tau^2)}
 \deqn{\beta_{u,v} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
 
@@ -71,7 +71,7 @@ where
 }
 
 Parameter \eqn{\tau} has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}.
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2)}.
 }
 
 \section{Constraints}{

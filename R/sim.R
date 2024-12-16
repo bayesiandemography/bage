@@ -545,7 +545,8 @@ draw_vals_seasfix <- function(n_seas, sd_init, matrix_along_by, n_sim) {
   m <- diag(n_seas - 1L)
   m[, 1L] <- 1
   m <- rbind(m, -1 * colSums(m))
-  z <- matrix(stats::rnorm(n = (n_seas - 1L) * n_by * n_sim), nrow = n_seas - 1L)
+  z <- matrix(stats::rnorm(n = (n_seas - 1L) * n_by * n_sim, sd = sd_init),
+              nrow = n_seas - 1L)
   ans[seq_len(n_seas), ] <- m %*% z
   for (i_along in seq.int(from = n_seas + 1L, to = n_along))
     ans[i_along, ] <- ans[i_along - n_seas, ]

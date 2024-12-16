@@ -59,12 +59,12 @@ Smaller values for \code{s} tend to give smoother estimates.
 
 When \code{AR()} is used with a main effect,
 
-\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_{\text{n\_coef}} \beta_{j-\text{n\_coef}} + \epsilon_j}
+\deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \beta_{j-\mathtt{n\_coef}} + \epsilon_j}
 \deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \beta_{u,v-\text{n\_coef}} + \epsilon_{u,v}}
+\deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \beta_{u,v-\mathtt{n\_coef}} + \epsilon_{u,v}}
 \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
 
 where
@@ -80,12 +80,12 @@ gives every element of \eqn{\beta} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
 
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 
-The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\mathtt{n\_coef}}}
 each have prior
 
-\deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+\deqn{\phi_k \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 }
 
 \section{Constraints}{

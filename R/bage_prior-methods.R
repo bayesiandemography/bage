@@ -3232,7 +3232,6 @@ generate.bage_prior_rwzeroseasfix <- function(x,
   levels_effect <- l$levels_effect
   ans <- l$ans
   sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_init_seas <- x$specific$sd_seas
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = 0,
                         matrix_along_by = matrix_along_by,
@@ -3240,7 +3239,7 @@ generate.bage_prior_rwzeroseasfix <- function(x,
   n_seas <- x$specific$n_seas
   sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasfix(n_seas = n_seas,
-                            sd_init = sd_init_seas,
+                            sd_init = sd_init,
                             matrix_along_by = matrix_along_by,
                             n_sim = n_replicate)
   value <- alpha + seas
@@ -3745,7 +3744,8 @@ is_prior_ok_for_term.bage_prior_ar <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3789,7 +3789,8 @@ is_prior_ok_for_term.bage_prior_lin <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3814,7 +3815,8 @@ is_prior_ok_for_term.bage_prior_linar <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3838,7 +3840,8 @@ is_prior_ok_for_term.bage_prior_linex <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3894,7 +3897,8 @@ is_prior_ok_for_term.bage_prior_rwrandom <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3919,7 +3923,8 @@ is_prior_ok_for_term.bage_prior_rwrandomseasfix <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3944,7 +3949,8 @@ is_prior_ok_for_term.bage_prior_rwrandomseasvary <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3968,7 +3974,8 @@ is_prior_ok_for_term.bage_prior_rwzero <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -3993,7 +4000,8 @@ is_prior_ok_for_term.bage_prior_rwzeroseasfix <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4018,7 +4026,8 @@ is_prior_ok_for_term.bage_prior_rwzeroseasvary <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4045,7 +4054,8 @@ is_prior_ok_for_term.bage_prior_rw2infant <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4069,7 +4079,8 @@ is_prior_ok_for_term.bage_prior_rw2random <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4095,7 +4106,8 @@ is_prior_ok_for_term.bage_prior_rw2randomseasfix <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4120,7 +4132,8 @@ is_prior_ok_for_term.bage_prior_rw2randomseasvary <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4144,7 +4157,8 @@ is_prior_ok_for_term.bage_prior_rw2zero <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4170,7 +4184,8 @@ is_prior_ok_for_term.bage_prior_rw2zeroseasfix <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4195,7 +4210,8 @@ is_prior_ok_for_term.bage_prior_rw2zeroseasvary <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4219,7 +4235,8 @@ is_prior_ok_for_term.bage_prior_spline <- function(prior,
                          nm = nm,
                          prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4272,7 +4289,8 @@ is_prior_ok_for_term.bage_prior_svd_ar <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4306,7 +4324,8 @@ is_prior_ok_for_term.bage_prior_svd_rwrandom <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4341,7 +4360,8 @@ is_prior_ok_for_term.bage_prior_svd_rwzero <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4376,7 +4396,8 @@ is_prior_ok_for_term.bage_prior_svd_rw2random <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                      n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 
@@ -4410,7 +4431,8 @@ is_prior_ok_for_term.bage_prior_svd_rw2zero <- function(prior,
                    nm = nm,
                    prior = prior)
   check_con_n_by(con = con,
-                 n_by = n_by)
+                 n_by = n_by,
+                 nm = nm)
   invisible(TRUE)
 }
 

@@ -26,12 +26,12 @@
 #'
 #' When `AR()` is used with a main effect,
 #'
-#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_{\text{n\_coef}} \beta_{j-\text{n\_coef}} + \epsilon_j}
+#' \deqn{\beta_j = \phi_1 \beta_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \beta_{j-\mathtt{n\_coef}} + \epsilon_j}
 #' \deqn{\epsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \beta_{u,v-\text{n\_coef}} + \epsilon_{u,v}}
+#' \deqn{\beta_{u,v} = \phi_1 \beta_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \beta_{u,v-\mathtt{n\_coef}} + \epsilon_{u,v}}
 #' \deqn{\epsilon_{u,v} \sim \text{N}(0, \omega^2),}
 #' 
 #' where
@@ -45,12 +45,12 @@
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
 #'
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 #'
-#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\mathtt{n\_coef}}}
 #' each have prior
 #'
-#' \deqn{\phi_k \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+#' \deqn{\phi_k \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 #'
 #' @section Constraints:
 #'
@@ -182,18 +182,18 @@ AR <- function(n_coef = 2,
 #' gives every element of \eqn{\beta} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 #' where `s` is provided by the user.
 #' 
 #' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
 #' Its prior distribution is
 #' 
-#' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+#' \deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
 #' 
 #' where
 #' 
-#' \deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+#' \deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 #'
 #' @inheritSection AR Constraints
 #' 
@@ -321,12 +321,12 @@ Known <- function(values) {
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #' 
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
+#' \deqn{\eta_u \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2).}
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 #'
 #' @inheritSection AR Constraints
 #'
@@ -412,7 +412,7 @@ Lin <- function(s = 1,
 #' \deqn{\beta_1 = \alpha + \epsilon_1}
 #' \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
 #' \deqn{\alpha \sim \text{N}(0, 1)}
-#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{j-\text{n\_coef}} + \varepsilon_j}
+#' \deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}} + \varepsilon_j}
 #' \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 #'
 #' and when it is used with an interaction,
@@ -420,7 +420,7 @@ Lin <- function(s = 1,
 #' \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
 #' \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
 #' \deqn{\alpha_u \sim \text{N}(0, 1)}
-#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{u,v-\text{n\_coef}} + \varepsilon_{u,v},}
+#' \deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v},}
 #' \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 #' 
 #' where
@@ -430,20 +430,20 @@ Lin <- function(s = 1,
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
+#' \deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2).}
 #'
 #' Internally, `Lin_AR()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 #'
-#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+#' The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\mathtt{n\_coef}}}
 #' each have prior
 #'
-#' \deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+#' \deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 #'
 #' @inheritSection AR Constraints
 #' 
@@ -558,23 +558,23 @@ Lin_AR <- function(n_coef = 2,
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' The slopes have priors
-#' \deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
+#' \deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
 #' and
-#' \deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
+#' \deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2).}
 #'
 #' Internally, `Lin_AR1()` derives a value for \eqn{\omega} that
 #' gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 #' variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 #' where a value for `s` is provided by the user.
 #'
 #' Coefficient \eqn{\phi} is constrained
 #' to lie between `min` and `max`.
 #' Its prior distribution is
-#' \deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+#' \deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
 #' where
-#' \deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+#' \deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 #' 
 #' @inheritSection AR Constraints
 #'
@@ -660,7 +660,7 @@ Lin_AR1 <- function(s = 1,
 #' 
 #' Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 #' where `s` is provided by the user.
 #'
 #' @param s Scale for the standard deviation.
@@ -751,12 +751,12 @@ NFix <- function(sd = 1) {
 #'
 #' When `RW()` is used with a main effect,
 #'
-#' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\beta_1 \sim \text{N}(0, \mathtt{sd}^2)}
 #' \deqn{\beta_j \sim \text{N}(\beta_{j-1}, \tau^2), \quad j > 1}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\beta_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
 #' \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1}, \tau^2), \quad v > 1}
 #' 
 #' where
@@ -767,7 +767,7 @@ NFix <- function(sd = 1) {
 #'
 #' Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 #' where `s` is provided by the user.
 #'
 #' @inheritSection AR Constraints
@@ -855,20 +855,20 @@ RW <- function(s = 1,
 #' When `RW_Seas()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \alpha_j + \lambda_j, \quad j = 1, \cdots, J}
-#' \deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\alpha_1 \sim \text{N}(0, \mathtt{sd}^2)}
 #' \deqn{\alpha_j \sim \text{N}(\alpha_{j-1}, \tau^2), \quad j = 2, \cdots, J}
-#' \deqn{\lambda_j \sim \text{N}(0, \text{sd\_seas}^2), \quad j = 1, \cdots, \text{n\_seas} - 1}
-#' \deqn{\lambda_j = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{j - s}, \quad j = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
-#' \deqn{\lambda_j \sim \text{N}(\lambda_{j-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
+#' \deqn{\lambda_j \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad j = 1, \cdots, \mathtt{n\_seas} - 1}
+#' \deqn{\lambda_j = -\sum_{s=1}^{\mathtt{n\_seas} - 1} \lambda_{j - s}, \quad j = \mathtt{n\_seas}, 2 \mathtt{n\_seas}, \cdots}
+#' \deqn{\lambda_j \sim \text{N}(\lambda_{j-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise},}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}, \quad v = 1, \cdots, V}
-#' \deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
+#' \deqn{\alpha_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
 #' \deqn{\alpha_{u,v} \sim \text{N}(\alpha_{u,v-1}, \tau^2), \quad v = 2, \cdots, V}
-#' \deqn{\lambda_{u,v} \sim \text{N}(0, \text{sd\_seas}^2), \quad v = 1, \cdots, \text{n\_seas} - 1}
-#' \deqn{\lambda_{u,v} = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
-#' \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
+#' \deqn{\lambda_{u,v} \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad v = 1, \cdots, \mathtt{n\_seas} - 1}
+#' \deqn{\lambda_{u,v} = -\sum_{s=1}^{\mathtt{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \mathtt{n\_seas}, 2 \mathtt{n\_seas}, \cdots}
+#' \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise},}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
@@ -879,12 +879,12 @@ RW <- function(s = 1,
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Parameter \eqn{\omega} has a half-normal prior
-#' \deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2).}
+#' \deqn{\omega \sim \text{N}^+(0, \mathtt{s\_seas}^2).}
 #' If `s_seas` is set to 0, then \eqn{\omega} is 0,
 #' and seasonal effects are time-invariant.
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 #'
 #' @inheritSection AR Constraints
 #' 
@@ -1007,14 +1007,14 @@ RW_Seas <- function(n_seas,
 #'
 #' When `RW2()` is used with a main effect,
 #'
-#' \deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
-#' \deqn{\beta_2 \sim \text{N}(\beta_1, \text{sd\_slope}^2)} 
+#' \deqn{\beta_1 \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\beta_2 \sim \text{N}(\beta_1, \mathtt{sd\_slope}^2)} 
 #' \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j = 2, \cdots, J}
 #'
 #' and when it is used with an interaction,
 #'
-#' \deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)} 
-#' \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \text{sd\_slope}^2)} 
+#' \deqn{\beta_{u,1} \sim \text{N}(0, \mathtt{sd}^2)} 
+#' \deqn{\beta_{u,2} \sim \text{N}(\beta_{u,1}, \mathtt{sd\_slope}^2)} 
 #' \deqn{\beta_{u,v} \sim \text{N}(2\beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
 #' 
 #' where
@@ -1025,7 +1025,7 @@ RW_Seas <- function(n_seas,
 #'
 #' Parameter \eqn{\tau}
 #' has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}.
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2)}.
 #'
 #' @inheritSection AR Constraints
 #' 
@@ -1112,14 +1112,14 @@ RW2 <- function(s = 1,
 #' When `RW2_Infant()` is used with a main effect,
 #'
 #' \deqn{\beta_1 \sim \text{N}(0, 1)}
-#' \deqn{\beta_2 \sim \text{N}(0, \text{sd\_slope}^2)}
+#' \deqn{\beta_2 \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 #' \deqn{\beta_3 \sim \text{N}(2 \beta_2, \tau^2)}
 #' \deqn{\beta_j \sim \text{N}(2 \beta_{j-1} - \beta_{j-2}, \tau^2), \quad j = 3, \cdots, J}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,1} \sim \text{N}(0, 1)}
-#' \deqn{\beta_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
+#' \deqn{\beta_{u,2} \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 #' \deqn{\beta_{u,3} \sim \text{N}(2 \beta_{u,2}, \tau^2)}
 #' \deqn{\beta_{u,v} \sim \text{N}(2 \beta_{u,v-1} - \beta_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
 #' 
@@ -1130,7 +1130,7 @@ RW2 <- function(s = 1,
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}.
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2)}.
 #'
 #' @inheritSection AR Constraints
 #' 
@@ -1198,22 +1198,22 @@ RW2_Infant <- function(s = 1,
 #' When `RW2_Seas()` is used with a main effect,
 #'
 #' \deqn{\beta_j = \alpha_j + \lambda_j, \quad j = 1, \cdots, J}
-#' \deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
-#' \deqn{\alpha_2 \sim \text{N}(0, \text{sd\_slope}^2)}
+#' \deqn{\alpha_1 \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\alpha_2 \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 #' \deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J}
-#' \deqn{\lambda_j \sim \text{N}(0, \text{sd\_seas}^2), \quad j = 1, \cdots, \text{n\_seas} - 1}
-#' \deqn{\lambda_j = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{j - s}, \quad j = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
-#' \deqn{\lambda_j \sim \text{N}(\lambda_{j-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
+#' \deqn{\lambda_j \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad j = 1, \cdots, \mathtt{n\_seas} - 1}
+#' \deqn{\lambda_j = -\sum_{s=1}^{\mathtt{n\_seas} - 1} \lambda_{j - s}, \quad j = \mathtt{n\_seas}, 2 \mathtt{n\_seas}, \cdots}
+#' \deqn{\lambda_j \sim \text{N}(\lambda_{j-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise},}
 #'
 #' and when it is used with an interaction,
 #'
 #' \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}, \quad v = 1, \cdots, V}
-#' \deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
-#' \deqn{\alpha_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
+#' \deqn{\alpha_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
+#' \deqn{\alpha_{u,2} \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 #' \deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
-#' \deqn{\lambda_{u,v} \sim \text{N}(0, \text{sd\_seas}^2), \quad v = 1, \cdots, \text{n\_seas} - 1}
-#' \deqn{\lambda_{u,v} = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
-#' \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
+#' \deqn{\lambda_{u,v} \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad v = 1, \cdots, \mathtt{n\_seas} - 1}
+#' \deqn{\lambda_{u,v} = -\sum_{s=1}^{\mathtt{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \mathtt{n\_seas}, 2 \mathtt{n\_seas}, \cdots}
+#' \deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise},}
 #' 
 #' where
 #' - \eqn{\pmb{\beta}} is the main effect or interaction;
@@ -1224,12 +1224,12 @@ RW2_Infant <- function(s = 1,
 #' - \eqn{u} denotes position within the 'by' variable(s) of the interaction.
 #'
 #' Parameter \eqn{\omega} has a half-normal prior
-#' \deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2)}.
+#' \deqn{\omega \sim \text{N}^+(0, \mathtt{s\_seas}^2)}.
 #' If `s_seas` is set to 0, then \eqn{\omega} is 0,
 #' and the seasonal effects are fixed over time.
 #'
 #' Parameter \eqn{\tau} has a half-normal prior
-#' \deqn{\tau \sim \text{N}^+(0, \text{s}^2)}.
+#' \deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2)}.
 #' 
 #' @inheritSection AR Constraints
 #'

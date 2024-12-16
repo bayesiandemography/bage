@@ -73,7 +73,7 @@ When \code{Lin_AR()} is used with a main effect,
 \deqn{\beta_1 = \alpha + \epsilon_1}
 \deqn{\beta_j = \alpha + (j - 1) \eta + \epsilon_j, \quad j > 1}
 \deqn{\alpha \sim \text{N}(0, 1)}
-\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{j-\text{n\_coef}} + \varepsilon_j}
+\deqn{\epsilon_j = \phi_1 \epsilon_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{j-\mathtt{n\_coef}} + \varepsilon_j}
 \deqn{\varepsilon_j \sim \text{N}(0, \omega^2),}
 
 and when it is used with an interaction,
@@ -81,7 +81,7 @@ and when it is used with an interaction,
 \deqn{\beta_{u,1} = \alpha_u + \epsilon_{u,1}}
 \deqn{\beta_{u,v} = \eta (v - 1) + \epsilon_{u,v}, \quad v = 2, \cdots, V}
 \deqn{\alpha_u \sim \text{N}(0, 1)}
-\deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\text{n\_coef}} \epsilon_{u,v-\text{n\_coef}} + \varepsilon_{u,v},}
+\deqn{\epsilon_{u,v} = \phi_1 \epsilon_{u,v-1} + \cdots + \phi_{\mathtt{n\_coef}} \epsilon_{u,v-\mathtt{n\_coef}} + \varepsilon_{u,v},}
 \deqn{\varepsilon_{u,v} \sim \text{N}(0, \omega^2).}
 
 where
@@ -93,20 +93,20 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
+\deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2).}
 
 Internally, \code{Lin_AR()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 
-The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\text{n\_coef}}}
+The correlation coefficients \eqn{\phi_1, \cdots, \phi_{\mathtt{n\_coef}}}
 each have prior
 
-\deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+\deqn{0.5 \phi_k - 0.5 \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 }
 
 \section{Constraints}{

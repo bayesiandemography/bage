@@ -1,6 +1,13 @@
 ---
 title: "3. Priors"
-output: rmarkdown::html_vignette
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    toc: true
+    toc_depth: 2
+    number_sections: true
+pkgdown:
+  as_is: true
 vignette: >
   %\VignetteIndexEntry{3. Priors}
   %\VignetteEngine{knitr::rmarkdown}
@@ -12,8 +19,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   echo = TRUE,
   comment = "#>",
-  fig.width = 6,
-  fig.height = 3
+  fig.width = 7,
+  fig.height = 1.5
 )
 ```
 
@@ -28,30 +35,14 @@ suppressPackageStartupMessages({
 })	
 ```
 
-
-```{r}
-mx <- west_lifetab |>
-  filter(sex == "Female", level == 23) |>
-  select(age, sex, mx)
-```
-
-```{r}
-convert_to_lifeexp <- function(draws) {
-  draws |>
-    cross_join(mx) |>
-    mutate(mx = exp(value) * mx) |>
-    lifeexp(mx = mx, age = age, sex = sex, by = c(element, replicate)) |>
-    select(element, replicate, value = ex)
-}
-```
-
 ```{r}
 plot_points <- function(draws) {
   ggplot(draws, aes(x = element, y = value)) +
     facet_wrap(vars(replicate), nrow = 1) +
+    geom_hline(yintercept = 0, col = "grey") +
     geom_point(col = "darkblue", size = 0.7) +
     scale_x_continuous(n.breaks = max(draws$element)) +
-    xlab("Element") +
+    xlab("Unit") +
     ylab("") +
     theme(text = element_text(size = 8))
 }	       
@@ -61,101 +52,439 @@ plot_points <- function(draws) {
 plot_lines <- function(draws) {
   ggplot(draws, aes(x = element, y = value)) +
     facet_wrap(vars(replicate), nrow = 1) +
+    geom_hline(yintercept = 0, col = "grey") +
     geom_line(col = "darkblue") +
-    xlab("Element") +
+    xlab("Unit") +
     ylab("") +
     theme(text = element_text(size = 8))
 }	       
 ```
 
+# Exchangeable Units
+
+## Fixed Normal `NFix()`
+
+### Model
+
+\begin{equation}
+  \beta_j  \sim \text{N}(0, \mathtt{sd}^2)
+\end{equation}
+
+### All defaults
+
+`sd = 1`
 
 ```{r}
-make_scaled_versions <- function(draws) {
-  prior <- draws |>
-    mutate(variant = "Original")
-  log <- draws |>
-    mutate(variant = "Exp") |>
-    mutate(value = exp(value))
-  logit <- draws |>
-    mutate(variant = "Inv-Logit") |>
-    mutate(value = exp(value) / (1 + exp(value)))
-  bind_rows(prior, log, logit) |>
-    mutate(variant = factor(variant, levels = unique(variant)))
-}
+set.seed(0)
+
+NFix() |>
+  generate(n_element = 10, n_replicate = 8) |>
+  plot_points()
+```
+
+### Reduce `sd`
+
+`sd = 0.01`
+
+```{r, fig.height = 1.5}
+set.seed(0)
+
+NFix(sd = 0.01) |>
+  generate(n_element = 10, n_replicate = 8) |>
+  plot_points()
 ```
 
 
-```{r}
-plot_points_scales <- function(draws) {
-  ggplot(draws, aes(x = element, y = value)) +
-    facet_grid(vars(variant), vars(replicate), scale = "free_y") +
-    geom_point(col = "darkblue", size = 0.7) +
-    scale_x_continuous(n.breaks = max(draws$element)) +
-    xlab("Element") +
-    ylab("") +
-    theme(text = element_text(size = 8))
-}
-```
+## Normal `N()`
 
-
-# Normal `N()`
-
-## Model
+### Model
 
 \begin{align}
   \beta_j & \sim \text{N}(0, \tau^2) \\
-  \tau & \sim \text{N}^+(0, 1)
+  \tau & \sim \text{N}^+(0, \mathtt{s})
 \end{align}
 
-## Values with all defaults
+### All defaults
 
+`s = 1`
 
-Values on log scale
+```{r}
+set.seed(0)
+
+N() |>
+  generate(n_element = 10, n_replicate = 8) |>
+  plot_points()
+```
+
+### Reduce `s`
+
+`s = 0.01`
 
 ```{r, fig.height = 1.5}
 set.seed(0)
-N() |>
-  generate(n_element = 10, n_replicate = 6) |>
+
+N(s = 0.01) |>
+  generate(n_element = 10, n_replicate = 8) |>
   plot_points()
 ```
 
 
 
-```{r}
-set.seed(0)
-N() |>
-  generate(n_element = 10, n_replicate = 6) |>
-  make_scaled_versions() |>
-  plot_points_scales()
-```
+# Units Correlated With Neighbours
 
+## Random Walk `RW()`
 
-## Values with `s = 0.05`
-
-
-```{r, fig.height = 1.5}
-set.seed(0)
-N(s = 0.05) |>
-  generate(n_element = 10, n_replicate = 6) |>
-  plot_points()
-```
-
-
-```{r}
-set.seed(0)
-N(s = 0.05) |>
-  generate(n_element = 10, n_replicate = 6) |>
-  make_scaled_versions() |>
-  plot_points_scales()
-```
-
-
-# Random Walk `RW()`
-
-## Model
+### Model
 
 \begin{align}
-  \beta_1 & \sim \text{N}(0, \text{sd}^2) \\
+  \beta_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
   \beta_j & \sim \text{N}(\beta_{j-1}, \tau^2), \quad j = 2, \cdots, J \\
-  \tau & \sim \text{N}^+(0, 1)
+  \tau & \sim \text{N}^+(0, \mathtt{s}^2)
 \end{align}
+
+### All defaults
+
+`s = 1`, `sd = 1`
+
+```{r}
+set.seed(0)
+
+RW() |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s`
+
+`s = 0.01`, `sd = 1`
+
+```{r}
+set.seed(0)
+
+RW(s = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s` and `sd`
+
+
+`s = 0.01`, `sd = 0`
+
+```{r}
+set.seed(0)
+
+RW(s = 0.01, sd = 0) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+## Second-Order Random Walk `RW2()`
+
+### Model
+
+\begin{align}
+  \beta_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
+  \beta_2 & \sim \text{N}(\beta_1, \mathtt{sd\_slope}^2) \\
+  \beta_j & \sim \text{N}(2\beta_{j-1} - \beta_{j-2}, \tau^2), \quad j = 3, \cdots, J \\
+  \tau & \sim \text{N}^+(0, \mathtt{s}^2)
+\end{align}
+
+### All defaults
+
+`s = 1`, `sd = 1`, `sd_slope = 1`
+
+```{r}
+set.seed(0)
+
+RW2() |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s`
+
+`s = 0.01`, `sd = 1`, `sd_slope = 1`
+
+```{r}
+set.seed(0)
+
+RW2(s = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+### Reduce `s` and `sd_slope`
+
+`s = 0.01`, `sd = 1`, `sd_slope = 0.01`
+
+```{r}
+set.seed(0)
+
+RW2(s = 0.01, sd_slope = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s`, `sd`, and `sd_slope`
+
+`s = 0.01`, `sd = 0`, `sd_slope = 0.01`
+
+```{r}
+set.seed(0)
+
+RW2(s = 0.01, sd = 0, sd_slope = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+## Autoregressive `AR()`
+
+### Model
+
+\begin{equation}
+  \beta_j \sim \text{N}\left(\phi_1 \beta_{j-1} + \cdots + \phi_{\mathtt{n\_coef}} \beta_{j-\mathtt{n\_coef}},  \omega^2\right)
+\end{equation}
+TMB derives a value of $\omega$ that gives each $\beta_j$ variance $\tau^2$. The prior for $\tau$ is
+\begin{equation}
+  \tau  \sim \text{N}^+(0, \mathtt{s}^2).
+\end{equation}
+The prior for each $\phi_k$ is
+\begin{equation}
+  \frac{\phi_k + 1}{2} \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).
+\end{equation}
+
+### All defaults
+
+`n_coef = 2`, `s = 1`
+
+```{r}
+set.seed(0)
+
+AR() |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Increase `n_coef`
+
+```{r}
+set.seed(0)
+
+AR(n_coef = 3) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+### Reduce `s`
+
+```{r}
+set.seed(0)
+
+AR(s = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+## First-Order Autoregressive `AR1()`
+
+### Model
+
+\begin{equation}
+  \beta_j \sim \text{N}\left(\phi \beta_{j-1},  \omega^2\right)
+\end{equation}
+TMB derives a value of $\omega$ that gives each $\beta_j$ variance $\tau^2$. The prior for $\tau$ is
+\begin{equation}
+  \tau  \sim \text{N}^+(0, \mathtt{s}^2).
+\end{equation}
+The prior for $\phi$ is
+\begin{equation}
+  \frac{\phi - \mathtt{min}}{\mathtt{max} - \mathtt{min}} \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).
+\end{equation}
+
+### All defaults
+
+`s = 1`, `min = 0.8`, `max = 0.98`
+
+```{r}
+set.seed(0)
+
+AR1() |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s`
+
+```{r}
+set.seed(0)
+
+AR1(s = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s` and modify `min`, `max`
+
+```{r}
+set.seed(0)
+
+AR1(s = 0.01, min = -1, max = 1) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+
+## Random Walk with Seasonal Effects `RW_Seas()`
+
+### Model
+
+\begin{align}
+  \beta_j & = \alpha_j + \lambda_j \\
+  \alpha_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
+  \alpha_j & \sim \text{N}(\alpha_{j-1}, \tau^2), \quad j = 2, \cdots, J \\
+  \tau & \sim \text{N}^+\left(0, \mathtt{s}^2\right) \\
+  \lambda_j & \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad j = 1, \cdots, \mathtt{n\_seas} - 1 \\
+  \lambda_j & = -\sum_{s=1}^{j-1} \lambda_{j-s}, \quad j = \mathtt{n\_seas},\; 2 \mathtt{n\_seas},  \cdots \\
+  \lambda_j & \sim \text{N}(\lambda_{j-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise} \\
+  \omega & \sim \text{N}^+\left(0, \mathtt{s\_seas}^2\right)
+\end{align}
+
+### All defaults
+
+`s = 1`, `sd = 1`, `s_seas = 0`, `sd_seas = 1` 
+
+```{r}
+set.seed(0)
+
+RW_Seas(n_seas = 4) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `s`, `sd`
+
+`s = 0.01`, `sd = 0`, `s_seas = 0`, `sd_seas = 1` 
+
+```{r}
+set.seed(0)
+
+RW_Seas(n_seas = 4, s = 0.01, sd = 0) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Increase `s_seas`
+
+`s = 0.01`, `sd = 0`, `s_seas = 1`, `sd_seas = 1` 
+
+```{r}
+set.seed(0)
+
+RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 1) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+### Reduce `sd_seas`
+
+`s = 0.01`, `sd = 0`, `s_seas = 1`, `s_seas = 0`, `sd_seas = 0.01` 
+
+```{r}
+set.seed(0)
+
+RW_Seas(n_seas = 4, s = 0.01, sd = 0, sd_seas = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+
+## Second-Order Random Walk with Seasonal Effects `RW2_Seas()`
+
+### Model
+
+\begin{align}
+  \beta_j & = \alpha_j + \lambda_j \\
+  \alpha_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
+  \alpha_2 & \sim \text{N}(\alpha_1, \mathtt{sd\_slope}^2) \\
+  \alpha_j & \sim \text{N}(2\alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J \\
+  \tau & \sim \text{N}^+\left(0, \mathtt{s}^2\right) \\
+  \lambda_j & \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad j = 1, \cdots, \mathtt{n\_seas} - 1 \\
+  \lambda_j & = -\sum_{s=1}^{j-1} \lambda_{j-s}, \quad j = \mathtt{n\_seas},\; 2 \mathtt{n\_seas},  \cdots \\
+  \lambda_j & \sim \text{N}(\lambda_{j-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise} \\
+  \omega & \sim \text{N}^+\left(0, \mathtt{s\_seas}^2\right)
+\end{align}
+
+### All defaults
+
+`s = 1`, `sd = 1`, `sd_slope = 1`, `s_seas = 0`, `sd_seas = 1` 
+
+```{r}
+set.seed(0)
+
+RW2_Seas(n_seas = 4) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+### Reduce `s`, `sd`, `sd_slope`, `sd_seas`
+
+`s = 0.01`, `sd = 0`, `sd_slope = 0.01`, `s_seas = 0`, `sd_seas = 0.01` 
+
+```{r}
+set.seed(0)
+
+RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01, sd_seas = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+## Linear `Lin()`
+
+### Model
+
+\begin{align}
+  \beta_j & = \alpha_j + \lambda_j \\
+  \alpha_1 & \sim \text{N}(0, \mathtt{sd}^2) \\
+  \alpha_2 & \sim \text{N}(\alpha_1, \mathtt{sd\_slope}^2) \\
+  \alpha_j & \sim \text{N}(2\alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J \\
+  \tau & \sim \text{N}^+\left(0, \mathtt{s}^2\right) \\
+  \lambda_j & \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad j = 1, \cdots, \mathtt{n\_seas} - 1 \\
+  \lambda_j & = -\sum_{s=1}^{j-1} \lambda_{j-s}, \quad j = \mathtt{n\_seas},\; 2 \mathtt{n\_seas},  \cdots \\
+  \lambda_j & \sim \text{N}(\lambda_{j-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise} \\
+  \omega & \sim \text{N}^+\left(0, \mathtt{s\_seas}^2\right)
+\end{align}
+
+### All defaults
+
+`s = 1`, `sd = 1`, `sd_slope = 1`, `s_seas = 0`, `sd_seas = 1` 
+
+```{r}
+set.seed(0)
+
+RW2_Seas(n_seas = 4) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```
+
+
+### Reduce `s`, `sd`, `sd_slope`, `sd_seas`
+
+`s = 0.01`, `sd = 0`, `sd_slope = 0.01`, `s_seas = 0`, `sd_seas = 0.01` 
+
+```{r}
+set.seed(0)
+
+RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01, sd_seas = 0.01) |>
+  generate(n_replicate = 8) |>
+  plot_lines()
+```

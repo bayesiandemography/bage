@@ -94,23 +94,23 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2)}
+\deqn{\eta \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(\text{mean\_slope}, \text{sd\_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\mathtt{mean\_slope}, \mathtt{sd\_slope}^2).}
 
 Internally, \code{Lin_AR1()} derives a value for \eqn{\omega} that
 gives \eqn{\epsilon_j} or \eqn{\epsilon_{u,v}} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 where a value for \code{s} is provided by the user.
 
 Coefficient \eqn{\phi} is constrained
 to lie between \code{min} and \code{max}.
 Its prior distribution is
-\deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+\deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
 where
-\deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+\deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 }
 
 \section{Constraints}{

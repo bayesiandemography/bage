@@ -580,6 +580,11 @@ test_that("'draw_vals_seasfix' works - along dimension is first", {
   expect_identical(dim(ans), c(30L, 10L))
   expect_equal(ans[1:4,], ans[5:8,], ignore_attr = "dimnames")
   expect_equal(colSums(ans[1:4,]), rep(0, times = 10))
+  expect_equal(sd(c(as.numeric(ans[1:3,]),
+                    as.numeric(ans[11:13,]),
+                    as.numeric(ans[21:23,]))),
+               0.2,
+               tolerance = 0.2)
 })
 
 test_that("'draw_vals_seasfix' works - along dimension is second", {
