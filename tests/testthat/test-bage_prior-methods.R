@@ -5029,7 +5029,7 @@ test_that("'generate' works with bage_prior_known", {
   ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
   set.seed(0)
   ans_expected <- rep(1:5, times = 25)
-  replicate <- rep(seq_len(n_replicate), each = n_element)
+  replicate <- rep(seq_len(n_replicate), each = 5)
   replicate <- paste("Replicate", replicate)
   replicate <- factor(replicate, levels = unique(replicate))
   ans_expected <- tibble(element = rep(seq_len(5), times = n_replicate),

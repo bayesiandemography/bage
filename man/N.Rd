@@ -33,7 +33,7 @@ where \eqn{\beta} is the main effect or interaction.
 
 Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 where \code{s} is provided by the user.
 }
 

@@ -77,22 +77,22 @@ that evolve over time.
 When \code{RW2_Seas()} is used with a main effect,
 
 \deqn{\beta_j = \alpha_j + \lambda_j, \quad j = 1, \cdots, J}
-\deqn{\alpha_1 \sim \text{N}(0, \text{sd}^2)}
-\deqn{\alpha_2 \sim \text{N}(0, \text{sd\_slope}^2)}
+\deqn{\alpha_1 \sim \text{N}(0, \mathtt{sd}^2)}
+\deqn{\alpha_2 \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 \deqn{\alpha_j \sim \text{N}(2 \alpha_{j-1} - \alpha_{j-2}, \tau^2), \quad j = 3, \cdots, J}
-\deqn{\lambda_j \sim \text{N}(0, \text{sd\_seas}^2), \quad j = 1, \cdots, \text{n\_seas} - 1}
-\deqn{\lambda_j = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{j - s}, \quad j = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
-\deqn{\lambda_j \sim \text{N}(\lambda_{j-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
+\deqn{\lambda_j \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad j = 1, \cdots, \mathtt{n\_seas} - 1}
+\deqn{\lambda_j = -\sum_{s=1}^{\mathtt{n\_seas} - 1} \lambda_{j - s}, \quad j = \mathtt{n\_seas}, 2 \mathtt{n\_seas}, \cdots}
+\deqn{\lambda_j \sim \text{N}(\lambda_{j-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise},}
 
 and when it is used with an interaction,
 
 \deqn{\beta_{u,v} = \alpha_{u,v} + \lambda_{u,v}, \quad v = 1, \cdots, V}
-\deqn{\alpha_{u,1} \sim \text{N}(0, \text{sd}^2)}
-\deqn{\alpha_{u,2} \sim \text{N}(0, \text{sd\_slope}^2)}
+\deqn{\alpha_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
+\deqn{\alpha_{u,2} \sim \text{N}(0, \mathtt{sd\_slope}^2)}
 \deqn{\alpha_{u,v} \sim \text{N}(2 \alpha_{u,v-1} - \alpha_{u,v-2}, \tau^2), \quad v = 3, \cdots, V}
-\deqn{\lambda_{u,v} \sim \text{N}(0, \text{sd\_seas}^2), \quad v = 1, \cdots, \text{n\_seas} - 1}
-\deqn{\lambda_{u,v} = -\sum_{s=1}^{\text{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \text{n\_seas}, 2 \text{n\_seas}, \cdots}
-\deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\text{n\_seas}}, \omega^2), \quad \text{otherwise},}
+\deqn{\lambda_{u,v} \sim \text{N}(0, \mathtt{sd\_seas}^2), \quad v = 1, \cdots, \mathtt{n\_seas} - 1}
+\deqn{\lambda_{u,v} = -\sum_{s=1}^{\mathtt{n\_seas} - 1} \lambda_{u,v - s}, \quad v = \mathtt{n\_seas}, 2 \mathtt{n\_seas}, \cdots}
+\deqn{\lambda_{u,v} \sim \text{N}(\lambda_{u,v-\mathtt{n\_seas}}, \omega^2), \quad \text{otherwise},}
 
 where
 \itemize{
@@ -105,12 +105,12 @@ where
 }
 
 Parameter \eqn{\omega} has a half-normal prior
-\deqn{\omega \sim \text{N}^+(0, \text{s\_seas}^2)}.
+\deqn{\omega \sim \text{N}^+(0, \mathtt{s\_seas}^2)}.
 If \code{s_seas} is set to 0, then \eqn{\omega} is 0,
 and the seasonal effects are fixed over time.
 
 Parameter \eqn{\tau} has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2)}.
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2)}.
 }
 
 \section{Constraints}{

@@ -70,12 +70,12 @@ where
 }
 
 The slopes have priors
-\deqn{\eta \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2)}
+\deqn{\eta \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2)}
 and
-\deqn{\eta_u \sim \text{N}(\text{mean_slope}, \text{sd_slope}^2).}
+\deqn{\eta_u \sim \text{N}(\mathtt{mean_slope}, \mathtt{sd_slope}^2).}
 
 Parameter \eqn{\tau} has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2).}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2).}
 }
 
 \section{Constraints}{

@@ -81,18 +81,18 @@ Internally, \code{AR1()} derives a value for \eqn{\omega} that
 gives every element of \eqn{\beta} a marginal
 variance of \eqn{\tau^2}. Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 where \code{s} is provided by the user.
 
 Coefficient \eqn{\phi} is constrained
 to lie between \code{min} and \code{max}.
 Its prior distribution is
 
-\deqn{\phi = (\text{max} - \text{min}) \phi' - \text{min}}
+\deqn{\phi = (\mathtt{max} - \mathtt{min}) \phi' - \mathtt{min}}
 
 where
 
-\deqn{\phi' \sim \text{Beta}(\text{shape1}, \text{shape2}).}
+\deqn{\phi' \sim \text{Beta}(\mathtt{shape1}, \mathtt{shape2}).}
 }
 
 \section{Constraints}{

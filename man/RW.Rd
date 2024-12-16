@@ -50,12 +50,12 @@ values at 0.
 
 When \code{RW()} is used with a main effect,
 
-\deqn{\beta_1 \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_1 \sim \text{N}(0, \mathtt{sd}^2)}
 \deqn{\beta_j \sim \text{N}(\beta_{j-1}, \tau^2), \quad j > 1}
 
 and when it is used with an interaction,
 
-\deqn{\beta_{u,1} \sim \text{N}(0, \text{sd}^2)}
+\deqn{\beta_{u,1} \sim \text{N}(0, \mathtt{sd}^2)}
 \deqn{\beta_{u,v} \sim \text{N}(\beta_{u,v-1}, \tau^2), \quad v > 1}
 
 where
@@ -68,7 +68,7 @@ where
 
 Parameter \eqn{\tau}
 has a half-normal prior
-\deqn{\tau \sim \text{N}^+(0, \text{s}^2),}
+\deqn{\tau \sim \text{N}^+(0, \mathtt{s}^2),}
 where \code{s} is provided by the user.
 }
 
