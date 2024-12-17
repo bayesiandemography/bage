@@ -5040,6 +5040,73 @@ test_that("'generate' works with bage_prior_known", {
                  "Non-default value of `n_element` ignored with \"Known\\(\\)\" prior.")
 })
 
+test_that("'generate' works with bage_prior_lin", {
+  x <- Lin()
+  set.seed(0)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
+  set.seed(0)
+  lin <- matrix(1:n_element - 0.5 * (n_element + 1), nrow = n_element, ncol = n_replicate)
+  lin <- lin * rep(rnorm(n = n_replicate, mean = x$specific$mean_slope, sd = x$specific$sd_slope),
+                   each = n_element)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  error <- matrix(rnorm(n_element * n_replicate, sd = rep(sd, each = n_element)),
+                  nrow = n_element)
+  value <- lin + error
+  value <- as.numeric(value)
+  replicate <- rep(seq_len(n_replicate), each = n_element)
+  replicate <- paste("Replicate", replicate)
+  replicate <- factor(replicate, levels = unique(replicate))
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = replicate,
+                         value = value)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_linar", {
+  x <- Lin_AR()
+  set.seed(0)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
+  set.seed(0)
+  lin <- matrix(1:n_element - 0.5 * (n_element + 1), nrow = n_element, ncol = n_replicate)
+  lin <- lin * rep(rnorm(n = n_replicate, mean = x$specific$mean_slope, sd = x$specific$sd_slope),
+                   each = n_element)
+  sd <- draw_vals_sd(x, n_sim = n_replicate)
+  coef <- draw_vals_coef(x, n_sim = n_replicate)
+  error <- draw_vals_ar_inner(n = n_element, coef = coef, sd = sd)
+  value <- lin + error
+  value <- as.numeric(value)
+  replicate <- rep(seq_len(n_replicate), each = n_element)
+  replicate <- paste("Replicate", replicate)
+  replicate <- factor(replicate, levels = unique(replicate))
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = replicate,
+                         value = value)
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'generate' works with bage_prior_linex", {
+  x <- Lin(s = 0)
+  set.seed(0)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
+  set.seed(0)
+  lin <- matrix(1:n_element - 0.5 * (n_element + 1), nrow = n_element, ncol = n_replicate)
+  lin <- lin * rep(rnorm(n = n_replicate, mean = x$specific$mean_slope, sd = x$specific$sd_slope),
+                   each = n_element)
+  replicate <- rep(seq_len(n_replicate), each = n_element)
+  replicate <- paste("Replicate", replicate)
+  replicate <- factor(replicate, levels = unique(replicate))
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = replicate,
+                         value = as.double(lin))
+  expect_equal(ans_obtained, ans_expected)
+})
+
 test_that("'generate' works with bage_prior_norm", {
   x <- N()
   set.seed(0)
@@ -5387,6 +5454,27 @@ test_that("'generate' works with bage_prior_rw2zeroseasvary", {
                          value = as.double(ans_expected))
   expect_equal(ans_obtained, ans_expected)
 })
+
+test_that("'generate' works with bage_prior_spline", {
+  x <- Sp(n = 6)
+  set.seed(0)
+  n_element <- 20
+  n_replicate <- 25
+  ans_obtained <- generate(x, n_element = n_element, n_replicate = n_replicate)
+  set.seed(0)
+  rw2 <- generate(RW2(), n_element = 6, n_replicate = n_replicate)$value
+  rw2 <- matrix(rw2, nrow = 6)
+  m <- make_matrix_spline(n_along = n_element, n_comp = 6)
+  value <- m %*% rw2
+  replicate <- rep(seq_len(n_replicate), each = n_element)
+  replicate <- paste("Replicate", replicate)
+  replicate <- factor(replicate, levels = unique(replicate))
+  ans_expected <- tibble(element = rep(seq_len(n_element), times = n_replicate),
+                         replicate = replicate,
+                         value = as.double(value))
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 
 ## 'has_hyperrandfree' --------------------------------------------------------

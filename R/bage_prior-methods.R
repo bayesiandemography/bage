@@ -3081,6 +3081,77 @@ generate.bage_prior_known <- function(x,
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
+generate.bage_prior_lin <- function(x,
+                                    n_element = 20,
+                                    n_replicate = 25,
+                                    ...) {
+  check_has_no_dots(...)
+  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  ans <- l$ans
+  mean_slope <- x$specific$mean_slope
+  sd_slope <- x$specific$sd_slope
+  slope <- stats::rnorm(n = n_replicate, mean = mean_slope, sd = sd_slope)
+  s <- seq(from = -0.5 * (n_element - 1L), to = 0.5 * (n_element - 1L))
+  alpha <- outer(s, slope)
+  alpha <- as.double(alpha)
+  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  sd <- rep(sd, each = n_element)
+  error <- stats::rnorm(n = n_element * n_replicate, sd = sd)
+  ans$value <- alpha + error
+  ans
+}
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_linar <- function(x,
+                                      n_element = 20,
+                                      n_replicate = 25,
+                                      ...) {
+  check_has_no_dots(...)
+  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  ans <- l$ans
+  mean_slope <- x$specific$mean_slope
+  sd_slope <- x$specific$sd_slope
+  slope <- stats::rnorm(n = n_replicate, mean = mean_slope, sd = sd_slope)
+  s <- seq(from = -0.5 * (n_element - 1L), to = 0.5 * (n_element - 1L))
+  alpha <- outer(s, slope)
+  alpha <- as.double(alpha)
+  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  coef <- draw_vals_coef(prior = x, n_sim = n_replicate)
+  error <- draw_vals_ar_inner(n = n_element, coef = coef, sd = sd)
+  error <- as.double(error)
+  ans$value <- alpha + error
+  ans
+}
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_linex <- function(x,
+                                      n_element = 20,
+                                      n_replicate = 25,
+                                      ...) {
+  check_has_no_dots(...)
+  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  ans <- l$ans
+  mean_slope <- x$specific$mean_slope
+  sd_slope <- x$specific$sd_slope
+  slope <- stats::rnorm(n = n_replicate, mean = mean_slope, sd = sd_slope)
+  s <- seq(from = -0.5 * (n_element - 1L), to = 0.5 * (n_element - 1L))
+  value <- outer(s, slope)
+  value <- as.numeric(value)
+  ans$value <- value
+  ans
+}
+
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
 generate.bage_prior_norm <- function(x,
                                      n_element = 20,
                                      n_replicate = 25,
@@ -3461,7 +3532,39 @@ generate.bage_prior_rw2zeroseasvary <- function(x,
   ans
 }
 
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_spline <- function(x,
+                                       n_element = 20,
+                                       n_replicate = 25,
+                                       ...) {
+  check_has_no_dots(...)
+  n_comp <- get_n_comp_spline(prior = x, n_along = n_element)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  ans <- l$ans
+  matrix_along_by <- matrix(seq_len(n_comp) - 1L, nrow = n_comp, ncol = 1L)
+  levels_spline <- seq_len(n_comp)
+  m <- make_matrix_spline(n_along = n_element, n_comp = n_comp)
+  rw2 <- draw_vals_rw2(sd = sd,
+                       sd_init = sd_init,
+                       sd_slope = sd_slope,
+                       matrix_along_by = matrix_along_by,
+                       levels_effect = levels_spline)
+  value <- m %*% rw2
+  ans$value <- as.double(value)
+  ans
+}
+
   
+  
+
+
+
 ## 'has_hyperrandfree' ------------------------------------------------------------
 
 #' Has Hyper-Parameters that can be Treated as Random Effects
@@ -7150,8 +7253,8 @@ print.bage_prior_rw2zeroseasvary <- function(x, ...) {
 #' @export
 print.bage_prior_spline <- function(x, ...) {
   print_prior(x,
-              nms = c("n_comp", "s", "sd_slope", "along", "con"),
-              slots = c("n_comp", "scale", "sd_slope", "along", "con"))
+              nms = c("n_comp", "s", "sd", "sd_slope", "along", "con"),
+              slots = c("n_comp", "scale", "sd", "sd_slope", "along", "con"))
 }
 
 ## HAS_TESTS
