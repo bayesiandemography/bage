@@ -3,6 +3,9 @@
 \name{generate.bage_prior_ar}
 \alias{generate.bage_prior_ar}
 \alias{generate.bage_prior_known}
+\alias{generate.bage_prior_lin}
+\alias{generate.bage_prior_linar}
+\alias{generate.bage_prior_linex}
 \alias{generate.bage_prior_norm}
 \alias{generate.bage_prior_normfixed}
 \alias{generate.bage_prior_rwrandom}
@@ -17,11 +20,18 @@
 \alias{generate.bage_prior_rw2zero}
 \alias{generate.bage_prior_rw2zeroseasfix}
 \alias{generate.bage_prior_rw2zeroseasvary}
+\alias{generate.bage_prior_spline}
 \title{Generate Values from Priors}
 \usage{
 \method{generate}{bage_prior_ar}(x, n_element = 20, n_replicate = 25, ...)
 
 \method{generate}{bage_prior_known}(x, n_element = 20, n_replicate = 25, ...)
+
+\method{generate}{bage_prior_lin}(x, n_element = 20, n_replicate = 25, ...)
+
+\method{generate}{bage_prior_linar}(x, n_element = 20, n_replicate = 25, ...)
+
+\method{generate}{bage_prior_linex}(x, n_element = 20, n_replicate = 25, ...)
 
 \method{generate}{bage_prior_norm}(x, n_element = 20, n_replicate = 25, ...)
 
@@ -50,6 +60,8 @@
 \method{generate}{bage_prior_rw2zeroseasfix}(x, n_element = 20, n_replicate = 25, ...)
 
 \method{generate}{bage_prior_rw2zeroseasvary}(x, n_element = 20, n_replicate = 25, ...)
+
+\method{generate}{bage_prior_spline}(x, n_element = 20, n_replicate = 25, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}
