@@ -21,77 +21,118 @@
 \alias{generate.bage_prior_rw2zeroseasfix}
 \alias{generate.bage_prior_rw2zeroseasvary}
 \alias{generate.bage_prior_spline}
+\alias{generate.bage_prior_svd}
+\alias{generate.bage_prior_svd_ar}
+\alias{generate.bage_prior_svd_rwrandom}
+\alias{generate.bage_prior_svd_rwzero}
+\alias{generate.bage_prior_svd_rw2random}
+\alias{generate.bage_prior_svd_rw2zero}
 \title{Generate Values from Priors}
 \usage{
-\method{generate}{bage_prior_ar}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_ar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_known}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_known}(x, n_element = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_lin}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_lin}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_linar}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_linar}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_linex}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_linex}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_norm}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_norm}(x, n_element = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_normfixed}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_normfixed}(x, n_element = 20, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwrandom}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rwrandom}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwrandomseasfix}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rwrandomseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwrandomseasvary}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rwrandomseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwzero}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rwzero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwzeroseasfix}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rwzeroseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rwzeroseasvary}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rwzeroseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2random}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rw2random}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2randomseasfix}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rw2randomseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2randomseasvary}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rw2randomseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2zero}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rw2zero}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2zeroseasfix}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rw2zeroseasfix}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_rw2zeroseasvary}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_rw2zeroseasvary}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
 
-\method{generate}{bage_prior_spline}(x, n_element = 20, n_replicate = 25, ...)
+\method{generate}{bage_prior_spline}(x, n_along = 20, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd}(x, n_element = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_ar}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_rwrandom}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_rwzero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_rw2random}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
+
+\method{generate}{bage_prior_svd_rw2zero}(x, n_along = 5, n_by = 1, n_draw = 25, ...)
 }
 \arguments{
 \item{x}{Object of class \code{"bage_prior"}}
 
-\item{n_element}{Number of elements in term.
-Default is \code{20}.}
+\item{n_along}{Number of elements of
+'along' dimension. Default is \code{20}.}
 
-\item{n_replicate}{Number of replicates. Default
+\item{n_by}{Number of combinations of
+'by' variables. Default is \code{1}.}
+
+\item{n_draw}{Number of draws. Default
 is \code{25}.}
 
 \item{...}{Unused. Included for generic consistency only.}
+
+\item{n_element}{Number of elements in term,
+in priors that do not distinguish
+'along' and 'by' dimensions.
+Default is \code{20}.}
 }
 \value{
 A \link[tibble:tibble]{tibble}
 }
 \description{
 Generate draws from priors for model terms.
-The terms are assumed to be main effects,
-except in the case of dynamic SVD priors
-(eg \code{\link[=SVD_RW]{SVD_RW()}}) where they assumed to
-be age-time interactions.
+}
+\details{
+Some priors distinguish between 'along' and 'by'
+dimensions, while others do not: see \link{priors}
+for a complete list. Arguments \code{n_along} and \code{n_by}
+are used with priors that make the distinction,
+and argument \code{n_element} is used with priors that do not.
 }
 \examples{
-rw <- RW()
-generate(rw)
+## prior that distinguishes 'along' and 'by'
+x <- RW()
+generate(x, n_along = 10, n_by = 2)
+
+## prior that does not distinguish
+x <- N()
+generate(x, n_along = 10, n_by = 2)
+
+## SVD_AR(), SVD_RW(), and SVD_RW2()
+## distinguish 'along' and 'by'
+x <- SVD_AR(HFD)
+generate(x, n_along = 10, n_by = 2)
+
+## SVD() does not
+x <- SVD(HFD)
+generate(x, n_element = 2)
 }
 \seealso{
 \itemize{
 \item \link{priors} Overview of priors implemented in \strong{bage}
-\item \code{\link[=augment]{augment()}}, \code{\link[=components]{components()}} Draw from posterior or prior
-distribution for whole model
 }
 }

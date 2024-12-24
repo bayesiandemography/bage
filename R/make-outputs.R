@@ -392,35 +392,276 @@ fit_inner_outer <- function(mod, optimizer, quiet, vars_inner, start_oldpar) {
 ## HAS_TESTS
 #' Helper Function for 'generate' Methods for 'bage_prior'
 #'
-#' @param n_element Number of elements in term
-#' @param n_replicate Number of replicates
+#' @param x Object of class 'bage_prior'
+#' @param n_element Total number of elements
+#' @param n_along Number of elements of 'along' variable
+#' @param n_by Number of combinations of 'by' variables
+#' @param n_draw Number of draws
 #'
 #' @returns A named list
 #'
 #' @noRd
-generate_prior_helper <- function(n_element, n_replicate) {
-  poputils::check_n(n = n_element,
-                    nm_n = "n_element",
+generate_prior_helper <- function(x, n_element, n_along, n_by, n_draw) {
+  uses_along_by <- missing(n_element)
+  if (uses_along_by) {
+    poputils::check_n(n = n_along,
+                      nm_n = "n_along",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+    poputils::check_n(n = n_by,
+                      nm_n = "n_by",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+  }
+  else
+    poputils::check_n(n = n_element,
+                      nm_n = "n_element",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+  poputils::check_n(n = n_draw,
+                    nm_n = "n_draw",
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  poputils::check_n(n = n_replicate,
-                    nm_n = "n_replicate",
+  if (uses_along_by) {
+    ans <- vctrs::vec_expand_grid(draw = paste("Draw", seq_len(n_draw)),
+                                  by = paste("By", seq_len(n_by)),
+                                  along = seq_len(n_along))
+    ans$draw <- factor(ans$draw, levels = unique(ans$draw))
+    ans$by <- factor(ans$by, levels = unique(ans$by))
+    matrix_along_by <- matrix(seq_len(n_along * n_by) - 1L,
+                              nrow = n_along,
+                              ncol = n_by,
+                              dimnames = list(seq_len(n_along), seq_len(n_by)))
+    levels_effect <- paste(rep(seq_len(n_by), each = n_along), seq_len(n_along), sep = ".")
+  }
+  else {
+    ans <- vctrs::vec_expand_grid(draw = paste("Draw", seq_len(n_draw)),
+                                  element = seq_len(n_element))
+    ans$draw <- factor(ans$draw, levels = unique(ans$draw))
+    matrix_along_by <- matrix(seq_len(n_element) - 1L,
+                              nrow = n_element,
+                              ncol = 1L,
+                              dimnames = list(seq_len(n_element), NULL))
+    levels_effect <- seq_len(n_element)
+  }
+  ans <- tibble::tibble(ans)
+  list(ans = ans,
+       matrix_along_by = matrix_along_by,
+       levels_effect = levels_effect)
+}
+
+
+## HAS_TESTS
+#' Helper Function for 'generate' Methods for 'bage_prior' that
+#' Uses SVD
+#'
+#' @param x Object of class 'bage_prior' that uses SVD
+#' @param n_elements Number of element
+#' @param n_along Number of element in 'along' dimension
+#' @param n_by Number of combinations of categories for 'by' variables
+#' @param n_draw Number of draws
+#'
+#' @returns A named list
+#'
+#' @noRd
+generate_prior_svd_helper <- function(x, n_element, n_along, n_by, n_draw) {
+  uses_along_by <- missing(n_element)
+  ssvd <- x$specific$ssvd
+  n_comp <- x$specific$n_comp
+  indep <- x$specific$indep
+  if (isTRUE(indep) && !has_sexgender(ssvd))
+    indep <- NULL
+  if (uses_along_by)
+    generate_ssvd_helper(ssvd = ssvd,
+                         n_along = n_along,
+                         n_by = n_by,
+                         n_draw = n_draw,
+                         n_comp = n_comp,
+                         indep = indep,
+                         age_labels = NULL)
+  else
+    generate_ssvd_helper(ssvd = ssvd,
+                         n_element = n_element,
+                         n_draw = n_draw,
+                         n_comp = n_comp,
+                         indep = indep,
+                         age_labels = NULL)
+}
+
+
+## HAS_TESTS
+#' Generate Values for Scaled SVD
+#'
+#' Used by 'generate' method for "bage_ssvd" and 'generate'
+#' method for "bage_prior" (after minor rearrangement
+#' by function 'generate_prior_svd_helper').
+#'
+#' @param svd An object of class `"bage_ssvd"`.
+#' @param n_along Number of element in 'along' dimension (always 1 for SVD() prior)
+#' @param n_by Number of combinations of categories for 'by' variables
+#' @param n_comp Number of SVD components to be used
+#' @param indep Whether to use independent SVDs for sexes/genders
+#' @param n_draw Number of random draws to generate.
+#' @param age_labels Vector of age labels
+#'
+#' @returns A named list
+#'
+#' @noRd
+generate_ssvd_helper <- function(ssvd,
+                                 n_element,
+                                 n_along,
+                                 n_by,
+                                 n_comp,
+                                 indep,
+                                 n_draw,
+                                 age_labels) {
+  uses_along_by <- missing(n_element)
+  if (uses_along_by) {
+    poputils::check_n(n = n_along,
+                      nm_n = "n_along",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+    poputils::check_n(n = n_by,
+                      nm_n = "n_by",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+    n_element <- n_by * n_along
+  }
+  else
+    poputils::check_n(n = n_element,
+                      nm_n = "n_element",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+  poputils::check_n(n = n_draw,
+                    nm_n = "n_draw",
                     min = 1L,
                     max = NULL,
                     divisible_by = NULL)
-  levels_effect <- seq_len(n_element)
-  matrix_along_by <- matrix(seq_len(n_element) - 1L,
-                            ncol = 1L,
-                            dimnames = list(levels_effect, NULL))
-  element <- rep(seq_len(n_element), times = n_replicate)
-  replicate <- rep(seq_len(n_replicate), each = n_element)
-  replicate <- paste("Replicate", replicate)
-  replicate <- factor(replicate, levels = unique(replicate))
-  ans <- tibble::tibble(element = element, replicate = replicate)
-  list(matrix_along_by = matrix_along_by,
-       levels_effect = levels_effect,
-       ans = ans)
+  n_comp_ssvd <- get_n_comp(ssvd)
+  if (is.null(n_comp))
+    n_comp <- ceiling(n_comp_ssvd / 2)
+  else {
+    poputils::check_n(n = n_comp,
+                      nm_n = "n_comp",
+                      min = 1L,
+                      max = NULL,
+                      divisible_by = NULL)
+    if (n_comp > n_comp_ssvd)
+      cli::cli_abort(c("{.arg n_comp} larger than number of components of {.arg x}.",
+                       i = "{.arg n_comp}: {.val {n_comp}}.",
+                       i = "Number of components: {.val {n_comp_ssvd}}."))
+  }
+  n_comp <- as.integer(n_comp)
+  has_indep <- !is.null(indep)
+  if (has_indep) {
+    check_flag(x = indep, nm_x = "indep")
+    if (!has_sexgender(ssvd))
+      cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg x}",
+                           "does not have a sex/gender dimension."))
+    type <- if (indep) "indep" else "joint"
+  }
+  else
+    type <- "total"
+  has_age <- !is.null(age_labels)
+  if (has_age) {
+    age_labels <- tryCatch(poputils::reformat_age(age_labels, factor = FALSE),
+                           error = function(e) e)
+    if (inherits(age_labels, "error"))
+      cli::cli_abort(c("Problem with {.arg age_labels}.",
+                       i = age_labels$message))
+  }
+  data <- ssvd$data
+  data <- data[data$type == type, , drop = FALSE]
+  if (has_age) {
+    is_matched <- vapply(data$labels_age, setequal, TRUE, y = age_labels)
+    if (!any(is_matched))
+      cli::cli_abort("Can't find labels from {.arg age_labels} in {.arg x}.")
+    i_matched <- which(is_matched)
+  }
+  else {
+    lengths_labels <- lengths(data$labels_age)
+    i_matched <- which.max(lengths_labels)
+  }
+  levels_age <- data$labels_age[[i_matched]]
+  levels_sexgender <- data$labels_sexgender[[i_matched]]
+  levels_age <- unique(levels_age)
+  levels_sexgender <- unique(levels_sexgender)
+  n_sexgender <- length(levels_sexgender)
+  agesex <- if (has_indep) "age:sex" else "age"
+  matrix <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                     levels_age = levels_age,
+                                     levels_sexgender = levels_sexgender,
+                                     joint = !indep,
+                                     agesex = agesex,
+                                     get_matrix = TRUE,
+                                     n_comp = n_comp)
+  offset <- get_matrix_or_offset_svd(ssvd = ssvd,
+                                     levels_age = levels_age,
+                                     levels_sexgender = levels_sexgender,
+                                     joint = !indep,
+                                     agesex = agesex,
+                                     get_matrix = FALSE,
+                                     n_comp = n_comp)
+  n_svd <- ncol(matrix)
+  I <- Matrix::.sparseDiagonal(n_element)
+  ones <- Matrix::sparseMatrix(i = seq_len(n_element),
+                               j = rep(1L, times = n_element),
+                               x = rep(1, times = n_element))
+  matrix <- Matrix::kronecker(I, matrix)
+  offset <- Matrix::kronecker(ones, offset)
+  offset <- as.double(offset)
+  if (uses_along_by) {
+    dim <- c(n_svd, n_by, n_along)
+    matrix_along_by <- make_matrix_along_by_inner(i_along = 3L, dim = dim)
+  }
+  else {
+    dim <- c(n_svd, n_element)
+    matrix_along_by <- make_matrix_along_by_inner(i_along = 1L, dim = dim)
+  }    
+  if (uses_along_by) {
+    if (has_indep)
+      levels <- list(by = seq_len(n_by),
+                     along = seq_len(n_along),
+                     sexgender = levels_sexgender,
+                     age = levels_age)
+    else
+      levels <- list(by = seq_len(n_by),
+                     along = seq_len(n_along),
+                     age = levels_age)
+  }
+  else {
+    if (has_indep)
+      levels <- list(element = seq_len(n_element),
+                     sexgender = levels_sexgender,
+                     age = levels_age)
+    else 
+      levels <- list(element = seq_len(n_element),
+                     age = levels_age)
+  }
+  levels_draw <- list(draw = seq_len(n_draw))
+  levels <- c(levels_draw, levels)
+  ans <- vctrs::vec_expand_grid(!!!levels)
+  ans$draw <- paste("Draw", ans$draw)
+  ans$draw <- factor(ans$draw, levels = unique(ans$draw))
+  if (uses_along_by) {
+    ans$by <- paste("By", ans$by)
+    ans$by <- factor(ans$by, levels = unique(ans$by))
+  }
+  if (has_indep)
+    ans$sexgender <- poputils::reformat_sex(ans$sexgender)
+  ans$age <- poputils::reformat_age(ans$age)
+  ans <- tibble::tibble(ans)
+  list(ans = ans,
+       matrix = matrix,
+       offset = offset,
+       matrix_along_by = matrix_along_by)
 }
 
 

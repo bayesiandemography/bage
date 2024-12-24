@@ -66,9 +66,10 @@ test_that("'generate' works with ssvd - all defaults", {
   ans_obtained <- generate(ssvd, n_comp = 2)
   set.seed(0)
   ans_expected <- ssvd$data$matrix[[1]][,1:2] %*% matrix(rnorm(40), nr = 2) + ssvd$data$offset[[1]]
-  ans_expected <- tibble::tibble(draw = rep(1:20, each = 2),
-                                 age = rep(c("0-4", "5-9"), times = 20),
+  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:20), each = 2),
+                                 age = poputils::reformat_age(rep(c("0-4", "5-9"), times = 20)),
                                  value = as.double(ans_expected))
+  ans_expected$draw <- factor(ans_expected$draw, levels = unique(ans_expected$draw))
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -80,11 +81,14 @@ test_that("'generate' works with ssvd - indep", {
   set.seed(0)
   ans_expected <- (ssvd$data$matrix[[3]][,c(1:2, 11:12)] %*% matrix(rnorm(80), nr = 4)
     + ssvd$data$offset[[3]])
-  ans_expected <- tibble::tibble(draw = rep(1:20, each = 4),
+  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:20), each = 4),
                                  sexgender = rep(c("Female", "Female", "Male", "Male"),
                                                  times = 20),
                                  age = rep(c("0-4", "5-9"), times = 40),
                                  value = as.double(ans_expected))
+  ans_expected$draw <- factor(ans_expected$draw, levels = unique(ans_expected$draw))
+  ans_expected$sexgender <- factor(ans_expected$sexgender, levels = unique(ans_expected$sexgender))
+  ans_expected$age <- factor(ans_expected$age, levels = unique(ans_expected$age))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -95,11 +99,14 @@ test_that("'generate' works with ssvd - joint", {
   set.seed(0)
   ans_expected <- (HMD$data$matrix[[79]][,1:3] %*% matrix(rnorm(6), nr = 3)
     + HMD$data$offset[[79]])
-  ans_expected <- tibble::tibble(draw = rep(1:2, each = 30),
+  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:2), each = 30),
                                  sexgender = rep(rep(c("Female", "Male"), each = 15),
                                                  times = 2),
                                  age = rep(age_labels, times = 4),
                                  value = as.double(ans_expected))
+  ans_expected$draw <- factor(ans_expected$draw, levels = unique(ans_expected$draw))
+  ans_expected$sexgender <- factor(ans_expected$sexgender, levels = unique(ans_expected$sexgender))
+  ans_expected$age <- factor(ans_expected$age, levels = unique(ans_expected$age))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -110,11 +117,14 @@ test_that("'generate' works with ssvd - joint", {
   set.seed(0)
   ans_expected <- (HMD$data$matrix[[79]][,1:3] %*% matrix(rnorm(6), nr = 3)
     + HMD$data$offset[[79]])
-  ans_expected <- tibble::tibble(draw = rep(1:2, each = 30),
+  ans_expected <- tibble::tibble(draw = rep(paste("Draw", 1:2), each = 30),
                                  sexgender = rep(rep(c("Female", "Male"), each = 15),
                                                  times = 2),
                                  age = rep(age_labels, times = 4),
                                  value = as.double(ans_expected))
+  ans_expected$draw <- factor(ans_expected$draw, levels = unique(ans_expected$draw))
+  ans_expected$sexgender <- factor(ans_expected$sexgender, levels = unique(ans_expected$sexgender))
+  ans_expected$age <- factor(ans_expected$age, levels = unique(ans_expected$age))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -136,7 +146,7 @@ test_that("'generate' method for ssvd - gives expected error when 'n_comp' too h
   expect_error(generate(HMD, age_labels = age_labels, n_comp = 11),
                "`n_comp` larger than number of components of `x`.")
 })
-!
+
 test_that("'generate' method for ssvd - gives expected error when joint supplied by no sex/gender", {
   ssvd <- sim_ssvd()
   ssvd$data <- ssvd$data[1,]
