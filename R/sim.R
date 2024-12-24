@@ -524,6 +524,37 @@ draw_vals_rw2 <- function(sd, sd_init, sd_slope, matrix_along_by, levels_effect)
   ans
 }
 
+## HAS_TESTS
+#' Draw the 'sd' parameter for a prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_sd <- function(prior, n_sim) {
+    scale <- prior$specific$scale
+    ans <- stats::rnorm(n = n_sim, sd = scale)
+    ans <- abs(ans)
+    ans
+}
+
+## HAS_TESTS
+#' Draw the 'sd' parameter for a prior
+#'
+#' @param prior An object of class 'bage_prior'
+#' @param n_sim Number of draws
+#'
+#' @returns A numeric vector
+#'
+#' @noRd
+draw_vals_sd_seas <- function(prior, n_sim) {
+    scale <- prior$specific$scale_seas
+    ans <- stats::rnorm(n = n_sim, sd = scale)
+    ans <- abs(ans)
+    ans
+}
 
 ## HAS_TESTS
 #' Generate Draws for Fixed Seasonal Effects
@@ -618,38 +649,6 @@ draw_vals_slope <- function(mean_slope, sd_slope, matrix_along_by, n_sim) {
     rownames <- "slope"
   rownames(ans) <- rownames
   ans
-}
-
-## HAS_TESTS
-#' Draw the 'sd' parameter for a prior
-#'
-#' @param prior An object of class 'bage_prior'
-#' @param n_sim Number of draws
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-draw_vals_sd <- function(prior, n_sim) {
-    scale <- prior$specific$scale
-    ans <- stats::rnorm(n = n_sim, sd = scale)
-    ans <- abs(ans)
-    ans
-}
-
-## HAS_TESTS
-#' Draw the 'sd' parameter for a prior
-#'
-#' @param prior An object of class 'bage_prior'
-#' @param n_sim Number of draws
-#'
-#' @returns A numeric vector
-#'
-#' @noRd
-draw_vals_sd_seas <- function(prior, n_sim) {
-    scale <- prior$specific$scale_seas
-    ans <- stats::rnorm(n = n_sim, sd = scale)
-    ans <- abs(ans)
-    ans
 }
 
 

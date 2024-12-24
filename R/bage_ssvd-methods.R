@@ -186,93 +186,21 @@ generate.bage_ssvd <- function(x,
                                indep = NULL,
                                age_labels = NULL,
                                ...) {
-  poputils::check_n(n = n_draw,
-                    nm_n = "n_draw",
-                    min = 1L,
-                    max = NULL,
-                    divisible_by = NULL)
   check_has_no_dots(...)
-  n_comp_x <- get_n_comp(x)
-  if (is.null(n_comp))
-    n_comp <- ceiling(n_comp_x / 2)
-  else {
-    poputils::check_n(n = n_comp,
-                      nm_n = "n_comp",
-                      min = 1L,
-                      max = NULL,
-                      divisible_by = NULL)
-    if (n_comp > n_comp_x)
-      cli::cli_abort(c("{.arg n_comp} larger than number of components of {.arg x}.",
-                       i = "{.arg n_comp}: {.val {n_comp}}.",
-                       i = "Number of components: {.val {n_comp_x}}."))
-  }
-  n_comp <- as.integer(n_comp)
-  has_indep <- !is.null(indep)
-  if (has_indep) {
-    check_flag(x = indep, nm_x = "indep")
-    if (!has_sexgender(x))
-      cli::cli_abort(paste("Value supplied for {.arg indep}, but {.arg x}",
-                           "does not have a sex/gender dimension."))
-    type <- if (indep) "indep" else "joint"
-  }
-  else
-    type <- "total"
-  has_age <- !is.null(age_labels)
-  if (has_age) {
-    age_labels <- tryCatch(poputils::reformat_age(age_labels, factor = FALSE),
-                           error = function(e) e)
-    if (inherits(age_labels, "error"))
-      cli::cli_abort(c("Problem with {.arg age_labels}.",
-                       i = age_labels$message))
-  }
-  data <- x$data
-  data <- data[data$type == type, , drop = FALSE]
-  if (has_age) {
-    is_matched <- vapply(data$labels_age, setequal, TRUE, y = age_labels)
-    if (!any(is_matched))
-      cli::cli_abort("Can't find labels from {.arg age_labels} in {.arg x}.")
-    i_matched <- which(is_matched)
-  }
-  else {
-    lengths_labels <- lengths(data$labels_age)
-    i_matched <- which.max(lengths_labels)
-  }
-  levels_age <- data$labels_age[[i_matched]]
-  levels_sexgender <- data$labels_sexgender[[i_matched]]
-  levels_age <- unique(levels_age)
-  levels_sexgender <- unique(levels_sexgender)
-  n_sexgender <- length(levels_sexgender)
-  agesex <- if (has_indep) "age:sex" else "age"
-  matrix <- get_matrix_or_offset_svd(ssvd = x,
-                                     levels_age = levels_age,
-                                     levels_sexgender = levels_sexgender,
-                                     joint = !indep,
-                                     agesex = agesex,
-                                     get_matrix = TRUE,
-                                     n_comp = n_comp)
-  offset <- get_matrix_or_offset_svd(ssvd = x,
-                                     levels_age = levels_age,
-                                     levels_sexgender = levels_sexgender,
-                                     joint = !indep,
-                                     agesex = agesex,
-                                     get_matrix = FALSE,
-                                     n_comp = n_comp)
-  n_Z <- if (type == "indep") n_sexgender * n_comp else n_comp
-  Z <- stats::rnorm(n = n_Z * n_draw)
-  Z <- matrix(Z, nrow = n_Z, ncol = n_draw)
-  value <- matrix %*% Z + offset
-  n_age <- length(levels_age)
-  if (has_indep) {
-    n_sex <- length(levels_sexgender)
-    ans <- tibble::tibble(draw = rep(seq_len(n_draw), each = n_age * n_sex),
-                          sexgender = rep(rep(levels_sexgender, each = n_age), times = n_draw),
-                          age = rep(levels_age, times = n_sex * n_draw))
-  }
-  else {
-    ans <- tibble::tibble(draw = rep(seq_len(n_draw), each = n_age),
-                          age = rep(levels_age, times = n_draw))
-  }
-  ans[["value"]] <- as.double(value)
+  l <- generate_ssvd_helper(ssvd = x,
+                            n_draw = n_draw,
+                            n_by = 1L,
+                            n_comp = n_comp,
+                            indep = indep,
+                            age_labels = age_labels)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  sd <- rep(1, times = n_draw)
+  labels <- seq_len(ncol(matrix))
+  alpha <- draw_vals_norm(sd = sd, labels = labels)
+  value <- matrix %*% alpha + offset
+  ans$value <- as.double(value)
   ans
 }
 

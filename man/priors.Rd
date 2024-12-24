@@ -22,22 +22,21 @@ Priors where 'forecast' is yes can be used
 in forecasts for a time-varying
 terms such as an age-time interactions.
 
-Priors where \code{con} is yes have an
-argument specifying whether constraints
-should be used.
+Priors where 'along' is yes distinguish
+between 'along' and 'by' dimensions.
 }
 \details{
 \tabular{lllll}{
-   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \code{con} \cr
+   \strong{Prior} \tab \strong{Description} \tab \strong{Uses} \tab \strong{Forecast} \tab \strong{Along} \cr
    \code{\link[=N]{N()}} \tab Elements drawn from normal distribution \tab Term with no natural order \tab Yes \tab No \cr
    \code{\link[=NFix]{NFix()}} \tab As for \code{N()}, but standard deviation fixed \tab Term with few elements \tab Yes \tab No \cr
+   \code{\link[=Known]{Known()}} \tab Values  treated as known \tab Simulations,  prior knowledge \tab No \tab No \cr
    \code{\link[=RW]{RW()}} \tab Random walk \tab Smoothing \tab Yes \tab Yes \cr
    \code{\link[=RW2]{RW2()}} \tab Second-order random walk \tab Like \code{RW()}, but smoother \tab Yes \tab Yes \cr
    \code{\link[=RW_Seas]{RW_Seas()}} \tab Random walk, with seasonal effect \tab Terms involving time \tab Yes \tab Yes \cr
    \code{\link[=RW2_Seas]{RW2_Seas()}} \tab Second-order random walk, with seasonal effect \tab Term involving time \tab Yes \tab Yes \cr
    \code{\link[=AR]{AR()}} \tab Auto-regressive prior of order \emph{k} \tab Mean reversion \tab Yes \tab Yes \cr
    \code{\link[=AR1]{AR1()}} \tab Auto-regressive prior of order 1 Special case of \code{AR()} \tab Mean reversion \tab Yes \tab Yes \cr
-   \code{\link[=Known]{Known()}} \tab Values  treated as known \tab Simulations,  prior knowledge \tab No \tab No \cr
    \code{\link[=Lin]{Lin()}} \tab Linear trend, with independent normal \tab Parsimonious model for time \tab Yes \tab Yes \cr
    \code{\link[=Lin_AR]{Lin_AR()}} \tab Linear trend, with autoregressive errors \tab Term involving time \tab Yes \tab Yes \cr
    \code{\link[=Lin_AR1]{Lin_AR1()}} \tab Linear trend, with AR1 errors \tab Terms involving time \tab Yes \tab Yes \cr

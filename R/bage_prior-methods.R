@@ -2119,12 +2119,12 @@ forecast_term.bage_prior_normfixed <- function(prior,
 ## HAS_TESTS
 #' @export
 forecast_term.bage_prior_rwrandom <- function(prior,
-                                        dimnames_term,
-                                        var_time,
-                                        var_age,
-                                        var_sexgender,
-                                        components,
-                                        labels_forecast) {
+                                              dimnames_term,
+                                              var_time,
+                                              var_age,
+                                              var_sexgender,
+                                              components,
+                                              labels_forecast) {
   con <- prior$specific$con
   nm <- dimnames_to_nm(dimnames_term)
   dimnames_forecast <- replace(dimnames_term, var_time, list(labels_forecast))
@@ -2147,10 +2147,10 @@ forecast_term.bage_prior_rwrandom <- function(prior,
                          matrix_along_by_forecast = matrix_along_by_forecast)
   if (con == "by")
     .fitted <- con_by_fitted(prior = prior,
-                               fitted = .fitted,
-                               dimnames_term = dimnames_forecast,
-                               var_time = var_time,
-                               var_age = var_age)
+                             fitted = .fitted,
+                             dimnames_term = dimnames_forecast,
+                             var_time = var_time,
+                             var_age = var_age)
   tibble::tibble(term = nm,
                  component = "effect",
                  level = levels_forecast,
@@ -3017,15 +3017,23 @@ generics::generate
 #' Generate Values from Priors
 #'
 #' Generate draws from priors for model terms.
-#' The terms are assumed to be main effects,
-#' except in the case of dynamic SVD priors
-#' (eg [SVD_RW()]) where they assumed to
-#' be age-time interactions.
+#'
+#' Some priors distinguish between 'along' and 'by'
+#' dimensions, while others do not: see [priors]
+#' for a complete list. Arguments `n_along` and `n_by`
+#' are used with priors that make the distinction,
+#' and argument `n_element` is used with priors that do not.
 #'
 #' @param x Object of class `"bage_prior"`
-#' @param n_element Number of elements in term.
+#' @param n_element Number of elements in term,
+#' in priors that do not distinguish
+#' 'along' and 'by' dimensions.
 #' Default is `20`.
-#' @param n_replicate Number of replicates. Default
+#' @param n_along Number of elements of
+#' 'along' dimension. Default is `20`.
+#' @param n_by Number of combinations of
+#' 'by' variables. Default is `1`.
+#' @param n_draw Number of draws. Default
 #' is `25`.
 #' @param ... Unused. Included for generic consistency only.
 #'
@@ -3033,35 +3041,59 @@ generics::generate
 #'
 #' @seealso
 #' - [priors] Overview of priors implemented in **bage**
-#' - [augment()], [components()] Draw from posterior or prior
-#'   distribution for whole model
 #'
 #' @examples
-#' rw <- RW()
-#' generate(rw)
+#' ## prior that distinguishes 'along' and 'by'
+#' x <- RW()
+#' generate(x, n_along = 10, n_by = 2)
+#'
+#' ## prior that does not distinguish
+#' x <- N()
+#' generate(x, n_along = 10, n_by = 2)
+#'
+#' ## SVD_AR(), SVD_RW(), and SVD_RW2()
+#' ## distinguish 'along' and 'by'
+#' x <- SVD_AR(HFD)
+#' generate(x, n_along = 10, n_by = 2)
+#'
+#' ## SVD() does not
+#' x <- SVD(HFD)
+#' generate(x, n_element = 2)
 #' @export
 generate.bage_prior_ar <- function(x,
-                                   n_element = 20,
-                                   n_replicate = 25,
+                                   n_along = 20,
+                                   n_by = 1,
+                                   n_draw = 25,
                                    ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
   ans <- l$ans
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  coef <- draw_vals_coef(prior = x, n_sim = n_replicate)
-  value <- draw_vals_ar_inner(n = n_element, coef = coef, sd = sd)
-  value <- as.double(value)
-  ans$value <- value
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_efect
+  coef <- draw_vals_coef(prior = x, n_sim = n_draw)
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  value <- draw_vals_ar(coef = coef,
+                        sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
   ans
 }
-
 
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_known <- function(x,
                                       n_element = 20,
-                                      n_replicate = 25,
+                                      n_draw = 25,
                                       ...) {
   if (!isTRUE(all.equal(n_element, 20))) {
     str <- str_nm_prior(x)
@@ -3070,34 +3102,48 @@ generate.bage_prior_known <- function(x,
   check_has_no_dots(...)
   value <- x$specific$values
   n_element <- length(value)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  value <- rep(value, times = n_replicate)
+  l <- generate_prior_helper(x = x,
+                             n_element = n_element,
+                             n_draw = n_draw)
+  value <- rep(value, times = n_draw)
   ans <- l$ans
   ans$value <- value
   ans
 }
 
-
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_lin <- function(x,
-                                    n_element = 20,
-                                    n_replicate = 25,
+                                    n_along = 20,
+                                    n_by = 1,
+                                    n_draw = 25,
                                     ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  ans <- l$ans
   mean_slope <- x$specific$mean_slope
   sd_slope <- x$specific$sd_slope
-  slope <- stats::rnorm(n = n_replicate, mean = mean_slope, sd = sd_slope)
-  s <- seq(from = -0.5 * (n_element - 1L), to = 0.5 * (n_element - 1L))
-  alpha <- outer(s, slope)
-  alpha <- as.double(alpha)
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd <- rep(sd, each = n_element)
-  error <- stats::rnorm(n = n_element * n_replicate, sd = sd)
-  ans$value <- alpha + error
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  slope <- draw_vals_slope(mean_slope = mean_slope,
+                           sd_slope = sd_slope,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_draw)
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  value <- draw_vals_lin(slope = slope,
+                         sd = sd,
+                         matrix_along_by = matrix_along_by,
+                         labels = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
   ans
 }
 
@@ -3106,23 +3152,37 @@ generate.bage_prior_lin <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_linar <- function(x,
-                                      n_element = 20,
-                                      n_replicate = 25,
+                                      n_along = 20,
+                                      n_by = 1,
+                                      n_draw = 25,
                                       ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  ans <- l$ans
   mean_slope <- x$specific$mean_slope
   sd_slope <- x$specific$sd_slope
-  slope <- stats::rnorm(n = n_replicate, mean = mean_slope, sd = sd_slope)
-  s <- seq(from = -0.5 * (n_element - 1L), to = 0.5 * (n_element - 1L))
-  alpha <- outer(s, slope)
-  alpha <- as.double(alpha)
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  coef <- draw_vals_coef(prior = x, n_sim = n_replicate)
-  error <- draw_vals_ar_inner(n = n_element, coef = coef, sd = sd)
-  error <- as.double(error)
-  ans$value <- alpha + error
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  slope <- draw_vals_slope(mean_slope = mean_slope,
+                           sd_slope = sd_slope,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_draw)
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  coef <- draw_vals_coef(prior = x, n_sim = n_draw)
+  value <- draw_vals_linar(slope = slope,
+                           sd = sd,
+                           coef = coef,
+                           matrix_along_by = matrix_along_by,
+                           labels = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
   ans
 }
 
@@ -3131,37 +3191,52 @@ generate.bage_prior_linar <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_linex <- function(x,
-                                      n_element = 20,
-                                      n_replicate = 25,
+                                      n_along = 20,
+                                      n_by = 1,
+                                      n_draw = 25,
                                       ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  ans <- l$ans
   mean_slope <- x$specific$mean_slope
   sd_slope <- x$specific$sd_slope
-  slope <- stats::rnorm(n = n_replicate, mean = mean_slope, sd = sd_slope)
-  s <- seq(from = -0.5 * (n_element - 1L), to = 0.5 * (n_element - 1L))
-  value <- outer(s, slope)
-  value <- as.numeric(value)
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  slope <- draw_vals_slope(mean_slope = mean_slope,
+                           sd_slope = sd_slope,
+                           matrix_along_by = matrix_along_by,
+                           n_sim = n_draw)
+  value <- draw_vals_lintrend(slope = slope,
+                              matrix_along_by = matrix_along_by,
+                              labels = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
   ans$value <- value
   ans
 }
-
-
 
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_norm <- function(x,
                                      n_element = 20,
-                                     n_replicate = 25,
+                                     n_draw = 25,
                                      ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  l <- generate_prior_helper(x = x,
+                             n_element = n_element,
+                             n_draw = n_draw)
   ans <- l$ans
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
   sd <- rep(sd, each = n_element)
-  value <- stats::rnorm(n = n_element * n_replicate, sd = sd)
+  value <- stats::rnorm(n = n_element * n_draw, sd = sd)
   ans$value <- value
   ans
 }
@@ -3171,13 +3246,15 @@ generate.bage_prior_norm <- function(x,
 #' @export
 generate.bage_prior_normfixed <- function(x,
                                           n_element = 20,
-                                          n_replicate = 25,
+                                          n_draw = 25,
                                           ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  l <- generate_prior_helper(x = x,
+                             n_element = n_element,
+                             n_draw = n_draw)
   ans <- l$ans
   sd <- x$specific$sd
-  value <- stats::rnorm(n = n_element * n_replicate, sd = sd)
+  value <- stats::rnorm(n = n_element * n_draw, sd = sd)
   ans$value <- value
   ans
 }
@@ -3186,20 +3263,29 @@ generate.bage_prior_normfixed <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rwrandom <- function(x,
-                                         n_element = 20,
-                                         n_replicate = 25,
+                                         n_along = 20,
+                                         n_by = 1,
+                                         n_draw = 25,
                                          ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  sd_init <- x$specific$sd
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
   matrix_along_by <- l$matrix_along_by
   levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_init <- x$specific$sd
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
   value <- draw_vals_rw(sd = sd_innov,
                         sd_init = sd_init,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3209,28 +3295,36 @@ generate.bage_prior_rwrandom <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rwrandomseasfix <- function(x,
-                                              n_element = 20,
-                                              n_replicate = 25,
-                                              ...) {
+                                                n_along = 20,
+                                                n_by = 1,
+                                                n_draw = 25,
+                                                ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  n_seas <- x$specific$n_seas
   sd_init <- x$specific$sd
   sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = sd_init,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasfix(n_seas = n_seas,
                             sd_init = sd_init_seas,
                             matrix_along_by = matrix_along_by,
-                            n_sim = n_replicate)
+                            n_sim = n_draw)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3240,29 +3334,37 @@ generate.bage_prior_rwrandomseasfix <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rwrandomseasvary <- function(x,
-                                               n_element = 20,
-                                               n_replicate = 25,
-                                               ...) {
+                                                 n_along = 20,
+                                                 n_by = 1,
+                                                 n_draw = 25,
+                                                 ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_replicate)
+  n_seas <- x$specific$n_seas
   sd_init <- x$specific$sd
   sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = sd_init,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasvary(n_seas = n_seas,
                              sd_init = sd_init_seas,
                              sd_innov = sd_innov_seas,
                              matrix_along_by = matrix_along_by)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3272,19 +3374,28 @@ generate.bage_prior_rwrandomseasvary <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rwzero <- function(x,
-                                   n_element = 20,
-                                   n_replicate = 25,
-                                   ...) {
+                                       n_along = 20,
+                                       n_by = 1,
+                                       n_draw = 25,
+                                       ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
   matrix_along_by <- l$matrix_along_by
   levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
   value <- draw_vals_rw(sd = sd_innov,
                         sd_init = 0,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3294,26 +3405,35 @@ generate.bage_prior_rwzero <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rwzeroseasfix <- function(x,
-                                              n_element = 20,
-                                              n_replicate = 25,
+                                              n_along = 20,
+                                              n_by = 1,
+                                              n_draw = 25,
                                               ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  n_seas <- x$specific$n_seas
+  sd_init <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
   matrix_along_by <- l$matrix_along_by
   levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = 0,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasfix(n_seas = n_seas,
                             sd_init = sd_init,
                             matrix_along_by = matrix_along_by,
-                            n_sim = n_replicate)
+                            n_sim = n_draw)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3323,54 +3443,70 @@ generate.bage_prior_rwzeroseasfix <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rwzeroseasvary <- function(x,
-                                               n_element = 20,
-                                               n_replicate = 25,
+                                               n_along = 20,
+                                               n_by = 1,
+                                               n_draw = 25,
                                                ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  n_seas <- x$specific$n_seas
+  sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
   matrix_along_by <- l$matrix_along_by
   levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_replicate)
-  sd_init_seas <- x$specific$sd_seas
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = 0,
                         matrix_along_by = matrix_along_by,
                         levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasvary(n_seas = n_seas,
                              sd_init = sd_init_seas,
                              sd_innov = sd_innov_seas,
                              matrix_along_by = matrix_along_by)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
 }
 
-
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2random <- function(x,
-                                        n_element = 20,
-                                        n_replicate = 25,
-                                        ...) {
+                                          n_along = 20,
+                                          n_by = 1,
+                                          n_draw = 25,
+                                          ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  con <- x$specific$con
   sd_init <- x$specific$sd
   sd_slope <- x$specific$sd_slope
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
   value <- draw_vals_rw2(sd = sd,
                          sd_init = sd_init,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3380,30 +3516,38 @@ generate.bage_prior_rw2random <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2randomseasfix <- function(x,
-                                               n_element = 20,
-                                               n_replicate = 25,
-                                               ...) {
+                                                 n_along = 20,
+                                                 n_by = 1,
+                                                 n_draw = 25,
+                                                 ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  n_seas <- x$specific$n_seas
   sd_init <- x$specific$sd
   sd_slope <- x$specific$sd_slope
   sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw2(sd = sd_innov,
                          sd_init = sd_init,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasfix(n_seas = n_seas,
                             sd_init = sd_init_seas,
                             matrix_along_by = matrix_along_by,
-                            n_sim = n_replicate)
+                            n_sim = n_draw)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3413,31 +3557,39 @@ generate.bage_prior_rw2randomseasfix <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2randomseasvary <- function(x,
-                                                  n_element = 20,
-                                                  n_replicate = 25,
+                                                  n_along = 20,
+                                                  n_by = 1,
+                                                  n_draw = 25,
                                                   ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_replicate)
+  n_seas <- x$specific$n_seas
   sd_init <- x$specific$sd
   sd_slope <- x$specific$sd_slope
   sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw2(sd = sd_innov,
                          sd_init = sd_init,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasvary(n_seas = n_seas,
                              sd_init = sd_init_seas,
                              sd_innov = sd_innov_seas,
                              matrix_along_by = matrix_along_by)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3447,21 +3599,30 @@ generate.bage_prior_rw2randomseasvary <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2zero <- function(x,
-                                    n_element = 20,
-                                    n_replicate = 25,
-                                    ...) {
+                                        n_along = 20,
+                                        n_by = 1,
+                                        n_draw = 25,
+                                        ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
   matrix_along_by <- l$matrix_along_by
   levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_slope <- x$specific$sd_slope
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
   value <- draw_vals_rw2(sd = sd,
                          sd_init = 0,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3471,29 +3632,37 @@ generate.bage_prior_rw2zero <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2zeroseasfix <- function(x,
-                                               n_element = 20,
-                                               n_replicate = 25,
+                                               n_along = 20,
+                                               n_by = 1,
+                                               n_draw = 25,
                                                ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
+  n_seas <- x$specific$n_seas
   sd_slope <- x$specific$sd_slope
   sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw2(sd = sd_innov,
                          sd_init = 0,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasfix(n_seas = n_seas,
                             sd_init = sd_init_seas,
                             matrix_along_by = matrix_along_by,
-                            n_sim = n_replicate)
+                            n_sim = n_draw)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
   ans
@@ -3503,32 +3672,104 @@ generate.bage_prior_rw2zeroseasfix <- function(x,
 #' @rdname generate.bage_prior_ar
 #' @export
 generate.bage_prior_rw2zeroseasvary <- function(x,
-                                                n_element = 20,
-                                                n_replicate = 25,
+                                                n_along = 20,
+                                                n_by = 1,
+                                                n_draw = 25,
                                                 ...) {
   check_has_no_dots(...)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
-  matrix_along_by <- l$matrix_along_by
-  levels_effect <- l$levels_effect
-  ans <- l$ans
-  sd_innov <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_replicate)
+  n_seas <- x$specific$n_seas
   sd_slope <- x$specific$sd_slope
   sd_init_seas <- x$specific$sd_seas
+  con <- x$specific$con
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  matrix_along_by <- l$matrix_along_by
+  levels_effect <- l$levels_effect
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  sd_innov_seas <- draw_vals_sd_seas(prior = x, n_sim = n_draw)
   alpha <- draw_vals_rw2(sd = sd_innov,
                          sd_slope = sd_slope,
                          sd_init = 0,
                          matrix_along_by = matrix_along_by,
                          levels_effect = levels_effect)
-  n_seas <- x$specific$n_seas
-  sd_init <- x$specific$sd_seas
   seas <- draw_vals_seasvary(n_seas = n_seas,
                              sd_init = sd_init_seas,
                              sd_innov = sd_innov_seas,
                              matrix_along_by = matrix_along_by)
   value <- alpha + seas
+  if (con == "by") {
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
   value <- as.double(value)
   ans$value <- value
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_spline <- function(x,
+                                       n_along = 20,
+                                       n_by = 1,
+                                       n_draw = 25,
+                                       ...) {
+  check_has_no_dots(...)
+  con <- x$specific$con
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  l <- generate_prior_helper(x = x,
+                             n_along = n_along,
+                             n_by = n_by,
+                             n_draw = n_draw)
+  ans <- l$ans
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  n_comp <- get_n_comp_spline(prior = x, n_along = n_along)
+  matrix_along_by <- matrix(seq_len(n_comp * n_by) - 1L,
+                            nrow = n_comp,
+                            ncol = n_by)
+  levels_spline <- seq_len(n_comp * n_by)
+  rw2 <- draw_vals_rw2(sd = sd,
+                       sd_init = sd_init,
+                       sd_slope = sd_slope,
+                       matrix_along_by = matrix_along_by,
+                       levels_effect = levels_spline)
+  rw2 <- matrix(rw2, nrow = n_comp, ncol = n_by * n_draw)
+  m <- make_matrix_spline(n_along = n_along,
+                          n_comp = n_comp)
+  value <- m %*% rw2
+  if (con == "by") {
+    value <- matrix(value, nrow = n_along * n_by, ncol = n_draw)
+    m <- make_matrix_con_by(i_along = 1L, dim = c(n_along, n_by))
+    value <- m %*% value
+  }
+  value <- as.double(value)
+  ans$value <- value
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd <- function(x,
+                                    n_element = 1,
+                                    n_draw = 25,
+                                    ...) {
+  check_has_no_dots(...)
+  l <- generate_prior_svd_helper(x = x,
+                                 n_element = n_element,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  sd <- rep(1, times = n_draw)
+  labels <- seq_len(ncol(matrix))
+  alpha <- draw_vals_norm(sd = sd, labels = labels)
+  value <- matrix %*% alpha + offset
+  ans$value <- as.double(value)
   ans
 }
 
@@ -3536,29 +3777,187 @@ generate.bage_prior_rw2zeroseasvary <- function(x,
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
 #' @export
-generate.bage_prior_spline <- function(x,
-                                       n_element = 20,
-                                       n_replicate = 25,
+generate.bage_prior_svd_ar <- function(x,
+                                       n_along = 5,
+                                       n_by = 1,
+                                       n_draw = 25,
                                        ...) {
   check_has_no_dots(...)
-  n_comp <- get_n_comp_spline(prior = x, n_along = n_element)
-  sd_init <- x$specific$sd
-  sd_slope <- x$specific$sd_slope
-  sd <- draw_vals_sd(prior = x, n_sim = n_replicate)
-  l <- generate_prior_helper(n_element = n_element, n_replicate = n_replicate)
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
   ans <- l$ans
-  matrix_along_by <- matrix(seq_len(n_comp) - 1L, nrow = n_comp, ncol = 1L)
-  levels_spline <- seq_len(n_comp)
-  m <- make_matrix_spline(n_along = n_element, n_comp = n_comp)
-  rw2 <- draw_vals_rw2(sd = sd,
-                       sd_init = sd_init,
-                       sd_slope = sd_slope,
-                       matrix_along_by = matrix_along_by,
-                       levels_effect = levels_spline)
-  value <- m %*% rw2
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  coef <- draw_vals_coef(prior = x, n_sim = n_draw)
+  sd <- draw_vals_sd(prior = x, n_sim = n_draw)
+  n_level <- length(matrix_along_by)
+  levels_effect <- seq_len(n_level)
+  alpha <- draw_vals_ar(coef = coef,
+                        sd = sd,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_svd <- n_level %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    value <- m %*% value
+  }
   ans$value <- as.double(value)
   ans
 }
+
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_rwrandom <- function(x,
+                                             n_along = 5,
+                                             n_by = 1,
+                                             n_draw = 25,
+                                             ...) {
+  check_has_no_dots(...)
+  sd_init <- x$specific$sd
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  n_level <- length(matrix_along_by)
+  levels_effect <- seq_len(n_level)
+  alpha <- draw_vals_rw(sd = sd_innov,
+                        sd_init = sd_init,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_svd <- n_level %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_rwzero <- function(x,
+                                           n_along = 5,
+                                           n_by = 1,
+                                           n_draw = 25,
+                                           ...) {
+  check_has_no_dots(...)
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  n_level <- length(matrix_along_by)
+  levels_effect <- seq_len(n_level)
+  alpha <- draw_vals_rw(sd = sd_innov,
+                        sd_init = 0,
+                        matrix_along_by = matrix_along_by,
+                        levels_effect = levels_effect)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_svd <- n_level %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_rw2random <- function(x,
+                                              n_along = 5,
+                                              n_by = 1,
+                                              n_draw = 25,
+                                              ...) {
+  check_has_no_dots(...)
+  sd_init <- x$specific$sd
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  n_level <- length(matrix_along_by)
+  levels_effect <- seq_len(n_level)
+  alpha <- draw_vals_rw2(sd = sd_innov,
+                         sd_init = sd_init,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix_along_by,
+                         levels_effect = levels_effect)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_svd <- n_level %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+## HAS_TESTS
+#' @rdname generate.bage_prior_ar
+#' @export
+generate.bage_prior_svd_rw2zero <- function(x,
+                                            n_along = 5,
+                                            n_by = 1,
+                                            n_draw = 25,
+                                            ...) {
+  check_has_no_dots(...)
+  sd_slope <- x$specific$sd_slope
+  con <- x$specific$con
+  l <- generate_prior_svd_helper(x = x,
+                                 n_along = n_along,
+                                 n_by = n_by,
+                                 n_draw = n_draw)
+  ans <- l$ans
+  matrix <- l$matrix
+  offset <- l$offset
+  matrix_along_by <- l$matrix_along_by
+  sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
+  n_level <- length(matrix_along_by)
+  levels_effect <- seq_len(n_level)
+  alpha <- draw_vals_rw2(sd = sd_innov,
+                         sd_init = 0,
+                         sd_slope = sd_slope,
+                         matrix_along_by = matrix_along_by,
+                         levels_effect = levels_effect)
+  value <- matrix %*% alpha + offset
+  if (con == "by") {
+    n_svd <- n_level %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    value <- m %*% value
+  }
+  ans$value <- as.double(value)
+  ans
+}
+
+
 
   
   
@@ -8374,6 +8773,20 @@ uses_matrix_effectfree_effect <- function(prior) {
 ## HAS_TESTS
 #' @export
 uses_matrix_effectfree_effect.bage_prior <- function(prior) FALSE
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_lin <- function(prior) {
+  con <- prior$specific$con
+  identical(con, "by")
+}
+
+## HAS_TESTS
+#' @export
+uses_matrix_effectfree_effect.bage_prior_linar <- function(prior) {
+  con <- prior$specific$con
+  identical(con, "by")
+}
 
 ## HAS_TESTS
 #' @export

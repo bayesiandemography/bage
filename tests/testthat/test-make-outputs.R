@@ -95,15 +95,145 @@ test_that("'draw_vals_components_fitted' works", {
 
 ## 'generate_prior_helper' ----------------------------------------------------
 
-test_that("'generate_prior_helper' works with valid inputs", {
-  ans_obtained <- generate_prior_helper(n_element = 5, n_replicate = 2)
-  replicate <- factor(rep(c("Replicate 1", "Replicate 2"), each = 5))
-  ans_expected <- list(matrix_along_by = matrix(0:4, nc = 1, dimnames = list(1:5, NULL)),
-                       levels_effect = 1:5,
-                       ans = tibble::tibble(element= rep(1:5, times = 2),
-                                            replicate = replicate))
+test_that("'generate_prior_helper' works with valid inputs, not along-by", {
+  x <- N()
+  ans_obtained <- generate_prior_helper(x = x, n_element = 5, n_draw = 2)
+  draw <- factor(rep(c("Draw 1", "Draw 2"), each = 5))
+  ans_expected <- list(ans = tibble::tibble(draw = draw,
+                                            element = rep(1:5, times = 2)),
+                       matrix_along_by = matrix(0:4, nc = 1, dimnames = list(seq_len(5), NULL)),
+                       levels_effect = 1:5)
   expect_identical(ans_obtained, ans_expected)
-})                       
+})
+
+test_that("'generate_prior_helper' works with valid inputs, along-by, n_by = 1", {
+  x <- AR()
+  ans_obtained <- generate_prior_helper(x = x, n_along = 5, n_by = 1, n_draw = 2)
+  draw <- factor(rep(c("Draw 1", "Draw 2"), each = 5))
+  by <- factor(rep("By 1", 10))
+  levels_effect <- paste(1, 1:5, sep = ".")
+  ans_expected <- list(ans = tibble::tibble(draw = draw,
+                                            by = by,
+                                            along = rep(1:5, times = 2)),
+                       matrix_along_by = matrix(0:4, nc = 1, dimnames = list(seq_len(5), 1L)),
+                       levels_effect = levels_effect)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'generate_prior_helper' works with valid inputs, along-by, n_by = 2", {
+  x <- AR()
+  ans_obtained <- generate_prior_helper(x = x, n_along = 5, n_by = 2, n_draw = 2)
+  draw <- factor(rep(c("Draw 1", "Draw 2"), each = 10))
+  by <- factor(rep(rep(paste("By", 1:2), each = 5), times = 2))
+  ans_expected <- list(ans = tibble::tibble(draw = draw,
+                                            by = by,
+                                            along = rep(1:5, times = 4)),
+                       matrix_along_by = matrix(0:9, nc = 2, dimnames = list(1:5, 1:2)),
+                       levels_effect = paste(rep(1:2, each = 5), 1:5, sep = "."))
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'generate_prior_helper_svd' ------------------------------------------------
+
+test_that("'generate_prior_helper_svd' works with valid inputs, n_by = 1", {
+  x <- SVD(HMD)
+  ans_obtained <- generate_prior_helper_svd(x = x, n_by = 1, n_draw = 2)
+  draw <- factor(rep(c("Draw 1", "Draw 2"), each = 5))
+  ans_expected <- list(ans = tibble::tibble(draw = draw,
+                                            element= rep(1:5, times = 2)),
+                       matrix_along_by = matrix(0:4, nc = 1, dimnames = list(1:5, NULL)),
+                       levels_effect = 1:5)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'generate_prior_svd_helper' ------------------------------------------------
+
+test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
+  x <- SVD(LFP)
+  set.seed(0)
+  n_element <- 20
+  n_by <- 1
+  n_draw <- 25
+  ans_obtained <- generate_prior_svd_helper(x, n_by = n_by, n_draw = n_draw)
+  expect_true(is.list(ans_obtained))
+})
+
+test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
+  x <- SVD_RW(LFP)
+  set.seed(0)
+  n_element <- 20
+  n_by <- 2
+  n_draw <- 25
+  ans_obtained <- generate_prior_svd_helper(x, n_by = n_by, n_draw = n_draw)
+  expect_true(is.list(ans_obtained))
+})
+
+test_that("'generate_prior_svd_helper' throws correcty error with n_by > 1", {
+  x <- SVD(LFP)
+  set.seed(0)
+  n_element <- 20
+  n_by <- 2
+  n_draw <- 25
+  expect_error(generate_prior_svd_helper(x, n_by = n_by, n_draw = n_draw),
+               "Value supplied for `n_by` but `x` has prior \"SVD\\(\\)\"")
+})
+
+
+## 'generate_ssvd_helper' -----------------------------------------------------------------
+
+test_that("'generate_ssvd_helper' works with valid inputs - indep = NULL, n_element = 1", {
+  set.seed(0)
+  ans <- generate_ssvd_helper(ssvd = LFP,
+                              n_element = 1,
+                              n_draw = 3,
+                              n_comp = 2,
+                              indep = NULL,
+                              age_labels = NULL)
+  expect_identical(nrow(ans$matrix), length(unique(ans$ans$age)))
+  expect_identical(ncol(ans$matrix), 2L)
+})
+
+test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by = 1, n_along = 3", {
+  set.seed(0)
+  ans <- generate_ssvd_helper(ssvd = LFP,
+                              n_along = 3,
+                              n_by = 1,
+                              n_draw = 3,
+                              n_comp = 2,
+                              indep = TRUE,
+                              age_labels = NULL)
+  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("age", "sexgender")])))
+  expect_identical(ncol(ans$matrix), 12L)
+})
+
+test_that("'generate_ssvd_helper' works with valid inputs - indep = FALSE, n_by = 1", {
+  set.seed(0)
+  ans <- generate_ssvd_helper(ssvd = LFP,
+                              n_along = 2,
+                              n_by = 1,
+                              n_draw = 3,
+                              n_comp = 2,
+                              indep = FALSE,
+                              age_labels = NULL)
+  expect_identical(nrow(ans$matrix), 2L * nrow(unique(ans$ans[c("age", "sexgender")])))
+  expect_identical(ncol(ans$matrix), 4L)
+})
+
+test_that("'generate_ssvd_helper' works with valid inputs - indep = TRUE, n_by = 2", {
+  set.seed(0)
+  ans <- generate_ssvd_helper(ssvd = LFP,
+                              n_along = 3,
+                              n_by = 2,
+                              n_draw = 3,
+                              n_comp = 2,
+                              indep = TRUE,
+                              age_labels = NULL)
+  expect_identical(nrow(ans$matrix), 3L * nrow(unique(ans$ans[c("by", "age", "sexgender")])))
+  expect_identical(ncol(ans$matrix), 24L)
+  expect_identical(nrow(ans$matrix_along_by), 3L)
+})
 
 
 ## 'get_term_from_est' --------------------------------------------------------

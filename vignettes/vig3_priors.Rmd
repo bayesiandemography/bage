@@ -36,9 +36,9 @@ suppressPackageStartupMessages({
 ```
 
 ```{r}
-plot_points <- function(draws) {
+plot_points_no_by <- function(draws) {
   ggplot(draws, aes(x = element, y = value)) +
-    facet_wrap(vars(replicate), nrow = 1) +
+    facet_wrap(vars(draw), nrow = 1) +
     geom_hline(yintercept = 0, col = "grey") +
     geom_point(col = "darkblue", size = 0.7) +
     scale_x_continuous(n.breaks = max(draws$element)) +
@@ -49,9 +49,22 @@ plot_points <- function(draws) {
 ```
 
 ```{r}
-plot_lines <- function(draws) {
+plot_lines_no_by <- function(draws) {
   ggplot(draws, aes(x = element, y = value)) +
-    facet_wrap(vars(replicate), nrow = 1) +
+    facet_wrap(vars(draw), nrow = 1) +
+    geom_hline(yintercept = 0, col = "grey") +
+    geom_line(col = "darkblue") +
+    xlab("Unit") +
+    ylab("") +
+    theme(text = element_text(size = 8))
+}	       
+```
+
+
+```{r}
+plot_lines_has_by <- function(draws) {
+  ggplot(draws, aes(x = along, y = value)) +
+    facet_grid(vars(by), vars(draw)) +
     geom_hline(yintercept = 0, col = "grey") +
     geom_line(col = "darkblue") +
     xlab("Unit") +
@@ -78,8 +91,8 @@ plot_lines <- function(draws) {
 set.seed(0)
 
 NFix() |>
-  generate(n_element = 10, n_replicate = 8) |>
-  plot_points()
+  generate(n_element = 10, n_draw = 8) |>
+  plot_points_no_by()
 ```
 
 ### Reduce `sd`
@@ -90,8 +103,8 @@ NFix() |>
 set.seed(0)
 
 NFix(sd = 0.01) |>
-  generate(n_element = 10, n_replicate = 8) |>
-  plot_points()
+  generate(n_element = 10, n_draw = 8) |>
+  plot_points_no_by()
 ```
 
 
@@ -112,8 +125,8 @@ NFix(sd = 0.01) |>
 set.seed(0)
 
 N() |>
-  generate(n_element = 10, n_replicate = 8) |>
-  plot_points()
+  generate(n_element = 10, n_draw = 8) |>
+  plot_points_no_by()
 ```
 
 ### Reduce `s`
@@ -124,8 +137,8 @@ N() |>
 set.seed(0)
 
 N(s = 0.01) |>
-  generate(n_element = 10, n_replicate = 8) |>
-  plot_points()
+  generate(n_element = 10, n_draw = 8) |>
+  plot_points_no_by()
 ```
 
 
@@ -150,8 +163,8 @@ N(s = 0.01) |>
 set.seed(0)
 
 RW() |>
-  generate(n_replicate = 8) |>
-  plot_lines()
+  generate(n_draw = 8) |>
+  plot_lines_no_by()
 ```
 
 ### Reduce `s`
@@ -162,7 +175,7 @@ RW() |>
 set.seed(0)
 
 RW(s = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -175,7 +188,7 @@ RW(s = 0.01) |>
 set.seed(0)
 
 RW(s = 0.01, sd = 0) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -199,7 +212,7 @@ RW(s = 0.01, sd = 0) |>
 set.seed(0)
 
 RW2() |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -211,7 +224,7 @@ RW2() |>
 set.seed(0)
 
 RW2(s = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -224,7 +237,7 @@ RW2(s = 0.01) |>
 set.seed(0)
 
 RW2(s = 0.01, sd_slope = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -236,7 +249,7 @@ RW2(s = 0.01, sd_slope = 0.01) |>
 set.seed(0)
 
 RW2(s = 0.01, sd = 0, sd_slope = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -265,8 +278,8 @@ The prior for each $\phi_k$ is
 set.seed(0)
 
 AR() |>
-  generate(n_replicate = 8) |>
-  plot_lines()
+  generate(n_draw = 8) |>
+  plot_lines_no_by()
 ```
 
 ### Increase `n_coef`
@@ -275,8 +288,8 @@ AR() |>
 set.seed(0)
 
 AR(n_coef = 3) |>
-  generate(n_replicate = 8) |>
-  plot_lines()
+  generate(n_draw = 8) |>
+  plot_lines_no_by()
 ```
 
 
@@ -286,8 +299,28 @@ AR(n_coef = 3) |>
 set.seed(0)
 
 AR(s = 0.01) |>
-  generate(n_replicate = 8) |>
-  plot_lines()
+  generate(n_draw = 8) |>
+  plot_lines_no_by()
+```
+
+### Specify 'along' and 'by' dimensions
+
+```{r}
+set.seed(0)
+
+AR() |>
+  generate(n_element = 60, n_by = 3, n_draw = 8) |>
+  plot_lines_has_by()
+```
+
+### Specify 'along' and 'by' dimensions, set `con = "by"`
+
+```{r}
+set.seed(0)
+
+AR(con = "by") |>
+  generate(n_element = 60, n_by = 3, n_draw = 8) |>
+  plot_lines_has_by()
 ```
 
 
@@ -315,7 +348,7 @@ The prior for $\phi$ is
 set.seed(0)
 
 AR1() |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -325,7 +358,7 @@ AR1() |>
 set.seed(0)
 
 AR1(s = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -335,7 +368,7 @@ AR1(s = 0.01) |>
 set.seed(0)
 
 AR1(s = 0.01, min = -1, max = 1) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -364,7 +397,7 @@ AR1(s = 0.01, min = -1, max = 1) |>
 set.seed(0)
 
 RW_Seas(n_seas = 4) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -376,7 +409,7 @@ RW_Seas(n_seas = 4) |>
 set.seed(0)
 
 RW_Seas(n_seas = 4, s = 0.01, sd = 0) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -388,7 +421,7 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0) |>
 set.seed(0)
 
 RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 1) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -400,7 +433,7 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 1) |>
 set.seed(0)
 
 RW_Seas(n_seas = 4, s = 0.01, sd = 0, sd_seas = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -430,7 +463,7 @@ RW_Seas(n_seas = 4, s = 0.01, sd = 0, sd_seas = 0.01) |>
 set.seed(0)
 
 RW2_Seas(n_seas = 4) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -443,7 +476,7 @@ RW2_Seas(n_seas = 4) |>
 set.seed(0)
 
 RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01, sd_seas = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -468,7 +501,7 @@ RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01, sd_seas = 0.01) |>
 set.seed(0)
 
 Lin() |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -481,7 +514,7 @@ Lin() |>
 set.seed(0)
 
 Lin(s = 0) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -493,8 +526,29 @@ Lin(s = 0) |>
 set.seed(0)
 
 Lin(mean_slope = 0.2, sd_slope = 0.1) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
+```
+
+
+### Specify 'along' and 'by' dimensions
+
+```{r}
+set.seed(0)
+
+Lin() |>
+  generate(n_element = 60, n_by = 3, n_draw = 8) |>
+  plot_lines_has_by()
+```
+
+### Specify 'along' and 'by' dimensions, set `con = "by"`
+
+```{r}
+set.seed(0)
+
+Lin(con = "by") |>
+  generate(n_element = 60, n_by = 3, n_draw = 8) |>
+  plot_lines_has_by()
 ```
 
 
@@ -519,7 +573,7 @@ Lin(mean_slope = 0.2, sd_slope = 0.1) |>
 set.seed(0)
 
 Lin_AR() |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -531,7 +585,7 @@ Lin_AR() |>
 set.seed(0)
 
 Lin_AR(s = 0.1, sd_slope = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -557,7 +611,7 @@ Lin_AR(s = 0.1, sd_slope = 0.01) |>
 set.seed(0)
 
 Lin_AR1() |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -569,7 +623,7 @@ Lin_AR1() |>
 set.seed(0)
 
 Lin_AR1(min = -1, max = 1) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -582,7 +636,7 @@ Lin_AR1(min = -1, max = 1) |>
 set.seed(0)
 
 Lin_AR1(s = 0.1, sd_slope = 0.02) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -607,7 +661,7 @@ Lin_AR1(s = 0.1, sd_slope = 0.02) |>
 set.seed(0)
 
 Sp() |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -620,7 +674,7 @@ Sp() |>
 set.seed(0)
 
 Sp(n_comp = 5) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
@@ -632,7 +686,7 @@ Sp(n_comp = 5) |>
 set.seed(0)
 
 Sp(s = 0.01, sd = 0.01, sd_slope = 0.01) |>
-  generate(n_replicate = 8) |>
+  generate(n_draw = 8) |>
   plot_lines()
 ```
 
