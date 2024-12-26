@@ -7,9 +7,15 @@
   = "none"` corresponds to `zero_sum = FALSE`, and `con = "by"`
   corresponds to `zero_sum = TRUE`. Additional options will be added
   in future.
-* Added `sd` argument to `SVD_RW()` and `SVD_RW2()`. The initial value
-  of the random walks are drawn from a `N(0, sd^2)` prior. `sd` can be
-  set to 0.
+* Added `sd` argument to `RW()`, `RW2()`, `SVD_RW()` and
+  `SVD_RW2()`. The initial value of the random walks are drawn from a
+  `N(0, sd^2)` prior. By default `sd` equals `1`, but it can be set to
+  0.
+* Loosened restrictions in `AR()` and `Lin_AR()` priors so that the
+  coefficients no longer need to be consistent with stationarity. The
+  Stan user guide recommends against building in stationarity:
+  https://mc-stan.org/docs/stan-users-guide/time-series.html#autoregressive.section
+  Also, testing for stationarity often causes numerical problems.
 
 
 # bage 0.8.3

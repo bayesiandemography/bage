@@ -14,7 +14,7 @@ Default is \code{1}.}
 for initial slope of random walk. Default is \code{1}.}
 
 \item{con}{Constraints on parameters.
-Current choices are \code{"none"} and \code{"all"}.
+Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
 \value{

@@ -120,16 +120,16 @@ generate(x, n_along = 10, n_by = 2)
 
 ## prior that does not distinguish
 x <- N()
-generate(x, n_along = 10, n_by = 2)
+generate(x, n_element = 20)
 
 ## SVD_AR(), SVD_RW(), and SVD_RW2()
 ## distinguish 'along' and 'by'
 x <- SVD_AR(HFD)
-generate(x, n_along = 10, n_by = 2)
+generate(x, n_along = 5, n_by = 2)
 
 ## SVD() does not
 x <- SVD(HFD)
-generate(x, n_element = 2)
+generate(x, n_element = 10)
 }
 \seealso{
 \itemize{

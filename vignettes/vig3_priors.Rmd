@@ -36,7 +36,7 @@ suppressPackageStartupMessages({
 ```
 
 ```{r}
-plot_points_no_by <- function(draws) {
+plot_exch <- function(draws) {
   ggplot(draws, aes(x = element, y = value)) +
     facet_wrap(vars(draw), nrow = 1) +
     geom_hline(yintercept = 0, col = "grey") +
@@ -49,8 +49,8 @@ plot_points_no_by <- function(draws) {
 ```
 
 ```{r}
-plot_lines_no_by <- function(draws) {
-  ggplot(draws, aes(x = element, y = value)) +
+plot_cor_one <- function(draws) {
+  ggplot(draws, aes(x = along, y = value)) +
     facet_wrap(vars(draw), nrow = 1) +
     geom_hline(yintercept = 0, col = "grey") +
     geom_line(col = "darkblue") +
@@ -62,7 +62,7 @@ plot_lines_no_by <- function(draws) {
 
 
 ```{r}
-plot_lines_has_by <- function(draws) {
+plot_cor_many <- function(draws) {
   ggplot(draws, aes(x = along, y = value)) +
     facet_grid(vars(by), vars(draw)) +
     geom_hline(yintercept = 0, col = "grey") +
@@ -71,6 +71,37 @@ plot_lines_has_by <- function(draws) {
     ylab("") +
     theme(text = element_text(size = 8))
 }	       
+```
+
+```{r}
+plot_svd_one <- function(draws) {
+  ggplot(draws, aes(x = age_mid(age), y = value, color = sexgender)) +
+    facet_wrap(vars(draw), nrow = 1) +
+    geom_line() +
+    scale_color_manual(values = c("darkgreen", "darkorange")) +
+    xlab("Age") +
+    ylab("") +
+    theme(text = element_text(size = 8),
+          legend.position = "top",
+          legend.title = element_blank())
+}
+```
+
+
+```{r}
+plot_svd_many <- function(draws) {
+  draws |>
+    mutate(element = paste("Unit", element)) |>
+    ggplot(aes(x = age_mid(age), y = value, color = sexgender)) +
+    facet_grid(vars(element), vars(draw)) +
+    geom_line() +
+    scale_color_manual(values = c("darkgreen", "darkorange")) +
+    xlab("Age") +
+    ylab("") +
+    theme(text = element_text(size = 8),
+          legend.position = "top",
+          legend.title = element_blank())
+}
 ```
 
 # Exchangeable Units
@@ -92,7 +123,7 @@ set.seed(0)
 
 NFix() |>
   generate(n_element = 10, n_draw = 8) |>
-  plot_points_no_by()
+  plot_exch()
 ```
 
 ### Reduce `sd`
@@ -104,7 +135,7 @@ set.seed(0)
 
 NFix(sd = 0.01) |>
   generate(n_element = 10, n_draw = 8) |>
-  plot_points_no_by()
+  plot_exch()
 ```
 
 
@@ -126,7 +157,7 @@ set.seed(0)
 
 N() |>
   generate(n_element = 10, n_draw = 8) |>
-  plot_points_no_by()
+  plot_exch()
 ```
 
 ### Reduce `s`
@@ -138,7 +169,7 @@ set.seed(0)
 
 N(s = 0.01) |>
   generate(n_element = 10, n_draw = 8) |>
-  plot_points_no_by()
+  plot_exch()
 ```
 
 
@@ -164,7 +195,7 @@ set.seed(0)
 
 RW() |>
   generate(n_draw = 8) |>
-  plot_lines_no_by()
+  plot_cor_one()
 ```
 
 ### Reduce `s`
@@ -176,7 +207,7 @@ set.seed(0)
 
 RW(s = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s` and `sd`
@@ -189,7 +220,7 @@ set.seed(0)
 
 RW(s = 0.01, sd = 0) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -213,7 +244,7 @@ set.seed(0)
 
 RW2() |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s`
@@ -225,7 +256,7 @@ set.seed(0)
 
 RW2(s = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -238,7 +269,7 @@ set.seed(0)
 
 RW2(s = 0.01, sd_slope = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s`, `sd`, and `sd_slope`
@@ -250,7 +281,7 @@ set.seed(0)
 
 RW2(s = 0.01, sd = 0, sd_slope = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -279,7 +310,7 @@ set.seed(0)
 
 AR() |>
   generate(n_draw = 8) |>
-  plot_lines_no_by()
+  plot_cor_one()
 ```
 
 ### Increase `n_coef`
@@ -289,7 +320,7 @@ set.seed(0)
 
 AR(n_coef = 3) |>
   generate(n_draw = 8) |>
-  plot_lines_no_by()
+  plot_cor_one()
 ```
 
 
@@ -300,7 +331,7 @@ set.seed(0)
 
 AR(s = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines_no_by()
+  plot_cor_one()
 ```
 
 ### Specify 'along' and 'by' dimensions
@@ -309,8 +340,8 @@ AR(s = 0.01) |>
 set.seed(0)
 
 AR() |>
-  generate(n_element = 60, n_by = 3, n_draw = 8) |>
-  plot_lines_has_by()
+  generate(n_along = 20, n_by = 3, n_draw = 8) |>
+  plot_cor_many()
 ```
 
 ### Specify 'along' and 'by' dimensions, set `con = "by"`
@@ -319,8 +350,8 @@ AR() |>
 set.seed(0)
 
 AR(con = "by") |>
-  generate(n_element = 60, n_by = 3, n_draw = 8) |>
-  plot_lines_has_by()
+  generate(n_along = 20, n_by = 3, n_draw = 8) |>
+  plot_cor_many()
 ```
 
 
@@ -349,7 +380,7 @@ set.seed(0)
 
 AR1() |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s`
@@ -359,7 +390,7 @@ set.seed(0)
 
 AR1(s = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s` and modify `min`, `max`
@@ -369,7 +400,7 @@ set.seed(0)
 
 AR1(s = 0.01, min = -1, max = 1) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -398,7 +429,7 @@ set.seed(0)
 
 RW_Seas(n_seas = 4) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s`, `sd`
@@ -410,7 +441,7 @@ set.seed(0)
 
 RW_Seas(n_seas = 4, s = 0.01, sd = 0) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Increase `s_seas`
@@ -422,7 +453,7 @@ set.seed(0)
 
 RW_Seas(n_seas = 4, s = 0.01, sd = 0, s_seas = 1) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `sd_seas`
@@ -434,7 +465,7 @@ set.seed(0)
 
 RW_Seas(n_seas = 4, s = 0.01, sd = 0, sd_seas = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -464,7 +495,7 @@ set.seed(0)
 
 RW2_Seas(n_seas = 4) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -477,7 +508,7 @@ set.seed(0)
 
 RW2_Seas(n_seas = 4, s = 0.01, sd = 0, sd_slope = 0.01, sd_seas = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -502,7 +533,7 @@ set.seed(0)
 
 Lin() |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -515,7 +546,7 @@ set.seed(0)
 
 Lin(s = 0) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Modify `mean_slope`, `sd_slope`
@@ -527,7 +558,7 @@ set.seed(0)
 
 Lin(mean_slope = 0.2, sd_slope = 0.1) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -537,8 +568,8 @@ Lin(mean_slope = 0.2, sd_slope = 0.1) |>
 set.seed(0)
 
 Lin() |>
-  generate(n_element = 60, n_by = 3, n_draw = 8) |>
-  plot_lines_has_by()
+  generate(n_along = 20, n_by = 3, n_draw = 8) |>
+  plot_cor_many()
 ```
 
 ### Specify 'along' and 'by' dimensions, set `con = "by"`
@@ -547,8 +578,8 @@ Lin() |>
 set.seed(0)
 
 Lin(con = "by") |>
-  generate(n_element = 60, n_by = 3, n_draw = 8) |>
-  plot_lines_has_by()
+  generate(n_along = 20, n_by = 3, n_draw = 8) |>
+  plot_cor_many()
 ```
 
 
@@ -574,7 +605,7 @@ set.seed(0)
 
 Lin_AR() |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s`, `sd_slope`
@@ -586,7 +617,7 @@ set.seed(0)
 
 Lin_AR(s = 0.1, sd_slope = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -612,7 +643,7 @@ set.seed(0)
 
 Lin_AR1() |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Modify `min`, `max`
@@ -624,7 +655,7 @@ set.seed(0)
 
 Lin_AR1(min = -1, max = 1) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -637,7 +668,7 @@ set.seed(0)
 
 Lin_AR1(s = 0.1, sd_slope = 0.02) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -662,7 +693,7 @@ set.seed(0)
 
 Sp() |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 
@@ -675,7 +706,7 @@ set.seed(0)
 
 Sp(n_comp = 5) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
 ### Reduce `s`, `sd`, `sd_slope`
@@ -687,6 +718,73 @@ set.seed(0)
 
 Sp(s = 0.01, sd = 0.01, sd_slope = 0.01) |>
   generate(n_draw = 8) |>
-  plot_lines()
+  plot_cor_one()
 ```
 
+# SVD-Based Priors
+
+## Exchangeable `SVD()`
+
+### Model
+
+\begin{equation}
+  \pmb{\beta} = \pmb{F} \pmb{\alpha} + \pmb{g}
+\end{equation}
+
+### All defaults
+
+`n_comp = NULL`, `indep = TRUE`
+
+```{r}
+set.seed(0)
+
+SVD(HMD) |>
+  generate(n_draw = 8) |>
+  plot_svd_one()
+```
+
+
+### Increase `n_comp`
+
+`n_comp = 5`, `indep = TRUE`
+
+```{r}
+SVD(HMD, n_comp = 5) |>
+  generate(n_draw = 8) |>
+  plot_svd_one()
+```
+
+### Set `indep` to `FALSE`
+
+```{r}
+SVD(HMD, indep = FALSE) |>
+  generate(n_draw = 8) |>
+  plot_svd_one()
+```
+
+### Multiple units
+
+```{r}
+SVD(HMD, indep = FALSE) |>
+  generate(n_draw = 8, n_element = 3) |>
+  plot_svd_many()
+```
+
+
+## Dynamic SVD Prior: `SVD_AR()`
+
+```{r}
+SVD_AR(HMD, indep = FALSE, s = 0.1) |>
+  generate(n_draw = 6, n_along = 5) |>
+    ggplot(aes(x = age_mid(age), 
+                      y = value, 
+                      color = sexgender)) +
+      facet_grid(vars(draw), vars(along)) +
+      geom_line() +
+      scale_color_manual(values = c("darkgreen", "darkorange")) +
+      xlab("Age") +
+      ylab("") +
+      theme(text = element_text(size = 8),
+            legend.position = "top",
+            legend.title = element_blank())
+```

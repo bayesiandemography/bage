@@ -3049,16 +3049,16 @@ generics::generate
 #'
 #' ## prior that does not distinguish
 #' x <- N()
-#' generate(x, n_along = 10, n_by = 2)
+#' generate(x, n_element = 20)
 #'
 #' ## SVD_AR(), SVD_RW(), and SVD_RW2()
 #' ## distinguish 'along' and 'by'
 #' x <- SVD_AR(HFD)
-#' generate(x, n_along = 10, n_by = 2)
+#' generate(x, n_along = 5, n_by = 2)
 #'
 #' ## SVD() does not
 #' x <- SVD(HFD)
-#' generate(x, n_element = 2)
+#' generate(x, n_element = 10)
 #' @export
 generate.bage_prior_ar <- function(x,
                                    n_along = 20,
@@ -3794,22 +3794,22 @@ generate.bage_prior_svd_ar <- function(x,
   matrix_along_by <- l$matrix_along_by
   coef <- draw_vals_coef(prior = x, n_sim = n_draw)
   sd <- draw_vals_sd(prior = x, n_sim = n_draw)
-  n_level <- length(matrix_along_by)
-  levels_effect <- seq_len(n_level)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
   alpha <- draw_vals_ar(coef = coef,
                         sd = sd,
                         matrix_along_by = matrix_along_by,
-                        levels_effect = levels_effect)
+                        levels_effect = levels_effect_svd)
   value <- matrix %*% alpha + offset
   if (con == "by") {
-    n_svd <- n_level %/% (n_by * n_along)
-    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
     value <- m %*% value
   }
   ans$value <- as.double(value)
   ans
 }
-
 
 ## HAS_TESTS
 #' @rdname generate.bage_prior_ar
@@ -3831,16 +3831,17 @@ generate.bage_prior_svd_rwrandom <- function(x,
   offset <- l$offset
   matrix_along_by <- l$matrix_along_by
   sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
-  n_level <- length(matrix_along_by)
-  levels_effect <- seq_len(n_level)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = sd_init,
                         matrix_along_by = matrix_along_by,
-                        levels_effect = levels_effect)
+                        levels_effect = levels_effect_svd)
   value <- matrix %*% alpha + offset
   if (con == "by") {
-    n_svd <- n_level %/% (n_by * n_along)
-    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
     value <- m %*% value
   }
   ans$value <- as.double(value)
@@ -3866,16 +3867,17 @@ generate.bage_prior_svd_rwzero <- function(x,
   offset <- l$offset
   matrix_along_by <- l$matrix_along_by
   sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
-  n_level <- length(matrix_along_by)
-  levels_effect <- seq_len(n_level)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
   alpha <- draw_vals_rw(sd = sd_innov,
                         sd_init = 0,
                         matrix_along_by = matrix_along_by,
-                        levels_effect = levels_effect)
+                        levels_effect = levels_effect_svd)
   value <- matrix %*% alpha + offset
   if (con == "by") {
-    n_svd <- n_level %/% (n_by * n_along)
-    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
     value <- m %*% value
   }
   ans$value <- as.double(value)
@@ -3903,17 +3905,18 @@ generate.bage_prior_svd_rw2random <- function(x,
   offset <- l$offset
   matrix_along_by <- l$matrix_along_by
   sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
-  n_level <- length(matrix_along_by)
-  levels_effect <- seq_len(n_level)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
   alpha <- draw_vals_rw2(sd = sd_innov,
                          sd_init = sd_init,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
-                         levels_effect = levels_effect)
+                         levels_effect = levels_effect_svd)
   value <- matrix %*% alpha + offset
   if (con == "by") {
-    n_svd <- n_level %/% (n_by * n_along)
-    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
     value <- m %*% value
   }
   ans$value <- as.double(value)
@@ -3940,28 +3943,23 @@ generate.bage_prior_svd_rw2zero <- function(x,
   offset <- l$offset
   matrix_along_by <- l$matrix_along_by
   sd_innov <- draw_vals_sd(prior = x, n_sim = n_draw)
-  n_level <- length(matrix_along_by)
-  levels_effect <- seq_len(n_level)
+  n_level_svd <- length(matrix_along_by)
+  levels_effect_svd <- seq_len(n_level_svd)
   alpha <- draw_vals_rw2(sd = sd_innov,
                          sd_init = 0,
                          sd_slope = sd_slope,
                          matrix_along_by = matrix_along_by,
-                         levels_effect = levels_effect)
+                         levels_effect = levels_effect_svd)
   value <- matrix %*% alpha + offset
   if (con == "by") {
-    n_svd <- n_level %/% (n_by * n_along)
-    m <- make_matrix_con_by(i_along = 3L, dim = c(n_svd, n_by, n_along))
+    n_level_agesex <- nrow(matrix)
+    n_agesex <- n_level_agesex %/% (n_by * n_along)
+    m <- make_matrix_con_by(i_along = 3L, dim = c(n_agesex, n_by, n_along))
     value <- m %*% value
   }
   ans$value <- as.double(value)
   ans
 }
-
-
-
-  
-  
-
 
 
 ## 'has_hyperrandfree' ------------------------------------------------------------

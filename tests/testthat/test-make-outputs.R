@@ -134,50 +134,25 @@ test_that("'generate_prior_helper' works with valid inputs, along-by, n_by = 2",
 })
 
 
-## 'generate_prior_helper_svd' ------------------------------------------------
-
-test_that("'generate_prior_helper_svd' works with valid inputs, n_by = 1", {
-  x <- SVD(HMD)
-  ans_obtained <- generate_prior_helper_svd(x = x, n_by = 1, n_draw = 2)
-  draw <- factor(rep(c("Draw 1", "Draw 2"), each = 5))
-  ans_expected <- list(ans = tibble::tibble(draw = draw,
-                                            element= rep(1:5, times = 2)),
-                       matrix_along_by = matrix(0:4, nc = 1, dimnames = list(1:5, NULL)),
-                       levels_effect = 1:5)
-  expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'generate_prior_svd_helper' ------------------------------------------------
 
-test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
+test_that("'generate_prior_svd_helper' works with valid inputs - n_element", {
   x <- SVD(LFP)
   set.seed(0)
   n_element <- 20
-  n_by <- 1
   n_draw <- 25
-  ans_obtained <- generate_prior_svd_helper(x, n_by = n_by, n_draw = n_draw)
+  ans_obtained <- generate_prior_svd_helper(x, n_element = n_element, n_draw = n_draw)
   expect_true(is.list(ans_obtained))
 })
 
 test_that("'generate_prior_svd_helper' works with valid inputs - n_by = 1", {
   x <- SVD_RW(LFP)
   set.seed(0)
-  n_element <- 20
+  n_along <- 20
   n_by <- 2
   n_draw <- 25
-  ans_obtained <- generate_prior_svd_helper(x, n_by = n_by, n_draw = n_draw)
+  ans_obtained <- generate_prior_svd_helper(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
   expect_true(is.list(ans_obtained))
-})
-
-test_that("'generate_prior_svd_helper' throws correcty error with n_by > 1", {
-  x <- SVD(LFP)
-  set.seed(0)
-  n_element <- 20
-  n_by <- 2
-  n_draw <- 25
-  expect_error(generate_prior_svd_helper(x, n_by = n_by, n_draw = n_draw),
-               "Value supplied for `n_by` but `x` has prior \"SVD\\(\\)\"")
 })
 
 

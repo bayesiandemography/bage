@@ -188,8 +188,8 @@ generate.bage_ssvd <- function(x,
                                ...) {
   check_has_no_dots(...)
   l <- generate_ssvd_helper(ssvd = x,
+                            n_element = 1L,
                             n_draw = n_draw,
-                            n_by = 1L,
                             n_comp = n_comp,
                             indep = indep,
                             age_labels = age_labels)
@@ -200,6 +200,7 @@ generate.bage_ssvd <- function(x,
   labels <- seq_len(ncol(matrix))
   alpha <- draw_vals_norm(sd = sd, labels = labels)
   value <- matrix %*% alpha + offset
+  ans <- ans[-match("element", names(ans))]
   ans$value <- as.double(value)
   ans
 }

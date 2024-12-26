@@ -37,7 +37,7 @@ as the 'along' variable. Only used with
 interactions.}
 
 \item{con}{Constraints on parameters.
-Current choices are \code{"none"} and \code{"all"}.
+Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
 \value{

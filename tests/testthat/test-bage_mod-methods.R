@@ -609,7 +609,7 @@ test_that("'fit' works with valid inputs - pois has exposure", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = 1)
-    mod <- set_prior(mod, age ~ RW())
+    mod <- set_prior(mod, age ~ RW2(sd = 0))
     ans_obtained <- fit(mod)
     expect_s3_class(ans_obtained, "bage_mod")
 })
@@ -960,6 +960,10 @@ test_that("'fit' and 'forecast' work with SVD_RW", {
   f <- forecast(mod, labels = 2011:2012)
   expect_setequal(c(names(f), ".deaths"),
                   names(augment(mod)))
+  mod <- mod |>
+    set_prior(age:time ~ SVD_RW(LFP, sd = 0))
+  mod <- fit(mod)
+  expect_true(is_fitted(mod))
 })
 
 test_that("'fit' and 'forecast' work with SVD_RW2", {
@@ -977,6 +981,10 @@ test_that("'fit' and 'forecast' work with SVD_RW2", {
   f <- forecast(mod, labels = 2011:2012)
   expect_setequal(c(names(f), ".deaths"),
                   names(augment(mod)))
+  mod <- mod |>
+    set_prior(age:time ~ SVD_RW2(LFP, sd = 0))
+  mod <- fit(mod)
+  expect_true(is_fitted(mod))
 })
 
 test_that("'fit' works inner-outer", {

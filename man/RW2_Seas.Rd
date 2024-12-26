@@ -21,6 +21,10 @@ RW2_Seas(
 \item{s}{Scale for prior for innovations in
 random walk. Default is \code{1}.}
 
+\item{sd}{Standard deviation
+of initial value. Default is \code{1}.
+Can be \code{0}.}
+
 \item{sd_slope}{Standard deviation
 for initial slope of random walk. Default is \code{1}.}
 
@@ -36,7 +40,7 @@ as the 'along' variable. Only used with
 interactions.}
 
 \item{con}{Constraints on parameters.
-Current choices are \code{"none"} and \code{"all"}.
+Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 }
 \value{
