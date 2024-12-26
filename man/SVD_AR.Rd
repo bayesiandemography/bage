@@ -65,12 +65,16 @@ for coefficients in \code{SVD_AR()}.
 Defaults are \code{5} and \code{5}.}
 
 \item{con}{Constraints on parameters.
-Current choices are \code{"none"} and \code{"all"}.
+Current choices are \code{"none"} and \code{"by"}.
 Default is \code{"none"}. See below for details.}
 
 \item{min, max}{Minimum and maximum values
-for autocorrelation coefficient in \code{SVD_AR()}.
+for autocorrelation coefficient in \code{SVD_AR1()}.
 Defaults are \code{0.8} and \code{0.98}.}
+
+\item{sd}{Standard deviation
+of initial value for random walks. Default is \code{1}.
+Can be \code{0}.}
 
 \item{sd_slope}{Standard deviation in prior
 for initial slope. Default is \code{1}.}

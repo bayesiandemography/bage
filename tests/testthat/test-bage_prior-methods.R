@@ -3728,7 +3728,7 @@ test_that("'forecast_term' works with bage_prior_rwrandomseasvary - con is 'by'"
 
 test_that("'forecast_term' works with bage_prior_rwzero - n_by = 1", {
   set.seed(0)
-  prior <- RW()
+  prior <- RW(sd = 0)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -3768,7 +3768,7 @@ test_that("'forecast_term' works with bage_prior_rwzero - n_by = 1", {
 
 test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, con is 'none'", {
   set.seed(0)
-  prior <- RW()
+  prior <- RW(sd = 0)
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -3820,7 +3820,7 @@ test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, con is 'none
 
 test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, con is 'by'", {
   set.seed(0)
-  prior <- RW(con = 'by')
+  prior <- RW(con = 'by', sd = 0)
   dimnames_term <- list(year = 2001:2005,
                         reg = 1:2)
   var_time <- "year"
@@ -3850,7 +3850,7 @@ test_that("'forecast_term' works with bage_prior_rwzero - n_by = 2, con is 'by'"
 
 test_that("'forecast_term' works with bage_prior_rwzeroseasfix", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2)
+  prior <- RW_Seas(n_seas = 2, sd = 0)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -3908,7 +3908,7 @@ test_that("'forecast_term' works with bage_prior_rwzeroseasfix", {
 
 test_that("'forecast_term' works with bage_prior_rwzeroseasfix - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, con = 'by')
+  prior <- RW_Seas(n_seas = 2, con = 'by', sd = 0)
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -3955,7 +3955,7 @@ test_that("'forecast_term' works with bage_prior_rwzeroseasfix - con is 'by'", {
 
 test_that("'forecast_term' works with bage_prior_rwzeroseasvary", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s_seas = 1)
+  prior <- RW_Seas(n_seas = 2, s_seas = 1, sd = 0)
   dimnames_term <- list(year = 2001:2005)
   var_time <- "year"
   var_age <- "age"
@@ -4018,7 +4018,7 @@ test_that("'forecast_term' works with bage_prior_rwzeroseasvary", {
 
 test_that("'forecast_term' works with bage_prior_rwzeroseasvary - con is 'by'", {
   set.seed(0)
-  prior <- RW_Seas(n_seas = 2, s_seas = 1, con = 'by')
+  prior <- RW_Seas(n_seas = 2, s_seas = 1, con = 'by', sd = 0)
   dimnames_term <- list(year = 2001:2005,
                         sex = c("f", "m"))
   var_time <- "year"
@@ -5087,7 +5087,7 @@ test_that("'generate' works with bage_prior_known", {
   set.seed(0)
   n_element <- 20
   n_draw <- 25
-  ans_obtained <- generate(x, n_element = n_element, n_by = 1, n_draw = n_draw)
+  ans_obtained <- generate(x, n_element = n_element, n_draw = n_draw)
   set.seed(0)
   ans_expected <- rep(1:5, times = 25)
   draw <- rep(seq_len(n_draw), each = 5)
@@ -6554,7 +6554,17 @@ test_that("'generate' works with bage_prior_svd - no sex", {
 })
 
 test_that("'generate' works with bage_prior_svd_ar - no sex, n_by = 2", {
-  x <- SVD_RW(HFD)
+  x <- SVD_AR(HFD)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_ar - no sex, n_by = 2", {
+  x <- SVD_AR(HFD, con = "by")
   set.seed(0)
   n_along <- 4
   n_by <- 2
@@ -6593,6 +6603,16 @@ test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, in
   expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
 })
 
+test_that("'generate' works with bage_prior_svd_rwrandom - has sex, n_by = 2, indep = FALSE, con = 'by'", {
+  x <- SVD_RW(LFP, indep = FALSE, con = "by")
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+})
+
 test_that("'generate' works with bage_prior_svd_rwzero - no sex, n_by = 2", {
   x <- SVD_RW(HFD, sd = 0)
   set.seed(0)
@@ -6603,7 +6623,27 @@ test_that("'generate' works with bage_prior_svd_rwzero - no sex, n_by = 2", {
   expect_setequal(names(ans_obtained), c("draw", "by", "along", "age", "value"))
 })
 
+test_that("'generate' works with bage_prior_svd_rwzero - no sex, n_by = 2, con = 'by'", {
+  x <- SVD_RW(HFD, sd = 0, con = "by")
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "age", "value"))
+})
+
 test_that("'generate' works with bage_prior_svd_rw2random - no sex, n_by = 2", {
+  x <- SVD_RW2(HFD)
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "age", "value"))
+})
+
+test_that("'generate' works with bage_prior_svd_rw2random - no sex, n_by = 2, con = 'by'", {
   x <- SVD_RW2(HFD)
   set.seed(0)
   n_along <- 4
@@ -6623,14 +6663,15 @@ test_that("'generate' works with bage_prior_svd_rw2zero - no sex, n_by = 2", {
   expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
 })
 
-
-
-
-
-
-
-
-
+test_that("'generate' works with bage_prior_svd_rw2zero - no sex, n_by = 2, con = 'by'", {
+  x <- SVD_RW2(LFP, sd = 0, con = "by")
+  set.seed(0)
+  n_along <- 4
+  n_by <- 2
+  n_draw <- 5
+  ans_obtained <- generate(x, n_along = n_along, n_by = n_by, n_draw = n_draw)
+  expect_setequal(names(ans_obtained), c("draw", "by", "along", "sexgender", "age", "value"))
+})
 
 
 ## 'has_hyperrandfree' --------------------------------------------------------

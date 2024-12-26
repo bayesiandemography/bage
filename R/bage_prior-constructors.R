@@ -84,7 +84,7 @@
 #' as the 'along' variable. Only used with
 #' interactions.
 #' @param con Constraints on parameters.
-#' Current choices are `"none"` and `"all"`.
+#' Current choices are `"none"` and `"by"`.
 #' Default is `"none"`. See below for details.
 #'
 #' @returns An object of class `"bage_prior_ar"`.
@@ -892,6 +892,9 @@ RW <- function(s = 1,
 #' @param n_seas Number of seasons
 #' @param s Scale for prior for innovations in
 #' random walk. Default is `1`.
+#' @param sd Standard deviation
+#' of initial value. Default is `1`.
+#' Can be `0`.
 #' @param s_seas Scale for innovations
 #' in seasonal effects. Default is `0`.
 #' @param sd_seas Standard deviation for
@@ -1719,16 +1722,19 @@ SVD <- function(ssvd,
 #' @inheritParams SVD
 #' @param n_coef Number of AR coefficients in `SVD_RW()`.
 #' @param s Scale for standard deviations terms.
+#' @param sd Standard deviation
+#' of initial value for random walks. Default is `1`.
+#' Can be `0`.
 #' @param sd_slope Standard deviation in prior
 #' for initial slope. Default is `1`.
 #' @param shape1,shape2 Parameters for prior
 #' for coefficients in `SVD_AR()`.
 #' Defaults are `5` and `5`.
 #' @param min,max Minimum and maximum values
-#' for autocorrelation coefficient in `SVD_AR()`.
+#' for autocorrelation coefficient in `SVD_AR1()`.
 #' Defaults are `0.8` and `0.98`.
 #' @param con Constraints on parameters.
-#' Current choices are `"none"` and `"all"`.
+#' Current choices are `"none"` and `"by"`.
 #' Default is `"none"`. See below for details.
 #'
 #' @returns An object of class `"bage_prior_svd_ar"`,

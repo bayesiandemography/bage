@@ -265,6 +265,7 @@
         Sp() 
           n_comp: NULL
                s: 1
+              sd: 1
         sd_slope: 1
            along: NULL
              con: none
