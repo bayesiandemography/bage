@@ -1,8 +1,14 @@
 ---
-title: "1. Introduction"
-output: rmarkdown::html_vignette
+title: "Overview"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+    number_sections: true
 vignette: >
-  %\VignetteIndexEntry{1. Introduction}
+  %\VignetteIndexEntry{Overview}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -10,72 +16,234 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4
 )
 ```
 
+# Introduction
+
+**bage** contains models for estimating and forecasting rates, probabilities, and means, where the rates, probabilities, and means are stratified by variables such as age, sex, region, education, and time. The models are Bayesian hierarchical models. They models are hierarchical because the overall model can contain many submodels. A model for mortality rates, for instance, might contain submodels for age effects, sex effects, and time effects. The models are Bayesian because all unknown quantities are represented using probability distributions. **bage** uses package [TMB](https://CRAN.R-project.org/package=TMB) to do the actual inference. TMB uses fast, but accurate, approximations. 
+
+This vignette introduces the main features of **bage**, using an example.
+
+
+# Preliminaries
+
+We begin by loading the packages that we will need for the analysis. When **bage** is loaded, the package [rvec](https://CRAN.R-project.org/package=rvec) is also automatically loaded. **rvec** contains functions for working with the output from **bage**, draws from probability distributions. Package [poputils](https://CRAN.R-project.org/package=poputils) contains functions for working with demographic data. In this vignette we will use it for manipulating age labels. Packages **dplyr** and **tidyr** are core [tidyverse](tidyverse.org) packages for manipulating data, and **ggplot2** is for plotting results.
+
 ```{r setup}
 library(bage)
-library(rvec)
+library(poputils)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 ```
 
+We will analyse the `nzl_injuries` dataset that is included in the **bage** package. The dataset contains counts of injuries in New Zealand, classified by age, sex, ethnicity, and year.
+
 ```{r}
-mod <- mod_pois(injuries ~ age : sex + age : ethnicity + year,
+head(nzl_injuries)
+```
+Injuries per capita are higher for males than for females and are higher for Māori, the indigenous people of New Zealand, than for non-Māori.
+
+```{r}
+nzl_injuries |>
+  filter(year %in% c(2000, 2006, 2012, 2018)) |>
+  ggplot(aes(x = age_mid(age), y = injuries / popn, color = sex)) +
+  facet_grid(vars(ethnicity), vars(year)) +
+  geom_line() +
+  xlab("age") +
+  theme(legend.position = "top",
+        legend.title = element_blank())
+```
+
+# Specifying a model
+
+We specify a Bayesian hierarchical model. We assume that, within each combination of age, sex, ethnicity, and year, injuries follow a Poisson distribution. Models where outcomes follow a Poisson distribution are specified using function [mod_pois()]. (Models using binomial and normal distributions are specified using [mod_binom()] and [mod_norm()].)
+
+The first argument to `mod_pois()` is an R-style [formula][base::formula()] describing the outcome variable and main effects and interactions. The formula below includes age, sex, ethnicity, and year main effects, and age:sex and age:ethnicity interactions. It also implicitly includes an intercept. The second argument is the name of the dataset. The third argument is the name of the variable to be used for exposure. 
+
+```{r}
+mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
                 data = nzl_injuries,
-                exposure = popn) |>
-  set_prior(year ~ AR1())
+                exposure = popn)
+```
+
+Printing the model object provides information on the model structure:
+
+```{r}
 mod
 ```
 
-<!-- ```{r} -->
-<!-- mod <- mod |> -->
-<!--   fit() -->
-<!-- mod -->
-<!-- ``` -->
+As the first line of the printed object notes, the model has not been fitted yet: we have not tried to use information in `nzl_injuries` to estimate the unknown quantities in our model. 
 
-<!-- ```{r} -->
-<!-- tidy(mod) -->
-<!-- ``` -->
+The next two lines describe the model terms and the exposure. 
 
-<!-- ```{r} -->
-<!-- augment(mod) -->
-<!-- ``` -->
+The table 
+```{r, echo = FALSE, comment = ""}
+mod |> 
+  tidy() |>
+  mutate(along = if_else(is.na(along), "-", along)) |>
+  as.data.frame() |>
+  print(row.names = FALSE)
+```
+describes the priors given to each model term. We return to priors in section \@ref(sec:priors).
 
-<!-- ```{r} -->
-<!-- mod |> -->
-<!--   augment() |> -->
-<!--   mutate(draws_ci(.fitted)) |> -->
-<!--   select(-(1:6)) -->
-<!-- ``` -->
+with headings 
 
 
 
-<!-- Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>). -->
-
-<!-- ```{r fig, fig.width = 7, fig.height = 5} -->
-<!-- mod |> -->
-<!--   augment() |> -->
-<!--   mutate(draws_ci(.fitted)) |> -->
-<!--   filter(year >= 2017, -->
-<!--          ethnicity == "Maori") |> -->
-<!--   ggplot(aes(x = age, y = .fitted.mid)) + -->
-<!--   facet_grid(vars(sex), vars(year)) + -->
-<!--   geom_point(aes(y = .observed),  -->
-<!--              col = "darkorange") + -->
-<!--   geom_pointrange(aes(ymin = .fitted.lower, ymax = .fitted.upper), -->
-<!--                   fatten = 0.5, -->
-<!--                   color = "darkblue") -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- components(mod, type = "par") -->
-<!-- ``` -->
+```{r, echo=FALSE, out.width="90%", fig.cap = "Structure of model"}
+knitr::include_graphics("vig1_dag.png")
+```
 
 
-<!-- ```{r} -->
-<!-- components(mod, type = "hyper") -->
-<!-- ``` -->
+# Fitting a Model and extracting output
 
+```{r}
+mod <- mod |>
+  fit()
+mod
+```
+
+
+# Extracting Outputs
+
+`vignette("vig6_mortality")`.
+
+```{r}
+aug <- mod |>
+  augment()
+aug
+```
+
+
+```{r}
+aug |>
+  select(.observed, .fitted, .expected) 
+```
+
+```{r}
+data_plot <- aug |>
+  filter(year == 2018) |>
+  mutate(draws_ci(.fitted))
+data_plot |>
+  select(starts_with(".fitted"))
+```
+
+```{r}
+ggplot(data_plot, aes(x = age_mid(age))) +
+  facet_grid(vars(sex), vars(ethnicity)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+             color = "red")
+```
+
+
+```{r}
+comp <- mod |>
+  components()
+comp
+```
+
+```{r}
+age_effect <- comp |>
+  filter(term == "age",
+         component == "effect") |>
+  select(age = level, .fitted)
+age_effect
+```
+
+```{r}
+age_effect |>
+  mutate(draws_ci(.fitted)) |>
+  ggplot(aes(x = age_mid(age))) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue")
+```
+
+# Priors for model terms {#sec:priors}
+
+
+
+
+# Overriding Defaults
+
+```{r}
+mod <- mod |>
+  set_prior(year ~ AR1()) |>
+  fit()
+mod
+```
+
+
+```{r}
+mod <- mod |>
+  set_n_draw(n_draw = 2000)
+mod
+```
+
+```{r}
+mod <- mod |>
+  fit()
+```
+
+
+
+# Forecasting
+
+```{r}
+aug_forecast <- mod |>
+  forecast(labels = 2019:2028,
+           include_estimates = TRUE)
+```
+
+```{r}
+aug_forecast |>
+  filter(sex == "Female",
+         age %in% c("10-14", "25-29", "40-44")) |>
+  mutate(draws_ci(.fitted)) |>
+  ggplot(aes(x = year)) +
+  facet_grid(vars(age), vars(ethnicity)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+             color = "red")  
+```
+
+# Model Testing
+
+
+```{r}
+rep_data <- mod |>
+  replicate_data()
+rep_data
+```
+
+```{r}
+sex_ratio <- rep_data |>
+  count(.replicate, year, sex, wt = injuries) |>
+  pivot_wider(names_from = sex, values_from = n) |>
+  mutate(ratio = Male / Female)
+sex_ratio
+```
+
+
+```{r}
+ggplot(sex_ratio, aes(x = year, y = ratio)) +
+  facet_wrap(vars(.replicate)) +
+  geom_line()
+```
 
