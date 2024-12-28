@@ -1727,7 +1727,7 @@ print.bage_mod <- function(x, ...) {
   optimizer <- x$optimizer
   computations <- x$computations
   is_fitted <- is_fitted(x)
-  str_title <- sprintf("\n    ------ %s %s model ------",
+  str_title <- sprintf("    ------ %s %s model ------",
                        if (is_fitted) "Fitted" else "Unfitted",
                        model_descr(x))
   nchar_response <- nchar(as.character(formula[[2L]]))
@@ -1749,8 +1749,7 @@ print.bage_mod <- function(x, ...) {
     terms$std_dev <- sprintf("%0.2f", terms$std_dev)
     terms$std_dev[is_na_std_dev] <- "-"
   }
-  settings <- data.frame(n_draw = n_draw,
-                         pr_mean_disp = mean_disp)
+  settings <- data.frame(n_draw = n_draw)
   for (nm in c("var_time", "var_age", "var_sexgender")) {
     val <- get(nm)
     if (!is.null(val)) {
@@ -1777,29 +1776,30 @@ print.bage_mod <- function(x, ...) {
   is_inner_outer <- is_fitted && !is.null(vars_inner)
   ## printing
   cat(str_title)
-  cat("\n\n\n")
+  cat("\n\n")
   cat(paste(formula_text, collapse = "\n"))
   cat("\n\n")
   if (has_offset) {
     cat(str_offset)
-    cat("\n\n")
+    cat("\n")
   }
   if (!is.null(datamod_outcome)) {
+    cat("\n")
     cat(sprintf("% *s: %s",
                 nchar_offset + 15L,
                 "data model for outcome",
                 str_call_datamod(datamod_outcome)))
-    cat("\n\n")
+    cat("\n")
   }
   cat("\n")
   print(terms, row.names = FALSE)
-  cat("\n\n")
+  cat("\n")
+  if (mean_disp > 0)
+    cat(sprintf(" disp: mean = %s\n\n", mean_disp))
   print(settings, row.names = FALSE)
-    cat("\n")
   if (is_fitted) {
     cat("\n")
     print(computations, row.names = FALSE)
-    cat("\n")
   }
   ## return
   invisible(x)
