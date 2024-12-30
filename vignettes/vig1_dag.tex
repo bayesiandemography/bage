@@ -39,18 +39,20 @@
       \node[unobs][right = of gamma] (disp) {\texttt{disp}}
     edge[->](gamma);
 
-    \node[unobs, text width = 1.9cm] [above of = mu, xshift = -7cm, yshift = 0cm] (beta_int) {\texttt{(Intercept)}}
-      edge[->](mu);
+    \node[unobs, text width = 1.9cm] [above of = mu, xshift = -7.5cm, yshift = 0cm] (beta_int) {\texttt{(Intercept)}}
+      edge[->,dashed](mu);
     \node[unobs] [right of = beta_int, xshift = 1.2cm] (beta_age) {\texttt{age}}
-      edge[->](mu);
+      edge[->,dashed](mu);
     \node[unobs] [right of = beta_age, xshift = 1cm] (beta_sex) {\texttt{sex}}
-      edge[->](mu);
+      edge[->,dashed](mu);
     \node[unobs] [right of = beta_sex, xshift = 1cm] (beta_eth) {\texttt{ethnicity}}
-      edge[->](mu);
+      edge[->,dashed](mu);
     \node[unobs] [right of = beta_eth, xshift = 1cm] (beta_year) {\texttt{year}}
-      edge[->](mu);
-    \node[unobs, text width = 2cm] [right of = beta_year, xshift = 1.3cm] (beta_ageeth) {\texttt{age:ethnicity}}
-      edge[->](mu);
+      edge[->,dashed](mu);
+    \node[unobs] [right of = beta_year, xshift = 1cm] (beta_agesex) {\texttt{age:sex}}
+      edge[->,dashed](mu);
+    \node[unobs, text width = 2cm] [right of = beta_agesex, xshift = 1.3cm] (beta_ageeth) {\texttt{age:ethnicity}}
+      edge[->,dashed](mu);
 
     \node[prior] [above of = beta_int, yshift = 0.25cm] (pi_int) {Prior}
       edge[->](beta_int);
@@ -62,8 +64,13 @@
       edge[->](beta_eth);
     \node[prior] [above of = beta_year, yshift = 0.25cm] (pi_year) {Prior}
       edge[->](beta_year);
-    \node[prior] [above of = beta_ageeth, yshift = 0.25cm] (pi_year) {Prior}
+    \node[prior] [above of = beta_agesex, yshift = 0.25cm] (pi_agesex) {Prior}
+      edge[->](beta_agesex);
+    \node[prior] [above of = beta_ageeth, yshift = 0.25cm] (pi_ageeth) {Prior}
       edge[->](beta_ageeth);
+
+    \node[prior] [above of = disp, yshift = 0cm] (pi_disp) {Prior}
+      edge[->](disp);
 
   \end{tikzpicture}
   }

@@ -24,14 +24,20 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-**bage** contains models for estimating and forecasting rates, probabilities, and means, where the rates, probabilities, and means are stratified by variables such as age, sex, region, education, and time. The models are Bayesian hierarchical models. They models are hierarchical because the overall model can contain many submodels. A model for mortality rates, for instance, might contain submodels for age effects, sex effects, and time effects. The models are Bayesian because all unknown quantities are represented using probability distributions. **bage** uses package [TMB](https://CRAN.R-project.org/package=TMB) to do the actual inference. TMB uses fast, but accurate, approximations. 
+**bage** (= "Bayesian" + "age") implements Bayesian hierarchical models for rates, probabilities, and means, where the rates, probabilities and means are classified by variables such as age, sex, and region. Models in **bage** can be used for estimating past values and forecasting future values. 
 
-This vignette introduces the main features of **bage**, using an example.
+The models in **bage** are hierarchical because they are built out of smaller sub-models. A model for mortality rates, for instance, might contain sub-models describing how rates vary over age, sex, and time. The models are Bayesian because, like Bayesian models more generally, they use probability distributions to represent uncertainties. 
+
+Under the hood, **bage** draws on package [TMB](https://CRAN.R-project.org/package=TMB) to fit the models. **TMB** is fast and can handle large datasets -- characteristics that are inherited by **bage**.
+
+This vignette introduces the main features of **bage**, using data on injuries.
 
 
 # Preliminaries
 
-We begin by loading the packages that we will need for the analysis. When **bage** is loaded, the package [rvec](https://CRAN.R-project.org/package=rvec) is also automatically loaded. **rvec** contains functions for working with the output from **bage**, draws from probability distributions. Package [poputils](https://CRAN.R-project.org/package=poputils) contains functions for working with demographic data. In this vignette we will use it for manipulating age labels. Packages **dplyr** and **tidyr** are core [tidyverse](tidyverse.org) packages for manipulating data, and **ggplot2** is for plotting results.
+## Packages
+
+We begin by loading the packages that we will need for the analysis of the injuries data. Loading **bage** automatically loads package [rvec](https://CRAN.R-project.org/package=rvec), which contains functions for  working with draws from probability distributions. Package [poputils](https://CRAN.R-project.org/package=poputils) contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](tidyverse.org) packages for manipulating data. We use **ggplot2** to graph inputs and outputs.
 
 ```{r setup}
 library(bage)
@@ -41,12 +47,13 @@ library(tidyr)
 library(ggplot2)
 ```
 
-We will analyse the `nzl_injuries` dataset that is included in the **bage** package. The dataset contains counts of injuries in New Zealand, classified by age, sex, ethnicity, and year.
+## Data
+
+In this vignette, we will analyse a dataset called `nzl_injuries` that is included in the **bage** package. The dataset contains counts of injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
 
 ```{r}
 head(nzl_injuries)
 ```
-Injuries per capita are higher for males than for females and are higher for Māori, the indigenous people of New Zealand, than for non-Māori.
 
 ```{r}
 nzl_injuries |>
@@ -61,9 +68,11 @@ nzl_injuries |>
 
 # Specifying a model
 
-We specify a Bayesian hierarchical model. We assume that, within each combination of age, sex, ethnicity, and year, injuries follow a Poisson distribution. Models where outcomes follow a Poisson distribution are specified using function [mod_pois()]. (Models using binomial and normal distributions are specified using [mod_binom()] and [mod_norm()].)
+## Functions for specifying models
 
-The first argument to `mod_pois()` is an R-style [formula][base::formula()] describing the outcome variable and main effects and interactions. The formula below includes age, sex, ethnicity, and year main effects, and age:sex and age:ethnicity interactions. It also implicitly includes an intercept. The second argument is the name of the dataset. The third argument is the name of the variable to be used for exposure. 
+We specify a model in which, within each combination of age, sex, ethnicity, and year, injuries are treated as a random draw from a Poisson distribution. The function used to specify a Poisson model is `mod_pois()`. Binomial models can be specified with function `mod_binom()` and normal models with function `mod_norm()`.
+
+The first argument to `mod_pois()` is an R-style formula identifying the outcome variable and the combinations of predictor variables to be used in the model. The second argument is the name of the dataset. The third argument is the name of the exposure variable. 
 
 ```{r}
 mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
@@ -71,47 +80,61 @@ mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
                 exposure = popn)
 ```
 
-Printing the model object provides information on the model structure:
+## Model structure
+
+The resulting model has the following structure:
+
+```{r, echo=FALSE, out.width="90%", fig.cap = "Structure of model. Rectangles denote data, ellipses denote unknown quantities that are inferred within the model, solid arrows denote probabilistic relationships, and dashed arrows denote deterministic relationships."}
+knitr::include_graphics("vig1_dag.png")
+```
+
+The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in **bage** is referred to as `.fitted`. The expected value for `.fitted` is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of `.fitted` can diverge from `.expected`: the amount of divergence is governed by the `disp` (dispersion) parameter.
+
+The model terms are all given "prior distributions".  A prior distribution is a sub-model capturing features of the unknown quantity or quantities being estimated. Possible features include the range within which the quantity is likely to fall, or the amount of smoothness expected in series of values. Priors distributions are a distinctive feature of Bayesian models.
+
+## Printing the model object
+
+Printing a model object provides information on its structure:
 
 ```{r}
 mod
 ```
 
-As the first line of the printed object notes, the model has not been fitted yet: we have not tried to use information in `nzl_injuries` to estimate the unknown quantities in our model. 
+The table in the the middle of the printout above shows the default prior distribution assigned to each term. We discuss these distributions in Section \@ref(sec:priors).
 
-The next two lines describe the model terms and the exposure. 
-
-The table 
-```{r, echo = FALSE, comment = ""}
-mod |> 
-  tidy() |>
-  mutate(along = if_else(is.na(along), "-", along)) |>
-  as.data.frame() |>
-  print(row.names = FALSE)
-```
-describes the priors given to each model term. We return to priors in section \@ref(sec:priors).
-
-with headings 
+The bottom row of the printed object shows various model settings. `n_draw` is the number of random draws produced by extractor functions such as `augment()`. We discuss these random draws further in Section \@ref(sec:outputs). `var_time`, `var_age`, and `var_sexgender` are the names of variables in dataset `nzl_injuries`. **bage** treats variables representing time, age and sex/gender specially, and attempts to identify these variables in input data, using variables names. If **bage** guesses wrong, the correct names can be supplied using functions such as `set_var_time()`. 
 
 
+# Fitting a model {#sec:fitting}
 
-```{r, echo=FALSE, out.width="90%", fig.cap = "Structure of model"}
-knitr::include_graphics("vig1_dag.png")
-```
+## fit()
 
-
-# Fitting a Model and extracting output
+Function `mod_pois()` specifies a model, but does not actually estimate any of the unknown quantities in the model. For that, we need function `fit()`.
 
 ```{r}
 mod <- mod |>
   fit()
+```
+
+## Reprinting the model object
+
+The printout for a fitted model differs from that of an unfitted model.
+
+```{r}
 mod
 ```
 
+Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged. In our case, they have.
 
-# Extracting Outputs
+# Extracting outputs {#sec:outputs}
 
-`vignette("vig6_mortality")`.
+## Extractor functions
+
+Function `fit()` derives values for the unknown quantities, but does not itself return them. For that, we need an extractor function. The two most important such functions are `augment()` and `components()`. Both of these are generic functions that work on many sorts of R objects (see [here](https://generics.r-lib.org/index.html) and [here](https://www.tidymodels.org/learn/develop/broom/#glossary)).
+
+## augment()
+
+`augment()` returns the original dataset plus some additional columns of estimated values,
 
 ```{r}
 aug <- mod |>
@@ -119,11 +142,29 @@ aug <- mod |>
 aug
 ```
 
+The columns with the estimates are `.observed`, `.fitted`, and `.expected`.
 
 ```{r}
 aug |>
   select(.observed, .fitted, .expected) 
 ```
+
+In the case of a Poisson model with exposures, 
+- `.observed` is the "direct" estimate of the rate, that is, the reported value for the outcome divided by the reported value for the population at risk;
+- `.expected` is a model-based estimate of the rate based purely on model predictors (eg age, sex, time); and
+- `.fitted` is a model-based estimate of the rate that is a compromise between `.observed` and `.expected`.
+
+## Posterior samples
+
+The output from a Bayesian model typically consists of draws from the "posterior distribution" for unknown quantities. The posterior distribution is a probability distribution that describes what we know about the unknown quantities in the model after applying our combining our model assumptions (our priors) and our data.
+
+## Rvecs
+
+Draws from probability distributions can be awkward to work with, so **bage** uses a special type of vector, called an "rvec", implemented by package **rvec**. An rvec contains multiple draws, but tries to behave as much as possible like a standard numerical vector. The printout of `.fitted` and `.expected` in the `aug` object above shows medians and 95\% credible intervals.
+
+## Graphing outputs
+
+The best way to understand output from a fitted model it to graph it. We first need to prepare data for the graph. We select values for 2018 and use the `draws_ci()` function from **rvec** to create 95\% credible intervals.
 
 ```{r}
 data_plot <- aug |>
@@ -132,6 +173,8 @@ data_plot <- aug |>
 data_plot |>
   select(starts_with(".fitted"))
 ```
+
+We then use `ggplot()` to visualise the outputs. In the figure below we use use `geom_ribbon()` for credible intervals, `geom_line()` for model-based point estimates, and `geom_point()` for direct estimates.
 
 ```{r}
 ggplot(data_plot, aes(x = age_mid(age))) +
@@ -145,6 +188,9 @@ ggplot(data_plot, aes(x = age_mid(age))) +
              color = "red")
 ```
 
+## components()
+
+`components()` is used to extract values for higher-level parameters. It returns values for all the parameters.
 
 ```{r}
 comp <- mod |>
@@ -152,18 +198,16 @@ comp <- mod |>
 comp
 ```
 
+A little bit of manipulation is required to extract and graph the parameter of interest,
+
 ```{r}
 age_effect <- comp |>
   filter(term == "age",
          component == "effect") |>
-  select(age = level, .fitted)
-age_effect
-```
+  select(age = level, .fitted) |>
+  mutate(draws_ci(.fitted))
 
-```{r}
-age_effect |>
-  mutate(draws_ci(.fitted)) |>
-  ggplot(aes(x = age_mid(age))) +
+ggplot(age_effect, aes(x = age_mid(age))) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
               fill = "lightblue") +
@@ -171,32 +215,44 @@ age_effect |>
             color = "darkblue")
 ```
 
-# Priors for model terms {#sec:priors}
+Wide credible intervals like those for the age effect above are common for high-level parameters. The wide intervals are a symptom of the fact that the individual parameters themselves are not well defined, even though the sum of the parameters (which is ultimately the thing we care about) are not.
 
+# Priors {#sec:priors}
 
+## Priors in Bayesian models
 
+In a Bayesian model, every unknown quantity needs a prior distribution. The less information a dataset contains on a parameter, the more the estimate of that parameter is influenced by the prior. For instance, if a dataset has many observations for one group, and only a few observations for a second group, then estimates for the for the second group will be much more sensitive to the choice of prior than estimates for teh second group. The choice of prior is particularly important when forecasting, since, by definition, there is no data for events in the future.
 
-# Overriding Defaults
+## Current priors in bage
+
+`help(priors)` produces a list of the priors that have been implemented so far in **bage**. 
+
+The two priors in the injuries model above are `NFix()` and `RW()`:
+
+With `NFix()`, each element of the term being modeled is drawn from a normal distribution with mean `0`, and standard deviation `sd`. By default, `sd` is 1.
+
+With `RW()`, elements follow a random walk. `RW()` is suitable for terms where elements that are neighbors are more strongly correlated than elements that are distant from each other. It capture that idea that, for instance, rates for age groups 20--24 and 25--29 are likely to be more strongly correlated than rates for age groups 20--24 and 70--74.
+
+## Defaults
+
+**bage** uses the following rules to assign default priors to a model term:
+
+- if the term has less than 3 elements, use `NFix()`;
+- otherwise, if the term involves time, use `RW()`, with time as the `along' dimension;
+- otherwise, if the term involves age, use `RW()`, with age as the `along' dimension;
+- otherwise, use `N()`.
+
+The `N()` prior is the same as the `NFix()` prior, except that the standard deviation term is estimated from the data rather than specified in advance.
+
+Priors can be over-ridden using `set_prior()`:
 
 ```{r}
 mod <- mod |>
-  set_prior(year ~ AR1()) |>
-  fit()
+  set_prior(year ~ AR1())
 mod
 ```
 
-
-```{r}
-mod <- mod |>
-  set_n_draw(n_draw = 2000)
-mod
-```
-
-```{r}
-mod <- mod |>
-  fit()
-```
-
+Note that replacing an existing prior reverts a model to 'unfitted' status. 
 
 
 # Forecasting
@@ -246,4 +302,25 @@ ggplot(sex_ratio, aes(x = year, y = ratio)) +
   facet_wrap(vars(.replicate)) +
   geom_line()
 ```
+
+
+# Data models
+
+
+# Simulation studies
+
+
+
+
+# Imputation
+
+
+# Future development of 'bage'
+
+## Experimental status
+
+## Future features
+
+## Bug reports and feature requests
+
 
