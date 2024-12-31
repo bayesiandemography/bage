@@ -18,7 +18,7 @@ if (FALSE) {
   set_prior(sex:time ~ RW(s = 0.01)) |>
   set_prior(sex ~ NFix(sd = 0.1)) |>
   set_disp(mean = 0.05)
-  rep <- report_sim(mod_est = mod_est, n_sim = 1000, n_core = 10)
+  rep <- report_sim(mod_est = mod_est, n_sim = 1000, n_core = 10, report_type = "full")
   
 }
 
@@ -79,7 +79,7 @@ if (FALSE) {
   set_prior(age:sex ~ SVD(HMD)) |>
   set_disp(mean = 0.01) |>
   set_datamod_outcome_rr3()
-  rep <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10)
+  rep <- report_sim(mod_est = mod_est, n_sim = 100, n_core = 10, report_type = "short")
   
 }
 
