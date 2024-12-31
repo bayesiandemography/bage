@@ -216,7 +216,8 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
                                       n_sim = n_sim)
   vals_hyper <- vals_hyper_to_dataframe(vals_hyper = vals_hyper,
                                         n_sim = n_sim)
-  vals_hyperrand <- vals_hyperrand_to_dataframe(vals_hyperrand = vals_hyperrand,
+  vals_hyperrand <- vals_hyperrand_to_dataframe(mod = mod,
+                                                vals_hyperrand = vals_hyperrand,
                                                 n_sim = n_sim)
   vals_spline <- vals_spline_to_dataframe(vals_spline = vals_spline,
                                           n_sim = n_sim)
@@ -937,14 +938,28 @@ make_report_aug <- function(perform_aug, aug_sim) {
 #' 'components' an a fitted model.
 #' @param comp_sim Tibble created by calling
 #' 'components' an an unfitted model.
+#' @param prior_class_est Data frame giving class
+#' of each term in priors for 'mod_est'
+#' @param prior_class_sim Data frame giving class
+#' of each term in prior for 'mod_sim'
 #'
 #' @returns A tibble
 #'
 #' @noRd
-make_report_comp <- function(perform_comp, comp_est, comp_sim) {
+make_report_comp <- function(perform_comp,
+                             comp_est,
+                             comp_sim,
+                             prior_class_est,
+                             prior_class_sim) {
   byvar_comp <- merge(x = comp_est[c("term", "component", "level")],
                       y = comp_sim[c("term", "component", "level")],
                       sort = FALSE)
+  prior_class <- merge(prior_class_est, prior_class_sim, by = "term")
+  prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
+  is_class_diff <- prior_class$is_class_diff[match(byvar_comp$term, prior_class$term)]
+  is_hyper <- byvar_comp$component == "hyper"
+  is_remove <- is_class_diff & is_hyper
+  byvar_comp <- byvar_comp[!is_remove, , drop = FALSE]
   error_point_est_comp <- get_error_point_est(perform_comp)
   is_in_interval_comp <- get_is_in_interval(perform_comp)
   length_interval_comp <- get_length_interval(perform_comp)
@@ -1015,6 +1030,10 @@ perform_aug <- function(est,
 #' and posterior distribution(s)
 #' @param sim Data frame with 'by' variables
 #' and simulation-true values
+#' @param prior_class_est Data frame giving class
+#' of each term in priors for 'mod_est'
+#' @param prior_class_sim Data frame giving class
+#' of each term in prior for 'mod_sim'
 #' @param i_sim Simulation draw to use for performance
 #' measures.
 #' @param point_est_fun Mean or median. Function used
@@ -1026,13 +1045,21 @@ perform_aug <- function(est,
 #' @noRd
 perform_comp <- function(est,
                          sim,
+                         prior_class_est,
+                         prior_class_sim,
                          i_sim,
                          point_est_fun,
                          widths) {
   names(est)[match(".fitted", names(est))] <- ".fitted_est"
   names(sim)[match(".fitted", names(sim))] <- ".fitted_sim"
-  sim[[".fitted_sim"]] <- as.matrix(sim[[".fitted_sim"]])[, i_sim]
+  sim[[".fitted_sim"]] <- as.matrix(sim[[".fitted_sim"]])[, i_sim]  
   merged <- merge(est, sim, sort = FALSE)
+  prior_class <- merge(prior_class_est, prior_class_sim, by = "term")
+  prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
+  is_class_diff <- prior_class$is_class_diff[match(merged$term, prior_class$term)]
+  is_hyper <- merged$component == "hyper"
+  is_remove <- is_class_diff & is_hyper
+  merged <- merged[!is_remove, , drop = FALSE]
   var_est <- merged[[".fitted_est"]]
   var_sim <- merged[[".fitted_sim"]]
   .fitted <- list(error_point_est = error_point_est(var_est = var_est,
@@ -1052,6 +1079,11 @@ perform_comp <- function(est,
 #'
 #' Use simulated data to assess the performance of
 #' an estimation model.
+#'
+#' @section Warning:
+#'
+#' The interface for `report_sim()` is still under development
+#' and may change in future.
 #'
 #' @param mod_est The model whose performance is being
 #' assessed. An object of class `bage_mod`.
@@ -1076,36 +1108,11 @@ perform_comp <- function(est,
 #' processing. If `n_core` is `1` (the default),
 #' no parallel processing is done.
 #'
-#' @return
+#' @returns
 #'
-#' When `report_type` is `"short"`, a tibble with the following columns:
-#' 
-#' - `component`. Part of model. See Details.
-#' `"par"` is the rate, probability, or mean
-#' parameter from the likelihood.
-#' - `vals_sim`. Simulated value for parameter, averaged
-#' across all simulations and cells.
-#' - `error_point_est`. Point estimate minus simulation-true
-#' value, averaged across all simulations and cells.
-#' - `cover`. Actual proportion of simulation-true values
-#' that fall within each type of interval, averaged across all
-#' simulations and cells.
+#' A named list with a tibble called `"components"` and a
+#' tibble called `"augment"`.
 #'
-#' When `report_type` is `"long"`, a tibble with the following columns:
-#' 
-#' - `component`. Part of model. See [components()].
-#' `"par"` is the rate, probability,
-#' or mean parameter from the likelihood.
-#' - `term`. Category within `component`.
-#' - `level`. Category within `term`.
-#' - `vals_sim`. Simulated values for parameter,
-#' stored in an [rvec][rvec::rvec()].
-#' - `error_point_est`. Point estimates minus simulation-true
-#' values, stored in an [rvec][rvec::rvec()].
-#' - `cover`. Actual proportions of simulation-true values
-#' falling within each type of interval, stored in
-#' an [rvec][rvec::rvec()].
-#' 
 #' @seealso
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
 #' model
@@ -1186,6 +1193,8 @@ report_sim <- function(mod_est,
   nm_outcome_obs <- get_nm_outcome_obs(mod_sim)
   outcome_obs_sim <- aug_sim[[nm_outcome_obs]]
   outcome_obs_sim <- as.matrix(outcome_obs_sim)
+  prior_class_est <- make_prior_class(mod_est)
+  prior_class_sim <- make_prior_class(mod_sim)
   ## create closure for evaluating 'mod_est' fitted
   ## to a single simulation-truth, and apply to
   ## the 'n_sim' sets
@@ -1200,6 +1209,8 @@ report_sim <- function(mod_est,
     aug_est <- augment(mod_est)
     results_comp <- perform_comp(est = comp_est,
                                  sim = comp_sim,
+                                 prior_class_est = prior_class_est,
+                                 prior_class_sim = prior_class_sim,
                                  i_sim = i_sim,
                                  point_est_fun = point_est_fun,
                                  widths = widths)
@@ -1228,7 +1239,9 @@ report_sim <- function(mod_est,
   comp_est <- components(mod_est, quiet = TRUE)
   report_comp <- make_report_comp(perform_comp = perform_comp,
                                   comp_est = comp_est,
-                                  comp_sim = comp_sim)
+                                  comp_sim = comp_sim,
+                                  prior_class_est = prior_class_est,
+                                  prior_class_sim = prior_class_sim)
   report_aug <- make_report_aug(perform_aug = perform_aug,
                                 aug_sim = aug_sim)
   if (report_type == "full")
@@ -1365,11 +1378,18 @@ vals_hyper_to_dataframe_one <- function(nm, vals_hyper, n_sim) {
 #'
 #' @noRd
 vals_hyperrand_to_dataframe <- function(mod, vals_hyperrand, n_sim) {
+  priors <- mod$priors
+  dimnames_term <- mod$dimnames_term
+  var_age <- mod$var_age
+  var_time <- mod$var_time
   nms <- names(vals_hyperrand)
   ans <- .mapply(vals_hyperrand_to_dataframe_one,
-                 dots = list(nm = nms,
-                             vals_hyperrand = vals_hyperrand),
-                 MoreArgs = list(n_sim = n_sim))
+                 dots = list(prior = priors,
+                             vals_hyperrand = vals_hyperrand,
+                             dimnames_term = dimnames_term),
+                 MoreArgs = list(var_age = var_age,
+                                 var_time = var_time,
+                                 n_sim = n_sim))
   ans <- vctrs::vec_rbind(!!!ans)
   ans
 }
@@ -1387,7 +1407,13 @@ vals_hyperrand_to_dataframe <- function(mod, vals_hyperrand, n_sim) {
 #' @returns A tibble.
 #'
 #' @noRd
-vals_hyperrand_to_dataframe_one <- function(nm, vals_hyperrand, n_sim) {
+vals_hyperrand_to_dataframe_one <- function(prior,
+                                            vals_hyperrand,
+                                            dimnames_term,
+                                            var_age,
+                                            var_time,
+                                            n_sim) {
+  nm <- dimnames_to_nm(dimnames_term)
   vals <- vctrs::vec_rbind(!!!vals_hyperrand, .name_repair = "universal_quiet")
   if (nrow(vals) > 0L) {
     vals <- as.matrix(vals)
@@ -1396,7 +1422,10 @@ vals_hyperrand_to_dataframe_one <- function(nm, vals_hyperrand, n_sim) {
   else
     vals <- matrix(NA_real_, nrow = 0L, ncol = n_sim)
   term <- rep(nm, times = nrow(vals))
-  component <- rep.int("hyperrand", times = nrow(vals))
+  component <- comp_hyperrand(prior = prior,
+                              dimnames_term = dimnames_term,
+                              var_age = var_age,
+                              var_time = var_time)
   if (nrow(vals) > 0L) {
     level <- lapply(vals_hyperrand, rownames)
     no_rownames <- vapply(level, is.null, FALSE)

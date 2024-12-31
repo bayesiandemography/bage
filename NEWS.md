@@ -1,4 +1,18 @@
 
+
+# bage 0.8.5
+
+## Changes to internal calculations
+
+* `report_sim()` excludes comparisons of `"hyper"` parameters (eg
+  standard deviations) if the simulation model and estimation model
+  use different priors with different classes for that term. For
+  instance if the simulation model uses a `RW()` prior for age and the
+  estimation model uses a `RW2()` prior for age, then `report_sim()`
+  will not report on the standard deviation parameter for age.
+* Added warning to documentation for `report_sim()` stating that the
+  interface is still under development.
+
 # bage 0.8.4
 
 ## Changes to interface
