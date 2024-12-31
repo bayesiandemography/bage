@@ -46,6 +46,8 @@ test_that("'aggregate_report_comp' works with valid inputs", {
                   exposure = popn)
   mod_sim <- mod
   mod_est <- mod
+  prior_class_est <- make_prior_class(mod_est)
+  prior_class_sim <- make_prior_class(mod_sim)
   mod_sim <- set_n_draw(mod, n = 1)
   comp_sim <- components(mod_sim, quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
@@ -54,12 +56,16 @@ test_that("'aggregate_report_comp' works with valid inputs", {
   comp_est <- components(mod_est)
   perform_comp <- list(perform_comp(est = comp_est,
                                     sim = comp_sim,
+                                    prior_class_est = prior_class_est,
+                                    prior_class_sim = prior_class_sim,
                                     i_sim = 1L,
                                     point_est_fun = "median",
                                     widths = c(0.5, 0.95)))
   report_comp <- make_report_comp(perform_comp = perform_comp,
                                   comp_est = comp_est,
-                                  comp_sim = comp_sim)
+                                  comp_sim = comp_sim,
+                                  prior_class_est = prior_class_est,
+                                  prior_class_sim = prior_class_sim)
   report_comp <- rvec_to_mean(report_comp)
   ans_obtained <- aggregate_report_comp(report_comp)
   expect_identical(names(ans_obtained), setdiff(names(report_comp), "level"))
@@ -945,6 +951,8 @@ test_that("'make_report_comp' works with valid inputs", {
                   exposure = popn)
   mod_sim <- mod
   mod_est <- mod
+  prior_class_est <- make_prior_class(mod_est)
+  prior_class_sim <- make_prior_class(mod_sim)
   mod_sim <- set_n_draw(mod, n = 1)
   comp_sim <- components(mod_sim, quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
@@ -953,12 +961,16 @@ test_that("'make_report_comp' works with valid inputs", {
   comp_est <- components(mod_est)
   perform_comp <- list(perform_comp(est = comp_est,
                                     sim = comp_sim,
+                                    prior_class_est = prior_class_est,
+                                    prior_class_sim = prior_class_sim,
                                     i_sim = 1L,
                                     point_est_fun = "median",
                                     widths = c(0.5, 0.95)))
   ans_obtained <- make_report_comp(perform_comp = perform_comp,
                                    comp_est = comp_est,
-                                   comp_sim = comp_sim)
+                                   comp_sim = comp_sim,
+                                   prior_class_est = prior_class_est,
+                                   prior_class_sim = prior_class_sim)
   expect_setequal(names(ans_obtained),
                   c("term", "component", "level", ".error",
                     ".cover_50", ".cover_95",
@@ -1082,6 +1094,8 @@ test_that("'perform_comp' works with valid inputs - models same", {
                   exposure = popn)
   mod_sim <- mod
   mod_est <- mod
+  prior_class_est <- make_prior_class(mod_est)
+  prior_class_sim <- make_prior_class(mod_sim)
   mod_sim <- set_n_draw(mod, n = 1)
   comp_sim <- components(mod_sim, quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
@@ -1089,10 +1103,12 @@ test_that("'perform_comp' works with valid inputs - models same", {
   mod_est <- fit(mod_est)
   comp_est <- components(mod_est)
   ans_obtained <- perform_comp(est = comp_est,
-                                   sim = comp_sim,
-                                   i_sim = 1L,
-                                   point_est_fun = "median",
-                                   widths = c(0.6, 0.8))
+                               sim = comp_sim,
+                               prior_class_est = prior_class_est,
+                               prior_class_sim = prior_class_sim,
+                               i_sim = 1L,
+                               point_est_fun = "median",
+                               widths = c(0.6, 0.8))
   names(comp_est)[[4]] <- ".fitted_est"
   names(comp_sim)[[4]] <- ".fitted_sim"
   merged <- merge(comp_est, comp_sim, sort = FALSE) 
@@ -1107,7 +1123,7 @@ test_that("'perform_comp' works with valid inputs - models same", {
                                                widths = c(0.6, 0.8)),
                               length_interval =
                                 length_interval(var_est = merged[[".fitted_est"]],
-                                               widths = c(0.6, 0.8))))
+                                                widths = c(0.6, 0.8))))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1124,20 +1140,26 @@ test_that("'perform_comp' works with valid inputs - models different", {
   mod_sim <- mod_pois(formula = formula_sim,
                       data = data,
                       exposure = popn)
+  mod_sim <- set_prior(mod_sim, time ~ AR1())
   mod_sim <- set_n_draw(mod_sim, n = 1)
   comp_sim <- components(mod_sim, quiet = TRUE)
   aug_sim <- augment(mod_sim, quiet = TRUE)
   mod_est$outcome <- as.numeric(aug_sim$deaths)
   mod_est <- fit(mod_est)
   comp_est <- components(mod_est)
+  prior_class_est <- make_prior_class(mod_est)
+  prior_class_sim <- make_prior_class(mod_sim)
   ans_obtained <- perform_comp(est = comp_est,
-                                   sim = comp_sim,
-                                   i_sim = 1L,
-                                   point_est_fun = "median",
-                                   widths = c(0.6, 0.8))
+                               sim = comp_sim,
+                               prior_class_est = prior_class_est,
+                               prior_class_sim = prior_class_sim,
+                               i_sim = 1L,
+                               point_est_fun = "median",
+                               widths = c(0.6, 0.8))
   names(comp_est)[[4]] <- ".fitted_est"
   names(comp_sim)[[4]] <- ".fitted_sim"
-  merged <- merge(comp_est, comp_sim, sort = FALSE) 
+  merged <- merge(comp_est, comp_sim, sort = FALSE)
+  merged <- merged[!(merged$term == "time" & merged$component == "hyper"),]
   ans_expected <- list(.fitted =
                          list(error_point_est =
                                 error_point_est(var_est = merged[[".fitted_est"]],
@@ -1149,7 +1171,7 @@ test_that("'perform_comp' works with valid inputs - models different", {
                                                widths = c(0.6, 0.8)),
                               length_interval =
                                 length_interval(var_est = merged[[".fitted_est"]],
-                                               widths = c(0.6, 0.8))))
+                                                widths = c(0.6, 0.8))))
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -1184,7 +1206,8 @@ test_that("'report_sim' works when mod_sim more complicated that mod_est", {
                         exposure = popn)
     mod_sim <- mod_pois(deaths ~ age * sex,
                         data = data,
-                        exposure = popn)
+                        exposure = popn) |>
+      set_prior(age ~ N())
     set.seed(0)
     ans_obtained <- report_sim(mod_est = mod_est, mod_sim = mod_sim, n_sim = 2)
     expect_setequal(names(ans_obtained), c("components", "augment"))
@@ -1385,8 +1408,11 @@ test_that("'vals_hyper_to_dataframe' works", {
 test_that("'vals_hyperrand_to_dataframe_one' works with 'bage_prior_ar'", {
   prior <- AR(n_coef = 3)
   vals_hyperrand <- list()
-  ans_obtained <- vals_hyperrand_to_dataframe_one(nm = "time",
+  ans_obtained <- vals_hyperrand_to_dataframe_one(prior = prior,
                                                   vals_hyperrand = vals_hyperrand,
+                                                  dimnames_term = list(time = 2001:2010),
+                                                  var_age = "age",
+                                                  var_time = "time",
                                                   n_sim = 10)
   ans_expected <- tibble::tibble(term = character(),
                                  component = character(),
@@ -1398,14 +1424,39 @@ test_that("'vals_hyperrand_to_dataframe_one' works with 'bage_prior_ar'", {
 test_that("'vals_hyperrand_to_dataframe_one' works with bage_prior_lin", {
   set.seed(0)
   prior <- Lin()
-  vals_hyperrand <- list(slope = matrix(rnorm(30), nr = 3))
-  ans_obtained <- vals_hyperrand_to_dataframe_one(vals_hyperrand = vals_hyperrand,
-                                                  nm = "time",
-                                                  n_sim = 10)
-  ans_expected <- tibble::tibble(term = "time",
-                                 component = "hyperrand",
-                                 level = c("slope", "slope", "slope"),
-                                 .fitted = rvec::rvec(vals_hyperrand$slope))
+  n_sim <- 10
+  dimnames_term <- list(time = 2001:2010,
+                        region = c("a", "b", "c"))
+  var_age <- "age"
+  var_time <- "time"
+  vals_hyper <- list(sd = runif(n_sim))
+  vals_hyperrand <- draw_vals_hyperrand(prior = prior,
+                                        vals_hyper = vals_hyper,
+                                        dimnames_term = dimnames_term,
+                                        var_time = var_time,
+                                        var_age = var_age,
+                                        n_sim = n_sim)
+  ans_obtained <- vals_hyperrand_to_dataframe_one(prior = prior,
+                                                  dimnames_term = list(time = 2001:2010,
+                                                                       region = 1:3),
+                                                  var_age = "age",
+                                                  var_time = "time",
+                                                  vals_hyperrand = vals_hyperrand,
+                                                  n_sim = n_sim)
+  .fitted <- rbind(vals_hyperrand$slope,
+                   vals_hyperrand$trend,
+                   vals_hyperrand$error)
+  .fitted <- unname(.fitted)
+  .fitted <- rvec::rvec(.fitted)
+  ans_expected <- tibble::tibble(term = "time:region",
+                                 component = rep(c("hyper", "trend", "error"),
+                                                 times = c(3, 30, 30)),
+                                 level = c(paste("slope", c("a", "b", "c"), sep = "."),
+                                           rep(paste(2001:2010,
+                                                     rep(c("a", "b", "c"), each = 10),
+                                                     sep = "."),
+                                               times = 2)),
+                                 .fitted = .fitted)
   expect_equal(ans_obtained, ans_expected)
 })
 
