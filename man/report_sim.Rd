@@ -49,40 +49,20 @@ processing. If \code{n_core} is \code{1} (the default),
 no parallel processing is done.}
 }
 \value{
-When \code{report_type} is \code{"short"}, a tibble with the following columns:
-\itemize{
-\item \code{component}. Part of model. See Details.
-\code{"par"} is the rate, probability, or mean
-parameter from the likelihood.
-\item \code{vals_sim}. Simulated value for parameter, averaged
-across all simulations and cells.
-\item \code{error_point_est}. Point estimate minus simulation-true
-value, averaged across all simulations and cells.
-\item \code{cover}. Actual proportion of simulation-true values
-that fall within each type of interval, averaged across all
-simulations and cells.
-}
-
-When \code{report_type} is \code{"long"}, a tibble with the following columns:
-\itemize{
-\item \code{component}. Part of model. See \code{\link[=components]{components()}}.
-\code{"par"} is the rate, probability,
-or mean parameter from the likelihood.
-\item \code{term}. Category within \code{component}.
-\item \code{level}. Category within \code{term}.
-\item \code{vals_sim}. Simulated values for parameter,
-stored in an \link[rvec:rvec]{rvec}.
-\item \code{error_point_est}. Point estimates minus simulation-true
-values, stored in an \link[rvec:rvec]{rvec}.
-\item \code{cover}. Actual proportions of simulation-true values
-falling within each type of interval, stored in
-an \link[rvec:rvec]{rvec}.
-}
+A named list with a tibble called \code{"components"} and a
+tibble called \code{"augment"}.
 }
 \description{
 Use simulated data to assess the performance of
 an estimation model.
 }
+\section{Warning}{
+
+
+The interface for \code{report_sim()} is still under development
+and may change in future.
+}
+
 \examples{
 ## results random, so set seed
 set.seed(0)

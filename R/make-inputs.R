@@ -1010,6 +1010,23 @@ make_priors <- function(formula, var_age, var_time, lengths_effect) {
 }        
 
 
+#' Make Data Frame Giving the Class of Each Prior in a Model
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A tibble
+#'
+#' @noRd
+make_prior_class <- function(mod) {
+  priors <- mod$priors
+  nms <- names(priors)
+  get_class <- function(x) class(x)[[1L]]
+  class <- vapply(priors, get_class, "bage_prior_norm", USE.NAMES = FALSE)
+  tibble::tibble(term = nms,
+                 class = class)
+}
+
+
 ## HAS_TESTS
 #' Make 'random' argument to MakeADFun function
 #'

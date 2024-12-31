@@ -1191,6 +1191,29 @@ test_that("'make_outcome' works with valid inputs", {
 })
 
 
+## 'make_prior_class' ---------------------------------------------------------
+
+test_that("'make_prior_class' works with valid inputs", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:5,
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(deaths ~ age * sex + region,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_prior_class(mod)
+  ans_expected <- tibble::tibble(term = c("(Intercept)", "age", "sex", "region", "age:sex"),
+                                 class = c("bage_prior_normfixed",
+                                           "bage_prior_rwrandom",
+                                           "bage_prior_normfixed",
+                                           "bage_prior_norm",
+                                           "bage_prior_rwrandom"))
+  expect_identical(ans_obtained, ans_expected)
+})
+                                             
+
 ## 'make_priors' --------------------------------------------------------------
 
 test_that("'make_priors' works with valid inputs - has intercept", {
