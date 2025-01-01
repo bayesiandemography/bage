@@ -650,7 +650,24 @@ test_that("'make_draws_post' works with valid inputs - has R_prec", {
 
 ## lots more tests for 'fit' method
 
-test_that("'fit_default' works with pois", {
+test_that("'fit_default' works with pois, optimzier is 'multi'", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(age ~ AR()) |>
+    set_prior(age:sex ~ RW2(sd = 0)) |>
+    set_prior(age:sex:time ~ AR())
+  ans_obtained <- fit_default(mod, optimizer = "multi", quiet = TRUE, aggregate = TRUE,
+                              start_oldpar = FALSE)
+  expect_s3_class(ans_obtained, "bage_mod")
+})
+
+test_that("'fit_default' works with pois, optimzier is 'nlminb'", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -692,20 +709,6 @@ test_that("'fit_default' gives error with 'start_oldpar' if model fitted", {
   expect_error(fit_default(mod, optimizer = "nlminb", quiet = TRUE, aggregate = TRUE,
                            start_oldpar = TRUE),
                "`start_oldpar` is TRUE but model has not been fitted.")
-})
-
-test_that("'fit_default' gives error invalid value for 'optimizer'", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age + sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  expect_error(fit_default(mod, optimizer = "wrong", quiet = TRUE, aggregate = TRUE,
-                           start_oldpar = FALSE),
-               "Internal error: Invalid value for `optimizer`.")
 })
 
 

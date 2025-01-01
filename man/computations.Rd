@@ -13,11 +13,11 @@ computations(object)
 A \link[tibble:tibble-package]{tibble} with the following
 variables:
 \itemize{
-\item \code{time_total} Total duration, in seconds, of the fitting process.
-\item \code{time_optim} Time used by optimizer (\code{\link[stats:nlminb]{stats::nlminb()}})
-\item \code{time_draws} Time used drawing drawing from multivariate normal
-\item \code{iter} Number of iterations required by \code{\link[stats:nlminb]{stats::nlminb()}}
-\item \code{message} Message about convergence returned by \code{\link[stats:nlminb]{stats::nlminb()}}.
+\item \code{time_total} Seconds used for whole fitting process.
+\item \code{time_optim} Seconds used for optimisiation.
+\item \code{time_report} Seconds used by function \code{\link[TMB:sdreport]{TMB::sdreport()}}.
+\item \code{iter} Number of iterations required for optimization.
+\item \code{message} Message about convergence returned by optimizer.
 }
 }
 \description{

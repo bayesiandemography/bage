@@ -135,7 +135,8 @@ draw_vals_components_fitted <- function(mod) {
                  .fitted = draws)
 }
 
-  
+
+## HAS_TESTS
 #' Default Method for Fitting a Model
 #'
 #' @param object A `bage_mod` object.
@@ -152,6 +153,7 @@ draw_vals_components_fitted <- function(mod) {
 #' @noRd
 fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   t1 <- Sys.time()
+  optimizer_original <- optimizer
   if (start_oldpar) {
     if (is_fitted(mod))
       oldpar <- mod$oldpar
@@ -234,7 +236,7 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                       silent = TRUE)
   ## optimise
   t2 <- Sys.time()
-  if (identical(optimizer, "nlminb")) {
+  if (optimizer %in% c("multi", "nlminb")) {
     if (quiet) {
       suppressWarnings(out <- stats::nlminb(start = f$par,
                                             objective = f$fn,
@@ -254,8 +256,25 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
     }
     iter <- out$iterations
     message <- out$message
+    multi_nonconv <- identical(optimizer, "multi") && !identical(out$convergence, 0L)
+    if (multi_nonconv) {
+      if (!quiet)
+        cli::cli_alert_info("\"nlminb\" optimizer did not converge: continuing with \"BFGS\".")
+      if (has_random_effects)
+        sdreport <- TMB::sdreport(f, bias.correct = FALSE, getJointPrecision = FALSE)
+      else
+        sdreport <- TMB::sdreport(f, bias.correct = FALSE, getReportCovariance = FALSE)
+      oldpar <- as.list(sdreport, what = "Est")
+      f <- TMB::MakeADFun(data = data,
+                          parameters = oldpar,
+                          map = map,
+                          DLL = "bage",
+                          random = random,
+                          silent = TRUE)
+      optimizer <- "BFGS"
+    }
   }
-  else if (optimizer %in% c("BFGS", "CG")) {
+  if (optimizer %in% c("BFGS", "CG")) {
     if (quiet) {
       suppressWarnings(out <- stats::optim(par = f$par,
                                            fn = f$fn,
@@ -274,13 +293,14 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                                          maxit = 300L,
                                          REPORT = 1L))
     }
-    iter <- out$counts[["gradient"]]
+    if (optimizer_original == "multi")
+      iter <- paste(iter, out$counts[["gradient"]], sep = "+")
+    else
+      iter <- out$counts[["gradient"]]
     message <- out$message
     if (is.null(message))
       message <- "<none>"
   }
-  else
-    cli::cli_abort("Internal error: Invalid value for {.arg optimizer}.")
   t3 <- Sys.time()
   ## extract results
   if (has_random_effects)
@@ -305,17 +325,18 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                            est = est,
                            prec = prec,
                            map = map)
-  t5 <- Sys.time()
   mod <- make_stored_point(mod = mod,
                            est = est)
-  t6 <- Sys.time()
-  time_total <- as.numeric(difftime(t6, t1, units = "secs"))
+  t5 <- Sys.time()
+  time_total <- as.numeric(difftime(t5, t1, units = "secs"))
   time_optim <- as.numeric(difftime(t3, t2, units = "secs"))
-  time_draws <- as.numeric(difftime(t5, t4, units = "secs"))
+  time_report <- as.numeric(difftime(t4, t3, units = "secs"))
   converged <- identical(out$convergence, 0L)
+  if (!converged)
+    cli::cli_alert_warning("Optimizer did not converge.")
   mod$computations <- tibble::tibble(time_total = time_total,
                                      time_optim = time_optim,
-                                     time_draws = time_draws,
+                                     time_report = time_report,
                                      iter = iter,
                                      converged = converged,
                                      message = message)
