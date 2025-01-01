@@ -24,11 +24,11 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-**bage** (= "Bayesian" + "age") implements Bayesian hierarchical models for rates, probabilities, and means, where the rates, probabilities and means are classified by variables such as age, sex, and region. Models in **bage** can be used for estimating past values and forecasting future values. 
+**bage** (= "Bayesian" + "age") implements Bayesian hierarchical models for rates, probabilities, and means, where the rates, probabilities and means are classified by variables such as age, sex, and region. Models in **bage** can be used for estimation and for forecasting. 
 
-The models in **bage** are hierarchical because they are built out of smaller sub-models. A model for mortality rates, for instance, might contain sub-models describing how rates vary over age, sex, and time. The models are Bayesian because, like Bayesian models more generally, they use probability distributions to represent uncertainties. 
+The models in **bage** are hierarchical in that they are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time. 
 
-Under the hood, **bage** draws on package [TMB](https://CRAN.R-project.org/package=TMB) to fit the models. **TMB** is fast and can handle large datasets -- characteristics that are inherited by **bage**.
+Internally, **bage** draws on package [TMB](https://CRAN.R-project.org/package=TMB) to fit the models. **TMB** is fast and can handle large datasets -- characteristics that are inherited by **bage**.
 
 This vignette introduces the main features of **bage**, using data on injuries.
 
@@ -37,7 +37,7 @@ This vignette introduces the main features of **bage**, using data on injuries.
 
 ## Packages
 
-We begin by loading the packages that we will need for the analysis of the injuries data. Loading **bage** automatically loads package [rvec](https://CRAN.R-project.org/package=rvec), which contains functions for  working with draws from probability distributions. Package [poputils](https://CRAN.R-project.org/package=poputils) contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](tidyverse.org) packages for manipulating data. We use **ggplot2** to graph inputs and outputs.
+We begin by loading the packages that we will need for the analysis of the injuries data. Loading **bage** automatically loads package **rvec**, which contains functions for  working with draws from probability distributions. Package **poputils** contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](tidyverse.org) packages for manipulating data. We use **ggplot2** to graph inputs and outputs.
 
 ```{r setup}
 library(bage)
@@ -49,7 +49,7 @@ library(ggplot2)
 
 ## Data
 
-In this vignette, we will analyse a dataset called `nzl_injuries` that is included in the **bage** package. The dataset contains counts of injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
+We analyse a dataset called `nzl_injuries` that is included in the **bage** package. The dataset contains counts of injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
 
 ```{r}
 head(nzl_injuries)
@@ -72,7 +72,7 @@ nzl_injuries |>
 
 We specify a model in which, within each combination of age, sex, ethnicity, and year, injuries are treated as a random draw from a Poisson distribution. The function used to specify a Poisson model is `mod_pois()`. Binomial models can be specified with function `mod_binom()` and normal models with function `mod_norm()`.
 
-The first argument to `mod_pois()` is an R-style formula identifying the outcome variable and the combinations of predictor variables to be used in the model. The second argument is the name of the dataset. The third argument is the name of the exposure variable. 
+The first argument to `mod_pois()` is an R-style formula identifying the outcome variable and the combinations of predictor variables to be used in the model. 
 
 ```{r}
 mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
@@ -90,7 +90,7 @@ knitr::include_graphics("vig1_dag.png")
 
 The number of injuries occurring within each combination of age, sex, ethnicity, and time reflects (i) the population at risk and (ii) an underlying rate that in **bage** is referred to as `.fitted`. The expected value for `.fitted` is obtained by summing up values for the intercept, age effect, sex effect, and so forth. The actual value of `.fitted` can diverge from `.expected`: the amount of divergence is governed by the `disp` (dispersion) parameter.
 
-The model terms are all given "prior distributions".  A prior distribution is a sub-model capturing features of the unknown quantity or quantities being estimated. Possible features include the range within which the quantity is likely to fall, or the amount of smoothness expected in series of values. Priors distributions are a distinctive feature of Bayesian models.
+The model terms are all given "prior distributions".  A prior distribution is a submodel capturing features of the unknown quantity or quantities being estimated. Possible features include the range within which the quantity is likely to fall, or the amount of smoothness expected in series of values. Priors distributions are a distinctive feature of Bayesian methods.
 
 ## Printing the model object
 
@@ -100,9 +100,9 @@ Printing a model object provides information on its structure:
 mod
 ```
 
-The table in the the middle of the printout above shows the default prior distribution assigned to each term. We discuss these distributions in Section \@ref(sec:priors).
+The table in the the middle of the printout above shows the default prior distribution assigned to each term. We return to priors in Section \@ref(sec:priors).
 
-The bottom row of the printed object shows various model settings. `n_draw` is the number of random draws produced by extractor functions such as `augment()`. We discuss these random draws further in Section \@ref(sec:outputs). `var_time`, `var_age`, and `var_sexgender` are the names of variables in dataset `nzl_injuries`. **bage** treats variables representing time, age and sex/gender specially, and attempts to identify these variables in input data, using variables names. If **bage** guesses wrong, the correct names can be supplied using functions such as `set_var_time()`. 
+The bottom row of the printed object shows various model settings. `n_draw` is the number of random draws produced by extractor functions, which we discuss in Section \@ref(sec:outputs). `var_time`, `var_age`, and `var_sexgender` are the names of the variables in `nzl_injuries` that represent time, age, and sex or gender. If **bage** fails to correctly identify these variables, they can be identified using functions such as `set_var_time()`. 
 
 
 # Fitting a model {#sec:fitting}
