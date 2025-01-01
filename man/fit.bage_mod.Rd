@@ -8,7 +8,7 @@
   object,
   method = c("standard", "inner-outer"),
   vars_inner = NULL,
-  optimizer = c("nlminb", "BFGS", "CG"),
+  optimizer = c("multi", "nlminb", "BFGS", "CG"),
   quiet = TRUE,
   start_oldpar = FALSE,
   ...
@@ -30,10 +30,9 @@ for inner model when \code{method} is \verb{"inner-outer". If }NULL\verb{(the de
 and \link[=set_var_time]{time} variables.}
 
 \item{optimizer}{Which optimizer to use.
-Current choices are \code{"nlminb"} (\code{\link[stats:nlminb]{stats::nlminb()}})
-and \code{"BFGS"} (\code{\link[stats:optim]{stats::optim()}} using method
-\code{"BFGS"}), and "GC" (\code{\link[stats:optim]{stats::optim()}} using method
-\code{"CG"}) . Default is \code{"nlminb"}.}
+Current choices are \code{"multi"},
+\code{"nlminb"}, \code{"BFGS"}, and "GC". Default
+is \code{"multi"}. See below for details.}
 
 \item{quiet}{Whether to suppress warnings and
 progress messages from the optimizer.
@@ -73,6 +72,20 @@ Parameter estimtes from steps 1, 2, and 3
 are then combined. \code{"inner-outer"} methods are
 still experimental, and may change in future,
 eg dividing calculations into chunks in Step 2.
+}
+}
+
+\section{Optimizer}{
+
+
+The choices for the \code{optimizer} argument are:
+\itemize{
+\item \code{"multi"} Try \code{"nlminb"}, and if that fails,
+retart from the value where \code{"nlminb"} stopped,
+using \code{"BFGS"}. The default.
+\item \code{"nlminb"} \code{\link[stats:nlminb]{stats::nlminb()}}
+\item \code{"BFGS"} \code{\link[stats:optim]{stats::optim()}} using method \code{"BFGS"}.
+\item \code{"GC"} \code{\link[stats:optim]{stats::optim()}} using method \code{"CG"} (conjugate gradient).
 }
 }
 
