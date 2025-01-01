@@ -256,11 +256,11 @@ components.bage_mod <- function(object,
 #'
 #' @returns A [tibble][tibble::tibble-package] with the following
 #' variables:
-#' - `time_total` Total duration, in seconds, of the fitting process.
-#' - `time_optim` Time used by optimizer ([stats::nlminb()])
-#' - `time_draws` Time used drawing drawing from multivariate normal
-#' - `iter` Number of iterations required by [stats::nlminb()]
-#' - `message` Message about convergence returned by [stats::nlminb()].
+#' - `time_total` Seconds used for whole fitting process.
+#' - `time_optim` Seconds used for optimisiation.
+#' - `time_report` Seconds used by function [TMB::sdreport()].
+#' - `iter` Number of iterations required for optimization.
+#' - `message` Message about convergence returned by optimizer.
 #'
 #' @seealso
 #' - [mod_pois()],[mod_binom()],[mod_norm()] Specify a model
@@ -588,6 +588,17 @@ generics::fit
 #'   still experimental, and may change in future,
 #'   eg dividing calculations into chunks in Step 2.
 #'
+#' @section Optimizer:
+#'
+#' The choices for the `optimizer` argument are:
+#' 
+#' - `"multi"` Try `"nlminb"`, and if that fails,
+#'   retart from the value where `"nlminb"` stopped,
+#'   using `"BFGS"`. The default.
+#' - `"nlminb"` [stats::nlminb()]
+#' - `"BFGS"` [stats::optim()] using method `"BFGS"`.
+#' - `"GC"` [stats::optim()] using method `"CG"` (conjugate gradient).
+#' 
 #' @param object A `bage_mod` object,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
@@ -601,10 +612,9 @@ generics::fit
 #' [age][set_var_age()], [sex/gender][set_var_sexgender()],
 #' and [time][set_var_time()] variables.
 #' @param optimizer Which optimizer to use.
-#' Current choices are `"nlminb"` ([stats::nlminb()])
-#' and `"BFGS"` ([stats::optim()] using method
-#' `"BFGS"`), and "GC" ([stats::optim()] using method
-#' `"CG"`) . Default is `"nlminb"`.
+#' Current choices are `"multi"`,
+#' `"nlminb"`, `"BFGS"`, and "GC". Default
+#' is `"multi"`. See below for details.
 #' @param quiet Whether to suppress warnings and
 #' progress messages from the optimizer.
 #'  Default is `TRUE`.
@@ -651,7 +661,7 @@ generics::fit
 fit.bage_mod <- function(object,
                          method = c("standard", "inner-outer"),
                          vars_inner = NULL,
-                         optimizer = c("nlminb", "BFGS", "CG"),
+                         optimizer = c("multi", "nlminb", "BFGS", "CG"),
                          quiet = TRUE,
                          start_oldpar = FALSE,
                          ...) {
@@ -1770,7 +1780,7 @@ print.bage_mod <- function(x, ...) {
     computations <- as.data.frame(computations)
     computations$time_total <- sprintf("%0.2f", computations$time_total)
     computations$time_optim <- sprintf("%0.2f",computations$time_optim)
-    computations$time_draws <- sprintf("%0.2f",computations$time_draws)
+    computations$time_report <- sprintf("%0.2f",computations$time_report)
     computations$message <- paste0("  ", computations$message)
   }
   is_inner_outer <- is_fitted && !is.null(vars_inner)
