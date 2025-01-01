@@ -252,23 +252,47 @@ mod <- mod |>
 mod
 ```
 
-Note that replacing an existing prior reverts a model to 'unfitted' status. 
+Note that replacing a prior deletes any existing estimates and reverts a model to 'unfitted'.
+
+We re-fit the model.
+
+```{r}
+mod <- mod |>
+  fit()
+```
 
 
 # Forecasting
 
-```{r}
-aug_forecast <- mod |>
-  forecast(labels = 2019:2028,
-           include_estimates = TRUE)
-```
+To use a model for forecasting, call function `forecast()` on the model object. When `output` is `"augment"` (the default), `forecast()` produces values like those produced by `augment()`.
 
 ```{r}
-aug_forecast |>
+aug_forecast <- mod |>
+  forecast(labels = 2019:2028)
+aug_forecast
+```
+
+When `output` is `"components"`, `forecast()` values like those produced by `components()`.
+
+```{r}
+comp_forecast <- mod |>
+  forecast(labels = 2019:2028,
+           output = "components")
+comp_forecast
+```
+
+When `include_estimates` to `TRUE`, the return value includes historical estimates, which can be useful for making graphs.
+
+```{r}
+data_forecast <- mod |>
+  fit() |>
+  forecast(labels = 2019:2028,
+           include_estimates = TRUE) |>
   filter(sex == "Female",
          age %in% c("10-14", "25-29", "40-44")) |>
-  mutate(draws_ci(.fitted)) |>
-  ggplot(aes(x = year)) +
+  mutate(draws_ci(.fitted))
+
+ggplot(data_forecast, aes(x = year)) +
   facet_grid(vars(age), vars(ethnicity)) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
@@ -279,14 +303,21 @@ aug_forecast |>
              color = "red")  
 ```
 
-# Model Testing
 
+# Model checking
+
+## Replicate data
+
+A standard Bayesian approach to checking a model is to use the model to generate simulate data and see if the simulated data looks like the actual data. Function `replicate_data()` creates multiple sets of simulated data.
 
 ```{r}
 rep_data <- mod |>
   replicate_data()
 rep_data
 ```
+
+Comparing full datasets is difficult, so the usual strategy is to calculate summary measures that capture some important feature of the data, and compare those. Here we see if the model is properly capturing the male-female ratio in injuries.
+
 
 ```{r}
 sex_ratio <- rep_data |>
@@ -297,6 +328,8 @@ sex_ratio
 ```
 
 
+We graph the results and see if the original data looks like it was drawn from the same underlying distribution as the simulated data.
+
 ```{r}
 ggplot(sex_ratio, aes(x = year, y = ratio)) +
   facet_wrap(vars(.replicate)) +
@@ -304,11 +337,40 @@ ggplot(sex_ratio, aes(x = year, y = ratio)) +
 ```
 
 
-# Data models
+## Simulation studies
 
+A simulation study, where we create the data ourselves, and hence know what the underlying true values are, can be a useful way of assessing model performance. Function `report_sim()` aims to make it easy to conduct simulation studies. In the example below, we construct data where population follows a first-order random walk, apply a model that assumes that population follows a second-order random walk, and then measure the performance of the estimation model.
 
-# Simulation studies
+```{r}
+set.seed(0)
+fake_data <- data.frame(year = 2001:2010, 
+                        population = NA)
 
+mod_rw <- mod_pois(population ~ year,
+                   data = fake_data,
+                   exposure = 1) |>
+  set_prior(`(Intercept)` ~ NFix(sd = 0.1)) |>
+  set_prior(year ~ RW(s = 0.1, sd = 0.1))
+
+mod_rw2 <- mod_pois(population ~ year,
+                    data = fake_data,
+                    exposure = 1) |>
+  set_prior(year ~ RW2())
+
+report_sim(mod_est = mod_rw2, mod_sim = mod_rw)
+```
+
+## Prior predictive checks
+
+Another way of gaining insights about a model is to see what the model implies about the unknowns *before*, based purely on the priors, without using the data. In **bage**, this can be done by calling `augment()`, `components()` and `forecast()` on an unfitted version of the model.
+
+```{r}
+mod |>
+  unfit() |>
+  components()
+```
+
+# SVD-based models
 
 
 
@@ -320,6 +382,14 @@ ggplot(sex_ratio, aes(x = year, y = ratio)) +
 ## Experimental status
 
 ## Future features
+
+- Covariates
+- More data models
+- Informative priors (including sets)
+- More priors (eg damped linear trend)
+- More documentation
+- Automated model choice
+- 
 
 ## Bug reports and feature requests
 
