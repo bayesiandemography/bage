@@ -1,5 +1,19 @@
 
 
+# bage 0.8.6
+
+## Changes to interface
+
+* Added `"multi"` option for `optimizer` argument to `fit()`. With
+  `"multi"`, the `fit()` function first tries `nlminb()` and if that
+  fails switches to `optim()` with method `"BFGS"`. 
+* Added a warning if the calculations do not converge
+* Modified the printout for `"bage_mod"` objects to show the time
+  spent by `TMB::sdreport` rather than the time spent by drawing from
+  the multivariate normal (which, since **bage** started using
+  **sparseMVN**, is very short).
+
+
 # bage 0.8.5
 
 ## Changes to internal calculations
