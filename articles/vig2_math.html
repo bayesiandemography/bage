@@ -8,8 +8,8 @@
 <title>2. Mathematical Details • bage</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="2. Mathematical Details">
 </head>
 <body>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/vig1_intro.html">1. Introduction</a></li>
+<li><a class="dropdown-item" href="../articles/vig1_intro.html">Overview</a></li>
     <li><a class="dropdown-item" href="../articles/vig2_math.html">2. Mathematical Details</a></li>
     <li><a class="dropdown-item" href="../articles/vig3_priors.html">3. Priors</a></li>
     <li><a class="dropdown-item" href="../articles/vig4_svd.html">4. Singular Value Decomposition</a></li>
@@ -328,10 +328,11 @@ where</p>
 </h4>
 <p>Random walk</p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,1}^{(m)} &amp; = 0 \\
+  \beta_{u,1}^{(m)} &amp; \sim \text{N}\left(0, (A_0^{(m)})^2\right) \\
   \beta_{u,v}^{(m)} &amp; \sim \text{N}(\beta_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
+<p><span class="math inline">\(A_0^{(m)}\)</span> can be 0, implying that <span class="math inline">\(\beta_{u,1}^{(m)}\)</span> is fixed at 0.</p>
 <p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
 <div class="section level4" number="5.4.2">
@@ -339,7 +340,7 @@ where</p>
 <span class="header-section-number">5.4.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-2"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, \tau_m^2)  \prod_{v=3}^{V_m} \text{N}\left(\beta_{uv}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2\right) \prod_{v=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \beta_{u,v-1}^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.4.3">
@@ -360,6 +361,8 @@ where</p>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>. Defaults to 1.</li>
 <li>
+<code>sd</code> is <span class="math inline">\(A_0^{(m)}\)</span>. Defaults to 1.</li>
+<li>
 <code>along</code> used to identify ‘along’ and ‘by’ dimensions.</li>
 <li>if <code>zero_sum</code> is <code>TRUE</code>, sum-to-zero constraints are applied.</li>
 </ul>
@@ -375,11 +378,12 @@ where</p>
 </h4>
 <p>Second-order random walk</p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,1}^{(m)} &amp; = 0  \\
-  \beta_{u,2}^{(m)} &amp; \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,1}^{(m)} &amp; \sim \text{N}\left(0, (A_0^{(m)})^2\right) \\
+  \beta_{u,2}^{(m)} &amp; \sim \text{N}\left(\beta_{u,1}, (A_{\eta}^{(m)})^2\right) \\
   \beta_{u,v}^{(m)} &amp; \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 3, \cdots, V_m \\
   \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
+<p><span class="math inline">\(A_0^{(m)}\)</span> can be 0, implying that <span class="math inline">\(\beta_{u,1}^{(m)}\)</span> is fixed at 0.</p>
 <p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
 <div class="section level4" number="5.5.2">
@@ -387,7 +391,7 @@ where</p>
 <span class="header-section-number">5.5.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-3"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2) \text{N}(\beta_{u,3}^{(m)} \mid 2 \beta_{u,2}^{(m)}, \tau_m^2) \prod_{v=4}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2) \text{N}(\beta_{u,2}^{(m)} \mid \beta_{u,1}^{(m)}, (A_{\eta}^{(m)})^2) \prod_{v=3}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.5.3">
@@ -403,13 +407,16 @@ where</p>
 <h4 id="code-3">
 <span class="header-section-number">5.5.4</span> Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/RW2.html">RW2</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW2.html">RW2</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, sd_slope <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
 </li>
 <li>
-<code>sd</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
+<code>sd</code> is <span class="math inline">\(A_0^{(m)}\)</span>
+</li>
+<li>
+<code>sd_slope</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
 </li>
 <li>
 <code>along</code> used to identify ‘along’ and ‘by’ dimensions</li>
@@ -427,16 +434,17 @@ where</p>
 </h4>
 <p>Random walk with seasonal effect</p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,s_v} \\
-  \alpha_{u,1}^{(m)} &amp; = 0 \\
+  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,v}, \quad v = 1, \cdots, V_m \\
+  \alpha_{u,1}^{(m)} &amp; \sim \text{N}\left(0, (A_0^{(m)})^2 \right) \\
   \alpha_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_{u,v-1}^{(m)}, \tau_m^2), \quad v = 2, \cdots, V_m \\
   \lambda_{u,v}^{(m)} &amp; \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
-  \lambda_{u,v}^{(m)} &amp; = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} &amp; = -\sum_{s=1}^{S_m-1} \lambda_{u,v-s}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
   \lambda_{u,v}^{(m)} &amp; \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m &amp; \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}\]</span></p>
-<p>Scale parameter <span class="math inline">\(A_{\omega}^{(m)2}\)</span> can be set to zero, implying that seasonal effect for each season does not change over time.</p>
+<p><span class="math inline">\(A_0^{(m)}\)</span> can be 0, implying that <span class="math inline">\(\alpha_{u,1}^{(m)}\)</span> is fixed at 0.</p>
+<p><span class="math inline">\(A_{\omega}^{(m)2}\)</span> can be set to zero, implying that seasonal effects are fixed over time.</p>
 <p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
 <div class="section level4" number="5.6.2">
@@ -446,8 +454,8 @@ where</p>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
   &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, \tau_m^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
-  \prod_{v &gt; S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}\left(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 \right) \prod_{v=2}^{V_m} \text{N}\left(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 \right) \prod_{v=1}^{S_m-1}  \text{N}\left(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2\right) \\
+  \prod_{v &gt; S_m, \; (v-1) \bmod S_m \neq 0}^{V_m} \text{N}\left(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2\right) \right)
 \end{split}
 \end{equation}\]</span></p>
 </div>
@@ -465,13 +473,16 @@ where</p>
 <h4 id="code-4">
 <span class="header-section-number">5.6.4</span> Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span><span class="va">n</span>, s <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, <span class="va">sd_seas</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW_Seas.html">RW_Seas</a></span><span class="op">(</span><span class="va">n_seas</span>, s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">0</span>, sd_seas <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>n_seas</code> is <span class="math inline">\(S_m\)</span>
 </li>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
+</li>
+<li>
+<code>sd</code> is <span class="math inline">\(A_0^{(m)}\)</span>
 </li>
 <li>
 <code>s_seas</code> is <span class="math inline">\(A_{\omega}^{(m)}\)</span>
@@ -495,17 +506,18 @@ where</p>
 </h4>
 <p>Second-order random work, with seasonal effect</p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,s_v} \\
-  \alpha_{u,1}^{(m)} &amp; = 0 \\
-  \alpha_{u,2}^{(m)} &amp; \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v} + \lambda_{u,v}, \quad v = 1, \cdots, V_m \\
+  \alpha_{u,1}^{(m)} &amp; \sim \text{N}\left(0, (A_0^{(m)})^2 \right) \\
+  \alpha_{u,2}^{(m)} &amp; \sim \text{N}\left(\alpha_{u,1}^{(m)}, (A_{\eta}^{(m)})^2\right) \\
   \alpha_{u,v}^{(m)} &amp; \sim \text{N}(2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2), \quad v = 3, \cdots, V_m \\
   \lambda_{u,v}^{(m)} &amp; \sim \text{N}(0, A_{\lambda}^{(m)}), \quad v = 1, \cdots, S_m - 1 \\
-  \lambda_{u,v}^{(m)} &amp; = \sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
+  \lambda_{u,v}^{(m)} &amp; = -\sum_{s=1}^{S_m-1} \lambda_{u,v}^{(m)}, \quad v = S_m,\; 2S_m,  \cdots \\
   \lambda_{u,v}^{(m)} &amp; \sim \text{N}(\lambda_{u,v-S_m}^{(m)}, \omega_m^2), \quad \text{otherwise} \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right) \\
   \omega_m &amp; \sim \text{N}^+\left(0, A_{\omega}^{(m)2}\right)
 \end{align}\]</span></p>
-<p>Scale parameter <span class="math inline">\(A_{\omega}^{(m)2}\)</span> can be set to zero, implying that seasonal effect for each season does not change over time.</p>
+<p><span class="math inline">\(A_0^{(m)}\)</span> can be 0, implying that <span class="math inline">\(\alpha_{u,1}^{(m)}\)</span> is fixed at 0.</p>
+<p><span class="math inline">\(A_{\omega}^{(m)2}\)</span> can be set to zero, implying that seasonal effects are fixed over time.</p>
 <p>When <span class="math inline">\(U_m &gt; 1\)</span>, sum-to-zero constraints (Section <a href="#sec:sum-to-zero">5.1.2</a>) can be applied.</p>
 </div>
 <div class="section level4" number="5.7.2">
@@ -514,9 +526,12 @@ where</p>
 </h4>
 <p><span class="math display">\[\begin{equation}
 \begin{split}
-  &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2 ) \prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2) \\
-  \prod_{v &gt; S_m, \; v \;\text{mod}\; S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
+  &amp; \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2})  \\
+  \quad \times &amp; \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 )
+\text{N}(\alpha_{u,2}^{(m)} \mid \alpha_{u,1}^{(m)}, (A_{\eta}^{(m)})^2 )
+\prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 )  \\
+  \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2)
+  \prod_{v &gt; S_m, (v-1) \bmod S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
   \end{split}
 \end{equation}\]</span></p>
 </div>
@@ -534,19 +549,29 @@ where</p>
 <h4 id="code-5">
 <span class="header-section-number">5.7.4</span> Code<a class="anchor" aria-label="anchor" href="#code-5"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span><span class="va">n</span>, s <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/RW2_Seas.html">RW2_Seas</a></span><span class="op">(</span><span class="va">n_seas</span>, s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, sd_slope <span class="op">=</span> <span class="fl">1</span>, s_seas <span class="op">=</span> <span class="fl">0</span>, sd_seas <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
-<code>n</code> is <span class="math inline">\(S_m\)</span>
+<code>n_seas</code> is <span class="math inline">\(S_m\)</span>
 </li>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
 </li>
 <li>
+<code>sd</code> is <span class="math inline">\(A_0^{(m)}\)</span>
+</li>
+<li>
+<code>sd_slope</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
+</li>
+<li>
 <code>s_seas</code> is <span class="math inline">\(A_{\omega}^{(m)}\)</span>
 </li>
 <li>
+<code>sd_seas</code> is <span class="math inline">\(A_{\lambda}^{(m)}\)</span>
+</li>
+<li>
 <code>along</code> used to identify ‘along’ and ‘by’ dimensions</li>
+<li>if <code>zero_sum</code> is <code>TRUE</code>, sum-to-zero constraints are applied</li>
 </ul>
 </div>
 </div>
@@ -559,19 +584,15 @@ where</p>
 <span class="header-section-number">5.8.1</span> Model<a class="anchor" aria-label="anchor" href="#model-6"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \beta_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
+  \beta_{u,v}^{(m)} \sim \text{N}\left(\phi_1^{(m)} \beta_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \beta_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad v = K_m + 1, \cdots, V_m.
 \end{equation}\]</span>
 Internally, TMB derives values for <span class="math inline">\(\beta_{u,v}^{(m)}, v = 1, \cdots, K_m\)</span>, and for <span class="math inline">\(\omega_m\)</span>, that imply a stationary distribution, and that give every term <span class="math inline">\(\beta_{u,v}^{(m)}\)</span> the same marginal variance. We denote this marginal variance <span class="math inline">\(\tau_m^2\)</span>, and assign it a prior
 <span class="math display">\[\begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}\]</span>
-Each of the individual <span class="math inline">\(\phi_k^{(m)}\)</span> is restricted to the interval <span class="math inline">\((-1, 1)\)</span>, and the <span class="math inline">\(\phi_k^{(m)}\)</span> are jointly restricted to values that yield stationary models. Let
+Each of the <span class="math inline">\(\phi_k^{(m)}\)</span> has prior
 <span class="math display">\[\begin{equation}
-  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
-\end{equation}\]</span>
-We assign <span class="math inline">\(r^{(m)}\)</span> the prior
-<span class="math display">\[\begin{equation}
-  r^{(m)} \sim \text{Beta}(2, 2).
+  \frac{\phi_k^{(m)} + 1}{2} \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}).
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.8.2">
@@ -579,7 +600,7 @@ We assign <span class="math inline">\(r^{(m)}\)</span> the prior
 <span class="header-section-number">5.8.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-6"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
+  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \prod_{k=1}^{K_m} \text{Beta}\left(\tfrac{1}{2} \phi_k^{(m)} + \tfrac{1}{2} \mid 2, 2 \right) \prod_{u=1}^{U_m} p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
@@ -595,13 +616,24 @@ where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_
 <h4 id="code-6">
 <span class="header-section-number">5.8.4</span> Code<a class="anchor" aria-label="anchor" href="#code-6"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/AR.html">AR</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">2</span>, s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/AR.html">AR</a></span><span class="op">(</span>n_coef <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>   s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>   shape1 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>   shape2 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>   along <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>   zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
-<code>n</code> is <span class="math inline">\(K_m\)</span>
+<code>n_coef</code> is <span class="math inline">\(K_m\)</span>
 </li>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
+</li>
+<li>
+<code>shape1</code> is <span class="math inline">\(S_1^{(m)}\)</span>
+</li>
+<li>
+<code>shape2</code> is <span class="math inline">\(S_2^{(m)}\)</span>
 </li>
 <li>
 <code>along</code> is used to indentify the ‘along’ and ‘by’ dimensions</li>
@@ -612,7 +644,7 @@ where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_
 <h3 id="sec:pr-ar1">
 <span class="header-section-number">5.9</span> AR1()<a class="anchor" aria-label="anchor" href="#sec:pr-ar1"></a>
 </h3>
-<p>Special case or AR, but with extra options for autocorrelation coefficient.</p>
+<p>Special case or <code><a href="../reference/AR.html">AR()</a></code>, with extra options for autocorrelation coefficient.</p>
 <div class="section level4" number="5.9.1">
 <h4 id="model-7">
 <span class="header-section-number">5.9.1</span> Model<a class="anchor" aria-label="anchor" href="#model-7"></a>
@@ -621,9 +653,9 @@ where <span class="math inline">\(p\left( \beta_{u,1}^{(m)}, \cdots, \beta_{u,V_
   \beta_{u,1}^{(m)} &amp; \sim \text{N}(0, \tau_m^2), \quad u = 1, \cdots, U_m \\
   \beta_{u,v}^{(m)} &amp; \sim \text{N}(\phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2), \quad u = 1, \cdots, U_m, \quad v = 2, \cdots, V_m \\
   \phi_m &amp; = a_{0,m} + (a_{1,m} - a_{0,m}) \phi_m^{\prime} \\
-  \phi_m^{\prime} &amp; \sim \text{Beta}(2, 2) \\
+  \phi_m^{\prime} &amp; \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}) \\
   \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right).
-p\end{align}\]</span>
+\end{align}\]</span>
 This is adapted from the specification used for AR1 densities in <a href="http://kaskr.github.io/adcomp/classdensity_1_1AR1__t.html" class="external-link">TMB</a>. It implies that the marginal variance of all <span class="math inline">\(\beta_{u,v}^{(m)}\)</span> is <span class="math inline">\(\tau_m^2\)</span>. We require that <span class="math inline">\(-1 &lt; a_{0m} &lt; a_{1m} &lt; 1\)</span>.</p>
 </div>
 <div class="section level4" number="5.9.2">
@@ -631,7 +663,7 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 <span class="header-section-number">5.9.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-7"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid 2, 2) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{u=1}^{U_m} \prod_{j=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \prod_{u=1}^{U_m} \text{N}\left(\beta_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{u=1}^{U_m} \prod_{j=2}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid \phi_m \beta_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.9.3">
@@ -646,16 +678,29 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 <h4 id="code-7">
 <span class="header-section-number">5.9.4</span> Code<a class="anchor" aria-label="anchor" href="#code-7"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span>min <span class="op">=</span> <span class="fl">0.8</span>, max <span class="op">=</span> <span class="fl">0.98</span>, s <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    shape1 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    shape2 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>    min <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>    max <span class="op">=</span> <span class="fl">0.98</span>,</span>
+<span>    along <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>    zero_sum <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
 <ul>
+<li>
+<code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
+</li>
+<li>
+<code>shape1</code> is <span class="math inline">\(S_1^{(m)}\)</span>
+</li>
+<li>
+<code>shape2</code> is <span class="math inline">\(S_2^{(m)}\)</span>
+</li>
 <li>
 <code>min</code> is <span class="math inline">\(a_{0m}\)</span>
 </li>
 <li>
 <code>max</code> is <span class="math inline">\(a_{1m}\)</span>
 </li>
-<li>
-<code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>. Defaults to 1.</li>
 <li>
 <code>along</code> is used to identify ‘along’ and ‘by’ dimensions</li>
 </ul>
@@ -670,32 +715,21 @@ This is adapted from the specification used for AR1 densities in <a href="http:/
 <h4 id="model-8">
 <span class="header-section-number">5.10.1</span> Model<a class="anchor" aria-label="anchor" href="#model-8"></a>
 </h4>
-<p><strong>Existing version</strong></p>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
-  \alpha_u^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1,\cdots,U_m  \\
-  \eta_u^{(m)} &amp; \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
+  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v}^{(m)} + \epsilon_{u,v}^{(m)} \\
+  \alpha_{u,v}^{(m)} &amp; = \left(v - \frac{V_m + 1}{2}\right) \eta_u^{(m)} \\
+  \eta_u^{(m)} &amp; \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right)\\
+  \epsilon_{u,v}^{(m)} &amp; \sim \text{N}(0, \tau_m^2) \\
   \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
-<p><strong>Suggested new version</strong></p>
-<p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; \sim \text{N}(\alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2), \quad u = 1,\cdots,U_m, \quad v = 1, \cdots, V_m  \\
-  \eta_u^{(m)} &amp; \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right), \quad u = 1, \cdots, U_m \\
-  \alpha_u^{(m)} &amp; = -\frac{V_m + 1}{2} \eta_u^{(m)}, \quad u = 1,\cdots,U_m  \\
-  \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
-\end{align}\]</span>
-where <span class="math inline">\(B_{\eta}^{(m)}\)</span> and <span class="math inline">\(A_{\eta}^{(m)}\)</span> default to 0 and 1, though alternatives can be supplied by the user, or via informative priors (for instance, <span class="math inline">\(B_{\eta}^{(m)} = -0.01\)</span>, or similar, for mortality)</p>
-<p>Note that with the new version
-<span class="math display">\[\begin{equation}
-E \sum_{v=1}^{V_m} \beta_{u,v}^{(m)} = \sum_{v=1}^{V_m}\left(-\frac{V_m + 1}{2} \eta_u^{(m)} + v \eta_u^{(m)}\right) = 0
-\end{equation}\]</span></p>
+<p>Note that <span class="math inline">\(\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0\)</span>.</p>
 </div>
 <div class="section level4" number="5.10.2">
 <h4 id="contribution-to-posterior-density-8">
 <span class="header-section-number">5.10.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} | \alpha_u^{(m)} + v \eta_u^{(m)}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid B_{\eta}^{(m)}, A_{\eta}^{(m)2}) \prod_{u=1}^{U_m} \prod_{v=1}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid v - \frac{V_m + 1}{2}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.10.3">
@@ -703,20 +737,23 @@ E \sum_{v=1}^{V_m} \beta_{u,v}^{(m)} = \sum_{v=1}^{V_m}\left(-\frac{V_m + 1}{2} 
 <span class="header-section-number">5.10.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-8"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \beta_{u,V_m + h}^{(m)} \sim \text{N}(\alpha_u^{(m)} + (V_m + h) \eta_u^{(m)}, \tau_m^2)
+  \beta_{u,V_m + h}^{(m)} \sim \text{N}\left(\left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)}, \tau_m^2\right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.10.4">
 <h4 id="code-8">
 <span class="header-section-number">5.10.4</span> Code<a class="anchor" aria-label="anchor" href="#code-8"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/Lin.html">Lin</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/Lin.html">Lin</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, mean_slop <span class="op">=</span> <span class="fl">0</span>, sd_slope <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span>, zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <ul>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
 </li>
 <li>
-<code>sd</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
+<code>mean_slope</code> is <span class="math inline">\(B_{\eta}^{(m)}\)</span>
+</li>
+<li>
+<code>sd_slope</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
 </li>
 <li>
 <code>along</code> is used to indentify ‘along’ and ‘by’ dimensions</li>
@@ -732,22 +769,19 @@ E \sum_{v=1}^{V_m} \beta_{u,v}^{(m)} = \sum_{v=1}^{V_m}\left(-\frac{V_m + 1}{2} 
 <span class="header-section-number">5.11.1</span> Model<a class="anchor" aria-label="anchor" href="#model-9"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
-  \beta_{u,v}^{(m)} &amp; = \alpha_u^{(m)} + \eta_u^{(m)} v + \epsilon_{u,v}^{(m)}, \quad u = 1, \cdots, U_m, \quad v = 1, \cdots, V_m \\
-  \alpha_u^{(m)} &amp; \sim \text{N}\left(0, 1\right), \quad u = 1, \cdots, U_m \\
-  \eta_u^{(m)} &amp; \sim \text{N}\left(0, A_{\eta}^{(m)2}\right), \quad u = 1, \cdots, U_m \\
-  \epsilon_{u,v}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad u = 1, \cdots, U_m, \quad v = K_m + 1, \cdots, V_m.
+  \beta_{u,v}^{(m)} &amp; = \alpha_{u,v}^{(m)} + \epsilon_{u,v}^{(m)} \\
+  \alpha_{u,v}^{(m)} &amp; = \left(v - \frac{V_m + 1}{2}\right) \eta_u^{(m)} \\
+  \eta_u^{(m)} &amp; \sim \text{N}\left(B_{\eta}^{(m)}, (A_{\eta}^{(m)})^2\right)\\
+  \epsilon_{u,v}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,v-1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,v-{K_m}}^{(m)},  \omega_m^2\right), \quad v = K_m + 1, \cdots, V_m
 \end{align}\]</span></p>
+<p>Note that <span class="math inline">\(\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0\)</span>.</p>
 <p>Internally, TMB derives values for <span class="math inline">\(\epsilon_{u,v}^{(m)}, v = 1, \cdots, K_m\)</span>, and for <span class="math inline">\(\omega_m\)</span>, that provide the <span class="math inline">\(\epsilon_{u,v}^{(m)}\)</span> with a stationary distribution in which each term has the same marginal variance. We denote this marginal variance <span class="math inline">\(\tau_m^2\)</span>, and assign it a prior
 <span class="math display">\[\begin{equation}
   \tau_m  \sim \text{N}^+(0, A_{\tau}^{(m)2}).
 \end{equation}\]</span>
-Each of the individual <span class="math inline">\(\phi_k^{(m)}\)</span> is restricted to the interval <span class="math inline">\((-1, 1)\)</span>, and the <span class="math inline">\(\phi_k^{(m)}\)</span> are jointly restricted to values that yield stationary models. Let
+Each of the individual <span class="math inline">\(\phi_k^{(m)}\)</span> has prior
 <span class="math display">\[\begin{equation}
-  r^{(m)} = \sqrt{\phi_1^{(m)2} + \cdots + \phi_{K_m}^{(m)2}}.
-\end{equation}\]</span>
-We assign <span class="math inline">\(r^{(m)}\)</span> the prior
-<span class="math display">\[\begin{equation}
-  r^{(m)} \sim \text{Beta}(2, 2).
+  \frac{\phi_k^{(m)} + 1}{2} \sim \text{Beta}(S_1^{(m)}, S_2^{(m)}).
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.11.2">
@@ -755,7 +789,10 @@ We assign <span class="math inline">\(r^{(m)}\)</span> the prior
 <span class="header-section-number">5.11.2</span> Contribution to posterior density<a class="anchor" aria-label="anchor" href="#contribution-to-posterior-density-9"></a>
 </h4>
 <p><span class="math display">\[\begin{equation}
-  \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right) \text{Beta}\left( r_k^{(m)} \mid 2, 2 \right) \prod_{u=1}^{U_m} \text{N}(\alpha_u^{(m)} \mid 0, 1) \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
+\begin{split}
+  &amp; \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \prod_{k=1}^{K_m} \text{Beta}\left( \tfrac{1}{2} \phi_k^{(m)} + \tfrac{1}{2} \mid 2, 2 \right) \\
+  &amp; \quad \times \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)
+\end{split}
 \end{equation}\]</span>
 where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)\)</span> is calculated internally by TMB.</p>
 </div>
@@ -764,7 +801,7 @@ where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon
 <span class="header-section-number">5.11.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-9"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
-  \beta_{u, V_m + h}^{(m)} &amp; = \alpha_u^{(m)} + \eta_u^{(m)} (V_m + h) + \epsilon_{u,V_m+h}^{(m)} \\
+  \beta_{u, V_m + h}^{(m)} &amp; = \left(\frac{V_m - 1}{2}+ h\right) \eta_u^{(m)} + \epsilon_{u,V_m+h}^{(m)} \\
   \epsilon_{u,V_m+h}^{(m)} &amp; \sim \text{N}\left(\phi_1^{(m)} \epsilon_{u,V_m + h - 1}^{(m)} + \cdots + \phi_{K_m}^{(m)} \epsilon_{u,V_m+h-K_m}^{(m)}, \omega_m^2\right)
 \end{align}\]</span></p>
 </div>
@@ -772,13 +809,32 @@ where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon
 <h4 id="code-9">
 <span class="header-section-number">5.11.4</span> Code<a class="anchor" aria-label="anchor" href="#code-9"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/Lin_AR.html">Lin_AR</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">1</span>, sd <span class="op">=</span> <span class="fl">1</span>, along <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/Lin_AR.html">Lin_AR</a></span><span class="op">(</span>n_coef <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>       s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>       shape1 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>       shape2 <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>       mean_slope <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>       sd_slope <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>       along <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       zero_coef <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <ul>
+<li>
+<code>n_coef</code> is <span class="math inline">\(K_m\)</span>
+</li>
 <li>
 <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
 </li>
 <li>
-<code>sd</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
+<code>shape1</code> is <span class="math inline">\(S_1^{(m)}\)</span>
+</li>
+<li>
+<code>shape2</code> is <span class="math inline">\(S_2^{(m)}\)</span>
+</li>
+<li>
+<code>mean_slope</code> is <span class="math inline">\(B_{\eta}^{(m)}\)</span>
+</li>
+<li>
+<code>sd_slope</code> is <span class="math inline">\(A_{\eta}^{(m)}\)</span>
 </li>
 <li>
 <code>along</code> is used to indentify ‘along’ and ‘by’ variables</li>
@@ -786,8 +842,8 @@ where <span class="math inline">\(p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon
 </div>
 </div>
 <div class="section level3" number="5.12">
-<h3 id="sec:pr-lin-ar-1">
-<span class="header-section-number">5.12</span> Lin_AR()<a class="anchor" aria-label="anchor" href="#sec:pr-lin-ar-1"></a>
+<h3 id="sec:pr-lin-ar1">
+<span class="header-section-number">5.12</span> Lin_AR1()<a class="anchor" aria-label="anchor" href="#sec:pr-lin-ar1"></a>
 </h3>
 <p>TODO - WRITE DETAILS</p>
 </div>
@@ -902,12 +958,12 @@ for the independent model</p>
 <h4 id="model-12">
 <span class="header-section-number">5.15.1</span> Model<a class="anchor" aria-label="anchor" href="#model-12"></a>
 </h4>
-<p>The <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> prior is identical to the <code><a href="../reference/SVD.html">SVD()</a></code> prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models,</p>
+<p>The <code><a href="../reference/SVD_AR.html">SVD_RW()</a></code> prior is identical to the <code><a href="../reference/SVD.html">SVD()</a></code> prior except that the coefficients evolve over time, following independent random walks. For instance, in the combined-sex/gender and joint models with <span class="math inline">\(K_m\)</span> SVD components,</p>
 <p><span class="math display">\[\begin{align}
-  \pmb{\beta}_{u,t}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m; \quad t = 1, \cdots, T \\
-  \alpha_{u,k,1}^{(m)} &amp; \sim \text{N}(0, 1), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m \\
-  \alpha_{u,k,t}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,t-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m, k = 1, \cdots, K_m; t = 2, \cdots, T \\
-  \tau_m &amp; \sim \text{N}^+\left(0, A_{\tau}^{(m)2}\right)
+  \pmb{\beta}_{u,t}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,t}^{(m)} + \pmb{g}^{(m)} \\
+  \alpha_{u,k,1}^{(m)} &amp; \sim \text{N}(0, (A_0^{(m)})^2),  \\
+  \alpha_{u,k,t}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,t-1}^{(m)}, \tau_m^2), \quad t = 2, \cdots, T \\
+  \tau_m &amp; \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
 \end{align}\]</span></p>
 </div>
 <div class="section level4" number="5.15.2">
@@ -916,38 +972,38 @@ for the independent model</p>
 </h4>
 <p>In the combined-sex/gender and joint models,</p>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,k,t}^{(m)} \mid \alpha_{u,k,t-1}^{(m)}, \tau_m^2 \right),
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,k,1}^{(m)} \mid 0, (A_0^{(m)})^2)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,k,t}^{(m)} \mid \alpha_{u,k,t-1}^{(m)}, \tau_m^2 \right),
 \end{equation}\]</span></p>
 <p>and in the independent model,</p>
 <p><span class="math display">\[\begin{equation}
-  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, 1)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right)
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \prod_{s=1}^{S} \prod_{k=1}^{K_m} \text{N}(\alpha_{u,s,k,1}^{(m)} \mid 0, (A_0^{(m)})^2)  \prod_{t=2}^{T} \text{N}\left(\alpha_{u,s,k,t}^{(m)} \mid \alpha_{u,s,k,t-1}^{(m)}, \tau_m^2 \right)
 \end{equation}\]</span></p>
 </div>
 <div class="section level4" number="5.15.3">
-<h4 id="simulation">
-<span class="header-section-number">5.15.3</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
-</h4>
-<p>TODO - write</p>
-</div>
-<div class="section level4" number="5.15.4">
 <h4 id="forecasting-12">
-<span class="header-section-number">5.15.4</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
+<span class="header-section-number">5.15.3</span> Forecasting<a class="anchor" aria-label="anchor" href="#forecasting-12"></a>
 </h4>
 <p><span class="math display">\[\begin{align}
-  \alpha_{u,k,T+h}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2), \quad u = 1, \cdots, U_m; \quad k = 1, \cdots, K_m \\
-  \pmb{\beta}_{u,T+h}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)}, \quad u = 1, \cdots, U_m
+  \alpha_{u,k,T+h}^{(m)} &amp; \sim \text{N}(\alpha_{u,k,T+h-1}^{(m)}, \tau_m^2) \\
+  \pmb{\beta}_{u,T+h}^{(m)} &amp; = \pmb{F}^{(m)} \pmb{\alpha}_{u,T+h}^{(m)} + \pmb{g}^{(m)}
 \end{align}\]</span></p>
 </div>
-<div class="section level4" number="5.15.5">
+<div class="section level4" number="5.15.4">
 <h4 id="code-12">
-<span class="header-section-number">5.15.5</span> Code<a class="anchor" aria-label="anchor" href="#code-12"></a>
+<span class="header-section-number">5.15.4</span> Code<a class="anchor" aria-label="anchor" href="#code-12"></a>
 </h4>
-<pre><code><span><span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">ssvd</span>, n_comp <span class="op">=</span> <span class="cn">NULL</span>, s <span class="op">=</span> <span class="fl">1</span>, indep <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre>
+<pre><code><span><span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">ssvd</span>,</span>
+<span>       n_comp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>       indep <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>       s <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>       sd <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>       zero_sum <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre>
 <p>where
 - <code>ssvd</code> is an object containing <span class="math inline">\(\pmb{F}\)</span> and <span class="math inline">\(\pmb{g}\)</span>
-- <code>n_comp</code> is <span class="math inline">\(K_m\)</span> (which defaults to <code>ceiling(n/2)</code>, where <code>n</code> is the number of components in <code>ssvd</code>
+- <code>n_comp</code> is <span class="math inline">\(K_m\)</span>
+- <code>indep</code> determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.
 - <code>s</code> is <span class="math inline">\(A_{\tau}^{(m)}\)</span>
-- <code>indep</code> determines whether and independent or joint model will be used if the term being modelled contains a sex or gender variable.</p>
+- <code>sd</code> is <span class="math inline">\(A_0^{(m)}\)</span></p>
 </div>
 </div>
 <div class="section level3" number="5.16">
@@ -1265,8 +1321,8 @@ and setting
 <p>Finally we draw from the distribution of <span class="math inline">\(\pmb{\gamma} \mid \pmb{y}, \pmb{\theta}\)</span> using the methods described in Sections <a href="#sec:pois">3.1</a>-<a href="#sec:norm">3.3</a>.</p>
 </div>
 <div class="section level2" number="11">
-<h2 id="simulation-1">
-<span class="header-section-number">11</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation-1"></a>
+<h2 id="simulation">
+<span class="header-section-number">11</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h2>
 <p>To generate one set of simulated values, we start with values for exposure, trials, or weights, <span class="math inline">\(\pmb{w}\)</span>, and possibly covariates <span class="math inline">\(\pmb{Z}\)</span>, then go through the following steps:</p>
 <ol style="list-style-type: decimal">
@@ -1450,7 +1506,7 @@ which is equivalent to
 </tr>
 <tr class="even">
 <td align="left"><span class="math inline">\(A_0\)</span></td>
-<td align="left">Scale parameter in prior for intercept <span class="math inline">\(\beta^{(0)}\)</span>.</td>
+<td align="left">Scale parameter in prior for intercept <span class="math inline">\(\beta^{(0)}\)</span> or initial value.</td>
 </tr>
 <tr class="odd">
 <td align="left"><span class="math inline">\(\tau_m\)</span></td>

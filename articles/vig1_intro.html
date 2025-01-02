@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>1. Introduction • bage</title>
+<title>Overview • bage</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="1. Introduction">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Overview">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/vig1_intro.html">1. Introduction</a></li>
+<li><a class="dropdown-item" href="../articles/vig1_intro.html">Overview</a></li>
     <li><a class="dropdown-item" href="../articles/vig2_math.html">2. Mathematical Details</a></li>
     <li><a class="dropdown-item" href="../articles/vig3_priors.html">3. Priors</a></li>
     <li><a class="dropdown-item" href="../articles/vig4_svd.html">4. Singular Value Decomposition</a></li>
@@ -62,7 +62,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>1. Introduction</h1>
+      <h1>Overview</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/bayesiandemography/bage/blob/main/vignettes/vig1_intro.Rmd" class="external-link"><code>vignettes/vig1_intro.Rmd</code></a></small>
@@ -71,6 +71,37 @@
 
     
     
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p><strong>bage</strong> (= “Bayesian” + “age”) implements Bayesian
+hierarchical models for rates, probabilities, and means, where the
+rates, probabilities and means are classified by variables such as age,
+sex, and region. Models in <strong>bage</strong> can be used for
+estimation and for forecasting.</p>
+<p>The models in <strong>bage</strong> are hierarchical in that they are
+built out of smaller submodels. A model for mortality rates, for
+instance, might contain submodels describing how rates vary over age,
+sex, and time.</p>
+<p>Internally, <strong>bage</strong> draws on package <a href="https://CRAN.R-project.org/package=TMB" class="external-link">TMB</a> to fit the models.
+<strong>TMB</strong> is fast and can handle large datasets –
+characteristics that are inherited by <strong>bage</strong>.</p>
+<p>This vignette introduces the main features of <strong>bage</strong>,
+using data on injuries.</p>
+</div>
+<div class="section level2">
+<h2 id="preliminaries">Preliminaries<a class="anchor" aria-label="anchor" href="#preliminaries"></a>
+</h2>
+<div class="section level3">
+<h3 id="packages">Packages<a class="anchor" aria-label="anchor" href="#packages"></a>
+</h3>
+<p>We begin by loading the packages that we will need for the analysis
+of the injuries data. Loading <strong>bage</strong> automatically loads
+package <strong>rvec</strong>, which contains functions for working with
+draws from probability distributions. Package <strong>poputils</strong>
+contains functions for working with demographic data. Packages
+<strong>dplyr</strong> and <strong>tidyr</strong> are core <a href="tidyverse.org">tidyverse</a> packages for manipulating data. We
+use <strong>ggplot2</strong> to graph inputs and outputs.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: rvec</span></span>
@@ -82,7 +113,9 @@
 <span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     rank</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/rvec/" class="external-link">rvec</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error in get(paste0(generic, ".", class), envir = get_method_env()) : </span></span>
+<span><span class="co">#&gt;   object 'type_sum.accel' not found</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/poputils/" class="external-link">poputils</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
@@ -92,70 +125,808 @@
 <span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
+</h3>
+<p>We analyse a dataset called <code>nzl_injuries</code> that is
+included in the <strong>bage</strong> package. The dataset contains
+counts of fatal injuries and population in New Zealand, classified by
+age, sex, ethnicity, and year.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">:</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">age</span> <span class="op">:</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">nzl_injuries</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span></span>
+<span><span class="co">#&gt;   age   sex    ethnicity  year injuries  popn</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">35</span>830</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">35</span>120</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">32</span>830</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">27</span>130</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>380</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>160</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nzl_injuries</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2000</span>, <span class="fl">2006</span>, <span class="fl">2012</span>, <span class="fl">2018</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">injuries</span> <span class="op">/</span> <span class="va">popn</span>, color <span class="op">=</span> <span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span>,</span>
+<span>        legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig1_intro_files/figure-html/unnamed-chunk-3-1.png" width="672"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="specifying-a-model">Specifying a model<a class="anchor" aria-label="anchor" href="#specifying-a-model"></a>
+</h2>
+<div class="section level3">
+<h3 id="functions-for-specifying-models">Functions for specifying models<a class="anchor" aria-label="anchor" href="#functions-for-specifying-models"></a>
+</h3>
+<p>We specify a model in which, within each combination of age, sex,
+ethnicity, and year, injuries are treated as a random draw from a
+Poisson distribution. The function used to specify a Poisson model is
+<code><a href="../reference/mod_pois.html">mod_pois()</a></code>. Binomial models can be specified with function
+<code><a href="../reference/mod_binom.html">mod_binom()</a></code> and normal models with function
+<code><a href="../reference/mod_norm.html">mod_norm()</a></code>.</p>
+<p>The first argument to <code><a href="../reference/mod_pois.html">mod_pois()</a></code> is an R-style formula
+identifying the outcome variable and the combinations of predictor
+variables to be used in the model.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
 <span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span>
-<span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">year</span> <span class="op">~</span> <span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">mod</span></span>
-<span><span class="co">#&gt; </span></span>
+<span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="model-structure">Model structure<a class="anchor" aria-label="anchor" href="#model-structure"></a>
+</h3>
+<p>The resulting model has the following structure:</p>
+<div class="figure">
+<img src="vig1_dag.png" alt="Structure of model. Rectangles denote data, ellipses denote unknown quantities that are inferred within the model, solid arrows denote probabilistic relationships, and dashed arrows denote deterministic relationships." width="90%"><p class="caption">
+Structure of model. Rectangles denote data, ellipses denote unknown
+quantities that are inferred within the model, solid arrows denote
+probabilistic relationships, and dashed arrows denote deterministic
+relationships.
+</p>
+</div>
+<p>The number of injuries occurring within each combination of age, sex,
+ethnicity, and time reflects (i) the population at risk and (ii) an
+underlying rate that in <strong>bage</strong> is referred to as
+<code>.fitted</code>. The expected value for <code>.fitted</code> is
+obtained by summing up values for the intercept, age effect, sex effect,
+and so forth. The actual value of <code>.fitted</code> can diverge from
+<code>.expected</code>: the amount of divergence is governed by the
+<code>disp</code> (dispersion) parameter.</p>
+<p>The model terms are all given “prior distributions”. A prior
+distribution is a submodel capturing features of the unknown quantity or
+quantities being estimated. Possible features include the range within
+which the quantity is likely to fall, or the amount of smoothness
+expected in series of values. Priors distributions are a distinctive
+feature of Bayesian methods.</p>
+</div>
+<div class="section level3">
+<h3 id="printing-the-model-object">Printing the model object<a class="anchor" aria-label="anchor" href="#printing-the-model-object"></a>
+</h3>
+<p>Printing a model object provides information on its structure:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;    injuries ~ age:sex + age:ethnicity + year</span></span>
+<span><span class="co">#&gt;    injuries ~ age * sex + age * ethnicity + year</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;           term  prior along n_par n_par_free</span></span>
 <span><span class="co">#&gt;    (Intercept) NFix()     -     1          1</span></span>
-<span><span class="co">#&gt;           year  AR1()  year    19         19</span></span>
-<span><span class="co">#&gt;        age:sex   RW()   age    24         22</span></span>
-<span><span class="co">#&gt;  age:ethnicity   RW()   age    24         22</span></span>
+<span><span class="co">#&gt;            age   RW()   age    12         12</span></span>
+<span><span class="co">#&gt;            sex NFix()     -     2          2</span></span>
+<span><span class="co">#&gt;      ethnicity NFix()     -     2          2</span></span>
+<span><span class="co">#&gt;           year   RW()  year    19         19</span></span>
+<span><span class="co">#&gt;        age:sex   RW()   age    24         24</span></span>
+<span><span class="co">#&gt;  age:ethnicity   RW()   age    24         24</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  disp: mean = 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender</span></span>
-<span><span class="co">#&gt;    1000            1     year     age           sex</span></span></code></pre></div>
-<!-- ```{r} -->
-<!-- mod <- mod |> -->
-<!--   fit() -->
-<!-- mod -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- tidy(mod) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- augment(mod) -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- mod |> -->
-<!--   augment() |> -->
-<!--   mutate(draws_ci(.fitted)) |> -->
-<!--   select(-(1:6)) -->
-<!-- ``` -->
-<!-- Plot fitted values with 95% credible intervals (<span style="color: darkblue;">blue</span>) and direct estimates (<span style="color: darkorange;">orange</span>). -->
-<!-- ```{r fig, fig.width = 7, fig.height = 5} -->
-<!-- mod |> -->
-<!--   augment() |> -->
-<!--   mutate(draws_ci(.fitted)) |> -->
-<!--   filter(year >= 2017, -->
-<!--          ethnicity == "Maori") |> -->
-<!--   ggplot(aes(x = age, y = .fitted.mid)) + -->
-<!--   facet_grid(vars(sex), vars(year)) + -->
-<!--   geom_point(aes(y = .observed),  -->
-<!--              col = "darkorange") + -->
-<!--   geom_pointrange(aes(ymin = .fitted.lower, ymax = .fitted.upper), -->
-<!--                   fatten = 0.5, -->
-<!--                   color = "darkblue") -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- components(mod, type = "par") -->
-<!-- ``` -->
-<!-- ```{r} -->
-<!-- components(mod, type = "hyper") -->
-<!-- ``` -->
-  </main>
+<span><span class="co">#&gt;  n_draw var_time var_age var_sexgender</span></span>
+<span><span class="co">#&gt;    1000     year     age           sex</span></span></code></pre></div>
+<p>The table in the the middle of the printout above shows the default
+prior distribution assigned to each term. We return to priors in Section
+@ref(sec:priors).</p>
+<p>The bottom row of the printed object shows various model settings.
+<code>n_draw</code> is the number of random draws produced by extractor
+functions, which we discuss in Section @ref(sec:outputs).
+<code>var_time</code>, <code>var_age</code>, and
+<code>var_sexgender</code> are the names of the variables in
+<code>nzl_injuries</code> that represent time, age, and sex or gender.
+If <strong>bage</strong> fails to correctly identify these variables,
+they can be identified using functions such as
+<code><a href="../reference/set_var_time.html">set_var_time()</a></code>.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="sec:fitting">Fitting a model<a class="anchor" aria-label="anchor" href="#sec:fitting"></a>
+</h2>
+<div class="section level3">
+<h3 id="fit">fit()<a class="anchor" aria-label="anchor" href="#fit"></a>
+</h3>
+<p>Function <code><a href="../reference/mod_pois.html">mod_pois()</a></code> specifies a model, but does not
+actually estimate any of the unknown quantities in the model. For that,
+we need function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="reprinting-the-model-object">Reprinting the model object<a class="anchor" aria-label="anchor" href="#reprinting-the-model-object"></a>
+</h3>
+<p>The printout for a fitted model differs from that of an unfitted
+model.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span></span>
+<span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;    injuries ~ age * sex + age * ethnicity + year</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;           term  prior along n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;    (Intercept) NFix()     -     1          1       -</span></span>
+<span><span class="co">#&gt;            age   RW()   age    12         12    0.71</span></span>
+<span><span class="co">#&gt;            sex NFix()     -     2          2    0.11</span></span>
+<span><span class="co">#&gt;      ethnicity NFix()     -     2          2    0.36</span></span>
+<span><span class="co">#&gt;           year   RW()  year    19         19    0.09</span></span>
+<span><span class="co">#&gt;        age:sex   RW()   age    24         24    0.43</span></span>
+<span><span class="co">#&gt;  age:ethnicity   RW()   age    24         24    0.13</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  disp: mean = 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  n_draw var_time var_age var_sexgender optimizer</span></span>
+<span><span class="co">#&gt;    1000     year     age           sex     multi</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
+<span><span class="co">#&gt;        0.59       0.24        0.22   13      TRUE   relative convergence (4)</span></span></code></pre></div>
+<p>Among other things, a new row appears at the bottom of the printout,
+providing information about the fitting process. The most important
+value piece of information is whether the calculations have
+converged.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="sec:outputs">Extracting outputs<a class="anchor" aria-label="anchor" href="#sec:outputs"></a>
+</h2>
+<div class="section level3">
+<h3 id="extractor-functions">Extractor functions<a class="anchor" aria-label="anchor" href="#extractor-functions"></a>
+</h3>
+<p>Function <code><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit()</a></code> derives values for the unknown
+quantities, but does not return these quantities. For that, we need an
+extractor function. The two most important extractor functions in
+<strong>bage</strong> are <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> and
+<code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>. Both of these are generic functions that work
+on many sorts of R objects (see <a href="https://generics.r-lib.org/index.html" class="external-link">here</a> and <a href="https://www.tidymodels.org/learn/develop/broom/#glossary" class="external-link">here</a>).</p>
+</div>
+<div class="section level3">
+<h3 id="augment">augment()<a class="anchor" aria-label="anchor" href="#augment"></a>
+</h3>
+<p><code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> returns the original dataset plus some
+additional columns of estimated values,</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">aug</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">aug</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 9</span></span></span>
+<span><span class="co">#&gt;    age   sex    ethnicity  year injuries  popn .observed</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">35</span>830 0.000<span style="text-decoration: underline;">335</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">35</span>120 0.000<span style="text-decoration: underline;">171</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">32</span>830 0.000<span style="text-decoration: underline;">091</span>4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">27</span>130 0.000<span style="text-decoration: underline;">221</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>380 0.000<span style="text-decoration: underline;">246</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>160 0.000<span style="text-decoration: underline;">248</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">22</span>560 0.000<span style="text-decoration: underline;">532</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">22</span>230 0.000<span style="text-decoration: underline;">135</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">18</span>130 0.000<span style="text-decoration: underline;">331</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">13</span>770 0.000<span style="text-decoration: underline;">436</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 902 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
+<p>The columns of estimated values are <code>.observed</code>,
+<code>.fitted</code>, and <code>.expected</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">aug</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">.observed</span>, <span class="va">.fitted</span>, <span class="va">.expected</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 3</span></span></span>
+<span><span class="co">#&gt;    .observed                    .fitted                  .expected</span></span>
+<span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0.000<span style="text-decoration: underline;">335</span>    3e-04 (0.00023, 0.00038) 0.00029 (0.00026, 0.00034)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 0.000<span style="text-decoration: underline;">171</span>  7.8e-05 (5.9e-05, 0.00011)   7.5e-05 (6.1e-05, 9e-05)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 0.000<span style="text-decoration: underline;">091</span>4   1e-04 (7.5e-05, 0.00013)   1e-04 (8.6e-05, 0.00012)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.000<span style="text-decoration: underline;">221</span>  0.00041 (0.00032, 0.00053)   0.00045 (4e-04, 0.00051)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.000<span style="text-decoration: underline;">246</span>  0.00038 (0.00029, 0.00049)   4e-04 (0.00036, 0.00046)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0.000<span style="text-decoration: underline;">248</span>  0.00035 (0.00026, 0.00044) 0.00037 (0.00032, 0.00042)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.000<span style="text-decoration: underline;">532</span>  0.00038 (0.00029, 0.00048) 0.00036 (0.00032, 0.00042)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0.000<span style="text-decoration: underline;">135</span>    0.00031 (0.00024, 4e-04)   0.00034 (3e-04, 0.00038)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.000<span style="text-decoration: underline;">331</span>  0.00033 (0.00025, 0.00042) 0.00033 (0.00029, 0.00038)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0.000<span style="text-decoration: underline;">436</span>  0.00031 (0.00024, 0.00041)   3e-04 (0.00026, 0.00035)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 902 more rows</span></span></span></code></pre></div>
+<p>In a Poisson model with exposures,</p>
+<ul>
+<li>
+<code>.observed</code> is a “direct” estimate of the rate, obtained
+by dividing the the outcome variable by the population at risk;</li>
+<li>
+<code>.expected</code> is a model-based estimate of the rate, based
+purely on model predictors (eg age, sex, time); and</li>
+<li>
+<code>.fitted</code> is a model-based estimate of the rate that is a
+compromise between <code>.observed</code> and
+<code>.expected</code>.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="components">components()<a class="anchor" aria-label="anchor" href="#components"></a>
+</h3>
+<p><code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> is used to extract values for higher-level
+parameters. It returns values for all the parameters.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">comp</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">comp</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 89 × 4</span></span></span>
+<span><span class="co">#&gt;    term        component level                  .fitted</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept) -1.7 (-3.4, 0.051)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -1.7 (-3.4, 0.005)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> age         effect    5-9            -3 (-4.6, -1.2)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> age         effect    10-14       -2.5 (-4.2, -0.76)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> age         effect    15-19       -0.87 (-2.6, 0.89)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> age         effect    20-24        -0.77 (-2.5, 1.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> age         effect    25-29           -0.9 (-2.6, 1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> age         effect    30-34       -0.96 (-2.7, 0.95)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> age         effect    35-39       -0.99 (-2.7, 0.92)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    40-44       -0.99 (-2.7, 0.93)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 79 more rows</span></span></span></code></pre></div>
+<p>A little bit of manipulation is required to extract and graph the
+parameter of interest,</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">age_effect</span> <span class="op">&lt;-</span> <span class="va">comp</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">term</span> <span class="op">==</span> <span class="st">"age"</span>,</span>
+<span>         <span class="va">component</span> <span class="op">==</span> <span class="st">"effect"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span>age <span class="op">=</span> <span class="va">level</span>, <span class="va">.fitted</span><span class="op">)</span></span>
+<span><span class="va">age_effect</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 12 × 2</span></span></span>
+<span><span class="co">#&gt;    age              .fitted</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   -1.7 (-3.4, 0.005)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9      -3 (-4.6, -1.2)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 -2.5 (-4.2, -0.76)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 -0.87 (-2.6, 0.89)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24  -0.77 (-2.5, 1.1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29     -0.9 (-2.6, 1)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 -0.96 (-2.7, 0.95)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 -0.99 (-2.7, 0.92)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44 -0.99 (-2.7, 0.93)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49  -1.1 (-2.8, 0.91)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> 50-54    -1 (-2.8, 0.94)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> 55-59 -0.97 (-2.8, 0.95)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="posterior-samples">Posterior samples<a class="anchor" aria-label="anchor" href="#posterior-samples"></a>
+</h3>
+<p>The output from a Bayesian model typically consists of draws from the
+“posterior distribution” for unknown quantities. The posterior
+distribution is a probability distribution that describes what we know
+about the unknown quantities in the model after applying our combining
+model assumptions (including priors) and data.</p>
+</div>
+<div class="section level3">
+<h3 id="rvecs">Rvecs<a class="anchor" aria-label="anchor" href="#rvecs"></a>
+</h3>
+<p>Draws from probability distributions can be awkward to work with, so
+<strong>bage</strong> uses a special type of vector, called an “rvec”,
+implemented by package <strong>rvec</strong>. An rvec contains multiple
+draws, but tries to behave as much as possible like a standard numerical
+vector. The printout of <code>.fitted</code> and <code>.expected</code>
+in the <code>aug</code> object above shows medians and 95% credible
+intervals.</p>
+</div>
+<div class="section level3">
+<h3 id="graphing-outputs">Graphing outputs<a class="anchor" aria-label="anchor" href="#graphing-outputs"></a>
+</h3>
+<p>The best way to understand output from a fitted model it to graph it.
+We first need to prepare data for the graph. We select values for 2018
+and use the <code><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci()</a></code> function from <strong>rvec</strong>
+to create 95% credible intervals.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_plot</span> <span class="op">&lt;-</span> <span class="va">aug</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op">==</span> <span class="fl">2018</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">data_plot</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">".fitted"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 48 × 4</span></span></span>
+<span><span class="co">#&gt;                       .fitted .fitted.lower .fitted.mid .fitted.upper</span></span>
+<span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0.00023 (0.00017, 0.00029)     0.000<span style="text-decoration: underline;">167</span>    0.000<span style="text-decoration: underline;">228</span>      0.000<span style="text-decoration: underline;">293</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5.8e-05 (4.1e-05, 7.7e-05)     0.000<span style="text-decoration: underline;">041</span>0   0.000<span style="text-decoration: underline;">058</span>0     0.000<span style="text-decoration: underline;">076</span>9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 8.7e-05 (6.3e-05, 0.00012)     0.000<span style="text-decoration: underline;">063</span>3   0.000<span style="text-decoration: underline;">087</span>3     0.000<span style="text-decoration: underline;">115</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.00036 (0.00028, 0.00045)     0.000<span style="text-decoration: underline;">278</span>    0.000<span style="text-decoration: underline;">360</span>      0.000<span style="text-decoration: underline;">449</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.00035 (0.00027, 0.00044)     0.000<span style="text-decoration: underline;">267</span>    0.000<span style="text-decoration: underline;">345</span>      0.000<span style="text-decoration: underline;">438</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0.00032 (0.00025, 0.00042)     0.000<span style="text-decoration: underline;">250</span>    0.000<span style="text-decoration: underline;">318</span>      0.000<span style="text-decoration: underline;">419</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.00034 (0.00026, 0.00044)     0.000<span style="text-decoration: underline;">259</span>    0.000<span style="text-decoration: underline;">339</span>      0.000<span style="text-decoration: underline;">435</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>   0.00027 (2e-04, 0.00035)     0.000<span style="text-decoration: underline;">204</span>    0.000<span style="text-decoration: underline;">273</span>      0.000<span style="text-decoration: underline;">351</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.00028 (0.00021, 0.00037)     0.000<span style="text-decoration: underline;">213</span>    0.000<span style="text-decoration: underline;">282</span>      0.000<span style="text-decoration: underline;">366</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0.00023 (0.00018, 0.00031)     0.000<span style="text-decoration: underline;">179</span>    0.000<span style="text-decoration: underline;">235</span>      0.000<span style="text-decoration: underline;">312</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 38 more rows</span></span></span></code></pre></div>
+<p>We then use <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot()</a></code> to visualise the outputs. In the
+figure below we use use <code><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon()</a></code> to plot credible
+intervals, <code><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line()</a></code> to plot model-based point estimates,
+and <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point()</a></code> to plot direct estimates.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_plot</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://bayesiandemography.github.io/poputils/reference/age_lower.html" class="external-link">age_mid</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">.fitted.lower</span>,</span>
+<span>                  ymax <span class="op">=</span> <span class="va">.fitted.upper</span><span class="op">)</span>,</span>
+<span>              fill <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.fitted.mid</span><span class="op">)</span>,</span>
+<span>            color <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.observed</span><span class="op">)</span>,</span>
+<span>             color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig1_intro_files/figure-html/unnamed-chunk-14-1.png" width="672"></p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="sec:priors">Priors<a class="anchor" aria-label="anchor" href="#sec:priors"></a>
+</h2>
+<div class="section level3">
+<h3 id="priors-in-bayesian-models">Priors in Bayesian models<a class="anchor" aria-label="anchor" href="#priors-in-bayesian-models"></a>
+</h3>
+<p>In a Bayesian model, every unknown quantity needs a prior
+distribution. When the data provides lots of information on the value of
+an unknown quantity, the particular choice of prior distribution for
+that quantity does not normally have much effect on the ultimate
+estimates for the quantity. But when the data provides only limited
+information, different priors can lead to very different estimates. The
+choice of prior is particularly important when forecasting, since the
+data provides provides only indirect information about events in the
+future.</p>
+</div>
+<div class="section level3">
+<h3 id="current-priors-in-bage">Current priors in bage<a class="anchor" aria-label="anchor" href="#current-priors-in-bage"></a>
+</h3>
+<p><code><a href="../reference/priors.html">help(priors)</a></code> produces a list of the priors that have
+been implemented so far in <strong>bage</strong>.</p>
+<p>Examples of priors are:</p>
+<ul>
+<li>
+<code><a href="../reference/NFix.html">NFix()</a></code>. Each element of the term being modeled is drawn
+from a normal distribution with mean <code>0</code>, and standard
+deviation <code>sd</code>. By default, <code>sd</code> is 1.</li>
+<li>
+<code><a href="../reference/N.html">N()</a></code>. Like <code><a href="../reference/NFix.html">NFix()</a></code>, but <code>sd</code> is
+estimated from the data.</li>
+<li>
+<code><a href="../reference/RW.html">RW()</a></code>. The elements of the term being modeled follow a
+random walk. This is appropriate for terms involving time and age, where
+neighboring elements are strongly correlated.</li>
+<li>
+<code><a href="../reference/AR1.html">AR1()</a></code>. First-order autoregressive process. Suitable for
+time series that revert to a mean value.</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="defaults">Defaults<a class="anchor" aria-label="anchor" href="#defaults"></a>
+</h3>
+<p><strong>bage</strong> uses the following rules to assign default
+priors to a model term:</p>
+<ul>
+<li>if the term has less than 3 elements, use <code><a href="../reference/NFix.html">NFix()</a></code>;</li>
+<li>otherwise, if the term involves time, use <code><a href="../reference/RW.html">RW()</a></code>, with
+time as the `along’ dimension;</li>
+<li>otherwise, if the term involves age, use <code><a href="../reference/RW.html">RW()</a></code>, with age
+as the `along’ dimension;</li>
+<li>otherwise, use <code><a href="../reference/N.html">N()</a></code>.</li>
+</ul>
+<p>Priors can be over-ridden using <code><a href="../reference/set_prior.html">set_prior()</a></code>:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">year</span> <span class="op">~</span> <span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Replacing a prior deletes any existing estimates and returns a model
+to an ‘unfitted’ state.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/is_fitted.html">is_fitted</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<p>So we re-fit the model.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="svd-based-priors">SVD-based priors<a class="anchor" aria-label="anchor" href="#svd-based-priors"></a>
+</h3>
+<p><strong>bage</strong> implements a special type of prior based on
+applying a singular value decomposition (SVD) to data from international
+databases. These SVD-based priors represent the age-sex patterns in
+demographic processes such as fertility, mortality, and labor force
+participation in a parsimonious way. The model below, for instance, uses
+SVD-based priors for age effects and age-time interactions in a model of
+regional fertility rates in Korea. Note that the number of free
+parameters (denoted <code>n_par_free</code>) for <code>age</code> and
+<code>age:time</code> in the printout below is much less than the total
+number of parameters (denoted <code>n_par</code>) for <code>age</code>
+and <code>age:time</code>.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod_births</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">births</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">region</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">time</span>,</span>
+<span>                       data <span class="op">=</span> <span class="va">kor_births</span>,</span>
+<span>                       exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">time</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">mod_births</span></span>
+<span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;    births ~ age * region + age * time</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   exposure = popn</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;         term       prior along n_par n_par_free std_dev</span></span>
+<span><span class="co">#&gt;  (Intercept)      NFix()     -     1          1       -</span></span>
+<span><span class="co">#&gt;          age    SVD(HFD)     -     9          3    1.66</span></span>
+<span><span class="co">#&gt;       region         N()     -    16         16    0.03</span></span>
+<span><span class="co">#&gt;         time        RW()  time    13         13    0.46</span></span>
+<span><span class="co">#&gt;   age:region        RW()   age   144        144    0.57</span></span>
+<span><span class="co">#&gt;     age:time SVD_RW(HFD)  time   117         39    1.89</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  disp: mean = 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  n_draw var_time var_age optimizer</span></span>
+<span><span class="co">#&gt;    1000     time     age     multi</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
+<span><span class="co">#&gt;        1.55       0.82        0.57   18      TRUE   relative convergence (4)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="forecasting">Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a>
+</h2>
+<p>Forecasts can be constructed by calling function
+<code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> on a model object. When <code>output</code> is
+<code>"augment"</code> (the default), <code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> produces
+values like those produced by <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">aug_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">aug_forecast</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "age"       "sex"       "ethnicity" "year"      "injuries"  "popn"     </span></span>
+<span><span class="co">#&gt; [7] ".observed" ".fitted"   ".expected"</span></span></code></pre></div>
+<p>When <code>output</code> is <code>"components"</code>,
+<code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> produces values like those produced by
+<code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code>.</p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">comp_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span>,</span>
+<span>           output <span class="op">=</span> <span class="st">"components"</span><span class="op">)</span></span>
+<span><span class="va">comp_forecast</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 4</span></span></span>
+<span><span class="co">#&gt;    term  component level              .fitted</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> year  effect    2019  -0.089 (-0.38, 0.17)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> year  effect    2020  -0.088 (-0.44, 0.24)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> year  effect    2021  -0.081 (-0.45, 0.31)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> year  effect    2022  -0.068 (-0.51, 0.33)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> year  effect    2023  -0.063 (-0.53, 0.38)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> year  effect    2024  -0.062 (-0.55, 0.41)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> year  effect    2025  -0.056 (-0.56, 0.44)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> year  effect    2026  -0.043 (-0.56, 0.44)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> year  effect    2027   -0.032 (-0.6, 0.46)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> year  effect    2028  -0.022 (-0.56, 0.45)</span></span></code></pre></div>
+<p>When <code>include_estimates</code> is <code>TRUE</code>, the return
+value includes historical estimates. This is useful for plotting.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_forecast</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fl">2019</span><span class="op">:</span><span class="fl">2028</span>,</span>
+<span>           include_estimates <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">sex</span> <span class="op">==</span> <span class="st">"Female"</span>,</span>
+<span>         <span class="va">age</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10-14"</span>, <span class="st">"25-29"</span>, <span class="st">"40-44"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_forecast</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">.fitted.lower</span>,</span>
+<span>                  ymax <span class="op">=</span> <span class="va">.fitted.upper</span><span class="op">)</span>,</span>
+<span>              fill <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.fitted.mid</span><span class="op">)</span>,</span>
+<span>            color <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.observed</span><span class="op">)</span>,</span>
+<span>             color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span>  </span>
+<span><span class="co">#&gt; Warning: Removed 60 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
+<p><img src="vig1_intro_files/figure-html/unnamed-chunk-21-1.png" width="672"></p>
+</div>
+<div class="section level2">
+<h2 id="imputation">Imputation<a class="anchor" aria-label="anchor" href="#imputation"></a>
+</h2>
+<p><strong>bage</strong> automatically accommodates missing values in
+the outcome variables. We illustrate with a version of the injuries
+dataset where values for 2010–2014 are set to <code>NA</code>.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">years_mis</span> <span class="op">&lt;-</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2014</span></span>
+<span></span>
+<span><span class="va">injuries_mis</span> <span class="op">&lt;-</span> <span class="va">nzl_injuries</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>injuries <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">years_mis</span>, <span class="cn">NA</span>, <span class="va">injuries</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>We fit our exactly the same model that we use for the complete
+dataset.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">injuries</span> <span class="op">~</span> <span class="va">age</span> <span class="op">*</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">age</span> <span class="op">*</span> <span class="va">ethnicity</span> <span class="op">+</span> <span class="va">year</span>,</span>
+<span>                    data <span class="op">=</span> <span class="va">injuries_mis</span>,</span>
+<span>                    exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><strong>bage</strong> creates a new variable, called
+<code>.injuries</code> containing imputed values for the missing
+outcomes.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod_mis</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">years_mis</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 240 × 10</span></span></span>
+<span><span class="co">#&gt;    age   sex    ethnicity  year injuries    .injuries  popn .observed</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   11 (5, 20) <span style="text-decoration: underline;">43</span>440        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>     3 (0, 7) <span style="text-decoration: underline;">36</span>340        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>     3 (0, 8) <span style="text-decoration: underline;">35</span>520        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   14 (7, 23) <span style="text-decoration: underline;">34</span>960        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>   12 (5, 19) <span style="text-decoration: underline;">31</span>060        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 15) <span style="text-decoration: underline;">24</span>000        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    8 (3, 14) <span style="text-decoration: underline;">23</span>180        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    7 (2, 13) <span style="text-decoration: underline;">24</span>260        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    7 (2, 13) <span style="text-decoration: underline;">22</span>660        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>010       <span style="color: #BB0000;">NA</span>    6 (2, 12) <span style="text-decoration: underline;">21</span>730        <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 230 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
+<p>Rates estimates in years where the outcome is missing have wider
+credible intervals than rates estimates in years where the outcome is
+observed.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_plot_mis</span> <span class="op">&lt;-</span> <span class="va">mod_mis</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">age</span> <span class="op">==</span> <span class="st">"20-24"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://bayesiandemography.github.io/rvec/reference/draws_ci.html" class="external-link">draws_ci</a></span><span class="op">(</span><span class="va">.fitted</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">data_plot_mis</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">ethnicity</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">.fitted.lower</span>,</span>
+<span>                  ymax <span class="op">=</span> <span class="va">.fitted.upper</span><span class="op">)</span>,</span>
+<span>              fill <span class="op">=</span> <span class="st">"lightblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.fitted.mid</span><span class="op">)</span>,</span>
+<span>            color <span class="op">=</span> <span class="st">"darkblue"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">.observed</span><span class="op">)</span>,</span>
+<span>             color <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 20 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_point()`).</span></span></code></pre></div>
+<p><img src="vig1_intro_files/figure-html/unnamed-chunk-25-1.png" width="672"></p>
+</div>
+<div class="section level2">
+<h2 id="data-models">Data models<a class="anchor" aria-label="anchor" href="#data-models"></a>
+</h2>
+<p>So far we have ignored the possibility that the input data for our
+models might be subject to measurement errors. However,
+<code>injuries</code> variable in the <code>nzl_injuries</code> dataset
+is subject to a special sort of error: Statistics New Zealand has
+randomly-rounded the values to base 3 to protect confidentiality.</p>
+<p>To deal with measurement error, we add a ‘data model’ to our
+model.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_datamod_outcome_rr3.html">set_datamod_outcome_rr3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>The results from calling <code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code> now include a
+variable called <code>.injuries</code> with estimated values for the
+true, unrounded injury counts.</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 912 × 10</span></span></span>
+<span><span class="co">#&gt;    age   sex    ethnicity  year injuries    .injuries  popn .observed</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12  12 (10, 14) <span style="text-decoration: underline;">35</span>830 0.000<span style="text-decoration: underline;">335</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6     5 (4, 8) <span style="text-decoration: underline;">35</span>120 0.000<span style="text-decoration: underline;">171</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3     3 (1, 5) <span style="text-decoration: underline;">32</span>830 0.000<span style="text-decoration: underline;">091</span>4</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6     7 (5, 8) <span style="text-decoration: underline;">27</span>130 0.000<span style="text-decoration: underline;">221</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">24</span>380 0.000<span style="text-decoration: underline;">246</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">24</span>160 0.000<span style="text-decoration: underline;">248</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12  11 (10, 14) <span style="text-decoration: underline;">22</span>560 0.000<span style="text-decoration: underline;">532</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 35-39 Female Maori      <span style="text-decoration: underline;">2</span>000        3     4 (2, 5) <span style="text-decoration: underline;">22</span>230 0.000<span style="text-decoration: underline;">135</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 40-44 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">18</span>130 0.000<span style="text-decoration: underline;">331</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 45-49 Female Maori      <span style="text-decoration: underline;">2</span>000        6     6 (4, 8) <span style="text-decoration: underline;">13</span>770 0.000<span style="text-decoration: underline;">436</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 902 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: .fitted &lt;rdbl&lt;1000&gt;&gt;, .expected &lt;rdbl&lt;1000&gt;&gt;</span></span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="model-checking">Model checking<a class="anchor" aria-label="anchor" href="#model-checking"></a>
+</h2>
+<div class="section level3">
+<h3 id="replicate-data">Replicate data<a class="anchor" aria-label="anchor" href="#replicate-data"></a>
+</h3>
+<p>A standard Bayesian approach to checking a model is to use the model
+to generate simulate data and see if the simulated data looks like the
+actual data. Function <code><a href="../reference/replicate_data.html">replicate_data()</a></code> creates multiple
+sets of simulated data.</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rep_data</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/replicate_data.html">replicate_data</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">rep_data</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 18,240 × 7</span></span></span>
+<span><span class="co">#&gt;    .replicate age   sex    ethnicity  year injuries  popn</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Original   0-4   Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">35</span>830</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Original   5-9   Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">35</span>120</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Original   10-14 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">32</span>830</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Original   15-19 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">27</span>130</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Original   20-24 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>380</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Original   25-29 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">24</span>160</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Original   30-34 Female Maori      <span style="text-decoration: underline;">2</span>000       12 <span style="text-decoration: underline;">22</span>560</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Original   35-39 Female Maori      <span style="text-decoration: underline;">2</span>000        3 <span style="text-decoration: underline;">22</span>230</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Original   40-44 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">18</span>130</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Original   45-49 Female Maori      <span style="text-decoration: underline;">2</span>000        6 <span style="text-decoration: underline;">13</span>770</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18,230 more rows</span></span></span></code></pre></div>
+<p>Comparing full datasets is difficult, so the usual strategy is to
+calculate summary measures that capture some important feature of the
+data, and compare those instead. Here we see if the model is properly
+capturing male-female differences in injury rates.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sex_ratio</span> <span class="op">&lt;-</span> <span class="va">rep_data</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">.replicate</span>, <span class="va">year</span>, <span class="va">sex</span>, wt <span class="op">=</span> <span class="va">injuries</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">sex</span>, values_from <span class="op">=</span> <span class="va">n</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>ratio <span class="op">=</span> <span class="va">Male</span> <span class="op">/</span> <span class="va">Female</span><span class="op">)</span></span>
+<span><span class="va">sex_ratio</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 380 × 5</span></span></span>
+<span><span class="co">#&gt;    .replicate  year Female  Male ratio</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Original    <span style="text-decoration: underline;">2</span>000    279   873  3.13</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Original    <span style="text-decoration: underline;">2</span>001    276   846  3.07</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Original    <span style="text-decoration: underline;">2</span>002    303   855  2.82</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Original    <span style="text-decoration: underline;">2</span>003    330   873  2.65</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Original    <span style="text-decoration: underline;">2</span>004    306   840  2.75</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Original    <span style="text-decoration: underline;">2</span>005    300   876  2.92</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Original    <span style="text-decoration: underline;">2</span>006    291   828  2.85</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Original    <span style="text-decoration: underline;">2</span>007    321   843  2.63</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Original    <span style="text-decoration: underline;">2</span>008    339   864  2.55</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Original    <span style="text-decoration: underline;">2</span>009    303   900  2.97</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 370 more rows</span></span></span></code></pre></div>
+<p>We graph the results and see if the original data looks like it was
+drawn from the same underlying distribution as the simulated data.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">sex_ratio</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">year</span>, y <span class="op">=</span> <span class="va">ratio</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">.replicate</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="vig1_intro_files/figure-html/unnamed-chunk-30-1.png" width="672"></p>
+</div>
+<div class="section level3">
+<h3 id="simulation-studies">Simulation studies<a class="anchor" aria-label="anchor" href="#simulation-studies"></a>
+</h3>
+<p>A simulation study, where we create the data ourselves, and hence
+know what the underlying true values are, can be a useful way of
+assessing model performance. In the example below, we use function
+<code><a href="../reference/report_sim.html">report_sim()</a></code> to perform a simple simulation study where the
+true population is generated using a first-order random walk, but the
+estimation model assumes that the population is generated using a
+second-order random walk.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Create simulated data</span></span>
+<span><span class="va">fake_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2001</span><span class="op">:</span><span class="fl">2010</span>, </span>
+<span>                        population <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Define the true data-generating model</span></span>
+<span><span class="va">mod_rw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">population</span> <span class="op">~</span> <span class="va">year</span>,</span>
+<span>                   data <span class="op">=</span> <span class="va">fake_data</span>,</span>
+<span>                   exposure <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">`(Intercept)`</span> <span class="op">~</span> <span class="fu"><a href="../reference/NFix.html">NFix</a></span><span class="op">(</span>sd <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">year</span> <span class="op">~</span> <span class="fu"><a href="../reference/RW.html">RW</a></span><span class="op">(</span>s <span class="op">=</span> <span class="fl">0.1</span>, sd <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Define the estimation model</span></span>
+<span><span class="va">mod_rw2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mod_pois.html">mod_pois</a></span><span class="op">(</span><span class="va">population</span> <span class="op">~</span> <span class="va">year</span>,</span>
+<span>                    data <span class="op">=</span> <span class="va">fake_data</span>,</span>
+<span>                    exposure <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">year</span> <span class="op">~</span> <span class="fu"><a href="../reference/RW2.html">RW2</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Run the simulation</span></span>
+<span><span class="fu"><a href="../reference/report_sim.html">report_sim</a></span><span class="op">(</span>mod_est <span class="op">=</span> <span class="va">mod_rw2</span>, mod_sim <span class="op">=</span> <span class="va">mod_rw</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $components</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 7</span></span></span>
+<span><span class="co">#&gt;   term        component  .error .cover_50 .cover_95 .length_50 .length_95</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> (Intercept) effect    -<span style="color: #BB0000;">0.031</span><span style="color: #BB0000; text-decoration: underline;">1</span>     0.95       1          1.13       3.34</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> year        effect    -<span style="color: #BB0000;">0.225</span>      0.779      1          1.51       4.50</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> disp        disp      -<span style="color: #BB0000;">0.028</span><span style="color: #BB0000; text-decoration: underline;">0</span>     0.48       0.87       1.17       4.92</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $augment</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 7</span></span></span>
+<span><span class="co">#&gt;   .var      .observed    .error .cover_50 .cover_95 .length_50 .length_95</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> .fitted        1.08 -<span style="color: #BB0000;">0.209</span>        0.522     0.965      0.885       2.97</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> .expected      1.08  0.000<span style="text-decoration: underline;">438</span>     0.59      0.993      1.06        9.90</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="prior-predictive-checks">Prior predictive checks<a class="anchor" aria-label="anchor" href="#prior-predictive-checks"></a>
+</h3>
+<p>Another way of gaining insights about a model is to look at estimates
+based purely on the priors, without using data on the outcome variable.
+In <strong>bage</strong>, this can be done by calling
+<code><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment()</a></code>, <code><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components()</a></code> or
+<code><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast()</a></code> on an unfitted version of the model.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/unfit.html">unfit</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://generics.r-lib.org/reference/components.html" class="external-link">components</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Model not fitted, so values drawn straight from prior distribution.</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 90 × 4</span></span></span>
+<span><span class="co">#&gt;    term        component level                   .fitted</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> (Intercept) effect    (Intercept)   0.061 (-2.1, 1.9)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> age         effect    0-4         -0.0028 (-1.9, 1.9)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> age         effect    5-9           0.036 (-2.6, 2.6)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> age         effect    10-14        -0.046 (-3.4, 3.5)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> age         effect    15-19        -0.039 (-4.4, 3.9)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> age         effect    20-24          -0.1 (-5.3, 4.8)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> age         effect    25-29        -0.057 (-5.5, 5.3)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> age         effect    30-34        -0.016 (-5.7, 5.8)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> age         effect    35-39        -0.058 (-6.2, 6.8)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> age         effect    40-44         -0.11 (-6.5, 7.2)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 80 more rows</span></span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="future-development-of-bage">Future development of bage<a class="anchor" aria-label="anchor" href="#future-development-of-bage"></a>
+</h2>
+<div class="section level3">
+<h3 id="future-features">Future features<a class="anchor" aria-label="anchor" href="#future-features"></a>
+</h3>
+<p><strong>bage</strong> is a new package, and still under very active
+development. Some features that we intend to add are:</p>
+<ul>
+<li>
+<strong>Covariates</strong> The ability to add covariates as
+predictors in a model, eg data on regional incomes in a model of
+regional mortality.</li>
+<li>
+<strong>Data models</strong> Additional data models, eg models that
+allow for under-reporting of events, or errors in the exposure
+variable.</li>
+<li>
+<strong>Priors</strong> More options for priors, eg a damped linear
+trend.</li>
+<li>
+<strong>Sets of priors</strong> Pre-specified collections of priors
+for specific purposes such as modelling fertility rates</li>
+<li>
+<strong>Documentation</strong> More vignettes and examples.</li>
+<li>
+<strong>Model choice</strong> Tools for model comparison and model
+choice</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="experimental-status">Experimental status<a class="anchor" aria-label="anchor" href="#experimental-status"></a>
+</h3>
+<p><strong>bage</strong> currently has an <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a> life cycle badge, to warn users
+that some features of the <strong>bage</strong> interface, such as
+function arguments, are still evolving. From version 0.9.0 onwards,
+however, we will use a formal deprecation process to manage any changes
+to existing function arguments or defaults.</p>
+</div>
+<div class="section level3">
+<h3 id="bug-reports-and-feature-requests">Bug reports and feature requests<a class="anchor" aria-label="anchor" href="#bug-reports-and-feature-requests"></a>
+</h3>
+<p>We would be grateful for bug reports or suggestions for features. The
+best way to do so is to raise an issue on the <a href="https://github.com/bayesiandemography/bage/issues" class="external-link">bage GitHub
+repository</a>.</p>
+</div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
