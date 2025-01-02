@@ -9,7 +9,6 @@ A \link[tibble:tibble-package]{tibble} with 1,872 rows and the following
 columns:
 \itemize{
 \item \code{age} Five-year age groups from \verb{"10-14" to }"50-54"`
-\item \code{sex} \code{"Female"} and \code{"Male"}
 \item \code{region} Administrative region
 \item \code{time} Calendar year, 2011-2023
 \item \code{births} Counts of births

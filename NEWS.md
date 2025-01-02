@@ -12,6 +12,8 @@
   spent by `TMB::sdreport` rather than the time spent by drawing from
   the multivariate normal (which, since **bage** started using
   **sparseMVN**, is very short).
+* Finished vignette 1.
+* Corrected error in help for `kor_births`.
 
 
 # bage 0.8.5
