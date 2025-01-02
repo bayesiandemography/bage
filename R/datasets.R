@@ -9,7 +9,7 @@
 #' @format
 #' A [tibble][tibble::tibble-package] with 5,300 rows and the following
 #' columns:
-#' 
+#'
 #' - `age` Single year of age, up to `"105+"`
 #' - `sex` `"Female"` and `"Male"`
 #' - `time` Calendar year, 1998-2022
@@ -32,9 +32,8 @@
 #' @format
 #' A [tibble][tibble::tibble-package] with 1,872 rows and the following
 #' columns:
-#' 
+#'
 #' - `age` Five-year age groups from `"10-14" to `"50-54"`
-#' - `sex` `"Female"` and `"Male"`
 #' - `region` Administrative region
 #' - `time` Calendar year, 2011-2023
 #' - `births` Counts of births
@@ -56,7 +55,7 @@
 #' @format
 #' A [tibble][tibble::tibble-package] with 242 rows
 #' and the following columns:
-#' 
+#'
 #' - `age`: 5-year age groups, `"15-19"` to `"65+"`
 #' - `sex`: `"Female"` or `"Male"`
 #' - `time`: Calendar year
@@ -79,13 +78,13 @@
 
 
 #' Per Capita Health Expenditure in the Netherlands, 2003-2011
-#' 
+#'
 #' Per capita health expenditure, in Euros,
 #' by diagnostic group, age group, and year, in the Netherlands.
 #'
 #' @format A [tibble][tibble::tibble-package] with 1,296 rows and the
 #' following columns:
-#' 
+#'
 #' - `diag` Diagnostic group
 #' - `age` 5-year age groups, with open age
 #' group of 85+
@@ -111,7 +110,7 @@
 #' @format
 #' A [tibble][tibble::tibble-package] with 528 rows and the
 #' following columns:
-#' 
+#'
 #' - `age`: 5-year age groups, with open age
 #'    group of 65+
 #' - `region`: Region within New Zealand
@@ -140,7 +139,7 @@
 #' @format
 #' A [tibble][tibble::tibble-package]
 #' with 912 rows and the following columns:
-#' 
+#'
 #' - `age`: 5-year age groups, up to age 55-59
 #' - `sex`: `"Female"` or `"Male"`
 #' - `ethnicity`: `"Maori"` or `"Non Maori"`
@@ -169,7 +168,7 @@
 #' @format
 #' A [tibble][tibble::tibble-package]
 #' with 72 rows and the following columns:
-#' 
+#'
 #' - `month`: Year and month.
 #' - `deaths`: Count of deaths.
 #'

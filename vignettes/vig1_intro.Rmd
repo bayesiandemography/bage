@@ -49,7 +49,7 @@ library(ggplot2)
 
 ## Data
 
-We analyse a dataset called `nzl_injuries` that is included in the **bage** package. The dataset contains counts of injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
+We analyse a dataset called `nzl_injuries` that is included in the **bage** package. The dataset contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
 
 ```{r}
 head(nzl_injuries)
@@ -124,13 +124,13 @@ The printout for a fitted model differs from that of an unfitted model.
 mod
 ```
 
-Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged. In our case, they have.
+Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.
 
 # Extracting outputs {#sec:outputs}
 
 ## Extractor functions
 
-Function `fit()` derives values for the unknown quantities, but does not itself return them. For that, we need an extractor function. The two most important such functions are `augment()` and `components()`. Both of these are generic functions that work on many sorts of R objects (see [here](https://generics.r-lib.org/index.html) and [here](https://www.tidymodels.org/learn/develop/broom/#glossary)).
+Function `fit()` derives values for the unknown quantities, but does not return these quantities. For that, we need an extractor function. The two most important extractor functions in **bage** are `augment()` and `components()`. Both of these are generic functions that work on many sorts of R objects (see [here](https://generics.r-lib.org/index.html) and [here](https://www.tidymodels.org/learn/develop/broom/#glossary)).
 
 ## augment()
 
@@ -142,51 +142,18 @@ aug <- mod |>
 aug
 ```
 
-The columns with the estimates are `.observed`, `.fitted`, and `.expected`.
+The columns of estimated values are `.observed`, `.fitted`, and `.expected`.
 
 ```{r}
 aug |>
   select(.observed, .fitted, .expected) 
 ```
 
-In the case of a Poisson model with exposures, 
-- `.observed` is the "direct" estimate of the rate, that is, the reported value for the outcome divided by the reported value for the population at risk;
-- `.expected` is a model-based estimate of the rate based purely on model predictors (eg age, sex, time); and
+In a Poisson model with exposures,
+
+- `.observed` is a "direct" estimate of the rate, obtained by dividing the the outcome variable by the population at risk;
+- `.expected` is a model-based estimate of the rate, based purely on model predictors (eg age, sex, time); and
 - `.fitted` is a model-based estimate of the rate that is a compromise between `.observed` and `.expected`.
-
-## Posterior samples
-
-The output from a Bayesian model typically consists of draws from the "posterior distribution" for unknown quantities. The posterior distribution is a probability distribution that describes what we know about the unknown quantities in the model after applying our combining our model assumptions (our priors) and our data.
-
-## Rvecs
-
-Draws from probability distributions can be awkward to work with, so **bage** uses a special type of vector, called an "rvec", implemented by package **rvec**. An rvec contains multiple draws, but tries to behave as much as possible like a standard numerical vector. The printout of `.fitted` and `.expected` in the `aug` object above shows medians and 95\% credible intervals.
-
-## Graphing outputs
-
-The best way to understand output from a fitted model it to graph it. We first need to prepare data for the graph. We select values for 2018 and use the `draws_ci()` function from **rvec** to create 95\% credible intervals.
-
-```{r}
-data_plot <- aug |>
-  filter(year == 2018) |>
-  mutate(draws_ci(.fitted))
-data_plot |>
-  select(starts_with(".fitted"))
-```
-
-We then use `ggplot()` to visualise the outputs. In the figure below we use use `geom_ribbon()` for credible intervals, `geom_line()` for model-based point estimates, and `geom_point()` for direct estimates.
-
-```{r}
-ggplot(data_plot, aes(x = age_mid(age))) +
-  facet_grid(vars(sex), vars(ethnicity)) +
-  geom_ribbon(aes(ymin = .fitted.lower,
-                  ymax = .fitted.upper),
-              fill = "lightblue") +
-  geom_line(aes(y = .fitted.mid),
-            color = "darkblue") +
-  geom_point(aes(y = .observed),
-             color = "red")
-```
 
 ## components()
 
@@ -204,34 +171,61 @@ A little bit of manipulation is required to extract and graph the parameter of i
 age_effect <- comp |>
   filter(term == "age",
          component == "effect") |>
-  select(age = level, .fitted) |>
-  mutate(draws_ci(.fitted))
+  select(age = level, .fitted)
+age_effect
+```
 
-ggplot(age_effect, aes(x = age_mid(age))) +
+## Posterior samples
+
+The output from a Bayesian model typically consists of draws from the "posterior distribution" for unknown quantities. The posterior distribution is a probability distribution that describes what we know about the unknown quantities in the model after applying our combining model assumptions (including priors) and data.
+
+## Rvecs
+
+Draws from probability distributions can be awkward to work with, so **bage** uses a special type of vector, called an "rvec", implemented by package **rvec**. An rvec contains multiple draws, but tries to behave as much as possible like a standard numerical vector. The printout of `.fitted` and `.expected` in the `aug` object above shows medians and 95\% credible intervals.
+
+## Graphing outputs
+
+The best way to understand output from a fitted model it to graph it. We first need to prepare data for the graph. We select values for 2018 and use the `draws_ci()` function from **rvec** to create 95\% credible intervals.
+
+```{r}
+data_plot <- aug |>
+  filter(year == 2018) |>
+  mutate(draws_ci(.fitted))
+data_plot |>
+  select(starts_with(".fitted"))
+```
+
+We then use `ggplot()` to visualise the outputs. In the figure below we use use `geom_ribbon()` to plot credible intervals, `geom_line()` to plot model-based point estimates, and `geom_point()` to plot direct estimates.
+
+```{r}
+ggplot(data_plot, aes(x = age_mid(age))) +
+  facet_grid(vars(sex), vars(ethnicity)) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
               fill = "lightblue") +
   geom_line(aes(y = .fitted.mid),
-            color = "darkblue")
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+             color = "red") +
+  xlab("age")
 ```
-
-Wide credible intervals like those for the age effect above are common for high-level parameters. The wide intervals are a symptom of the fact that the individual parameters themselves are not well defined, even though the sum of the parameters (which is ultimately the thing we care about) are not.
 
 # Priors {#sec:priors}
 
 ## Priors in Bayesian models
 
-In a Bayesian model, every unknown quantity needs a prior distribution. The less information a dataset contains on a parameter, the more the estimate of that parameter is influenced by the prior. For instance, if a dataset has many observations for one group, and only a few observations for a second group, then estimates for the for the second group will be much more sensitive to the choice of prior than estimates for teh second group. The choice of prior is particularly important when forecasting, since, by definition, there is no data for events in the future.
+In a Bayesian model, every unknown quantity needs a prior distribution. When the data provides lots of information on the value of an unknown quantity, the particular choice of prior distribution for that quantity does not normally have much effect on the ultimate estimates for the quantity. But when the data provides only limited information, different priors can lead to very different estimates. The choice of prior is particularly important when forecasting, since the data provides provides only indirect information about events in the future.
 
 ## Current priors in bage
 
 `help(priors)` produces a list of the priors that have been implemented so far in **bage**. 
 
-The two priors in the injuries model above are `NFix()` and `RW()`:
+Examples of priors are:
 
-With `NFix()`, each element of the term being modeled is drawn from a normal distribution with mean `0`, and standard deviation `sd`. By default, `sd` is 1.
-
-With `RW()`, elements follow a random walk. `RW()` is suitable for terms where elements that are neighbors are more strongly correlated than elements that are distant from each other. It capture that idea that, for instance, rates for age groups 20--24 and 25--29 are likely to be more strongly correlated than rates for age groups 20--24 and 70--74.
+- `NFix()`. Each element of the term being modeled is drawn from a normal distribution with mean `0`, and standard deviation `sd`. By default, `sd` is 1.
+- `N()`. Like `NFix()`, but `sd` is estimated from the data.
+- `RW()`. The elements of the term being modeled follow a random walk. This is appropriate for terms involving time and age, where neighboring elements are strongly correlated.
+- `AR1()`. First-order autoregressive process. Suitable for time series that revert to a mean value.
 
 ## Defaults
 
@@ -242,37 +236,52 @@ With `RW()`, elements follow a random walk. `RW()` is suitable for terms where e
 - otherwise, if the term involves age, use `RW()`, with age as the `along' dimension;
 - otherwise, use `N()`.
 
-The `N()` prior is the same as the `NFix()` prior, except that the standard deviation term is estimated from the data rather than specified in advance.
-
 Priors can be over-ridden using `set_prior()`:
 
 ```{r}
 mod <- mod |>
   set_prior(year ~ AR1())
-mod
 ```
 
-Note that replacing a prior deletes any existing estimates and reverts a model to 'unfitted'.
+Replacing a prior deletes any existing estimates and returns a model to an 'unfitted' state.
 
-We re-fit the model.
+```{r}
+is_fitted(mod)
+```
+
+So we re-fit the model.
 
 ```{r}
 mod <- mod |>
   fit()
 ```
 
+## SVD-based priors
+
+**bage** implements a special type of prior based on applying a singular value decomposition (SVD) to data from international databases. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted `n_par_free`) for `age` and `age:time` in the printout below is much less than the total number of parameters (denoted `n_par`) for `age` and `age:time`.
+
+```{r}
+mod_births <- mod_pois(births ~ age * region + age * time,
+                       data = kor_births,
+                       exposure = popn) |>
+  set_prior(age ~ SVD(HFD)) |>
+  set_prior(age:time ~ SVD_RW(HFD)) |>
+  fit()
+mod_births
+```
+
 
 # Forecasting
 
-To use a model for forecasting, call function `forecast()` on the model object. When `output` is `"augment"` (the default), `forecast()` produces values like those produced by `augment()`.
+Forecasts can be constructed by calling function `forecast()` on a model object. When `output` is `"augment"` (the default), `forecast()` produces values like those produced by `augment()`.
 
 ```{r}
 aug_forecast <- mod |>
   forecast(labels = 2019:2028)
-aug_forecast
+names(aug_forecast)
 ```
 
-When `output` is `"components"`, `forecast()` values like those produced by `components()`.
+When `output` is `"components"`, `forecast()` produces values like those produced by `components()`.
 
 ```{r}
 comp_forecast <- mod |>
@@ -281,7 +290,7 @@ comp_forecast <- mod |>
 comp_forecast
 ```
 
-When `include_estimates` to `TRUE`, the return value includes historical estimates, which can be useful for making graphs.
+When `include_estimates` is `TRUE`, the return value includes historical estimates. This is useful for plotting.
 
 ```{r}
 data_forecast <- mod |>
@@ -303,6 +312,74 @@ ggplot(data_forecast, aes(x = year)) +
              color = "red")  
 ```
 
+# Imputation
+
+**bage** automatically accommodates missing values in the outcome variables. We illustrate with a version of the injuries dataset where values for 2010--2014 are set to `NA`.
+
+```{r}
+years_mis <- 2010:2014
+
+injuries_mis <- nzl_injuries |>
+  mutate(injuries = if_else(year %in% years_mis, NA, injuries))
+```
+
+We fit our exactly the same model that we use for the complete dataset.
+
+```{r}
+mod_mis <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
+                    data = injuries_mis,
+                    exposure = popn) |>
+  fit()
+```
+
+**bage** creates a new variable, called `.injuries` containing imputed values for the missing outcomes.
+
+```{r}
+mod_mis |>
+  augment() |>
+  filter(year %in% years_mis)
+```
+
+Rates estimates in years where the outcome is missing have wider credible intervals than rates estimates in years where the outcome is observed.
+
+```{r}
+data_plot_mis <- mod_mis |>
+  augment() |>
+  filter(age == "20-24") |>
+  mutate(draws_ci(.fitted))
+
+ggplot(data_plot_mis, aes(x = year)) +
+  facet_grid(vars(sex), vars(ethnicity)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+             color = "red") +
+  xlab("age")
+```
+
+
+# Data models
+
+So far we have ignored the possibility that the input data for our models might be subject to measurement errors. However, `injuries` variable in the `nzl_injuries` dataset is subject to a special sort of error: Statistics New Zealand has randomly-rounded the values to base 3 to protect confidentiality. 
+
+To deal with measurement error, we add a 'data model' to our model.
+
+```{r}
+mod <- mod |>
+  set_datamod_outcome_rr3() |>
+  fit()
+```
+
+The results from calling `augment()` now include a variable called `.injuries` with estimated values for the true, unrounded injury counts.
+
+```{r}
+mod |>
+  augment()
+```
+
 
 # Model checking
 
@@ -316,8 +393,7 @@ rep_data <- mod |>
 rep_data
 ```
 
-Comparing full datasets is difficult, so the usual strategy is to calculate summary measures that capture some important feature of the data, and compare those. Here we see if the model is properly capturing the male-female ratio in injuries.
-
+Comparing full datasets is difficult, so the usual strategy is to calculate summary measures that capture some important feature of the data, and compare those instead. Here we see if the model is properly capturing male-female differences in injury rates.
 
 ```{r}
 sex_ratio <- rep_data |>
@@ -339,30 +415,35 @@ ggplot(sex_ratio, aes(x = year, y = ratio)) +
 
 ## Simulation studies
 
-A simulation study, where we create the data ourselves, and hence know what the underlying true values are, can be a useful way of assessing model performance. Function `report_sim()` aims to make it easy to conduct simulation studies. In the example below, we construct data where population follows a first-order random walk, apply a model that assumes that population follows a second-order random walk, and then measure the performance of the estimation model.
+A simulation study, where we create the data ourselves, and hence know what the underlying true values are, can be a useful way of assessing model performance. In the example below, we use function `report_sim()` to perform a simple simulation study where the true population is generated using a first-order random walk, but the estimation model assumes that the population is generated using a second-order random walk.
 
 ```{r}
 set.seed(0)
+
+## Create simulated data
 fake_data <- data.frame(year = 2001:2010, 
                         population = NA)
 
+## Define the true data-generating model
 mod_rw <- mod_pois(population ~ year,
                    data = fake_data,
                    exposure = 1) |>
   set_prior(`(Intercept)` ~ NFix(sd = 0.1)) |>
   set_prior(year ~ RW(s = 0.1, sd = 0.1))
 
+## Define the estimation model
 mod_rw2 <- mod_pois(population ~ year,
                     data = fake_data,
                     exposure = 1) |>
   set_prior(year ~ RW2())
 
+## Run the simulation
 report_sim(mod_est = mod_rw2, mod_sim = mod_rw)
 ```
 
 ## Prior predictive checks
 
-Another way of gaining insights about a model is to see what the model implies about the unknowns *before*, based purely on the priors, without using the data. In **bage**, this can be done by calling `augment()`, `components()` and `forecast()` on an unfitted version of the model.
+Another way of gaining insights about a model is to look at estimates based purely on the priors, without using data on the outcome variable. In **bage**, this can be done by calling `augment()`, `components()` or `forecast()` on an unfitted version of the model.
 
 ```{r}
 mod |>
@@ -370,27 +451,24 @@ mod |>
   components()
 ```
 
-# SVD-based models
 
-
-
-# Imputation
-
-
-# Future development of 'bage'
-
-## Experimental status
+# Future development of bage
 
 ## Future features
 
-- Covariates
-- More data models
-- Informative priors (including sets)
-- More priors (eg damped linear trend)
-- More documentation
-- Automated model choice
-- 
+**bage** is a new package, and still under very active development. Some features that we intend to add are:
+
+- **Covariates** The ability to add covariates as predictors in a model, eg data on regional incomes in a model of regional mortality.
+- **Data models** Additional data models, eg models that allow for under-reporting of events, or errors in the exposure variable.
+- **Priors** More options for priors, eg a damped linear trend.
+- **Sets of priors** Pre-specified collections of priors for specific purposes such as modelling fertility rates
+- **Documentation** More vignettes and examples.
+- **Model choice** Tools for model comparison and model choice
+
+## Experimental status
+
+**bage** currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the **bage** interface, such as function arguments, are still evolving. From version 0.9.0 onwards, however, we will use a formal deprecation process to manage any changes to existing function arguments or defaults.
 
 ## Bug reports and feature requests
 
-
+We would be grateful for bug reports or suggestions for features. The best way to do so is to raise an issue on the [bage GitHub repository](https://github.com/bayesiandemography/bage/issues).
