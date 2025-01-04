@@ -340,7 +340,7 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                                      iter = iter,
                                      converged = converged,
                                      message = message)
-  mod$optimizer <- optimizer
+  mod$optimizer <- optimizer_original
   mod$oldpar <- est
   mod
 }

@@ -3,6 +3,7 @@
     Code
       print(mod)
     Output
+      
           ------ Unfitted Poisson model ------
       
          deaths ~ age + sex + time
@@ -21,12 +22,14 @@
       
        n_draw var_time var_age var_sexgender
          1000     time     age           sex
+      
 
 # 'print' works with mod_pois - inner-outer fitting method
 
     Code
       print(mod)
     Output
+      
           ------ Unfitted Poisson model ------
       
          deaths ~ age + sex + time
@@ -43,4 +46,5 @@
       
        n_draw var_time var_age var_sexgender
          1000     time     age           sex
+      
 
