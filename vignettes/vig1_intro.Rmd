@@ -37,7 +37,7 @@ This vignette introduces the main features of **bage**, using data on injuries.
 
 ## Packages
 
-We begin by loading the packages that we will need for the analysis of the injuries data. Loading **bage** automatically loads package **rvec**, which contains functions for  working with draws from probability distributions. Package **poputils** contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](tidyverse.org) packages for manipulating data. We use **ggplot2** to graph inputs and outputs.
+We begin by loading the packages that we will need for the analysis of the injuries data. Loading **bage** automatically loads package **rvec**, which contains functions for  working with draws from probability distributions. Package **poputils** contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](https://www.tidyverse.org) packages for manipulating data. We use **ggplot2** to graph inputs and outputs.
 
 ```{r setup}
 library(bage)
