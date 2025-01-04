@@ -1785,6 +1785,7 @@ print.bage_mod <- function(x, ...) {
   }
   is_inner_outer <- is_fitted && !is.null(vars_inner)
   ## printing
+  cat("\n")
   cat(str_title)
   cat("\n\n")
   cat(paste(formula_text, collapse = "\n"))
@@ -1811,6 +1812,7 @@ print.bage_mod <- function(x, ...) {
     cat("\n")
     print(computations, row.names = FALSE)
   }
+  cat("\n")
   ## return
   invisible(x)
 }
