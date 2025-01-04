@@ -1,4 +1,9 @@
+# bage 0.9.0
 
+* From 0.9.0 onwards we will use a formal deprecation make any
+  breaking changes
+* Tweaks to printing of `"bage_mod"` objects
+* 
 
 # bage 0.8.6
 

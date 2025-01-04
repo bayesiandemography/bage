@@ -1,4 +1,12 @@
 
+# Submission, 5 January 2025, version 0.9.0
+
+* `devtools::check(remote = TRUE, manual = TRUE)` and
+  `devtools::check_win_devel()` passing
+* Some current CRAN checks have notes, but these refer to the compiled
+  library size
+
+
 # Revised submission, 23 August 2024, version 0.7.4
 
 ```

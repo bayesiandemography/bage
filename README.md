@@ -37,25 +37,23 @@ mod
 #> 
 #>     ------ Fitted Poisson model ------
 #> 
-#> 
 #>    injuries ~ age:sex + ethnicity + year
 #> 
 #>   exposure = popn
 #> 
-#> 
 #>         term  prior along n_par n_par_free std_dev
 #>  (Intercept) NFix()     -     1          1       -
 #>    ethnicity NFix()     -     2          2    0.45
-#>         year   RW()  year    19         18    0.09
-#>      age:sex   RW()   age    24         22    0.88
+#>         year   RW()  year    19         19    0.09
+#>      age:sex   RW()   age    24         24    0.88
 #> 
+#>  disp: mean = 1
 #> 
-#>  n_draw pr_mean_disp var_time var_age var_sexgender optimizer
-#>    1000            1     year     age           sex    nlminb
+#>  n_draw var_time var_age var_sexgender optimizer
+#>    1000     year     age           sex     multi
 #> 
-#> 
-#>  time_total time_optim time_draws iter converged                    message
-#>        1.00       0.29       0.02   11      TRUE   relative convergence (4)
+#>  time_total time_optim time_report iter converged                    message
+#>        1.04       0.31        0.30   11      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates
