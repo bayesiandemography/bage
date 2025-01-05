@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -219,6 +219,7 @@ deaths but no population. Our model is then</p>
 <span>                 data <span class="op">=</span> <span class="va">dth</span>,</span>
 <span>                 exposure <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">popn</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">0.5</span>, <span class="va">popn</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mod_base</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age * sex + time</span></span>
@@ -332,6 +333,7 @@ has a penalized-complexity prior <span class="citation">[@simpson2022priors]</sp
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_base</span><span class="op">)</span></span>
 <span><span class="va">mod_base</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age * sex + time</span></span>
@@ -351,7 +353,7 @@ has a penalized-complexity prior <span class="citation">[@simpson2022priors]</sp
 <span><span class="co">#&gt;    1000     time     age           sex     multi</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        2.02       0.88        0.73   16      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        2.00       0.87        0.73   16      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="extracting-rates">Extracting rates<a class="anchor" aria-label="anchor" href="#extracting-rates"></a>
@@ -514,6 +516,7 @@ sex.</p>
 <span>                    exposure <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">deaths</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">popn</span> <span class="op">==</span> <span class="fl">0</span>, <span class="fl">0.5</span>, <span class="va">popn</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">sex</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD.html">SVD</a></span><span class="op">(</span><span class="va">HMD</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mod_hmd</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age:sex + time</span></span>
@@ -532,6 +535,7 @@ sex.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span><span class="va">mod_hmd</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    deaths ~ age:sex + time</span></span>
@@ -549,7 +553,7 @@ sex.</p>
 <span><span class="co">#&gt;    1000     time     age           sex     multi</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.65       0.81        0.68   10      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.64       0.80        0.68   10      TRUE   relative convergence (4)</span></span></code></pre></div>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">aug_hmd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod_hmd</span><span class="op">)</span></span>
 <span></span>

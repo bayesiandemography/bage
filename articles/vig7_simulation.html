@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,6 +113,7 @@ Figure 1.1: Simulation study of a model
 <span>                data <span class="op">=</span> <span class="va">divorces_small</span>,</span>
 <span>                    exposure <span class="op">=</span> <span class="va">population</span><span class="op">)</span></span>
 <span><span class="va">mod</span>     </span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    divorces ~ age * sex + time</span></span>
@@ -170,6 +171,7 @@ Figure 1.1: Simulation study of a model
 <code class="sourceCode R"><span><span class="va">mod_ar1</span> <span class="op">&lt;-</span> <span class="va">mod</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">time</span> <span class="op">~</span> <span class="fu"><a href="../reference/AR1.html">AR1</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">mod_ar1</span> </span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    divorces ~ age * sex + time</span></span>

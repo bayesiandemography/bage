@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -100,8 +100,8 @@ of the injuries data. Loading <strong>bage</strong> automatically loads
 package <strong>rvec</strong>, which contains functions for working with
 draws from probability distributions. Package <strong>poputils</strong>
 contains functions for working with demographic data. Packages
-<strong>dplyr</strong> and <strong>tidyr</strong> are core <a href="tidyverse.org">tidyverse</a> packages for manipulating data. We
-use <strong>ggplot2</strong> to graph inputs and outputs.</p>
+<strong>dplyr</strong> and <strong>tidyr</strong> are core <a href="https://www.tidyverse.org" class="external-link">tidyverse</a> packages for manipulating
+data. We use <strong>ggplot2</strong> to graph inputs and outputs.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bayesiandemography.github.io/bage/">bage</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: rvec</span></span>
@@ -211,6 +211,7 @@ feature of Bayesian methods.</p>
 <p>Printing a model object provides information on its structure:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Unfitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    injuries ~ age * sex + age * ethnicity + year</span></span>
@@ -264,6 +265,7 @@ we need function <code><a href="https://generics.r-lib.org/reference/fit.html" c
 model.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    injuries ~ age * sex + age * ethnicity + year</span></span>
@@ -562,6 +564,7 @@ and <code>age:time</code>.</p>
 <span>  <span class="fu"><a href="../reference/set_prior.html">set_prior</a></span><span class="op">(</span><span class="va">age</span><span class="op">:</span><span class="va">time</span> <span class="op">~</span> <span class="fu"><a href="../reference/SVD_AR.html">SVD_RW</a></span><span class="op">(</span><span class="va">HFD</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://generics.r-lib.org/reference/fit.html" class="external-link">fit</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">mod_births</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    births ~ age * region + age * time</span></span>

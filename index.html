@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,25 +86,23 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     ------ Fitted Poisson model ------</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;    injuries ~ age:sex + ethnicity + year</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   exposure = popn</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;         term  prior along n_par n_par_free std_dev</span></span>
 <span><span class="co">#&gt;  (Intercept) NFix()     -     1          1       -</span></span>
 <span><span class="co">#&gt;    ethnicity NFix()     -     2          2    0.45</span></span>
-<span><span class="co">#&gt;         year   RW()  year    19         18    0.09</span></span>
-<span><span class="co">#&gt;      age:sex   RW()   age    24         22    0.88</span></span>
+<span><span class="co">#&gt;         year   RW()  year    19         19    0.09</span></span>
+<span><span class="co">#&gt;      age:sex   RW()   age    24         24    0.88</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  disp: mean = 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  n_draw pr_mean_disp var_time var_age var_sexgender optimizer</span></span>
-<span><span class="co">#&gt;    1000            1     year     age           sex    nlminb</span></span>
+<span><span class="co">#&gt;  n_draw var_time var_age var_sexgender optimizer</span></span>
+<span><span class="co">#&gt;    1000     year     age           sex     multi</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  time_total time_optim time_draws iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.00       0.29       0.02   11      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
+<span><span class="co">#&gt;        1.04       0.31        0.30   11      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Extract model-based and direct estimates</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>

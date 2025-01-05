@@ -19,7 +19,7 @@ publication-quality graphics and summaries."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -116,6 +116,7 @@ model</p></li>
 <span class="r-in"><span>                data <span class="op">=</span> <span class="va">nzl_injuries</span>,</span></span>
 <span class="r-in"><span>                exposure <span class="op">=</span> <span class="va">popn</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mod</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Unfitted Poisson model ------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age:sex + ethnicity + year</span>
@@ -132,9 +133,11 @@ model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw var_time var_age var_sexgender</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1000     year     age           sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu">set_n_draw</span><span class="op">(</span>n_draw <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     ------ Unfitted Poisson model ------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    injuries ~ age:sex + ethnicity + year</span>
@@ -151,6 +154,7 @@ model</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  n_draw var_time var_age var_sexgender</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    5000     year     age           sex</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
