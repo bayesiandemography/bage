@@ -336,7 +336,7 @@ AR(s = 0.01) |>
 
 ### Specify 'along' and 'by' dimensions
 
-```{r}
+```{r, fig.height = 4.5}
 set.seed(0)
 
 AR() |>
@@ -346,7 +346,7 @@ AR() |>
 
 ### Specify 'along' and 'by' dimensions, set `con = "by"`
 
-```{r}
+```{r, fig.height = 4.5}
 set.seed(0)
 
 AR(con = "by") |>
@@ -564,7 +564,7 @@ Lin(mean_slope = 0.2, sd_slope = 0.1) |>
 
 ### Specify 'along' and 'by' dimensions
 
-```{r}
+```{r, fig.height = 4.5}
 set.seed(0)
 
 Lin() |>
@@ -574,7 +574,7 @@ Lin() |>
 
 ### Specify 'along' and 'by' dimensions, set `con = "by"`
 
-```{r}
+```{r, fig.height = 4.5}
 set.seed(0)
 
 Lin(con = "by") |>
@@ -735,7 +735,7 @@ Sp(s = 0.01, sd = 0.01, sd_slope = 0.01) |>
 
 `n_comp = NULL`, `indep = TRUE`
 
-```{r}
+```{r, fig.height = 3}
 set.seed(0)
 
 SVD(HMD) |>
@@ -748,7 +748,7 @@ SVD(HMD) |>
 
 `n_comp = 5`, `indep = TRUE`
 
-```{r}
+```{r, fig.height = 2}
 SVD(HMD, n_comp = 5) |>
   generate(n_draw = 8) |>
   plot_svd_one()
@@ -756,7 +756,7 @@ SVD(HMD, n_comp = 5) |>
 
 ### Set `indep` to `FALSE`
 
-```{r}
+```{r, fig.height = 2}
 SVD(HMD, indep = FALSE) |>
   generate(n_draw = 8) |>
   plot_svd_one()
@@ -764,7 +764,7 @@ SVD(HMD, indep = FALSE) |>
 
 ### Multiple units
 
-```{r}
+```{r, fig.height = 4.5}
 SVD(HMD, indep = FALSE) |>
   generate(n_draw = 8, n_element = 3) |>
   plot_svd_many()
@@ -773,7 +773,7 @@ SVD(HMD, indep = FALSE) |>
 
 ## Dynamic SVD Prior: `SVD_AR()`
 
-```{r}
+```{r, fig.height = 8}
 SVD_AR(HMD, indep = FALSE, s = 0.1) |>
   generate(n_draw = 6, n_along = 5) |>
     ggplot(aes(x = age_mid(age), 

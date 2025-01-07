@@ -50,7 +50,7 @@ swe_infant
 
 The figure below shows direct estimates of infant mortality rates. The panels are ordered by the size of the county, as measured by the number of births.
 
-```{r, fig.height = 5}
+```{r, fig.height = 6}
 ggplot(swe_infant, aes(x = time, y = deaths / births)) +
   facet_wrap(vars(county)) +
   geom_line()
@@ -93,12 +93,12 @@ aug_init
 ```
 
 And we graph the results.
-```{r, fig.height = 5}
+```{r, fig.height = 7}
 ggplot(aug_init, aes(x = time)) +
   facet_wrap(vars(county)) +
   geom_ribbon(aes(ymin = .fitted.lower,
                   ymax = .fitted.upper),
-              color = "lightblue") +
+              fill = "lightblue") +
   geom_line(aes(y = .fitted.mid),
             color = "darkblue") +
   geom_point(aes(y = .observed),
@@ -165,8 +165,6 @@ The county effect and time effect each have `sd` parameters, which we also extra
 comp_init |>
   filter(component == "hyper")
 ```
-
-
 
 ## An aside on weakly-identified effects
 
@@ -244,18 +242,18 @@ ggplot(prob_25, aes(x = time, y = prob)) +
 
 ## Forecast
 
-We forecast mortality rates through to 2027.  By default, the `forecast()` function returns output that looks like a return value from `augment()`. When `include_estimates` is `TRUE, the output includes historical values.
+We forecast mortality rates through to 2025.  By default, the `forecast()` function returns output that looks like a return value from `augment()`. When `include_estimates` is `TRUE, the output includes historical values.
 
 ```{r}
 vals_forecast <- mod |>
-  forecast(labels = 2018:2027,
+  forecast(labels = 2016:2025,
            include_estimates = TRUE)
 vals_forecast
 ```
 
 In contrast to the all-defaults model in Chapter 11 of BDEF, the all-defaults model here does not yield exploding prediction intervals.
 
-```{r, fig.height = 5}
+```{r, fig.height = 7}
 vals_forecast <- vals_forecast |>
   mutate(draws_ci(.fitted))
   
