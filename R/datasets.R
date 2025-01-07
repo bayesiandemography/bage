@@ -162,7 +162,7 @@
 
 #' Infant Mortality in Sweden
 #'
-#' Counts of births and infant in Sweden by count and year, 1995-2015
+#' Counts of births and infant deaths in Sweden by county and year, 1995-2015
 #'
 #' Dataset used in Chapter 11 of the book
 #' *Bayesian Demographic Estimation and Forecasting*.

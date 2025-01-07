@@ -23,7 +23,7 @@ Year 1968 - 2017" on the Statistics Sweden website. Downloaded on 13 July 2018.
 swe_infant
 }
 \description{
-Counts of births and infant in Sweden by count and year, 1995-2015
+Counts of births and infant deaths in Sweden by county and year, 1995-2015
 }
 \details{
 Dataset used in Chapter 11 of the book

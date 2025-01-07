@@ -33,7 +33,8 @@ swe_infant <- inner_join(births, deaths, by = c("county", "time")) |>
   mutate(county = fct_reorder(county, .x = -births)) |>
   mutate(time = as.integer(time),
          births = as.integer(births),
-         deaths = as.integer(deaths))
+         deaths = as.integer(deaths)) |>
+  filter(time %in% 1995:2015)
 
 save(swe_infant,
      file = "../data/swe_infant.rda",
