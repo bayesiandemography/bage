@@ -1,0 +1,287 @@
+---
+title: "5. Examples from BDEF Book"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    toc: true
+    toc_depth: 2
+    number_sections: true
+pkgdown:
+  as_is: true
+vignette: >
+  %\VignetteIndexEntry{5. Examples from BDEF Book}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+# Introduction
+
+This vignette uses **bage** to replicate (with a few differences) case studies in the book [Bayesian Demographic Estimation and Forecasting](https://www.bdef-book.com) (BDEF). BDEF uses our R package [demest](https://github.com/statisticsnz/demest). However, we strongly recommend using **bage** instead. **bage** is faster, more stable, and has a nicer interface. We are no longer developing **demest**, and are focusing on **bage**.
+
+In addition to **bage**, the vignette uses the tidyverse packages **dplyr**, **tidyr**, and **ggplot2**.
+
+```{r}
+library(bage, warn.conflicts = FALSE)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(ggplot2)
+```
+
+# Infant Mortality in Sweden
+
+## Aims and data
+
+We estimate and forecast infant mortality in Swedish counties. Following standard demographic practice we define the infant mortality rate as the probability of dying during the first year of life, calculated using this year's infant deaths and this year's births. (See Chapter 11 of BDEF on why this definition is slightly odd.)
+
+Data for the analysis is in the `swe_infant` dataset in **bage**:
+```{r}
+swe_infant
+```
+
+The figure below shows direct estimates of infant mortality rates. The panels are ordered by the size of the county, as measured by the number of births.
+
+```{r, fig.height = 5}
+ggplot(swe_infant, aes(x = time, y = deaths / births)) +
+  facet_wrap(vars(county)) +
+  geom_line()
+```
+
+## Initial model
+
+Our model uses default settings for all priors and parameters.
+
+```{r}
+mod <- mod_binom(deaths ~ county + time,
+                 data = swe_infant,
+                 size = births)
+mod
+```
+
+This model is slightly different from the infant mortality model in BDEF. The intercept here has a $\text{N}(0,1)$ prior rather than $\text{N}(0,10^2)$, and the time effect has a random walk prior rather than a local level prior. (Local level priors have not yet been implemented in **bage**.)
+
+We fit the model. Fitting in **bage** is a lot faster than fitting in **demest**.
+```{r}
+mod <- mod |>
+  fit()
+mod
+```
+
+## Extracting parameter estimates
+
+We extract the rates estimates.
+```{r}
+aug_init <- mod |>
+  augment()
+aug_init
+```
+
+We use function `draws_ci()` from package **rvec** to calculate 95% credible intervals.
+```{r}
+aug_init <- aug_init |>
+  mutate(draws_ci(.fitted))
+aug_init
+```
+
+And we graph the results.
+```{r, fig.height = 5}
+ggplot(aug_init, aes(x = time)) +
+  facet_wrap(vars(county)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+              color = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+             color = "red",
+	     size = 0.1) +
+  xlab("") +
+  ylab("")
+```
+
+`components()` returns values for hyper-parameters.
+```{r}
+comp_init <- mod |>
+  components()
+comp_init  
+```
+
+With help from some tidyverse functions we can extract and graph the intercept, 
+```{r, fig.height = 1.2}
+intercept <- comp_init |>
+  filter(term == "(Intercept)") |>
+  mutate(draws_ci(.fitted))
+
+ggplot(intercept, aes(y = level)) +
+  geom_pointrange(aes(xmin = .fitted.lower,
+                      x = .fitted.mid,
+                      xmax = .fitted.upper))
+```		      
+
+the county effect, 
+
+```{r}
+county_effect <- comp_init |>
+  filter(term == "county",
+         component == "effect") |>
+  rename(county = level) |>
+  mutate(draws_ci(.fitted))
+  
+ggplot(county_effect, aes(y = county)) +
+  geom_pointrange(aes(xmin = .fitted.lower,
+                      x = .fitted.mid,
+		      xmax = .fitted.upper))
+```		      
+
+and the time effect.
+
+```{r}
+time_effect <- comp_init |>
+  filter(term == "time",
+         component == "effect") |>
+  rename(time = level) |>
+  mutate(time = as.integer(time)) |>
+  mutate(draws_ci(.fitted))
+
+ggplot(time_effect, aes(x = time)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+   	             ymax = .fitted.upper),
+	      fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue")
+```		      
+
+The county effect and time effect each have `sd` parameters, which we also extract.
+```{r}
+comp_init |>
+  filter(component == "hyper")
+```
+
+
+
+## An aside on weakly-identified effects
+
+The intercept and time effects from our model both have wide credible intervals. This reflects the fact that they are only weakly identified by the model and data. Adding a small quantity to each element of the time effect, and subtracting the same quantity from the intercept, would make no difference at all to the predictions of the model, and make only a tiny difference to the posterior probabilities. 
+
+In **demest** we deal with the weak identification by standardizing the estimates. Standardization can, however, introduce new complications, and we have not implemented it in **bage**.
+
+When an analysis is focused only on lowest-level rates, probabilities, or means, and higher-level parameters such as time effects are just a means to an end, weak identification rarely causes any problems. If, however, the higher-level parameters are of interest, it may be helpful to experiment with non-default values for parameters. In the model here, for instance, setting the `sd` parameter for the `RW()` prior to 0 fixes the first value of the time effect to 0, leading to a more strongly-identified time effect.
+
+```{r}
+mod_ident <- mod_binom(deaths ~ county + time,
+                       data = swe_infant,
+	 	       size = births) |>
+  set_prior(time ~ RW(sd = 0)) |>
+  fit()
+
+time_effect_ident <- mod_ident |>
+  components() |>
+  filter(term == "time",
+         component == "effect") |>
+  rename(time = level) |>
+  mutate(time = as.integer(time)) |>
+  mutate(draws_ci(.fitted))
+
+ggplot(time_effect_ident, aes(x = time)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+   	             ymax = .fitted.upper),
+	      fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue")
+```
+
+
+## Replicate data check
+
+We use a replicate data check to see if, without a county-time interaction, the model is adequately representing cross-county variation in the downward trend in mortality.
+
+Function `replicate_data()` generates replicate datasets.
+
+```{r}
+rep_data <- replicate_data(mod)
+rep_data
+```
+
+For each replicate, we calculate direct estimates of the infant mortality rates, fit a line through these estimates, and collect up the slope.
+```{r, fig.height = 3}
+calculate_slope <- function(df) coef(lm(rate ~ time, data = df))[["time"]]
+slopes <- rep_data |>
+  mutate(rate = deaths / births) |>
+  group_by(.replicate, county) |>
+  nest() |>
+  mutate(slope = sapply(data, calculate_slope))
+
+ggplot(slopes, aes(x = .replicate, y = slope)) +
+  geom_point(position = position_jitter(width = 0.1)) +
+  xlab("") +
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+The slopes from the original data (on the far left) have aboout the same level of variability as the slopes from the replicate data. The implication is that, even without a county-time interaction, the model is a satisfactory job of representing cross-county variability in the pace of decline.
+
+
+## Summarizing results through probabilities
+
+We would like to calculate, for each combination of county and time, the probability that the underlying (super-population) infant mortality rate is less than 2.5 per 1000. The `draws_mean()` function from **rvec** makes this easy.
+
+```{r}
+prob_25 <- aug_init |>
+  mutate(prob = draws_mean(.fitted < 0.0025))
+
+ggplot(prob_25, aes(x = time, y = prob)) +
+  facet_wrap(vars(county)) +
+  geom_line()
+```
+
+## Forecast
+
+We forecast mortality rates through to 2027.  By default, the `forecast()` function returns output that looks like a return value from `augment()`. When `include_estimates` is `TRUE, the output includes historical values.
+
+```{r}
+vals_forecast <- mod |>
+  forecast(labels = 2018:2027,
+           include_estimates = TRUE)
+vals_forecast
+```
+
+In contrast to the all-defaults model in Chapter 11 of BDEF, the all-defaults model here does not yield exploding prediction intervals.
+
+```{r, fig.height = 5}
+vals_forecast <- vals_forecast |>
+  mutate(draws_ci(.fitted))
+  
+ggplot(vals_forecast, aes(x = time)) +
+  facet_wrap(vars(county)) +
+  geom_ribbon(aes(ymin = .fitted.lower,
+                  ymax = .fitted.upper),
+             fill = "lightblue") +
+  geom_line(aes(y = .fitted.mid),
+            color = "darkblue") +
+  geom_point(aes(y = .observed),
+             color = "red",
+	     size = 0.1) +
+  xlab("") +
+  ylab("")
+```
+
+
+# Life expectancy in Portugal
+
+TODO - write this!
+
+# Health expenditure in the Netherlands
+
+TODO - write this!
+
+# Internal migration in Iceland
+
+TODO - write this!
