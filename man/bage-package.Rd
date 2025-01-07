@@ -78,6 +78,7 @@ and is fast.
 \item \link{nzl_divorces} Divorces in New Zealand
 \item \link{nzl_households} One-person households in New Zealand
 \item \link{nzl_injuries} Fatal injuries in New Zealand
+\item \link{swe_infant} Infant mortality in Sweden
 \item \link{usa_deaths} Accidental deaths in the USA
 }
 }

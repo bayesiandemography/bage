@@ -63,6 +63,7 @@
 #' - [nzl_divorces] Divorces in New Zealand
 #' - [nzl_households] One-person households in New Zealand
 #' - [nzl_injuries] Fatal injuries in New Zealand
+#' - [swe_infant] Infant mortality in Sweden
 #' - [usa_deaths] Accidental deaths in the USA
 #' 
 #' @keywords internal

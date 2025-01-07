@@ -160,6 +160,29 @@
 "nzl_injuries"
 
 
+#' Infant Mortality in Sweden
+#'
+#' Counts of births and infant in Sweden by count and year, 1995-2015
+#'
+#' Dataset used in Chapter 11 of the book
+#' *Bayesian Demographic Estimation and Forecasting*.
+#'
+#' @format A tibble with 441 rows and the following columns:
+#' - `county`: A factor with 21 levels, where the levels are
+#'   ordered by number of births, from `"Stockholm"` down to `"Gotland"`
+#' - `time: Calendar year
+#' - `births`: Count of births
+#' - `deaths`: Count of infant deaths
+#'
+#' @references Bryant J and Zhang J. 2018.
+#' *Bayesian Demographic Estimation and Forecasting*. CRC Press.
+#'
+#' @source Database "Live births by region, mother's age and child's sex.
+#' Year 1968 - 2017" and database "Deaths by region, age (during the year) and sex.
+#' Year 1968 - 2017" on the Statistics Sweden website. Downloaded on 13 July 2018.
+"swe_infant"
+
+
 #' Accidental Deaths in the USA
 #'
 #' Counts of accidental deaths in the USA,
