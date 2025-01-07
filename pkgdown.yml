@@ -6,10 +6,10 @@ articles:
   vig2_math: vig2_math.html
   vig3_priors: vig3_priors.html
   vig4_svd: vig4_svd.html
-  vig5_workflow: vig5_workflow.html
+  vig5_bdef: vig5_bdef.html
   vig6_mortality: vig6_mortality.html
   vig7_simulation: vig7_simulation.html
-last_built: 2025-01-05T00:00Z
+last_built: 2025-01-07T07:23Z
 urls:
   reference: https://bayesiandemography.github.io/bage/reference
   article: https://bayesiandemography.github.io/bage/articles
