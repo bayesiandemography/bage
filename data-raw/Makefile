@@ -55,6 +55,11 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
   nzl_injuries/DPE403903_20230101_021709_80.csv.gz
 	Rscript $^ $@
 
+../data/swe_infant.rda: swe_infant/swe_infant.R \
+   swe_infant/BE0101E2.csv \
+   swe_infant/BE0101D9.csv
+	Rscript $^ $@
+
 ../data/usa_deaths.rda: usa_deaths/usa_deaths.R
 	Rscript $^ $@
 

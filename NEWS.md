@@ -3,7 +3,8 @@
 * From 0.9.0 onwards we will use a formal deprecation make any
   breaking changes
 * Tweaks to printing of `"bage_mod"` objects
-* 
+* Started vignette replicating analyses from the book *Bayesian
+  Demographic Estimation and Forecasting*
 
 # bage 0.8.6
 
