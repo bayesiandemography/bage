@@ -85,6 +85,64 @@ check_con_n_by <- function(con, n_by, nm) {
 
 
 ## HAS_TESTS
+#' Check Formula Used When Creating Covariates
+#'
+#' @param formula One-sided formula describing covariates
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_covariates_formula <- function(formula, mod) {
+  formula_mod <- mod$formula
+  data <- mod$data
+  vname_offset <- mod$vname_offset
+  nm_offset <- nm_offset(mod)
+  terms_formula_mod <- stats::terms(formula_mod)
+  nms_data <- names(data)
+  ## 'formula' is formula
+  if (!inherits(formula, "formula"))
+    cli::cli_abort(c("{.arg formula} is not a formula.",
+                     i = "{.arg formula} has class {.class {class(formula)}}."))
+  ## 'formula' does not include response
+  terms_formula <- stats::terms(formula)
+  has_response <- attr(terms_formula, "response")
+  if (has_response)
+    cli::cli_abort(c("{.arg formula} includes a response variable.",
+                     i = "{.arg formula}: {.code {deparse1(formula)}}."))
+  ## 'formula' does not use any variables already used by main model
+  nms_vars_formula <- rownames(attr(terms_formula, "factors"))
+  nm_response <- rownames(attr(terms_formula_mod, "factors"))[[1L]]
+  nms_vars_mod <- rownames(attr(terms_formula_mod, "factors"))[-1L]
+  if (nm_response %in% nms_vars_formula)
+    cli::cli_abort(c("{.arg formula} includes response from {.arg mod}.",
+                     i = "{.arg formula}: {deparse(formula)}.",
+                     i = "response: {.val {nm_response}}."))
+  if (any(nms_vars_mod %in% nms_vars_formula)) {
+    in_mod <- intersect(nms_vars_formula, nms_vars_mod)
+    n <- length(in_mod)
+    cli::cli_abort(c("{.arg formula} includes {cli::qty(n)} variable{?s} from {.arg mod}.",
+                     i = "{.arg formula}: {deparse(formula)}.",
+                     i = "variable{?s} from {.arg mod}: {.val {in_mod}}."))
+  }
+  if (vname_offset %in% nms_vars_formula)
+    cli::cli_abort(c("{.arg formula} includes {nm_offset} from {.arg mod}.",
+                     i = "{.arg formula}: {deparse(formula)}.",
+                     i = "{nm_offset}: {.val {vname_offset}}."))
+  ## all variables used in 'formula' are present in 'data'
+  is_in_data <- nms_vars_formula %in% nms_data
+  i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
+  if (i_not_in_data > 0L) {
+    nm_not_found <- nms_vars_formula[[i_not_in_data]]
+    cli::cli_abort(c("variable {.var {nm_not_found}} from {.arg formula} not found in data.",
+                     i = "{.arg formula}: {deparse(formula)}.",
+                     i = "variable{?s} in data: {.val {nms_data}}."))
+  }
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
 #' Check that 'est' Object Returned by TMB has No NAs
 #'
 #' @param est Named list

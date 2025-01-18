@@ -1110,6 +1110,28 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 })
 
 
+## 'make_matrix_covariates' ---------------------------------------------------
+
+test_that("'make_matrix_covariates' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ income * region
+    ans_obtained <- make_matrix_covariates(mod = mod, formula = formula)
+    data_scaled <- data
+    data_scaled$income <- scale(data_scaled$income)
+    ans_expected <- model.matrix(~income*region - 1, data = data_scaled)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_offset' --------------------------------------------------------------
 
 test_that("'make_offset' works with valid inputs - no NA", {

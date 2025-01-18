@@ -917,19 +917,12 @@ TODO - write
 ## Code
 
 ```
-set_covariates(formula, data = NULL, n_coef = NULL)
+set_covariates(mod, formula, n_nonzero = NULL)
 ```
 
-- `formula` is a one-sided R formula describing the covariates to be used
-- `data` A data frame. If a value for `data` is supplied, then `formula` is interpreted in the context of this data frame. If a value for `data` is not supplied, then `formula` is interpreted in the context of the data frame used for the original call to `mod_pois()`, `mod_binom()`, or `mod_norm()`.
-- `n_coef` is the effective number of non-zero coefficients. If a value is supplied, the shrinkage prior is used; otherwise the standard prior is used.
-
-
-Examples:
-```
-set_covariates(~ mean_income + distance * employment)
-set_covariates(~ ., data = cov_data, n_coef = 5)
-```
+- `mod` Object of class `"bage_mod"`
+- `formula` One-sided R formula describing the covariates to be used
+- `n_nonzero` Effective number of non-zero coefficients. If a value is supplied, the shrinkage prior is used; otherwise the standard prior is used.
 
 
 # Prior for dispersion terms
