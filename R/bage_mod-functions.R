@@ -2,7 +2,96 @@
 ## User-visible functions that look like methods, but technically are not
 
 
-## 'set_datamod_outcome_rr3' ----------------------------------------------------------
+## 'set_covariates' -----------------------------------------------------------
+
+
+#' Specify Covariates
+#'
+#' 
+
+set_covariates <- function(mod, formula, n_nonzero = NULL) {
+  check_bage_mod(x = mod, nm_x = "mod")
+  data <- mod$data
+  formula_mod <- mod$formula
+  check_covariate_formula(formula = formula, mod = mod)
+  matrix_covariates <- make_matrix_covariates(formula = formula, mod = mod)
+  is_shrinkage <- !is.null(n_nonzero)
+  if (is_shrinkage) {
+    poputils::check_n(n = n_nonzero,
+                      nm_n = "n_nonzero",
+                      min = 1L
+                      max = NULL,
+                      divisible_by = NULL)
+    n_coef <- ncol(matrix_covariates)
+    if (n_nonzero > n_coef)
+      cli::cli_abort(c("{.arg n_nonzero} too large.",
+                       "{.arg n_nonzero} is expected number of non-zero coefficients.",
+                       "{.arg n_nonzero}: {.val {n_nonzero}}.",
+                       "Total number of coefficients: {.val {n_coef}}."))
+    sd_hat <- make_sd_hat_covariates(mod)
+    n <- nrow(matrix_covariates)
+    scale_covariates <- (n_nonzero / (n_nonzero + n_coef)) * (sd_hat / sqrt(n))
+  }
+  else
+    scale_covariates <- 0
+  mod$matrix_covariates <- matrix_covariates
+  mod$scale_covariates <- scae_covariates
+  mod <- unfit(mod)
+  mod
+}
+
+make_sd_hat_covariates.bage_mod_pois <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  offset <- mod$offset
+  m <- glm(formula = formula,
+           family = poisson(),
+           data = data,
+           offset = log(offset))
+  fitted <- fitted(m)
+  mean(1 / fitted)
+}
+
+
+make_sd_hat_covariates.bage_mod_binom <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  outcome <- mod$outcome
+  offset <- mod$offset
+  vname_offset <- mod$vname_offset
+  data <- cbind(data, failures = offset - outcome)
+  names(data) <- make.unique(names(data))
+  nm_response <- deparse1(formula[[2L]])
+  nm_failure <- names(data)[[length(data)]]
+  new_response <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
+  new_response <- as.formula(new_response)
+  formula_binom <- update(formula, new_response)
+  m <- glm(formula = formula_binom,
+           family = binomial(),
+           data = data)
+  fitted <- fitted(m)
+  mean(1 / (offset * fitted * (1 - fitted)))
+}
+
+
+make_sd_hat_covariates.bage_mod_norm <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  offset <- mod$offset
+  m <- lm(formula = formula,
+          data = data,
+          weights = offset)
+  summary(m)$sigma
+}
+
+
+  
+  
+                
+
+
+
+## 'set_datamod_outcome_rr3' --------------------------------------------------
 
 #' Specify RR3 Data Model
 #'
@@ -52,6 +141,7 @@
 #'   fit()
 #' @export
 set_datamod_outcome_rr3 <- function(mod) {
+  check_bage_mod(x = mod, nm_x = "mod")
   ## check is valid distribution
   valid_distn <- c("binom", "pois")
   nm_distn <- nm_distn(mod)

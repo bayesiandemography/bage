@@ -891,6 +891,31 @@ make_matrices_effectfree_effect <- function(mod) {
 
 
 ## HAS_TESTS
+#' Make Matrix with Covariates
+#'
+#' Numeric variables are scaled, and treatment contrasts
+#' are applied to categorical variables. There
+#' is no intercept.
+#'
+#' @param formula One-sided formula describing covariates
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A model matrix (including 'contrasts' and
+#' 'assign' attributes)
+#'
+#' @noRd
+make_matrix_covariates <- function(formula, mod) {
+  data <- mod$data
+  is_numeric <- vapply(data, is.numeric, FALSE)
+  data[is_numeric] <- lapply(data[is_numeric], scale)
+  has_intercept <- attr(stats::terms(formula), "intercept")
+  if (has_intercept)
+    formula <- stats::update(formula, ~.-1)
+  stats::model.matrix(formula, data = data)
+}
+
+
+## HAS_TESTS
 #' Make vector holding offset variable
 #'
 #' @param vname_offset Name of the offset variable.

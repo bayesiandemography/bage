@@ -78,6 +78,146 @@ test_that("'check_con_n_by' throws correct error with invalid inputs", {
 })
 
 
+## 'check_covariates_formula' -------------------------------------------------
+
+test_that("'make_matrix_covariates' works with valid inputs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ income * region
+    expect_true(check_covariates_formula(formula = formula, mod = mod))
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' is not a formula", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- NULL
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` is not a formula.")
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' includes a response", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- deaths ~ region * income
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes a response variable.")
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' includes response from main model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ region * income + deaths
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes response from `mod`.")
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' includes variable from main model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ region * income + age
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes variable from `mod`.")
+    formula <- ~ region * income + age:sex
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes variables from `mod`.")
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' includes variable from main model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ region * income + age
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes variable from `mod`.")
+    formula <- ~ region * income + age:sex
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes variables from `mod`.")
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' includes offset from main model", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ region * income + popn
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "`formula` includes exposure from `mod`.")
+})
+
+test_that("'make_matrix_covariates' throws the correct error when 'formula' includes variables not in data", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ region * income + wrong
+    expect_error(check_covariates_formula(formula = formula, mod = mod),
+                 "variable `wrong` from `formula` not found in data.")
+})
+
+
+
+
+
+
 ## 'check_est' ----------------------------------------------------------------
 
 test_that("'check_est' returns TRUE with valid inputs", {
