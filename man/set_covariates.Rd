@@ -4,7 +4,7 @@
 \alias{set_covariates}
 \title{Specify Covariates}
 \usage{
-set_covariates(mod, formula)
+set_covariates(mod, formula, n_nonzero = NULL)
 }
 \description{
 Specify Covariates

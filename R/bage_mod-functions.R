@@ -19,7 +19,7 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   if (is_shrinkage) {
     poputils::check_n(n = n_nonzero,
                       nm_n = "n_nonzero",
-                      min = 1L
+                      min = 1L,
                       max = NULL,
                       divisible_by = NULL)
     n_coef <- ncol(matrix_covariates)

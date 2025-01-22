@@ -1592,51 +1592,67 @@ make_par_disp.bage_mod_binom <- function(x,
 #'
 #' @noRd
 make_sd_hat_covariates <- function(mod) {
-  UseGeneric("make_sd_hat_covariates")
+  UseMethod("make_sd_hat_covariates")
 }
 
+## HAS_TESTS
 #' @export
 make_sd_hat_covariates.bage_mod_pois <- function(mod) {
   formula <- mod$formula
   data <- mod$data
   offset <- mod$offset
+  vname_offset <- mod$vname_offset
+  formula_new <- sprintf("~ . + log(%s)", vname_offset)
+  formula_new <- as.formula(formula_new)
+  formula <- update(formula, formula_new)
   m <- glm(formula = formula,
-           family = poisson(),
+           family = poisson,
            data = data,
-           offset = log(offset))
+           na.action = na.exclude)
   fitted <- fitted(m)
-  sqrt(mean(fitted))
+  expected <- offset * fitted
+  sqrt(mean(expected, na.rm = TRUE))
 }
 
+## HAS_TESTS
 #' @export
 make_sd_hat_covariates.bage_mod_binom <- function(mod) {
   formula <- mod$formula
   data <- mod$data
   outcome <- mod$outcome
   offset <- mod$offset
-  vname_offset <- mod$vname_offset
   data <- cbind(data, failures = offset - outcome)
   names(data) <- make.unique(names(data))
   nm_response <- deparse1(formula[[2L]])
   nm_failure <- names(data)[[length(data)]]
-  new_response <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
-  new_response <- as.formula(new_response)
-  formula_binom <- update(formula, new_response)
-  m <- glm(formula = formula_binom,
-           family = binomial(),
-           data = data)
+  formula_new <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
+  formula_new <- as.formula(formula_new)
+  formula <- update(formula, formula_new)
+  m <- glm(formula = formula,
+           family = binomial,
+           data = data,
+           na.action = na.exclude)
   fitted <- fitted(m)
-  sqrt(mean(offset * fitted * (1 - fitted)))
+  sqrt(mean(offset * fitted * (1 - fitted), na.rm = TRUE))
 }
 
+## HAS_TESTS
 #' @export
 make_sd_hat_covariates.bage_mod_norm <- function(mod) {
   formula <- mod$formula
   data <- mod$data
+  outcome <- mod$outcome
   offset <- mod$offset
+  nm_response <- deparse1(formula[[2L]])
+  data[[nm_response]] <- outcome
+  ## using hack to get around weird handling
+  ## of name of weights by 'lm'
+  if ("....wt" %in% names(data))
+    cli::cli_abort("Please rename variable currently called {.val ....wt}.")
+  data[["....wt"]] <- offset
   m <- lm(formula = formula,
           data = data,
-          weights = offset)
+          weights = ....wt)
   summary(m)$sigma
 }
 
