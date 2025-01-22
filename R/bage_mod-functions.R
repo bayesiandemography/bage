@@ -5,15 +5,96 @@
 ## 'set_covariates' -----------------------------------------------------------
 
 
-#' Specify Covariates
+#' Specify Covariates 
 #'
+#' Add covariates to a model. Includes the option
+#' of a "horseshoe" prior for coefficients.
+#'
+#' @section Warning:
+#'
+#' `set_covariates()` is still experimental.
+#'
+#' @section Processing of covariate data:
+#'
+#' `set_covariates()` processes the covariate data before
+#' adding it to the model:
+#' - **numerical** variables are standardized, using
+#'   `x <- scale(x)`.
+#' - **categorical** variables are converted to sets of indicator
+#'   variables, using 'treatment' contrasts ([stats::contr.treatment()]).
+#'   For instance, variable `x` with categories `"high"`, `"medium"`, and `"low"`,
+#'   is converted into two indicator variables, one called `xmedium` and one
+#'   called `xlow`.
 #' 
-
+#' @section Regularized horseshoe prior:
+#'
+#' If there are many covariates, but only a few of
+#' them are likely to actually matter (ie to
+#' have coefficients that are far from zero),
+#' then using a "regularized horseshoe" prior may help stabilise
+#' the estimates. A horseshop prior assumes that there are
+#' two groups of variables: those that matter, and those
+#' that don't. To apply a horseshoe prior, a value must
+#' be supplied for `n_nonzero`, giving the likely number of
+#' variables that matter. The number refers to variables
+#' after processing, eg turning categorical variables
+#' into sets of indicator variables (see above.) 
+#'
+#' @section Mathematical details:
+#'
+#' When a value for `n_nonzero` is not supplied,
+#'
+#' \deqn{\zeta_p \sim \text{N}(0, 1)}
+#'
+#' where \eqn{\pmb{\zeta}} is a vector of coefficients.
+#'
+#' When a value for `n_nonzero` is supplied, so that the
+#' horseshoe prior is used,
+#'
+#' \deqn{\zeta_p \sim \text{N}(0, \vartheta_p^2 \varphi^2)}
+#' \deqn{\vartheta_p \sim \text{Cauchy}^+(0, 1)}
+#' \deqn{\varphi \sim \text{Cauchy}^+(0, A_{\varphi}^2)}
+#' \deqn{A_{\varphi} = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}}
+#' 
+#' where
+#' - \eqn{p_0} is `n_nonzero`;
+#' - \eqn{P} is the number of covariate variables (after processing);
+#' - \eqn{\sigma} is an estimate of the amount of observation noise; and
+#' - \eqn{n} is `nrow(data)`.
+#' 
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param formula A one-sided R [formula][stats::formula()],
+#' specifying the covariates.
+#' @param n_nonzero A guess at the number of covariates
+#' likely to have coefficient estimates far from zero.
+#' If a value for `n_nonzero` is supplied, then
+#' `set_covariates()` uses a
+#' regularized horseshoe prior. See below for details.
+#'
+#' @returns A modified version of `mod`
+#'
+#' @seealso
+#' - [datamods] Overview of data models implemented in **bage**
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
+#'   model for rates, probabilities, or means
+#'
+#' @references
+#' Piironen J, Vehtari A. (2017). On the hyperprior choice for the
+#' global shrinkage parameter in the horseshoe prior.
+#' In *Artificial intelligence and statistics* (pp. 905-913).
+#' Proceedings of the 20th International Conference on Artificial
+#' Intelligence and Statistics.
+#'
+#' @examples
+#' TODO - SUPPLY EXAMPLE
+#' @export
 set_covariates <- function(mod, formula, n_nonzero = NULL) {
   check_bage_mod(x = mod, nm_x = "mod")
+  check_covariate_formula(formula = formula, mod = mod)
   data <- mod$data
   formula_mod <- mod$formula
-  check_covariate_formula(formula = formula, mod = mod)
   matrix_covariates <- make_matrix_covariates(formula = formula, mod = mod)
   is_shrinkage <- !is.null(n_nonzero)
   if (is_shrinkage) {
@@ -24,10 +105,8 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
                       divisible_by = NULL)
     n_coef <- ncol(matrix_covariates)
     if (n_nonzero > n_coef)
-      cli::cli_abort(c("{.arg n_nonzero} too large.",
-                       "{.arg n_nonzero} is expected number of non-zero coefficients.",
-                       "{.arg n_nonzero}: {.val {n_nonzero}}.",
-                       "Total number of coefficients: {.val {n_coef}}."))
+      cli::cli_abort(paste("{.arg n_nonzero} ({.val {n_nonzero}}) greater than total",
+                           "number of coefficients ({.val {n_coef}}.)"))
     sd_hat <- make_sd_hat_covariates(mod)
     n <- nrow(matrix_covariates)
     scale_covariates <- (n_nonzero / (n_nonzero + n_coef)) * (sd_hat / sqrt(n))
@@ -39,14 +118,6 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   mod <- unfit(mod)
   mod
 }
-
-
-
-
-  
-  
-                
-
 
 
 ## 'set_datamod_outcome_rr3' --------------------------------------------------

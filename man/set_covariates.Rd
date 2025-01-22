@@ -6,6 +6,104 @@
 \usage{
 set_covariates(mod, formula, n_nonzero = NULL)
 }
+\arguments{
+\item{mod}{An object of class \code{"bage_mod"},
+created with \code{\link[=mod_pois]{mod_pois()}},
+\code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.}
+
+\item{formula}{A one-sided R \link[stats:formula]{formula},
+specifying the covariates.}
+
+\item{n_nonzero}{A guess at the number of covariates
+likely to have coefficient estimates far from zero.
+If a value for \code{n_nonzero} is supplied, then
+\code{set_covariates()} uses a
+regularized horseshoe prior. See below for details.}
+}
+\value{
+A modified version of \code{mod}
+}
 \description{
-Specify Covariates
+Add covariates to a model.
+}
+\section{Warning}{
+
+
+\code{set_covariates()} is still experimental.
+}
+
+\section{Processing of covariate data}{
+
+
+\code{set_covariates()} processes the covariate data before
+adding it to the model:
+\itemize{
+\item \strong{numerical} variables are standardized, using
+\code{x <- scale(x)}.
+\item \strong{categorical} variables are converted to sets of indicator
+variables, using 'treatment' contrasts (\code{\link[stats:contrast]{stats::contr.treatment()}}).
+For instance, variable \code{x} with categories \code{"high"}, \code{"medium"}, and \code{"low"},
+is converted into two indicator variables, one called \code{xmedium} and one
+called \code{xlow}.
+}
+}
+
+\section{Regularized horseshoe prior}{
+
+
+If there are many covariates, but only a few of
+them are likely to actually matter (ie to
+have coefficients that are far from zero),
+then using a "regularized horseshoe" prior may help stabilise
+the estimates. A horseshop prior assumes that there are
+two groups of variables: those that matter, and those
+that don't. To apply a horseshoe prior, a value must
+be supplied for \code{n_nonzero}, giving the likely number of
+variables that matter. The number refers to variables
+after processing, eg turning categorical variables
+into sets of indicator variables (see above.)
+}
+
+\section{Mathematical details}{
+
+
+When a value for \code{n_nonzero} is not supplied,
+
+\deqn{\zeta_p \sim \text{N}(0, 1)}
+
+where \eqn{\pmb{\zeta}} is a vector of coefficients.
+
+When a value for \code{n_nonzero} is supplied, so that the
+horseshoe prior is used,
+
+\deqn{\zeta_p \sim \text{N}(0, \vartheta_p^2 \varphi^2)}
+\deqn{\vartheta_p \sim \text{Cauchy}^+(0, 1)}
+\deqn{\varphi \sim \text{Cauchy}^+(0, A_{\varphi}^2)}
+\deqn{A_{\varphi} = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}}
+
+where
+\itemize{
+\item \eqn{p_0} is \code{n_nonzero};
+\item \eqn{P} is the number of covariate variables (after processing);
+\item \eqn{\sigma} is an estimate of the amount of observation noise; and
+\item \eqn{n} is \code{nrow(data)}.
+}
+}
+
+\examples{
+TODO - SUPPLY EXAMPLE
+}
+\references{
+Piironen J, Vehtari A. (2017). On the hyperprior choice for the
+global shrinkage parameter in the horseshoe prior.
+In \emph{Artificial intelligence and statistics} (pp. 905-913).
+Proceedings of the 20th International Conference on Artificial
+Intelligence and Statistics.
+}
+\seealso{
+\itemize{
+\item \link{datamods} Overview of data models implemented in \strong{bage}
+\item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a
+model for rates, probabilities, or means
+}
 }
