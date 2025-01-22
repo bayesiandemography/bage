@@ -40,49 +40,7 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   mod
 }
 
-make_sd_hat_covariates.bage_mod_pois <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  offset <- mod$offset
-  m <- glm(formula = formula,
-           family = poisson(),
-           data = data,
-           offset = log(offset))
-  fitted <- fitted(m)
-  mean(1 / fitted)
-}
 
-
-make_sd_hat_covariates.bage_mod_binom <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  outcome <- mod$outcome
-  offset <- mod$offset
-  vname_offset <- mod$vname_offset
-  data <- cbind(data, failures = offset - outcome)
-  names(data) <- make.unique(names(data))
-  nm_response <- deparse1(formula[[2L]])
-  nm_failure <- names(data)[[length(data)]]
-  new_response <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
-  new_response <- as.formula(new_response)
-  formula_binom <- update(formula, new_response)
-  m <- glm(formula = formula_binom,
-           family = binomial(),
-           data = data)
-  fitted <- fitted(m)
-  mean(1 / (offset * fitted * (1 - fitted)))
-}
-
-
-make_sd_hat_covariates.bage_mod_norm <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  offset <- mod$offset
-  m <- lm(formula = formula,
-          data = data,
-          weights = offset)
-  summary(m)$sigma
-}
 
 
   

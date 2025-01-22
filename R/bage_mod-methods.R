@@ -1502,6 +1502,36 @@ make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
 }
 
 
+## 'make_observed' ------------------------------------------------------------
+
+#' Make direct estimates
+#'
+#' @param x A fitted 'bage_mod' object.
+#'
+#' @returns A vector of doubles.
+#'
+#' @noRd
+make_observed <- function(x) {
+    UseMethod("make_observed")
+}
+              
+## HAS_TESTS
+#' @export
+make_observed.bage_mod <- function(x) {
+    outcome <- x$outcome
+    offset <- x$offset
+    ans <- as.double(outcome / offset)
+    ans
+}
+
+## HAS_TESTS
+#' @export
+make_observed.bage_mod_norm <- function(x) {
+    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",  ## nocov
+                         "of class {.cls {class(x)}}."))                           ## nocov
+}
+
+
 ## 'make_par_disp' ------------------------------------------------------------
 
 #' Make Random Draws of '.fitted' in Models
@@ -1552,33 +1582,62 @@ make_par_disp.bage_mod_binom <- function(x,
 }
 
 
-## 'make_observed' ------------------------------------------------------------
+## 'make_sd_hat_covariates' ---------------------------------------------------
 
-#' Make direct estimates
+#' Derive Value for 'sd_hat' to Use in Covariates Shrinkage Prior
 #'
-#' @param x A fitted 'bage_mod' object.
+#' @param mod Object of class 'bage_mod'
 #'
-#' @returns A vector of doubles.
+#' @returns A numeric scalar
 #'
 #' @noRd
-make_observed <- function(x) {
-    UseMethod("make_observed")
-}
-              
-## HAS_TESTS
-#' @export
-make_observed.bage_mod <- function(x) {
-    outcome <- x$outcome
-    offset <- x$offset
-    ans <- as.double(outcome / offset)
-    ans
+make_sd_hat_covariates <- function(mod) {
+  UseGeneric("make_sd_hat_covariates")
 }
 
-## HAS_TESTS
 #' @export
-make_observed.bage_mod_norm <- function(x) {
-    cli::cli_abort(paste("Internal error: {.fun make_observed} called on object",  ## nocov
-                         "of class {.cls {class(x)}}."))                           ## nocov
+make_sd_hat_covariates.bage_mod_pois <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  offset <- mod$offset
+  m <- glm(formula = formula,
+           family = poisson(),
+           data = data,
+           offset = log(offset))
+  fitted <- fitted(m)
+  sqrt(mean(fitted))
+}
+
+#' @export
+make_sd_hat_covariates.bage_mod_binom <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  outcome <- mod$outcome
+  offset <- mod$offset
+  vname_offset <- mod$vname_offset
+  data <- cbind(data, failures = offset - outcome)
+  names(data) <- make.unique(names(data))
+  nm_response <- deparse1(formula[[2L]])
+  nm_failure <- names(data)[[length(data)]]
+  new_response <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
+  new_response <- as.formula(new_response)
+  formula_binom <- update(formula, new_response)
+  m <- glm(formula = formula_binom,
+           family = binomial(),
+           data = data)
+  fitted <- fitted(m)
+  sqrt(mean(offset * fitted * (1 - fitted)))
+}
+
+#' @export
+make_sd_hat_covariates.bage_mod_norm <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  offset <- mod$offset
+  m <- lm(formula = formula,
+          data = data,
+          weights = offset)
+  summary(m)$sigma
 }
 
 

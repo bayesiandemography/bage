@@ -886,7 +886,7 @@ where $p_0$ is an initial guess at the number of $\zeta_p$ that are non-zero, an
 \end{align}
 and set
 \begin{equation}
-  \hat{\sigma} = \frac{1}{n}\sum_{i=1}^n \frac{1}{w_i \hat{\gamma}_i}.
+  \hat{\sigma} = \sqrt{\frac{1}{n}\sum_{i=1}^n w_i \hat{\gamma}_i}.
 \end{equation}
 - Binomial. Using maximum likelihood, fit the GLM
 \begin{align}
@@ -895,7 +895,7 @@ and set
 \end{align}
 and set
 \begin{equation}
-  \hat{\sigma} = \frac{1}{n}\sum_{i=1}^n \frac{1}{w_i \hat{\gamma}_i (1 - \hat{\gamma}_i)}.
+  \hat{\sigma} = \sqrt{\frac{1}{n}\sum_{i=1}^n w_i \hat{\gamma}_i (1 - \hat{\gamma}_i)}.
 \end{equation}
 - Normal. Using maximum likelihood, fit the linear model
 \begin{equation}
@@ -903,8 +903,6 @@ and set
 \end{equation}
 and set $\hat{\sigma} = \hat{\xi}$.
 
-
-The quantities used for Poisson and binomial likelihoods are derived from normal approximations to GLMs [@piironen2017hyperprior; @gelman2014bayesian, section 16.2].
 
 ## Contribution to posterior density
 
