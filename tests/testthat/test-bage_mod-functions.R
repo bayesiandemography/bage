@@ -1,4 +1,72 @@
 
+## 'set_covariates' -----------------------------------------------------------
+
+test_that("'set_covariates' works with Poisson, no horseshoe", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- set_covariates(mod, ~ income)
+  ans_expected <- mod
+  ans_expected$scale_covariates <- 0
+  data$income <- scale(data$income)
+  ans_expected$matrix_covariates <- model.matrix(~income - 1, data = data)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'set_covariates' works with Poisson, with horseshoe", {
+  data <- expand.grid(age = 0:9, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$reg <- letters[1:10]
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans <- set_covariates(mod, ~ reg, n_nonzero = 3)
+  expect_true(ans$scale_covariates > 0)
+  expect_identical(ncol(ans$matrix_covariates), 9L)
+})
+
+test_that("'set_covariates' works with binomial, no horseshoe", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  ans_obtained <- set_covariates(mod, ~ income)
+  ans_expected <- mod
+  ans_expected$scale_covariates <- 0
+  data$income <- scale(data$income)
+  ans_expected$matrix_covariates <- model.matrix(~income - 1, data = data)
+  expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'set_covariates' works with binomial, with horseshoe", {
+  data <- expand.grid(age = 0:9, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
+  data$reg <- letters[1:10]
+  formula <- deaths ~ age:sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  ans <- set_covariates(mod, ~ reg, n_nonzero = 3)
+  expect_true(ans$scale_covariates > 0)
+  expect_identical(ncol(ans$matrix_covariates), 9L)
+})
+
+
+
+
+
 ## 'set_datamod_outcome_rr3' --------------------------------------------------
 
 test_that("'set_datamod_outcome_rr3' works with Poisson", {

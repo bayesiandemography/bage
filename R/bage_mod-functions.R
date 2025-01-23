@@ -8,13 +8,18 @@
 #' Specify Covariates 
 #'
 #' Add covariates to a model. Includes the option
-#' of a "horseshoe" prior for coefficients.
+#' of using a "horseshoe" prior for coefficients.
 #'
 #' @section Warning:
 #'
 #' `set_covariates()` is still experimental.
 #'
-#' @section Processing of covariate data:
+#' @section Covariate data:
+#'
+#' All variables contained in the `formula`
+#' argument to `set_covariates()` should be in the
+#' dataset supplied in the original call to
+#' [mod_pois()], [mod_binom()], or [mod_norm()].
 #'
 #' `set_covariates()` processes the covariate data before
 #' adding it to the model:
@@ -88,11 +93,27 @@
 #' Intelligence and Statistics.
 #'
 #' @examples
-#' TODO - SUPPLY EXAMPLE
+#' ## create a COVID covariate
+#' library(dplyr, warn.conflicts = FALSE)
+#' births <- kor_births |>
+#'   mutate(is_covid = time %in% 2020:2022)
+#' mod <- mod_pois(births ~ age * region + time,
+#'                 data = births,
+#'                 exposure = popn) |>
+#'   set_covariates(~ is_covid)
+#'
+#' ## create a region-specific COVID covariate,
+#' ## and apply a horseshoe prior
+#' births |>
+#'   mutate(is_covid_reg = is_covid * region)
+#' mod <- mod_pois(births ~ age * region + time,
+#'                 data = births,
+#'                 exposure = popn) |>
+#'   set_covariates(~ is_covid_reg, n_nonzero = 5)
 #' @export
 set_covariates <- function(mod, formula, n_nonzero = NULL) {
   check_bage_mod(x = mod, nm_x = "mod")
-  check_covariate_formula(formula = formula, mod = mod)
+  check_covariates_formula(formula = formula, mod = mod)
   data <- mod$data
   formula_mod <- mod$formula
   matrix_covariates <- make_matrix_covariates(formula = formula, mod = mod)
@@ -114,7 +135,7 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   else
     scale_covariates <- 0
   mod$matrix_covariates <- matrix_covariates
-  mod$scale_covariates <- scae_covariates
+  mod$scale_covariates <- scale_covariates
   mod <- unfit(mod)
   mod
 }
