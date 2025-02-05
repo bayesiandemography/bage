@@ -672,12 +672,14 @@ fit.bage_mod <- function(object,
   check_flag(x = quiet, nm_x = "quiet")
   check_flag(x = start_oldpar, nm_x = "start_oldpar")
   check_has_no_dots(...)
-  if (method == "standard")
+  if (method == "standard") {
+    aggregate <- !has_covariates(object)
     fit_default(object,
                 optimizer = optimizer,
                 quiet = quiet,
                 start_oldpar = start_oldpar,
-                aggregate = TRUE)
+                aggregate = aggregate)
+  }
   else if (method == "inner-outer")
     fit_inner_outer(mod = object,
                     optimizer = optimizer,
@@ -1235,6 +1237,27 @@ get_nm_outcome_obs.bage_mod <- function(mod) {
 }
 
 
+## 'has_covariates' -----------------------------------------------------------
+
+#' Test Whether Model Includes Covariates
+#'
+#' @param x A model object.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+has_covariates <- function(mod) {
+    UseMethod("has_covariates")
+}
+
+## HAS_TESTS
+#' @export
+has_covariates.bage_mod <- function(mod) {
+  matrix_covariates <- mod$matrix_covariates
+  !is.null(matrix_covariates)
+}
+
+
 ## 'has_disp' ----------------------------------------------------------------
 
 #' Test whether a model includes a dispersion parameter
@@ -1602,9 +1625,11 @@ make_sd_hat_covariates.bage_mod_pois <- function(mod) {
   data <- mod$data
   offset <- mod$offset
   vname_offset <- mod$vname_offset
-  formula_new <- sprintf("~ . + log(%s)", vname_offset)
-  formula_new <- as.formula(formula_new)
-  formula <- update(formula, formula_new)
+  if (!is.null(vname_offset)) {
+    formula_new <- sprintf("~ . + log(%s)", vname_offset)
+    formula_new <- as.formula(formula_new)
+    formula <- update(formula, formula_new)
+  }
   m <- glm(formula = formula,
            family = poisson,
            data = data,
@@ -1643,16 +1668,22 @@ make_sd_hat_covariates.bage_mod_norm <- function(mod) {
   data <- mod$data
   outcome <- mod$outcome
   offset <- mod$offset
+  vname_offset <- mod$vname_offset
   nm_response <- deparse1(formula[[2L]])
   data[[nm_response]] <- outcome
-  ## using hack to get around weird handling
-  ## of name of weights by 'lm'
-  if ("....wt" %in% names(data))
-    cli::cli_abort("Please rename variable currently called {.val ....wt}.")
-  data[["....wt"]] <- offset
-  m <- lm(formula = formula,
-          data = data,
-          weights = ....wt)
+  if (!is.null(vname_offset)) {
+    ## using hack to get around weird handling
+    ## of name of weights by 'lm'
+    if ("....wt" %in% names(data))
+      cli::cli_abort("Please rename variable currently called {.val ....wt}.")
+    data[["....wt"]] <- offset
+    m <- lm(formula = formula,
+            data = data,
+            weights = ....wt)
+  }
+  else
+    m <- lm(formula = formula,
+            data = data)
   summary(m)$sigma
 }
 

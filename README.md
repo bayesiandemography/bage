@@ -53,7 +53,7 @@ mod
 #>    1000     year     age           sex     multi
 #> 
 #>  time_total time_optim time_report iter converged                    message
-#>        1.04       0.31        0.30   11      TRUE   relative convergence (4)
+#>        0.49       0.07        0.06   11      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates

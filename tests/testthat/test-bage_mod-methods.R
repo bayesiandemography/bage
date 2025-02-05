@@ -1082,6 +1082,23 @@ test_that("'fit' works when 'quiet' is FALSE and optimizer is 'CG'", {
   expect_s3_class(ans_obtained, "bage_mod")
 })
 
+test_that("'fit' works with covariates - no shrinkage", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  data$distance <- runif(n = nrow(data))
+  mod <- mod_pois(formula = deaths ~ age * sex ,
+                  data = data,
+                  exposure = popn)
+  mod <- set_covariates(mod, ~ income + distance)
+  ans_obtained <- fit(mod)
+  expect_s3_class(ans_obtained, "bage_mod")
+})  
+
 
 ## 'forecast' -----------------------------------------------------------------
 
@@ -1756,6 +1773,21 @@ test_that("'get_nm_outcome_obs' works with 'bage_mod_pois'", {
   expect_identical(get_nm_outcome_obs(mod), "deaths")
   mod <- set_datamod_outcome_rr3(mod)
   expect_identical(get_nm_outcome_obs(mod), ".deaths")
+})
+
+
+## 'has_covariates' -----------------------------------------------------------
+
+test_that("'has_covariates' works with valid inputs", {
+    data <- data.frame(deaths = 1:10,
+                       time = 2001:2010,
+                       income = rnorm(10))
+    mod <- mod_pois(deaths ~ time,
+                    data = data,
+                    exposure = 1)
+    expect_false(has_covariates(mod))
+    mod <- set_covariates(mod, ~ income)
+    expect_true(has_covariates(mod))
 })
 
 
