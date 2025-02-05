@@ -192,6 +192,14 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   matrices_along_by_effectfree <- make_matrices_along_by_effectfree(mod)
   mean_disp <- mod$mean_disp
   has_disp <- mean_disp > 0
+  if (has_covariates(mod)) {
+    matrix_covariates <- mod$matrix_covariates
+    scale_covariates <- mod$scale_covariates
+  }
+  else {
+    matrix_covariates <- matrix(nrow = 0, ncol = 0)
+    scale_covariates <- 0
+  }
   data <- list(i_lik = i_lik,
                outcome = outcome,
                offset = offset,
@@ -210,7 +218,9 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                consts = const, ## 'const' is reserved word in C
                terms_consts = terms_const,
                matrices_along_by_effectfree = matrices_along_by_effectfree,
-               mean_disp = mean_disp)
+               mean_disp = mean_disp,
+               matrix_covariates = matrix_covariates,
+               scale_covariates = scale_covariates)
   ## parameters
   if (start_oldpar)
     parameters <- oldpar
@@ -219,10 +229,14 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
     hyper <- make_hyper(mod)
     hyperrandfree <- make_hyperrandfree(mod)
     log_disp <- c(disp = 0)
+    coef_covariates <- make_coef_covariates(mod)
+    hyper_covariates <- make_hyper_covariates(mod)
     parameters <- list(effectfree = effectfree,   
                        hyper = hyper,
                        hyperrandfree = hyperrandfree,
-                       log_disp = log_disp)
+                       log_disp = log_disp,
+                       coef_covariates = coef_covariates,
+                       hyper_covariates = hyper_covariates)
   }
   ## MakeADFun
   map <- make_map(mod)

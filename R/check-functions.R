@@ -125,7 +125,8 @@ check_covariates_formula <- function(formula, mod) {
                      i = "{.arg formula}: {deparse(formula)}.",
                      i = "variable{?s} from {.arg mod}: {.val {in_mod}}."))
   }
-  if (vname_offset %in% nms_vars_formula)
+  is_offset_specified <- !is.null(vname_offset)
+  if (is_offset_specified && (vname_offset %in% nms_vars_formula))
     cli::cli_abort(c("{.arg formula} includes {nm_offset} from {.arg mod}.",
                      i = "{.arg formula}: {deparse(formula)}.",
                      i = "{nm_offset}: {.val {vname_offset}}."))

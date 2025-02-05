@@ -15,6 +15,7 @@ test_that("'set_covariates' works with Poisson, no horseshoe", {
   ans_expected$scale_covariates <- 0
   data$income <- scale(data$income)
   ans_expected$matrix_covariates <- model.matrix(~income - 1, data = data)
+  attributes(ans_expected$matrix_covariates)$assign <- NULL
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -45,7 +46,7 @@ test_that("'set_covariates' works with binomial, no horseshoe", {
   ans_expected <- mod
   ans_expected$scale_covariates <- 0
   data$income <- scale(data$income)
-  ans_expected$matrix_covariates <- model.matrix(~income - 1, data = data)
+  ans_expected$matrix_covariates <- model.matrix(~income - 1, data = data)[,1, drop = FALSE]
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -62,9 +63,6 @@ test_that("'set_covariates' works with binomial, with horseshoe", {
   expect_true(ans$scale_covariates > 0)
   expect_identical(ncol(ans$matrix_covariates), 9L)
 })
-
-
-
 
 
 ## 'set_datamod_outcome_rr3' --------------------------------------------------

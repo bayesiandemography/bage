@@ -24,7 +24,8 @@ regularized horseshoe prior. See below for details.}
 A modified version of \code{mod}
 }
 \description{
-Add covariates to a model.
+Add covariates to a model. Includes the option
+of using a "horseshoe" prior for coefficients.
 }
 \section{Warning}{
 
@@ -32,8 +33,13 @@ Add covariates to a model.
 \code{set_covariates()} is still experimental.
 }
 
-\section{Processing of covariate data}{
+\section{Covariate data}{
 
+
+All variables contained in the \code{formula}
+argument to \code{set_covariates()} should be in the
+dataset supplied in the original call to
+\code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, or \code{\link[=mod_norm]{mod_norm()}}.
 
 \code{set_covariates()} processes the covariate data before
 adding it to the model:
@@ -91,7 +97,23 @@ where
 }
 
 \examples{
-TODO - SUPPLY EXAMPLE
+## create a COVID covariate
+library(dplyr, warn.conflicts = FALSE)
+births <- kor_births |>
+  mutate(is_covid = time \%in\% 2020:2022)
+mod <- mod_pois(births ~ age * region + time,
+                data = births,
+                exposure = popn) |>
+  set_covariates(~ is_covid)
+
+## create a region-specific COVID covariate,
+## and apply a horseshoe prior
+births |>
+  mutate(is_covid_reg = is_covid * region)
+mod <- mod_pois(births ~ age * region + time,
+                data = births,
+                exposure = popn) |>
+  set_covariates(~ is_covid_reg, n_nonzero = 5)
 }
 \references{
 Piironen J, Vehtari A. (2017). On the hyperprior choice for the

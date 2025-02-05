@@ -320,6 +320,32 @@ make_agesex <- function(nm, var_age, var_sexgender) {
 
 
 ## HAS_TESTS
+#' Make Vector to Hold Coefficients for Covariates
+#'
+#' We generate 'coef_covariates' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when covariates set via `set_covariates()`
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of zeros, of type 'double'.
+#'
+#' @noRd
+make_coef_covariates <- function(mod) {
+  has_covariates <- has_covariates(mod)
+  if (has_covariates) {
+    matrix_covariates <- mod$matrix_covariates
+    ans <- rep(0, times = ncol(matrix_covariates))
+    names(ans) <- colnames(matrix_covariates)
+  }
+  else
+    ans <- double()
+  ans
+}
+
+
+## HAS_TESTS
 #' Make 'const'
 #'
 #' Make vector to hold real-valued constants for priors.
@@ -444,8 +470,42 @@ make_hyper <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make 'hyperrandfree'
+#' Make Vector to Hold Hyperparameter(s) for Covariates
 #'
+#' We generate 'hyper_covariates' when function 'fit'
+#' is called, rather than storing it in the
+#' 'bage_mod' object, to avoid having to update
+#' it when covariates set via `set_covariates()`
+#' 
+#' @param mod Object of class "bage_mod"
+#'
+#' @returns A vector of zeros, of type 'double'.
+#'
+#' @noRd
+make_hyper_covariates <- function(mod) {
+  has_covariates <- has_covariates(mod)
+  if (has_covariates) {
+    matrix_covariates <- mod$matrix_covariates
+    scale_covariates <- mod$scale_covariates
+    is_shrinkage <- scale_covariates > 0L
+    if (is_shrinkage) {
+      ans_global <- c(log_sd_global = 0)
+      ans_local <- rep(0, times = ncol(matrix_covariates))
+      names(ans_local) <- paste("log_sd_local",
+                                colnames(matrix_covariates),
+                                sep = ".")
+      ans <- c(ans_global, ans_local)
+    }
+    else
+      ans <- double()
+  }
+  else
+    ans <- double()
+  ans
+}
+
+
+## HAS_TESTS
 #' Make Vector to Hold Hyper-Parameters
 #' for Priors that can be Treated as Random Effects.
 #'
@@ -907,11 +967,24 @@ make_matrices_effectfree_effect <- function(mod) {
 make_matrix_covariates <- function(formula, mod) {
   data <- mod$data
   is_numeric <- vapply(data, is.numeric, FALSE)
-  data[is_numeric] <- lapply(data[is_numeric], scale)
+  all_numeric <- all(is_numeric)
   has_intercept <- attr(stats::terms(formula), "intercept")
-  if (has_intercept)
+  standardize <- function(x) as.numeric(scale(x))
+  data[is_numeric] <- lapply(data[is_numeric], standardize)
+  if (all_numeric) {
     formula <- stats::update(formula, ~.-1)
-  stats::model.matrix(formula, data = data)
+    ans <- stats::model.matrix(formula, data = data)
+  }
+  else {
+    if (!has_intercept)
+      formula <- stats::update(formula, ~ . + 1)
+    ans <- stats::model.matrix(formula, data = data)
+    if (!identical(colnames(ans)[[1L]], "(Intercept)"))
+      cli::cli_abort("Internal error: First column is not intercept.") ## nocov
+    ans <- ans[, -1L, drop = FALSE]
+  }
+  attributes(ans)$assign <- NULL
+  ans
 }
 
 

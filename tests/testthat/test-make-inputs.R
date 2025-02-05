@@ -403,6 +403,30 @@ test_that("'make_agesex' works with valid inputs", {
 })
 
 
+## 'make_coef_covariates' -----------------------------------------------------
+
+test_that("'make_coef_covariates' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    data$distance <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_coef_covariates(mod)
+    ans_expected <- double()
+    expect_identical(ans_obtained, ans_expected)
+    mod <- set_covariates(mod, ~ income + distance)
+    ans_obtained <- make_coef_covariates(mod)
+    ans_expected <- c(income = 0, distance = 0)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
 ## 'make_const' --------------------------------------------------------------- 
 
 test_that("'make_const' works with valid inputs", {
@@ -529,6 +553,34 @@ test_that("'make_hyper' works with valid inputs", {
   ans_obtained <- make_hyper(mod)
   ans_expected <- c(agegp = 0, "agegp:SEX" = 0)
   expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'make_hyper_covariates' -----------------------------------------------------
+
+test_that("'make_hyper_covariates' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    data$distance <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_hyper_covariates(mod)
+    ans_expected <- double()
+    expect_identical(ans_obtained, ans_expected)
+    mod <- set_covariates(mod, ~ income + distance)
+    ans_obtained <- make_hyper_covariates(mod)
+    ans_expected <- double()
+    expect_identical(ans_obtained, ans_expected)
+    mod <- set_covariates(mod, ~ income + distance, n_nonzero = 1)
+    ans_obtained <- make_hyper_covariates(mod)
+    ans_expected <- c(log_sd_global = 0, log_sd_local.income = 0, log_sd_local.distance = 0)
+    expect_identical(ans_obtained, ans_expected)    
 })
 
 
@@ -1112,7 +1164,29 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 
 ## 'make_matrix_covariates' ---------------------------------------------------
 
-test_that("'make_matrix_covariates' works with valid inputs", {
+test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    data$distance <- runif(n = nrow(data))
+    mod <- mod_pois(formula = deaths ~ age * sex,
+                    data = data,
+                    exposure = popn)
+    formula <- ~ income + distance
+    ans_obtained <- make_matrix_covariates(mod = mod, formula = formula)
+    data_scaled <- data
+    data_scaled$income <- scale(data_scaled$income)
+    data_scaled$distance <- scale(data_scaled$distance)
+    ans_expected <- model.matrix(~income + distance - 1, data = data_scaled)
+    attributes(ans_expected)$assign <- NULL
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'make_matrix_covariates' works with valid inputs - not all numeric", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -1127,7 +1201,7 @@ test_that("'make_matrix_covariates' works with valid inputs", {
     ans_obtained <- make_matrix_covariates(mod = mod, formula = formula)
     data_scaled <- data
     data_scaled$income <- scale(data_scaled$income)
-    ans_expected <- model.matrix(~income*region - 1, data = data_scaled)
+    ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
     expect_identical(ans_obtained, ans_expected)
 })
 
