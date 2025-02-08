@@ -1253,8 +1253,8 @@ has_covariates <- function(mod) {
 ## HAS_TESTS
 #' @export
 has_covariates.bage_mod <- function(mod) {
-  matrix_covariates <- mod$matrix_covariates
-  !is.null(matrix_covariates)
+  formula_covariates <- mod$formula_covariates
+  !is.null(formula_covariates)
 }
 
 

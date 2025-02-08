@@ -1173,11 +1173,8 @@ test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     data$income <- runif(n = nrow(data))
     data$distance <- runif(n = nrow(data))
-    mod <- mod_pois(formula = deaths ~ age * sex,
-                    data = data,
-                    exposure = popn)
     formula <- ~ income + distance
-    ans_obtained <- make_matrix_covariates(mod = mod, formula = formula)
+    ans_obtained <- make_matrix_covariates(formula = formula, data = data)
     data_scaled <- data
     data_scaled$income <- scale(data_scaled$income)
     data_scaled$distance <- scale(data_scaled$distance)
@@ -1194,11 +1191,8 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric", 
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
     data$income <- runif(n = nrow(data))
-    mod <- mod_pois(formula = deaths ~ age * sex,
-                    data = data,
-                    exposure = popn)
     formula <- ~ income * region
-    ans_obtained <- make_matrix_covariates(mod = mod, formula = formula)
+    ans_obtained <- make_matrix_covariates(formula = formula, data = data)
     data_scaled <- data
     data_scaled$income <- scale(data_scaled$income)
     ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
@@ -1640,6 +1634,7 @@ test_that("'make_vals_ag' works with model with offset", {
                       time = 1:2)
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$age[1] <- NA
   formula <- deaths ~ age * sex + region
   mod <- mod_pois(formula = formula,
                   data = data,

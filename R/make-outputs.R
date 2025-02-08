@@ -167,12 +167,14 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
     outcome <- vals_ag$outcome
     offset <- vals_ag$offset
     matrices_effect_outcome <- vals_ag$matrices_effect_outcome
+    matrix_covariates <- vals_ag$matrix_covariates
   }
   else {
     vals_in_lik <- make_vals_in_lik(mod)
     outcome <- vals_in_lik$outcome
     offset <- vals_in_lik$offset
     matrices_effect_outcome <- vals_in_lik$matrices_effect_outcome
+    matrix_covariates <- vals_in_lik$matrix_covariates
   }
   dimnames_terms <- mod$dimnames_terms
   terms_effect <- make_terms_effects(dimnames_terms)
@@ -192,14 +194,7 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   matrices_along_by_effectfree <- make_matrices_along_by_effectfree(mod)
   mean_disp <- mod$mean_disp
   has_disp <- mean_disp > 0
-  if (has_covariates(mod)) {
-    matrix_covariates <- mod$matrix_covariates
-    scale_covariates <- mod$scale_covariates
-  }
-  else {
-    matrix_covariates <- matrix(nrow = 0, ncol = 0)
-    scale_covariates <- 0
-  }
+  scale_covariates <- mod$scale_covariates %||% 0
   data <- list(i_lik = i_lik,
                outcome = outcome,
                offset = offset,
