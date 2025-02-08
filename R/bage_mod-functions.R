@@ -110,13 +110,13 @@
 #'                 data = births,
 #'                 exposure = popn) |>
 #'   set_covariates(~ is_covid_reg, n_nonzero = 5)
+#' mod
 #' @export
 set_covariates <- function(mod, formula, n_nonzero = NULL) {
   check_bage_mod(x = mod, nm_x = "mod")
   check_covariates_formula(formula = formula, mod = mod)
   data <- mod$data
   formula_mod <- mod$formula
-  matrix_covariates <- make_matrix_covariates(formula = formula, mod = mod)
   is_shrinkage <- !is.null(n_nonzero)
   if (is_shrinkage) {
     poputils::check_n(n = n_nonzero,
@@ -124,6 +124,8 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
                       min = 1L,
                       max = NULL,
                       divisible_by = NULL)
+    matrix_covariates <- make_matrix_covariates(formula = formula,
+                                                data = data)
     n_coef <- ncol(matrix_covariates)
     if (n_nonzero > n_coef)
       cli::cli_abort(paste("{.arg n_nonzero} ({.val {n_nonzero}}) greater than total",
@@ -134,7 +136,7 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   }
   else
     scale_covariates <- 0
-  mod$matrix_covariates <- matrix_covariates
+  mod$formula_covariates <- formula
   mod$scale_covariates <- scale_covariates
   mod <- unfit(mod)
   mod

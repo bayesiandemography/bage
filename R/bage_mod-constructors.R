@@ -472,6 +472,7 @@ mod_helper <- function(formula, data, n_draw) {
        var_sexgender = var_sexgender,
        var_time = var_time,
        mean_disp = 1,
+       formula_covariates = NULL,
        matrix_covariates = NULL,
        scale_covariates = NULL,
        n_draw = n_draw,

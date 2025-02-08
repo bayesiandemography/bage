@@ -958,14 +958,12 @@ make_matrices_effectfree_effect <- function(mod) {
 #' is no intercept.
 #'
 #' @param formula One-sided formula describing covariates
-#' @param mod Object of class 'bage_mod'
+#' @param data Data frame
 #'
-#' @returns A model matrix (including 'contrasts' and
-#' 'assign' attributes)
+#' @returns A model matrix (excluding attributes)
 #'
 #' @noRd
-make_matrix_covariates <- function(formula, mod) {
-  data <- mod$data
+make_matrix_covariates <- function(formula, data) {
   is_numeric <- vapply(data, is.numeric, FALSE)
   all_numeric <- all(is_numeric)
   has_intercept <- attr(stats::terms(formula), "intercept")
@@ -1438,7 +1436,13 @@ make_vals_ag <- function(mod) {
   has_offset <- !is.null(nm_offset)
   dimnames_terms <- mod$dimnames_terms
   fun_ag_outcome <- get_fun_ag_outcome(mod)
+  has_covariates <- has_covariates(mod)
   vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+  if (has_covariates) {
+    formula_covariates <- mod$formula_covariates
+    vars_covariates <- rownames(attr(stats::terms(formula_covariates), "factors"))
+    vars <- c(vars, vars_covariates)
+  }
   data[[nm_outcome]] <- mod$outcome
   if (has_offset)
     data[[nm_offset]] <- mod$offset
@@ -1455,12 +1459,20 @@ make_vals_ag <- function(mod) {
     data_ag <- outcome_df
     offset <- rep(1, times = nrow(data_ag))
   }
+  if (has_covariates) {
+    data_covariates <- unique(data[vars])
+    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
+                                                data = data_covariates)
+  }
+  else
+    matrix_covariates <- matrix(nrow = 0, ncol = 0)
   outcome <- data_ag[[nm_outcome]]
   matrices_effect_outcome <- make_matrices_effect_outcome(data = data_ag,
                                                           dimnames_terms = dimnames_terms)
   list(outcome = outcome,
        offset = offset,
-       matrices_effect_outcome = matrices_effect_outcome)
+       matrices_effect_outcome = matrices_effect_outcome,
+       matrix_covariates = matrix_covariates)
 }
 
 
@@ -1479,15 +1491,24 @@ make_vals_in_lik <- function(mod) {
   outcome <- mod$outcome
   offset <- mod$offset
   dimnames_terms <- mod$dimnames_terms
+  has_covariates <- has_covariates(mod)
   is_in_lik <- make_is_in_lik(mod)
   data <- data[is_in_lik, , drop = FALSE]
   outcome <- outcome[is_in_lik]
   offset <- offset[is_in_lik]
   matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
                                                           dimnames_terms = dimnames_terms)
+  if (has_covariates) {
+    formula_covariates <- mod$formula_covariates
+    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
+                                                data = data)
+  }
+  else
+    matrix_covariates <- matrix(nrow = 0, ncol = 0)
   list(outcome = outcome,
        offset = offset,
-       matrices_effect_outcome = matrices_effect_outcome)
+       matrices_effect_outcome = matrices_effect_outcome,
+       matrix_covariates = matrix_covariates)
 }
 
 
