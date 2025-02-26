@@ -252,6 +252,95 @@ infer_var_time <- function(formula) {
 }
 
 
+#' Test Whether Row of 'data' is Included in Likelihood
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+is_in_lik <- function(mod) {
+  (#is_in_lik_covariates(mod) &
+    is_in_lik_effects(mod)
+    & is_in_lik_offset(mod)
+    & is_in_lik_outcome(mod))
+}
+
+
+## #' Test Whether Row of 'data' is Included in Likelihood
+## #' - Focussing on Covariates
+## #'
+## #' @param mod Object of class 'bage_mod'
+## #'
+## #' @returns A logical vector, with length
+## #' equal to `nrow(data)`.
+## #'
+## #' @noRd
+## is_in_lik_covariates <- function(mod) {
+##   data <- mod$data
+##   if (has_covariates(mod)) {
+##     formula <- mod$formula_covariates
+##     vars <- rownames(attr(stats::terms(formula), "factors"))
+##     data_vars <- data[vars]
+##     complete.cases(data_vars)
+##   }
+##   else
+##     rep(TRUE, times = nrow(data))
+## }
+
+
+## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on 'effects'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+is_in_lik_effects <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+  data_vars <- data[vars]
+  complete.cases(data_vars)
+}
+
+
+## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on 'offset'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+is_in_lik_offset <- function(mod) {
+  offset <- mod$offset
+  !is.na(offset) & (offset > 0)
+}
+
+
+## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on 'outcome'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+is_in_lik_outcome <- function(mod) {
+  outcome <- mod$outcome
+  !is.na(outcome)
+}
+
+
 ## HAS_TESTS
 #' Classify a Term, Based on the Name
 #'
