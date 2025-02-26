@@ -349,6 +349,148 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
 })
 
 
+## 'is_in_lik' ----------------------------------------------------------------
+
+test_that("'is_in_lik' works with no NAs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:2,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- rnorm(n = nrow(data))
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- is_in_lik(mod)
+    ans_expected <- rep(TRUE, 6)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'is_in_lik' works with NAs", {
+    set.seed(0)
+    data <- expand.grid(age = c(0:1, NA),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$popn[1] <- 0
+    data$deaths[1] <- 0
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- is_in_lik(mod)
+    ans_expected <- c(FALSE, TRUE, FALSE, TRUE, TRUE, FALSE)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## ## 'is_in_lik_covariates' --------------------------------------------------------
+
+## test_that("'is_in_lik_covariates' works with no NAs", {
+##     set.seed(0)
+##     data <- expand.grid(age = 0:2,
+##                         sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     data$income <- rnorm(n = nrow(data))
+##     formula <- deaths ~ age + sex
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn) |>
+##       set_covariates(~ income)
+##     ans_obtained <- is_in_lik_effects(mod)
+##     ans_expected <- rep(TRUE, 6)
+##     expect_identical(ans_obtained, ans_expected)
+## })
+
+## test_that("'is_in_lik_effects' works with NAs", {
+##     set.seed(0)
+##     data <- expand.grid(age = c(0:1, NA),
+##                         sex = c("F", "M"))
+##     data$popn <- rpois(n = nrow(data), lambda = 100)
+##     data$deaths <- rpois(n = nrow(data), lambda = 10)
+##     formula <- deaths ~ age + sex
+##     mod <- mod_pois(formula = formula,
+##                     data = data,
+##                     exposure = popn)
+##     ans_obtained <- is_in_lik_effects(mod)
+##     ans_expected <- rep(c(TRUE, TRUE, FALSE), 2)
+##     expect_identical(ans_obtained, ans_expected)
+## })
+
+## 'is_in_lik_effects' --------------------------------------------------------
+
+test_that("'is_in_lik_effects' works with no NAs", {
+    set.seed(0)
+    data <- expand.grid(age = 0:2,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- is_in_lik_effects(mod)
+    ans_expected <- rep(TRUE, 6)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'is_in_lik_effects' works with NAs", {
+    set.seed(0)
+    data <- expand.grid(age = c(0:1, NA),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    formula <- deaths ~ age + sex
+    mod <- mod_pois(formula = formula,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- is_in_lik_effects(mod)
+    ans_expected <- rep(c(TRUE, TRUE, FALSE), 2)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'is_in_lik_offset' ---------------------------------------------------------
+
+test_that("'is_in_lik_offset' works with no NAs", {
+    mod <- list(outcome = c(0, 1, 5),
+                offset = c(1, 0, 3))
+    ans_obtained <- is_in_lik_offset(mod)
+    ans_expected <- c(TRUE, FALSE, TRUE)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'is_in_lik_offset' works with NAs", {
+    mod <- list(outcome = c(0, 1, NA, 7),
+                offset = c(1, 0, 3, NA))
+    ans_obtained <- is_in_lik_offset(mod)
+    ans_expected <- c(TRUE, FALSE, TRUE, FALSE)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+## 'is_in_lik_outcome' --------------------------------------------------------
+
+test_that("'is_in_lik_outcome' works with no NAs", {
+    mod <- list(outcome = c(0, 1, 5),
+                offset = c(1, 0, 3))
+    ans_obtained <- is_in_lik_outcome(mod)
+    ans_expected <- c(TRUE, TRUE, TRUE)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+test_that("'is_in_lik_outcome' works with NAs", {
+    mod <- list(outcome = c(0, 1, NA, 7),
+                offset = c(1, 0, 3, NA))
+    ans_obtained <- is_in_lik_outcome(mod)
+    ans_expected <- c(TRUE, TRUE, FALSE, TRUE)
+    expect_identical(ans_obtained, ans_expected)
+})
+
+
+
 ## 'make_agesex' --------------------------------------------------------------
 
 test_that("'make_agesex' works with valid inputs", {
@@ -1542,6 +1684,7 @@ test_that("'make_vals_ag' works with model with offset", {
                       region = 1:2,
                       sex = c("F", "M"),
                       time = 1:2)
+  data$age[c(1, 41)] <- NA
   data$popn <- rpois(n = nrow(data), lambda = 100)
   data$deaths <- rpois(n = nrow(data), lambda = 10)
   formula <- deaths ~ age * sex + region
