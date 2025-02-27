@@ -159,26 +159,26 @@ test_that("'dimnames_to_nm_split' works with 2D dimnames", {
 ## 'eval_offset_formula' ------------------------------------------------------
 
 test_that("'eval_offset_formula' works with valid inputs - simple formula", {
-  vname_offset <- "~popn + other"
+  nm_offset_data <- "~popn + other"
   data <- data.frame(popn = 1, other = 2)
-  ans_obtained <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  ans_obtained <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   ans_expected <- 3
   expect_identical(ans_obtained, ans_expected)
 })
 
 test_that("'eval_offset_formula' works with valid inputs - complicated formula", {
-  vname_offset <- "~popn^2 + log(other) + 6"
+  nm_offset_data <- "~popn^2 + log(other) + 6"
   data <- data.frame(popn = 1:2, other = 2:3)
-  ans_obtained <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  ans_obtained <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   ans_expected <- (1:2)^2 + log(2:3) + 6
   expect_identical(ans_obtained, ans_expected)
 })
 
 
 test_that("'eval_offset_formula' works with valid inputs - ifelse", {
-  vname_offset <- "~ifelse(popn <= 0, 0.1, popn)"
+  nm_offset_data <- "~ifelse(popn <= 0, 0.1, popn)"
   data <- data.frame(popn = 0:2)
-  ans_obtained <- eval_offset_formula(vname_offset = vname_offset, data = data)
+  ans_obtained <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   ans_expected <- c(0.1, 1, 2)
   expect_identical(ans_obtained, ans_expected)
 })
@@ -1279,7 +1279,7 @@ test_that("'make_matrices_effectfree_effect' works with valid inputs", {
 test_that("'make_offset' works with valid inputs - no NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$wt <- seq_len(nrow(data))
-    ans_obtained <- make_offset(vname_offset = "wt",
+    ans_obtained <- make_offset(nm_offset_data = "wt",
                                 data = data)
     ans_expected <- as.double(data$wt)
     expect_identical(ans_obtained, ans_expected)
@@ -1289,7 +1289,7 @@ test_that("'make_offset' works with valid inputs - has NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$wt <- seq_len(nrow(data))
     data$wt[3] <- NA
-    ans_obtained <- make_offset(vname_offset = "wt",
+    ans_obtained <- make_offset(nm_offset_data = "wt",
                                 data = data)
     ans_expected <- xtabs(wt ~ age + sex + time, data = data)
     ans_expected[3] <- NA
@@ -1300,7 +1300,7 @@ test_that("'make_offset' works with valid inputs - has NA", {
 test_that("'make_offset' works with valid inputs - no NA", {
     data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
     data$wt <- seq_len(nrow(data))
-    ans_obtained <- make_offset(vname_offset = "~ wt + 1",
+    ans_obtained <- make_offset(nm_offset_data = "~ wt + 1",
                                 data = data)
     ans_expected <- as.double(data$wt) + 1
     expect_identical(ans_obtained, ans_expected)

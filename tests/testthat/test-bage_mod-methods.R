@@ -1725,9 +1725,9 @@ test_that("'get_fun_scale_outcome' works with valid inputs", {
 })
 
 
-## 'get_nm_outcome' -----------------------------------------------------------
+## 'get_nm_offset_data' -----------------------------------------------------------
 
-test_that("'get_nm_outcome' works with 'bage_mod_pois'", {
+test_that("'get_nm_offset_data' works with 'bage_mod_pois'", {
   set.seed(0)
   n_sim <- 10
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
@@ -1737,7 +1737,65 @@ test_that("'get_nm_outcome' works with 'bage_mod_pois'", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  expect_identical(get_nm_outcome(mod), "deaths")
+  expect_identical(get_nm_offset_data(mod), "popn")
+})
+
+
+## 'get_nm_offset_mod' -----------------------------------------------------------
+
+test_that("'get_nm_offset_mod' works with 'bage_mod_pois'", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 20)
+  data$popn <- rpois(n = nrow(data), lambda = 30)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(get_nm_offset_mod(mod), "exposure")
+})
+
+test_that("'get_nm_offset_mod' works with 'bage_mod_binom'", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 20)
+  data$deaths <- rbinom(n = nrow(data), prob = 0.5, size = data$popn)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_binom(formula = formula,
+                   data = data,
+                   size = popn)
+  expect_identical(get_nm_offset_mod(mod), "size")
+})
+
+test_that("'get_nm_offset_mod' works with 'bage_mod_norm'", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 20)
+  data$wt <- runif(n = nrow(data))
+  formula <- deaths ~ age + sex + time
+  mod <- mod_norm(formula = formula,
+                  data = data,
+                  weights = wt)
+  expect_identical(get_nm_offset_mod(mod), "weights")
+})
+
+
+## 'get_nm_outcome_data' -----------------------------------------------------------
+
+test_that("'get_nm_outcome_data' works with 'bage_mod_pois'", {
+  set.seed(0)
+  n_sim <- 10
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 20)
+  data$popn <- rpois(n = nrow(data), lambda = 30)
+  formula <- deaths ~ age + sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  expect_identical(get_nm_outcome_data(mod), "deaths")
 })
 
 
@@ -2215,15 +2273,6 @@ test_that("'nm_distn' works with valid inputs", {
     expect_identical(nm_distn(structure(1, class = "bage_mod_pois")), "pois")
     expect_identical(nm_distn(structure(1, class = "bage_mod_binom")), "binom")
     expect_identical(nm_distn(structure(1, class = "bage_mod_norm")), "norm")
-})
-
-
-## 'nm_offset' ----------------------------------------------------------------
-
-test_that("'nm_offset' works with valid inputs", {
-    expect_identical(nm_offset(structure(1, class = "bage_mod_pois")), "exposure")
-    expect_identical(nm_offset(structure(1, class = "bage_mod_binom")), "size")
-    expect_identical(nm_offset(structure(1, class = "bage_mod_norm")), "weights")
 })
 
 
