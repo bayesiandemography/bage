@@ -252,6 +252,7 @@ infer_var_time <- function(formula) {
 }
 
 
+## HAS_TESTS
 #' Test Whether Row of 'data' is Included in Likelihood
 #'
 #' @param mod Object of class 'bage_mod'
@@ -432,6 +433,34 @@ make_const <- function(mod) {
     ans <- double()
   ans
 }
+
+
+
+#' Assemble Model Data into a Data Frame
+#'
+#' Assemble cleaned version of data into a data frame,
+#' and omit rows that do not contribute to the likelihood.
+#' 
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A data frame
+#'
+#' @noRd
+make_data_df <- function(mod) {
+  ans <- mod$data
+  nm_outcome <- get_nm_outcome(mod)
+  nm_offset <- mod$vname_offset
+  has_offset <- !is.null(nm_offset)
+  is_in_lik <- is_in_lik(mod)
+  ans[[nm_outcome]] <- mod$outcome
+  if (has_offset)
+    ans[[nm_offset]] <- mod$offset
+  ans <- ans[is_in_lik, , drop = FALSE]
+  ans <- tibble::tibble(ans)
+  ans
+}
+
+
 
 
 ## HAS_TESTS
@@ -1062,6 +1091,48 @@ make_outcome <- function(formula, data) {
     ans <- data[[match(nm_response, nms_data)]]
     ans <- as.double(ans)
     ans
+}
+
+
+#' Make 'outcome', 'offset', and 'matrices_effect_outcome' Components
+#' of 'data' Argument in 'fit_default'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param aggregate Logical. Whether to aggregate cells.
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_outcome_offset_matrices_effect_outcome <- function(mod, aggregate) {
+  dimnames_terms <- mod$dimnames_terms
+  nm_outcome <- get_nm_outcome(mod)
+  vname_offset <- mod$vname_offset
+  has_offset <- !is.null(vname_offset)
+  data_df <- make_data_df(mod)
+  if (aggegate) {
+    fun_ag_outcome <- get_fun_ag_outcome(mod)
+    formula <- mod$formula
+    vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+    outcome_df <- stats::aggregate(data_df[nm_outcome], data_df[vars], fun_ag_outcome)
+    if (has_offset) {
+      fun_ag_offset <- get_fun_ag_offset(mod)
+      offset_df <- stats::aggregate(data_df[vname_offset], data_df[vars], fun_ag_offset)
+      data_df <- merge(outcome_df, offset_df, by = vars)
+    }
+    else {
+      data_df <- outcome_df
+    }
+  }
+  outcome <- data_df[[nm_outcome]]
+  if (has_offset)
+    offset <- data_df[[vname_offset]]
+  else
+    offset <- rep(1, times = nrow(data_df))
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data_df,
+                                                          dimnames_terms = dimnames_terms)
+  list(outcome = outcome,
+       offset = offset,
+       matrices_effect_outcome = matrices_effect_outcome)
 }
 
 

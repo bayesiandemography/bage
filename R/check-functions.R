@@ -508,21 +508,29 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
 #'
 #' @noRd
 check_mod_has_obs <- function(mod) {
-  is_in_lik <- make_is_in_lik(mod)
-    msg1 <- "No data for fitting model."
-  if (length(is_in_lik) == 0L)
-    cli::cli_abort(msg1)
+  is_in_lik <- is_in_lik(mod)
   if (!any(is_in_lik)) {
-    has_offset <- !is.null(mod$vname_offset)
+    msg <- "No data for fitting model."
+    if (length(is_in_lik) == 0L)
+      cli::cli_abort(msg)
+    is_in_lik_effects <- is_in_lik_effects(mod)
+    is_in_lik_offset <- is_in_lik_offset(mod)
+    is_in_lik_outcome <- is_in_lik_outcome(mod)
+    n_na_effects <- sum(!is_in_lik_effects)
+    if (n_na_effects > 0L)
+      msg <- c(msg, i = "Number of rows where predictor is {.val {NA}}: {.val {n_na_effects}}.")
+    vname_offset <- mod$vname_offset
+    has_offset <- !is.null(vname_offset)
     if (has_offset) {
       nm_offset <- nm_offset(mod)
-      msg2 <- paste("Every case has {nm_offset} {.val {0}},",
-                    "{nm_offset} {.val {NA}}, or outcome {.val {NA}}.")
+      n_na_offset <- sum(!is_in_lik_offset)
+      if (n_na_offset > 0L)
+        msg <- c(msg, i = "Number of rows where {nm_offset} is {.val {NA}}: {.val {n_na_offset}}.")
     }
-    else
-      msg2 <- "Every case has outcome {.val {NA}}."
-    message <- c(msg1, i = msg2)
-    cli::cli_abort(message)
+    n_na_outcome <- sum(!is_in_lik_outcome)
+    if (n_na_outcome > 0L)
+      msg <- c(msg, i = "Number of rows where outcome is {.val {NA}}: {.val {n_na_outcome}}.")
+    cli::cli_abort(msg)
   }
   invisible(TRUE)
 }
