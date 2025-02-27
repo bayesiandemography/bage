@@ -349,9 +349,9 @@ test_that("'infer_var_time' returns NULL when not single valid answer", {
 })
 
 
-## 'is_in_lik' ----------------------------------------------------------------
+## 'get_is_in_lik' ----------------------------------------------------------------
 
-test_that("'is_in_lik' works with no NAs", {
+test_that("'get_is_in_lik' works with no NAs", {
     set.seed(0)
     data <- expand.grid(age = 0:2,
                         sex = c("F", "M"))
@@ -362,12 +362,12 @@ test_that("'is_in_lik' works with no NAs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- is_in_lik(mod)
+    ans_obtained <- get_is_in_lik(mod)
     ans_expected <- rep(TRUE, 6)
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'is_in_lik' works with NAs", {
+test_that("'get_is_in_lik' works with NAs", {
     set.seed(0)
     data <- expand.grid(age = c(0:1, NA),
                         sex = c("F", "M"))
@@ -379,15 +379,15 @@ test_that("'is_in_lik' works with NAs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- is_in_lik(mod)
+    ans_obtained <- get_is_in_lik(mod)
     ans_expected <- c(FALSE, TRUE, FALSE, TRUE, TRUE, FALSE)
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## ## 'is_in_lik_covariates' --------------------------------------------------------
+## ## 'get_is_in_lik_covariates' --------------------------------------------------------
 
-## test_that("'is_in_lik_covariates' works with no NAs", {
+## test_that("'get_is_in_lik_covariates' works with no NAs", {
 ##     set.seed(0)
 ##     data <- expand.grid(age = 0:2,
 ##                         sex = c("F", "M"))
@@ -399,12 +399,12 @@ test_that("'is_in_lik' works with NAs", {
 ##                     data = data,
 ##                     exposure = popn) |>
 ##       set_covariates(~ income)
-##     ans_obtained <- is_in_lik_effects(mod)
+##     ans_obtained <- get_is_in_lik_effects(mod)
 ##     ans_expected <- rep(TRUE, 6)
 ##     expect_identical(ans_obtained, ans_expected)
 ## })
 
-## test_that("'is_in_lik_effects' works with NAs", {
+## test_that("'get_is_in_lik_effects' works with NAs", {
 ##     set.seed(0)
 ##     data <- expand.grid(age = c(0:1, NA),
 ##                         sex = c("F", "M"))
@@ -414,14 +414,14 @@ test_that("'is_in_lik' works with NAs", {
 ##     mod <- mod_pois(formula = formula,
 ##                     data = data,
 ##                     exposure = popn)
-##     ans_obtained <- is_in_lik_effects(mod)
+##     ans_obtained <- get_is_in_lik_effects(mod)
 ##     ans_expected <- rep(c(TRUE, TRUE, FALSE), 2)
 ##     expect_identical(ans_obtained, ans_expected)
 ## })
 
-## 'is_in_lik_effects' --------------------------------------------------------
+## 'get_is_in_lik_effects' --------------------------------------------------------
 
-test_that("'is_in_lik_effects' works with no NAs", {
+test_that("'get_is_in_lik_effects' works with no NAs", {
     set.seed(0)
     data <- expand.grid(age = 0:2,
                         sex = c("F", "M"))
@@ -431,12 +431,12 @@ test_that("'is_in_lik_effects' works with no NAs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- is_in_lik_effects(mod)
+    ans_obtained <- get_is_in_lik_effects(mod)
     ans_expected <- rep(TRUE, 6)
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'is_in_lik_effects' works with NAs", {
+test_that("'get_is_in_lik_effects' works with NAs", {
     set.seed(0)
     data <- expand.grid(age = c(0:1, NA),
                         sex = c("F", "M"))
@@ -446,45 +446,45 @@ test_that("'is_in_lik_effects' works with NAs", {
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn)
-    ans_obtained <- is_in_lik_effects(mod)
+    ans_obtained <- get_is_in_lik_effects(mod)
     ans_expected <- rep(c(TRUE, TRUE, FALSE), 2)
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'is_in_lik_offset' ---------------------------------------------------------
+## 'get_is_in_lik_offset' ---------------------------------------------------------
 
-test_that("'is_in_lik_offset' works with no NAs", {
+test_that("'get_is_in_lik_offset' works with no NAs", {
     mod <- list(outcome = c(0, 1, 5),
                 offset = c(1, 0, 3))
-    ans_obtained <- is_in_lik_offset(mod)
+    ans_obtained <- get_is_in_lik_offset(mod)
     ans_expected <- c(TRUE, FALSE, TRUE)
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'is_in_lik_offset' works with NAs", {
+test_that("'get_is_in_lik_offset' works with NAs", {
     mod <- list(outcome = c(0, 1, NA, 7),
                 offset = c(1, 0, 3, NA))
-    ans_obtained <- is_in_lik_offset(mod)
+    ans_obtained <- get_is_in_lik_offset(mod)
     ans_expected <- c(TRUE, FALSE, TRUE, FALSE)
     expect_identical(ans_obtained, ans_expected)
 })
 
 
-## 'is_in_lik_outcome' --------------------------------------------------------
+## 'get_is_in_lik_outcome' --------------------------------------------------------
 
-test_that("'is_in_lik_outcome' works with no NAs", {
+test_that("'get_is_in_lik_outcome' works with no NAs", {
     mod <- list(outcome = c(0, 1, 5),
                 offset = c(1, 0, 3))
-    ans_obtained <- is_in_lik_outcome(mod)
+    ans_obtained <- get_is_in_lik_outcome(mod)
     ans_expected <- c(TRUE, TRUE, TRUE)
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'is_in_lik_outcome' works with NAs", {
+test_that("'get_is_in_lik_outcome' works with NAs", {
     mod <- list(outcome = c(0, 1, NA, 7),
                 offset = c(1, 0, 3, NA))
-    ans_obtained <- is_in_lik_outcome(mod)
+    ans_obtained <- get_is_in_lik_outcome(mod)
     ans_expected <- c(TRUE, TRUE, FALSE, TRUE)
     expect_identical(ans_obtained, ans_expected)
 })
@@ -1355,6 +1355,94 @@ test_that("'make_outcome' works with valid inputs", {
 })
 
 
+## 'make_outcome_offset_matrices_effect_outcome' -------------------------------------------------------------
+
+test_that("'make_outcome_offset_matrices_effect_outcome' works with model with offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:2,
+                      sex = c("F", "M"),
+                      time = 1:2)
+  data$age[c(1, 41)] <- NA
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_outcome_offset_matrices_effect_outcome(mod, aggregate = TRUE)
+  data_ag <- aggregate(data[c("deaths", "popn")], data[c("age", "region", "sex")], sum)
+  data_ag <- data_ag[with(data_ag, order(age, sex, region)), ]
+  ans_expected <- list(outcome = data_ag[["deaths"]],
+                       offset = data_ag[["popn"]],
+                       matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
+                                                                              mod$dimnames_terms))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome_offset_matrices_effect_outcome' works with model without offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:2,
+                      sex = c("F", "M"),
+                      time = 1:2)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  ans_obtained <- make_outcome_offset_matrices_effect_outcome(mod, aggregate = TRUE)
+  data_ag <- aggregate(data["deaths"], data[c("age", "sex", "region")], sum)
+  ans_expected <- list(outcome = data_ag[["deaths"]],
+                       offset = rep(1, times = nrow(data_ag)),
+                       matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
+                                                                              mod$dimnames_terms))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome_offset_matrices_effect_outcome' works with model with offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:2,
+                      sex = c("F", "M"),
+                      time = 1:2)
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$popn[1] <- 0
+  data$deaths[1] <- 0
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  ans_obtained <- make_outcome_offset_matrices_effect_outcome(mod, aggregate = FALSE)
+  ans_expected <- list(outcome = mod$outcome[-1],
+                       offset = mod$offset[-1],
+                       matrices_effect_outcome = make_matrices_effect_outcome(data[-1,],
+                                                                              mod$dimnames_terms))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+test_that("'make_outcome_offset_matrices_effect_outcome' works with model with offset", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = 1:2,
+                      sex = c("F", "M"),
+                      time = 1:2)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$deaths[1] <- NA
+  formula <- deaths ~ age * sex + region
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = 1)
+  ans_obtained <- make_outcome_offset_matrices_effect_outcome(mod, aggregate = FALSE)
+  ans_expected <- list(outcome = mod$outcome[-1],
+                       offset = mod$offset[-1],
+                       matrices_effect_outcome = make_matrices_effect_outcome(data[-1,],
+                                                                              mod$dimnames_terms))
+  expect_equal(ans_obtained, ans_expected)
+})
+
+
 ## 'make_prior_class' ---------------------------------------------------------
 
 test_that("'make_prior_class' works with valid inputs", {
@@ -1697,96 +1785,6 @@ test_that("'make_uses_offset_effectfree_effect' works with valid inputs", {
     expect_identical(ans_obtained, ans_expected)
 })
 
-
-## 'make_vals_ag' -------------------------------------------------------------
-
-test_that("'make_vals_ag' works with model with offset", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = 1:2,
-                      sex = c("F", "M"),
-                      time = 1:2)
-  data$age[c(1, 41)] <- NA
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + region
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_vals_ag(mod)
-  data_ag <- aggregate(data[c("deaths", "popn")], data[c("age", "region", "sex")], sum)
-  data_ag <- data_ag[with(data_ag, order(age, sex, region)), ]
-  ans_expected <- list(outcome = data_ag[["deaths"]],
-                       offset = data_ag[["popn"]],
-                       matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
-                                                                              mod$dimnames_terms))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_vals_ag' works with model without offset", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = 1:2,
-                      sex = c("F", "M"),
-                      time = 1:2)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + region
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = 1)
-  ans_obtained <- make_vals_ag(mod)
-  data_ag <- aggregate(data["deaths"], data[c("age", "sex", "region")], sum)
-  ans_expected <- list(outcome = data_ag[["deaths"]],
-                       offset = rep(1, times = nrow(data_ag)),
-                       matrices_effect_outcome = make_matrices_effect_outcome(data_ag,
-                                                                              mod$dimnames_terms))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-
-## 'make_vals_in_lik' -------------------------------------------------------------
-
-test_that("'make_vals_in_lik' works with model with offset", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = 1:2,
-                      sex = c("F", "M"),
-                      time = 1:2)
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$popn[1] <- 0
-  data$deaths[1] <- 0
-  formula <- deaths ~ age * sex + region
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_vals_in_lik(mod)
-  ans_expected <- list(outcome = mod$outcome[-1],
-                       offset = mod$offset[-1],
-                       matrices_effect_outcome = make_matrices_effect_outcome(data[-1,],
-                                                                              mod$dimnames_terms))
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_vals_in_lik' works with model with offset", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = 1:2,
-                      sex = c("F", "M"),
-                      time = 1:2)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$deaths[1] <- NA
-  formula <- deaths ~ age * sex + region
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = 1)
-  ans_obtained <- make_vals_in_lik(mod)
-  ans_expected <- list(outcome = mod$outcome[-1],
-                       offset = mod$offset[-1],
-                       matrices_effect_outcome = make_matrices_effect_outcome(data[-1,],
-                                                                              mod$dimnames_terms))
-  expect_equal(ans_obtained, ans_expected)
-})
 
 
 ## 'make_vars_inner' ----------------------------------------------------------
