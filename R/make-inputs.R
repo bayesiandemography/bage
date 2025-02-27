@@ -261,11 +261,11 @@ infer_var_time <- function(formula) {
 #' equal to `nrow(data)`.
 #'
 #' @noRd
-is_in_lik <- function(mod) {
-  (#is_in_lik_covariates(mod) &
-    is_in_lik_effects(mod)
-    & is_in_lik_offset(mod)
-    & is_in_lik_outcome(mod))
+get_is_in_lik <- function(mod) {
+  (#get_is_in_lik_covariates(mod) &
+    get_is_in_lik_effects(mod)
+    & get_is_in_lik_offset(mod)
+    & get_is_in_lik_outcome(mod))
 }
 
 
@@ -301,7 +301,7 @@ is_in_lik <- function(mod) {
 #' equal to `nrow(data)`.
 #'
 #' @noRd
-is_in_lik_effects <- function(mod) {
+get_is_in_lik_effects <- function(mod) {
   formula <- mod$formula
   data <- mod$data
   vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
@@ -320,7 +320,7 @@ is_in_lik_effects <- function(mod) {
 #' equal to `nrow(data)`.
 #'
 #' @noRd
-is_in_lik_offset <- function(mod) {
+get_is_in_lik_offset <- function(mod) {
   offset <- mod$offset
   !is.na(offset) & (offset > 0)
 }
@@ -336,7 +336,7 @@ is_in_lik_offset <- function(mod) {
 #' equal to `nrow(data)`.
 #'
 #' @noRd
-is_in_lik_outcome <- function(mod) {
+get_is_in_lik_outcome <- function(mod) {
   outcome <- mod$outcome
   !is.na(outcome)
 }
@@ -451,7 +451,7 @@ make_data_df <- function(mod) {
   nm_outcome_data <- get_nm_outcome_data(mod)
   nm_offset_mod <- mod$nm_offset_data
   has_offset <- !is.null(nm_offset_mod)
-  is_in_lik <- is_in_lik(mod)
+  is_in_lik <- get_is_in_lik(mod)
   ans[[nm_outcome_data]] <- mod$outcome
   if (has_offset)
     ans[[nm_offset_mod]] <- mod$offset
@@ -1109,7 +1109,7 @@ make_outcome_offset_matrices_effect_outcome <- function(mod, aggregate) {
   nm_offset_data <- get_nm_offset_data(mod)
   has_offset <- !is.null(nm_offset_data)
   data_df <- make_data_df(mod)
-  if (aggegate) {
+  if (aggregate) {
     fun_ag_outcome <- get_fun_ag_outcome(mod)
     formula <- mod$formula
     vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]

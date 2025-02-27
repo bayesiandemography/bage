@@ -508,14 +508,14 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
 #'
 #' @noRd
 check_mod_has_obs <- function(mod) {
-  is_in_lik <- is_in_lik(mod)
+  is_in_lik <- get_is_in_lik(mod)
   if (!any(is_in_lik)) {
     msg <- "No data for fitting model."
     if (length(is_in_lik) == 0L)
       cli::cli_abort(msg)
-    is_in_lik_effects <- is_in_lik_effects(mod)
-    is_in_lik_offset <- is_in_lik_offset(mod)
-    is_in_lik_outcome <- is_in_lik_outcome(mod)
+    is_in_lik_effects <- get_is_in_lik_effects(mod)
+    is_in_lik_offset <- get_is_in_lik_offset(mod)
+    is_in_lik_outcome <- get_is_in_lik_outcome(mod)
     n_na_effects <- sum(!is_in_lik_effects)
     if (n_na_effects > 0L)
       msg <- c(msg, i = "Number of rows where predictor is {.val {NA}}: {.val {n_na_effects}}.")
