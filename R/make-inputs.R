@@ -91,16 +91,16 @@ dimnames_to_nm_split <- function(dimnames) {
 ## HAS_TESTS
 #' Evaluate Formula to Create Offset
 #'
-#' @param vname_offset Formula passed by user, turned into a string
+#' @param nm_offset_data Formula passed by user, turned into a string
 #' @param data Data frame
 #'
 #' @returns A numeric vector
 #'
 #' @noRd
-eval_offset_formula <- function(vname_offset, data) {
-  vname_offset <- sub("^~", "", vname_offset)
-  vname_offset <- parse(text = vname_offset)
-  eval(vname_offset, envir = data)
+eval_offset_formula <- function(nm_offset_data, data) {
+  nm_offset_data <- sub("^~", "", nm_offset_data)
+  nm_offset_data <- parse(text = nm_offset_data)
+  eval(nm_offset_data, envir = data)
 }
 
 
@@ -448,13 +448,13 @@ make_const <- function(mod) {
 #' @noRd
 make_data_df <- function(mod) {
   ans <- mod$data
-  nm_outcome <- get_nm_outcome(mod)
-  nm_offset <- mod$vname_offset
-  has_offset <- !is.null(nm_offset)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_offset_mod <- mod$nm_offset_data
+  has_offset <- !is.null(nm_offset_mod)
   is_in_lik <- is_in_lik(mod)
-  ans[[nm_outcome]] <- mod$outcome
+  ans[[nm_outcome_data]] <- mod$outcome
   if (has_offset)
-    ans[[nm_offset]] <- mod$offset
+    ans[[nm_offset_mod]] <- mod$offset
   ans <- ans[is_in_lik, , drop = FALSE]
   ans <- tibble::tibble(ans)
   ans
@@ -1011,18 +1011,18 @@ make_matrices_effectfree_effect <- function(mod) {
 ## HAS_TESTS
 #' Make vector holding offset variable
 #'
-#' @param vname_offset Name of the offset variable.
+#' @param nm_offset_data Name of the offset variable.
 #' @param data A data frame
 #'
 #' @returns An vector of doubles.
 #'
 #' @noRd
-make_offset <- function(vname_offset, data) {
-  is_offset_formula <- startsWith(vname_offset, "~")
+make_offset <- function(nm_offset_data, data) {
+  is_offset_formula <- startsWith(nm_offset_data, "~")
   if (is_offset_formula)
-    ans <- eval_offset_formula(vname_offset = vname_offset, data = data)
+    ans <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   else
-    ans <- data[[vname_offset]]
+    ans <- data[[nm_offset_data]]
   ans <- as.double(ans)
   ans
 }
@@ -1105,27 +1105,27 @@ make_outcome <- function(formula, data) {
 #' @noRd
 make_outcome_offset_matrices_effect_outcome <- function(mod, aggregate) {
   dimnames_terms <- mod$dimnames_terms
-  nm_outcome <- get_nm_outcome(mod)
-  vname_offset <- mod$vname_offset
-  has_offset <- !is.null(vname_offset)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_offset_data <- get_nm_offset_data(mod)
+  has_offset <- !is.null(nm_offset_data)
   data_df <- make_data_df(mod)
   if (aggegate) {
     fun_ag_outcome <- get_fun_ag_outcome(mod)
     formula <- mod$formula
     vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
-    outcome_df <- stats::aggregate(data_df[nm_outcome], data_df[vars], fun_ag_outcome)
+    outcome_df <- stats::aggregate(data_df[nm_outcome_data], data_df[vars], fun_ag_outcome)
     if (has_offset) {
       fun_ag_offset <- get_fun_ag_offset(mod)
-      offset_df <- stats::aggregate(data_df[vname_offset], data_df[vars], fun_ag_offset)
+      offset_df <- stats::aggregate(data_df[nm_offset_data], data_df[vars], fun_ag_offset)
       data_df <- merge(outcome_df, offset_df, by = vars)
     }
     else {
       data_df <- outcome_df
     }
   }
-  outcome <- data_df[[nm_outcome]]
+  outcome <- data_df[[nm_outcome_data]]
   if (has_offset)
-    offset <- data_df[[vname_offset]]
+    offset <- data_df[[nm_offset_data]]
   else
     offset <- rep(1, times = nrow(data_df))
   matrices_effect_outcome <- make_matrices_effect_outcome(data = data_df,
@@ -1495,29 +1495,29 @@ make_uses_offset_effectfree_effect <- function(mod) {
 make_vals_ag <- function(mod) {
   formula <- mod$formula
   data <- mod$data
-  nm_outcome <- get_nm_outcome(mod)
-  nm_offset <- mod$vname_offset
-  has_offset <- !is.null(nm_offset)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_offset_mod <- mod$nm_offset_data
+  has_offset <- !is.null(nm_offset_mod)
   dimnames_terms <- mod$dimnames_terms
   fun_ag_outcome <- get_fun_ag_outcome(mod)
   vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
-  data[[nm_outcome]] <- mod$outcome
+  data[[nm_outcome_data]] <- mod$outcome
   if (has_offset)
-    data[[nm_offset]] <- mod$offset
+    data[[nm_offset_mod]] <- mod$offset
   is_in_lik <- make_is_in_lik(mod)
   data <- data[is_in_lik, , drop = FALSE]
-  outcome_df <- stats::aggregate(data[nm_outcome], data[vars], fun_ag_outcome)
+  outcome_df <- stats::aggregate(data[nm_outcome_data], data[vars], fun_ag_outcome)
   if (has_offset) {
     fun_ag_offset <- get_fun_ag_offset(mod)
-    offset_df <- stats::aggregate(data[nm_offset], data[vars], fun_ag_offset)
+    offset_df <- stats::aggregate(data[nm_offset_mod], data[vars], fun_ag_offset)
     data_ag <- merge(outcome_df, offset_df, by = vars)
-    offset <- data_ag[[nm_offset]]
+    offset <- data_ag[[nm_offset_mod]]
   }
   else {
     data_ag <- outcome_df
     offset <- rep(1, times = nrow(data_ag))
   }
-  outcome <- data_ag[[nm_outcome]]
+  outcome <- data_ag[[nm_outcome_data]]
   matrices_effect_outcome <- make_matrices_effect_outcome(data = data_ag,
                                                           dimnames_terms = dimnames_terms)
   list(outcome = outcome,
