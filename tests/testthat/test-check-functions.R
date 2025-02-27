@@ -495,7 +495,8 @@ test_that("'check_mod_has_obs' returns correct error with no valid rows - no exp
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$deaths <- NA
+    data$deaths[-1] <- NA
+    data$time[1] <- NA
     formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,

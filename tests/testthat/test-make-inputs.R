@@ -583,6 +583,28 @@ test_that("'make_const' works with valid inputs - no terms", {
 })
 
 
+## 'make_data_df' -------------------------------------------------------------
+
+test_that("'make_data_df' works", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        time = 2000:2005,
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$deaths[1] <- NA
+    mod <- mod_pois(deaths ~ age * sex + time,
+                    data = data,
+                    exposure = popn)
+    ans_obtained <- make_data_df(mod)
+    ans_expected <- data[-1,]
+    ans_expected$deaths <- as.double(ans_expected$deaths)
+    ans_expected$popn <- as.double(ans_expected$popn)
+    ans_expected <- tibble::tibble(ans_expected)
+    expect_identical(ans_obtained, ans_expected)    
+})
+
+
 ## 'make_dimnames_terms' ------------------------------------------------------
 
 test_that("'make_dimnames_terms' works - includes intercept", {
