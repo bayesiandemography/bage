@@ -435,7 +435,7 @@ make_const <- function(mod) {
 }
 
 
-
+## HAS_TESTS
 #' Assemble Model Data into a Data Frame
 #'
 #' Assemble cleaned version of data into a data frame,
@@ -459,8 +459,6 @@ make_data_df <- function(mod) {
   ans <- tibble::tibble(ans)
   ans
 }
-
-
 
 
 ## HAS_TESTS
@@ -607,22 +605,6 @@ make_hyperrandfree <- function(mod) {
 make_i_prior <- function(mod) {
     priors <- mod$priors
     vapply(priors, function(x) x$i_prior, 0L)
-}
-
-
-## HAS_TESTS
-#' Make vector of indicators showing whether
-#' cell contributes to likelihood
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of 1Ls and 0Ls.
-#'
-#' @noRd
-make_is_in_lik <- function(mod) {
-    outcome <- mod$outcome
-    offset <- mod$offset
-    !is.na(outcome) & !is.na(offset) & (offset > 0)
 }
 
 
@@ -1423,76 +1405,6 @@ make_uses_offset_effectfree_effect <- function(mod) {
     ans <- as.integer(ans)
     names(ans) <- names(priors)
     ans    
-}
-
-
-## HAS_TESTS
-#' Create Aggregated Version of Outcome, Offset, and
-#' 'matrices_effect_outcome'
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list
-#'
-#' @noRd    
-make_vals_ag <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  nm_outcome_data <- get_nm_outcome_data(mod)
-  nm_offset_mod <- mod$nm_offset_data
-  has_offset <- !is.null(nm_offset_mod)
-  dimnames_terms <- mod$dimnames_terms
-  fun_ag_outcome <- get_fun_ag_outcome(mod)
-  vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
-  data[[nm_outcome_data]] <- mod$outcome
-  if (has_offset)
-    data[[nm_offset_mod]] <- mod$offset
-  is_in_lik <- make_is_in_lik(mod)
-  data <- data[is_in_lik, , drop = FALSE]
-  outcome_df <- stats::aggregate(data[nm_outcome_data], data[vars], fun_ag_outcome)
-  if (has_offset) {
-    fun_ag_offset <- get_fun_ag_offset(mod)
-    offset_df <- stats::aggregate(data[nm_offset_mod], data[vars], fun_ag_offset)
-    data_ag <- merge(outcome_df, offset_df, by = vars)
-    offset <- data_ag[[nm_offset_mod]]
-  }
-  else {
-    data_ag <- outcome_df
-    offset <- rep(1, times = nrow(data_ag))
-  }
-  outcome <- data_ag[[nm_outcome_data]]
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data_ag,
-                                                          dimnames_terms = dimnames_terms)
-  list(outcome = outcome,
-       offset = offset,
-       matrices_effect_outcome = matrices_effect_outcome)
-}
-
-
-## HAS_TESTS
-#' Create Version of Outcome, Offset, and
-#' 'matrices_effect_outcome' Where Observations
-#' Not Contributing to Likelihood Removed
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list
-#'
-#' @noRd    
-make_vals_in_lik <- function(mod) {
-  data <- mod$data
-  outcome <- mod$outcome
-  offset <- mod$offset
-  dimnames_terms <- mod$dimnames_terms
-  is_in_lik <- make_is_in_lik(mod)
-  data <- data[is_in_lik, , drop = FALSE]
-  outcome <- outcome[is_in_lik]
-  offset <- offset[is_in_lik]
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                          dimnames_terms = dimnames_terms)
-  list(outcome = outcome,
-       offset = offset,
-       matrices_effect_outcome = matrices_effect_outcome)
 }
 
 
