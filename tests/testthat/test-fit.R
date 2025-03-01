@@ -272,7 +272,23 @@ test_that("'make_f_new' works", {
                       optimizer_old = "CG",
                       optimizer_new = "BFGS")
   expect_true(identical(names(f_new), names(f_old)))
+  f_new <- make_f_new(f_old = f_old,
+                      quiet = TRUE,
+                      data = data,
+                      random = NULL,
+                      map = map,
+                      optimizer_old = "CG",
+                      optimizer_new = "BFGS")
+  expect_true(identical(names(f_new), names(f_old)))
+  expect_snapshot(f <- make_f_new(f_old = f_old,
+                                  quiet = FALSE,
+                                  data = data,
+                                  random = random,
+                                  map = map,
+                                  optimizer_old = "CG",
+                                  optimizer_new = "BFGS"))
 })
+
 
 
 ## 'make_fit_data' ------------------------------------------------------------
@@ -444,7 +460,8 @@ test_that("'make_fit_times' works", {
 
 ## 'optimize_adfun' -----------------------------------------------------------
 
-test_that("'optimize_adfun' works", {
+## can't figure out how to stop it from converging!
+test_that("'optimize_adfun' works - converges", {
   set.seed(10)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -467,6 +484,31 @@ test_that("'optimize_adfun' works", {
                         data = data, random = random, map = map)
   expect_setequal(names(ans), c("f", "iter", "message", "converged", "optimizer"))
   expect_true(ans$converged)
+})
+
+test_that("'optimize_adfun' throws correct error when optimizer invalid ", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 10)
+  data$deaths <- rpois(n = nrow(data), lambda = 0.3)
+  formula <- deaths ~ age * sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    set_prior(time ~ RW2())
+  data <- make_fit_data(mod, aggregate = FALSE)
+  parameters <- make_fit_parameters(mod)
+  map <- make_fit_map(mod)
+  random <- make_fit_random(mod)
+  f <- TMB::MakeADFun(data = data,
+                      parameters = parameters,
+                      map = map,
+                      DLL = "bage",
+                      random = random,
+                      silent = TRUE)
+  expect_error(optimize_adfun(f = f, quiet = TRUE, optimizer = "wrong",
+                              data = data, random = random, map = map),
+               "Internal error: \"wrong\" is not a valid value for `optimizer`.")
 })
 
 
