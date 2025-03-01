@@ -5,7 +5,6 @@
 \alias{reexports}
 \alias{augment}
 \alias{components}
-\alias{equation}
 \alias{fit}
 \alias{forecast}
 \alias{tidy}
@@ -17,6 +16,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{augment}}, \code{\link[generics]{components}}, \code{\link[generics]{equation}}, \code{\link[generics]{fit}}, \code{\link[generics]{forecast}}, \code{\link[generics]{generate}}, \code{\link[generics]{tidy}}}
+  \item{generics}{\code{\link[generics]{augment}}, \code{\link[generics]{components}}, \code{\link[generics]{fit}}, \code{\link[generics]{forecast}}, \code{\link[generics]{generate}}, \code{\link[generics]{tidy}}}
 }}
 
