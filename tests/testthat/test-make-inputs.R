@@ -994,101 +994,6 @@ test_that("'make_levels_forecast_all' works with no intercept", {
 })
 
 
-## 'make_map' -----------------------------------------------------------------
-
-test_that("'make_map' works with no parameters fixed", {
-    set.seed(0)
-    data <- expand.grid(time = 2000:2009,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX + region
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_map(mod)
-    ans_expected <- NULL
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works when 'effectfree' contains known values", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
-                                            time = 2,
-                                            time = 3,
-                                            time = 4,
-                                            time = 5,
-                                            SEX = NA,
-                                            SEX = NA,
-                                            "time:SEX" = 6,
-                                            "time:SEX" = 7,
-                                            "time:SEX" = 8,
-                                            "time:SEX" = 9,
-                                            "time:SEX" = 10,
-                                            "time:SEX" = 11,
-                                            "time:SEX" = 12,
-                                            "time:SEX" = 13)))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works dispersion is 0", {
-    set.seed(0)
-    data <- expand.grid(time = 2000:2009,
-                        region = 1:2,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX + region
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod <- set_disp(mod, mean = 0)
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(log_disp = factor(NA))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'make_map' works when effectfree has known values", {
-    set.seed(0)
-    data <- expand.grid(time = 0:3,
-                        SEX = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    formula <- deaths ~ time * SEX
-    mod <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn) |>
-      set_prior(time ~ RW(sd = 0)) |>
-      set_prior(time:SEX ~ RW(sd = 0))
-    mod <- set_prior(mod, SEX ~ Known(c(0.1, -0.1)))
-    ans_obtained <- make_map(mod)
-    ans_expected <- list(effectfree = factor(c("(Intercept)" = 1,
-                                            time = 2,
-                                            time = 3,
-                                            time = 4,
-                                            SEX = NA,
-                                            SEX = NA,
-                                            "time:SEX" = 5,
-                                            "time:SEX" = 6,
-                                            "time:SEX" = 7,
-                                            "time:SEX" = 8,
-                                            "time:SEX" = 9,
-                                            "time:SEX" = 10)))
-    expect_identical(ans_obtained, ans_expected)
-})
-
-
 ## 'make_map_effectfree_fixed' ---------------------------------------------------
 
 test_that("'make_map_effectfree_fixed' works with valid inputs", {
@@ -1478,24 +1383,6 @@ test_that("'make_priors' works with valid inputs - has intercept", {
                          time = RW(),
                          "age:sex" = RW())
     expect_identical(ans_obtained, ans_expected)
-})
-
-
-## 'make_random' --------------------------------------------------------------
-
-test_that("'make_random' works when no hyper, no hyperrandfree", {
-    mod <- structure(.Data = list(priors = list(NFix(), Known(c(2, 3)))))
-    expect_identical(make_random(mod), NULL)
-})
-
-test_that("'make_random' works when hyper, no hyperrandfree", {
-    mod <- structure(.Data = list(priors = list(N(), RW2())))
-    expect_identical(make_random(mod), "effectfree")
-})
-
-test_that("'make_random' works when hyper, hyperrand", {
-    mod <- structure(.Data = list(priors = list(N(), RW2(), Lin())))
-    expect_identical(make_random(mod), c("effectfree", "hyperrandfree"))
 })
 
 

@@ -284,7 +284,7 @@ get_is_in_lik <- function(mod) {
 ##     formula <- mod$formula_covariates
 ##     vars <- rownames(attr(stats::terms(formula), "factors"))
 ##     data_vars <- data[vars]
-##     complete.cases(data_vars)
+##     stats::complete.cases(data_vars)
 ##   }
 ##   else
 ##     rep(TRUE, times = nrow(data))
@@ -306,7 +306,7 @@ get_is_in_lik_effects <- function(mod) {
   data <- mod$data
   vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
   data_vars <- data[vars]
-  complete.cases(data_vars)
+  stats::complete.cases(data_vars)
 }
 
 
@@ -782,39 +782,6 @@ make_levels_forecast_all <- function(mod, labels_forecast) {
 
 
 ## HAS_TESTS
-#' Make mapping used by MakeADFun
-#'
-#' Make 'map' argument to be passed to MakeADFun.
-#' Return value is non-NULL if
-#' (i) any priors are "bage_prior_known", or
-#' (ii) 'mean_disp' is 0, or
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns NULL or a named list
-#'
-#' @noRd
-make_map <- function(mod) {
-    priors <- mod$priors
-    mean_disp <- mod$mean_disp
-    ## determine whether any parameters fixed
-    is_known <- vapply(priors, is_known, FALSE)
-    is_effectfree_fixed <- any(is_known)
-    is_disp_fixed <- mean_disp == 0
-    ## return NULL if nothing fixed
-    if (!is_effectfree_fixed && !is_disp_fixed)
-        return(NULL)
-    ## otherwise construct named list
-    ans <- list()
-    if (is_effectfree_fixed)
-      ans$effectfree <- make_map_effectfree_fixed(mod)
-    if (is_disp_fixed)
-        ans$log_disp <- factor(NA)
-    ans
-}
-
-
-## HAS_TESTS
 #' Make 'effectfree' component of 'map'
 #' argument to MakeADFun
 #'
@@ -1094,6 +1061,7 @@ make_outcome <- function(formula, data) {
 }
 
 
+## HAS_TESTS
 #' Make 'outcome', 'offset', and 'matrices_effect_outcome' Components
 #' of 'data' Argument in 'fit_default'
 #'
@@ -1184,31 +1152,6 @@ make_prior_class <- function(mod) {
   class <- vapply(priors, get_class, "bage_prior_norm", USE.NAMES = FALSE)
   tibble::tibble(term = nms,
                  class = class)
-}
-
-
-## HAS_TESTS
-#' Make 'random' argument to MakeADFun function
-#'
-#' Return value always includes "effectfree".
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A character vector
-#'
-#' @noRd
-make_random <- function(mod) {
-  priors <- mod$priors
-  has_hyper <- any(make_lengths_hyper(mod) > 0L)
-  has_hyperrandfree <- any(vapply(priors, has_hyperrandfree, FALSE))
-  if (!has_hyper && !has_hyperrandfree)
-    ans <- NULL
-  else {
-    ans <- "effectfree"
-    if (has_hyperrandfree)
-      ans <- c(ans, "hyperrandfree")
-  }
-  ans
 }
 
 

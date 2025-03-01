@@ -2,7 +2,7 @@
 title: "8. Bayesian Workflow"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{5. Bayesian Workflow}
+  %\VignetteIndexEntry{8. Bayesian Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

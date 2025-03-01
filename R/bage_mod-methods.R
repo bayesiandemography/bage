@@ -550,9 +550,9 @@ draw_vals_fitted.bage_mod_binom <- function(mod, vals_expected, vals_disp)
 
 ## 'equation' -----------------------------------------------------------------
 
-#' @importFrom generics equation
-#' @export
-generics::equation
+## #' @importFrom generics equation
+## #' @export
+## generics::equation
 
 
 ## 'fit' ----------------------------------------------------------------------
@@ -564,36 +564,36 @@ generics::fit
 ## HAS_TESTS
 #' Fit a Model
 #'
-#' Calculate the posterior distribution for a model.
-#'
+#' Derive the posterior distribution
+#' for a model.
 #'
 #' @section Estimation methods:
 #'
-#' - `"standard"` All parameters, other than
-#'   the lowest-level rates, probabilities, or
-#'   means are jointly estimated within TMB.
-#'   The default.
-#' - `"inner-outer"`. Multiple-stage estimation,
-#'   which can be faster than `"standard"` for
-#'   models with many parameters. In Step 1, the
-#'   data is aggregated across all dimensions other
-#'   than those specified in `var_inner`, and a model
-#'   for the `inner` variables is fitted to the data.
-#'   In Step 2, the data is aggregated across the
-#'   remaining variables, and a model for the
-#'   `outer` variables is fitted to the data.
-#'   In Step 3, values for dispersion are calculated.
-#'   Parameter estimtes from steps 1, 2, and 3
-#'   are then combined. `"inner-outer"` methods are
-#'   still experimental, and may change in future,
-#'   eg dividing calculations into chunks in Step 2.
+#' When `method` is `"standard"` (the default),
+#' all parameters, other than
+#' the lowest-level rates, probabilities, or
+#' means are jointly estimated within TMB.
+#'
+#' When `method` is `"inner-outer"`, estimation is
+#' carried out in multiple steps, which, in large models,
+#' can sometimes reduce computation times.
+#' In Step 1, the data is aggregated across all dimensions other
+#' than those specified in `var_inner`, and a model
+#' for the `inner` variables is fitted to the data.
+#' In Step 2, the data is aggregated across the
+#' remaining variables, and a model for the
+#' `outer` variables is fitted to the data.
+#' In Step 3, values for dispersion are calculated.
+#' Parameter estimates from steps 1, 2, and 3
+#' are then combined. `"inner-outer"` methods are
+#' still experimental, and may change in future.
 #'
 #' @section Optimizer:
 #'
 #' The choices for the `optimizer` argument are:
 #' 
 #' - `"multi"` Try `"nlminb"`, and if that fails,
-#'   retart from the value where `"nlminb"` stopped,
+#'   restart from the parameter values where `"nlminb"` stopped,
 #'   using `"BFGS"`. The default.
 #' - `"nlminb"` [stats::nlminb()]
 #' - `"BFGS"` [stats::optim()] using method `"BFGS"`.
@@ -613,7 +613,7 @@ generics::fit
 #' and [time][set_var_time()] variables.
 #' @param optimizer Which optimizer to use.
 #' Current choices are `"multi"`,
-#' `"nlminb"`, `"BFGS"`, and "GC". Default
+#' `"nlminb"`, `"BFGS"`, and `"CG"`. Default
 #' is `"multi"`. See below for details.
 #' @param quiet Whether to suppress warnings and
 #' progress messages from the optimizer.
