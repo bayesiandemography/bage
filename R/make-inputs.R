@@ -91,16 +91,16 @@ dimnames_to_nm_split <- function(dimnames) {
 ## HAS_TESTS
 #' Evaluate Formula to Create Offset
 #'
-#' @param vname_offset Formula passed by user, turned into a string
+#' @param nm_offset_data Formula passed by user, turned into a string
 #' @param data Data frame
 #'
 #' @returns A numeric vector
 #'
 #' @noRd
-eval_offset_formula <- function(vname_offset, data) {
-  vname_offset <- sub("^~", "", vname_offset)
-  vname_offset <- parse(text = vname_offset)
-  eval(vname_offset, envir = data)
+eval_offset_formula <- function(nm_offset_data, data) {
+  nm_offset_data <- sub("^~", "", nm_offset_data)
+  nm_offset_data <- parse(text = nm_offset_data)
+  eval(nm_offset_data, envir = data)
 }
 
 
@@ -253,6 +253,97 @@ infer_var_time <- function(formula) {
 
 
 ## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+get_is_in_lik <- function(mod) {
+  (get_is_in_lik_covariates(mod) &
+    get_is_in_lik_effects(mod)
+    & get_is_in_lik_offset(mod)
+    & get_is_in_lik_outcome(mod))
+}
+
+
+
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on Covariates
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+get_is_in_lik_covariates <- function(mod) {
+  data <- mod$data
+  if (has_covariates(mod)) {
+    formula <- mod$formula_covariates
+    vars <- rownames(attr(stats::terms(formula), "factors"))
+    data_vars <- data[vars]
+    stats::complete.cases(data_vars)
+  }
+  else
+    rep(TRUE, times = nrow(data))
+}
+
+
+## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on 'effects'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+get_is_in_lik_effects <- function(mod) {
+  formula <- mod$formula
+  data <- mod$data
+  vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+  data_vars <- data[vars]
+  stats::complete.cases(data_vars)
+}
+
+
+## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on 'offset'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+get_is_in_lik_offset <- function(mod) {
+  offset <- mod$offset
+  !is.na(offset) & (offset > 0)
+}
+
+
+## HAS_TESTS
+#' Test Whether Row of 'data' is Included in Likelihood
+#' - Focussing on 'outcome'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A logical vector, with length
+#' equal to `nrow(data)`.
+#'
+#' @noRd
+get_is_in_lik_outcome <- function(mod) {
+  outcome <- mod$outcome
+  !is.na(outcome)
+}
+
+
+## HAS_TESTS
 #' Classify a Term, Based on the Name
 #'
 #' Decide whether an intercept, main effect,
@@ -335,9 +426,10 @@ make_agesex <- function(nm, var_age, var_sexgender) {
 make_coef_covariates <- function(mod) {
   has_covariates <- has_covariates(mod)
   if (has_covariates) {
-    matrix_covariates <- mod$matrix_covariates
-    ans <- rep(0, times = ncol(matrix_covariates))
-    names(ans) <- colnames(matrix_covariates)
+    nms_covariates <- mod$nms_covariates
+    n_covariates <- length(nms_covariates)
+    ans <- rep(0, times = n_covariates)
+    names(ans) <- nms_covariates
   }
   else
     ans <- double()
@@ -367,6 +459,32 @@ make_const <- function(mod) {
     ans <- unlist(ans)
   else
     ans <- double()
+  ans
+}
+
+
+## HAS_TESTS
+#' Assemble Model Data into a Data Frame
+#'
+#' Assemble cleaned version of data into a data frame,
+#' and omit rows that do not contribute to the likelihood.
+#' 
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A data frame
+#'
+#' @noRd
+make_data_df <- function(mod) {
+  ans <- mod$data
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_offset_data <- get_nm_offset_data(mod)
+  has_offset <- !is.null(nm_offset_data)
+  is_in_lik <- get_is_in_lik(mod)
+  ans[[nm_outcome_data]] <- mod$outcome
+  if (has_offset)
+    ans[[nm_offset_data]] <- mod$offset
+  ans <- ans[is_in_lik, , drop = FALSE]
+  ans <- tibble::tibble(ans)
   ans
 }
 
@@ -485,15 +603,14 @@ make_hyper <- function(mod) {
 make_hyper_covariates <- function(mod) {
   has_covariates <- has_covariates(mod)
   if (has_covariates) {
-    matrix_covariates <- mod$matrix_covariates
+    nms_covariates <- mod$nms_covariates
     scale_covariates <- mod$scale_covariates
+    n_covariates <- length(nms_covariates)
     is_shrinkage <- scale_covariates > 0L
     if (is_shrinkage) {
       ans_global <- c(log_sd_global = 0)
-      ans_local <- rep(0, times = ncol(matrix_covariates))
-      names(ans_local) <- paste("log_sd_local",
-                                colnames(matrix_covariates),
-                                sep = ".")
+      ans_local <- rep(0, times = n_covariates)
+      names(ans_local) <- paste("log_sd_local", nms_covariates, sep = ".")
       ans <- c(ans_global, ans_local)
     }
     else
@@ -549,22 +666,6 @@ make_hyperrandfree <- function(mod) {
 make_i_prior <- function(mod) {
     priors <- mod$priors
     vapply(priors, function(x) x$i_prior, 0L)
-}
-
-
-## HAS_TESTS
-#' Make vector of indicators showing whether
-#' cell contributes to likelihood
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of 1Ls and 0Ls.
-#'
-#' @noRd
-make_is_in_lik <- function(mod) {
-    outcome <- mod$outcome
-    offset <- mod$offset
-    !is.na(outcome) & !is.na(offset) & (offset > 0)
 }
 
 
@@ -720,39 +821,6 @@ make_levels_forecast_all <- function(mod, labels_forecast) {
     ans <- c(ans, ans_terms)
   }
   ans
-}
-
-
-## HAS_TESTS
-#' Make mapping used by MakeADFun
-#'
-#' Make 'map' argument to be passed to MakeADFun.
-#' Return value is non-NULL if
-#' (i) any priors are "bage_prior_known", or
-#' (ii) 'mean_disp' is 0, or
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns NULL or a named list
-#'
-#' @noRd
-make_map <- function(mod) {
-    priors <- mod$priors
-    mean_disp <- mod$mean_disp
-    ## determine whether any parameters fixed
-    is_known <- vapply(priors, is_known, FALSE)
-    is_effectfree_fixed <- any(is_known)
-    is_disp_fixed <- mean_disp == 0
-    ## return NULL if nothing fixed
-    if (!is_effectfree_fixed && !is_disp_fixed)
-        return(NULL)
-    ## otherwise construct named list
-    ans <- list()
-    if (is_effectfree_fixed)
-      ans$effectfree <- make_map_effectfree_fixed(mod)
-    if (is_disp_fixed)
-        ans$log_disp <- factor(NA)
-    ans
 }
 
 
@@ -982,6 +1050,7 @@ make_matrix_covariates <- function(formula, data) {
     ans <- ans[, -1L, drop = FALSE]
   }
   attributes(ans)$assign <- NULL
+  rownames(ans) <- NULL
   ans
 }
 
@@ -989,18 +1058,18 @@ make_matrix_covariates <- function(formula, data) {
 ## HAS_TESTS
 #' Make vector holding offset variable
 #'
-#' @param vname_offset Name of the offset variable.
+#' @param nm_offset_data Name of the offset variable.
 #' @param data A data frame
 #'
 #' @returns An vector of doubles.
 #'
 #' @noRd
-make_offset <- function(vname_offset, data) {
-  is_offset_formula <- startsWith(vname_offset, "~")
+make_offset <- function(nm_offset_data, data) {
+  is_offset_formula <- startsWith(nm_offset_data, "~")
   if (is_offset_formula)
-    ans <- eval_offset_formula(vname_offset = vname_offset, data = data)
+    ans <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   else
-    ans <- data[[vname_offset]]
+    ans <- data[[nm_offset_data]]
   ans <- as.double(ans)
   ans
 }
@@ -1073,6 +1142,63 @@ make_outcome <- function(formula, data) {
 
 
 ## HAS_TESTS
+#' Make 'outcome', 'offset', 'matrices_effect_outcome', and
+#' 'matrix_covariates' Components
+#' of 'data' Argument in 'fit_default'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param aggregate Logical. Whether to aggregate cells.
+#'
+#' @returns A named list
+#'
+#' @noRd
+make_outcome_offset_matrices <- function(mod, aggregate) {
+  dimnames_terms <- mod$dimnames_terms
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_offset_data <- get_nm_offset_data(mod)
+  has_offset <- !is.null(nm_offset_data)
+  data_df <- make_data_df(mod)
+  has_covariates <- has_covariates(mod)
+  if (has_covariates)
+    formula_covariates <- mod$formula_covariates
+  if (aggregate) {
+    fun_ag_outcome <- get_fun_ag_outcome(mod)
+    formula <- mod$formula
+    vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+    if (has_covariates) {
+      vars_covariates <- rownames(attr(stats::terms(formula_covariates), "factors"))
+      vars <- union(vars, vars_covariates)
+    }
+    outcome_df <- stats::aggregate(data_df[nm_outcome_data], data_df[vars], fun_ag_outcome)
+    if (has_offset) {
+      fun_ag_offset <- get_fun_ag_offset(mod)
+      offset_df <- stats::aggregate(data_df[nm_offset_data], data_df[vars], fun_ag_offset)
+      data_df <- merge(outcome_df, offset_df, by = vars)
+    }
+    else {
+      data_df <- outcome_df
+    }
+  }
+  outcome <- data_df[[nm_outcome_data]]
+  if (has_offset)
+    offset <- data_df[[nm_offset_data]]
+  else
+    offset <- rep(1, times = nrow(data_df))
+  matrices_effect_outcome <- make_matrices_effect_outcome(data = data_df,
+                                                          dimnames_terms = dimnames_terms)
+  if (has_covariates)
+    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
+                                                data = data_df)
+  else
+    matrix_covariates <- matrix(nrow = 0, ncol = 0)
+  list(outcome = outcome,
+       offset = offset,
+       matrices_effect_outcome = matrices_effect_outcome,
+       matrix_covariates = matrix_covariates)
+}
+
+
+## HAS_TESTS
 #' Make default priors
 #'
 #' Make named list holding default priors.
@@ -1120,31 +1246,6 @@ make_prior_class <- function(mod) {
   class <- vapply(priors, get_class, "bage_prior_norm", USE.NAMES = FALSE)
   tibble::tibble(term = nms,
                  class = class)
-}
-
-
-## HAS_TESTS
-#' Make 'random' argument to MakeADFun function
-#'
-#' Return value always includes "effectfree".
-#'
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A character vector
-#'
-#' @noRd
-make_random <- function(mod) {
-  priors <- mod$priors
-  has_hyper <- any(make_lengths_hyper(mod) > 0L)
-  has_hyperrandfree <- any(vapply(priors, has_hyperrandfree, FALSE))
-  if (!has_hyper && !has_hyperrandfree)
-    ans <- NULL
-  else {
-    ans <- "effectfree"
-    if (has_hyperrandfree)
-      ans <- c(ans, "hyperrandfree")
-  }
-  ans
 }
 
 
@@ -1416,99 +1517,6 @@ make_uses_offset_effectfree_effect <- function(mod) {
     ans <- as.integer(ans)
     names(ans) <- names(priors)
     ans    
-}
-
-
-## HAS_TESTS
-#' Create Aggregated Version of Outcome, Offset, and
-#' 'matrices_effect_outcome'
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list
-#'
-#' @noRd    
-make_vals_ag <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  nm_outcome <- get_nm_outcome(mod)
-  nm_offset <- mod$vname_offset
-  has_offset <- !is.null(nm_offset)
-  dimnames_terms <- mod$dimnames_terms
-  fun_ag_outcome <- get_fun_ag_outcome(mod)
-  has_covariates <- has_covariates(mod)
-  vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
-  if (has_covariates) {
-    formula_covariates <- mod$formula_covariates
-    vars_covariates <- rownames(attr(stats::terms(formula_covariates), "factors"))
-    vars <- c(vars, vars_covariates)
-  }
-  data[[nm_outcome]] <- mod$outcome
-  if (has_offset)
-    data[[nm_offset]] <- mod$offset
-  is_in_lik <- make_is_in_lik(mod)
-  data <- data[is_in_lik, , drop = FALSE]
-  outcome_df <- stats::aggregate(data[nm_outcome], data[vars], fun_ag_outcome)
-  if (has_offset) {
-    fun_ag_offset <- get_fun_ag_offset(mod)
-    offset_df <- stats::aggregate(data[nm_offset], data[vars], fun_ag_offset)
-    data_ag <- merge(outcome_df, offset_df, by = vars)
-    offset <- data_ag[[nm_offset]]
-  }
-  else {
-    data_ag <- outcome_df
-    offset <- rep(1, times = nrow(data_ag))
-  }
-  if (has_covariates) {
-    data_covariates <- unique(data[vars])
-    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
-                                                data = data_covariates)
-  }
-  else
-    matrix_covariates <- matrix(nrow = 0, ncol = 0)
-  outcome <- data_ag[[nm_outcome]]
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data_ag,
-                                                          dimnames_terms = dimnames_terms)
-  list(outcome = outcome,
-       offset = offset,
-       matrices_effect_outcome = matrices_effect_outcome,
-       matrix_covariates = matrix_covariates)
-}
-
-
-## HAS_TESTS
-#' Create Version of Outcome, Offset, and
-#' 'matrices_effect_outcome' Where Observations
-#' Not Contributing to Likelihood Removed
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A named list
-#'
-#' @noRd    
-make_vals_in_lik <- function(mod) {
-  data <- mod$data
-  outcome <- mod$outcome
-  offset <- mod$offset
-  dimnames_terms <- mod$dimnames_terms
-  has_covariates <- has_covariates(mod)
-  is_in_lik <- make_is_in_lik(mod)
-  data <- data[is_in_lik, , drop = FALSE]
-  outcome <- outcome[is_in_lik]
-  offset <- offset[is_in_lik]
-  matrices_effect_outcome <- make_matrices_effect_outcome(data = data,
-                                                          dimnames_terms = dimnames_terms)
-  if (has_covariates) {
-    formula_covariates <- mod$formula_covariates
-    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
-                                                data = data)
-  }
-  else
-    matrix_covariates <- matrix(nrow = 0, ncol = 0)
-  list(outcome = outcome,
-       offset = offset,
-       matrices_effect_outcome = matrices_effect_outcome,
-       matrix_covariates = matrix_covariates)
 }
 
 

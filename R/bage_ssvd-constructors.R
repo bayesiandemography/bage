@@ -165,18 +165,18 @@ ssvd <- function(data) {
   if (i_rn_null > 0L)
     cli::cli_abort("Element {i_rn_null} of {.var matrix} does not have rownames.")
   ## elements of 'offset' have names
-  nm_offset <- lapply(data$offset, names)
-  is_nm_null <- vapply(nm_offset, is.null, TRUE)
+  nm_offset_mod <- lapply(data$offset, names)
+  is_nm_null <- vapply(nm_offset_mod, is.null, TRUE)
   i_nm_null <- match(TRUE, is_nm_null, nomatch = 0L)
   if (i_nm_null > 0L)
     cli::cli_abort("Element {i_nm_null} of {.var offset} does not have names.")
   ## rownames in matrix match names in offset
-  is_same_nm <- mapply(identical, rn_matrix, nm_offset)
+  is_same_nm <- mapply(identical, rn_matrix, nm_offset_mod)
   i_diff_nm <- match(FALSE, is_same_nm, nomatch = 0L)
   if (i_diff_nm > 0L)
     cli::cli_abort(c("{.var matrix} and {.var offset} not consistent.",
                      i = "Element {i_diff_nm} of {.var matrix} has rownames {.val {rn_matrix[[i_diff_nm]]}}.",
-                     i = "Element {i_diff_nm} of {.var offset} has names {.val {nm_offset[[i_diff_nm]]}}."))
+                     i = "Element {i_diff_nm} of {.var offset} has names {.val {nm_offset_mod[[i_diff_nm]]}}."))
   ## create object
   data <- tibble::as_tibble(data)
   data <- data[c("type", "labels_age", "labels_sexgender", "matrix", "offset")]

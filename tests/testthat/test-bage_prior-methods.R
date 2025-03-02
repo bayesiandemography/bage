@@ -6644,7 +6644,7 @@ test_that("'generate' works with bage_prior_svd_rw2random - no sex, n_by = 2", {
 })
 
 test_that("'generate' works with bage_prior_svd_rw2random - no sex, n_by = 2, con = 'by'", {
-  x <- SVD_RW2(HFD)
+  x <- SVD_RW2(HFD, con = "by")
   set.seed(0)
   n_along <- 4
   n_by <- 2
@@ -10123,9 +10123,11 @@ test_that("'print' works", {
   expect_snapshot(print(SVD_RW(HMD)))
   expect_snapshot(print(SVD_RW(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_RW(HMD, sd = 0)))
+  expect_snapshot(print(SVD_RW(HMD, sd = 0, indep = FALSE)))
   expect_snapshot(print(SVD_RW2(HMD)))
   expect_snapshot(print(SVD_RW2(HMD, indep = FALSE)))
   expect_snapshot(print(SVD_RW2(HMD, sd = 0)))
+  expect_snapshot(print(SVD_RW2(HMD, sd = 0, indep = FALSE)))
 })
 
 

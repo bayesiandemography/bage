@@ -102,14 +102,11 @@
 #'                 exposure = popn) |>
 #'   set_covariates(~ is_covid)
 #'
-#' ## create a region-specific COVID covariate,
-#' ## and apply a horseshoe prior
-#' births |>
-#'   mutate(is_covid_reg = is_covid * region)
-#' mod <- mod_pois(births ~ age * region + time,
+#' ## use a horseshoe prior for region
+#' mod <- mod_pois(births ~ age + time,
 #'                 data = births,
 #'                 exposure = popn) |>
-#'   set_covariates(~ is_covid_reg, n_nonzero = 5)
+#'   set_covariates(~ region, n_nonzero = 5)
 #' mod
 #' @export
 set_covariates <- function(mod, formula, n_nonzero = NULL) {
@@ -118,15 +115,16 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   data <- mod$data
   formula_mod <- mod$formula
   is_shrinkage <- !is.null(n_nonzero)
+  matrix_covariates <- make_matrix_covariates(formula = formula,
+                                              data = data)
+  n_coef <- ncol(matrix_covariates)
+  nms_covariates <- colnames(matrix_covariates)
   if (is_shrinkage) {
     poputils::check_n(n = n_nonzero,
                       nm_n = "n_nonzero",
                       min = 1L,
                       max = NULL,
                       divisible_by = NULL)
-    matrix_covariates <- make_matrix_covariates(formula = formula,
-                                                data = data)
-    n_coef <- ncol(matrix_covariates)
     if (n_nonzero > n_coef)
       cli::cli_abort(paste("{.arg n_nonzero} ({.val {n_nonzero}}) greater than total",
                            "number of coefficients ({.val {n_coef}}.)"))
@@ -137,6 +135,7 @@ set_covariates <- function(mod, formula, n_nonzero = NULL) {
   else
     scale_covariates <- 0
   mod$formula_covariates <- formula
+  mod$nms_covariates <- nms_covariates
   mod$scale_covariates <- scale_covariates
   mod <- unfit(mod)
   mod

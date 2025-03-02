@@ -1585,7 +1585,7 @@ test_that("'make_stored_draws' works with valid inputs", {
               hyperrandfree = numeric(),
               disp = runif(1))
   prec <- crossprod(matrix(rnorm(169), nr = 13))
-  map <- make_map(mod)
+  map <- make_fit_map(mod)
   ans <- make_stored_draws(mod = mod,
                            est = est,
                            prec = prec,
@@ -1700,7 +1700,7 @@ test_that("'make_is_fixed' works when nothing fixed", {
                 hyper =  make_hyper(mod),
                 hyperrand = make_hyperrand(mod),
                 log_disp = 0)
-    map <- make_map(mod)
+    map <- make_fit_map(mod)
     expect_true(is.null(map))
     ans_obtained <- make_is_fixed(est = est, map = map)
     ans_expected <- rep(FALSE, times = length(unlist(est)))
@@ -1721,7 +1721,7 @@ test_that("'make_is_fixed' works when Known prior", {
                 hyper =  make_hyper(mod),
                 hyperrand = make_hyperrand(mod),
                 log_disp = 0)
-    map <- make_map(mod)
+    map <- make_fit_map(mod)
     ans_obtained <- make_is_fixed(est = est, map = map)
     ans_expected <- rep(c(FALSE, TRUE, FALSE),
                         times = c(11,

@@ -96,8 +96,8 @@ check_con_n_by <- function(con, n_by, nm) {
 check_covariates_formula <- function(formula, mod) {
   formula_mod <- mod$formula
   data <- mod$data
-  vname_offset <- mod$vname_offset
-  nm_offset <- nm_offset(mod)
+  nm_offset_data <- get_nm_offset_data(mod)
+  nm_offset_mod <- get_nm_offset_mod(mod)
   terms_formula_mod <- stats::terms(formula_mod)
   nms_data <- names(data)
   ## 'formula' is formula
@@ -125,11 +125,11 @@ check_covariates_formula <- function(formula, mod) {
                      i = "{.arg formula}: {deparse(formula)}.",
                      i = "variable{?s} from {.arg mod}: {.val {in_mod}}."))
   }
-  is_offset_specified <- !is.null(vname_offset)
-  if (is_offset_specified && (vname_offset %in% nms_vars_formula))
-    cli::cli_abort(c("{.arg formula} includes {nm_offset} from {.arg mod}.",
+  is_offset_specified <- !is.null(nm_offset_data)
+  if (is_offset_specified && (nm_offset_data %in% nms_vars_formula))
+    cli::cli_abort(c("{.arg formula} includes {nm_offset_mod} from {.arg mod}.",
                      i = "{.arg formula}: {deparse(formula)}.",
-                     i = "{nm_offset}: {.val {vname_offset}}."))
+                     i = "{nm_offset_mod}: {.val {nm_offset_data}}."))
   ## all variables used in 'formula' are present in 'data'
   is_in_data <- nms_vars_formula %in% nms_data
   i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
@@ -523,12 +523,12 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
                          i = "{.arg mod_est} has class {.cls {class(mod_est)}}.",
                          i = "{.arg mod_sim} has class {.cls {class(mod_sim)}}."))
     ## outcome variables are same
-    nm_outcome_sim <- get_nm_outcome(mod_est)
-    nm_outcome_est <- get_nm_outcome(mod_sim)
-    if (!identical(nm_outcome_sim, nm_outcome_est))
+    nm_outcome_data_sim <- get_nm_outcome_data(mod_est)
+    nm_outcome_data_est <- get_nm_outcome_data(mod_sim)
+    if (!identical(nm_outcome_data_sim, nm_outcome_data_est))
         cli::cli_abort(c("{.arg mod_est} and {.arg mod_sim} have different outcome variables.",
-                         i = "Outcome variable for {.arg mod_est}: {.val {nm_outcome_sim}}.",
-                         i = "Outcome variable for {.arg mod_sim}: {.val {nm_outcome_est}}."))
+                         i = "Outcome variable for {.arg mod_est}: {.val {nm_outcome_data_sim}}.",
+                         i = "Outcome variable for {.arg mod_sim}: {.val {nm_outcome_data_est}}."))
     ## apart from outcome variable, data are the same
     data_sim <- mod_est$data
     data_est <- mod_sim$data
@@ -539,7 +539,7 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
                                "different variables."),
                          i = "Data for {.arg mod_est} has variables {.val {nms_sim}}.",
                          i = "Data for {.arg mod_sim} has variables {.val {nms_est}}."))
-    for (nm in setdiff(nms_sim, nm_outcome_sim)) {
+    for (nm in setdiff(nms_sim, nm_outcome_data_sim)) {
         var_sim <- data_sim[[nm]]
         var_est <- data_est[[nm]]
         is_same <- var_sim == var_est
@@ -567,21 +567,29 @@ check_mod_est_sim_compatible <- function(mod_est, mod_sim) {
 #'
 #' @noRd
 check_mod_has_obs <- function(mod) {
-  is_in_lik <- make_is_in_lik(mod)
-    msg1 <- "No data for fitting model."
-  if (length(is_in_lik) == 0L)
-    cli::cli_abort(msg1)
+  is_in_lik <- get_is_in_lik(mod)
   if (!any(is_in_lik)) {
-    has_offset <- !is.null(mod$vname_offset)
+    msg <- "No data for fitting model."
+    if (length(is_in_lik) == 0L)
+      cli::cli_abort(msg)
+    is_in_lik_effects <- get_is_in_lik_effects(mod)
+    is_in_lik_offset <- get_is_in_lik_offset(mod)
+    is_in_lik_outcome <- get_is_in_lik_outcome(mod)
+    n_na_effects <- sum(!is_in_lik_effects)
+    if (n_na_effects > 0L)
+      msg <- c(msg, i = "Number of rows where predictor is {.val {NA}}: {.val {n_na_effects}}.")
+    nm_offset_data <- get_nm_offset_data(mod)
+    has_offset <- !is.null(nm_offset_data)
     if (has_offset) {
-      nm_offset <- nm_offset(mod)
-      msg2 <- paste("Every case has {nm_offset} {.val {0}},",
-                    "{nm_offset} {.val {NA}}, or outcome {.val {NA}}.")
+      nm_offset_mod <- get_nm_offset_mod(mod)
+      n_na_offset <- sum(!is_in_lik_offset)
+      if (n_na_offset > 0L)
+        msg <- c(msg, i = "Number of rows where {nm_offset_mod} is {.val {NA}}: {.val {n_na_offset}}.")
     }
-    else
-      msg2 <- "Every case has outcome {.val {NA}}."
-    message <- c(msg1, i = msg2)
-    cli::cli_abort(message)
+    n_na_outcome <- sum(!is_in_lik_outcome)
+    if (n_na_outcome > 0L)
+      msg <- c(msg, i = "Number of rows where outcome is {.val {NA}}: {.val {n_na_outcome}}.")
+    cli::cli_abort(msg)
   }
   invisible(TRUE)
 }
@@ -637,30 +645,30 @@ check_numeric <- function(x, nm_x) {
 ## HAS_TESTS
 #' Check offset occurs in 'data'
 #'
-#' @param vname_offset The name of the variable being
+#' @param nm_offset_data The name of the variable being
 #' used as an offset, or a formula
-#' @param nm_offset The name used to refer to the
+#' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
-check_offset_in_data <- function(vname_offset, nm_offset, data) {
-  is_formula <- startsWith(vname_offset, "~")
+check_offset_in_data <- function(nm_offset_data, nm_offset_mod, data) {
+  is_formula <- startsWith(nm_offset_data, "~")
   if (is_formula) {
-    ans <- tryCatch(eval_offset_formula(vname_offset = vname_offset, data = data),
+    ans <- tryCatch(eval_offset_formula(nm_offset_data = nm_offset_data, data = data),
                     error = function(e) e)
     if (inherits(ans, "error"))
-      cli::cli_abort(c("Problem with formula used for {.arg {nm_offset}}.",
-                       i = "Formula: {.val {vname_offset}}.",
+      cli::cli_abort(c("Problem with formula used for {.arg {nm_offset_mod}}.",
+                       i = "Formula: {.val {nm_offset_data}}.",
                        i = ans$message))
   }
   else {
     nms_data <- names(data)
-    if (!(vname_offset %in% nms_data)) {
-      cli::cli_abort(c("{.arg {nm_offset}} not found in {.arg data}.",
-                       i = "{.arg {nm_offset}}: {.val {vname_offset}}."))
+    if (!(nm_offset_data %in% nms_data)) {
+      cli::cli_abort(c("{.arg {nm_offset_mod}} not found in {.arg data}.",
+                       i = "{.arg {nm_offset_mod}}: {.val {nm_offset_data}}."))
     }
   }
   invisible(TRUE)
@@ -670,27 +678,27 @@ check_offset_in_data <- function(vname_offset, nm_offset, data) {
 ## HAS_TESTS
 #' Check that Offset Has No Negative Values
 #'
-#' @param vname_offset The name of the variable being
+#' @param nm_offset_data The name of the variable being
 #' used as an offset, or a formula
-#' @param nm_offset The name used to refer to the
+#' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
-check_offset_nonneg <- function(vname_offset, nm_offset, data) {
-  is_formula <- startsWith(vname_offset, "~")
+check_offset_nonneg <- function(nm_offset_data, nm_offset_mod, data) {
+  is_formula <- startsWith(nm_offset_data, "~")
   if (is_formula) {
-    offset <- eval_offset_formula(vname_offset = vname_offset, data = data)
+    offset <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   }
   else {
-    offset <- data[[vname_offset]]
+    offset <- data[[nm_offset_data]]
   }
   n_neg <- sum(offset < 0, na.rm = TRUE)
   if (n_neg > 0L)
-    cli::cli_abort(c("{.arg {nm_offset}} has negative {cli::qty(n_neg)} value{?s}.",
-                     i = "{nm_offset}: {.val {vname_offset}}."))
+    cli::cli_abort(c("{.arg {nm_offset_mod}} has negative {cli::qty(n_neg)} value{?s}.",
+                     i = "{nm_offset_mod}: {.val {nm_offset_data}}."))
   invisible(TRUE)
 }
 
@@ -773,22 +781,22 @@ check_prior_time <- function(prior, nm, var_time) {
 #'
 #' Applied only when offset is the name of a variable.
 #'
-#' @param vname_offset The name of the variable being
+#' @param nm_offset_data The name of the variable being
 #' used as an offset, or a formula
-#' @param nm_offset The name used to refer to the
+#' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param formula Formula specifying model
 #'
 #' @return TRUE, invisibly
 #'
 #' @noRd
-check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
-  is_offset_formula <- startsWith(vname_offset, "~")
+check_offset_not_in_formula <- function(nm_offset_data, nm_offset_mod, formula) {
+  is_offset_formula <- startsWith(nm_offset_data, "~")
   nms_formula <- rownames(attr(stats::terms(formula), "factors"))
   if (!is_offset_formula) {
-    if (vname_offset %in% nms_formula) {
-      cli::cli_abort(c("{.arg {nm_offset}} included in {.arg formula}.",
-                       i = "{.arg {nm_offset}}: {.val {vname_offset}}.",
+    if (nm_offset_data %in% nms_formula) {
+      cli::cli_abort(c("{.arg {nm_offset_mod}} included in {.arg formula}.",
+                       i = "{.arg {nm_offset_mod}}: {.val {nm_offset_data}}.",
                        i = "{.arg formula}: {.val {deparse1(formula)}}."))
     }
   }
@@ -801,9 +809,9 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
 #' or equal to offset variable
 #'
 #' @param formula A formula
-#' @param vname_offset The name of the variable being
+#' @param nm_offset_data The name of the variable being
 #' used as an offset, or a formula
-#' @param nm_offset The name used to refer to the
+#' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
 #'
@@ -811,24 +819,24 @@ check_offset_not_in_formula <- function(vname_offset, nm_offset, formula) {
 #'
 #' @noRd
 check_resp_le_offset <- function(formula,
-                                 vname_offset,
-                                 nm_offset,
+                                 nm_offset_data,
+                                 nm_offset_mod,
                                  data) {
   nm_response <- deparse1(formula[[2L]])
   response <- data[[nm_response]]
-  is_offset_formula <- startsWith(vname_offset, "~")
+  is_offset_formula <- startsWith(nm_offset_data, "~")
   if (is_offset_formula)
-    offset <- eval_offset_formula(vname_offset = vname_offset, data = data)
+    offset <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   else
-    offset <- data[[vname_offset]]
+    offset <- data[[nm_offset_data]]
   is_gt_offset <- !is.na(response) & !is.na(offset) & (response > offset)
   i_gt_offset <- match(TRUE, is_gt_offset, nomatch = 0L)
   if (i_gt_offset > 0L) {
-    cli::cli_abort(c("Response greater than {.var {nm_offset}}.",
+    cli::cli_abort(c("Response greater than {.var {nm_offset_mod}}.",
                      i = "Response: {.var {nm_response}}.",
-                     i = "{.var {nm_offset}}: {.val {vname_offset}}.",
+                     i = "{.var {nm_offset_mod}}: {.val {nm_offset_data}}.",
                      i = "Value for response: {.val {response[[i_gt_offset]]}}",
-                     i = "Value for {.var {nm_offset}}: {.val {offset[[i_gt_offset]]}}"))
+                     i = "Value for {.var {nm_offset_mod}}: {.val {offset[[i_gt_offset]]}}"))
   }
   invisible(TRUE)
 }
@@ -839,9 +847,9 @@ check_resp_le_offset <- function(formula,
 #' offset variable is zero
 #'
 #' @param formula A formula
-#' @param vname_offset The name of the variable being
+#' @param nm_offset_data The name of the variable being
 #' used as an offset
-#' @param nm_offset The name used to refer to the
+#' @param nm_offset_mod The name used to refer to the
 #' offset in user-visible functions
 #' @param data A data frame
 #'
@@ -849,24 +857,24 @@ check_resp_le_offset <- function(formula,
 #'
 #' @noRd
 check_resp_zero_if_offset_zero <- function(formula,
-                                           vname_offset,
-                                           nm_offset,
+                                           nm_offset_data,
+                                           nm_offset_mod,
                                            data) {
   nm_response <- deparse1(formula[[2L]])
   response <- data[[nm_response]]
-  is_offset_formula <- startsWith(vname_offset, "~")
+  is_offset_formula <- startsWith(nm_offset_data, "~")
   if (is_offset_formula)
-    offset <- eval_offset_formula(vname_offset = vname_offset, data = data)
+    offset <- eval_offset_formula(nm_offset_data = nm_offset_data, data = data)
   else
-    offset <- data[[vname_offset]]
+    offset <- data[[nm_offset_data]]
   response_pos <- response > 0
   offset_pos <- offset > 0
   is_pos_nonpos <- !is.na(response) & !is.na(offset) & response_pos & !offset_pos
   i_pos_nonpos <- match(TRUE, is_pos_nonpos, nomatch = 0L)
   if (i_pos_nonpos > 0L)
-    cli::cli_abort(c("Response is non-zero but {.var {nm_offset}} is zero.",
+    cli::cli_abort(c("Response is non-zero but {.var {nm_offset_mod}} is zero.",
                      i = "Response: {.var {nm_response}}.",
-                     i = "{.var {nm_offset}}: {.var {vname_offset}}.",
+                     i = "{.var {nm_offset_mod}}: {.var {nm_offset_data}}.",
                      i = "Value for {.var {nm_response}}: {.val {response[[i_pos_nonpos]]}}."))
   invisible(TRUE)
 }
