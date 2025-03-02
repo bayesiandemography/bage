@@ -1,4 +1,6 @@
 
+## Functions used in creating matrices
+
 ## HAS_TESTS
 #' Generate Labels for the SVD Dimension of an SVD Prior
 #'

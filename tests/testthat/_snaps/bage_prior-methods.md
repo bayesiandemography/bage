@@ -391,6 +391,19 @@
 ---
 
     Code
+      print(SVD_RW(HMD, sd = 0, indep = FALSE))
+    Output
+        SVD_RW(HMD,indep=FALSE,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+           indep: FALSE
+               s: 1
+           along: NULL
+             con: none
+
+---
+
+    Code
       print(SVD_RW2(HMD))
     Output
         SVD_RW2(HMD) 
@@ -425,6 +438,20 @@
         SVD_RW2(HMD,sd=0) 
             ssvd: HMD
           n_comp: 3
+               s: 1
+        sd_slope: 1
+           along: NULL
+             con: none
+
+---
+
+    Code
+      print(SVD_RW2(HMD, sd = 0, indep = FALSE))
+    Output
+        SVD_RW2(HMD,indep=FALSE,sd=0) 
+            ssvd: HMD
+          n_comp: 3
+           indep: FALSE
                s: 1
         sd_slope: 1
            along: NULL

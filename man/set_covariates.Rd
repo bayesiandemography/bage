@@ -106,14 +106,12 @@ mod <- mod_pois(births ~ age * region + time,
                 exposure = popn) |>
   set_covariates(~ is_covid)
 
-## create a region-specific COVID covariate,
-## and apply a horseshoe prior
-births |>
-  mutate(is_covid_reg = is_covid * region)
-mod <- mod_pois(births ~ age * region + time,
+## use a horseshoe prior for region
+mod <- mod_pois(births ~ age + time,
                 data = births,
                 exposure = popn) |>
-  set_covariates(~ is_covid_reg, n_nonzero = 5)
+  set_covariates(~ region, n_nonzero = 5)
+mod
 }
 \references{
 Piironen J, Vehtari A. (2017). On the hyperprior choice for the

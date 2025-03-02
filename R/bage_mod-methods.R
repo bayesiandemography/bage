@@ -347,12 +347,12 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-    nm_outcome <- get_nm_outcome(mod)
-    nm_outcome_true <- paste0(".", nm_outcome)
+    nm_outcome_data <- get_nm_outcome_data(mod)
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
     ans <- insert_after(df = ans,
-                        nm_after = nm_outcome,
+                        nm_after = nm_outcome_data,
                         x = outcome_true,
-                        nm_x = nm_outcome_true)
+                        nm_x = nm_outcome_data_true)
   }
   ans
 }
@@ -374,8 +374,8 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   outcome_has_na <- anyNA(outcome)
   has_datamod_outcome <- !is.null(datamod_outcome)
   if (outcome_has_na || has_datamod_outcome) {
-    nm_outcome <- get_nm_outcome(mod)
-    outcome_obs <- ans[[nm_outcome]]
+    nm_outcome_data <- get_nm_outcome_data(mod)
+    outcome_obs <- ans[[nm_outcome_data]]
     disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
@@ -386,11 +386,11 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-    nm_outcome_true <- paste0(".", nm_outcome)
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
     ans <- insert_after(df = ans,
-                        nm_after = nm_outcome,
+                        nm_after = nm_outcome_data,
                         x = outcome_true,
-                        nm_x = nm_outcome_true)
+                        nm_x = nm_outcome_data_true)
   }
   ans
 }
@@ -422,7 +422,7 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
                                                    n_sim = n_draw)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
-  nm_outcome <- get_nm_outcome(mod)
+  nm_outcome_data <- get_nm_outcome_data(mod)
   vals_linpred <- make_linpred_comp(components = vals_components,
                                     data = data,
                                     dimnames_terms = dimnames_terms)
@@ -453,14 +453,14 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans <- mod$data
   if (has_datamod_outcome) {
-    ans[[nm_outcome]] <- vals_outcome_obs
-    nm_outcome_true <- paste0(".", nm_outcome)
-    ans[[nm_outcome_true]] <- vals_outcome_true
+    ans[[nm_outcome_data]] <- vals_outcome_obs
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
+    ans[[nm_outcome_data_true]] <- vals_outcome_true
   }
   else {
-    ans[[nm_outcome]] <- vals_outcome_true
+    ans[[nm_outcome_data]] <- vals_outcome_true
   }
-  ans$.observed <- ans[[nm_outcome]] / offset
+  ans$.observed <- ans[[nm_outcome_data]] / offset
   ans$.fitted <- vals_fitted
   if (has_disp)
     ans$.expected <- vals_expected
@@ -480,7 +480,7 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_draw)
   scale_outcome <- get_fun_scale_outcome(mod)
-  nm_outcome <- get_nm_outcome(mod)
+  nm_outcome_data <- get_nm_outcome_data(mod)
   vals_linpred <- make_linpred_comp(components = vals_components,
                                     data = data,
                                     dimnames_terms = dimnames_terms)
@@ -505,12 +505,12 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans <- mod$data
   if (has_datamod_outcome) {
-    ans[[nm_outcome]] <- vals_outcome_obs
-    nm_outcome_true <- paste0(".", nm_outcome)
-    ans[[nm_outcome_true]] <- vals_outcome_true
+    ans[[nm_outcome_data]] <- vals_outcome_obs
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
+    ans[[nm_outcome_data_true]] <- vals_outcome_true
   }
   else {
-    ans[[nm_outcome]] <- vals_outcome_true
+    ans[[nm_outcome_data]] <- vals_outcome_true
   }
   ans$.fitted <- vals_fitted
   ans
@@ -550,9 +550,9 @@ draw_vals_fitted.bage_mod_binom <- function(mod, vals_expected, vals_disp)
 
 ## 'equation' -----------------------------------------------------------------
 
-#' @importFrom generics equation
-#' @export
-generics::equation
+## #' @importFrom generics equation
+## #' @export
+## generics::equation
 
 
 ## 'fit' ----------------------------------------------------------------------
@@ -564,36 +564,36 @@ generics::fit
 ## HAS_TESTS
 #' Fit a Model
 #'
-#' Calculate the posterior distribution for a model.
-#'
+#' Derive the posterior distribution
+#' for a model.
 #'
 #' @section Estimation methods:
 #'
-#' - `"standard"` All parameters, other than
-#'   the lowest-level rates, probabilities, or
-#'   means are jointly estimated within TMB.
-#'   The default.
-#' - `"inner-outer"`. Multiple-stage estimation,
-#'   which can be faster than `"standard"` for
-#'   models with many parameters. In Step 1, the
-#'   data is aggregated across all dimensions other
-#'   than those specified in `var_inner`, and a model
-#'   for the `inner` variables is fitted to the data.
-#'   In Step 2, the data is aggregated across the
-#'   remaining variables, and a model for the
-#'   `outer` variables is fitted to the data.
-#'   In Step 3, values for dispersion are calculated.
-#'   Parameter estimtes from steps 1, 2, and 3
-#'   are then combined. `"inner-outer"` methods are
-#'   still experimental, and may change in future,
-#'   eg dividing calculations into chunks in Step 2.
+#' When `method` is `"standard"` (the default),
+#' all parameters, other than
+#' the lowest-level rates, probabilities, or
+#' means are jointly estimated within TMB.
+#'
+#' When `method` is `"inner-outer"`, estimation is
+#' carried out in multiple steps, which, in large models,
+#' can sometimes reduce computation times.
+#' In Step 1, the data is aggregated across all dimensions other
+#' than those specified in `var_inner`, and a model
+#' for the `inner` variables is fitted to the data.
+#' In Step 2, the data is aggregated across the
+#' remaining variables, and a model for the
+#' `outer` variables is fitted to the data.
+#' In Step 3, values for dispersion are calculated.
+#' Parameter estimates from steps 1, 2, and 3
+#' are then combined. `"inner-outer"` methods are
+#' still experimental, and may change in future.
 #'
 #' @section Optimizer:
 #'
 #' The choices for the `optimizer` argument are:
 #' 
 #' - `"multi"` Try `"nlminb"`, and if that fails,
-#'   retart from the value where `"nlminb"` stopped,
+#'   restart from the parameter values where `"nlminb"` stopped,
 #'   using `"BFGS"`. The default.
 #' - `"nlminb"` [stats::nlminb()]
 #' - `"BFGS"` [stats::optim()] using method `"BFGS"`.
@@ -613,7 +613,7 @@ generics::fit
 #' and [time][set_var_time()] variables.
 #' @param optimizer Which optimizer to use.
 #' Current choices are `"multi"`,
-#' `"nlminb"`, `"BFGS"`, and "GC". Default
+#' `"nlminb"`, `"BFGS"`, and `"CG"`. Default
 #' is `"multi"`. See below for details.
 #' @param quiet Whether to suppress warnings and
 #' progress messages from the optimizer.
@@ -928,17 +928,17 @@ forecast_augment.bage_mod <- function(mod,
   datamod_outcome <- mod$datamod_outcome
   seed_augment <- mod$seed_augment
   nm_distn <- nm_distn(mod)
-  nm_outcome <- get_nm_outcome(mod)
-  nm_outcome_true <- paste0(".", nm_outcome)
-  vname_offset <- mod$vname_offset
-  has_offset_est <- !is.null(vname_offset)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_outcome_data_true <- paste0(".", nm_outcome_data)
+  nm_offset_data <- get_nm_offset_data(mod)
+  has_offset_est <- !is.null(nm_offset_data)
   has_disp <- has_disp(mod)
   inv_transform <- get_fun_inv_transform(mod)
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_imputed_outcome_est <- anyNA(outcome_est)
   blank <- rep(NA_real_, times = nrow(data_forecast))
   if (has_offset_est)
-    offset_forecast <- data_forecast[[vname_offset]]
+    offset_forecast <- data_forecast[[nm_offset_data]]
   else
     offset_forecast <- rep(1, times = nrow(data_forecast))
   has_offset_forecast <- !all(is.na(offset_forecast))
@@ -970,32 +970,32 @@ forecast_augment.bage_mod <- function(mod,
     if (has_datamod_outcome) {
       outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
                                            outcome_true = outcome_true)
-      ans[[nm_outcome]] <- outcome_obs
+      ans[[nm_outcome_data]] <- outcome_obs
       ans <- insert_after(df = ans,
-                          nm_after = nm_outcome,
+                          nm_after = nm_outcome_data,
                           x = outcome_true,
-                          nm_x = nm_outcome_true)
+                          nm_x = nm_outcome_data_true)
     }
     else {
       if (has_imputed_outcome_est) {
-        ans[[nm_outcome]] <- blank
+        ans[[nm_outcome_data]] <- blank
         ans <- insert_after(df = ans,
-                            nm_after = nm_outcome,
+                            nm_after = nm_outcome_data,
                             x = outcome_true,
-                            nm_x = nm_outcome_true)
+                            nm_x = nm_outcome_data_true)
       }
       else
-        ans[[nm_outcome]] <- outcome_true
+        ans[[nm_outcome_data]] <- outcome_true
     }
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   }
   else {
-    ans[[nm_outcome]] <- blank
+    ans[[nm_outcome_data]] <- blank
     if (has_datamod_outcome || has_imputed_outcome_est)
       ans <- insert_after(df = ans,
-                          nm_after = nm_outcome,
+                          nm_after = nm_outcome_data,
                           x = blank,
-                          nm_x = nm_outcome_true)
+                          nm_x = nm_outcome_data_true)
   }
   ans$.observed <- NA_real_
   ans$.fitted <- fitted
@@ -1014,16 +1014,16 @@ forecast_augment.bage_mod_norm <- function(mod,
   datamod_outcome <- mod$datamod_outcome
   seed_augment <- mod$seed_augment
   nm_distn <- nm_distn(mod)
-  nm_outcome <- get_nm_outcome(mod)
-  nm_outcome_true <- paste0(".", nm_outcome)
-  vname_offset <- mod$vname_offset
-  has_offset_est <- !is.null(vname_offset)
+  nm_outcome_data <- get_nm_outcome_data(mod)
+  nm_outcome_data_true <- paste0(".", nm_outcome_data)
+  nm_offset_data <- get_nm_offset_data(mod)
+  has_offset_est <- !is.null(nm_offset_data)
   scale_outcome <- get_fun_scale_outcome(mod)
   has_datamod_outcome <- !is.null(datamod_outcome)
   has_imputed_outcome_est <- anyNA(outcome_est)
   blank <- rep(NA_real_, times = nrow(data_forecast))
   if (has_offset_est)
-    offset_forecast <- data_forecast[[vname_offset]]
+    offset_forecast <- data_forecast[[nm_offset_data]]
   else
     offset_forecast <- rep(1, times = nrow(data_forecast))
   has_offset_forecast <- !all(is.na(offset_forecast))
@@ -1047,32 +1047,32 @@ forecast_augment.bage_mod_norm <- function(mod,
     if (has_datamod_outcome) {
       outcome_obs <- draw_vals_outcome_obs(datamod = datamod_outcome,
                                            outcome_true = outcome_true)
-      ans[[nm_outcome]] <- outcome_obs
+      ans[[nm_outcome_data]] <- outcome_obs
       ans <- insert_after(df = ans,
-                          nm_after = nm_outcome,
+                          nm_after = nm_outcome_data,
                           x = outcome_true,
-                          nm_x = nm_outcome_true)
+                          nm_x = nm_outcome_data_true)
     }
     else {
       if (has_imputed_outcome_est) {
-        ans[[nm_outcome]] <- blank
+        ans[[nm_outcome_data]] <- blank
         ans <- insert_after(df = ans,
-                            nm_after = nm_outcome,
+                            nm_after = nm_outcome_data,
                             x = outcome_true,
-                            nm_x = nm_outcome_true)
+                            nm_x = nm_outcome_data_true)
       }
       else
-        ans[[nm_outcome]] <- outcome_true
+        ans[[nm_outcome_data]] <- outcome_true
     }
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   }
   else {
-    ans[[nm_outcome]] <- blank
+    ans[[nm_outcome_data]] <- blank
     if (has_datamod_outcome || has_imputed_outcome_est)
       ans <- insert_after(df = ans,
-                          nm_after = nm_outcome,
+                          nm_after = nm_outcome_data,
                           x = blank,
-                          nm_x = nm_outcome_true)
+                          nm_x = nm_outcome_data_true)
   }
   ans$.fitted <- fitted
   ans
@@ -1185,22 +1185,70 @@ get_fun_scale_outcome.bage_mod_norm <- function(mod) {
 }
 
 
-## 'get_nm_outcome' -----------------------------------------------------------
+## 'get_nm_offset_data' --------------------------------------------------------
 
-#' Get the Name of the Outcome Variable
+#' Name of Offset Used in Input Data
+#'
+#' @param mod An object of class 'bage_mod'
+#'
+#' @returns A string
+#'
+#' @noRd
+get_nm_offset_data <- function(mod) {
+    UseMethod("get_nm_offset_data")
+}
+
+## HAS_TESTS
+#' @export
+get_nm_offset_data.bage_mod <- function(mod) mod$nm_offset_data
+
+
+## 'get_nm_offset_mod' --------------------------------------------------------
+
+#' Name of Offset Used in Describing Model
+#'
+#' "exposure", "size", or "weights"
+#'
+#' @param mod An object of class 'bage_mod'
+#'
+#' @returns A string
+#'
+#' @seealso get_nm_offset_data
+#'
+#' @noRd
+get_nm_offset_mod <- function(mod) {
+    UseMethod("get_nm_offset_mod")
+}
+
+## HAS_TESTS
+#' @export
+get_nm_offset_mod.bage_mod_pois <- function(mod) "exposure"
+
+## HAS_TESTS
+#' @export
+get_nm_offset_mod.bage_mod_binom <- function(mod) "size"
+
+## HAS_TESTS
+#' @export
+get_nm_offset_mod.bage_mod_norm <- function(mod) "weights"
+
+
+## 'get_nm_outcome_data' -----------------------------------------------------------
+
+#' Get the Name of the Outcome Variable Used in the Input Data
 #'
 #' @param mod Object of class "bage_mod"
 #'
 #' @returns A string
 #'
 #' @noRd
-get_nm_outcome <- function(mod) {
-    UseMethod("get_nm_outcome")
+get_nm_outcome_data <- function(mod) {
+    UseMethod("get_nm_outcome_data")
 }
 
 ## HAS_TESTS
 #' @export
-get_nm_outcome.bage_mod <- function(mod) {
+get_nm_outcome_data.bage_mod <- function(mod) {
   formula <- mod$formula
   ans <- formula[[2L]]
   ans <- deparse1(ans)
@@ -1208,7 +1256,7 @@ get_nm_outcome.bage_mod <- function(mod) {
 }
 
 
-## 'get_nm_outcome' -----------------------------------------------------------
+## 'get_nm_outcome_obs' --------------------------------------------------------
 
 #' Get the Name of the Variable with Observed Values
 #' for the Outcome Variable
@@ -1230,7 +1278,7 @@ get_nm_outcome_obs <- function(mod) {
 get_nm_outcome_obs.bage_mod <- function(mod) {
   datamod_outcome <- mod$datamod_outcome
   has_datamod_outcome <- !is.null(datamod_outcome)
-  ans <- get_nm_outcome(mod)
+  ans <- get_nm_outcome_data(mod)
   if (has_datamod_outcome)
     ans <- paste0(".", ans)
   ans
@@ -1624,17 +1672,17 @@ make_sd_hat_covariates.bage_mod_pois <- function(mod) {
   formula <- mod$formula
   data <- mod$data
   offset <- mod$offset
-  vname_offset <- mod$vname_offset
-  if (!is.null(vname_offset)) {
-    formula_new <- sprintf("~ . + log(%s)", vname_offset)
-    formula_new <- as.formula(formula_new)
-    formula <- update(formula, formula_new)
+  nm_offset_data <- get_nm_offset_data(mod)
+  if (!is.null(nm_offset_data)) {
+    formula_new <- sprintf("~ . + offset(log(%s))", nm_offset_data)
+    formula_new <- stats::as.formula(formula_new)
+    formula <- stats::update(formula, formula_new)
   }
-  m <- glm(formula = formula,
-           family = poisson,
-           data = data,
-           na.action = na.exclude)
-  fitted <- fitted(m)
+  m <- stats::glm(formula = formula,
+                  family = stats::poisson,
+                  data = data,
+                  na.action = stats::na.exclude)
+  fitted <- stats::fitted(m)
   expected <- offset * fitted
   sqrt(mean(expected, na.rm = TRUE))
 }
@@ -1651,13 +1699,13 @@ make_sd_hat_covariates.bage_mod_binom <- function(mod) {
   nm_response <- deparse1(formula[[2L]])
   nm_failure <- names(data)[[length(data)]]
   formula_new <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
-  formula_new <- as.formula(formula_new)
-  formula <- update(formula, formula_new)
-  m <- glm(formula = formula,
-           family = binomial,
-           data = data,
-           na.action = na.exclude)
-  fitted <- fitted(m)
+  formula_new <- stats::as.formula(formula_new)
+  formula <- stats::update(formula, formula_new)
+  m <- stats::glm(formula = formula,
+                  family = stats::binomial,
+                  data = data,
+                  na.action = stats::na.exclude)
+  fitted <- stats::fitted(m)
   sqrt(mean(offset * fitted * (1 - fitted), na.rm = TRUE))
 }
 
@@ -1668,22 +1716,23 @@ make_sd_hat_covariates.bage_mod_norm <- function(mod) {
   data <- mod$data
   outcome <- mod$outcome
   offset <- mod$offset
-  vname_offset <- mod$vname_offset
+  nm_offset_data <- get_nm_offset_data(mod)
   nm_response <- deparse1(formula[[2L]])
   data[[nm_response]] <- outcome
-  if (!is.null(vname_offset)) {
+  if (!is.null(nm_offset_data)) {
     ## using hack to get around weird handling
     ## of name of weights by 'lm'
     if ("....wt" %in% names(data))
       cli::cli_abort("Please rename variable currently called {.val ....wt}.")
+    ....wt <- NULL ## required to avoid note from 'check()'
     data[["....wt"]] <- offset
-    m <- lm(formula = formula,
-            data = data,
-            weights = ....wt)
+    m <- stats::lm(formula = formula,
+                   data = data,
+                   weights = ....wt)
   }
   else
-    m <- lm(formula = formula,
-            data = data)
+    m <- stats::lm(formula = formula,
+                   data = data)
   summary(m)$sigma
 }
 
@@ -1738,32 +1787,6 @@ nm_distn.bage_mod_binom <- function(mod) "binom"
 ## HAS_TESTS
 #' @export
 nm_distn.bage_mod_norm <- function(mod) "norm"
-
-
-## 'nm_offset' -----------------------------------------------------------------
-
-#' Name of offset used in printing
-#'
-#' @param mod An object of class 'bage_mod'
-#'
-#' @returns A string
-#'
-#' @noRd
-nm_offset <- function(mod) {
-    UseMethod("nm_offset")
-}
-
-## HAS_TESTS
-#' @export
-nm_offset.bage_mod_pois <- function(mod) "exposure"
-
-## HAS_TESTS
-#' @export
-nm_offset.bage_mod_binom <- function(mod) "size"
-
-## HAS_TESTS
-#' @export
-nm_offset.bage_mod_norm <- function(mod) "weights"
 
 
 ## 'print' --------------------------------------------------------------------
@@ -1833,7 +1856,7 @@ print.bage_mod <- function(x, ...) {
   priors <- x$priors
   n_draw <- x$n_draw
   data <- x$data
-  vname_offset <- x$vname_offset
+  nm_offset_data <- get_nm_offset_data(x)
   var_age <- x$var_age
   var_sexgender <- x$var_sexgender
   var_time <- x$var_time
@@ -1851,11 +1874,11 @@ print.bage_mod <- function(x, ...) {
                           width = 65L,
                           indent = 3L,
                           exdent = nchar_response + 7L)
-  has_offset <- !is.null(vname_offset)
+  has_offset <- !is.null(nm_offset_data)
   if (has_offset) {
-    nm_offset <- nm_offset(x)
-    nm_offset <- sprintf("% *s", nchar_offset, nm_offset)
-    str_offset <- sprintf("%s = %s", nm_offset, vname_offset)
+    nm_offset_mod <- get_nm_offset_mod(x)
+    nm_offset_mod <- sprintf("% *s", nchar_offset, nm_offset_mod)
+    str_offset <- sprintf("%s = %s", nm_offset_mod, nm_offset_data)
   }
   terms <- tidy(x)
   terms <- as.data.frame(terms)
@@ -2054,7 +2077,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
   outcome <- x$outcome
   offset <- x$offset
   datamod_outcome <- x$datamod_outcome
-  nm_outcome <- get_nm_outcome(x)
+  nm_outcome_data <- get_nm_outcome_data(x)
   x <- set_n_draw(x, n_draw = n)
   aug <- augment(x)
   n_obs <- nrow(data)
@@ -2082,7 +2105,7 @@ replicate_data.bage_mod_pois <- function(x, condition_on = NULL, n = 19) {
                                    outcome_true = y_rep)
   outcome_rep <- c(outcome, as.numeric(y_rep))
   ans <- make_copies_repdata(data = data, n = n)
-  ans[[nm_outcome]] <- outcome_rep
+  ans[[nm_outcome_data]] <- outcome_rep
   ans
 }
 
@@ -2105,7 +2128,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
   outcome <- x$outcome
   offset <- x$offset
   datamod_outcome <- x$datamod_outcome
-  nm_outcome <- get_nm_outcome(x)
+  nm_outcome_data <- get_nm_outcome_data(x)
   x <- set_n_draw(x, n_draw = n)
   aug <- augment(x)
   n_obs <- nrow(data)
@@ -2136,7 +2159,7 @@ replicate_data.bage_mod_binom <- function(x, condition_on = NULL, n = 19) {
                                    outcome_true = y_rep)
   outcome_rep <- c(outcome, as.numeric(y_rep))
   ans <- make_copies_repdata(data = data, n = n)
-  ans[[nm_outcome]] <- outcome_rep
+  ans[[nm_outcome_data]] <- outcome_rep
   ans
 }
 
@@ -2159,7 +2182,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
   outcome <- x$outcome
   offset <- x$offset
   datamod_outcome <- x$datamod_outcome
-  nm_outcome <- get_nm_outcome(x)
+  nm_outcome_data <- get_nm_outcome_data(x)
   x <- set_n_draw(x, n_draw = n)
   aug <- augment(x)
   comp <- components(x)
@@ -2174,7 +2197,7 @@ replicate_data.bage_mod_norm <- function(x, condition_on = NULL, n = 19) {
                                    outcome_true = y_rep)
   outcome_rep <- c(outcome, as.numeric(y_rep))
   ans <- make_copies_repdata(data = data, n = n)
-  ans[[nm_outcome]] <- outcome_rep
+  ans[[nm_outcome_data]] <- outcome_rep
   ans
 }
 

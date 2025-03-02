@@ -114,22 +114,22 @@ mod_pois <- function(formula, data, exposure) {
   exposure <- deparse1(substitute(exposure))
   exposure <- gsub("^\\\"|\\\"$", "", exposure)
   is_offset_specified <- !identical(exposure, "1")
-  vname_offset <- if (is_offset_specified) exposure else NULL
+  nm_offset_data <- if (is_offset_specified) exposure else NULL
   if (is_offset_specified) {
-    check_offset_in_data(vname_offset = vname_offset,
-                         nm_offset = "exposure",
+    check_offset_in_data(nm_offset_data = nm_offset_data,
+                         nm_offset_mod = "exposure",
                          data = data)
-    check_offset_nonneg(vname_offset = vname_offset,
-                        nm_offset = "exposure",
+    check_offset_nonneg(nm_offset_data = nm_offset_data,
+                        nm_offset_mod = "exposure",
                         data = data)
     check_resp_zero_if_offset_zero(formula = formula,
-                                   vname_offset = vname_offset,
-                                   nm_offset = "exposure",
+                                   nm_offset_data = nm_offset_data,
+                                   nm_offset_mod = "exposure",
                                    data = data)
-    check_offset_not_in_formula(vname_offset = vname_offset,
-                                nm_offset = "exposure",
+    check_offset_not_in_formula(nm_offset_data = nm_offset_data,
+                                nm_offset_mod = "exposure",
                                 formula = formula)
-    offset <- make_offset(vname_offset = vname_offset,
+    offset <- make_offset(nm_offset_data = nm_offset_data,
                           data = data)
   }
   else
@@ -137,7 +137,7 @@ mod_pois <- function(formula, data, exposure) {
   ## create object and return
   ans <- c(args,
            list(offset = offset,
-                vname_offset = vname_offset))
+                nm_offset_data = nm_offset_data))
   class(ans) <- c("bage_mod_pois", "bage_mod")
   ans
 }
@@ -246,30 +246,30 @@ mod_binom <- function(formula, data, size) {
   ## process 'size'
   size <- deparse1(substitute(size))
   size <- gsub("^\\\"|\\\"$", "", size)
-  vname_offset <- size
-  check_offset_in_data(vname_offset = vname_offset,
-                       nm_offset = "size",
+  nm_offset_data <- size
+  check_offset_in_data(nm_offset_data = nm_offset_data,
+                       nm_offset_mod = "size",
                        data = data)
-  check_offset_nonneg(vname_offset = vname_offset,
-                      nm_offset = "size",
+  check_offset_nonneg(nm_offset_data = nm_offset_data,
+                      nm_offset_mod = "size",
                       data = data)
-  check_offset_not_in_formula(vname_offset = vname_offset,
-                              nm_offset = "size",
+  check_offset_not_in_formula(nm_offset_data = nm_offset_data,
+                              nm_offset_mod = "size",
                               formula = formula)
   check_resp_zero_if_offset_zero(formula = formula,
-                                 vname_offset = vname_offset,
-                                 nm_offset = "size",
+                                 nm_offset_data = nm_offset_data,
+                                 nm_offset_mod = "size",
                                  data = data)
   check_resp_le_offset(formula = formula,
-                       vname_offset = vname_offset,
-                       nm_offset = "size",
+                       nm_offset_data = nm_offset_data,
+                       nm_offset_mod = "size",
                        data = data)
-  offset <- make_offset(vname_offset = vname_offset,
+  offset <- make_offset(nm_offset_data = nm_offset_data,
                         data = data)
   ## create object and return
   ans <- c(args,
            list(offset = offset,
-                vname_offset = vname_offset))
+                nm_offset_data = nm_offset_data))
   class(ans) <- c("bage_mod_binom", "bage_mod")
   ans
 }
@@ -378,18 +378,18 @@ mod_norm <- function(formula, data, weights) {
   weights <- deparse1(substitute(weights))
   weights <- gsub("^\\\"|\\\"$", "", weights)
   is_offset_specified <- !identical(weights, "1")
-  vname_offset <- if (is_offset_specified) weights else NULL
+  nm_offset_data <- if (is_offset_specified) weights else NULL
   if (is_offset_specified) {
-    check_offset_in_data(vname_offset = vname_offset,
-                         nm_offset = "weights",
+    check_offset_in_data(nm_offset_data = nm_offset_data,
+                         nm_offset_mod = "weights",
                          data = data)
-    check_offset_nonneg(vname_offset = vname_offset,
-                        nm_offset = "weights",
+    check_offset_nonneg(nm_offset_data = nm_offset_data,
+                        nm_offset_mod = "weights",
                         data = data)
-    check_offset_not_in_formula(vname_offset = vname_offset,
-                                nm_offset = "weights",
+    check_offset_not_in_formula(nm_offset_data = nm_offset_data,
+                                nm_offset_mod = "weights",
                                 formula = formula)
-    offset <- make_offset(vname_offset = vname_offset,
+    offset <- make_offset(nm_offset_data = nm_offset_data,
                           data = data)
   }
   else
@@ -412,7 +412,7 @@ mod_norm <- function(formula, data, weights) {
   ## create object and return
   ans <- c(args,
            list(offset = offset,
-                vname_offset = vname_offset,
+                nm_offset_data = nm_offset_data,
                 outcome_mean = outcome_mean,
                 outcome_sd = outcome_sd))
   class(ans) <- c("bage_mod_norm", "bage_mod")
@@ -473,7 +473,7 @@ mod_helper <- function(formula, data, n_draw) {
        var_time = var_time,
        mean_disp = 1,
        formula_covariates = NULL,
-       matrix_covariates = NULL,
+       nms_covariates = NULL,
        scale_covariates = NULL,
        n_draw = n_draw,
        vars_inner = NULL,

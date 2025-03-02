@@ -14,6 +14,7 @@ test_that("'set_covariates' works with Poisson, no horseshoe", {
   ans_expected <- mod
   ans_expected$scale_covariates <- 0
   ans_expected$formula_covariates <- ~ income
+  ans_expected$nms_covariates <- "income"
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -27,6 +28,7 @@ test_that("'set_covariates' works with Poisson, with horseshoe", {
                   data = data,
                   exposure = popn)
   ans <- set_covariates(mod, ~ reg, n_nonzero = 3)
+  expect_identical(ans$nms_covariates, paste0("reg", letters[2:10]))
   expect_true(ans$scale_covariates > 0)
   expect_equal(ans$formula_covariates, ~ reg)
 })
@@ -44,6 +46,7 @@ test_that("'set_covariates' works with binomial, no horseshoe", {
   ans_expected <- mod
   ans_expected$scale_covariates <- 0
   ans_expected$formula_covariates <- ~income
+  ans_expected$nms_covariates <- "income"
   expect_identical(ans_obtained, ans_expected)
 })
 
@@ -58,6 +61,7 @@ test_that("'set_covariates' works with binomial, with horseshoe", {
                    size = popn)
   ans <- set_covariates(mod, ~ reg, n_nonzero = 3)
   expect_true(ans$scale_covariates > 0)
+  expect_identical(ans$nms_covariates, paste0("reg", letters[2:10]))
   expect_identical(ans$formula_covariates, ~ reg)
 })
 

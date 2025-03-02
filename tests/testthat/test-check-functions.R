@@ -80,7 +80,7 @@ test_that("'check_con_n_by' throws correct error with invalid inputs", {
 
 ## 'check_covariates_formula' -------------------------------------------------
 
-test_that("'make_matrix_covariates' works with valid inputs", {
+test_that("'check_covariates_formula' works with valid inputs", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -95,7 +95,7 @@ test_that("'make_matrix_covariates' works with valid inputs", {
     expect_true(check_covariates_formula(formula = formula, mod = mod))
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' is not a formula", {
+test_that("'check_covariates_formula' throws the correct error when 'formula' is not a formula", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -111,7 +111,7 @@ test_that("'make_matrix_covariates' throws the correct error when 'formula' is n
                  "`formula` is not a formula.")
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' includes a response", {
+test_that("'check_covariates_formula' throws the correct error when 'formula' includes a response", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -127,7 +127,7 @@ test_that("'make_matrix_covariates' throws the correct error when 'formula' incl
                  "`formula` includes a response variable.")
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' includes response from main model", {
+test_that("'check_covariates_formula' throws the correct error when 'formula' includes response from main model", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -143,7 +143,7 @@ test_that("'make_matrix_covariates' throws the correct error when 'formula' incl
                  "`formula` includes response from `mod`.")
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' includes variable from main model", {
+test_that("'check_covariates_formula' throws the correct error when 'formula' includes variable from main model", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -162,7 +162,7 @@ test_that("'make_matrix_covariates' throws the correct error when 'formula' incl
                  "`formula` includes variables from `mod`.")
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' includes variable from main model", {
+test_that("'check_covariates_formula' throws the correct error when 'formula' includes variable from main model", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -181,23 +181,23 @@ test_that("'make_matrix_covariates' throws the correct error when 'formula' incl
                  "`formula` includes variables from `mod`.")
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' includes offset from main model", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        region = c("a", "b"),
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$income <- runif(n = nrow(data))
-    mod <- mod_pois(formula = deaths ~ age * sex,
-                    data = data,
-                    exposure = popn)
-    formula <- ~ region * income + popn
-    expect_error(check_covariates_formula(formula = formula, mod = mod),
-                 "`formula` includes exposure from `mod`.")
+test_that("'check_covariates_formula' throws the correct error when 'formula' includes offset from main model", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  mod <- mod_pois(formula = deaths ~ age * sex,
+                  data = data,
+                  exposure = popn)
+  formula <- ~ region * income + popn
+  expect_error(check_covariates_formula(formula = formula, mod = mod),
+               "`formula` includes exposure from `mod`.")
 })
 
-test_that("'make_matrix_covariates' throws the correct error when 'formula' includes variables not in data", {
+test_that("'check_covariates_formula' throws the correct error when 'formula' includes variables not in data", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -635,7 +635,8 @@ test_that("'check_mod_has_obs' returns correct error with no valid rows - no exp
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$deaths <- NA
+    data$deaths[-1] <- NA
+    data$time[1] <- NA
     formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
@@ -744,34 +745,34 @@ test_that("'check_numeric' throws correct error with Inf", {
 ## 'check_offset_in_data' -----------------------------------------------------
 
 test_that("'check_offset_in_data' returns TRUE with valid formula", {
-    expect_true(check_offset_in_data(vname_offset = "~popn + deaths",
-                                     nm_offset = "exposure",
+    expect_true(check_offset_in_data(nm_offset_data = "~popn + deaths",
+                                     nm_offset_mod = "exposure",
                                      data = data.frame(deaths = 1, popn = 2)))
 })
 
 test_that("'check_offset_in_data' throws correct error with invalid formula", {
-  expect_error(check_offset_in_data(vname_offset = "~popn + wrong",
-                                    nm_offset = "exposure",
+  expect_error(check_offset_in_data(nm_offset_data = "~popn + wrong",
+                                    nm_offset_mod = "exposure",
                                     data = data.frame(deaths = 1, popn = 2)),
                "Problem with formula used for `exposure`.")
 })
 
 test_that("'check_offset_in_data' returns TRUE with valid name", {
-    expect_true(check_offset_in_data(vname_offset = "popn",
-                                     nm_offset = "exposure",
+    expect_true(check_offset_in_data(nm_offset_data = "popn",
+                                     nm_offset_mod = "exposure",
                                      data = data.frame(deaths = 1, popn = 2)))
 })
 
 test_that("'check_offset_in_data' returns correct error with invalid name - exposure", {
-    expect_error(check_offset_in_data(vname_offset = "popn",
-                                      nm_offset = "exposure",
+    expect_error(check_offset_in_data(nm_offset_data = "popn",
+                                      nm_offset_mod = "exposure",
                                       data = data.frame(deaths = 1, wrong = 2)),
                  "`exposure` not found in `data`")
 })
 
 test_that("'check_offset_in_data' returns correct error with invalid name - size", {
-    expect_error(check_offset_in_data(vname_offset = "popn",
-                                      nm_offset = "size",
+    expect_error(check_offset_in_data(nm_offset_data = "popn",
+                                      nm_offset_mod = "size",
                                       data = data.frame(deaths = 1, wrong = 2)),
                  "`size` not found in `data`")
 })
@@ -779,24 +780,24 @@ test_that("'check_offset_in_data' returns correct error with invalid name - size
 ## 'check_offset_nonneg' ----------------------------------------------------
 
 test_that("'check_offset_nonneg' returns TRUE with valid inputs - formula", {
-    expect_true(check_offset_nonneg(vname_offset = "~popn - deaths",
-                                    nm_offset = "exposure",
+    expect_true(check_offset_nonneg(nm_offset_data = "~popn - deaths",
+                                    nm_offset_mod = "exposure",
                                     data = data.frame(sex = 1:2,
                                                       popn = c(0, 1.1),
                                                       deaths = 0:1)))
 })
 
 test_that("'check_offset_nonneg' returns TRUE with valid inputs - name", {
-    expect_true(check_offset_nonneg(vname_offset = "popn",
-                                    nm_offset = "exposure",
+    expect_true(check_offset_nonneg(nm_offset_data = "popn",
+                                    nm_offset_mod = "exposure",
                                     data = data.frame(sex = 1:2,
                                                       popn = c(0, 1.1),
                                                       deaths = 0:1)))
 })
 
 test_that("'check_offset_nonneg' returns correct error with invalid inputs - formula", {
-  expect_error(check_offset_nonneg(vname_offset = "~popn - 1",
-                                   nm_offset = "exposure",
+  expect_error(check_offset_nonneg(nm_offset_data = "~popn - 1",
+                                   nm_offset_mod = "exposure",
                                    data = data.frame(sex = 1:2,
                                                      popn = c(-1, 1),
                                                      deaths = 0:1)),
@@ -804,8 +805,8 @@ test_that("'check_offset_nonneg' returns correct error with invalid inputs - for
 })
 
 test_that("'check_offset_nonneg' returns correct error with invalid inputs - name", {
-    expect_error(check_offset_nonneg(vname_offset = "popn",
-                                    nm_offset = "exposure",
+    expect_error(check_offset_nonneg(nm_offset_data = "popn",
+                                    nm_offset_mod = "exposure",
                                     data = data.frame(sex = 1:3,
                                                       popn = c(-1, 1, -3),
                                                       deaths = 0:2)),
@@ -816,20 +817,20 @@ test_that("'check_offset_nonneg' returns correct error with invalid inputs - nam
 ## 'check_offset_not_in_formula' ----------------------------------------------
 
 test_that("'check_offset_not_in_formula' returns TRUE with valid inputs - formula", {
-    expect_true(check_offset_not_in_formula(vname_offset = "~popn^2 + log(popn) + deaths",
-                                            nm_offset = "exposure",
+    expect_true(check_offset_not_in_formula(nm_offset_data = "~popn^2 + log(popn) + deaths",
+                                            nm_offset_mod = "exposure",
                                             formula = deaths ~ age + time))
 })
 
 test_that("'check_offset_not_in_formula' returns TRUE with valid inputs - name", {
-    expect_true(check_offset_not_in_formula(vname_offset = "popn",
-                                            nm_offset = "exposure",
+    expect_true(check_offset_not_in_formula(nm_offset_data = "popn",
+                                            nm_offset_mod = "exposure",
                                             formula = deaths ~ age + time))
 })
 
 test_that("'check_offset_not_in_formula' returns correct error with invalid inputs - name", {
-    expect_error(check_offset_not_in_formula(vname_offset = "popn",
-                                             nm_offset = "exposure",
+    expect_error(check_offset_not_in_formula(nm_offset_data = "popn",
+                                             nm_offset_mod = "exposure",
                                              formula = popn ~ age + time),
                  "`exposure` included in `formula`.")
 })
@@ -872,8 +873,8 @@ test_that("'check_resp_le_offset' returns TRUE with valid inputs - formula", {
                      sex = rep("F", 5),
                      popn =   c(0, 1, 2,  NA, NA))
   expect_true(check_resp_le_offset(formula = deaths ~ sex,
-                                   vname_offset = "~  popn",
-                                   nm_offset = "size",
+                                   nm_offset_data = "~  popn",
+                                   nm_offset_mod = "size",
                                    data = data))
 })
 
@@ -882,8 +883,8 @@ test_that("'check_resp_le_offset' returns TRUE with valid inputs - name", {
                      sex = rep("F", 5),
                      popn =   c(0, 1, 2,  NA, NA))
   expect_true(check_resp_le_offset(formula = deaths ~ sex,
-                                   vname_offset = "popn",
-                                   nm_offset = "size",
+                                   nm_offset_data = "popn",
+                                   nm_offset_mod = "size",
                                    data = data))
 })
 
@@ -892,8 +893,8 @@ test_that("'check_resp_le_offset' raises correct error with invalid inputs - for
                        sex = rep("F", 5),
                        popn =   c(0, 1, 2,  NA, 1))
     expect_error(check_resp_le_offset(formula = deaths ~ sex,
-                                      vname_offset = "~popn - 0.1",
-                                      nm_offset = "size",
+                                      nm_offset_data = "~popn - 0.1",
+                                      nm_offset_mod = "size",
                                       data = data),
                  "Response greater than `size`.")
 })
@@ -903,8 +904,8 @@ test_that("'check_resp_le_offset' raises correct error with invalid inputs - for
                        sex = rep("F", 5),
                        popn =   c(0, 1, 2,  NA, 1))
     expect_error(check_resp_le_offset(formula = deaths ~ sex,
-                                      vname_offset = "popn",
-                                      nm_offset = "size",
+                                      nm_offset_data = "popn",
+                                      nm_offset_mod = "size",
                                       data = data),
                  "Response greater than `size`.")
 })
@@ -917,8 +918,8 @@ test_that("'check_resp_zero_if_offset_zero' returns TRUE with valid inputs - for
                        sex = rep("F", 5),
                        popn =   c(0, 1, 2,  NA, NA))
     expect_true(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
-                                               vname_offset = "~popn^2",
-                                               nm_offset = "exposure",
+                                               nm_offset_data = "~popn^2",
+                                               nm_offset_mod = "exposure",
                                                data = data))
 })
 
@@ -927,8 +928,8 @@ test_that("'check_resp_zero_if_offset_zero' returns TRUE with valid inputs - nam
                        sex = rep("F", 5),
                        popn =   c(0, 1, 2,  NA, NA))
     expect_true(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
-                                               vname_offset = "popn",
-                                               nm_offset = "exposure",
+                                               nm_offset_data = "popn",
+                                               nm_offset_mod = "exposure",
                                                data = data))
 })
 
@@ -937,8 +938,8 @@ test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid in
                      sex = rep("F", 5),
                      popn =   c(0, 1, 2,  NA, 0))
   expect_error(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
-                                              vname_offset = "~popn^2",
-                                              nm_offset = "exposure",
+                                              nm_offset_data = "~popn^2",
+                                              nm_offset_mod = "exposure",
                                               data = data),
                "Response is non-zero but `exposure` is zero.")
 })
@@ -948,8 +949,8 @@ test_that("'check_resp_zero_if_offset_zero' raises correct error with invalid in
                      sex = rep("F", 5),
                      popn =   c(0, 1, 2,  NA, 0))
   expect_error(check_resp_zero_if_offset_zero(formula = deaths ~ sex,
-                                              vname_offset = "popn",
-                                              nm_offset = "exposure",
+                                              nm_offset_data = "popn",
+                                              nm_offset_mod = "exposure",
                                               data = data),
                "Response is non-zero but `exposure` is zero.")
 })
