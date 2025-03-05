@@ -18,6 +18,8 @@
                sex NFix()     -     2          2
               time   RW()  time     6          6
       
+       covariates: ~income
+      
        disp: mean = 1
       
        n_draw var_time var_age var_sexgender

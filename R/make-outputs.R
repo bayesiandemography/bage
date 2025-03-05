@@ -625,10 +625,33 @@ make_comp_components <- function(mod) {
   hyperrand <- make_comp_hyperrand(mod)
   spline <- rep("spline", times = length(term_spline))
   svd <- rep("svd", times = length(term_svd))
+  covariates <- make_comp_covariates(mod)
   disp <- rep("disp", times = has_disp)
-  ans <- c(effect, hyper, hyperrand, spline, svd, disp)
+  ans <- c(effect, hyper, hyperrand, spline, svd, covariates, disp)
   ans
 }
+
+
+#' Make Variable Identifying Component in
+#' Covariates Part of 'components'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_comp_covariates <- function(mod) {
+  if (!has_covariates(mod))
+    return(character())
+  is_shrinkage <- is_shrinkage(mod)
+  nms_covariates <- mod$nms_covariates
+  n_covariates <- length(nms_covariates)
+  if (is_shrinkage)
+    rep(c("coef", "hyper"), times = c(n_covariates, n_covariates + 1L))
+  else
+    rep("coef", times = n_covariates)
+}
+
 
 
 ## HAS_TESTS
@@ -674,7 +697,29 @@ make_copies_repdata <- function(data, n) {
     data <- vctrs::vec_rbind(!!!data)
     vctrs::vec_cbind(.replicate, data)
 }
-    
+
+
+## HAS_TESTS
+#' Make Draws from Coefficients for Covariates
+#'
+#' @param est Named list. Output from TMB.
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_draws_coef_covariates <- function(est, draws_post) {
+  n_effectfree <- length(est$effectfree)
+  n_hyper <- length(est$hyper)
+  n_hyperrandfree <- length(est$hyperrandfree)
+  n_disp <- length(est$log_disp)
+  n_coef_covariates <- length(est$coef_covariates)
+  n_from <- n_effectfree + n_hyper + n_hyperrandfree + n_disp + 1L
+  i_coef_covariates <- seq.int(from = n_from, length.out = n_coef_covariates)
+  draws_post[i_coef_covariates, , drop = FALSE]
+}
+
 
 ## HAS_TESTS
 #' Make draws from posterior distribution of
@@ -695,7 +740,7 @@ make_draws_components <- function(mod) {
   hyper <- mod$draws_hyper
   ans_hyper <- rvec::rvec_dbl(hyper)
   ## hyperrand
-  ans_hyperrand <- make_hyperrand(mod)
+  ans_hyperrand <- make_hyperrand(mod)    
   ## spline
   ans_spline <- make_spline(mod = mod, effectfree = effectfree)
   ans_spline <- rvec::rvec_dbl(ans_spline)
@@ -704,6 +749,14 @@ make_draws_components <- function(mod) {
   ans_svd <- rvec::rvec_dbl(ans_svd)
   ## combine
   ans <- c(ans_effects, ans_hyper, ans_hyperrand, ans_spline, ans_svd)
+  ## covariates
+  if (has_covariates(mod)) {
+    ans_coef_covariates <- mod$draws_coef_covariates
+    ans_coef_covariates <- rvec::rvec_dbl(ans_coef_covariates)
+    ans_hyper_covariates <- mod$draws_hyper_covariates
+    ans_hyper_covariates <- rvec::rvec_dbl(ans_hyper_covariates)
+    ans <- c(ans, ans_coef_covariates, ans_hyper_covariates)
+  }
   ## disp
   if (has_disp(mod)) {
     ans_disp <- get_disp(mod)
@@ -720,15 +773,19 @@ make_draws_components <- function(mod) {
 #'
 #' Includes transforming back to natural units.
 #'
+#' @param est Named list. Output from TMB.
 #' @param draws_post Posterior draws for all parameters
 #' estimated in TMB. Output from 'make_draws_post'.
 #'
 #' @returns A numeric vector.
 #' 
 #' @noRd
-make_draws_disp <- function(draws_post) {
-  n_val <- nrow(draws_post)
-  ans <- draws_post[n_val, ]
+make_draws_disp <- function(est, draws_post) {
+  n_effectfree <- length(est$effectfree)
+  n_hyper <- length(est$hyper)
+  n_hyperrandfree <- length(est$hyperrandfree)
+  i_disp <- n_effectfree + n_hyper + n_hyperrandfree + 1L
+  ans <- draws_post[i_disp, ]
   ans <- exp(ans)
   ans
 }
@@ -779,6 +836,34 @@ make_draws_hyper <- function(est, transforms_hyper, draws_post) {
     if (!is.null(transform))
       ans[i, ] <- transform(ans[i, ])
   }
+  ans
+}
+
+
+## HAS_TESTS
+#' Make Draws from Hyper-Parameters for Covariates
+#'
+#' Only have hyper-parameters when using
+#' a regularised horseshoe prior.
+#'
+#' @param est Named list. Output from TMB.
+#' @param draws_post Posterior draws for all parameters
+#' estimated in TMB. Output from 'make_draws_post'.
+#'
+#' @returns A matrix
+#' 
+#' @noRd
+make_draws_hyper_covariates <- function(est, draws_post) {
+  n_effectfree <- length(est$effectfree)
+  n_hyper <- length(est$hyper)
+  n_hyperrandfree <- length(est$hyperrandfree)
+  n_disp <- length(est$log_disp)
+  n_coef_covariates <- length(est$coef_covariates)
+  n_hyper_covariates <- length(est$hyper_covariates)
+  n_from <- n_effectfree + n_hyper + n_hyperrandfree + n_disp + n_coef_covariates + 1L
+  i_hyper_covariates <- seq.int(from = n_from, length.out = n_hyper_covariates)
+  ans <- draws_post[i_hyper_covariates, , drop = FALSE]
+  ans <- exp(ans)
   ans
 }
 
@@ -1306,9 +1391,37 @@ make_level_components <- function(mod) {
   spline <- as.character(spline)
   svd <- as.character(svd)
   ans <- c(effect, hyper, hyperrand, spline, svd)
+  if (has_covariates(mod)) {
+    covariates <- make_level_covariates(mod)
+    ans <- c(ans, covariates)
+  }
   if (has_disp(mod))
     ans <- c(ans, "disp")
   ans
+}
+
+
+## HAS_TESTS
+#' Make variable identifying level within each component
+#' of 'components'
+#'
+#' Helper function for function 'components'
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_level_covariates <- function(mod) {
+  if (!has_covariates(mod))
+    return(character())
+  is_shrinkage <- is_shrinkage(mod)
+  nms_covariates <- mod$nms_covariates
+  n_covariates <- length(nms_covariates)
+  if (is_shrinkage)
+    c(nms_covariates, "sd_global", paste("sd_local", nms_covariates, sep = "."))
+  else
+    nms_covariates
 }
 
 
@@ -1573,12 +1686,11 @@ make_linpred_comp <- function(components, data, dimnames_terms) {
 }
 
 
+
 ## HAS_TESTS
 #' Make Linear Predictor from 'draws_effectfree'
 #'
 #' Can only be used with fitted models.
-#'
-#' Return value aligned to outcome, not data.
 #'
 #' @param mod Object of class "bage_mod"
 #' @param point Whether to return point estimates
@@ -1588,13 +1700,11 @@ make_linpred_comp <- function(components, data, dimnames_terms) {
 #'
 #' @noRd
 make_linpred_raw <- function(mod, point) {
-  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
-  if (point)
-    effectfree <- mod$point_effectfree
-  else
-    effectfree <- mod$draws_effectfree
-  effect <- make_effects(mod = mod, effectfree = effectfree)
-  ans <- matrix_effect_outcome %*% effect
+  ans <- make_linpred_raw_effects(mod = mod, point = point)
+  if (has_covariates(mod)) {
+    linpred_covariates <- make_linpred_raw_covariates(mod = mod, point = point)
+    ans <- ans + linpred_covariates
+  }
   if (point)
     ans <- as.double(ans)
   else {
@@ -1602,6 +1712,48 @@ make_linpred_raw <- function(mod, point) {
     ans <- rvec::rvec(ans)
   }
   ans
+}
+
+
+#' Calculate the Contribution of Covariates to the Linear Predictor
+#'
+#' @param mod Object of class "bage_mod"
+#' @param point Whether to return point estimates
+#' or draws from the posterior.
+#'
+#' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
+#'
+#' @noRd
+make_linpred_raw_covariates <- function(mod, point) {
+  formula_covariates <- mod$formula_covariates
+  data <- mod$data
+  if (point)
+    coef_covariates <- mod$point_coef_covariates
+  else
+    coef_covariates <- mod$draws_coef_covariates
+  matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
+                                              data = data)
+  matrix_covariates %*% coef_covariates
+}
+
+
+#' Calculate the Contribution of Effects to the Linear Predictor
+#'
+#' @param mod Object of class "bage_mod"
+#' @param point Whether to return point estimates
+#' or draws from the posterior.
+#'
+#' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
+#'
+#' @noRd
+make_linpred_raw_effects <- function(mod, point) {
+  matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
+  if (point)
+    effectfree <- mod$point_effectfree
+  else
+    effectfree <- mod$draws_effectfree
+  effect <- make_effects(mod = mod, effectfree = effectfree)
+  matrix_effect_outcome %*% effect
 }
 
 
@@ -1893,7 +2045,14 @@ make_stored_draws <- function(mod, est, prec, map) {
   mod$draws_hyperrandfree <- make_draws_hyperrandfree(est = est,
                                                       draws_post = draws_post)
   if (has_disp(mod))
-    mod$draws_disp <- make_draws_disp(draws_post)
+    mod$draws_disp <- make_draws_disp(est = est,
+                                      draws_post = draws_post)
+  if (has_covariates(mod)) {
+    mod$draws_coef_covariates <- make_draws_coef_covariates(est = est,
+                                                            draws_post = draws_post)
+    mod$draws_hyper_covariates <- make_draws_hyper_covariates(est = est,
+                                                              draws_post = draws_post)
+  }
   mod
 }
 
@@ -1922,6 +2081,10 @@ make_stored_point <- function(mod, est) {
   mod$point_hyperrandfree <- est$hyperrandfree
   if (has_disp(mod))
     mod$point_disp <- exp(est$log_disp)
+  if (has_covariates(mod)) {
+    mod$point_coef_covariates <- est$coef_covariates
+    mod$point_hyper_covariates <- exp(est$hyper_covariates)
+  }
   mod
 }
 
@@ -1950,9 +2113,32 @@ make_term_components <- function(mod) {
   spline <- as.character(spline)
   svd <- as.character(svd)
   ans <- c(effect, hyper, hyperrand, spline, svd)
+  if (has_covariates(mod)) {
+    covariates <- make_term_covariates(mod)
+    ans <- c(ans, covariates)
+  }
   if (has_disp(mod))
     ans <- c(ans, "disp")
   ans
+}
+
+
+## HAS_TESTS
+#' Make Character Vector with Term for Covariates
+#'
+#' @param mod Object of class 'bage_mod'
+#'
+#' @returns A character vector
+#'
+#' @noRd
+make_term_covariates <- function(mod) {
+  if (!has_covariates(mod))
+    return(character())
+  nms_covariates <- mod$nms_covariates
+  is_shrinkage <- is_shrinkage(mod)
+  n_covariates <- length(nms_covariates)
+  times <- if (is_shrinkage) (2L * n_covariates) + 1L else n_covariates
+  rep.int("covariates", times = times)
 }
 
 
