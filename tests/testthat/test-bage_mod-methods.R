@@ -1877,6 +1877,54 @@ test_that("'is_fitted' works with valid inputs", {
 })
 
 
+## 'is_shrinkage' -------------------------------------------------------------
+
+test_that("'is_shrinkage' is FALSE with no covariates", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  data$distance <- runif(n = nrow(data))
+  mod <- mod_pois(formula = deaths ~ age * sex ,
+                  data = data,
+                  exposure = popn)
+  expect_false(is_shrinkage(mod))
+})
+
+test_that("'is_shrinkage' is FALSE with covariates but non-shrinkage", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = c("a", "b"),
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- runif(n = nrow(data))
+  data$distance <- runif(n = nrow(data))
+  mod <- mod_pois(formula = deaths ~ age * sex ,
+                  data = data,
+                  exposure = popn) |>
+    set_covariates(~ income)
+  expect_false(is_shrinkage(mod))
+})
+
+test_that("'is_shrinkage' is TRUE with covariates with shrinkage", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      region = letters[1:4],
+                      sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  mod <- mod_pois(formula = deaths ~ age * sex ,
+                  data = data,
+                  exposure = popn) |>
+    set_covariates(~ region, n_nonzero = 1)
+  expect_true(is_shrinkage(mod))
+})
+
+
 ## 'make_i_lik_mod' -----------------------------------------------------------
 
 test_that("'make_i_lik_mod' works with bage_mod_pois", {
@@ -2381,11 +2429,13 @@ test_that("'print' works with mod_pois", {
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.4 * data$popn)
+    data$income <- rnorm(n = nrow(data))
     formula <- deaths ~ age + sex + time
     mod <- mod_pois(formula = formula,
                     data = data,
                     exposure = popn) |>
-      set_datamod_outcome_rr3()
+      set_datamod_outcome_rr3() |>
+      set_covariates(~ income)
     expect_snapshot(print(mod))
     ## don't use snapshot, since printed option includes timings, which can change
     capture.output(print(fit(mod)), file = NULL) 

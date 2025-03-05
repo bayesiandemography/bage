@@ -1360,6 +1360,29 @@ is_fitted.bage_mod <- function(x)
   !is.null(x$draws_effectfree)
 
 
+## 'is_shrinkage' -------------------------------------------------------------
+
+#' Test Whether a Model has Covariates with Shrinkage Prior
+#'
+#' @param mod An object of class `"bage_mod"`.
+#'
+#' @returns `TRUE` or `FALSE`
+#'
+#' @noRd
+is_shrinkage <- function(mod) {
+  UseMethod("is_shrinkage")
+}
+
+## HAS_TESTS
+#' @export
+is_shrinkage.bage_mod <- function(mod) {
+  if (has_covariates(mod))
+    mod$scale_covariates > 0
+  else
+    FALSE
+}
+
+
 ## 'make_i_lik' ---------------------------------------------------------------
 
 #' Make 'i_lik' Index used by TMB
@@ -1860,6 +1883,9 @@ print.bage_mod <- function(x, ...) {
   var_age <- x$var_age
   var_sexgender <- x$var_sexgender
   var_time <- x$var_time
+  has_covariates <- has_covariates(x)
+  if (has_covariates)
+    formula_covariates <- x$formula_covariates
   mean_disp <- x$mean_disp
   datamod_outcome <- x$datamod_outcome
   vars_inner <- x$vars_inner
@@ -1934,6 +1960,8 @@ print.bage_mod <- function(x, ...) {
   cat("\n")
   print(terms, row.names = FALSE)
   cat("\n")
+  if (has_covariates)
+    cat(sprintf(" covariates: %s\n\n", deparse1(formula_covariates)))
   if (mean_disp > 0)
     cat(sprintf(" disp: mean = %s\n\n", mean_disp))
   print(settings, row.names = FALSE)
