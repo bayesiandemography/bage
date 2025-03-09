@@ -1653,6 +1653,7 @@ make_lin_trend <- function(slope,
 
 #' Make Linear Predictor from Components
 #'
+#' @param mod Object of class 'bage_mod'
 #' @param components Data frame with estimates for hyper-parameters
 #' @param data Data frame with raw data
 #' @param dimnames_terms Dimnames for array representation of terms
@@ -1660,7 +1661,7 @@ make_lin_trend <- function(slope,
 #' @returns An rvec
 #'
 #' @noRd
-make_linpred_comp <- function(components, data, dimnames_terms) {
+make_linpred_from_components <- function(mod, components, data, dimnames_terms) {
   key_comp <- with(components, paste(term, component, level))
   fitted <- components$.fitted
   data_has_intercept <- "(Intercept)" %in% names(data)
@@ -1682,6 +1683,17 @@ make_linpred_comp <- function(components, data, dimnames_terms) {
     val_term_linpred <- val_term[indices_term]
     ans <- ans + val_term_linpred
   }
+  if (has_covariates(mod)) {
+    formula_covariates <- mod$formula_covariates
+    nms_covariates <- mod$nms_covariates
+    key_covariates <- paste("covariates", "coef", nms_covariates)
+    indices_covariates <- match(key_covariates, key_comp)
+    coef_covariates <- fitted[indices_covariates]
+    matrix_covariates <- make_matrix_covariates(formula = formula_covariates,
+                                                data = data)
+    val_covariates_linpred <- matrix_covariates %*% coef_covariates
+    ans <- ans + val_covariates_linpred
+  }
   ans
 }
 
@@ -1699,10 +1711,12 @@ make_linpred_comp <- function(components, data, dimnames_terms) {
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_raw <- function(mod, point) {
-  ans <- make_linpred_raw_effects(mod = mod, point = point)
+make_linpred_from_stored_draws <- function(mod, point) {
+  ans <- make_linpred_from_stored_draws_effects(mod = mod,
+                                                point = point)
   if (has_covariates(mod)) {
-    linpred_covariates <- make_linpred_raw_covariates(mod = mod, point = point)
+    linpred_covariates <- make_linpred_from_stored_draws_covariates(mod = mod,
+                                                                    point = point)
     ans <- ans + linpred_covariates
   }
   if (point)
@@ -1724,7 +1738,7 @@ make_linpred_raw <- function(mod, point) {
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_raw_covariates <- function(mod, point) {
+make_linpred_from_stored_draws_covariates <- function(mod, point) {
   formula_covariates <- mod$formula_covariates
   data <- mod$data
   if (point)
@@ -1746,7 +1760,7 @@ make_linpred_raw_covariates <- function(mod, point) {
 #' @returns An rvec if 'point' is FALSE, otherwise a vector of doubles
 #'
 #' @noRd
-make_linpred_raw_effects <- function(mod, point) {
+make_linpred_from_stored_draws_effects <- function(mod, point) {
   matrix_effect_outcome <- make_combined_matrix_effect_outcome(mod)
   if (point)
     effectfree <- mod$point_effectfree
@@ -2327,7 +2341,7 @@ rvec_to_mean <- function(data) {
 #'
 #' @noRd
 sort_components <- function(components, mod) {
-  levels_component <- c("effect",
+  levels_component <- c("effect", "coef",
                         "trend", "season", "error",
                         "spline", "svd",
                         "disp",
@@ -2339,6 +2353,8 @@ sort_components <- function(components, mod) {
   levels_term <- attr(terms_formula, "term.labels")
   if (attr(terms_formula, "intercept"))
     levels_term <- c("(Intercept)", levels_term)
+  if (has_covariates(mod))
+    levels_term <- c(levels_term, "covariates")
   i_term <- match(term, levels_term)
   i_comp <- match(components$component, levels_component, nomatch = 0L)
   i_invalid_comp <- match(0L, i_comp, nomatch = 0L)

@@ -437,7 +437,7 @@ forecast_seasvary <- function(n_seas,
 
 
 ## HAS_TESTS
-#' Create Extra Rows for 'data', holding Values for
+#' Create Extra Rows for 'data' that Hold Values for
 #' Predictor Variables Used in Forecast
 #'
 #' @param mod Object of class 'bage_mod'
@@ -451,16 +451,69 @@ make_data_forecast_labels <- function(mod, labels_forecast) {
   formula <- mod$formula
   data <- mod$data
   var_time <- mod$var_time
-  nms_model <- all.vars(formula[-2L])
-  ans <- lapply(data[nms_model], unique)
+  vars <- all.vars(formula[-2L])
+  ans <- lapply(data[vars], unique)
   ans[[var_time]] <- labels_forecast
   ans <- vctrs::vec_expand_grid(!!!ans)
   ans <- vctrs::vec_rbind(data, ans)
   i_original <- seq_len(nrow(data))
   ans <- ans[-i_original, , drop = FALSE]
+  if (has_covariates(mod))
+    ans <- make_data_forecast_labels_covariates(mod = mod,
+                                                data_forecast = ans)
   ans
 }
 
+
+## HAS_TESTS
+#' Cbind Covariate Values to 'data_forecast' Made From Labels
+#'
+#' Used with 'make_data_forecast_labels()'
+#'
+#' @param mod Object of class 'bage_mod'
+#' @param data_forecast Data for forecast, without covariates
+#' (ie classifying variables only)
+#'
+#' @returns A tibble.
+#'
+#' @noRd
+make_data_forecast_labels_covariates <- function(mod, data_forecast) {
+  data <- mod$data
+  formula <- mod$formula
+  formula_covariates <- mod$formula_covariates
+  var_time <- mod$var_time
+  vars <- all.vars(formula[-2L])
+  vars_covariates <- all.vars(formula_covariates)
+  vars_no_time <- setdiff(vars, var_time)
+  map_vars_cov <- vctrs::vec_split(data[vars_covariates], data[vars_no_time])
+  map_vars_cov$val <- lapply(map_vars_cov$val, unique)
+  nrow <- vapply(map_vars_cov$val, nrow, 1L)
+  i_gt_1 <- match(TRUE, nrow > 1L, nomatch = 0L)
+  if (i_gt_1 > 0L) {
+    example <- vctrs::vec_cbind(vctrs::vec_rep(map_vars_cov$key[i_gt_1, , drop = FALSE], times = 2L),
+                                tibble::tibble("|" = rep("|", times = 2)),
+                                map_vars_cov$val[[i_gt_1]][1:2, , drop = FALSE])
+    example <- as.data.frame(example)
+    example <- utils::capture.output(print(example, row.names = FALSE))
+    names(example) <- c("i", "i", "i") ## includes header
+    ## use rlang::abort, rather than cli::cli_abort, because cli_abort
+    ## strips out white space, leads to poor printing of rows
+    rlang::abort(c("Cannot infer future values for covariates from `data`.",
+                   i = "Classifying variables (excluding time) do not uniquely determine covariates.",
+                   i = "Example:",
+                   example),
+                 use_cli_format = FALSE)
+  }
+  key_data <- Reduce(paste_dot, data_forecast[vars_no_time])
+  key_covariates <- Reduce(paste_dot, map_vars_cov$key)
+  covariates <- map_vars_cov$val[match(key_data, key_covariates)]
+  covariates <- vctrs::vec_rbind(!!!covariates)
+  ans <- tibble::tibble(data_forecast)
+  for (nm in names(covariates))
+    ans[[nm]] <- covariates[[nm]]
+  ans
+}
+  
 
 ## HAS_TESTS
 #' Construct 'data_forecast' from 'newdata' Argument to 'forecast'
@@ -479,6 +532,10 @@ make_data_forecast_newdata <- function(mod, newdata) {
   data <- mod$data
   var_time <- mod$var_time
   nms_model <- all.vars(formula[-2L])
+  if (has_covariates(mod)) {
+    formula_covariates <- mod$formula_covariates
+    nms_model <- c(nms_model, all.vars(formula_covariates))
+  }
   nms_newdata <- names(newdata)
   not_in_newdata <- !(nms_model %in% nms_newdata)
   n_not_in_newdata <- sum(not_in_newdata)

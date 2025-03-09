@@ -1194,7 +1194,7 @@ Type objective_function<Type>::operator() ()
       vector<Type> log_sd_local = hyper_covariates.tail(n_hyper - 1);
       Type sd_global = exp(log_sd_global);
       vector<Type> sd_local = exp(log_sd_local);
-      ans -= dt(sd_global / scale_covariates, Type(1), true) + log_sd_global; // IS THIS CORRECT????
+      ans -= dt(sd_global / scale_covariates, Type(1), true) + log_sd_global;
       ans -= dt(sd_local, Type(1), true).sum() + log_sd_local.sum();
       vector<Type> sd_covariates = sd_global * sd_local;
       ans -= dnorm(coef_covariates, Type(0), sd_covariates, true).sum();

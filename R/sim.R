@@ -193,6 +193,7 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
   var_time <- mod$var_time
   var_age <- mod$var_age
   var_sexgender <- mod$var_sexgender
+  has_covariates <- has_covariates(mod)
   has_disp <- has_disp(mod)
   seed_components <- mod$seed_components
   seed_restore <- make_seed() ## create randomly-generated seed
@@ -229,6 +230,12 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
                           vals_effect,
                           vals_spline,
                           vals_svd)
+  if (has_covariates) {
+    vals_covariates <- draw_vals_covariates(mod = mod,
+                                            n_sim = n_sim)
+    vals_covariates <- vals_covariates_to_dataframe(vals_covariates)
+    ans <- vctrs::vec_rbind(ans, vals_covariates)
+  }
   if (has_disp) {
     vals_disp <- draw_vals_disp(mod = mod,
                                 n_sim = n_sim)
@@ -238,6 +245,57 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   ans    
 }
+
+
+## HAS_TESTS
+#' Draw Values for Covariates
+#'
+#' @param mod Object of class "bage_mod"
+#' @param n_sim Number of draws
+#'
+#' @returns A named list
+#'
+#' @noRd
+draw_vals_covariates <- function(mod, n_sim) {
+  nms_covariates <- mod$nms_covariates
+  scale_covariates <- mod$scale_covariates
+  is_shrinkage <- scale_covariates > 0
+  n_covariates <- length(nms_covariates)
+  if (is_shrinkage) {
+    sd_global <- stats::rcauchy(n = n_sim, scale = scale_covariates)
+    sd_global <- abs(sd_global)
+    sd_local <- stats::rcauchy(n = n_covariates * n_sim)
+    sd_local <- abs(sd_local)
+    sd_covariates <- rep(sd_global, each = n_covariates) * sd_local
+    coef <- stats::rnorm(n = n_covariates * n_sim, sd = sd_covariates)
+    sd_global <- matrix(sd_global,
+                        nrow = 1L,
+                        ncol = n_sim,
+                        dimnames = list("sd_global", NULL))
+    sd_local <- matrix(sd_local,
+                       nrow = n_covariates,
+                       ncol = n_sim,
+                       dimnames = list(paste("sd_local", nms_covariates, sep = "."),
+                                       NULL))
+    coef <- matrix(coef,
+                   nrow = n_covariates,
+                   ncol = n_sim,
+                   dimnames = list(nms_covariates, NULL))
+    ans <- list(sd_global = sd_global,
+                sd_local = sd_local,
+                coef = coef)
+  }
+  else {
+    coef <- stats::rnorm(n = n_covariates * n_sim)
+    coef <- matrix(coef,
+                   nrow = n_covariates,
+                   ncol = n_sim,
+                   dimnames = list(nms_covariates, NULL))
+    ans <- list(coef = coef)
+  }    
+  ans
+}
+
 
 
 ## HAS_TESTS
@@ -1279,6 +1337,39 @@ vals_disp_to_dataframe <- function(vals_disp) {
 
 
 ## HAS_TESTS
+#' Convert a List of Simulated Covariates to a Data Frame
+#'
+#' @param vals_covariates A named list of matrices
+#'
+#' @returns A tibble with columns 'component'
+#' 'term', 'level', and '.fitted'
+#' 
+#' @noRd
+vals_covariates_to_dataframe <- function(vals_covariates) {
+  nms <- names(vals_covariates)
+  is_shrinkage <- identical(nms, c("sd_global", "sd_local", "coef"))
+  is_nonshrinkage <- identical(nms, "coef")
+  if (!is_shrinkage && !is_nonshrinkage)
+    cli::cli_abort("Internal error: Invalid names for {.arg vals_covariates}}.")
+  nrow <- vapply(vals_covariates, nrow, 0L)
+  term <- rep("covariates", times = sum(nrow))
+  if (is_shrinkage)
+    component <- rep(c("hyper", "hyper", "coef"), times = nrow)
+  else
+    component <- rep("coef", times = sum(nrow))
+  level <- lapply(vals_covariates, rownames)
+  level <- unlist(level, use.names = FALSE)
+  .fitted <- do.call(rbind, vals_covariates)
+  .fitted <- unname(.fitted)
+  .fitted <- rvec::rvec(.fitted)
+  tibble::tibble(term = term,
+                 component = component,
+                 level = level,
+                 .fitted = .fitted)
+}
+
+
+## HAS_TESTS
 #' Convert a List of Simulated Effects to a Data Frame
 #'
 #' @param vals_effect A named list of matrices
@@ -1301,7 +1392,6 @@ vals_effect_to_dataframe <- function(vals_effect) {
                  level = level,
                  .fitted = .fitted)
 }
- 
 
 
 ## 'vals_hyper_to_dataframe' --------------------------------------------------

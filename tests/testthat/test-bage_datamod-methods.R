@@ -14,9 +14,10 @@ test_that("'draw_vals_outcome_true' works with NULL, pois, offset complete", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_comp(components = vals_components,
-                                         data = mod$data,
-                                         dimnames_term = mod$dimnames_terms))
+  vals_expected <- exp(make_linpred_from_components(mod = mod,
+                                                    components = vals_components,
+                                                    data = mod$data,
+                                                    dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -49,9 +50,10 @@ test_that("'draw_vals_outcome_true' works with pois, NULL, offset has NA", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_comp(components = vals_components,
-                                         data = mod$data,
-                                         dimnames_term = mod$dimnames_terms))
+  vals_expected <- exp(make_linpred_from_components(mod = mod,
+                                                    components = vals_components,
+                                                    data = mod$data,
+                                                    dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -82,9 +84,10 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, data complete", {
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_comp(components = vals_components,
-                                              data = mod$data,
-                                              dimnames_term = mod$dimnames_terms))
+  vals_expected <- invlogit(make_linpred_from_components(mod = mod,
+                                                         components = vals_components,
+                                                         data = mod$data,
+                                                         dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -116,9 +119,10 @@ test_that("'draw_vals_outcome_true' works with NULL, binom, has offset has na", 
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_comp(components = vals_components,
-                                              data = mod$data,
-                                              dimnames_term = mod$dimnames_terms))
+  vals_expected <- invlogit(make_linpred_from_components(mod = mod,
+                                                         components = vals_components,
+                                                         data = mod$data,
+                                                         dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
@@ -152,9 +156,10 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, no na", {
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
-                                                 data = mod$data,
-                                                 dimnames_term = mod$dimnames_terms))
+  vals_fitted <- scale_outcome(make_linpred_from_components(mod = mod,
+                                                            components = vals_components,
+                                                            data = mod$data,
+                                                            dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "norm",
@@ -187,9 +192,10 @@ test_that("'draw_vals_outcome_true' works with NULL, norm, has NA", {
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
-                                                 data = mod$data,
-                                                 dimnames_term = mod$dimnames_terms))
+  vals_fitted <- scale_outcome(make_linpred_from_components(mod = mod,
+                                                            components = vals_components,
+                                                            data = mod$data,
+                                                            dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "norm",
@@ -216,18 +222,19 @@ test_that("'draw_vals_outcome_true' method for NULL throws correct error with in
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_comp(components = vals_components,
-                                         data = mod$data,
-                                         dimnames_term = mod$dimnames_terms))
+  vals_expected <- exp(make_linpred_from_components(mod = mod,
+                                                    components = vals_components,
+                                                    data = mod$data,
+                                                    dimnames_term = mod$dimnames_terms))
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
                                   vals_disp = vals_disp)
   set.seed(1)
   expect_error(draw_vals_outcome_true(datamod = NULL,
-                                         nm_distn = "wrong",
-                                         outcome_obs = mod$outcome,
-                                         fitted = vals_fitted,
-                                         disp = vals_disp,
+                                      nm_distn = "wrong",
+                                      outcome_obs = mod$outcome,
+                                      fitted = vals_fitted,
+                                      disp = vals_disp,
                                       offset = mod$offset),
                "Internal error: Invalid value for `nm_distn`.")
 })
