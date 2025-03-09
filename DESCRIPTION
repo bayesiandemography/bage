@@ -28,6 +28,7 @@ Imports:
     methods,
     parallel,
     poputils (>= 0.3.3),
+    rlang,
     sparseMVN,
     stats,
     tibble,

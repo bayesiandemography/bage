@@ -437,9 +437,10 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - has disp", 
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod, n_sim = 10)
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
-  vals_expected <- exp(make_linpred_comp(components = vals_components,
-                                         data = mod$data,
-                                         dimnames_terms = mod$dimnames_terms))
+  vals_expected <- exp(make_linpred_from_components(mod = mod,
+                                                    components = vals_components,
+                                                    data = mod$data,
+                                                    dimnames_terms = mod$dimnames_terms))
   set.seed(mod$seed_augment)
   vals_fitted <- draw_vals_fitted(mod = mod,
                                   vals_expected = vals_expected,
@@ -474,9 +475,10 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_pois' - no disp", {
   ans_obtained <- draw_vals_augment_unfitted(mod)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
-  vals_fitted <- exp(make_linpred_comp(components = vals_components,
-                                       data = mod$data,
-                                       dimnames_term = mod$dimnames_terms))
+  vals_fitted <- exp(make_linpred_from_components(mod = mod,
+                                                  components = vals_components,
+                                                  data = mod$data,
+                                                  dimnames_term = mod$dimnames_terms))
   set.seed(mod$seed_augment)
   vals_outcome <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "pois",
@@ -510,9 +512,10 @@ test_that("'draw_vals_augment_unfitted' works with 'bage_mod_norm'", {
   vals_disp <- vals_components$.fitted[vals_components$component == "disp"]
   vals_disp <- mod$outcome_sd * vals_disp
   scale_outcome <- get_fun_scale_outcome(mod)
-  vals_fitted <- scale_outcome(make_linpred_comp(components = vals_components,
-                                                 data = mod$data,
-                                                 dimnames_term = mod$dimnames_terms))
+  vals_fitted <- scale_outcome(make_linpred_from_components(mod = mod,
+                                                            components = vals_components,
+                                                            data = mod$data,
+                                                            dimnames_term = mod$dimnames_terms))
   set.seed(mod$seed_augment)
   vals_outcome <- draw_vals_outcome_true(datamod = NULL,
                                          nm_distn = "norm",
@@ -543,9 +546,10 @@ test_that("'draw_vals_fitted' works with 'bage_mod_pois'", {
   vals_disp <- draw_vals_disp(mod, n_sim = n_sim)
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
-  vals_expected <- exp(make_linpred_comp(components = vals_components,
-                                           data = mod$data,
-                                           dimnames_term = mod$dimnames_terms))
+  vals_expected <- exp(make_linpred_from_components(mod = mod,
+                                                    components = vals_components,
+                                                    data = mod$data,
+                                                    dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
@@ -571,9 +575,10 @@ test_that("'draw_vals_fitted' works with 'bage_mod_binom'", {
   vals_components <- draw_vals_components_unfitted(mod = mod,
                                                    n_sim = n_sim)
   invlogit <- function(x) exp(x) / (1 + exp(x))
-  vals_expected <- invlogit(make_linpred_comp(components = vals_components,
-                                              data = mod$data,
-                                              dimnames_term = mod$dimnames_terms))
+  vals_expected <- invlogit(make_linpred_from_components(mod = mod,
+                                                         components = vals_components,
+                                                         data = mod$data,
+                                                         dimnames_term = mod$dimnames_terms))
   set.seed(1)
   ans_obtained <- draw_vals_fitted(mod,
                                    vals_expected = vals_expected,
@@ -1291,9 +1296,10 @@ test_that("'forecast_augment' works - Poisson, has disp, no forecasted offset", 
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1327,9 +1333,10 @@ test_that("'forecast_augment' works - Poisson, no offset", {
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1366,9 +1373,10 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset",
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1406,9 +1414,10 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, 
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1448,9 +1457,10 @@ test_that("'forecast_augment' works - Poisson, has disp, has forecasted offset, 
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1489,9 +1499,10 @@ test_that("'forecast_augment' works - binomial, no disp", {
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1525,9 +1536,10 @@ test_that("'forecast_augment' works - normal", {
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1562,9 +1574,10 @@ test_that("'forecast_augment' works - normal, has forecasted offset", {
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1598,9 +1611,10 @@ test_that("'forecast_augment' works - normal, no offset", {
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1638,9 +1652,10 @@ test_that("'forecast_augment' works - normal, estimated has imputed", {
                                                     var_time = mod$var_time,
                                                     labels_forecast = labels_forecast,
                                                     time_only = FALSE)
-  linpred_forecast <- make_linpred_comp(components = components,
-                                        data = data_forecast,
-                                        dimnames_terms = dimnames_forecast)
+  linpred_forecast <- make_linpred_from_components(mod = mod,
+                                                   components = components,
+                                                   data = data_forecast,
+                                                   dimnames_terms = dimnames_forecast)
   ans <- forecast_augment(mod = mod,
                           data_forecast = data_forecast,
                           linpred_forecast = linpred_forecast)
@@ -1989,7 +2004,7 @@ test_that("'make_mod_disp' works with pois", {
   mod <- fit(mod)
   mod_disp <- make_mod_disp(mod)
   expect_setequal(names(mod_disp$priors), "(Intercept)")
-  mu <- exp(make_linpred_raw(mod, point = TRUE))
+  mu <- exp(make_linpred_from_stored_draws(mod, point = TRUE))
   expect_equal(mod_disp$offset, mod$offset * mu)
   expect_true(mod_disp$mean_disp > 0)
   expect_identical(length(mod_disp$dimnames_terms), 1L)
@@ -2039,7 +2054,7 @@ test_that("'make_mod_disp' works with binom", {
   mod <- fit(mod)
   mod_disp <- make_mod_disp(mod)
   expect_setequal(names(mod_disp$priors), "(Intercept)")
-  mu <- exp(make_linpred_raw(mod, point = TRUE))
+  mu <- exp(make_linpred_from_stored_draws(mod, point = TRUE))
   expect_true(mod_disp$mean_disp > 0)
 })
 
@@ -2071,7 +2086,7 @@ test_that("'make_mod_disp' works with norm", {
   mod <- fit(mod)
   mod_disp <- make_mod_disp(mod)
   expect_setequal(names(mod_disp$priors), "(Intercept)")
-  mu <- make_linpred_raw(mod, point = TRUE)
+  mu <- make_linpred_from_stored_draws(mod, point = TRUE)
   expect_equal(mod_disp$outcome, mod$outcome - mu)
   expect_true(mod_disp$mean_disp > 0)
   expect_identical(length(mod_disp$dimnames_terms), 1L)
@@ -2144,7 +2159,7 @@ test_that("'make_mod_outer' works with pois", {
                               mod_inner = mod_inner,
                               use_term = use_term)
   expect_setequal(names(mod_outer$priors), c("time", "sex:time"))
-  mu <- exp(make_linpred_raw(mod_inner, point = TRUE))
+  mu <- exp(make_linpred_from_stored_draws(mod_inner, point = TRUE))
   expect_equal(mod_outer$offset, mod$offset * mu)
   expect_equal(mod_outer$mean_disp, 0)
 })
@@ -2186,7 +2201,7 @@ test_that("'make_mod_outer' works with norm", {
                               mod_inner = mod_inner,
                               use_term = use_term)
   expect_setequal(names(mod_outer$priors), c("time", "sex:time"))
-  mu <- make_linpred_raw(mod_inner, point = TRUE)
+  mu <- make_linpred_from_stored_draws(mod_inner, point = TRUE)
   expect_equal(mod_outer$outcome, mod$outcome - mu)
   expect_true(mod_outer$mean_disp > 0)
 })

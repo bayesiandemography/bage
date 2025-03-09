@@ -214,8 +214,26 @@ test_that("'check_covariates_formula' throws the correct error when 'formula' in
 })
 
 
+## 'check_duplicated_rows' ----------------------------------------------------
+
+test_that("'check_duplicated_rows' returns TRUE with valid input", {
+    x <- data.frame(age = 80:81, sex = c("F", "F"))
+    expect_true(check_duplicated_rows(x = x, nm_x = "x", nms_cols = c("age", "sex")))
+    expect_true(check_duplicated_rows(data.frame()))
+})
 
 
+test_that("'check_duplicated_rows' throws expected error when duplicate 'by' variable", {
+    x <- data.frame(ex = 80:81, sex = c("F", "F"), beta = c(0.9, 1.1))
+    expect_error(check_duplicated_rows(x, nm_x = "target", nms_cols = "sex"),
+                 "`target` has two rows with same value for `sex`.")
+})
+
+test_that("'check_duplicated_rows' throws expected error when duplicate 'by' variables", {
+    x <- data.frame(ex = 80:81, sex = c("F", "F"), reg = c(1, 1), beta = c(0.9, 1.1))
+    expect_error(check_duplicated_rows(x, nm_x = "target", nms_cols = c("sex", "reg")),
+                 "`target` has two rows with same values for `sex` and `reg`.")
+})
 
 
 ## 'check_est' ----------------------------------------------------------------

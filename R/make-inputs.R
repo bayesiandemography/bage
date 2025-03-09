@@ -305,7 +305,7 @@ get_is_in_lik_covariates <- function(mod) {
 get_is_in_lik_effects <- function(mod) {
   formula <- mod$formula
   data <- mod$data
-  vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+  vars <- all.vars(formula[-2L])
   data_vars <- data[vars]
   stats::complete.cases(data_vars)
 }
@@ -1164,9 +1164,9 @@ make_outcome_offset_matrices <- function(mod, aggregate) {
   if (aggregate) {
     fun_ag_outcome <- get_fun_ag_outcome(mod)
     formula <- mod$formula
-    vars <- rownames(attr(stats::terms(formula), "factors"))[-1L]
+    vars <- all.vars(formula[-2L])
     if (has_covariates) {
-      vars_covariates <- rownames(attr(stats::terms(formula_covariates), "factors"))
+      vars_covariates <- all.vars(formula_covariates)
       vars <- union(vars, vars_covariates)
     }
     outcome_df <- stats::aggregate(data_df[nm_outcome_data], data_df[vars], fun_ag_outcome)

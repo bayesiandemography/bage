@@ -7,9 +7,9 @@
 \method{forecast}{bage_mod}(
   object,
   newdata = NULL,
+  labels = NULL,
   output = c("augment", "components"),
   include_estimates = FALSE,
-  labels = NULL,
   ...
 )
 }
@@ -21,13 +21,13 @@ typically created with \code{\link[=mod_pois]{mod_pois()}},
 \item{newdata}{Data frame with data for
 future periods.}
 
+\item{labels}{Labels for future values.}
+
 \item{output}{Type of output returned}
 
 \item{include_estimates}{Whether to
 include historical estimates along
 with the forecasts. Default is \code{FALSE}.}
-
-\item{labels}{Labels for future values.}
 
 \item{...}{Not currently used.}
 }

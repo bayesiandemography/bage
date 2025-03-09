@@ -143,6 +143,46 @@ check_covariates_formula <- function(formula, mod) {
 }
 
 
+
+## HAS_TESTS
+#' Check that Selected Rows within Data Frame
+#' do not have Duplicates
+#'
+#' Check that values in a subset of columns of
+#' data frame `x` are unique. Can be used as
+#' a validity check for cross-classifying
+#' variables. 
+#'
+#' @param x A data frame.
+#' @param nm_x The name for `x` to be used in
+#' error messages.
+#' @param nms_cols A character vector giving the
+#' names of the variables within `x` to be checked.
+#'
+#' @returns `TRUE`, invisibly.
+#'
+#' @examples
+#' x <- data.frame(a = 1:2, b = c("a", "a"), x = c(0.2, -0.1))
+#' check_duplicated_rows(x = x,
+#'                       nm_x = "x",
+#'                       nms_cols = c("a", "b"))
+#' @noRd
+check_duplicated_rows <- function(x, nm_x, nms_cols) {
+    vals_cols <- x[nms_cols]
+    is_dup <- duplicated(vals_cols)
+    i_dup <- match(TRUE, is_dup, nomatch = 0L)
+    if (i_dup > 0L) {
+        str_key <- make_str_key(vals_cols[i_dup, nms_cols, drop = FALSE])
+        n <- length(nms_cols)
+        cli::cli_abort(c(paste("{.arg {nm_x}} has two rows with same {cli::qty(n)} value{?s}",
+                               "for {.var {nms_cols}}."),
+                         i = paste("Duplicated {cli::qty(n)} value{?s}:", str_key)))
+    }
+    invisible(TRUE)
+}
+
+
+
 ## HAS_TESTS
 #' Check that 'est' Object Returned by TMB has No NAs
 #'
@@ -239,7 +279,7 @@ check_formula_has_intercept <- function(formula) {
 #'
 #' @noRd
 check_formula_has_response <- function(formula) {
-    has_response <- attr(stats::terms(formula), "response") > 0L
+    has_response <- attr(stats::terms(formula), "response")
     if (!has_response)
         cli::cli_abort(c("{.arg formula} does not include a response variable.",
                          i = "{.arg formula}: {.code {deparse1(formula)}}."))
@@ -260,12 +300,11 @@ check_formula_has_response <- function(formula) {
 #'
 #' @noRd
 check_formula_has_variable <- function(name, formula) {
-    factors <- attr(stats::terms(formula), "factors")
-    varnames <- rownames(factors)[-1L]
-    if (!(name %in% varnames))
-        cli::cli_abort(c("{.arg formula} does not have variable {.val {name}}.",
-                         i = "{.arg formula}: {deparse1(formula)}"))
-    invisible(TRUE)
+  vars <- all.vars(formula[-2L])
+  if (!(name %in% vars))
+    cli::cli_abort(c("{.arg formula} does not have variable {.val {name}}.",
+                     i = "{.arg formula}: {deparse1(formula)}"))
+  invisible(TRUE)
 }
 
 
@@ -279,16 +318,16 @@ check_formula_has_variable <- function(name, formula) {
 #'
 #' @noRd
 check_formula_vnames_in_data <- function(formula, data) {
-    nms_formula <- rownames(attr(stats::terms(formula), "factors"))
-    nms_data <- names(data)
-    is_in_data <- nms_formula %in% nms_data
-    i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
-    if (i_not_in_data > 0L) {
-        nm_var <- nms_formula[[i_not_in_data]]
-        cli::cli_abort(c("Variable {.var {nm_var}} from {.arg formula} not found in {.arg data}.",
-                         i = "{.arg formula}: {.code {deparse(formula)}}."))
-    }
-    invisible(TRUE)
+  nms_formula <- all.vars(formula)
+  nms_data <- names(data)
+  is_in_data <- nms_formula %in% nms_data
+  i_not_in_data <- match(FALSE, is_in_data, nomatch = 0L)
+  if (i_not_in_data > 0L) {
+    nm_var <- nms_formula[[i_not_in_data]]
+    cli::cli_abort(c("Variable {.var {nm_var}} from {.arg formula} not found in {.arg data}.",
+                     i = "{.arg formula}: {.code {deparse(formula)}}."))
+  }
+  invisible(TRUE)
 }
 
 
@@ -792,7 +831,7 @@ check_prior_time <- function(prior, nm, var_time) {
 #' @noRd
 check_offset_not_in_formula <- function(nm_offset_data, nm_offset_mod, formula) {
   is_offset_formula <- startsWith(nm_offset_data, "~")
-  nms_formula <- rownames(attr(stats::terms(formula), "factors"))
+  nms_formula <- all.vars(formula)
   if (!is_offset_formula) {
     if (nm_offset_data %in% nms_formula) {
       cli::cli_abort(c("{.arg {nm_offset_mod}} included in {.arg formula}.",

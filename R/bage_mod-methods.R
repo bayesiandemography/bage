@@ -1,5 +1,4 @@
-
-## Note that methods require an '@export' tag,
+## methods require an '@export' tag,
 ## even when the generic function is not exported
 ## https://github.com/r-lib/devtools/issues/2293
 
@@ -316,7 +315,7 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   nm_distn <- nm_distn(mod)
   ans <- mod$data
   ans$.observed <- make_observed(mod)
-  linpred <- make_linpred_raw(mod = mod, point = FALSE)
+  linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   if (has_disp) {
@@ -367,7 +366,7 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   seed_augment <- mod$seed_augment
   nm_distn <- nm_distn(mod)
   ans <- mod$data
-  linpred <- make_linpred_raw(mod = mod, point = FALSE)
+  linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   scale_outcome <- get_fun_scale_outcome(mod)
   .fitted <- scale_outcome(linpred)
   ans$.fitted <- .fitted
@@ -423,9 +422,10 @@ draw_vals_augment_unfitted.bage_mod <- function(mod) {
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
-  vals_linpred <- make_linpred_comp(components = vals_components,
-                                    data = data,
-                                    dimnames_terms = dimnames_terms)
+  vals_linpred <- make_linpred_from_components(mod = mod,
+                                               components = vals_components,
+                                               data = data,
+                                               dimnames_terms = dimnames_terms)
   seed_augment <- mod$seed_augment
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_augment) ## set pre-determined seed
@@ -481,9 +481,10 @@ draw_vals_augment_unfitted.bage_mod_norm <- function(mod) {
                                                    n_sim = n_draw)
   scale_outcome <- get_fun_scale_outcome(mod)
   nm_outcome_data <- get_nm_outcome_data(mod)
-  vals_linpred <- make_linpred_comp(components = vals_components,
-                                    data = data,
-                                    dimnames_terms = dimnames_terms)
+  vals_linpred <- make_linpred_from_components(mod = mod,
+                                               components = vals_components,
+                                               data = data,
+                                               dimnames_terms = dimnames_terms)
   vals_fitted <- scale_outcome(vals_linpred)
   is_disp <- vals_components$component == "disp"
   vals_disp <- vals_components$.fitted[is_disp]
@@ -759,11 +760,11 @@ generics::forecast
 #' [mod_binom()], or [mod_norm()].
 #' @param newdata Data frame with data for
 #' future periods.
+#' @param labels Labels for future values.
 #' @param output Type of output returned
 #' @param include_estimates Whether to
 #' include historical estimates along
 #' with the forecasts. Default is `FALSE`.
-#' @param labels Labels for future values.
 #' @param ... Not currently used.
 #'
 #' @returns
@@ -814,13 +815,17 @@ generics::forecast
 #'                          exposure = popn)
 #' mod_unfitted |>
 #'   forecast(labels = 2019:2024)
-#' @export    
+#' @export
 forecast.bage_mod <- function(object,
                               newdata = NULL,
+                              labels = NULL,
                               output = c("augment", "components"),
                               include_estimates = FALSE,
-                              labels = NULL,
                               ...) {
+  ## Note that time variable cannot be a covariate,
+  ## since the time variable must be the "along" variable,
+  ## and hence must be included in 'formula',
+  ## and hence cannot be included in 'formula_covariates'.
   check_old_version(x = object, nm_x = "object")
   data_est <- object$data
   priors <- object$priors
@@ -830,7 +835,6 @@ forecast.bage_mod <- function(object,
   var_sexgender <- object$var_sexgender
   output <- match.arg(output)
   check_flag(x = include_estimates, nm_x = "include_estimates")
-  var_time <- object$var_time
   if (is.null(var_time))
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Use {.fun set_var_time} to identify time variable?"))
@@ -854,8 +858,8 @@ forecast.bage_mod <- function(object,
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
   comp_forecast <- forecast_components(mod = object,
-                                            components_est = comp_est,
-                                            labels_forecast = labels)
+                                       components_est = comp_est,
+                                       labels_forecast = labels)
   set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
   dn_terms_forecast <- make_dimnames_terms_forecast(dimnames_terms = dn_terms_est,
                                                     var_time = var_time,
@@ -863,9 +867,10 @@ forecast.bage_mod <- function(object,
                                                     time_only = FALSE)
   if (output == "augment") {
     comp_comb <- vctrs::vec_rbind(comp_est, comp_forecast)
-    linpred_forecast <- make_linpred_comp(components = comp_comb,
-                                          data = data_forecast,
-                                          dimnames_terms = dn_terms_forecast)
+    linpred_forecast <- make_linpred_from_components(mod = object,
+                                                     components = comp_comb,
+                                                     data = data_forecast,
+                                                     dimnames_terms = dn_terms_forecast)
     seed_forecast_augment <- object$seed_forecast_augment
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_forecast_augment) ## set pre-determined seed
@@ -1463,7 +1468,7 @@ make_mod_disp.bage_mod_pois <- function(mod) {
   n_term <- length(mod$dimnames_terms)
   use_term <- rep(c(TRUE, FALSE), times = c(1L, n_term - 1L))
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
-  linpred <- make_linpred_raw(mod = mod, point = TRUE)
+  linpred <- make_linpred_from_stored_draws(mod = mod, point = TRUE)
   nrow_data <- nrow(mod$data)
   if (nrow_data > nrow_max) {
     i_keep <- sample(nrow_data, size = nrow_max)
@@ -1503,7 +1508,7 @@ make_mod_disp.bage_mod_norm <- function(mod) {
   n_term <- length(mod$dimnames_terms)
   use_term <- rep(c(TRUE, FALSE), times = c(1L, n_term - 1L))
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
-  linpred <- make_linpred_raw(mod = mod, point = TRUE)
+  linpred <- make_linpred_from_stored_draws(mod = mod, point = TRUE)
   nrow_data <- nrow(mod$data)
   if (nrow_data > nrow_max) {
     i_keep <- sample(nrow_data, size = nrow_max)
@@ -1567,7 +1572,7 @@ make_mod_outer <- function(mod, mod_inner, use_term) {
 ## HAS_TESTS
 #' @export
 make_mod_outer.bage_mod_pois <- function(mod, mod_inner, use_term) {
-  linpred_inner <- make_linpred_raw(mod = mod_inner, point = TRUE)
+  linpred_inner <- make_linpred_from_stored_draws(mod = mod_inner, point = TRUE)
   mu_inner <- exp(linpred_inner)
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
@@ -1588,7 +1593,7 @@ make_mod_outer.bage_mod_binom <- function(mod, mod_inner, use_term) {
 ## HAS_TESTS
 #' @export
 make_mod_outer.bage_mod_norm <- function(mod, mod_inner, use_term) {
-  linpred_inner <- make_linpred_raw(mod = mod_inner, point = TRUE)
+  linpred_inner <- make_linpred_from_stored_draws(mod = mod_inner, point = TRUE)
   use_term <- !use_term
   ans <- reduce_model_terms(mod = mod, use_term = use_term)
   ans$outcome <- ans$outcome - linpred_inner

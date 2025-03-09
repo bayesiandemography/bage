@@ -862,7 +862,7 @@ We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is
 ### Standard prior
 
 \begin{equation}
-  \zeta_p \mid \sim \text{N}(0, 1) 
+  \zeta_p \sim \text{N}(0, 1) 
 \end{equation}
 
 
