@@ -21,8 +21,10 @@ all: ../data/isl_deaths.rda \
 	Rscript $^ $@
 
 ../data/kor_births.rda: kor_births/kor_births.R \
-  kor_births/101_DT_1B81A12_20240924103050.csv \
-  kor_births/Resident_Population_in_FiveYear_Age_Groups__2011_._20240924104155.csv
+  kor_births/101_DT_1B81A12_20240924103050.csv.gz \
+  kor_births/Resident_Population_in_FiveYear_Age_Groups__2011_._20240924104155.csv.gz \
+  kor_births/List_of_South_Korean_regions_by_GDP_2.csv.gz \
+  kor_births/Administrative_divisions_of_South_Korea_2.csv.gz
 	Rscript $^ $@
 
 nzl_divorces/divorces_raw.rds: nzl_divorces/divorces_raw.R \

@@ -2369,6 +2369,10 @@ test_that("'make_sd_hat_covariates' works with bage_mod_pois", {
   f <- fitted(m)
   ans_expected <- sqrt(mean(data$popn[-1] * f))
   expect_equal(ans_obtained, ans_expected)
+  mod$outcome[] <- NA
+  ans_obtained <- make_sd_hat_covariates(mod)
+  ans_expected <- 1
+  expect_equal(ans_obtained, ans_expected)
 })
 
 test_that("'make_sd_hat_covariates' works with bage_mod_binom", {
@@ -2385,6 +2389,10 @@ test_that("'make_sd_hat_covariates' works with bage_mod_binom", {
   m <- glm(cbind(deaths, failures) ~ age + time + sex, data = data, family = binomial)
   f <- fitted(m)
   ans_expected <- sqrt(mean(data$popn[-1] * f * (1 - f)))
+  expect_equal(ans_obtained, ans_expected)
+  mod$outcome[] <- NA
+  ans_obtained <- make_sd_hat_covariates(mod)
+  ans_expected <- 1
   expect_equal(ans_obtained, ans_expected)
 })
 
@@ -2403,6 +2411,10 @@ test_that("'make_sd_hat_covariates' works with bage_mod_norm", {
   df$wt <- df$wt / mean(df$wt)
   m <- lm(income ~ age + time + sex, data = df, weights = wt)
   ans_expected <- summary(m)$sigma
+  expect_equal(ans_obtained, ans_expected)
+  mod$outcome[] <- NA
+  ans_obtained <- make_sd_hat_covariates(mod)
+  ans_expected <- 1
   expect_equal(ans_obtained, ans_expected)
 })
 

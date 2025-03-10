@@ -1700,6 +1700,9 @@ make_sd_hat_covariates.bage_mod_pois <- function(mod) {
   formula <- mod$formula
   data <- mod$data
   offset <- mod$offset
+  outcome <- mod$outcome
+  if (all(is.na(outcome))) ## happens in simulations
+    return(0.01)
   nm_offset_data <- get_nm_offset_data(mod)
   if (!is.null(nm_offset_data)) {
     formula_new <- sprintf("~ . + offset(log(%s))", nm_offset_data)
@@ -1722,6 +1725,8 @@ make_sd_hat_covariates.bage_mod_binom <- function(mod) {
   data <- mod$data
   outcome <- mod$outcome
   offset <- mod$offset
+  if (all(is.na(outcome))) ## happens in simulations
+    return(1)
   data <- cbind(data, failures = offset - outcome)
   names(data) <- make.unique(names(data))
   nm_response <- deparse1(formula[[2L]])
@@ -1744,6 +1749,8 @@ make_sd_hat_covariates.bage_mod_norm <- function(mod) {
   data <- mod$data
   outcome <- mod$outcome
   offset <- mod$offset
+  if (all(is.na(outcome))) ## happens in simulations
+    return(1)
   nm_offset_data <- get_nm_offset_data(mod)
   nm_response <- deparse1(formula[[2L]])
   data[[nm_response]] <- outcome
