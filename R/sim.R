@@ -1016,7 +1016,8 @@ make_report_comp <- function(perform_comp,
   prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
   is_class_diff <- prior_class$is_class_diff[match(byvar_comp$term, prior_class$term)]
   is_hyper <- byvar_comp$component == "hyper"
-  is_remove <- is_class_diff & is_hyper
+  is_covariates <- byvar_comp$term == "covariates"
+  is_remove <- !is_covariates & is_class_diff & is_hyper
   byvar_comp <- byvar_comp[!is_remove, , drop = FALSE]
   error_point_est_comp <- get_error_point_est(perform_comp)
   is_in_interval_comp <- get_is_in_interval(perform_comp)
@@ -1116,7 +1117,8 @@ perform_comp <- function(est,
   prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
   is_class_diff <- prior_class$is_class_diff[match(merged$term, prior_class$term)]
   is_hyper <- merged$component == "hyper"
-  is_remove <- is_class_diff & is_hyper
+  is_covariates <- merged$term == "covariates"
+  is_remove <- !is_covariates & is_class_diff & is_hyper
   merged <- merged[!is_remove, , drop = FALSE]
   var_est <- merged[[".fitted_est"]]
   var_sim <- merged[[".fitted_sim"]]
