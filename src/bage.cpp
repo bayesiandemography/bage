@@ -1098,14 +1098,12 @@ Type objective_function<Type>::operator() ()
   DATA_STRUCT(matrices_along_by_effectfree, LIST_M_t);
   DATA_SCALAR(mean_disp);
   DATA_MATRIX(matrix_covariates);
-  DATA_SCALAR(scale_covariates);
 
   PARAMETER_VECTOR(effectfree); 
   PARAMETER_VECTOR(hyper);
   PARAMETER_VECTOR(hyperrandfree);
   PARAMETER(log_disp);
   PARAMETER_VECTOR(coef_covariates);
-  PARAMETER_VECTOR(hyper_covariates); 
   
 
   // intermediate quantities
@@ -1187,21 +1185,7 @@ Type objective_function<Type>::operator() ()
 
   // contribution to log posterior from covariates
   if (uses_covariates) {
-    int n_hyper = hyper_covariates.size();
-    int is_shrinkage = n_hyper > 0;
-    if (is_shrinkage) {
-      Type log_sd_global = hyper_covariates[0];
-      vector<Type> log_sd_local = hyper_covariates.tail(n_hyper - 1);
-      Type sd_global = exp(log_sd_global);
-      vector<Type> sd_local = exp(log_sd_local);
-      ans -= dt(sd_global / scale_covariates, Type(1), true) + log_sd_global;
-      ans -= dt(sd_local, Type(1), true).sum() + log_sd_local.sum();
-      vector<Type> sd_covariates = sd_global * sd_local;
-      ans -= dnorm(coef_covariates, Type(0), sd_covariates, true).sum();
-    }
-    else {
-      ans -= dnorm(coef_covariates, Type(0), Type(1), true).sum();
-    }
+    ans -= dnorm(coef_covariates, Type(0), Type(1), true).sum();
   }
   
   // contribution to log posterior from dispersion term

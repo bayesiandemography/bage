@@ -1,0 +1,152 @@
+---
+title: "9. Covariates"
+output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: yes
+    toc: true
+    toc_depth: 2
+    number_sections: true
+pkgdown:
+  as_is: true
+vignette: >
+  %\VignetteIndexEntry{9. Covariates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+
+# Mathematical details
+
+\begin{align}
+  y_i & \sim \text{Poisson}(\gamma_i w_i) \\
+  \log \gamma_i & \sim \text{Gamma}(\xi^{-1}, (\mu_i \xi)^{-1}) \\
+  \mu_i & = \sum_{m=0}^M \beta_{j_i^m}^{(M)} (\#eq:prior-mod-no-cov)
+\end{align}
+
+where
+- $y_i$ is the outcome for cell $i$;
+- $w_i$ is exposure for cell $i$;
+- $\gamma_i$ is the rate for cell $i$;
+- $\xi$ governs overall dispersion;
+- $\pmb{\beta}^{(m)}$ is an intercept, main effect, or intercept; and
+- $\pmb{\beta_{j_i^m}^{(m)}}$ is the element of $\pmb{\beta}^{(m)}$ associated with cell $i$.
+
+Change \@ref(eq:prior-mod-no-cov) to
+\begin{equation}
+  \mu_i = \sum_{m=0}^M \beta_{j_i^m}^{(m)} + (\pmb{Z} \pmb{\eta})_i (\#eq:prior-mod-no-cov)
+\end{equation}
+
+where 
+- $\pmb{Z}$ is an $I \times P$ matrix of covariates; and
+- $\pmb{\eta}$ is a vector of coefficients. 
+
+$\pmb{Z}$ is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables using the standard R "treatment" contrast, where the first category is omitted.
+
+Each element of $\pmb{\eta}$ has prior
+\begin{equation}
+  \eta_p \sim \text{N}(0, 1)
+\end{equation}
+
+
+
+
+# Set-Up for examples
+
+```{r}
+suppressPackageStartupMessages({
+  library(bage)
+  library(dplyr)
+  library(forcats)
+  library(ggplot2)
+})
+
+```
+
+```{r}
+kor_births
+```
+
+# Covariates that bring in extra information
+
+```{r}
+mod_gdp_dens <- mod_pois(births ~ (age + region + time)^2,
+                         data = kor_births,
+                         exposure = popn) |>
+  set_covariates(~ gdp_pc_2023 + dens_2020) |>
+  fit()
+mod_gdp_dens
+```
+
+```{r}
+mod_gdp_dens |>
+  components() |>
+  filter(term == "covariates")
+```
+
+
+# Covariates that pick out combinations of classifying variables
+
+```{r}
+births <- kor_births |>
+  mutate(is_covid = time == 2020)
+births |> 
+  filter(time %in% 2018:2020)
+```
+
+```{r}
+mod_covid <- mod_pois(births ~ (age + region + time)^2,
+                      data = births,
+                      exposure = popn) |>
+  set_covariates(~ is_covid) |>
+  fit()
+
+mod_covid |>
+  components() |>
+  filter(term == "covariates")
+```
+
+```{r}
+births <- births |>
+  mutate(is_covid_reg = if_else(is_covid, region, "baseline"))
+births |>
+  filter(time %in% 2018:2020)
+```
+
+
+
+```{r}
+mod_covid_reg <- mod_pois(births ~ age * region + time,
+                         data = births,
+                         exposure = popn) |>
+  set_covariates(~ is_covid_reg) |>
+  fit()
+mod_covid_reg
+```
+
+```{r}
+coef_reg <- mod_covid_reg |>
+  components() |>
+  filter(term == "covariates") |>
+  mutate(region = sub("is_covid_reg", "", level)) |>
+  mutate(draws_ci(.fitted)) |>
+  mutate(region = fct_reorder(region, .fitted.mid))  
+coef_reg
+```
+
+```{r}
+ggplot(coef_reg, aes(y = region)) +
+  geom_pointrange(aes(xmin = .fitted.lower,
+                      x = .fitted.mid,
+                      xmax = .fitted.upper))
+```

@@ -318,7 +318,7 @@ test_that("'make_fit_data' works - with covariates", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn) |>
-    set_covariates(~income + reg, n_nonzero = 2)
+    set_covariates(~income + reg)
   ans_ag <- make_fit_data(mod = mod, aggregate = TRUE)
   expect_true(is.list(ans_ag))
   ans_nonag <- make_fit_data(mod = mod, aggregate = FALSE)
@@ -436,10 +436,10 @@ test_that("'make_fit_parameters' works - no covariates", {
   ans <- make_fit_parameters(mod)
   expect_true(is.list(ans))
   expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
-                                 "coef_covariates", "hyper_covariates"))
+                                 "coef_covariates"))
 })
 
-test_that("'make_fit_parameters' works - has covariates, no horseshoe", {
+test_that("'make_fit_parameters' works - has covariates", {
   set.seed(10)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
   data$popn <- rpois(n = nrow(data), lambda = 100)
@@ -453,27 +453,8 @@ test_that("'make_fit_parameters' works - has covariates, no horseshoe", {
   ans <- make_fit_parameters(mod)
   expect_true(is.list(ans))
   expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
-                                 "coef_covariates", "hyper_covariates"))
+                                 "coef_covariates"))
   expect_identical(ans$coef_covariates, c(income = 0))
-})
-
-test_that("'make_fit_parameters' works - has covariates, with horseshoe", {
-  set.seed(10)
-  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"), reg = letters[1:5])
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex * time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn) |>
-    set_covariates(~reg, n_nonzero = 2)
-  ans <- make_fit_parameters(mod)
-  expect_true(is.list(ans))
-  expect_identical(names(ans), c("effectfree", "hyper", "hyperrandfree", "log_disp",
-                                 "coef_covariates", "hyper_covariates"))
-  expect_identical(ans$hyper_covariates, c(log_sd_global = 0, log_sd_local.regb = 0,
-                                           log_sd_local.regc = 0, log_sd_local.regd = 0,
-                                           log_sd_local.rege = 0))
 })
 
 

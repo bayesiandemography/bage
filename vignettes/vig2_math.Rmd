@@ -854,62 +854,24 @@ Known(values)
 
 ## Model
 
-The columns of matrix $\pmb{Z}$ are assumed to be standardised to have mean 0 and standard deviation 1.  $\pmb{Z}$ does not contain a column for an intercept.
+Matrix $\pmb{Z}$ is a standardized version of the original covariate data supplied by the user. If a covariate is a numeric variable, it is standardized to have mean 0 and standard deviation one. If it is a categorical variable with $C$ categories, it is converted into $C-1$ indicator variables, with the first category as the omitted variable. (This is the 'treatment' contrast in R.)
 
-We implement two priors for coefficient vector $\pmb{\zeta}$. The first prior is designed for the case where $P$, the number of colums of $\pmb{Z}$, is small, and most $\zeta_p$ are likely to distinguishable from zero. The second prior is designed for the case where $P$ is large, and only a few $\zeta_p$ are likely to be distinguishable from zero.
-
-
-### Standard prior
-
+The elements of $\pmb{\zeta}$ have prior
 \begin{equation}
   \zeta_p \sim \text{N}(0, 1) 
 \end{equation}
 
 
-### Shrinkage prior
-
-Regularized horseshoe prior [@piironen2017hyperprior]
-
-\begin{align}
-  \zeta_p \mid \vartheta_p, \varphi & \sim \text{N}(0, \vartheta_p^2 \varphi^2) \\
-  \vartheta_p & \sim \text{Cauchy}^+(0, 1) \\
-  \varphi & \sim \text{Cauchy}^+(0, A_{\varphi}^2) \\
-  A_{\varphi} & = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}
-\end{align}
-where $p_0$ is an initial guess at the number of $\zeta_p$ that are non-zero, and $\hat{\sigma}$ is obtained as follows:
-
-- Poisson. Using maximum likelihood, fit the GLM
-\begin{align}
-  y_i & \sim \text{Poisson}(w_i \gamma_i) \\
-  \log \gamma_i & = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)},
-\end{align}
-and set
-\begin{equation}
-  \hat{\sigma} = \sqrt{\frac{1}{n}\sum_{i=1}^n w_i \hat{\gamma}_i}.
-\end{equation}
-- Binomial. Using maximum likelihood, fit the GLM
-\begin{align}
-  y_i & \sim \text{binomial}(w_i, \gamma_i) \\
-  \text{logit} \gamma_i & = \sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)},
-\end{align}
-and set
-\begin{equation}
-  \hat{\sigma} = \sqrt{\frac{1}{n}\sum_{i=1}^n w_i \hat{\gamma}_i (1 - \hat{\gamma}_i)}.
-\end{equation}
-- Normal. Using maximum likelihood, fit the linear model
-\begin{equation}
-  y_i \sim \text{N}\left(\sum_{m=0}^{M} \pmb{X}^{(m)} \pmb{\beta}^{(m)}, w_i^{-1}\xi^2 \right)
-\end{equation}
-and set $\hat{\sigma} = \hat{\xi}$.
-
-
 ## Contribution to posterior density
 
-TODO - write
+\begin{equation}
+  \prod_{p=1}^P \text{N}(\zeta_p | 0, 1)
+\end{equation}
+
 
 ## Forecasting
 
-TODO - write
+I
 
 ## Code
 

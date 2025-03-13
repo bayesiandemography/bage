@@ -7,12 +7,7 @@
 
 #' Specify Covariates 
 #'
-#' Add covariates to a model. Includes the option
-#' of using a "horseshoe" prior for coefficients.
-#'
-#' @section Warning:
-#'
-#' `set_covariates()` is still experimental.
+#' Add covariates to a model.
 #'
 #' @section Covariate data:
 #'
@@ -31,52 +26,24 @@
 #'   is converted into two indicator variables, one called `xmedium` and one
 #'   called `xlow`.
 #' 
-#' @section Regularized horseshoe prior:
-#'
-#' If there are many covariates, but only a few of
-#' them are likely to actually matter (ie to
-#' have coefficients that are far from zero),
-#' then using a "regularized horseshoe" prior may help stabilise
-#' the estimates. A horseshop prior assumes that there are
-#' two groups of variables: those that matter, and those
-#' that don't. To apply a horseshoe prior, a value must
-#' be supplied for `n_nonzero`, giving the likely number of
-#' variables that matter. The number refers to variables
-#' after processing, eg turning categorical variables
-#' into sets of indicator variables (see above.) 
-#'
 #' @section Mathematical details:
 #'
-#' When a value for `n_nonzero` is not supplied,
+#' When a model includes covariates, the quantity
 #'
-#' \deqn{\zeta_p \sim \text{N}(0, 1)}
+#' \deqn{\pmb{Z} \pmb{\zeta}}
 #'
-#' where \eqn{\pmb{\zeta}} is a vector of coefficients.
+#' is added to the linear predictor, where \eqn{\pmb{Z}}
+#' is a matrix of standardized covariates, and \eqn{\pmb{\zeta}}
+#' is a vector of coefficients. The elements of
+#' \eqn{\pmb{\zeta}} have prior
 #'
-#' When a value for `n_nonzero` is supplied, so that the
-#' horseshoe prior is used,
+#' \deqn{\zeta_p \sim \text{N}(0, 1)}.
 #'
-#' \deqn{\zeta_p \sim \text{N}(0, \vartheta_p^2 \varphi^2)}
-#' \deqn{\vartheta_p \sim \text{Cauchy}^+(0, 1)}
-#' \deqn{\varphi \sim \text{Cauchy}^+(0, A_{\varphi}^2)}
-#' \deqn{A_{\varphi} = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}}
-#' 
-#' where
-#' - \eqn{p_0} is `n_nonzero`;
-#' - \eqn{P} is the number of covariate variables (after processing);
-#' - \eqn{\sigma} is an estimate of the amount of observation noise; and
-#' - \eqn{n} is `nrow(data)`.
-#' 
 #' @param mod An object of class `"bage_mod"`,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #' @param formula A one-sided R [formula][stats::formula()],
 #' specifying the covariates.
-#' @param n_nonzero A guess at the number of covariates
-#' likely to have coefficient estimates far from zero.
-#' If a value for `n_nonzero` is supplied, then
-#' `set_covariates()` uses a
-#' regularized horseshoe prior. See below for details.
 #'
 #' @returns A modified version of `mod`
 #'
@@ -101,42 +68,18 @@
 #'                 data = births,
 #'                 exposure = popn) |>
 #'   set_covariates(~ is_covid)
-#'
-#' ## use a horseshoe prior for region
-#' mod <- mod_pois(births ~ age + time,
-#'                 data = births,
-#'                 exposure = popn) |>
-#'   set_covariates(~ region, n_nonzero = 5)
 #' mod
 #' @export
-set_covariates <- function(mod, formula, n_nonzero = NULL) {
+set_covariates <- function(mod, formula) {
   check_bage_mod(x = mod, nm_x = "mod")
   check_covariates_formula(formula = formula, mod = mod)
   data <- mod$data
   formula_mod <- mod$formula
-  is_shrinkage <- !is.null(n_nonzero)
   matrix_covariates <- make_matrix_covariates(formula = formula,
                                               data = data)
-  n_coef <- ncol(matrix_covariates)
   nms_covariates <- colnames(matrix_covariates)
-  if (is_shrinkage) {
-    poputils::check_n(n = n_nonzero,
-                      nm_n = "n_nonzero",
-                      min = 1L,
-                      max = NULL,
-                      divisible_by = NULL)
-    if (n_nonzero > n_coef)
-      cli::cli_abort(paste("{.arg n_nonzero} ({.val {n_nonzero}}) greater than total",
-                           "number of coefficients ({.val {n_coef}}.)"))
-    sd_hat <- make_sd_hat_covariates(mod)
-    n <- nrow(matrix_covariates)
-    scale_covariates <- (n_nonzero / (n_nonzero + n_coef)) * (sd_hat / sqrt(n))
-  }
-  else
-    scale_covariates <- 0
   mod$formula_covariates <- formula
   mod$nms_covariates <- nms_covariates
-  mod$scale_covariates <- scale_covariates
   mod <- unfit(mod)
   mod
 }
@@ -633,10 +576,12 @@ unfit <- function(mod) {
   mod["draws_effectfree"] <- list(NULL)
   mod["draws_hyper"] <- list(NULL)
   mod["draws_hyperrandfree"] <- list(NULL)
+  mod["draws_coef_covariates"] <- list(NULL)
   mod["draws_disp"] <- list(NULL)
   mod["point_effectfree"] <- list(NULL)
   mod["point_hyper"] <- list(NULL)
   mod["point_hyperrandfree"] <- list(NULL)
+  mod["point_coef_covariates"] <- list(NULL)
   mod["point_disp"] <- list(NULL)
   mod["computations"] <- list(NULL)
   mod["oldpar"] <- list(NULL)

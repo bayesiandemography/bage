@@ -4,7 +4,7 @@
 \alias{set_covariates}
 \title{Specify Covariates}
 \usage{
-set_covariates(mod, formula, n_nonzero = NULL)
+set_covariates(mod, formula)
 }
 \arguments{
 \item{mod}{An object of class \code{"bage_mod"},
@@ -13,26 +13,13 @@ created with \code{\link[=mod_pois]{mod_pois()}},
 
 \item{formula}{A one-sided R \link[stats:formula]{formula},
 specifying the covariates.}
-
-\item{n_nonzero}{A guess at the number of covariates
-likely to have coefficient estimates far from zero.
-If a value for \code{n_nonzero} is supplied, then
-\code{set_covariates()} uses a
-regularized horseshoe prior. See below for details.}
 }
 \value{
 A modified version of \code{mod}
 }
 \description{
-Add covariates to a model. Includes the option
-of using a "horseshoe" prior for coefficients.
+Add covariates to a model.
 }
-\section{Warning}{
-
-
-\code{set_covariates()} is still experimental.
-}
-
 \section{Covariate data}{
 
 
@@ -54,46 +41,19 @@ called \code{xlow}.
 }
 }
 
-\section{Regularized horseshoe prior}{
-
-
-If there are many covariates, but only a few of
-them are likely to actually matter (ie to
-have coefficients that are far from zero),
-then using a "regularized horseshoe" prior may help stabilise
-the estimates. A horseshop prior assumes that there are
-two groups of variables: those that matter, and those
-that don't. To apply a horseshoe prior, a value must
-be supplied for \code{n_nonzero}, giving the likely number of
-variables that matter. The number refers to variables
-after processing, eg turning categorical variables
-into sets of indicator variables (see above.)
-}
-
 \section{Mathematical details}{
 
 
-When a value for \code{n_nonzero} is not supplied,
+When a model includes covariates, the quantity
 
-\deqn{\zeta_p \sim \text{N}(0, 1)}
+\deqn{\pmb{Z} \pmb{\zeta}}
 
-where \eqn{\pmb{\zeta}} is a vector of coefficients.
+is added to the linear predictor, where \eqn{\pmb{Z}}
+is a matrix of standardized covariates, and \eqn{\pmb{\zeta}}
+is a vector of coefficients. The elements of
+\eqn{\pmb{\zeta}} have prior
 
-When a value for \code{n_nonzero} is supplied, so that the
-horseshoe prior is used,
-
-\deqn{\zeta_p \sim \text{N}(0, \vartheta_p^2 \varphi^2)}
-\deqn{\vartheta_p \sim \text{Cauchy}^+(0, 1)}
-\deqn{\varphi \sim \text{Cauchy}^+(0, A_{\varphi}^2)}
-\deqn{A_{\varphi} = \frac{p_0}{p_0 + P} \frac{\hat{\sigma}}{\sqrt{n}}}
-
-where
-\itemize{
-\item \eqn{p_0} is \code{n_nonzero};
-\item \eqn{P} is the number of covariate variables (after processing);
-\item \eqn{\sigma} is an estimate of the amount of observation noise; and
-\item \eqn{n} is \code{nrow(data)}.
-}
+\deqn{\zeta_p \sim \text{N}(0, 1)}.
 }
 
 \examples{
@@ -105,12 +65,6 @@ mod <- mod_pois(births ~ age * region + time,
                 data = births,
                 exposure = popn) |>
   set_covariates(~ is_covid)
-
-## use a horseshoe prior for region
-mod <- mod_pois(births ~ age + time,
-                data = births,
-                exposure = popn) |>
-  set_covariates(~ region, n_nonzero = 5)
 mod
 }
 \references{

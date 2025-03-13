@@ -721,34 +721,6 @@ test_that("'make_hyper' works with valid inputs", {
 })
 
 
-## 'make_hyper_covariates' -----------------------------------------------------
-
-test_that("'make_hyper_covariates' works", {
-    set.seed(0)
-    data <- expand.grid(age = 0:9,
-                        region = c("a", "b"),
-                        sex = c("F", "M"))
-    data$popn <- rpois(n = nrow(data), lambda = 100)
-    data$deaths <- rpois(n = nrow(data), lambda = 10)
-    data$income <- runif(n = nrow(data))
-    data$distance <- runif(n = nrow(data))
-    mod <- mod_pois(formula = deaths ~ age * sex,
-                    data = data,
-                    exposure = popn)
-    ans_obtained <- make_hyper_covariates(mod)
-    ans_expected <- double()
-    expect_identical(ans_obtained, ans_expected)
-    mod <- set_covariates(mod, ~ income + distance)
-    ans_obtained <- make_hyper_covariates(mod)
-    ans_expected <- double()
-    expect_identical(ans_obtained, ans_expected)
-    mod <- set_covariates(mod, ~ income + distance, n_nonzero = 1)
-    ans_obtained <- make_hyper_covariates(mod)
-    ans_expected <- c(log_sd_global = 0, log_sd_local.income = 0, log_sd_local.distance = 0)
-    expect_identical(ans_obtained, ans_expected)    
-})
-
-
 ## 'make_hyperrandfree' -------------------------------------------------------
 
 test_that("'make_hyperrandfree' works with valid inputs - no hyperrandfree", {

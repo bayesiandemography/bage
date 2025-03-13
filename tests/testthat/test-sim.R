@@ -206,33 +206,7 @@ test_that("'draw_vals_components_unfitted' works - with covariates", {
 
 ## 'draw_vals_covariates' -----------------------------------------------------
 
-test_that("'draw_vals_covariates' works - horseshoe", {
-  set.seed(0)
-  data <- expand.grid(age = 0:3,
-                      time = 2000:2002,
-                      reg = letters[1:3],
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_covariates(mod, ~ reg, n_nonzero = 1)
-  set.seed(0)
-  ans_obtained <- draw_vals_covariates(mod, n_sim = 5)
-  set.seed(0)
-  sd_global <- abs(rcauchy(n = 5, scale = mod$scale_covariates))
-  sd_local <- abs(rcauchy(n = 2 * 5))
-  coef <- rnorm(n = 10, sd = rep(sd_global, each = 2) * sd_local)
-  ans_expected <- list(sd_global = matrix(sd_global, nr = 1, dimnames = list("sd_global", NULL)),
-                       sd_local = matrix(sd_local, nr = 2,
-                                         dimnames = list(c("sd_local.regb", "sd_local.regc"), NULL)),
-                       coef = matrix(coef, nr = 2, dimnames = list(c("regb", "regc"), NULL)))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'draw_vals_covariates' works - no horseshoe", {
+test_that("'draw_vals_covariates' works", {
   set.seed(0)
   data <- expand.grid(age = 0:3,
                       time = 2000:2002,
@@ -1338,31 +1312,7 @@ test_that("'report_sim' works with fitted model", {
 
 ## 'vals_covariates_to_dataframe' ---------------------------------------------
 
-test_that("'vals_covariates_to_dataframe' works - horseshoe", {
-  set.seed(0)
-  data <- expand.grid(age = 0:3,
-                      time = 2000:2002,
-                      reg = letters[1:3],
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  formula <- deaths ~ age * sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  mod <- set_covariates(mod, ~ reg, n_nonzero = 1)
-  set.seed(0)
-  vals <- draw_vals_covariates(mod, n_sim = 5)
-  ans_obtained <- vals_covariates_to_dataframe(vals)
-  ans_expected <- tibble::tibble(term = "covariates",
-                                 component = rep(c("hyper", "coef"), times = c(3, 2)),
-                                 level = c("sd_global", "sd_local.regb", "sd_local.regc",
-                                           "regb", "regc"),
-                                 .fitted = rvec::rvec(unname(rbind(vals[[1]], vals[[2]], vals[[3]]))))
-  expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'vals_covariates_to_dataframe' works - non-horseshoe", {
+test_that("'vals_covariates_to_dataframe' works", {
   set.seed(0)
   data <- expand.grid(age = 0:3,
                       time = 2000:2002,

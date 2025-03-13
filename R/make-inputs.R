@@ -588,41 +588,6 @@ make_hyper <- function(mod) {
 
 
 ## HAS_TESTS
-#' Make Vector to Hold Hyperparameter(s) for Covariates
-#'
-#' We generate 'hyper_covariates' when function 'fit'
-#' is called, rather than storing it in the
-#' 'bage_mod' object, to avoid having to update
-#' it when covariates set via `set_covariates()`
-#' 
-#' @param mod Object of class "bage_mod"
-#'
-#' @returns A vector of zeros, of type 'double'.
-#'
-#' @noRd
-make_hyper_covariates <- function(mod) {
-  has_covariates <- has_covariates(mod)
-  if (has_covariates) {
-    nms_covariates <- mod$nms_covariates
-    scale_covariates <- mod$scale_covariates
-    n_covariates <- length(nms_covariates)
-    is_shrinkage <- scale_covariates > 0L
-    if (is_shrinkage) {
-      ans_global <- c(log_sd_global = 0)
-      ans_local <- rep(0, times = n_covariates)
-      names(ans_local) <- paste("log_sd_local", nms_covariates, sep = ".")
-      ans <- c(ans_global, ans_local)
-    }
-    else
-      ans <- double()
-  }
-  else
-    ans <- double()
-  ans
-}
-
-
-## HAS_TESTS
 #' Make Vector to Hold Hyper-Parameters
 #' for Priors that can be Treated as Random Effects.
 #'
