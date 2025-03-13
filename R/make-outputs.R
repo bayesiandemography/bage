@@ -632,6 +632,7 @@ make_comp_components <- function(mod) {
 }
 
 
+## HAS_TESTS
 #' Make Variable Identifying Component in
 #' Covariates Part of 'components'
 #'
@@ -643,15 +644,10 @@ make_comp_components <- function(mod) {
 make_comp_covariates <- function(mod) {
   if (!has_covariates(mod))
     return(character())
-  is_shrinkage <- is_shrinkage(mod)
   nms_covariates <- mod$nms_covariates
   n_covariates <- length(nms_covariates)
-  if (is_shrinkage)
-    rep(c("coef", "hyper"), times = c(n_covariates, n_covariates + 1L))
-  else
-    rep("coef", times = n_covariates)
+  rep("coef", times = n_covariates)
 }
-
 
 
 ## HAS_TESTS
@@ -753,9 +749,7 @@ make_draws_components <- function(mod) {
   if (has_covariates(mod)) {
     ans_coef_covariates <- mod$draws_coef_covariates
     ans_coef_covariates <- rvec::rvec_dbl(ans_coef_covariates)
-    ans_hyper_covariates <- mod$draws_hyper_covariates
-    ans_hyper_covariates <- rvec::rvec_dbl(ans_hyper_covariates)
-    ans <- c(ans, ans_coef_covariates, ans_hyper_covariates)
+    ans <- c(ans, ans_coef_covariates)
   }
   ## disp
   if (has_disp(mod)) {
@@ -836,34 +830,6 @@ make_draws_hyper <- function(est, transforms_hyper, draws_post) {
     if (!is.null(transform))
       ans[i, ] <- transform(ans[i, ])
   }
-  ans
-}
-
-
-## HAS_TESTS
-#' Make Draws from Hyper-Parameters for Covariates
-#'
-#' Only have hyper-parameters when using
-#' a regularised horseshoe prior.
-#'
-#' @param est Named list. Output from TMB.
-#' @param draws_post Posterior draws for all parameters
-#' estimated in TMB. Output from 'make_draws_post'.
-#'
-#' @returns A matrix
-#' 
-#' @noRd
-make_draws_hyper_covariates <- function(est, draws_post) {
-  n_effectfree <- length(est$effectfree)
-  n_hyper <- length(est$hyper)
-  n_hyperrandfree <- length(est$hyperrandfree)
-  n_disp <- length(est$log_disp)
-  n_coef_covariates <- length(est$coef_covariates)
-  n_hyper_covariates <- length(est$hyper_covariates)
-  n_from <- n_effectfree + n_hyper + n_hyperrandfree + n_disp + n_coef_covariates + 1L
-  i_hyper_covariates <- seq.int(from = n_from, length.out = n_hyper_covariates)
-  ans <- draws_post[i_hyper_covariates, , drop = FALSE]
-  ans <- exp(ans)
   ans
 }
 
@@ -1415,13 +1381,8 @@ make_level_components <- function(mod) {
 make_level_covariates <- function(mod) {
   if (!has_covariates(mod))
     return(character())
-  is_shrinkage <- is_shrinkage(mod)
   nms_covariates <- mod$nms_covariates
-  n_covariates <- length(nms_covariates)
-  if (is_shrinkage)
-    c(nms_covariates, "sd_global", paste("sd_local", nms_covariates, sep = "."))
-  else
-    nms_covariates
+  nms_covariates
 }
 
 
@@ -2058,15 +2019,12 @@ make_stored_draws <- function(mod, est, prec, map) {
                                       draws_post = draws_post)
   mod$draws_hyperrandfree <- make_draws_hyperrandfree(est = est,
                                                       draws_post = draws_post)
+  if (has_covariates(mod))
+    mod$draws_coef_covariates <- make_draws_coef_covariates(est = est,
+                                                            draws_post = draws_post)
   if (has_disp(mod))
     mod$draws_disp <- make_draws_disp(est = est,
                                       draws_post = draws_post)
-  if (has_covariates(mod)) {
-    mod$draws_coef_covariates <- make_draws_coef_covariates(est = est,
-                                                            draws_post = draws_post)
-    mod$draws_hyper_covariates <- make_draws_hyper_covariates(est = est,
-                                                              draws_post = draws_post)
-  }
   mod
 }
 
@@ -2093,12 +2051,10 @@ make_stored_point <- function(mod, est) {
     point_hyper[[i]] <- transforms_hyper[[i]](point_hyper[[i]])
   mod$point_hyper <- point_hyper
   mod$point_hyperrandfree <- est$hyperrandfree
+  if (has_covariates(mod))
+    mod$point_coef_covariates <- est$coef_covariates
   if (has_disp(mod))
     mod$point_disp <- exp(est$log_disp)
-  if (has_covariates(mod)) {
-    mod$point_coef_covariates <- est$coef_covariates
-    mod$point_hyper_covariates <- exp(est$hyper_covariates)
-  }
   mod
 }
 
@@ -2149,10 +2105,8 @@ make_term_covariates <- function(mod) {
   if (!has_covariates(mod))
     return(character())
   nms_covariates <- mod$nms_covariates
-  is_shrinkage <- is_shrinkage(mod)
   n_covariates <- length(nms_covariates)
-  times <- if (is_shrinkage) (2L * n_covariates) + 1L else n_covariates
-  rep.int("covariates", times = times)
+  rep.int("covariates", times = n_covariates)
 }
 
 

@@ -258,44 +258,15 @@ draw_vals_components_unfitted <- function(mod, n_sim) {
 #' @noRd
 draw_vals_covariates <- function(mod, n_sim) {
   nms_covariates <- mod$nms_covariates
-  scale_covariates <- mod$scale_covariates
-  is_shrinkage <- scale_covariates > 0
   n_covariates <- length(nms_covariates)
-  if (is_shrinkage) {
-    sd_global <- stats::rcauchy(n = n_sim, scale = scale_covariates)
-    sd_global <- abs(sd_global)
-    sd_local <- stats::rcauchy(n = n_covariates * n_sim)
-    sd_local <- abs(sd_local)
-    sd_covariates <- rep(sd_global, each = n_covariates) * sd_local
-    coef <- stats::rnorm(n = n_covariates * n_sim, sd = sd_covariates)
-    sd_global <- matrix(sd_global,
-                        nrow = 1L,
-                        ncol = n_sim,
-                        dimnames = list("sd_global", NULL))
-    sd_local <- matrix(sd_local,
-                       nrow = n_covariates,
-                       ncol = n_sim,
-                       dimnames = list(paste("sd_local", nms_covariates, sep = "."),
-                                       NULL))
-    coef <- matrix(coef,
-                   nrow = n_covariates,
-                   ncol = n_sim,
-                   dimnames = list(nms_covariates, NULL))
-    ans <- list(sd_global = sd_global,
-                sd_local = sd_local,
-                coef = coef)
-  }
-  else {
-    coef <- stats::rnorm(n = n_covariates * n_sim)
-    coef <- matrix(coef,
-                   nrow = n_covariates,
-                   ncol = n_sim,
-                   dimnames = list(nms_covariates, NULL))
-    ans <- list(coef = coef)
-  }    
+  coef <- stats::rnorm(n = n_covariates * n_sim)
+  coef <- matrix(coef,
+                 nrow = n_covariates,
+                 ncol = n_sim,
+                 dimnames = list(nms_covariates, NULL))
+  ans <- list(coef = coef)
   ans
 }
-
 
 
 ## HAS_TESTS
@@ -1016,8 +987,7 @@ make_report_comp <- function(perform_comp,
   prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
   is_class_diff <- prior_class$is_class_diff[match(byvar_comp$term, prior_class$term)]
   is_hyper <- byvar_comp$component == "hyper"
-  is_covariates <- byvar_comp$term == "covariates"
-  is_remove <- !is_covariates & is_class_diff & is_hyper
+  is_remove <- is_class_diff & is_hyper
   byvar_comp <- byvar_comp[!is_remove, , drop = FALSE]
   error_point_est_comp <- get_error_point_est(perform_comp)
   is_in_interval_comp <- get_is_in_interval(perform_comp)
@@ -1117,8 +1087,7 @@ perform_comp <- function(est,
   prior_class$is_class_diff <- prior_class$class.x != prior_class$class.y
   is_class_diff <- prior_class$is_class_diff[match(merged$term, prior_class$term)]
   is_hyper <- merged$component == "hyper"
-  is_covariates <- merged$term == "covariates"
-  is_remove <- !is_covariates & is_class_diff & is_hyper
+  is_remove <- is_class_diff & is_hyper
   merged <- merged[!is_remove, , drop = FALSE]
   var_est <- merged[[".fitted_est"]]
   var_sim <- merged[[".fitted_sim"]]

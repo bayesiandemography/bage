@@ -105,7 +105,7 @@ test_that("'draw_vals_components_fitted' works - has covariates", {
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
-  mod <- set_covariates(mod, ~ reg, n_nonzero = 1)
+  mod <- set_covariates(mod, ~ reg)
   mod <- fit(mod)
   set.seed(0)
   ans <- draw_vals_components_fitted(mod)
@@ -113,7 +113,6 @@ test_that("'draw_vals_components_fitted' works - has covariates", {
   i <- ans$term == "age:sex" & ans$component == "effect"
   expect_true(mean(abs(as.numeric(sum(ans$.fitted[i])))) > 0)
   expect_true("covariates" %in% ans$term)
-  expect_true(all(c("sd_local.regb", "sd_local.regc") %in% ans$level))
 })
 
 
@@ -604,7 +603,7 @@ test_that("'make_draws_components' works - has covariates", {
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n = 5)
-  mod <- set_covariates(mod, ~reg, n_nonzero = 1)
+  mod <- set_covariates(mod, ~reg)
   mod <- fit(mod)
   set.seed(0)
   ans_obtained <- make_draws_components(mod)
@@ -657,23 +656,6 @@ test_that("'make_draws_hyper' works", {
                                    draws_post = draws_post)
   ans_expected <- draws_post[11:14, ]
   ans_expected[3:4,] <- exp(ans_expected[3:4,])
-  expect_identical(unname(ans_obtained), ans_expected)
-})
-
-
-## 'make_draws_hyper_covariates' -----------------------------------------------
-
-test_that("'make_draws_hyper_covariates' works", {
-  set.seed(0)
-  est <- list(effectfree = rnorm(10),
-              hyper = rnorm(2),
-              hyperrand = numeric(),
-              log_disp = 0.5,
-              coef_covariates = rnorm(4),
-              hyper_covariates = numeric(4))
-  draws_post <- matrix(rnorm(21 * 5), nrow = 21)
-  ans_obtained <- make_draws_hyper_covariates(est = est, draws_post = draws_post)
-  ans_expected <- exp(draws_post[18:21,])
   expect_identical(unname(ans_obtained), ans_expected)
 })
 
@@ -959,7 +941,7 @@ test_that("'make_comp_covariates' works with non-covariate", {
   expect_identical(make_comp_covariates(mod), character())
 })
 
-test_that("'make_comp_covariates' works with non-shrinkage", {
+test_that("'make_comp_covariates' works with covariates", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = c("a", "b"),
@@ -973,21 +955,6 @@ test_that("'make_comp_covariates' works with non-shrinkage", {
                   exposure = popn) |>
     set_covariates(~ income)
   expect_identical(make_comp_covariates(mod), "coef")
-})
-
-test_that("'make_comp_covariates' works with covariates with shrinkage", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = letters[1:4],
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(formula = deaths ~ age * sex ,
-                  data = data,
-                  exposure = popn) |>
-    set_covariates(~ region, n_nonzero = 1)
-  expect_identical(make_comp_covariates(mod),
-                   rep(c("coef", "hyper"), times = 3:4))
 })
 
 
@@ -1461,7 +1428,7 @@ test_that("'make_level_covariates' works with non-covariate", {
   expect_identical(make_level_covariates(mod), character())
 })
 
-test_that("'make_level_covariates' works with non-shrinkage", {
+test_that("'make_level_covariates' works with covariates", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = c("a", "b"),
@@ -1475,23 +1442,6 @@ test_that("'make_level_covariates' works with non-shrinkage", {
                   exposure = popn) |>
     set_covariates(~ income)
   expect_identical(make_level_covariates(mod), "income")
-})
-
-test_that("'make_level_covariates' works with covariates with shrinkage", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = letters[1:4],
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(formula = deaths ~ age * sex ,
-                  data = data,
-                  exposure = popn) |>
-    set_covariates(~ region, n_nonzero = 1)
-  expect_identical(make_level_covariates(mod),
-                   c("regionb", "regionc", "regiond",
-                     "sd_global",
-                     "sd_local.regionb", "sd_local.regionc", "sd_local.regiond"))
 })
 
 
@@ -1780,6 +1730,41 @@ test_that("'make_stored_draws' works with valid inputs - no covariates", {
   expect_identical(ans, ans2)
 })
 
+test_that("'make_stored_draws' works with valid inputs - has covariates", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_prior(mod, sex ~ Known(c(0.1, -0.1)))
+  mod <- set_n_draw(mod, n = 10)
+  mod <- set_covariates(mod, ~income)
+  est <- list(effectfree = c(rnorm(11), 0.1, -0.1),
+              hyper = rnorm(1),
+              hyperrandfree = numeric(),
+              coef_covariates = runif(1),
+              disp = runif(1))
+  prec <- crossprod(matrix(rnorm(196), nr = 14))
+  map <- make_fit_map(mod)
+  ans <- make_stored_draws(mod = mod,
+                           est = est,
+                           prec = prec,
+                           map = map)
+  expect_identical(ncol(ans$draws_effectfree), 10L)
+  expect_identical(ncol(ans$draws_hyper), 10L)
+  expect_identical(ncol(ans$draws_coef_covariates), 10L)
+  expect_identical(length(ans$draws_disp), 10L)
+  ans2 <- make_stored_draws(mod = mod,
+                            est = est,
+                            prec = prec,
+                            map = map)
+  expect_identical(ans, ans2)
+})
+
 
 ## 'make_stored_point' --------------------------------------------------------
 
@@ -1815,13 +1800,12 @@ test_that("'make_stored_point' works with valid inputs - with covariates", {
                   data = data,
                   exposure = popn)
   mod <- set_prior(mod, sex ~ Known(c(0.1, -0.1)))
-  mod <- set_covariates(mod, ~ reg, n_nonzero = 2)
+  mod <- set_covariates(mod, ~ reg)
   est <- list(effectfree = c(rnorm(11), 0.1, -0.1),
               hyper = rnorm(1),
               hyperrandfree = numeric(),
               log_disp = runif(1),
-              coef_covariates = rnorm(4),
-              hyper_covariates = runif(4))
+              coef_covariates = rnorm(4))
   ans <- make_stored_point(mod = mod,
                            est = est)
   expect_identical(ans$point_effectfree, est$effectfree)
@@ -1829,7 +1813,6 @@ test_that("'make_stored_point' works with valid inputs - with covariates", {
   expect_identical(ans$point_hyperrandfree, double())
   expect_identical(ans$point_disp, exp(est$log_disp))
   expect_identical(ans$point_coef_covariates, est$coef_covariates)
-  expect_identical(ans$point_hyper_covariates, exp(est$hyper_covariates))
 })
 
 
@@ -2424,7 +2407,7 @@ test_that("'make_term_components' works - has covariates", {
                   data = data,
                   exposure = popn)
   mod <- set_n_draw(mod, n = 1)
-  mod <- set_covariates(mod, ~reg, n_nonzero = 1)
+  mod <- set_covariates(mod, ~reg)
   mod <- fit(mod)
   comp <- make_comp_components(mod)
   ans <- make_term_components(mod)
@@ -2448,8 +2431,7 @@ test_that("'make_term_covariates' works with non-covariate", {
   expect_identical(make_term_covariates(mod), character())
 })
 
-
-test_that("'make_term_covariates' works with non-shrinkage", {
+test_that("'make_term_covariates' works with covariates", {
   set.seed(0)
   data <- expand.grid(age = 0:9,
                       region = c("a", "b"),
@@ -2463,21 +2445,6 @@ test_that("'make_term_covariates' works with non-shrinkage", {
                   exposure = popn) |>
     set_covariates(~ income)
   expect_identical(make_term_covariates(mod), "covariates")
-})
-
-test_that("'make_term_covariates' works with covariates with shrinkage", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = letters[1:4],
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(formula = deaths ~ age * sex ,
-                  data = data,
-                  exposure = popn) |>
-    set_covariates(~ region, n_nonzero = 1)
-  expect_identical(make_term_covariates(mod),
-                   rep("covariates", times = 7))
 })
 
 

@@ -255,7 +255,6 @@ make_fit_data <- function(mod, aggregate) {
   terms_const <- make_terms_const(mod)
   matrices_along_by_effectfree <- make_matrices_along_by_effectfree(mod)
   mean_disp <- mod$mean_disp
-  scale_covariates <- mod$scale_covariates %||% 0
   list(i_lik = i_lik,
        outcome = outcome,
        offset = offset,
@@ -275,8 +274,7 @@ make_fit_data <- function(mod, aggregate) {
        terms_consts = terms_const,
        matrices_along_by_effectfree = matrices_along_by_effectfree,
        mean_disp = mean_disp,
-       matrix_covariates = matrix_covariates,
-       scale_covariates = scale_covariates)
+       matrix_covariates = matrix_covariates)
 }
 
 
@@ -328,13 +326,11 @@ make_fit_parameters <- function(mod) {
   hyperrandfree <- make_hyperrandfree(mod)
   log_disp <- c(disp = 0)
   coef_covariates <- make_coef_covariates(mod)
-  hyper_covariates <- make_hyper_covariates(mod)
   list(effectfree = effectfree,
        hyper = hyper,
        hyperrandfree = hyperrandfree,
        log_disp = log_disp,
-       coef_covariates = coef_covariates,
-       hyper_covariates = hyper_covariates)
+       coef_covariates = coef_covariates)
 }
 
 

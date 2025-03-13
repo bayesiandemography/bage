@@ -674,12 +674,11 @@ fit.bage_mod <- function(object,
   check_flag(x = start_oldpar, nm_x = "start_oldpar")
   check_has_no_dots(...)
   if (method == "standard") {
-    aggregate <- !has_covariates(object)
     fit_default(object,
                 optimizer = optimizer,
                 quiet = quiet,
                 start_oldpar = start_oldpar,
-                aggregate = aggregate)
+                aggregate = TRUE)
   }
   else if (method == "inner-outer")
     fit_inner_outer(mod = object,
@@ -1365,29 +1364,6 @@ is_fitted.bage_mod <- function(x)
   !is.null(x$draws_effectfree)
 
 
-## 'is_shrinkage' -------------------------------------------------------------
-
-#' Test Whether a Model has Covariates with Shrinkage Prior
-#'
-#' @param mod An object of class `"bage_mod"`.
-#'
-#' @returns `TRUE` or `FALSE`
-#'
-#' @noRd
-is_shrinkage <- function(mod) {
-  UseMethod("is_shrinkage")
-}
-
-## HAS_TESTS
-#' @export
-is_shrinkage.bage_mod <- function(mod) {
-  if (has_covariates(mod))
-    mod$scale_covariates > 0
-  else
-    FALSE
-}
-
-
 ## 'make_i_lik' ---------------------------------------------------------------
 
 #' Make 'i_lik' Index used by TMB
@@ -1678,97 +1654,6 @@ make_par_disp.bage_mod_binom <- function(x,
   rvec::rbeta_rvec(n = length(outcome),
                    shape1 = outcome + meanpar / disp,
                    shape2 = offset - outcome + (1 - meanpar) / disp)
-}
-
-
-## 'make_sd_hat_covariates' ---------------------------------------------------
-
-#' Derive Value for 'sd_hat' to Use in Covariates Shrinkage Prior
-#'
-#' @param mod Object of class 'bage_mod'
-#'
-#' @returns A numeric scalar
-#'
-#' @noRd
-make_sd_hat_covariates <- function(mod) {
-  UseMethod("make_sd_hat_covariates")
-}
-
-## HAS_TESTS
-#' @export
-make_sd_hat_covariates.bage_mod_pois <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  offset <- mod$offset
-  outcome <- mod$outcome
-  if (all(is.na(outcome))) ## happens in simulations
-    return(0.01)
-  nm_offset_data <- get_nm_offset_data(mod)
-  if (!is.null(nm_offset_data)) {
-    formula_new <- sprintf("~ . + offset(log(%s))", nm_offset_data)
-    formula_new <- stats::as.formula(formula_new)
-    formula <- stats::update(formula, formula_new)
-  }
-  m <- stats::glm(formula = formula,
-                  family = stats::poisson,
-                  data = data,
-                  na.action = stats::na.exclude)
-  fitted <- stats::fitted(m)
-  expected <- offset * fitted
-  sqrt(mean(expected, na.rm = TRUE))
-}
-
-## HAS_TESTS
-#' @export
-make_sd_hat_covariates.bage_mod_binom <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  outcome <- mod$outcome
-  offset <- mod$offset
-  if (all(is.na(outcome))) ## happens in simulations
-    return(1)
-  data <- cbind(data, failures = offset - outcome)
-  names(data) <- make.unique(names(data))
-  nm_response <- deparse1(formula[[2L]])
-  nm_failure <- names(data)[[length(data)]]
-  formula_new <- sprintf("cbind(%s, %s) ~ .",  nm_response, nm_failure)
-  formula_new <- stats::as.formula(formula_new)
-  formula <- stats::update(formula, formula_new)
-  m <- stats::glm(formula = formula,
-                  family = stats::binomial,
-                  data = data,
-                  na.action = stats::na.exclude)
-  fitted <- stats::fitted(m)
-  sqrt(mean(offset * fitted * (1 - fitted), na.rm = TRUE))
-}
-
-## HAS_TESTS
-#' @export
-make_sd_hat_covariates.bage_mod_norm <- function(mod) {
-  formula <- mod$formula
-  data <- mod$data
-  outcome <- mod$outcome
-  offset <- mod$offset
-  if (all(is.na(outcome))) ## happens in simulations
-    return(1)
-  nm_offset_data <- get_nm_offset_data(mod)
-  nm_response <- deparse1(formula[[2L]])
-  data[[nm_response]] <- outcome
-  if (!is.null(nm_offset_data)) {
-    ## using hack to get around weird handling
-    ## of name of weights by 'lm'
-    if ("....wt" %in% names(data))
-      cli::cli_abort("Please rename variable currently called {.val ....wt}.")
-    ....wt <- NULL ## required to avoid note from 'check()'
-    data[["....wt"]] <- offset
-    m <- stats::lm(formula = formula,
-                   data = data,
-                   weights = ....wt)
-  }
-  else
-    m <- stats::lm(formula = formula,
-                   data = data)
-  summary(m)$sigma
 }
 
 

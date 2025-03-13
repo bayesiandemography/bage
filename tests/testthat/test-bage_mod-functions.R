@@ -1,7 +1,7 @@
 
 ## 'set_covariates' -----------------------------------------------------------
 
-test_that("'set_covariates' works with Poisson, no horseshoe", {
+test_that("'set_covariates' works with Poisson", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- rpois(n = nrow(data), lambda = 3)
@@ -12,28 +12,12 @@ test_that("'set_covariates' works with Poisson, no horseshoe", {
                   exposure = popn)
   ans_obtained <- set_covariates(mod, ~ income)
   ans_expected <- mod
-  ans_expected$scale_covariates <- 0
   ans_expected$formula_covariates <- ~ income
   ans_expected$nms_covariates <- "income"
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'set_covariates' works with Poisson, with horseshoe", {
-  data <- expand.grid(age = 0:9, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data))
-  data$deaths <- rpois(n = nrow(data), lambda = 3)
-  data$reg <- letters[1:10]
-  formula <- deaths ~ age:sex + time
-  mod <- mod_pois(formula = formula,
-                  data = data,
-                  exposure = popn)
-  ans <- set_covariates(mod, ~ reg, n_nonzero = 3)
-  expect_identical(ans$nms_covariates, paste0("reg", letters[2:10]))
-  expect_true(ans$scale_covariates > 0)
-  expect_equal(ans$formula_covariates, ~ reg)
-})
-
-test_that("'set_covariates' works with binomial, no horseshoe", {
+test_that("'set_covariates' works with binomial", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
@@ -44,25 +28,9 @@ test_that("'set_covariates' works with binomial, no horseshoe", {
                    size = popn)
   ans_obtained <- set_covariates(mod, ~ income)
   ans_expected <- mod
-  ans_expected$scale_covariates <- 0
   ans_expected$formula_covariates <- ~income
   ans_expected$nms_covariates <- "income"
   expect_identical(ans_obtained, ans_expected)
-})
-
-test_that("'set_covariates' works with binomial, with horseshoe", {
-  data <- expand.grid(age = 0:9, time = 2000:2001, sex = 1:2)
-  data$popn <- seq_len(nrow(data))
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.3)
-  data$reg <- letters[1:10]
-  formula <- deaths ~ age:sex + time
-  mod <- mod_binom(formula = formula,
-                   data = data,
-                   size = popn)
-  ans <- set_covariates(mod, ~ reg, n_nonzero = 3)
-  expect_true(ans$scale_covariates > 0)
-  expect_identical(ans$nms_covariates, paste0("reg", letters[2:10]))
-  expect_identical(ans$formula_covariates, ~ reg)
 })
 
 
@@ -401,31 +369,35 @@ test_that("'set_var_inner' gives correct errors with invalid inputs", {
 
 ## 'unfit' --------------------------------------------------------------------
 
-test_that("'set_n_draw' works with valid inputs", {
-    data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
-    data$popn <- seq_len(nrow(data))
-    data$deaths <- rev(seq_len(nrow(data)))
-    formula <- deaths ~ age:sex + time
-    mod_unfit <- mod_pois(formula = formula,
-                    data = data,
-                    exposure = popn)
-    mod_fit <- fit(mod_unfit)
-    mod_fit_unfit <- unfit(mod_unfit)
-    nms <- c("draws_effectfree",
-             "draws_hyper",
-             "draws_hyperrandfree",
-             "draws_disp",
-             "point_effectfree",
-             "point_hyper",
-             "point_hyperrandfree",
-             "point_disp",
-             "computations",
-             "oldpar")
-    expect_true(all(nms %in% names(mod_unfit)))
-    expect_true(all(nms %in% names(mod_fit)))
-    expect_true(all(nms %in% names(mod_fit_unfit)))
-    for (nm in nms)
-      expect_false(isTRUE(all.equal(mod_fit[[nm]], mod_unfit[[nm]])))
-    for (nm in nms)
-      expect_true(isTRUE(all.equal(mod_fit_unfit[[nm]], mod_unfit[[nm]])))
+test_that("'unfit' works with valid inputs", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rev(seq_len(nrow(data)))
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod_unfit <- mod_pois(formula = formula,
+                        data = data,
+                        exposure = popn) |>
+    set_covariates(~ income)
+  mod_fit <- fit(mod_unfit)
+  mod_fit_unfit <- unfit(mod_unfit)
+  nms <- c("draws_effectfree",
+           "draws_hyper",
+           "draws_hyperrandfree",
+           "draws_coef_covariates",
+           "draws_disp",
+           "point_effectfree",
+           "point_hyper",
+           "point_hyperrandfree",
+           "point_coef_covariates",
+           "point_disp",
+           "computations",
+           "oldpar")
+  expect_true(all(nms %in% names(mod_unfit)))
+  expect_true(all(nms %in% names(mod_fit)))
+  expect_true(all(nms %in% names(mod_fit_unfit)))
+  for (nm in nms)
+    expect_false(isTRUE(all.equal(mod_fit[[nm]], mod_unfit[[nm]])))
+  for (nm in nms)
+    expect_true(isTRUE(all.equal(mod_fit_unfit[[nm]], mod_unfit[[nm]])))
 })

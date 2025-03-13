@@ -1892,54 +1892,6 @@ test_that("'is_fitted' works with valid inputs", {
 })
 
 
-## 'is_shrinkage' -------------------------------------------------------------
-
-test_that("'is_shrinkage' is FALSE with no covariates", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = c("a", "b"),
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$income <- runif(n = nrow(data))
-  data$distance <- runif(n = nrow(data))
-  mod <- mod_pois(formula = deaths ~ age * sex ,
-                  data = data,
-                  exposure = popn)
-  expect_false(is_shrinkage(mod))
-})
-
-test_that("'is_shrinkage' is FALSE with covariates but non-shrinkage", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = c("a", "b"),
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$income <- runif(n = nrow(data))
-  data$distance <- runif(n = nrow(data))
-  mod <- mod_pois(formula = deaths ~ age * sex ,
-                  data = data,
-                  exposure = popn) |>
-    set_covariates(~ income)
-  expect_false(is_shrinkage(mod))
-})
-
-test_that("'is_shrinkage' is TRUE with covariates with shrinkage", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9,
-                      region = letters[1:4],
-                      sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  mod <- mod_pois(formula = deaths ~ age * sex ,
-                  data = data,
-                  exposure = popn) |>
-    set_covariates(~ region, n_nonzero = 1)
-  expect_true(is_shrinkage(mod))
-})
-
-
 ## 'make_i_lik_mod' -----------------------------------------------------------
 
 test_that("'make_i_lik_mod' works with bage_mod_pois", {
@@ -2350,84 +2302,6 @@ test_that("'make_par_disp' works with bage_mod_binom - has NAs", {
                                    data$deaths + meanpar/disp,
                                    data$popn - data$deaths + (1 - meanpar)/disp)
   expect_equal(ans_obtained, ans_expected)
-})
-
-
-## 'make_sd_hat_covariates' ---------------------------------------------------
-
-test_that("'make_sd_hat_covariates' works with bage_mod_pois", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rpois(n = nrow(data), lambda = 10)
-  data$deaths[1] <- NA
-  mod <- mod_pois(deaths ~ age + time + sex,
-                  data = data,
-                  exposure = popn)
-  ans_obtained <- make_sd_hat_covariates(mod)
-  m <- glm(deaths ~ age + time + sex + offset(log(popn)), data = data, family = poisson)
-  f <- fitted(m)
-  ans_expected <- sqrt(mean(data$popn[-1] * f))
-  expect_equal(ans_obtained, ans_expected)
-  mod$outcome[] <- NA
-  ans_obtained <- make_sd_hat_covariates(mod)
-  ans_expected <- 1
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_sd_hat_covariates' works with bage_mod_binom", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$popn <- rpois(n = nrow(data), lambda = 100)
-  data$deaths <- rbinom(n = nrow(data), size = data$popn, prob = 0.1)
-  data$deaths[1] <- NA
-  data$failures <- data$popn - data$deaths
-  mod <- mod_binom(deaths ~ age + time + sex,
-                  data = data,
-                  size = popn)
-  ans_obtained <- make_sd_hat_covariates(mod)
-  m <- glm(cbind(deaths, failures) ~ age + time + sex, data = data, family = binomial)
-  f <- fitted(m)
-  ans_expected <- sqrt(mean(data$popn[-1] * f * (1 - f)))
-  expect_equal(ans_obtained, ans_expected)
-  mod$outcome[] <- NA
-  ans_obtained <- make_sd_hat_covariates(mod)
-  ans_expected <- 1
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_sd_hat_covariates' works with bage_mod_norm", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$wt <- rpois(n = nrow(data), lambda = 100)
-  data$income <- rnorm(n = nrow(data))
-  data$income[1] <- NA
-  mod <- mod_norm(income ~ age + time + sex,
-                  data = data,
-                  weights = wt)
-  ans_obtained <- make_sd_hat_covariates(mod)
-  df <- data
-  df$income <- scale(df$income)
-  df$wt <- df$wt / mean(df$wt)
-  m <- lm(income ~ age + time + sex, data = df, weights = wt)
-  ans_expected <- summary(m)$sigma
-  expect_equal(ans_obtained, ans_expected)
-  mod$outcome[] <- NA
-  ans_obtained <- make_sd_hat_covariates(mod)
-  ans_expected <- 1
-  expect_equal(ans_obtained, ans_expected)
-})
-
-test_that("'make_sd_hat_covariates' for with bage_mod_norm throws error with ....wt", {
-  set.seed(0)
-  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
-  data$income <- 1
-  data$....wt <- rpois(n = nrow(data), lambda = 100)
-  mod <- mod_norm(income ~ age + time + sex,
-                  data = data,
-                  weights = ....wt)
-  expect_error(make_sd_hat_covariates(mod),
-               "Please rename variable currently called \"....wt\".")
 })
 
 
