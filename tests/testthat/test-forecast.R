@@ -693,9 +693,8 @@ test_that("'make_data_forecast_labels_covariates' throws appropriate error when 
     set_covariates(~income + reg)
   expect_error(make_data_forecast_labels_covariates(mod = mod,
                                                     data_forecast = data_forecast),
-               "Cannot infer future values for covariates from `data`.")
+               "Unable to derive covariate values for forecasted periods.")
 })
-
 
 
 ## 'make_data_forecast_newdata' -----------------------------------------------

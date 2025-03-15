@@ -76,6 +76,20 @@ Setting \code{include_estimates} to \code{TRUE} can be helpful
 when creating graphs that combine estimates and forecasts.
 }
 
+\section{Forecasting with covariates}{
+
+
+Models that contain \link[=set_covariates]{covariates} can be used
+in forecasts, provided that
+\itemize{
+\item all coefficients (the \eqn{\zeta_p}) are estimated
+from historical data via \code{\link[=fit]{fit()}}, and
+\item if any covariates (the columns of \eqn{\pmb{Z}})
+are time-varying, then future values for these
+covariates are supplied via the \code{newdata} argument.
+}
+}
+
 \section{Fitted and unfitted models}{
 
 
@@ -133,12 +147,14 @@ mod_pois(injuries ~ age * sex + ethnicity + year,
   fit() |>
   forecast(newdata = data_forecast)
 
-## forecast based on priors only
-mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
-                         data = nzl_injuries,
-                         exposure = popn)
-mod_unfitted |>
-  forecast(labels = 2019:2024)
+## forecast using GDP per capita in 2023 as a covariate
+mod_births <- mod_pois(births ~ age * region + time,
+                       data = kor_births,
+                       exposure = popn) |>
+  set_covariates(~ gdp_pc_2023) |>
+  fit()
+mod_births |>
+  forecast(labels = 2024:2025)
 }
 \seealso{
 \itemize{

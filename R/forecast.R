@@ -490,19 +490,9 @@ make_data_forecast_labels_covariates <- function(mod, data_forecast) {
   nrow <- vapply(map_vars_cov$val, nrow, 1L)
   i_gt_1 <- match(TRUE, nrow > 1L, nomatch = 0L)
   if (i_gt_1 > 0L) {
-    example <- vctrs::vec_cbind(vctrs::vec_rep(map_vars_cov$key[i_gt_1, , drop = FALSE], times = 2L),
-                                tibble::tibble("|" = rep("|", times = 2)),
-                                map_vars_cov$val[[i_gt_1]][1:2, , drop = FALSE])
-    example <- as.data.frame(example)
-    example <- utils::capture.output(print(example, row.names = FALSE))
-    names(example) <- c("i", "i", "i") ## includes header
-    ## use rlang::abort, rather than cli::cli_abort, because cli_abort
-    ## strips out white space, leads to poor printing of rows
-    rlang::abort(c("Cannot infer future values for covariates from `data`.",
-                   i = "Classifying variables (excluding time) do not uniquely determine covariates.",
-                   i = "Example:",
-                   example),
-                 use_cli_format = FALSE)
+    cli::cli_abort(c("Unable to derive covariate values for forecasted periods.",
+                     i = paste("Can't predict values for covariates",
+                               "based only on {.var {vars_no_time}}.")))
   }
   key_data <- Reduce(paste_dot, data_forecast[vars_no_time])
   key_covariates <- Reduce(paste_dot, map_vars_cov$key)

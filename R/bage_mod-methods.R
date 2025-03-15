@@ -736,6 +736,16 @@ generics::forecast
 #' Setting `include_estimates` to `TRUE` can be helpful
 #' when creating graphs that combine estimates and forecasts.
 #'
+#' @section Forecasting with covariates:
+#'
+#' Models that contain [covariates][set_covariates()] can be used
+#' in forecasts, provided that
+#' - all coefficients (the \eqn{\zeta_p}) are estimated
+#'   from historical data via [fit()], and
+#' - if any covariates (the columns of \eqn{\pmb{Z}})
+#'   are time-varying, then future values for these
+#'   covariates are supplied via the `newdata` argument.
+#'
 #' @section Fitted and unfitted models:
 #'
 #' `forecast()` is typically used with a
@@ -808,12 +818,14 @@ generics::forecast
 #'   fit() |>
 #'   forecast(newdata = data_forecast)
 #'
-#' ## forecast based on priors only
-#' mod_unfitted <- mod_pois(injuries ~ age * sex + ethnicity + year,
-#'                          data = nzl_injuries,
-#'                          exposure = popn)
-#' mod_unfitted |>
-#'   forecast(labels = 2019:2024)
+#' ## forecast using GDP per capita in 2023 as a covariate
+#' mod_births <- mod_pois(births ~ age * region + time,
+#'                        data = kor_births,
+#'                        exposure = popn) |>
+#'   set_covariates(~ gdp_pc_2023) |>
+#'   fit()
+#' mod_births |>
+#'   forecast(labels = 2024:2025)
 #' @export
 forecast.bage_mod <- function(object,
                               newdata = NULL,
