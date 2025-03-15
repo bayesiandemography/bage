@@ -25,22 +25,44 @@ knitr::opts_chunk$set(
 
 # Introduction
 
+Covariates can be used to extend standard **bage** models in two ways:
+
+1. incorporating information beyond what is contained in classifying variables, such as age, sex, or region; and 
+2. dealing with subsets of the data with unusual behavior.
+
+This vignette gives a brief description of covariates in **bage** and then illustrates their use with a case study of births in South Korea.
+
 
 # Mathematical details
 
+A model in **bage** typically has a structure that is something like:
 \begin{align}
-  y_i & \sim \text{Poisson}(\gamma_i w_i) \\
-  \log \gamma_i & \sim \text{Gamma}(\xi^{-1}, (\mu_i \xi)^{-1}) \\
-  \mu_i & = \sum_{m=0}^M \beta_{j_i^m}^{(M)} (\#eq:prior-mod-no-cov)
+  y_{ast} & \sim \text{Poisson}(\gamma_{ast} w_{ast}) \\
+  \log \gamma_{ast} & \sim \text{Gamma}(\xi^{-1}, (\mu_{ast} \xi)^{-1}) \\
+  \log \mu_{ast} & = \beta^{(0)} + \beta_{as}^{\text{age:sex}} + \beta_t^{\text{time}} (\#eq:priormod)
 \end{align}
+where
+
+- $y_{ast}$ is the outcome for people in age group $a$ and sex $s$ during period $t$;
+- $w_{ast}$ is exposure;
+- $\gamma_{ast}$ is a rate;
+- $\xi$ governs overall dispersion;
+- $\beta^{(0)}$ is an intercept;
+- $\pmb{\beta}^{\text{age:sex}}$ and $\pmb{\beta}^{\text{time}}$ are terms formed the classifying variables age, sex, and time;
+- $\beta_{as}^{\text{age:sex}}$ and $\pmb{\beta}_t^{\text{time}}$ are elements of these terms; and
+- the intercept and the terms formed from the classifying variables all have prior distributions.
+
+In a model with covariates, \@ref(eq:priormod) changes to
+\begin{equation}
+  \log \mu_{ast} = \beta^{(0)} + \beta_{as}^{\text{age:sex}} + \beta_t^{\text{time}} + (\pmb{Z} \pmb{\zeta})_{ast}
+\end{equation}
 
 where
-- $y_i$ is the outcome for cell $i$;
-- $w_i$ is exposure for cell $i$;
-- $\gamma_i$ is the rate for cell $i$;
-- $\xi$ governs overall dispersion;
-- $\pmb{\beta}^{(m)}$ is an intercept, main effect, or intercept; and
-- $\pmb{\beta_{j_i^m}^{(m)}}$ is the element of $\pmb{\beta}^{(m)}$ associated with cell $i$.
+
+- $\pmb{Z}$ is a $N \times P$ covariate matrix;
+- $\pmb{\zeta}$ is a $P$-element vector of coefficients; and
+- $(\pmb{Z} \pmb{\zeta})_{ast}$ is an element from the vector obtained by multiplying $\pmb{Z}$ and $\pmb{\zeta}$.
+
 
 Change \@ref(eq:prior-mod-no-cov) to
 \begin{equation}
@@ -51,7 +73,7 @@ where
 - $\pmb{Z}$ is an $I \times P$ matrix of covariates; and
 - $\pmb{\eta}$ is a vector of coefficients. 
 
-$\pmb{Z}$ is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables using the standard R "treatment" contrast, where the first category is omitted.
+The covariate matrix $\pmb{Z}$ is derived from the raw covariate data by scaling any numeric variables to have mean 0 and standard deviation 1, and by converting any categorical variables to sets of indicator variables. The conversion to indicator variables follows the rules that R uses for "treatment" contrasts. If the categorical has $C$ categories, then $C-1$ indicator variabls are constructed, with the first category being omitted.
 
 Each element of $\pmb{\eta}$ has prior
 \begin{equation}
@@ -59,26 +81,34 @@ Each element of $\pmb{\eta}$ has prior
 \end{equation}
 
 
+# Example: Births in South Korea
 
+To illustrate the use of covariates, we will analyse data on births in South Korea.
 
-# Set-Up for examples
+## Preliminaries
+
+Besides **bage** itself, we use **dplyr** and **vctrs** for data manipulation, and **ggplot2** for plotting results.
 
 ```{r}
 suppressPackageStartupMessages({
   library(bage)
   library(dplyr)
-  library(forcats)
   library(ggplot2)
 })
 
 ```
 
+Our data is the data frame `kor_births`, which is part of **bage**. The data frame gives numbers of births disaggregated by age of mother, region, and year. It also contains a numeric variable called `gdp_pc_2023` that gives GDP per capita (in thousands of US dollars) in 2023, and a categorical variable (with levels `"Low"`, `"Medium"`, and `"High"`) describing population density in 2020.
+
 ```{r}
 kor_births
 ```
 
-# Covariates that bring in extra information
+## Covariates that bring in extra information
 
+The variables `gdp_pc_2023` and `dens_2020` are both examples of covariates that contribute extra information to the model, beyond what is contained in the outcome, exposure, and classifying variables. 
+
+We use function `set_covariates()` to instruct `mod_pois()` to treat these variables as covariates.
 ```{r}
 mod_gdp_dens <- mod_pois(births ~ (age + region + time)^2,
                          data = kor_births,
@@ -88,6 +118,8 @@ mod_gdp_dens <- mod_pois(births ~ (age + region + time)^2,
 mod_gdp_dens
 ```
 
+To obtain estimates of the coefficients (ie estimates of the $\zeta_p$) we call function `components()` and filter out rows for the `"covariates"` term.
+
 ```{r}
 mod_gdp_dens |>
   components() |>
@@ -95,58 +127,87 @@ mod_gdp_dens |>
 ```
 
 
-# Covariates that pick out combinations of classifying variables
+## Covariates that allow for unusual subsets
+
+In East Asia, years with the Dragon zodiac sign sometimes have larger-than-usual numbers of births. To allow for this possibility, we create a dragon-year covariate, and incorporate it into a new model.
 
 ```{r}
 births <- kor_births |>
-  mutate(is_covid = time == 2020)
-births |> 
-  filter(time %in% 2018:2020)
-```
-
-```{r}
-mod_covid <- mod_pois(births ~ (age + region + time)^2,
+  mutate(is_dragon_year = time == 2012)
+mod_dragon <- mod_pois(births ~ (age + region + time)^2,
                       data = births,
                       exposure = popn) |>
-  set_covariates(~ is_covid) |>
+  set_covariates(~ is_dragon_year) |>
   fit()
 
-mod_covid |>
+mod_dragon |>
   components() |>
   filter(term == "covariates")
 ```
 
+There is some evidence for extra births, though there is substantial uncertainty about the size of the effect.
+
+Next we expand the model to allow the dragon-year effect to differ across age groups. We create a variable that takes the values `"baseline"` in all years, except in dragon years, when it takes the name of the age group. We turn this variable into a factor with `"baseline"` as its first level.
+
 ```{r}
 births <- births |>
-  mutate(is_covid_reg = if_else(is_covid, region, "baseline"))
+  mutate(is_dragon_year_age = if_else(time == 2012, age, "baseline"),
+         is_dragon_year_age = factor(is_dragon_year_age, 
+                                     levels = c("baseline", unique(age))))
 births |>
-  filter(time %in% 2018:2020)
+  filter(time %in% 2011:2013)
 ```
 
-
+We create a new model with the age-sepcific dragon-year indicator.
 
 ```{r}
-mod_covid_reg <- mod_pois(births ~ age * region + time,
+mod_dragon_age <- mod_pois(births ~ (age + region + time)^2,
                          data = births,
                          exposure = popn) |>
-  set_covariates(~ is_covid_reg) |>
+  set_covariates(~ is_dragon_year_age) |>
   fit()
-mod_covid_reg
+mod_dragon_age
 ```
 
+Rather than a single dragon-year coefficient, we have a coefficient for each age group. We extract them and tidy up the labels.
+
 ```{r}
-coef_reg <- mod_covid_reg |>
+mod_dragon_age |>
   components() |>
   filter(term == "covariates") |>
-  mutate(region = sub("is_covid_reg", "", level)) |>
-  mutate(draws_ci(.fitted)) |>
-  mutate(region = fct_reorder(region, .fitted.mid))  
-coef_reg
+  mutate(age = sub("is_dragon_year_age", "", level)) |>
+  select(age, .fitted)
 ```
 
+
+## Forecasting
+
+If all the covariates in a model are fixed, then the model can be forecasted as normal. 
+
 ```{r}
-ggplot(coef_reg, aes(y = region)) +
-  geom_pointrange(aes(xmin = .fitted.lower,
-                      x = .fitted.mid,
-                      xmax = .fitted.upper))
+mod_gdp_dens |>
+  forecast(labels = 2024:2025)
+```
+
+If, however, a covariate varies over time, forecasting only works if values for future periods are provided. The following code will result in an error:
+```
+mod_dragon |>
+  forecast(labels = 2024:2025)
+```
+
+Instead we need to create a `newdata` data frame...
+
+```{r}
+newdata <- expand.grid(age = unique(kor_births$age),
+                       region = unique(kor_births$region),
+                       time = 2024:2025) |>
+  mutate(is_dragon_year = FALSE)
+head(newdata)
+```
+
+...and supply it to `forecast()`.
+
+```{r}
+mod_dragon |>
+  forecast(newdata = newdata)
 ```

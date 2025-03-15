@@ -85,7 +85,7 @@ if (FALSE) {
 }
 
 
-## covariates - normal prior for coefficients
+## covariates
 
 if (FALSE) {
 
@@ -111,37 +111,6 @@ if (FALSE) {
   rep <- report_sim(mod_est = mod_est, n_sim = 1000, n_core = 10, report = "long")
   
 }
-
-
-## covariates - horseshoe prior for coefficients
-
-if (FALSE) {
-
-  library(bage); library(dplyr); devtools::load_all()
-  
-  set.seed(50)
-  data <- expand.grid(age = poputils::age_labels(type = "lt"),
-                      sex = c("Female", "Male"),
-                      time = 2001:2015)
-  data$population <- runif(n = nrow(data), min = 100, max = 300)
-  data$deaths <- NA
-  data$is_2015_age <- if_else(data$time == 2015, data$age, "baseline")
-  mod_est <- mod_pois(deaths ~ age : sex + sex * time,
-                      data = data,
-                      exposure = population) |>
-    set_prior(`(Intercept)` ~ NFix(s = 0.01)) |>
-    set_prior(age:sex ~ SVD(HMD)) |>
-    set_prior(time ~ RW(s = 0.05)) |>
-    set_prior(sex:time ~ RW(s = 0.01)) |>
-    set_prior(sex ~ NFix(sd = 0.1)) |>
-    set_disp(mean = 0.05) |>
-    set_covariates(~ is_2015_age, n_nonzero = 4)
-
-  rep <- report_sim(mod_est = mod_est, n_sim = 20, n_core = 10, report_type = "long")
-  rep$components |> filter(term == "covariates") |> print(n = Inf)
-  
-}
-
 
 
 

@@ -854,7 +854,7 @@ Known(values)
 
 ## Model
 
-Matrix $\pmb{Z}$ is a standardized version of the original covariate data supplied by the user. If a covariate is a numeric variable, it is standardized to have mean 0 and standard deviation one. If it is a categorical variable with $C$ categories, it is converted into $C-1$ indicator variables, with the first category as the omitted variable. (This is the 'treatment' contrast in R.)
+Matrix $\pmb{Z}$ is a standardized version of the original covariate data supplied by the user. If a variable in the original data is numeric, then it is standardized to have mean 0 and standard deviation one. If a variable in the original data is categorical with $C$ categories, then it is converted into $C-1$ indicator variables, with the first category as the omitted variable. (This is the 'treatment' contrast in R.)
 
 The elements of $\pmb{\zeta}$ have prior
 \begin{equation}
@@ -871,17 +871,22 @@ The elements of $\pmb{\zeta}$ have prior
 
 ## Forecasting
 
-I
+A model with covariates can be used for forecasting provided that
+
+- the coefficients (the $\zeta_p$) are non-time-varying,
+- future values for the covariates (the columns of $\pmb{Z}$) can be
+  inferred from the classifying variables (other than time),
+  or are supplied by the user.
+  
 
 ## Code
 
 ```
-set_covariates(mod, formula, n_nonzero = NULL)
+set_covariates(mod, formula)
 ```
 
 - `mod` Object of class `"bage_mod"`
 - `formula` One-sided R formula describing the covariates to be used
-- `n_nonzero` Effective number of non-zero coefficients. If a value is supplied, the shrinkage prior is used; otherwise the standard prior is used.
 
 
 # Prior for dispersion terms
