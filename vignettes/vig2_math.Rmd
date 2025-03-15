@@ -329,6 +329,48 @@ RW2(s = 1, sd = 1, sd_slope = 1, along = NULL, zero_sum = TRUE)
 
 
 
+## RW2_Infant() {#sec:pr-rw2-infant}
+
+### Model
+
+Second-order random walk with infant indicator. Designed for age profiles for mortality rates. Along dimension must be age.
+
+\begin{align}
+  \beta_{u,1}^{(m)} & \sim \text{N}(0, 1) \\
+  \beta_{u,2}^{(m)} & \sim \text{N}\left(0, (A_{\eta}^{(m)})^2\right) \\
+  \beta_{u,3}^{(m)} & \sim \text{N}\left(2 \beta_{u,2}^{(m)}, \tau_m^2\right) \\
+  \beta_{u,v}^{(m)} & \sim \text{N}\left(2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2\right), \quad v = 4, \cdots, V_m \\
+  \tau_m & \sim \text{N}^+\left(0, (A_{\tau}^{(m)})^2\right)
+\end{align}
+
+When $U_m > 1$, sum-to-zero constraints (Section \@ref(sec:sum-to-zero)) can be applied.
+
+### Contribution to posterior density
+
+\begin{equation}
+  \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \prod_{u=1}^{U_m} \text{N}(\beta_{u,1}^{(m)} \mid 0, 1) \text{N}(\beta_{u,2}^{(m)} \mid 0, (A_{\eta}^{(m)})^2) \text{N}\left(\beta_{u,3}^{(m)} \mid 2 \beta_{u,2}^{(m)}, \tau_m^2 \right) \prod_{v=4}^{V_m} \text{N}\left(\beta_{u,v}^{(m)} \mid 2 \beta_{u,v-1}^{(m)} - \beta_{u,v-2}^{(m)}, \tau_m^2 \right) 
+\end{equation}
+
+
+### Forecasting
+
+Terms with an `RW2_Infant()` prior cannot be forecasted.
+
+### Code
+
+```
+RW2_Infant(s = 1, sd_slope = 1, zero_sum = TRUE)
+```
+
+- `s` is $A_{\tau}^{(m)}$
+- `sd_slope` is $A_{\eta}^{(m)}$
+- if `zero_sum` is `TRUE`, sum-to-zero constraints are applied
+
+
+
+
+
+
 ## RW_Seas() {#sec:rwseas}
 
 ### Model
@@ -684,7 +726,7 @@ $\pmb{B}^{(m)} = (\pmb{b}_1^{(m)}(\pmb{v}), \cdots, \pmb{b}_{K_m}^{(m)}(\pmb{v})
 
 ### Forecasting
 
-Terms with a P-Spline prior cannot be forecasted.
+Terms with a `Sp()` prior cannot be forecasted.
 
 
 ### Code
