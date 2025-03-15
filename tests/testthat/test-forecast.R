@@ -737,7 +737,7 @@ test_that("'make_data_forecast_newdata' raises correct error with variables miss
                "Variables in model but not in `newdata`: \"age\" and \"time\".")
 })
 
-test_that("'make_data_forecast_newdata' raises correct error when periods overlap", {
+test_that("'make_data_forecast_newdata' raises correct error when periods overlap - time is integer", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
   data$deaths <- rpois(n = nrow(data), lambda = 100)
@@ -751,8 +751,28 @@ test_that("'make_data_forecast_newdata' raises correct error when periods overla
   newdata <- make_data_forecast_labels(mod = mod,
                                        labels_forecast = 2005:2008)
   expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
-               "Time periods in `newdata` and `data` overlap.")
+               "Times in `newdata` and `data` overlap.")
 })
+
+test_that("'make_data_forecast_newdata' raises correct error when periods overlap - time is date", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9,
+                      time = as.Date(paste0(2000:2005,"-01-01")),
+                      sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  newdata <- make_data_forecast_labels(mod = mod,
+                                       labels_forecast = as.Date(paste0(2005:2008, "-01-01")))
+  expect_error(make_data_forecast_newdata(mod = mod, newdata = newdata),
+               "Times in `newdata` and `data` overlap.")
+})
+
 
 
 ## 'make_dimnames_terms_forecast' ---------------------------------------------

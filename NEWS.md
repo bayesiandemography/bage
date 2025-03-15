@@ -19,7 +19,9 @@
   the multivariate normal (which, since **bage** started using
   **sparseMVN**, is very short).
 * Finished vignette 1.
-* Corrected error in help for `kor_births`.
+* Added covariates
+* Added `gdp_pc_2023` and `dens_2020` variables to `kor_births`
+
 
 
 # bage 0.8.5
