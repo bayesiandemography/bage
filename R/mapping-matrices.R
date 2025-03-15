@@ -740,10 +740,11 @@ make_matrix_sub_orig_svd <- function(prior,
 
 ## HAS_TESTS
 #' Make Matrix Mapping Unconstrained Parameter Vector
-#' to Constrained Parameter Vector, Assuming 'along' is First Dimension
+#' to Constrained Parameter Vector
 #'
-#' Constraints apply within each category of the 'along' variable.
-#'
+#' Removes redundant constrains from matrix constructed by
+#' 'make_matrix_constraints()'.
+#' 
 #' @param dim_after Dimension of for array representation of term
 #' after transformation (ie with unconstrained parameters)
 #'
