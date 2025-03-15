@@ -914,6 +914,12 @@ draw_vals_hyper.bage_prior_linar <- function(prior, n_sim) {
 
 ## HAS_TESTS
 #' @export
+draw_vals_hyper.bage_prior_linex <- function(prior, n_sim) {
+  list()
+}
+
+## HAS_TESTS
+#' @export
 draw_vals_hyper.bage_prior_norm <- function(prior, n_sim) {
   sd <- draw_vals_sd(prior = prior, n_sim = n_sim)
   list(sd = sd)

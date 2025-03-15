@@ -1784,6 +1784,13 @@ test_that("'draw_vals_hyper' works with bage_prior_linar", {
   expect_identical(length(ans$sd), 10L)
 })
 
+test_that("'draw_vals_hyper' works with bage_prior_linex", {
+  prior <- Lin(s = 0)
+  ans <- draw_vals_hyper(prior = prior,
+                         n_sim = 10)
+  expect_identical(ans, list())
+})
+
 test_that("'draw_vals_hyper' works with bage_prior_norm", {
   prior <- N()
   ans <- draw_vals_hyper(prior = prior,
