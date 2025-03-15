@@ -534,13 +534,17 @@ make_data_forecast_newdata <- function(mod, newdata) {
                          "{.val {nms_model[not_in_newdata]}}."))
   labels_new <- unique(newdata[[var_time]])
   labels_est <- unique(data[[var_time]])
-  duplicates <- intersect(labels_new, labels_est)
-  n_dup <- length(duplicates)
-  if (n_dup > 0L)
-    cli::cli_abort(c("Time periods in {.arg newdata} and {.arg data} overlap.",
-                     i = "Time periods in {.arg newdata}: {.val {labels_new}}.",
-                     i = "Time periods in {.arg data}: {.val {labels_est}}.",
+  i_dup <- match(labels_new, labels_est, nomatch = 0L)
+  n_dup <- sum(i_dup > 0L)
+  if (n_dup > 0L) {
+    duplicates <- labels_est[i_dup]
+    if (inherits(duplicates, "Date"))
+      duplicates <- format(duplicates, "%Y-%m-%d")
+    cli::cli_abort(c("Times in {.arg newdata} and {.arg data} overlap.",
+                     i = "Times in {.arg newdata}: {.val {labels_new}}.",
+                     i = "Times in {.arg data}: {.val {labels_est}}.",
                      i = "Overlap: {.val {duplicates}}."))
+  }
   ans <- vctrs::vec_rbind(data, newdata)
   i_original <- seq_len(nrow(data))
   ans <- ans[-i_original, , drop = FALSE]
