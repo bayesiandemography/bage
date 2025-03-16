@@ -36,6 +36,7 @@ is_fitted(mod)
 \itemize{
 \item \code{\link[=fit]{fit()}} Fit a model
 \item \code{\link[=mod_pois]{mod_pois()}}, \code{\link[=mod_binom]{mod_binom()}}, \code{\link[=mod_norm]{mod_norm()}} Specify a model
+\item \code{\link[=reset_seeds]{reset_seeds()}} Reset random seeds
 \item Functions such as \code{\link[=set_prior]{set_prior()}}, \code{\link[=set_disp]{set_disp()}} and
 \code{\link[=set_var_age]{set_var_age()}} unfit models as side effects.
 }

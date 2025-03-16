@@ -67,13 +67,6 @@ mod <- mod_pois(births ~ age * region + time,
   set_covariates(~ is_covid)
 mod
 }
-\references{
-Piironen J, Vehtari A. (2017). On the hyperprior choice for the
-global shrinkage parameter in the horseshoe prior.
-In \emph{Artificial intelligence and statistics} (pp. 905-913).
-Proceedings of the 20th International Conference on Artificial
-Intelligence and Statistics.
-}
 \seealso{
 \itemize{
 \item \link{datamods} Overview of data models implemented in \strong{bage}

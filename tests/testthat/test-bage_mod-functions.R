@@ -1,4 +1,49 @@
 
+## 'reset_seeds' --------------------------------------------------------------
+
+test_that("'reset_seeds' works with NULL", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    fit()
+  aug1 <- augment(mod)
+  aug2 <- augment(mod)
+  expect_identical(aug1, aug2)
+  mod <- reset_seeds(mod)
+  aug3 <- augment(mod)
+  expect_false(identical(aug1, aug3))
+})
+
+test_that("'reset_seeds' works with list", {
+  data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
+  data$popn <- seq_len(nrow(data))
+  data$deaths <- rpois(n = nrow(data), lambda = 3)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age:sex + time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn) |>
+    fit()
+  aug1 <- augment(mod)
+  aug2 <- augment(mod)
+  expect_identical(aug1, aug2)
+  mod <- reset_seeds(mod,
+                     new_seeds = list(seed_stored_draws = 1,
+                                      seed_components = 2,
+                                      seed_augment = 3,
+                                      seed_forecast_components = 4,
+                                      seed_forecast_augment = 5))
+  aug3 <- augment(mod)
+  expect_false(identical(aug1, aug3))
+})
+
+
+
 ## 'set_covariates' -----------------------------------------------------------
 
 test_that("'set_covariates' works with Poisson", {

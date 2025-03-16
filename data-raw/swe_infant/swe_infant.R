@@ -6,8 +6,8 @@ library(stringi)
 library(forcats)
 library(command)
 
-cmd_assign(.births = "swe_infant/BE0101E2.csv",
-           .deaths = "swe_infant/BE0101D9.csv",
+cmd_assign(.births = "swe_infant/BE0101E2.csv.gz",
+           .deaths = "swe_infant/BE0101D9.csv.gz",
            .out = "../data/swe_infant.rda")
 
 births <- read_csv(.births,

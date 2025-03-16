@@ -6,6 +6,7 @@ all: ../data/isl_deaths.rda \
      ../data/nld_expenditure.rda \
      ../data/nzl_households.rda \
      ../data/nzl_injuries.rda \
+     ../data/prt_deaths.rda \
      ../data/usa_deaths.rda \
      ../data/HFD.rda \
      ../data/HMD.rda \
@@ -57,9 +58,14 @@ nzl_divorces/popn_raw.rds: nzl_divorces/popn_raw.R \
   nzl_injuries/DPE403903_20230101_021709_80.csv.gz
 	Rscript $^ $@
 
+../data/prt_deaths.rda: prt_deaths/prt_deaths.R \
+  prt_deaths/Deaths_1x1.txt.gz \
+  prt_deaths/PRT.Exposures_1x1.txt.gz
+	Rscript $^ $@
+
 ../data/swe_infant.rda: swe_infant/swe_infant.R \
-   swe_infant/BE0101E2.csv \
-   swe_infant/BE0101D9.csv
+   swe_infant/BE0101E2.csv.gz \
+   swe_infant/BE0101D9.csv.gz
 	Rscript $^ $@
 
 ../data/usa_deaths.rda: usa_deaths/usa_deaths.R

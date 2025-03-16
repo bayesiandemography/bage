@@ -32,7 +32,8 @@ https://w.wiki/DMF9, data downloaded on 8 March 2025.
 kor_births
 }
 \description{
-Births by age of mother, region, and calendar year,
+Births and mid-year population by age of mother,
+region, and calendar year,
 2011-2023, plus regional data on GDP per capita and
 population density.
 }

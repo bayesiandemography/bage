@@ -2,9 +2,96 @@
 ## User-visible functions that look like methods, but technically are not
 
 
+## 'reset_seeds' --------------------------------------------------------------
+
+## HAS_TESTS
+#' Reset Random Seeds in Model Object
+#'
+#' Reset random seeds stored in a model object.
+#' When `new_seeds` is `NULL` (the default),
+#' the new seeds are generated randomly; otherwise
+#' they are taken from `new_seeds`.
+#'
+#' An object of class `"bage_mod"`
+#' includes 5 random seeds:
+#'
+#' - `seed_stored_draws`
+#' - `seed_components`
+#' - `seed_augment`
+#' - `seed_forecast_components`
+#' - `seed_forecast_augment`
+#'
+#' When functions [fit()], [component()], [augment()],
+#' and [forecast()] are called, these seeds are used internally
+#' to make sure that that the same inputs always give the
+#' same outputs, even though the outputs are generated
+#' using random draws.
+#'
+#' `reset_seeds()` is not often called by end-users,
+#' though it can occasionally be useful, such as when
+#' creating simulations.
+#' 
+#' @param mod An object of class `"bage_mod"`,
+#' created with [mod_pois()],
+#' [mod_binom()], or [mod_norm()].
+#' @param new_seeds `NULL` (the default) or a list
+#' of integers. This list must have names
+#' `"seed_stored_draws"`, `"seed_components"`,
+#' `"seed_augment"`, `"seed_forecast_components"`,
+#' and `"seed_forecast_augment"`.
+#'
+#' @returns A modified version of `mod`.
+#'
+#' @seealso
+#' - [report_sim()] Do a simulation study. (`report_sim()`
+#'   calls `reset_seeds()` internally.)
+#' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
+#' - [fit()] Fit a model
+#' - [unfit()] Reset model, deleting estimates
+#'
+#' @examples
+#' ## fit model
+#' mod <- mod_pois(injuries ~ age,
+#'                 data = nzl_injuries,
+#'                 exposure = popn) |>
+#'   fit()
+#'
+#' ## call 'components()'
+#' components(mod)
+#'
+#' ## call 'components()' again - same results
+#' components(mod)
+#'
+#' ## reset seeds
+#' mod <- reset_seeds(mod)
+#'
+#' ## call 'components()' again - different results
+#' components(mod)
+#' @export
+reset_seeds <- function(mod, new_seeds = NULL) {
+  check_bage_mod(x = mod, nm_x = "mod")
+  if (is.null(new_seeds)) {
+    mod$seed_stored_draws <- make_seed()
+    mod$seed_components <- make_seed()
+    mod$seed_augment <- make_seed()
+    mod$seed_forecast_components <- make_seed()
+    mod$seed_forecast_augment <- make_seed()
+  }
+  else {
+    check_new_seeds(new_seeds)
+    mod$seed_stored_draws <- new_seeds$stored_draws
+    mod$seed_components <- new_seeds$components
+    mod$seed_augment <- new_seeds$augment
+    mod$seed_forecast_components <- new_seeds$forecast_components
+    mod$seed_forecast_augment <- new_seeds$forecast_augment
+  }
+  mod
+}
+
+  
 ## 'set_covariates' -----------------------------------------------------------
 
-
+## HAS_TESTS
 #' Specify Covariates 
 #'
 #' Add covariates to a model.
@@ -51,13 +138,6 @@
 #' - [datamods] Overview of data models implemented in **bage**
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a
 #'   model for rates, probabilities, or means
-#'
-#' @references
-#' Piironen J, Vehtari A. (2017). On the hyperprior choice for the
-#' global shrinkage parameter in the horseshoe prior.
-#' In *Artificial intelligence and statistics* (pp. 905-913).
-#' Proceedings of the 20th International Conference on Artificial
-#' Intelligence and Statistics.
 #'
 #' @examples
 #' ## create a COVID covariate
@@ -553,6 +633,7 @@ set_var_time <- function(mod, name) {
 #' @seealso
 #' - [fit()] Fit a model
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
+#' - [reset_seeds()] Reset random seeds
 #' - Functions such as [set_prior()], [set_disp()] and
 #'   [set_var_age()] unfit models as side effects.
 #'

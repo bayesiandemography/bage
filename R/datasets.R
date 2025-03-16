@@ -26,7 +26,8 @@
 
 #' Births in South Korea
 #'
-#' Births by age of mother, region, and calendar year,
+#' Births and mid-year population by age of mother,
+#' region, and calendar year,
 #' 2011-2023, plus regional data on GDP per capita and
 #' population density.
 #'
@@ -165,6 +166,32 @@
 #' on the Statistics New Zealand website.
 #' Data downloaded on 1 January 2023.
 "nzl_injuries"
+
+
+#' Deaths in Portugal
+#'
+#' Deaths and exposure in Portugal, by age, sex, and year.
+#'
+#' The data are from the Human Mortality Database. Deaths are
+#' rounded to the nearest integer.  More recent versions,
+#' and a comprehensive description of the data,
+#' are available at the HMD website.
+#'
+#' @format
+#' A [tibble][tibble::tibble-package]
+#' with 3,168 rows and the following columns:
+#'
+#' - `age`: Age groups `"0"`, `"1-4"`, "5-9", ..., `"95-99"`, `"100+"`
+#' - `sex`: `"Female"` or `"Male"`
+#' - `time`: Calendar year
+#' - `deaths`: Count of deaths
+#' - `exposure`: Person-years lived by population
+#'
+#' @source Human Mortality Database. University of California, Berkeley (USA),
+#' and Max Planck Institute for Demographic Research (Germany).
+#' Available at \url{www.mortality.org} or \url{www.humanmortality.de}
+#' (data downloaded on 17 July 2018).
+"prt_deaths"
 
 
 #' Infant Mortality in Sweden

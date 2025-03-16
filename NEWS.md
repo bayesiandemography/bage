@@ -1,3 +1,16 @@
+
+# bage 0.10.0
+
+## Changes to interface
+
+* Added function `set_covariates()`. Models can now include
+  covariates. Covariates are predictors other than the
+  cross-classifying dimensions such as age, sex, or time -- though
+  covariates can be formed from these dimensions.
+* Added variables `gdp_pc_2023` and `dens_2020` to dataset
+  `kor_births`.
+  
+  
 # bage 0.9.0
 
 * From 0.9.0 onwards we will use a formal deprecation make any

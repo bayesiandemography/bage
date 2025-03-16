@@ -143,46 +143,6 @@ check_covariates_formula <- function(formula, mod) {
 }
 
 
-
-## HAS_TESTS
-#' Check that Selected Rows within Data Frame
-#' do not have Duplicates
-#'
-#' Check that values in a subset of columns of
-#' data frame `x` are unique. Can be used as
-#' a validity check for cross-classifying
-#' variables. 
-#'
-#' @param x A data frame.
-#' @param nm_x The name for `x` to be used in
-#' error messages.
-#' @param nms_cols A character vector giving the
-#' names of the variables within `x` to be checked.
-#'
-#' @returns `TRUE`, invisibly.
-#'
-#' @examples
-#' x <- data.frame(a = 1:2, b = c("a", "a"), x = c(0.2, -0.1))
-#' check_duplicated_rows(x = x,
-#'                       nm_x = "x",
-#'                       nms_cols = c("a", "b"))
-#' @noRd
-check_duplicated_rows <- function(x, nm_x, nms_cols) {
-    vals_cols <- x[nms_cols]
-    is_dup <- duplicated(vals_cols)
-    i_dup <- match(TRUE, is_dup, nomatch = 0L)
-    if (i_dup > 0L) {
-        str_key <- make_str_key(vals_cols[i_dup, nms_cols, drop = FALSE])
-        n <- length(nms_cols)
-        cli::cli_abort(c(paste("{.arg {nm_x}} has two rows with same {cli::qty(n)} value{?s}",
-                               "for {.var {nms_cols}}."),
-                         i = paste("Duplicated {cli::qty(n)} value{?s}:", str_key)))
-    }
-    invisible(TRUE)
-}
-
-
-
 ## HAS_TESTS
 #' Check that 'est' Object Returned by TMB has No NAs
 #'
@@ -466,28 +426,6 @@ check_is_ssvd <- function(x, nm_x) {
 
 
 ## HAS_TESTS
-#' Check that Along Dimension of Interaction has at Least 'min' Elements
-#'
-#' @param n_along Number of elements
-#' @param min Minimum number of elements
-#' @param nm Name of term
-#' @param prior Object of class 'bage_prior'
-#'
-#' @returns TRUE, invisibly
-#'
-#' @noRd
-check_n_along_ge <- function(n_along, min, nm, prior) {
-  if (n_along < min)
-    cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
-                           "used for {.var {nm}} term."),
-                     i = paste("{.var {str_call_prior(prior)}} prior can only be",
-                               "used with interactions where the 'along' dimension has at least {min} element{?s}."),
-                     i = "The 'along' dimension of {.var {nm}} has {n_along} element{?s}."))
-  invisible(TRUE)
-}
-
-
-## HAS_TESTS
 #' Check that term has has least 'min' elements
 #'
 #' @param length_effect Number of elements
@@ -632,6 +570,74 @@ check_mod_has_obs <- function(mod) {
   }
   invisible(TRUE)
 }
+
+
+## HAS_TESTS
+#' Check that Along Dimension of Interaction has at Least 'min' Elements
+#'
+#' @param n_along Number of elements
+#' @param min Minimum number of elements
+#' @param nm Name of term
+#' @param prior Object of class 'bage_prior'
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_n_along_ge <- function(n_along, min, nm, prior) {
+  if (n_along < min)
+    cli::cli_abort(c(paste("{.var {str_call_prior(prior)}} prior cannot be",
+                           "used for {.var {nm}} term."),
+                     i = paste("{.var {str_call_prior(prior)}} prior can only be",
+                               "used with interactions where the 'along' dimension has at least {min} element{?s}."),
+                     i = "The 'along' dimension of {.var {nm}} has {n_along} element{?s}."))
+  invisible(TRUE)
+}
+
+
+## HAS_TESTS
+#' Check that 'new_seeds' is List of Numeric Scalars with Correct Names
+#'
+#' @param new_seeds A named list of numeric scalars.
+#'
+#' @returns TRUE, invisibly
+#'
+#' @noRd
+check_new_seeds <- function(new_seeds) {
+  if (!is.null(new_seeds)) {
+    nms_expected <- c("seed_stored_draws",
+                      "seed_components",
+                      "seed_augment",
+                      "seed_forecast_components",
+                      "seed_forecast_augment")
+    if (!is.list(new_seeds))
+      cli::cli_abort(c("{.arg new_seeds} is not a list.",
+                       i = "{.arg new_seeds} has class {.cls {class(new_seeds)}}."))
+    if (!identical(length(new_seeds), 5L))
+      cli::cli_abort(c("{.arg new_seeds} does not have 5 elements.",
+                       i = "{.arg new_seeds} has {length(new_seeds)} element{?s}."))
+    nms_seeds <- names(new_seeds)
+    if (is.null(nms_seeds))
+      cli::cli_abort("{.arg new_seeds} does not have names.")
+    if (!setequal(nms_seeds, nms_expected))
+      cli::cli_abort(c("{.arg new_seeds} does not have expected names.",
+                       i = "Names supplied: {.val {nms_seeds}}.",
+                       i = "Names expected: {.val {nms_expected}}."))
+    is_numeric <- vapply(new_seeds, is.numeric, TRUE)
+    i_not_numeric <- match(FALSE, is_numeric, nomatch = 0L)
+    if (i_not_numeric > 0L)
+      cli::cli_abort(c("{.arg new_seeds} has non-numeric element.",
+                       i = paste("Element {.val {nms_seeds[[i_not_numeric]]}} has class",
+                                 "{.cls {class(new_seeds[[i_not_numeric]])}}.")))
+    is_length_1 <- lengths(new_seeds) == 1L
+    i_not_length_1 <- match(FALSE, is_length_1, nomatch = 0L)
+    if (i_not_length_1 > 0L)
+      cli::cli_abort(c("{.arg new_seeds} has element not of length 1.",
+                       i = paste("Element {.val {nms_seeds[[i_not_length_1]]}} has length",
+                                 "{length(new_seeds[[i_not_length_1]])}.")))
+  }
+  invisible(TRUE)
+}
+ 
 
 
 ## HAS_TESTS
