@@ -214,28 +214,6 @@ test_that("'check_covariates_formula' throws the correct error when 'formula' in
 })
 
 
-## 'check_duplicated_rows' ----------------------------------------------------
-
-test_that("'check_duplicated_rows' returns TRUE with valid input", {
-    x <- data.frame(age = 80:81, sex = c("F", "F"))
-    expect_true(check_duplicated_rows(x = x, nm_x = "x", nms_cols = c("age", "sex")))
-    expect_true(check_duplicated_rows(data.frame()))
-})
-
-
-test_that("'check_duplicated_rows' throws expected error when duplicate 'by' variable", {
-    x <- data.frame(ex = 80:81, sex = c("F", "F"), beta = c(0.9, 1.1))
-    expect_error(check_duplicated_rows(x, nm_x = "target", nms_cols = "sex"),
-                 "`target` has two rows with same value for `sex`.")
-})
-
-test_that("'check_duplicated_rows' throws expected error when duplicate 'by' variables", {
-    x <- data.frame(ex = 80:81, sex = c("F", "F"), reg = c(1, 1), beta = c(0.9, 1.1))
-    expect_error(check_duplicated_rows(x, nm_x = "target", nms_cols = c("sex", "reg")),
-                 "`target` has two rows with same values for `sex` and `reg`.")
-})
-
-
 ## 'check_est' ----------------------------------------------------------------
 
 test_that("'check_est' returns TRUE with valid inputs", {
@@ -486,24 +464,6 @@ test_that("'check_is_ssvd' works with valid inputs", {
 })
 
 
-## 'check_n_along_ge' ---------------------------------------------------------
-
-test_that("'check_n_along_ge' returns TRUE with valid inputs", {
-  expect_true(check_n_along_ge(n_along = 10L,
-                               min = 3L,
-                               nm = "age:sex",
-                               prior = Lin()))
-})
-
-test_that("'check_n_along_ge' throws correct error with length less than min", {
-  expect_error(check_n_along_ge(n_along = 1L,
-                                min = 2L,
-                                nm = "age:sex",
-                                prior = Lin()),
-               "`Lin\\(\\)` prior cannot be used for `age:sex` term.")                
-})
-
-
 ## 'check_length_effect_ge' ------------------------------------------------------
 
 test_that("'check_length_effect_ge' returns TRUE with valid inputs", {
@@ -699,6 +659,81 @@ test_that("'check_min_max_ar' returns correct error with max < 1.0001", {
 test_that("'check_min_max_ar' returns correct error with max <= min", {
     expect_error(check_min_max_ar(min = 0, max = 0),
                  "`max` is less than or equal to `min`.")
+})
+
+
+## 'check_n_along_ge' ---------------------------------------------------------
+
+test_that("'check_n_along_ge' returns TRUE with valid inputs", {
+  expect_true(check_n_along_ge(n_along = 10L,
+                               min = 3L,
+                               nm = "age:sex",
+                               prior = Lin()))
+})
+
+test_that("'check_n_along_ge' throws correct error with length less than min", {
+  expect_error(check_n_along_ge(n_along = 1L,
+                                min = 2L,
+                                nm = "age:sex",
+                                prior = Lin()),
+               "`Lin\\(\\)` prior cannot be used for `age:sex` term.")                
+})
+
+
+## 'check_new_seeds' ----------------------------------------------------------
+
+test_that("'check_new_seeds works with valid inputs", {
+  expect_true(check_new_seeds(NULL))
+  expect_true(check_new_seeds(list(seed_stored_draws = 1,
+                                   seed_components = 2,
+                                   seed_augment = 3,
+                                   seed_forecast_components = 4,
+                                   seed_forecast_augment = 5)))
+})
+
+test_that("'check_new_seeds' throws correct error with non-NULL, non-list", {
+  expect_error(check_new_seeds(1),
+               "`new_seeds` is not a list.")
+})
+
+test_that("'check_new_seeds' throws correct error with wrong number of elements", {
+  expect_error(check_new_seeds(list(seed_stored_draws = 1,
+                                    seed_components = 2,
+                                    seed_augment = 3,
+                                    seed_forecast_components = 4)),
+               "`new_seeds` does not have 5 elements.")
+})
+
+test_that("'check_new_seeds' throws correct error with no names", {
+  expect_error(check_new_seeds(list(1, 2, 3, 4, 5)),
+               "`new_seeds` does not have names.")
+})
+
+test_that("'check_new_seeds' throws correct error with wrong names", {
+  expect_error(check_new_seeds(list(seed_stored_draws = 1,
+                                    seed_components = 2,
+                                    wrong = 3,
+                                    seed_forecast_components = 4,
+                                    seed_forecast_augment = 5)),
+               "`new_seeds` does not have expected names.")
+})
+
+test_that("'check_new_seeds' throws correct error with non-numeric", {
+  expect_error(check_new_seeds(list(seed_stored_draws = 1,
+                                    seed_components = 2,
+                                    seed_augment = 3,
+                                    seed_forecast_components = "4",
+                                    seed_forecast_augment = 5)),
+               "`new_seeds` has non-numeric element.")
+})
+
+test_that("'check_new_seeds' throws correct error with element not length 1", {
+  expect_error(check_new_seeds(list(seed_stored_draws = 1,
+                                    seed_components = 2,
+                                    seed_augment = 3,
+                                    seed_forecast_components = integer(),
+                                    seed_forecast_augment = 5)),
+               "`new_seeds` has element not of length 1.")
 })
 
 
