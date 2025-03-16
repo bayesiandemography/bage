@@ -108,7 +108,7 @@ if (FALSE) {
     set_disp(mean = 0.05) |>
     set_covariates(~ income + is_2024_male)
   
-  rep <- report_sim(mod_est = mod_est, n_sim = 1000, n_core = 10, report = "long")
+  rep <- report_sim(mod_est = mod_est, n_sim = 1000, n_core = 10)
   
 }
 

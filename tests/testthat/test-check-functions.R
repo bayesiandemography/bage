@@ -684,11 +684,10 @@ test_that("'check_n_along_ge' throws correct error with length less than min", {
 
 test_that("'check_new_seeds works with valid inputs", {
   expect_true(check_new_seeds(NULL))
-  expect_true(check_new_seeds(list(seed_stored_draws = 1,
-                                   seed_components = 2,
-                                   seed_augment = 3,
-                                   seed_forecast_components = 4,
-                                   seed_forecast_augment = 5)))
+  expect_true(check_new_seeds(list(seed_components = 1,
+                                   seed_augment = 2,
+                                   seed_forecast_components = 3,
+                                   seed_forecast_augment = 4)))
 })
 
 test_that("'check_new_seeds' throws correct error with non-NULL, non-list", {
@@ -697,21 +696,19 @@ test_that("'check_new_seeds' throws correct error with non-NULL, non-list", {
 })
 
 test_that("'check_new_seeds' throws correct error with wrong number of elements", {
-  expect_error(check_new_seeds(list(seed_stored_draws = 1,
-                                    seed_components = 2,
+  expect_error(check_new_seeds(list(seed_components = 2,
                                     seed_augment = 3,
                                     seed_forecast_components = 4)),
-               "`new_seeds` does not have 5 elements.")
+               "`new_seeds` does not have 4 elements.")
 })
 
 test_that("'check_new_seeds' throws correct error with no names", {
-  expect_error(check_new_seeds(list(1, 2, 3, 4, 5)),
+  expect_error(check_new_seeds(list(1, 2, 3, 4)),
                "`new_seeds` does not have names.")
 })
 
 test_that("'check_new_seeds' throws correct error with wrong names", {
-  expect_error(check_new_seeds(list(seed_stored_draws = 1,
-                                    seed_components = 2,
+  expect_error(check_new_seeds(list(seed_components = 2,
                                     wrong = 3,
                                     seed_forecast_components = 4,
                                     seed_forecast_augment = 5)),
@@ -719,8 +716,7 @@ test_that("'check_new_seeds' throws correct error with wrong names", {
 })
 
 test_that("'check_new_seeds' throws correct error with non-numeric", {
-  expect_error(check_new_seeds(list(seed_stored_draws = 1,
-                                    seed_components = 2,
+  expect_error(check_new_seeds(list(seed_components = 2,
                                     seed_augment = 3,
                                     seed_forecast_components = "4",
                                     seed_forecast_augment = 5)),
@@ -728,8 +724,7 @@ test_that("'check_new_seeds' throws correct error with non-numeric", {
 })
 
 test_that("'check_new_seeds' throws correct error with element not length 1", {
-  expect_error(check_new_seeds(list(seed_stored_draws = 1,
-                                    seed_components = 2,
+  expect_error(check_new_seeds(list(seed_components = 2,
                                     seed_augment = 3,
                                     seed_forecast_components = integer(),
                                     seed_forecast_augment = 5)),

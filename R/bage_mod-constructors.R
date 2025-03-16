@@ -456,7 +456,6 @@ mod_helper <- function(formula, data, n_draw) {
                         var_age = var_age,
                         var_time = var_time,
                         lengths_effect = lengths_effect)
-  seed_stored_draws <- make_seed()
   seed_components <- make_seed()
   seed_augment <- make_seed()
   seed_forecast_components <- make_seed()
@@ -486,7 +485,6 @@ mod_helper <- function(formula, data, n_draw) {
        point_hyperrandfree = NULL,
        point_coef_covariates = NULL,
        point_disp = NULL,
-       seed_stored_draws = seed_stored_draws,
        seed_components = seed_components,
        seed_augment = seed_augment,
        seed_forecast_components = seed_forecast_components,

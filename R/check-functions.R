@@ -604,16 +604,15 @@ check_n_along_ge <- function(n_along, min, nm, prior) {
 #' @noRd
 check_new_seeds <- function(new_seeds) {
   if (!is.null(new_seeds)) {
-    nms_expected <- c("seed_stored_draws",
-                      "seed_components",
+    nms_expected <- c("seed_components",
                       "seed_augment",
                       "seed_forecast_components",
                       "seed_forecast_augment")
     if (!is.list(new_seeds))
       cli::cli_abort(c("{.arg new_seeds} is not a list.",
                        i = "{.arg new_seeds} has class {.cls {class(new_seeds)}}."))
-    if (!identical(length(new_seeds), 5L))
-      cli::cli_abort(c("{.arg new_seeds} does not have 5 elements.",
+    if (!identical(length(new_seeds), length(nms_expected)))
+      cli::cli_abort(c("{.arg new_seeds} does not have {length(nms_expected)} elements.",
                        i = "{.arg new_seeds} has {length(new_seeds)} element{?s}."))
     nms_seeds <- names(new_seeds)
     if (is.null(nms_seeds))
