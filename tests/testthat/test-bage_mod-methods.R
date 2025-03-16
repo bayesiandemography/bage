@@ -2383,7 +2383,7 @@ test_that("'replicate_data' works with mod_pois", {
 })
 
 test_that("'replicate_data' works with mod_pois, rr3 data model", {
-    set.seed(0)
+    set.seed(10)
     data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
     data$popn <- rpois(n = nrow(data), lambda = 100)
     data$deaths <- 3 * rpois(n = nrow(data), lambda = 0.1 * data$popn)

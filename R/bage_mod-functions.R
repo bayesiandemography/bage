@@ -2,7 +2,7 @@
 ## User-visible functions that look like methods, but technically are not
 
 
-## 'reset_seeds' --------------------------------------------------------------
+## 'set_seeds' --------------------------------------------------------------
 
 ## HAS_TESTS
 #' Reset Random Seeds in Model Object
@@ -12,31 +12,29 @@
 #' the new seeds are generated randomly; otherwise
 #' they are taken from `new_seeds`.
 #'
-#' An object of class `"bage_mod"`
-#' includes 5 random seeds:
+#' When an object of class `"bage_mod"` is first created,
+#' values are generated four four random seeds:
 #'
-#' - `seed_stored_draws`
 #' - `seed_components`
 #' - `seed_augment`
 #' - `seed_forecast_components`
 #' - `seed_forecast_augment`
 #'
-#' When functions [fit()], [component()], [augment()],
-#' and [forecast()] are called, these seeds are used internally
-#' to make sure that that the same inputs always give the
-#' same outputs, even though the outputs are generated
-#' using random draws.
+#' When [fit()], [components()], [augment()],
+#' and [forecast()] are called on the model object,
+#' the seeds are used internally to ensure that
+#' he same inputs generate the same outputs, even
+#' when the outputs involve random draws.
 #'
-#' `reset_seeds()` is not often called by end-users,
-#' though it can occasionally be useful, such as when
-#' creating simulations.
-#' 
+#' End users are unlikely to call `set_seeds()` in
+#' a data analysis, though it may occasionally by useful
+#' when building a simulation from scratch.
+#'
 #' @param mod An object of class `"bage_mod"`,
 #' created with [mod_pois()],
 #' [mod_binom()], or [mod_norm()].
 #' @param new_seeds `NULL` (the default) or a list
-#' of integers. This list must have names
-#' `"seed_stored_draws"`, `"seed_components"`,
+#' of integers with names `"seed_components"`
 #' `"seed_augment"`, `"seed_forecast_components"`,
 #' and `"seed_forecast_augment"`.
 #'
@@ -44,7 +42,7 @@
 #'
 #' @seealso
 #' - [report_sim()] Do a simulation study. (`report_sim()`
-#'   calls `reset_seeds()` internally.)
+#'   calls `set_seeds()` internally.)
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
 #' - [fit()] Fit a model
 #' - [unfit()] Reset model, deleting estimates
@@ -63,15 +61,21 @@
 #' components(mod)
 #'
 #' ## reset seeds
-#' mod <- reset_seeds(mod)
+#' mod <- set_seeds(mod)
 #'
-#' ## call 'components()' again - different results
+#' ## calling 'set_seeds' unfits the model
+#' is_fitted(mod)
+#'
+#' ## so we fit it again
+#' mod <- fit(mod)
+#'
+#' ## when we call components, we get
+#' ## different results from earlier
 #' components(mod)
 #' @export
-reset_seeds <- function(mod, new_seeds = NULL) {
+set_seeds <- function(mod, new_seeds = NULL) {
   check_bage_mod(x = mod, nm_x = "mod")
   if (is.null(new_seeds)) {
-    mod$seed_stored_draws <- make_seed()
     mod$seed_components <- make_seed()
     mod$seed_augment <- make_seed()
     mod$seed_forecast_components <- make_seed()
@@ -79,20 +83,20 @@ reset_seeds <- function(mod, new_seeds = NULL) {
   }
   else {
     check_new_seeds(new_seeds)
-    mod$seed_stored_draws <- new_seeds$stored_draws
-    mod$seed_components <- new_seeds$components
-    mod$seed_augment <- new_seeds$augment
-    mod$seed_forecast_components <- new_seeds$forecast_components
-    mod$seed_forecast_augment <- new_seeds$forecast_augment
+    mod$seed_components <- new_seeds$seed_components
+    mod$seed_augment <- new_seeds$seed_augment
+    mod$seed_forecast_components <- new_seeds$seed_forecast_components
+    mod$seed_forecast_augment <- new_seeds$seed_forecast_augment
   }
+  mod <- unfit(mod)
   mod
 }
 
-  
+
 ## 'set_covariates' -----------------------------------------------------------
 
 ## HAS_TESTS
-#' Specify Covariates 
+#' Specify Covariates
 #'
 #' Add covariates to a model.
 #'
@@ -112,7 +116,7 @@ reset_seeds <- function(mod, new_seeds = NULL) {
 #'   For instance, variable `x` with categories `"high"`, `"medium"`, and `"low"`,
 #'   is converted into two indicator variables, one called `xmedium` and one
 #'   called `xlow`.
-#' 
+#'
 #' @section Mathematical details:
 #'
 #' When a model includes covariates, the quantity
@@ -270,7 +274,7 @@ set_datamod_outcome_rr3 <- function(mod) {
 #' - [set_prior()] Specify prior for a term
 #' - [set_n_draw()] Specify the number of draws
 #' - [is_fitted()] Test whether a model is fitted
-#' 
+#'
 #' @examples
 #' mod <- mod_pois(injuries ~ age:sex + ethnicity + year,
 #'                 data = nzl_injuries,
@@ -308,12 +312,12 @@ set_disp <- function(mod, mean) {
 #' the old value, and the model has already been fitted,
 #' then the model is [unfitted][unfit()], and
 #' function [fit()] may need to be called again.
-#' 
+#'
 #' @inheritParams set_datamod_outcome_rr3
 #' @param n_draw Number of draws.
 #'
 #' @returns A `bage_mod` object
-#' 
+#'
 #' @seealso
 #' - [bage::augment()], [bage::components()] functions for
 #'   drawing from prior or posterior distribution - the output
@@ -352,7 +356,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
     }
     if (n_draw < n_draw_old) {
       s <- seq_len(n_draw)
-      mod$draws_effectfree <- mod$draws_effectfree[, s, drop = FALSE] 
+      mod$draws_effectfree <- mod$draws_effectfree[, s, drop = FALSE]
       mod$draws_hyper <- mod$draws_hyper[, s, drop = FALSE]
       mod$draws_hyperrandfree <- mod$draws_hyperrandfree[, s, drop = FALSE]
       if (has_disp(mod))
@@ -375,7 +379,7 @@ set_n_draw <- function(mod, n_draw = 1000L) {
 #' If `set_prior()` is applied to
 #' a fitted model, it 'unfits'
 #' the model, deleting existing estimates.
-#' 
+#'
 #' @param mod A `bage_mod` object, created with
 #' [mod_pois()], [mod_binom()], or [mod_norm()].
 #' @param formula A formula giving the term
@@ -445,7 +449,7 @@ set_prior <- function(mod, formula) {
 #'
 #' In an R \code{\link{formula}}, a 'variable' is different
 #' from a 'term'. For instance,
-#' 
+#'
 #' `~ age + region + age:region`
 #'
 #' contains variables `age` and `region`,
@@ -459,7 +463,7 @@ set_prior <- function(mod, formula) {
 #' If `set_var_age()` is applied to
 #' a fitted model, it 'unfits'
 #' the model, deleting existing estimates.
-#' 
+#'
 #' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the age variable.
 #'
@@ -471,7 +475,7 @@ set_prior <- function(mod, formula) {
 #' - [is_fitted()] Test whether a model is fitted
 #' - internally, **bage** uses [poputils::find_var_age()]
 #'   to locate age variables
-#' 
+#'
 #' @examples
 #' ## rename 'age' variable to something unusual
 #' injuries2 <- nzl_injuries
@@ -508,7 +512,7 @@ set_var_age <- function(mod, name) {
 #'
 #' In an R \code{\link{formula}}, a 'variable' is different
 #' from a 'term'. For instance,
-#' 
+#'
 #' `~ gender + region + gender:region`
 #'
 #' contains variables `gender` and `region`,
@@ -517,7 +521,7 @@ set_var_age <- function(mod, name) {
 #' If `set_var_sexgender()` is applied to
 #' a fitted model, it 'unfits'
 #' the model, deleting existing estimates.
-#' 
+#'
 #' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the sex or gender variable.
 #'
@@ -533,7 +537,7 @@ set_var_age <- function(mod, name) {
 #'   to locate female categories within a sex or gender variable
 #' - internally, **bage** uses [poputils::find_label_male()]
 #'   to locate male categories within a sex or gender variable
-#' 
+#'
 #' @examples
 #' ## rename 'sex' variable to something unexpected
 #' injuries2 <- nzl_injuries
@@ -568,7 +572,7 @@ set_var_sexgender <- function(mod, name) {
 #'
 #' In an R \code{\link{formula}}, a 'variable' is different
 #' from a 'term'. For instance,
-#' 
+#'
 #' `~ time + region + time:region`
 #'
 #' contains variables `time` and `region`,
@@ -582,7 +586,7 @@ set_var_sexgender <- function(mod, name) {
 #' If `set_var_time()` is applied to
 #' a fitted model, it 'unfits'
 #' the model, deleting existing estimates.
-#' 
+#'
 #' @inheritParams set_datamod_outcome_rr3
 #' @param name The name of the time variable.
 #'
@@ -633,7 +637,7 @@ set_var_time <- function(mod, name) {
 #' @seealso
 #' - [fit()] Fit a model
 #' - [mod_pois()], [mod_binom()], [mod_norm()] Specify a model
-#' - [reset_seeds()] Reset random seeds
+#' - [set_seeds()] Reset random seeds
 #' - Functions such as [set_prior()], [set_disp()] and
 #'   [set_var_age()] unfit models as side effects.
 #'
@@ -679,7 +683,7 @@ unfit <- function(mod) {
 #' Called by user-visible functions
 #' 'set_var_age', 'set_var_sexgender',
 #' and 'set_var_time'.
-#' 
+#'
 #' @param mod A `bage_mod` object.
 #' @param name The name of the variable.
 #' @param var "age", "sexgender", or "time"
@@ -729,7 +733,7 @@ set_var_inner <- function(mod, name, var) {
   if (has_name_old) {
     length_effect_old <- lengths_effects[[name_old]]
     priors[[name_old]] <- default_prior(nm_term = name_old,
-                                        var_age = var_age, 
+                                        var_age = var_age,
                                         var_time = var_time,
                                         length_effect = length_effect_old)
   }

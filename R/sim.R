@@ -1233,6 +1233,7 @@ report_sim <- function(mod_est,
     perform_aug <- utils::getFromNamespace("perform_aug", ns = "bage")
     outcome <- outcome_obs_sim[, i_sim]
     mod_est$outcome <- outcome
+    mod_est <- set_seeds(mod_est)
     mod_est <- fit(mod_est, method = method, vars_inner = vars_inner)
     comp_est <- components(mod_est)
     aug_est <- augment(mod_est)

@@ -1,7 +1,7 @@
 
-## 'reset_seeds' --------------------------------------------------------------
+## 'set_seeds' --------------------------------------------------------------
 
-test_that("'reset_seeds' works with NULL", {
+test_that("'set_seeds' works with NULL", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- rpois(n = nrow(data), lambda = 3)
@@ -14,12 +14,36 @@ test_that("'reset_seeds' works with NULL", {
   aug1 <- augment(mod)
   aug2 <- augment(mod)
   expect_identical(aug1, aug2)
-  mod <- reset_seeds(mod)
+  comp1 <- components(mod)
+  comp2 <- components(mod)
+  expect_identical(comp1, comp2)
+  faug1 <- forecast(mod, labels = 2002)
+  faug2 <- forecast(mod, labels = 2002)
+  expect_identical(faug1, faug2)
+  comp1 <- components(mod)
+  comp2 <- components(mod)
+  expect_identical(comp1, comp2)
+  fcomp1 <- forecast(mod, labels = 2002, output = "comp")
+  fcomp2 <- forecast(mod, labels = 2002, output = "comp")
+  expect_identical(fcomp1, fcomp2)
+  mod <- set_seeds(mod)
+  expect_false(is_fitted(mod))
+  mod <- fit(mod)
   aug3 <- augment(mod)
   expect_false(identical(aug1, aug3))
+  comp3 <- components(mod)
+  expect_false(identical(comp1, comp3))
+  comp4 <- components(mod)
+  expect_identical(comp3, comp4)
+  faug3 <- forecast(mod, labels = 2002)
+  expect_false(identical(faug1, faug3))
+  fcomp3 <- forecast(mod, labels = 2002, output = "comp")
+  expect_false(identical(fcomp1, fcomp3))
+  fcomp4 <- forecast(mod, labels = 2002, output = "comp")
+  expect_identical(fcomp3, fcomp4)
 })
 
-test_that("'reset_seeds' works with list", {
+test_that("'set_seeds' works with list", {
   data <- expand.grid(age = 0:2, time = 2000:2001, sex = 1:2)
   data$popn <- seq_len(nrow(data))
   data$deaths <- rpois(n = nrow(data), lambda = 3)
@@ -32,16 +56,25 @@ test_that("'reset_seeds' works with list", {
   aug1 <- augment(mod)
   aug2 <- augment(mod)
   expect_identical(aug1, aug2)
-  mod <- reset_seeds(mod,
-                     new_seeds = list(seed_stored_draws = 1,
-                                      seed_components = 2,
-                                      seed_augment = 3,
-                                      seed_forecast_components = 4,
-                                      seed_forecast_augment = 5))
+  comp1 <- components(mod)
+  comp2 <- components(mod)
+  expect_identical(comp1, comp2)
+  mod <- set_seeds(mod,
+                     new_seeds = list(seed_components = 1,
+                                      seed_augment = 2,
+                                      seed_forecast_components = 3,
+                                      seed_forecast_augment = 4))
+  expect_false(is_fitted(mod))
+  mod <- fit(mod)
   aug3 <- augment(mod)
   expect_false(identical(aug1, aug3))
+  comp3 <- components(mod)
+  expect_false(identical(comp1, comp3))
+  expect_identical(mod$seed_components, 1)
+  expect_identical(mod$seed_augment, 2)
+  expect_identical(mod$seed_forecast_components, 3)
+  expect_identical(mod$seed_forecast_augment, 4)
 })
-
 
 
 ## 'set_covariates' -----------------------------------------------------------

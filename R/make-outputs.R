@@ -1994,7 +1994,7 @@ rescale_lin_intercept <- function(slope, effect, matrix_along_by) {
 #' - 'draws_hyperrandfree', and, optionally,
 #' - 'draws_disp'.
 #'
-#' Reproducibility is achieved via 'seed_stored_draws'.
+#' Reproducibility is achieved via 'seed_components'.
 #'
 #' @param mod A fitted 'bage_mod' object
 #'
@@ -2004,9 +2004,9 @@ rescale_lin_intercept <- function(slope, effect, matrix_along_by) {
 make_stored_draws <- function(mod, est, prec, map) {
   n_draw <- mod$n_draw
   transforms_hyper <- make_transforms_hyper(mod)
-  seed_stored_draws <- mod$seed_stored_draws
+  seed_components <- mod$seed_components
   seed_restore <- make_seed() ## create randomly-generated seed
-  set.seed(seed_stored_draws) ## set pre-determined seed
+  set.seed(seed_components) ## set pre-determined seed
   draws_post <- make_draws_post(est = est,
                                 prec = prec,
                                 map = map,
