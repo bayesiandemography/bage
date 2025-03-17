@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,7 @@
     <li><a class="dropdown-item" href="../articles/vig6_mortality.html">6. Modelling Mortality</a></li>
     <li><a class="dropdown-item" href="../articles/vig7_simulation.html">7. Simulation</a></li>
     <li><a class="dropdown-item" href="../articles/vig8_workflow.html">8. Bayesian Workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/vig9_covariates.html">9. Covariates</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -44,7 +45,25 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.9.0" id="bage-090">bage 0.9.0<a class="anchor" aria-label="anchor" href="#bage-090"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.9.1" id="bage-091">bage 0.9.1<a class="anchor" aria-label="anchor" href="#bage-091"></a></h2>
+<div class="section level3">
+<h3 id="changes-to-interface-0-9-1">Changes to interface<a class="anchor" aria-label="anchor" href="#changes-to-interface-0-9-1"></a></h3>
+<ul><li>Added function <code><a href="../reference/set_covariates.html">set_covariates()</a></code>. Models can now include covariates. Covariates are predictors other than the cross-classifying dimensions such as age, sex, or time – though covariates can be formed from these dimensions.</li>
+<li>Added variables <code>gdp_pc_2023</code> and <code>dens_2020</code> to dataset <code>kor_births</code>.</li>
+<li>Added <code>prt_deaths</code> dataset.</li>
+<li>Added <code><a href="../reference/set_seeds.html">set_seeds()</a></code> function, allowing users to reset random seeds (though this would be uncommon in normal use.)</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-documentation-0-9-1">Changes to documentation<a class="anchor" aria-label="anchor" href="#changes-to-documentation-0-9-1"></a></h3>
+<ul><li>Added covariates vignette.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-to-internal-calculations-0-9-1">Changes to internal calculations<a class="anchor" aria-label="anchor" href="#changes-to-internal-calculations-0-9-1"></a></h3>
+<ul><li>More careful handling of <code>NA</code>s in offset and predictor variables.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.0" id="bage-090">bage 0.9.0<a class="anchor" aria-label="anchor" href="#bage-090"></a></h2><p class="text-muted">CRAN release: 2025-01-08</p>
 <ul><li>From 0.9.0 onwards we will use a formal deprecation make any breaking changes</li>
 <li>Tweaks to printing of <code>"bage_mod"</code> objects</li>
 <li>Started vignette replicating analyses from the book <em>Bayesian Demographic Estimation and Forecasting</em>
@@ -58,7 +77,9 @@
 <li>Added a warning if the calculations do not converge</li>
 <li>Modified the printout for <code>"bage_mod"</code> objects to show the time spent by <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">TMB::sdreport</a></code> rather than the time spent by drawing from the multivariate normal (which, since <strong>bage</strong> started using <strong>sparseMVN</strong>, is very short).</li>
 <li>Finished vignette 1.</li>
-<li>Corrected error in help for <code>kor_births</code>.</li>
+<li>Added covariates</li>
+<li>Added <code>gdp_pc_2023</code> and <code>dens_2020</code> variables to <code>kor_births</code>
+</li>
 </ul></div>
 </div>
     <div class="section level2">

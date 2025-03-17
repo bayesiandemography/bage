@@ -11,6 +11,7 @@
 <url><loc>https://bayesiandemography.github.io/bage/articles/vig6_mortality.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/articles/vig7_simulation.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/articles/vig8_workflow.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/articles/vig9_covariates.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/authors.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/index.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/news/index.html</loc></url>
@@ -56,13 +57,16 @@
 <url><loc>https://bayesiandemography.github.io/bage/reference/nzl_injuries.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/print.bage_mod.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/priors.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/prt_deaths.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/reexports.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/replicate_data.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/report_sim.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/set_covariates.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_datamod_outcome_rr3.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_disp.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_n_draw.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_prior.html</loc></url>
+<url><loc>https://bayesiandemography.github.io/bage/reference/set_seeds.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_var_age.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_var_sexgender.html</loc></url>
 <url><loc>https://bayesiandemography.github.io/bage/reference/set_var_time.html</loc></url>

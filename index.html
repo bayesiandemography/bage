@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="articles/vig6_mortality.html">6. Modelling Mortality</a></li>
     <li><a class="dropdown-item" href="articles/vig7_simulation.html">7. Simulation</a></li>
     <li><a class="dropdown-item" href="articles/vig8_workflow.html">8. Bayesian Workflow</a></li>
+    <li><a class="dropdown-item" href="articles/vig9_covariates.html">9. Covariates</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -70,8 +71,7 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"bage"</span><span class="op">)</span> <span class="co">## CRAN version</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bayesiandemography/bage"</span><span class="op">)</span> <span class="co">## development version</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"bage"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
@@ -100,10 +100,10 @@
 <span><span class="co">#&gt;  disp: mean = 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  n_draw var_time var_age var_sexgender optimizer</span></span>
-<span><span class="co">#&gt;    1000     year     age           sex     multi</span></span>
+<span><span class="co">#&gt;    1000     year     age           sex    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        1.04       0.31        0.30   11      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        1.69       0.70        0.57   11      TRUE   relative convergence (4)</span></span></code></pre></div>
 <p>Extract model-based and direct estimates</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/augment.html" class="external-link">augment</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>

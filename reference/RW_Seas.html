@@ -15,7 +15,7 @@ Typically used with terms that involve time."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@ Typically used with terms that involve time."></head><body>
     <li><a class="dropdown-item" href="../articles/vig6_mortality.html">6. Modelling Mortality</a></li>
     <li><a class="dropdown-item" href="../articles/vig7_simulation.html">7. Simulation</a></li>
     <li><a class="dropdown-item" href="../articles/vig8_workflow.html">8. Bayesian Workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/vig9_covariates.html">9. Covariates</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -186,10 +187,11 @@ intercept and reduce the value of the remaining terms in
 the model with no effect on predicted rates and only a tiny
 effect on prior probabilities. This weak identifiability is
 typically harmless. However, in some applications, such as
-forecasting, or when trying to obtain interpretable values
+when trying to obtain interpretable values
 for main effects and interactions, it can be helpful to increase
-identifiability through the use of constraints.</p>
-<p>Current options for constraints are:</p><ul><li><p><code>"none"</code> No constraints. The default.</p></li>
+identifiability through the use of constraints, specified through the
+<code>con</code> argument.</p>
+<p>Current options for <code>con</code> are:</p><ul><li><p><code>"none"</code> No constraints. The default.</p></li>
 <li><p><code>"by"</code> Only used in interaction terms that include 'along' and
 'by' dimensions. Within each value of the 'along'
 dimension, terms across each 'by' dimension are constrained

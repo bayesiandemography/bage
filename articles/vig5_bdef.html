@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">bage</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,7 @@
     <li><a class="dropdown-item" href="../articles/vig6_mortality.html">6. Modelling Mortality</a></li>
     <li><a class="dropdown-item" href="../articles/vig7_simulation.html">7. Simulation</a></li>
     <li><a class="dropdown-item" href="../articles/vig8_workflow.html">8. Bayesian Workflow</a></li>
+    <li><a class="dropdown-item" href="../articles/vig9_covariates.html">9. Covariates</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -87,8 +88,6 @@
 <span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     rank</span></span>
-<span><span class="co">#&gt; Error in get(paste0(generic, ".", class), envir = get_method_env()) : </span></span>
-<span><span class="co">#&gt;   object 'type_sum.accel' not found</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span>, warn.conflicts <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
@@ -173,10 +172,10 @@
 <span><span class="co">#&gt;  disp: mean = 1</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  n_draw var_time optimizer</span></span>
-<span><span class="co">#&gt;    1000     time     multi</span></span>
+<span><span class="co">#&gt;    1000     time    nlminb</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  time_total time_optim time_report iter converged                    message</span></span>
-<span><span class="co">#&gt;        0.60       0.35        0.17   15      TRUE   relative convergence (4)</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.59       0.34        0.19   15      TRUE   relative convergence (4)</span></span></code></pre></div>
 </div>
 <div class="section level3" number="2.3">
 <h3 id="extracting-parameter-estimates">
@@ -192,12 +191,12 @@
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Stockholm  <span style="text-decoration: underline;">1</span>995  <span style="text-decoration: underline;">22</span>626     96   0.004<span style="text-decoration: underline;">24</span> 0.0038 (0.0033, 0.0044)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Stockholm  <span style="text-decoration: underline;">1</span>996  <span style="text-decoration: underline;">21</span>354     74   0.003<span style="text-decoration: underline;">47</span>   0.0035 (0.003, 0.004)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0028, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span>  0.0034 (0.0029, 0.004)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0027, 0.0037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span> 0.0034 (0.0029, 0.0039)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Stockholm  <span style="text-decoration: underline;">1</span>999  <span style="text-decoration: underline;">20</span>863     68   0.003<span style="text-decoration: underline;">26</span> 0.0032 (0.0027, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stockholm  <span style="text-decoration: underline;">2</span>000  <span style="text-decoration: underline;">21</span>837     75   0.003<span style="text-decoration: underline;">43</span> 0.0032 (0.0028, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0027, 0.0036)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span>  0.003 (0.0025, 0.0034)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0026, 0.0036)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span> 0.0029 (0.0025, 0.0034)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67   0.002<span style="text-decoration: underline;">68</span> 0.0028 (0.0024, 0.0032)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span>  0.0026 (0.0022, 0.003)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 431 more rows</span></span></span>
@@ -212,12 +211,12 @@
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Stockholm  <span style="text-decoration: underline;">1</span>995  <span style="text-decoration: underline;">22</span>626     96   0.004<span style="text-decoration: underline;">24</span> 0.0038 (0.0033, 0.0044)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Stockholm  <span style="text-decoration: underline;">1</span>996  <span style="text-decoration: underline;">21</span>354     74   0.003<span style="text-decoration: underline;">47</span>   0.0035 (0.003, 0.004)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0028, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span>  0.0034 (0.0029, 0.004)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0027, 0.0037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span> 0.0034 (0.0029, 0.0039)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Stockholm  <span style="text-decoration: underline;">1</span>999  <span style="text-decoration: underline;">20</span>863     68   0.003<span style="text-decoration: underline;">26</span> 0.0032 (0.0027, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stockholm  <span style="text-decoration: underline;">2</span>000  <span style="text-decoration: underline;">21</span>837     75   0.003<span style="text-decoration: underline;">43</span> 0.0032 (0.0028, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0027, 0.0036)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span>  0.003 (0.0025, 0.0034)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0026, 0.0036)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span> 0.0029 (0.0025, 0.0034)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67   0.002<span style="text-decoration: underline;">68</span> 0.0028 (0.0024, 0.0032)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span>  0.0026 (0.0022, 0.003)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 431 more rows</span></span></span>
@@ -405,12 +404,12 @@
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;rdbl&lt;1000&gt;&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> Stockholm  <span style="text-decoration: underline;">1</span>995  <span style="text-decoration: underline;">22</span>626     96   0.004<span style="text-decoration: underline;">24</span> 0.0038 (0.0033, 0.0044)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> Stockholm  <span style="text-decoration: underline;">1</span>996  <span style="text-decoration: underline;">21</span>354     74   0.003<span style="text-decoration: underline;">47</span>   0.0035 (0.003, 0.004)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0028, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span>  0.0034 (0.0029, 0.004)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> Stockholm  <span style="text-decoration: underline;">1</span>997  <span style="text-decoration: underline;">20</span>646     62   0.003<span style="text-decoration: underline;">00</span> 0.0032 (0.0027, 0.0037)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> Stockholm  <span style="text-decoration: underline;">1</span>998  <span style="text-decoration: underline;">20</span>815     81   0.003<span style="text-decoration: underline;">89</span> 0.0034 (0.0029, 0.0039)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> Stockholm  <span style="text-decoration: underline;">1</span>999  <span style="text-decoration: underline;">20</span>863     68   0.003<span style="text-decoration: underline;">26</span> 0.0032 (0.0027, 0.0036)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> Stockholm  <span style="text-decoration: underline;">2</span>000  <span style="text-decoration: underline;">21</span>837     75   0.003<span style="text-decoration: underline;">43</span> 0.0032 (0.0028, 0.0037)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0027, 0.0036)</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span>  0.003 (0.0025, 0.0034)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> Stockholm  <span style="text-decoration: underline;">2</span>001  <span style="text-decoration: underline;">22</span>622     68   0.003<span style="text-decoration: underline;">01</span> 0.0031 (0.0026, 0.0036)</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> Stockholm  <span style="text-decoration: underline;">2</span>002  <span style="text-decoration: underline;">24</span>084     70   0.002<span style="text-decoration: underline;">91</span> 0.0029 (0.0025, 0.0034)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> Stockholm  <span style="text-decoration: underline;">2</span>003  <span style="text-decoration: underline;">25</span>028     67   0.002<span style="text-decoration: underline;">68</span> 0.0028 (0.0024, 0.0032)</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> Stockholm  <span style="text-decoration: underline;">2</span>004  <span style="text-decoration: underline;">25</span>779     64   0.002<span style="text-decoration: underline;">48</span>  0.0026 (0.0022, 0.003)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 641 more rows</span></span></span>

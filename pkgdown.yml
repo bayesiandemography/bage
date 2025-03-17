@@ -10,7 +10,8 @@ articles:
   vig6_mortality: vig6_mortality.html
   vig7_simulation: vig7_simulation.html
   vig8_workflow: vig8_workflow.html
-last_built: 2025-01-07T08:24Z
+  vig9_covariates: vig9_covariates.html
+last_built: 2025-03-17T09:11Z
 urls:
   reference: https://bayesiandemography.github.io/bage/reference
   article: https://bayesiandemography.github.io/bage/articles
