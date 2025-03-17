@@ -20,7 +20,8 @@ test_that("'draw_vals_and_record' works", {
                       DLL = "bage",
                       random = random,
                       silent = TRUE)
-  out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map)
+  out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map,
+                        is_test_nonconv = FALSE)
   est_prec <- extract_est_prec(f = out$f, has_random_effects = TRUE)
   ans <- draw_vals_and_record(mod = mod, est = est_prec$est, prec = est_prec$prec, map = map)
   expect_identical(ncol(ans$draws_effectfree), 1000L)
@@ -49,7 +50,8 @@ test_that("'extract_est_prec' works", {
                       DLL = "bage",
                       random = random,
                       silent = TRUE)
-  out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map)
+  out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map,
+                        is_test_nonconv = FALSE)
   ans <- extract_est_prec(f = out$f, has_random_effects = TRUE)
   expect_setequal(names(ans), c("est", "prec"))
 })
@@ -532,7 +534,6 @@ test_that("'make_fit_times' works", {
 
 ## 'optimize_adfun' -----------------------------------------------------------
 
-## can't figure out how to stop it from converging!
 test_that("'optimize_adfun' works - converges", {
   set.seed(10)
   data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
@@ -553,10 +554,39 @@ test_that("'optimize_adfun' works - converges", {
                       random = random,
                       silent = TRUE)
   ans <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi",
-                        data = data, random = random, map = map)
+                        data = data, random = random, map = map,
+                        is_test_nonconv = FALSE)
   expect_setequal(names(ans), c("f", "iter", "message", "converged", "optimizer"))
   expect_true(ans$converged)
 })
+
+test_that("'optimize_adfun' works - does not converge", {
+  set.seed(10)
+  data <- expand.grid(age = 0:4, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- round(runif(n = nrow(data), max = 1000000))
+  formula <- deaths ~ age * sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  data <- make_fit_data(mod, aggregate = FALSE)
+  parameters <- make_fit_parameters(mod)
+  map <- make_fit_map(mod)
+  random <- make_fit_random(mod)
+  f <- TMB::MakeADFun(data = data,
+                      parameters = parameters,
+                      map = map,
+                      DLL = "bage",
+                      random = random,
+                      silent = TRUE)
+  ans <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi",
+                        data = data, random = random, map = map,
+                        is_test_nonconv = TRUE)
+  expect_setequal(names(ans), c("f", "iter", "message", "converged", "optimizer"))
+  expect_identical(ans$optimizer, "nlminb+BFGS")
+  expect_true(ans$converged)
+})
+
 
 test_that("'optimize_adfun' throws correct error when optimizer invalid ", {
   set.seed(10)
@@ -579,7 +609,8 @@ test_that("'optimize_adfun' throws correct error when optimizer invalid ", {
                       random = random,
                       silent = TRUE)
   expect_error(optimize_adfun(f = f, quiet = TRUE, optimizer = "wrong",
-                              data = data, random = random, map = map),
+                              data = data, random = random, map = map,
+                              is_test_nonconv = FALSE),
                "Internal error: \"wrong\" is not a valid value for `optimizer`.")
 })
 
@@ -687,7 +718,8 @@ test_that("'draw_vals_and_record' works", {
                       DLL = "bage",
                       random = random,
                       silent = TRUE)
-  out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map)
+  out <- optimize_adfun(f = f, quiet = TRUE, optimizer = "multi", random = random, map = map,
+                        is_test_nonconv = FALSE)
   est_prec <- extract_est_prec(f = out$f, has_random_effects = TRUE)
   mod <- draw_vals_and_record(mod = mod, est = est_prec$est, prec = est_prec$prec, map = map)
   times <- make_fit_times(t_start = Sys.time(),

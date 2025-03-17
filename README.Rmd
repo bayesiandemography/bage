@@ -29,8 +29,7 @@ Fast Bayesian estimation and forecasting of age-specific rates.
 ## Installation
 
 ``` r
-install.packages("bage") ## CRAN version
-devtools::install_github("bayesiandemography/bage") ## development version
+install.packages("bage")
 ```
 
 ## Example

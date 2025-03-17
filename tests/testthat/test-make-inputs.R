@@ -1208,7 +1208,7 @@ test_that("'make_matrix_covariates' works with valid inputs - all numeric", {
     expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'make_matrix_covariates' works with valid inputs - not all numeric", {
+test_that("'make_matrix_covariates' works with valid inputs - not all numeric - has intercept", {
     set.seed(0)
     data <- expand.grid(age = 0:9,
                         region = c("a", "b"),
@@ -1224,6 +1224,24 @@ test_that("'make_matrix_covariates' works with valid inputs - not all numeric", 
     rownames(ans_expected) <- NULL
     expect_identical(ans_obtained, ans_expected)
 })
+
+test_that("'make_matrix_covariates' works with valid inputs - not all numeric - no intercept", {
+    set.seed(0)
+    data <- expand.grid(age = 0:9,
+                        region = c("a", "b"),
+                        sex = c("F", "M"))
+    data$popn <- rpois(n = nrow(data), lambda = 100)
+    data$deaths <- rpois(n = nrow(data), lambda = 10)
+    data$income <- runif(n = nrow(data))
+    formula <- ~ income * region - 1
+    ans_obtained <- make_matrix_covariates(formula = formula, data = data)
+    data_scaled <- data
+    data_scaled$income <- scale(data_scaled$income)
+    ans_expected <- model.matrix(~income*region, data = data_scaled)[,-1]
+    rownames(ans_expected) <- NULL
+    expect_identical(ans_obtained, ans_expected)
+})
+
 
 
 ## 'make_offset' --------------------------------------------------------------

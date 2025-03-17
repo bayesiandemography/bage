@@ -716,6 +716,26 @@ test_that("'make_data_forecast_newdata' works", {
   expect_identical(ans_obtained, newdata)
 })
 
+test_that("'make_data_forecast_newdata' works with covariates", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$deaths <- rpois(n = nrow(data), lambda = 100)
+  data$exposure <- 100
+  data$unused <- 33
+  data$income <- data$age  + 1
+  formula <- deaths ~ age * sex + sex * time
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = exposure)
+  mod <- set_n_draw(mod, n = 10)
+  mod <- set_covariates(mod, ~ income)
+  newdata <- make_data_forecast_labels(mod = mod,
+                                       labels_forecast = 2006:2008)
+  ans_obtained <- make_data_forecast_newdata(mod = mod, newdata = newdata)
+  expect_identical(ans_obtained, newdata)
+})
+
+
 test_that("'make_data_forecast_newdata' raises correct error with variables missing", {
   set.seed(0)
   data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))

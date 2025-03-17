@@ -35,7 +35,7 @@ values are generated four four random seeds:
 \item \code{seed_forecast_augment}
 }
 
-When \code{\link[=fit]{fit()}}, \code{\link[=component]{component()}}, \code{\link[=augment]{augment()}},
+When \code{\link[=fit]{fit()}}, \code{\link[=components]{components()}}, \code{\link[=augment]{augment()}},
 and \code{\link[=forecast]{forecast()}} are called on the model object,
 the seeds are used internally to ensure that
 he same inputs generate the same outputs, even

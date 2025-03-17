@@ -1,5 +1,5 @@
 
-# bage 0.10.0
+# bage 0.9.1
 
 ## Changes to interface
 
@@ -9,6 +9,17 @@
   covariates can be formed from these dimensions.
 * Added variables `gdp_pc_2023` and `dens_2020` to dataset
   `kor_births`.
+* Added `prt_deaths` dataset.
+* Added `set_seeds()` function, allowing users to reset random seeds
+  (though this would be uncommon in normal use.)
+
+## Changes to documentation
+
+* Added covariates vignette.
+  
+## Changes to internal calculations
+
+* More careful handling of `NA`s in offset and predictor variables.
   
   
 # bage 0.9.0

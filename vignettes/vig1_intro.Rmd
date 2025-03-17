@@ -7,6 +7,8 @@ output:
     toc: true
     toc_depth: 2
     number_sections: true
+pkgdown:
+  as_is: true
 vignette: >
   %\VignetteIndexEntry{1. Overview}
   %\VignetteEngine{knitr::rmarkdown}
@@ -24,32 +26,34 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-**bage** (= "Bayesian" + "age") implements Bayesian hierarchical models for rates, probabilities, and means, where the rates, probabilities and means are classified by variables such as age, sex, and region. Models in **bage** can be used for estimation and for forecasting. 
+**bage** (= "Bayesian" + "age") implements Bayesian hierarchical models for rates, probabilities, and means. The rates, probabilities, and means are cross-classified by variables such as age, sex, region, and time. Models in **bage** can be used for estimation and for forecasting. 
 
-The models in **bage** are hierarchical in that they are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time. 
+**bage** models are built out of smaller submodels. A model for mortality rates, for instance, might contain submodels describing how rates vary over age, sex, and time. 
 
-Internally, **bage** draws on package [TMB](https://CRAN.R-project.org/package=TMB) to fit the models. **TMB** is fast and can handle large datasets -- characteristics that are inherited by **bage**.
+Internally, **bage** draws on package [TMB](https://CRAN.R-project.org/package=TMB) for fitting. **TMB** is fast and can handle large datasets.
 
-This vignette introduces the main features of **bage**, using data on injuries.
+This vignette introduces the main features of **bage**, using data on injuries as a case study.
 
 
 # Preliminaries
 
 ## Packages
 
-We begin by loading the packages that we will need for the analysis of the injuries data. Loading **bage** automatically loads package **rvec**, which contains functions for  working with draws from probability distributions. Package **poputils** contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](https://www.tidyverse.org) packages for manipulating data. We use **ggplot2** to graph inputs and outputs.
+We begin by loading the packages that we will need for analysing the injuries data. Loading **bage** automatically loads package **rvec**, which contains functions for working with draws from probability distributions. Package **poputils** contains functions for working with demographic data. Packages **dplyr** and **tidyr** are core [tidyverse](https://www.tidyverse.org) packages for manipulating data. We use **ggplot2** for graphics.
 
 ```{r setup}
-library(bage)
-library(poputils)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
+suppressPackageStartupMessages({
+  library(bage)
+  library(poputils)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+})
 ```
 
 ## Data
 
-We analyse a dataset called `nzl_injuries` that is included in the **bage** package. The dataset contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
+We analyse a dataset called `nzl_injuries`. The dataset is included in **bage**. It contains counts of fatal injuries and population in New Zealand, classified by age, sex, ethnicity, and year.
 
 ```{r}
 head(nzl_injuries)
@@ -70,9 +74,7 @@ nzl_injuries |>
 
 ## Functions for specifying models
 
-We specify a model in which, within each combination of age, sex, ethnicity, and year, injuries are treated as a random draw from a Poisson distribution. The function used to specify a Poisson model is `mod_pois()`. Binomial models can be specified with function `mod_binom()` and normal models with function `mod_norm()`.
-
-The first argument to `mod_pois()` is an R-style formula identifying the outcome variable and the combinations of predictor variables to be used in the model. 
+We specify a model where counts of injuries are treated as a random draws from Poisson distributions. The expected number of injuries varies with different combinations of age, sex, ethnicity, and year.
 
 ```{r}
 mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
@@ -80,11 +82,14 @@ mod <- mod_pois(injuries ~ age * sex + age * ethnicity + year,
                 exposure = popn)
 ```
 
+Binomial models are specified with function `mod_binom()` and normal models with function `mod_norm()`.
+
+
 ## Model structure
 
 The resulting model has the following structure:
 
-```{r, echo=FALSE, out.width="90%", fig.cap = "Structure of model. Rectangles denote data, ellipses denote unknown quantities that are inferred within the model, solid arrows denote probabilistic relationships, and dashed arrows denote deterministic relationships."}
+```{r, echo=FALSE, out.width="90%"}
 knitr::include_graphics("vig1_dag.png")
 ```
 
@@ -126,11 +131,15 @@ mod
 
 Among other things, a new row appears at the bottom of the printout, providing information about the fitting process. The most important value piece of information is whether the calculations have converged.
 
+One thing the printout does not include is estimates for the model parameters. The reason for excluding them is that there are too many. Statistical models in other R packages often focus on one or two key parameters, such a parameter measuring a treatment effect. In contrast, models in **bage** often estimate values for thousands, or tens of thousands, of parameters.
+
+To obtain the estimates from a fitted model, we need specialised extractor functions, which we discuss next.
+
 # Extracting outputs {#sec:outputs}
 
 ## Extractor functions
 
-Function `fit()` derives values for the unknown quantities, but does not return these quantities. For that, we need an extractor function. The two most important extractor functions in **bage** are `augment()` and `components()`. Both of these are generic functions that work on many sorts of R objects (see [here](https://generics.r-lib.org/index.html) and [here](https://www.tidymodels.org/learn/develop/broom/#glossary)).
+The two most important extractor functions in **bage** are `augment()` and `components()`. Both of these are generic functions that work on many sorts of R objects (see [here](https://generics.r-lib.org/index.html) and [here](https://www.tidymodels.org/learn/develop/broom/#glossary)).
 
 ## augment()
 
@@ -142,7 +151,7 @@ aug <- mod |>
 aug
 ```
 
-The columns of estimated values are `.observed`, `.fitted`, and `.expected`.
+The additional columns are `.observed`, `.fitted`, and `.expected`.
 
 ```{r}
 aug |>
@@ -165,7 +174,7 @@ comp <- mod |>
 comp
 ```
 
-A little bit of manipulation is required to extract and graph the parameter of interest,
+The output from `components()` may require a bit of tidying,
 
 ```{r}
 age_effect <- comp |>
@@ -177,11 +186,11 @@ age_effect
 
 ## Posterior samples
 
-The output from a Bayesian model typically consists of draws from the "posterior distribution" for unknown quantities. The posterior distribution is a probability distribution that describes what we know about the unknown quantities in the model after applying our combining model assumptions (including priors) and data.
+The output from a Bayesian model is draws from the "posterior distribution" for unknown quantities. The posterior distribution is a probability distribution that describes what is implied about the unknown quantities in the model after the combining model assumptions (including priors) and the data.
 
 ## Rvecs
 
-Draws from probability distributions can be awkward to work with, so **bage** uses a special type of vector, called an "rvec", implemented by package **rvec**. An rvec contains multiple draws, but tries to behave as much as possible like a standard numerical vector. The printout of `.fitted` and `.expected` in the `aug` object above shows medians and 95\% credible intervals.
+Draws from probability distributions can be awkward to work with, so **bage** uses a special type of vector called an "rvec", implemented by package **rvec**. An rvec contains multiple draws, but tries to behave as much as possible like a standard vector. The printout of `.fitted` and `.expected` in the `aug` object above shows medians and 95\% credible intervals.
 
 ## Graphing outputs
 
@@ -195,7 +204,7 @@ data_plot |>
   select(starts_with(".fitted"))
 ```
 
-We then use `ggplot()` to visualise the outputs. In the figure below we use use `geom_ribbon()` to plot credible intervals, `geom_line()` to plot model-based point estimates, and `geom_point()` to plot direct estimates.
+We then use `ggplot()` to visualise the outputs. A good way to display **bage** output is to use `geom_ribbon()` to plot credible intervals, `geom_line()` to plot model-based point estimates, and `geom_point()` to plot direct estimates.
 
 ```{r}
 ggplot(data_plot, aes(x = age_mid(age))) +
@@ -214,13 +223,13 @@ ggplot(data_plot, aes(x = age_mid(age))) +
 
 ## Priors in Bayesian models
 
-In a Bayesian model, every unknown quantity needs a prior distribution. When the data provides lots of information on the value of an unknown quantity, the particular choice of prior distribution for that quantity does not normally have much effect on the ultimate estimates for the quantity. But when the data provides only limited information, different priors can lead to very different estimates. The choice of prior is particularly important when forecasting, since the data provides provides only indirect information about events in the future.
+In a Bayesian model, every parameter needs to be assigned a prior distribution. When the data provides abundant information about the parameter, the particular choice of prior distribution usually has little effect on the ultimate estimates for the parameter. But when the data provides only limited information, different priors can lead to very different estimates. The choice of prior is particularly important when forecasting, since the data provides provides only indirect information about the future.
 
 ## Current priors in bage
 
-`help(priors)` produces a list of the priors that have been implemented so far in **bage**. 
+`help(priors)` produces a list of priors that have been implemented in **bage**. 
 
-Examples of priors are:
+Some examples:
 
 - `NFix()`. Each element of the term being modeled is drawn from a normal distribution with mean `0`, and standard deviation `sd`. By default, `sd` is 1.
 - `N()`. Like `NFix()`, but `sd` is estimated from the data.
@@ -258,7 +267,7 @@ mod <- mod |>
 
 ## SVD-based priors
 
-**bage** implements a special type of prior based on applying a singular value decomposition (SVD) to data from international databases. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted `n_par_free`) for `age` and `age:time` in the printout below is much less than the total number of parameters (denoted `n_par`) for `age` and `age:time`.
+**bage** implements a special type of prior based on applying a singular value decomposition (SVD) to data from an international database. These SVD-based priors represent the age-sex patterns in demographic processes such as fertility, mortality, and labor force participation in a parsimonious way. The model below, for instance, uses SVD-based priors for age effects and age-time interactions in a model of regional fertility rates in Korea. Note that the number of free parameters (denoted `n_par_free`) for `age` and `age:time` in the printout below is much less than the total number of parameters (denoted `n_par`) for `age` and `age:time`.
 
 ```{r}
 mod_births <- mod_pois(births ~ age * region + age * time,
@@ -270,10 +279,20 @@ mod_births <- mod_pois(births ~ age * region + age * time,
 mod_births
 ```
 
+# Covariates
+
+The main predictors in a **bage** model are the variables, such as age and sex, that are used to classify the outcome. However, **bage** does allow additional variables in `data` to be used as predictors. We refer to these additional variables as covariates, and we add them to a model using function `set_covariates()`:
+
+```{r}
+mod_pois(births ~ age * region + age * time,
+         data = kor_births,
+         exposure = popn) |>
+  set_covariates(~ gdp_pc_2023 + dens_2020)
+```
 
 # Forecasting
 
-Forecasts can be constructed by calling function `forecast()` on a model object. When `output` is `"augment"` (the default), `forecast()` produces values like those produced by `augment()`.
+Forecasts can be constructed by calling function `forecast()` on a model object. When the `output` argument of `forecast()` is `"augment"` (the default), `forecast()` produces values like those produced by `augment()`.
 
 ```{r}
 aug_forecast <- mod |>
@@ -281,7 +300,7 @@ aug_forecast <- mod |>
 names(aug_forecast)
 ```
 
-When `output` is `"components"`, `forecast()` produces values like those produced by `components()`.
+When the `output` argument is `"components"`, `forecast()` produces values like those produced by `components()`.
 
 ```{r}
 comp_forecast <- mod |>
@@ -290,7 +309,7 @@ comp_forecast <- mod |>
 comp_forecast
 ```
 
-When `include_estimates` is `TRUE`, the return value includes historical estimates. This is useful for plotting.
+When the argument `include_estimates` is `TRUE`, the return value includes historical estimates. This is useful for plotting.
 
 ```{r}
 data_forecast <- mod |>
@@ -360,6 +379,8 @@ ggplot(data_plot_mis, aes(x = year)) +
   xlab("age")
 ```
 
+If the value for exposure, size, or weights is missing, then the associated row from `data` is omitted from the likelihood, and no imputations for that row are made. Missing values for classifying variables are skipped over in the same way.
+
 
 # Data models
 
@@ -415,7 +436,7 @@ ggplot(sex_ratio, aes(x = year, y = ratio)) +
 
 ## Simulation studies
 
-A simulation study, where we create the data ourselves, and hence know what the underlying true values are, can be a useful way of assessing model performance. In the example below, we use function `report_sim()` to perform a simple simulation study where the true population is generated using a first-order random walk, but the estimation model assumes that the population is generated using a second-order random walk.
+A simulation study, where we create the data ourselves and hence know the true values for the parameters, can be a useful way of assessing model performance. In the example below, we use function `report_sim()` to perform a simple simulation study where the true population is generated using a first-order random walk, but the estimation model assumes that the population is generated using a second-order random walk.
 
 ```{r}
 set.seed(0)
@@ -456,9 +477,8 @@ mod |>
 
 ## Future features
 
-**bage** is a new package, and still under very active development. Some features that we intend to add are:
+**bage** is a new package, and still under very active development. Some features that are next on the list are:
 
-- **Covariates** The ability to add covariates as predictors in a model, eg data on regional incomes in a model of regional mortality.
 - **Data models** Additional data models, eg models that allow for under-reporting of events, or errors in the exposure variable.
 - **Priors** More options for priors, eg a damped linear trend.
 - **Sets of priors** Pre-specified collections of priors for specific purposes such as modelling fertility rates
@@ -467,7 +487,7 @@ mod |>
 
 ## Experimental status
 
-**bage** currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the **bage** interface, such as function arguments, are still evolving. From version 0.9.0 onwards, however, we will use a formal deprecation process to manage any changes to existing function arguments or defaults.
+**bage** currently has an [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) life cycle badge, to warn users that some features of the **bage** interface, such as function arguments, are still evolving. We hope to graduate from experimental status during 2025.
 
 ## Bug reports and feature requests
 

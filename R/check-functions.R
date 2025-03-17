@@ -757,12 +757,12 @@ check_offset_nonneg <- function(nm_offset_data, nm_offset_mod, data) {
 #' @noRd 
 check_old_version <- function(x, nm_x) {
   check_bage_mod(x = x, nm_x = nm_x)
-  is_old_version <- !("draws_hyperrandfree" %in% names(x))
+  nms <- names(x)
+  is_old_version <- (!("draws_hyperrandfree" %in% nms) ||
+                       ("seed_stored_draws" %in% nms))
   if (is_old_version) {
     cli::cli_abort(c("{.arg {nm_x}} appears to have been created with an old version of {.pkg bage}.",
-                     i = "Please recreate the object using the current version.",
-                     i = paste("Alternatively, install the old version using, for instance,",
-                               '{.code devtools::install_version("bage", version = "0.7.4")}')))
+                     i = "Please recreate the object using the current version."))
   }
   invisible(TRUE)
 }
