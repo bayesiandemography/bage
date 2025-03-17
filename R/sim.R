@@ -1319,16 +1319,9 @@ vals_disp_to_dataframe <- function(vals_disp) {
 #' @noRd
 vals_covariates_to_dataframe <- function(vals_covariates) {
   nms <- names(vals_covariates)
-  is_shrinkage <- identical(nms, c("sd_global", "sd_local", "coef"))
-  is_nonshrinkage <- identical(nms, "coef")
-  if (!is_shrinkage && !is_nonshrinkage)
-    cli::cli_abort("Internal error: Invalid names for {.arg vals_covariates}}.")
   nrow <- vapply(vals_covariates, nrow, 0L)
   term <- rep("covariates", times = sum(nrow))
-  if (is_shrinkage)
-    component <- rep(c("hyper", "hyper", "coef"), times = nrow)
-  else
-    component <- rep("coef", times = sum(nrow))
+  component <- rep("coef", times = sum(nrow))
   level <- lapply(vals_covariates, rownames)
   level <- unlist(level, use.names = FALSE)
   .fitted <- do.call(rbind, vals_covariates)

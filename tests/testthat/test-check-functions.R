@@ -907,11 +907,15 @@ test_that("'check_old_version' raises error with invalid version", {
   mod <- mod_pois(formula = formula,
                   data = data,
                   exposure = popn)
-  mod$draws_hyperrandfree <- NULL
-  expect_error(check_old_version(mod, nm_x = "object"),
+  mod_no_hyper <- mod
+  mod_no_hyper$draws_hyperrandfree <- NULL
+  expect_error(check_old_version(mod_no_hyper, nm_x = "object"),
+               "`object` appears to have been created with an old version of bage.")
+  mod_has_stored <- mod
+  mod_has_stored$seed_stored_draws <- 1
+  expect_error(check_old_version(mod_has_stored, nm_x = "object"),
                "`object` appears to have been created with an old version of bage.")
 })
-
 
 
 ## 'check_resp_le_offset' -----------------------------------------------------

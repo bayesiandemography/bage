@@ -1335,12 +1335,6 @@ test_that("'vals_covariates_to_dataframe' works", {
   expect_identical(ans_obtained, ans_expected)
 })
 
-test_that("'vals_covariates_to_dataframe' throws error with invalid input", {
-  vals <- list(wrong = 1)
-  expect_error(vals_covariates_to_dataframe(vals),
-               "Internal error: Invalid names for `vals_covariates`.")
-})
-
 
 ## 'vals_disp_to_dataframe' ---------------------------------------------------
 

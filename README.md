@@ -19,8 +19,7 @@ Fast Bayesian estimation and forecasting of age-specific rates.
 ## Installation
 
 ``` r
-install.packages("bage") ## CRAN version
-devtools::install_github("bayesiandemography/bage") ## development version
+install.packages("bage")
 ```
 
 ## Example
@@ -50,10 +49,10 @@ mod
 #>  disp: mean = 1
 #> 
 #>  n_draw var_time var_age var_sexgender optimizer
-#>    1000     year     age           sex     multi
+#>    1000     year     age           sex    nlminb
 #> 
 #>  time_total time_optim time_report iter converged                    message
-#>        0.49       0.07        0.06   11      TRUE   relative convergence (4)
+#>        1.69       0.70        0.57   11      TRUE   relative convergence (4)
 ```
 
 Extract model-based and direct estimates

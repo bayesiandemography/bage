@@ -99,7 +99,8 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                                   optimizer = optimizer,
                                   data = data,
                                   random = random,
-                                  map = map)
+                                  map = map,
+                                  is_test_nonconv = FALSE)
   t_report <- Sys.time()
   est_prec <- extract_est_prec(f = optimizer_out$f,
                                has_random_effects = has_random_effects)
@@ -394,6 +395,8 @@ make_fit_times <- function(t_start, t_optim, t_report, t_end) {
 #' @param data Named list of fixed inputs
 #' @param random Named list of terms to be treated as random effects
 #' @param map Named list of terms to be held fixed
+#' @param is_test_nonconv Whether the function is being called as part of a
+#' unit test
 #'
 #' @returns A named list with 'f' and information
 #' on the optimization.
@@ -404,10 +407,11 @@ optimize_adfun <- function(f,
                            optimizer,
                            data,
                            random,
-                           map) {
+                           map,
+                           is_test_nonconv) {
   if (optimizer == "multi") {
     out <- optimize_nlminb(f = f, quiet = quiet)
-    if (!out$converged) {
+    if (!out$converged || is_test_nonconv) {
       f_new <- make_f_new(f_old = f,
                           data = data,
                           quiet = quiet,

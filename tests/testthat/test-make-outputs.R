@@ -2101,6 +2101,28 @@ test_that("'make_linpred_from_stored_draws' works with valid inputs - point is T
   expect_equal(ans_obtained, ans_expected)
 })
 
+test_that("'make_linpred_from_stored_draws' works with valid inputs - has covariaes", {
+  set.seed(0)
+  data <- expand.grid(age = 0:9, time = 2000:2005, sex = c("F", "M"))
+  data$popn <- rpois(n = nrow(data), lambda = 100)
+  data$deaths <- rpois(n = nrow(data), lambda = 10)
+  data$income <- rnorm(n = nrow(data))
+  formula <- deaths ~ age + sex
+  mod <- mod_pois(formula = formula,
+                  data = data,
+                  exposure = popn)
+  mod <- set_n_draw(mod, n_draw = 10L)
+  mod <- set_covariates(mod, ~ income)
+  mod <- fit(mod)
+  ans_obtained <- make_linpred_from_stored_draws(mod, point = TRUE)
+  m1 <- make_combined_matrix_effect_outcome(mod)
+  m2 <- make_combined_matrix_effectfree_effect(mod)
+  mc <- make_matrix_covariates(~income, data)
+  ans_expected <- as.double(m1 %*% m2 %*% mod$point_effectfree) +
+    as.double(mod$point_coef_covariates * mc)
+  expect_equal(ans_obtained, ans_expected)
+})
+
 
 ## 'make_linpred_from_stored_draws_covariates' --------------------------------
 
