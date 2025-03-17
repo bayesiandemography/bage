@@ -277,7 +277,9 @@ If the prior includes sum-to-zero constraints, means are subtracted from the for
 ### Code
 
 ```
-RW(s = 1, along = NULL, con = c("none", "by"))
+RW(s = 1,
+   along = NULL,
+   con = c("none", "by"))
 ```
 
 - `s` is $A_{\tau}^{(m)}$. Defaults to 1.
@@ -322,7 +324,11 @@ If the prior includes sum-to-zero constraints, means are subtracted from the for
 ### Code
 
 ```
-RW2(s = 1, sd = 1, sd_slope = 1, along = NULL, con = c("none", "by"))
+RW2(s = 1,
+    sd = 1,
+    sd_slope = 1,
+    along = NULL,
+    con = c("none", "by"))
 ```
 
 - `s` is $A_{\tau}^{(m)}$
@@ -363,7 +369,9 @@ Terms with an `RW2_Infant()` prior cannot be forecasted.
 ### Code
 
 ```
-RW2_Infant(s = 1, sd_slope = 1, con = c("none", "by"))
+RW2_Infant(s = 1,
+           sd_slope = 1,
+	   con = c("none", "by"))
 ```
 
 - `s` is $A_{\tau}^{(m)}$
@@ -401,13 +409,11 @@ When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 
 ### Contribution to posterior density
 
-\begin{equation}
-\begin{split}
-  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \\
-  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}\left(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 \right) \prod_{v=2}^{V_m} \text{N}\left(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 \right) \prod_{v=1}^{S_m-1}  \text{N}\left(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2\right) \\
+\begin{align}
+  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2}) \notag \\
+  \quad \times & \prod_{u=1}^{U_m} \left( \text{N}\left(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 \right) \prod_{v=2}^{V_m} \text{N}\left(\alpha_{u,v}^{(m)} \mid \alpha_{u,v-1}^{(m)}, \tau_m^2 \right) \prod_{v=1}^{S_m-1}  \text{N}\left(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2\right) \notag \\
   \prod_{v > S_m, \; (v-1) \bmod S_m \neq 0}^{V_m} \text{N}\left(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2\right) \right)
-\end{split}
-\end{equation}
+\end{align}
 
 ### Forecasting
 
@@ -420,7 +426,13 @@ When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 ### Code
 
 ```
-RW_Seas(n_seas, s = 1, sd = 1, s_seas = 0, sd_seas = 1, along = NULL, con = c("none", "by"))
+RW_Seas(n_seas,
+        s = 1,
+	sd = 1,
+	s_seas = 0,
+	sd_seas = 1,
+	along = NULL,
+	con = c("none", "by"))
 ```
 
 - `n_seas` is $S_m$
@@ -459,14 +471,12 @@ When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 ### Contribution to posterior density
 
 \begin{equation}
-\begin{split}
-  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2})  \\
+  & \text{N}(\tau_m \mid 0, A_{\tau}^{(m)2}) \text{N}(\omega_m \mid 0, A_{\omega}^{(m)2})  \notag \\
   \quad \times & \prod_{u=1}^{U_m} \left( \text{N}(\alpha_{u,1}^{(m)} \mid 0, (A_0^{(m)})^2 )
 \text{N}(\alpha_{u,2}^{(m)} \mid \alpha_{u,1}^{(m)}, (A_{\eta}^{(m)})^2 )
-\prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 )  \\
+\prod_{v=3}^{V_m} \text{N}(\alpha_{u,v}^{(m)} \mid 2 \alpha_{u,v-1}^{(m)} - \alpha_{u,v-2}^{(m)}, \tau_m^2 ) \notag  \\
   \prod_{v=1}^{S_m-1}  \text{N}(\lambda_{u,v}^{(m)} \mid 0, (A_{\lambda}^{(m)})^2)
   \prod_{v > S_m, (v-1) \bmod S_m \neq 0}^{V_m} \text{N}(\lambda_{u,v}^{(m)} \mid \lambda_{u,v-S_m}^{(m)}, \omega_m^2) \right)
-  \end{split}
 \end{equation}
 
 ### Forecasting
@@ -480,7 +490,14 @@ When $U_m > 1$, constraints (Section \@ref(sec:constraints)) can be applied.
 ### Code
 
 ```
-RW2_Seas(n_seas, s = 1, sd = 1, sd_slope = 1, s_seas = 0, sd_seas = 1, along = NULL, con = c("none", "by"))
+RW2_Seas(n_seas,
+         s = 1,
+	 sd = 1,
+	 sd_slope = 1,
+	 s_seas = 0,
+	 sd_seas = 1,
+	 along = NULL,
+	 con = c("none", "by"))
 ```
 
 - `n_seas` is $S_m$
@@ -628,13 +645,18 @@ Note that $\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0$.
 ### Code
 
 ```
-Lin(s = 1, mean_slop = 0, sd_slope = 1, along = NULL, con = c("none", "by"))
+Lin(s = 1,
+    mean_slope = 0,
+    sd_slope = 1,
+    along = NULL,
+    con = c("none", "by"))
 ```
 
 - `s` is $A_{\tau}^{(m)}$
 - `mean_slope` is $B_{\eta}^{(m)}$
 - `sd_slope` is $A_{\eta}^{(m)}$
 - `along` is used to indentify 'along' and 'by' dimensions
+- if `con` is `"by"`, sum-to-zero constraints are applied
 
 
 ## Lin_AR() {#sec:pr-lin-ar}
@@ -664,12 +686,10 @@ Each of the individual $\phi_k^{(m)}$ has prior
 
 ### Contribution to posterior density
 
-\begin{equation}
-\begin{split}
-  & \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \prod_{k=1}^{K_m} \text{Beta}\left( \tfrac{1}{2} \phi_k^{(m)} + \tfrac{1}{2} \mid S_1^{(m)}, S_2^{(m)} \right) \\
+\begin{align}
+  & \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \prod_{k=1}^{K_m} \text{Beta}\left( \tfrac{1}{2} \phi_k^{(m)} + \tfrac{1}{2} \mid S_1^{(m)}, S_2^{(m)} \right) \notag \\
   & \quad \times \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right) 
-\end{split}
-\end{equation}
+\end{align}
 where $p\left( \epsilon_{u,1}^{(m)}, \cdots, \epsilon_{u,V_m}^{(m)} \mid \phi_1^{(m)}, \cdots, \phi_{K_m}^{(m)}, \tau_m \right)$ is calculated internally by TMB.
 
 ### Forecasting
@@ -725,12 +745,10 @@ Note that $\sum_{v=1}^{V_m} \alpha_{u,v}^{(m)} = 0$.
 
 ### Contribution to posterior density
 
-\begin{equation}
-\begin{split}
-  & \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \\
+\begin{align}
+  & \text{N}^+\left(\tau_m \mid 0, A_{\tau}^{(m)2} \right)  \text{Beta}( \phi_m^{\prime} \mid S_1^{(m)}, S_2^{(m)}) \notag \\
   & \quad \times \prod_{u=1}^{U_m} \text{N}(\eta_u^{(m)} \mid 0, A_{\eta}^{(m)2}) \text{N}\left(\epsilon_{u,1}^{(m)} \mid 0, \tau_m^2 \right)  \prod_{v=2}^{V_m} \text{N}\left(\epsilon_{u,v}^{(m)} \mid \phi_m \epsilon_{u,v-1}^{(m)}, (1 - \phi_m^2) \tau_m^2 \right)  
-\end{split}
-\end{equation}
+\end{align}
 
 ### Forecasting
 
@@ -796,7 +814,8 @@ Terms with a `Sp()` prior cannot be forecasted.
 ### Code
 
 ```
-Sp(n = NULL, s = 1)
+Sp(n = NULL,
+   s = 1)
 ```
 
 - `n` is $K_m$. Defaults to $\max(0.7 J_m, 4)$.
