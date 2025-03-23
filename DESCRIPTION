@@ -27,7 +27,7 @@ Imports:
     Matrix,
     methods,
     parallel,
-    poputils (>= 0.3.3),
+    poputils (>= 0.3.4),
     sparseMVN,
     stats,
     tibble,
