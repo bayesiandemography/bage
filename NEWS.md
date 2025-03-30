@@ -1,4 +1,15 @@
 
+
+# bage 0.9.2
+
+## Bug fixes
+
+* Fixed bug introducted when `fit_default()` refactored in 0.9.1. Bug
+  meant that when optimizer switched from `nlminb()` to `optim()` on
+  non-convergence, `optim()` was not starting from old parameter
+  values.
+  
+
 # bage 0.9.1
 
 ## Changes to interface
