@@ -256,8 +256,8 @@ components.bage_mod <- function(object,
 #' @returns A [tibble][tibble::tibble-package] with the following
 #' variables:
 #' - `time_total` Seconds used for whole fitting process.
-#' - `time_optim` Seconds used for optimisiation.
-#' - `time_report` Seconds used by function [TMB::sdreport()].
+#' - `time_max` Seconds used for optimisiation.
+#' - `time_draw` Seconds used by function [TMB::sdreport()].
 #' - `iter` Number of iterations required for optimization.
 #' - `message` Message about convergence returned by optimizer.
 #'
@@ -319,10 +319,14 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   inv_transform <- get_fun_inv_transform(mod)
   has_disp <- has_disp(mod)
   if (has_disp) {
+    if (is_not_testing_or_snapshot())
+      cli::cli_progress_message("Drawing {.var .expected}...")
     expected <- inv_transform(linpred)
     disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
+    if (is_not_testing_or_snapshot())
+      cli::cli_progress_message("Drawing {.var .fitted}...")
     ans$.fitted <- make_par_disp(x = mod,
                                  meanpar = expected,
                                  disp = disp)
@@ -337,6 +341,10 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
   has_datamod_outcome <- !is.null(datamod_outcome)
   if (outcome_has_na || has_datamod_outcome) {
     fitted <- ans$.fitted
+    nm_outcome_data <- get_nm_outcome_data(mod)
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
+    if (is_not_testing_or_snapshot())
+      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...")
     seed_restore <- make_seed() ## create randomly-generated seed
     set.seed(seed_augment) ## set pre-determined seed
     outcome_true <- draw_vals_outcome_true(datamod = datamod_outcome,
@@ -346,8 +354,6 @@ draw_vals_augment_fitted.bage_mod <- function(mod) {
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-    nm_outcome_data <- get_nm_outcome_data(mod)
-    nm_outcome_data_true <- paste0(".", nm_outcome_data)
     ans <- insert_after(df = ans,
                         nm_after = nm_outcome_data,
                         x = outcome_true,
@@ -368,12 +374,17 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
   ans <- mod$data
   linpred <- make_linpred_from_stored_draws(mod = mod, point = FALSE)
   scale_outcome <- get_fun_scale_outcome(mod)
+  if (is_not_testing_or_snapshot())
+      cli::cli_progress_message("Drawing {.var .fitted}...")
   .fitted <- scale_outcome(linpred)
   ans$.fitted <- .fitted
   outcome_has_na <- anyNA(outcome)
   has_datamod_outcome <- !is.null(datamod_outcome)
   if (outcome_has_na || has_datamod_outcome) {
     nm_outcome_data <- get_nm_outcome_data(mod)
+    nm_outcome_data_true <- paste0(".", nm_outcome_data)
+    if (is_not_testing_or_snapshot())
+      cli::cli_progress_message("Drawing {.var {nm_outcome_data_true}}...")
     outcome_obs <- ans[[nm_outcome_data]]
     disp <- get_disp(mod)
     seed_restore <- make_seed() ## create randomly-generated seed
@@ -385,7 +396,6 @@ draw_vals_augment_fitted.bage_mod_norm <- function(mod) {
                                            disp = disp,
                                            offset = offset)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
-    nm_outcome_data_true <- paste0(".", nm_outcome_data)
     ans <- insert_after(df = ans,
                         nm_after = nm_outcome_data,
                         x = outcome_true,
@@ -850,6 +860,8 @@ forecast.bage_mod <- function(object,
     cli::cli_abort(c("Can't forecast when time variable not identified.",
                      i = "Use {.fun set_var_time} to identify time variable?"))
   check_along_is_time(object)
+  if (is_not_testing_or_snapshot())
+    cli::cli_progress_message("{.fun components} for past values...")
   comp_est <- components(object)
   has_newdata <- !is.null(newdata)
   has_labels <- !is.null(labels)
@@ -866,6 +878,8 @@ forecast.bage_mod <- function(object,
   if (has_labels)
     data_forecast <- make_data_forecast_labels(mod = object, labels_forecast = labels)
   seed_forecast_components <- object$seed_forecast_components
+  if (is_not_testing_or_snapshot())
+    cli::cli_progress_message("{.fun components} for future values...")
   seed_restore <- make_seed() ## create randomly-generated seed
   set.seed(seed_forecast_components) ## set pre-determined seed
   comp_forecast <- forecast_components(mod = object,
@@ -878,6 +892,8 @@ forecast.bage_mod <- function(object,
                                                     time_only = FALSE)
   if (output == "augment") {
     comp_comb <- vctrs::vec_rbind(comp_est, comp_forecast)
+    if (is_not_testing_or_snapshot())
+      cli::cli_progress_message("{.fun augment} for future values...")
     linpred_forecast <- make_linpred_from_components(mod = object,
                                                      components = comp_comb,
                                                      data = data_forecast,
@@ -890,6 +906,8 @@ forecast.bage_mod <- function(object,
                             linpred_forecast = linpred_forecast)
     set.seed(seed_restore) ## set randomly-generated seed, to restore randomness
     if (include_estimates) {
+      if (is_not_testing_or_snapshot())
+        cli::cli_progress_message("{.fun augment} for past values...")
       augment_est <- augment(object)
       ans <- vctrs::vec_rbind(augment_est, ans)
     }
@@ -1843,8 +1861,8 @@ print.bage_mod <- function(x, ...) {
   if (is_fitted) {
     computations <- as.data.frame(computations)
     computations$time_total <- sprintf("%0.2f", computations$time_total)
-    computations$time_optim <- sprintf("%0.2f",computations$time_optim)
-    computations$time_report <- sprintf("%0.2f",computations$time_report)
+    computations$time_max <- sprintf("%0.2f",computations$time_max)
+    computations$time_draw <- sprintf("%0.2f",computations$time_draw)
     computations$message <- paste0("  ", computations$message)
   }
   is_inner_outer <- is_fitted && !is.null(vars_inner)

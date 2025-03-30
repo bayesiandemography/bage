@@ -75,6 +75,8 @@ extract_est_prec <- function(f, has_random_effects) {
 #' @noRd
 fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
   t_start <- Sys.time()
+  if (is_not_testing_or_snapshot())
+    cli::cli_progress_message("Building log-posterior function...")
   if (start_oldpar) {
     if (is_fitted(mod))
       oldpar <- mod$oldpar
@@ -94,6 +96,8 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                       random = random,
                       silent = TRUE)
   t_optim <- Sys.time()
+  if (is_not_testing_or_snapshot())
+    cli::cli_progress_message("Finding maximum...")
   optimizer_out <- optimize_adfun(f = f,
                                   quiet = quiet,
                                   optimizer = optimizer,
@@ -102,6 +106,8 @@ fit_default <- function(mod, aggregate, optimizer, quiet, start_oldpar) {
                                   map = map,
                                   is_test_nonconv = FALSE)
   t_report <- Sys.time()
+  if (is_not_testing_or_snapshot())
+    cli::cli_progress_message("Drawing values for hyper-parameters...")
   est_prec <- extract_est_prec(f = optimizer_out$f,
                                has_random_effects = has_random_effects)
   est <- est_prec$est
@@ -376,11 +382,11 @@ make_fit_random <- function(mod) {
 #' @noRd
 make_fit_times <- function(t_start, t_optim, t_report, t_end) {
   time_total <- as.numeric(difftime(t_end, t_start, units = "secs"))
-  time_optim <- as.numeric(difftime(t_report, t_optim, units = "secs"))
-  time_report <- as.numeric(difftime(t_end, t_report, units = "secs"))
+  time_max <- as.numeric(difftime(t_report, t_optim, units = "secs"))
+  time_draw <- as.numeric(difftime(t_end, t_report, units = "secs"))
   list(time_total = time_total,
-       time_optim = time_optim,
-       time_report = time_report)
+       time_max = time_max,
+       time_draw = time_draw)
 }
 
 
@@ -592,8 +598,8 @@ optimize_nlminb <- function(f, quiet) {
 #' @noRd
 record_metadata <- function(mod, est, optimizer, iter, converged, message, times) {
   mod$computations <- tibble::tibble(time_total = times$time_total,
-                                     time_optim = times$time_optim,
-                                     time_report = times$time_report,
+                                     time_max = times$time_max,
+                                     time_draw = times$time_draw,
                                      iter = iter,
                                      converged = converged,
                                      message = message)
