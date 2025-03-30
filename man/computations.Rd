@@ -14,8 +14,8 @@ A \link[tibble:tibble-package]{tibble} with the following
 variables:
 \itemize{
 \item \code{time_total} Seconds used for whole fitting process.
-\item \code{time_optim} Seconds used for optimisiation.
-\item \code{time_report} Seconds used by function \code{\link[TMB:sdreport]{TMB::sdreport()}}.
+\item \code{time_max} Seconds used for optimisiation.
+\item \code{time_draw} Seconds used by function \code{\link[TMB:sdreport]{TMB::sdreport()}}.
 \item \code{iter} Number of iterations required for optimization.
 \item \code{message} Message about convergence returned by optimizer.
 }

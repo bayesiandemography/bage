@@ -525,8 +525,8 @@ test_that("'make_fit_times' works", {
                         t_report = t_report,
                         t_end = t_end)
   ans_expected <- list(time_total = 55,
-                       time_optim = 25,
-                       time_report = 10)
+                       time_max = 25,
+                       time_draw = 10)
   expect_identical(ans_obtained, ans_expected)
 })  
 

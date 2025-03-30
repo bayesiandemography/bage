@@ -1,4 +1,5 @@
 
+
 ## 'augment' ---------------------------------------------------------------
 
 test_that("'augment' works with Poisson, disp - has data", {
@@ -943,7 +944,7 @@ test_that("'fit' and 'forecast' work with SVD_AR", {
                   data = data,
                   exposure = population) |>
                   set_prior(age:time ~ SVD_AR1(LFP))
-  mod <- suppressWarnings(fit(mod))
+  mod <- fit(mod)
   expect_true(is_fitted(mod))
   f <- forecast(mod, labels = 2011:2012)
   expect_setequal(c(names(f), ".deaths"),
