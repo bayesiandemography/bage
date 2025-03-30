@@ -412,6 +412,8 @@ optimize_adfun <- function(f,
   if (optimizer == "multi") {
     out <- optimize_nlminb(f = f, quiet = quiet)
     if (!out$converged || is_test_nonconv) {
+      iter_old <- out$iter
+      message_old <- out$message
       f_new <- make_f_new(f_old = f,
                           data = data,
                           quiet = quiet,
@@ -419,11 +421,10 @@ optimize_adfun <- function(f,
                           map = map,
                           optimizer_old = "nlminb",
                           optimizer_new = "BFGS")
-      out_extra <- optimize_bfgs(f = f, quiet = quiet)
-      out$f <- f_new
-      out$iter <- paste(out$iter, out_extra$iter, sep = "+")
-      out$message <- paste(out$message, out_extra$message, sep = "+")
-      out$converged <- out_extra$converged
+      out <- optimize_bfgs(f = f_new, quiet = quiet)
+      out$iter <- paste(iter_old, out$iter, sep = "+")
+      if (!is.null(message_old))
+        out$message <- paste(message_old, out$message, sep = "+")
       out$optimizer <- "nlminb+BFGS"
     }
   }
